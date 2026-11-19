@@ -115,6 +115,19 @@ const WorldMap = (() => {
     px(ctx, x - 4, y - 3, 9, 7, '#1b1420'); px(ctx, x - 3, y - 2, 7, 5, '#d9a441'); px(ctx, x, y - 1, 1, 2, '#1b1420');
   }
 
+  function drawCrown(ctx, x, y) {
+    px(ctx, x - 4, y - 5, 9, 6, '#1b1420');
+    px(ctx, x - 3, y - 2, 7, 2, '#f2c94c');
+    px(ctx, x - 3, y - 4, 1, 2, '#f2c94c'); px(ctx, x, y - 4, 1, 2, '#f2c94c'); px(ctx, x + 3, y - 4, 1, 2, '#f2c94c');
+    px(ctx, x, y - 2, 1, 1, '#d6455d');
+  }
+
+  function drawSkull(ctx, x, y) {
+    px(ctx, x - 4, y - 6, 9, 8, '#1b1420');
+    px(ctx, x - 3, y - 5, 7, 5, '#e8e4d8'); px(ctx, x - 2, y, 5, 1, '#e8e4d8');
+    px(ctx, x - 2, y - 3, 2, 2, '#1b1420'); px(ctx, x + 1, y - 3, 2, 2, '#1b1420');
+  }
+
   function drawFlag(ctx, x, y) {
     px(ctx, x, y - 9, 1, 9, '#1b1420');
     px(ctx, x + 1, y - 9, 5, 3, '#7a2430'); px(ctx, x + 2, y - 8, 2, 1, '#d6dde4');
@@ -129,6 +142,8 @@ const WorldMap = (() => {
       const [x, y] = REGIONS[k].pos;
       if (!Game.regionUnlocked(k)) drawLock(ctx, x, y);
       else if (s.outposts[k]) drawFlag(ctx, x + 6, y);
+      if (s.bossDefeated && s.bossDefeated[k]) drawCrown(ctx, x - 10, y - 4);
+      else if (s.quests.some((q) => q.boss === k) && Math.floor(now / 300) % 2) drawSkull(ctx, x - 10, y - 4);
     });
     // 선택 지역 테두리 (깜빡임)
     if (Math.floor(now / 400) % 2 === 0) {

@@ -357,3 +357,11 @@ h3 { font-size: 14px; margin: 8px 0; }
 .promo-card .btn { margin-top: auto; }
 .promo-portrait { width: 64px; height: 68px; }
 @media (max-width: 640px) { .promo-choices { grid-template-columns: 1fr; } }
+
+/* ───────── 보스 ───────── */
+.quest-card.boss { border-color: #b84a58; background: linear-gradient(180deg, #4a2028, var(--panel-2) 70px); }
+.boss-banner { background: #8f2d3a; color: #ffe0e0; }
+.dialog-portrait.boss { border-color: #b84a58; background: #2a1418; }
+.boss-row { padding: 4px 8px; }
+.boss-row.done { border-color: var(--accent); }
+.q-defense { background: #5a6a7a; }

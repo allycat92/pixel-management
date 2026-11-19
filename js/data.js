@@ -50,6 +50,8 @@ const TRAITS = {
   shadow:    { name: '그림자 걸음', desc: '보상 금화 +25%', unique: true },
   berserker: { name: '광전사', desc: '전투력 +25%', unique: true },
   arcane:    { name: '마탑의 유산', desc: '전투력 +10%, 마법 조사에서 추가 +25%', unique: true },
+  captain:   { name: '선장의 호령', desc: '파티 사기 하락 없음, 보상 금화 +15%', unique: true },
+  commander: { name: '지휘', desc: '파티 전원 전투력 +8%', unique: true },
 };
 const TRAIT_POOL = ['brave', 'coward', 'sturdy', 'lucky', 'greedy', 'genius', 'lazy', 'diligent', 'none', 'none'];
 
@@ -81,6 +83,10 @@ const QUEST_TYPES = {
     name: '마법 조사', icon: 'orb', weights: { str: 0.3, dex: 0.6, int: 1.5, hp: 0.06 },
     titles: ['{p}의 저주 해제', '{p} 마력 이상 조사', '{p} 봉인 강화', '{p}의 유령 퇴마'],
   },
+  defense: {
+    name: '방어', icon: 'shield', weights: { str: 1.1, dex: 0.6, int: 0.7, hp: 0.3 },
+    titles: ['{p} 방어전', '{e}의 습격 저지', '{p} 성벽 수비', '{p} 피난민 보호'],
+  },
 };
 
 const FACILITIES = {
@@ -98,8 +104,8 @@ const RANKS = [
   { name: 'D', rep: 180 },
   { name: 'C', rep: 400 },
   { name: 'B', rep: 750 },
-  { name: 'A', rep: 1250 },
-  { name: 'S', rep: 2000 },
+  { name: 'A', rep: 1350 },
+  { name: 'S', rep: 2500 },
 ];
 
 const RANDOM_EVENTS = [

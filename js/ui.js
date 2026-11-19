@@ -229,8 +229,9 @@ const UI = (() => {
     const s = Game.state;
     const idle = s.mercs.filter((m) => m.status === 'idle');
     const story = q.story ? HEROES[q.story.hero] : null;
-    return el('div', { class: `card quest-card ${story ? 'story' : ''}` },
+    return el('div', { class: `card quest-card ${story ? 'story' : ''} ${q.boss ? 'boss' : ''}` },
       story ? el('div', { class: 'story-banner' }, `★ ${story.name}의 이야기 ${q.story.ch + 1}장`) : null,
+      q.boss ? el('div', { class: 'story-banner boss-banner' }, `☠ 보스 · ${BOSSES[q.boss].name}`) : null,
       el('div', { class: 'card-head' },
         el('div', { class: 'quest-icon' }, Sprites.clone(Sprites.monster(q.enemy, 3, 0), 'monster')),
         el('div', { class: 'card-title' },
@@ -243,7 +244,7 @@ const UI = (() => {
         el('div', {}, icon('star'), ` 명성 +${q.rep}`),
         el('div', { text: `권장 전투력 ${q.req}` }),
         el('div', { text: `소요 ${q.days}일 · 최대 ${q.maxParty}명` }),
-        el('div', { class: 'muted', text: story ? '마감 없음' : `마감까지 ${q.expires - s.day}일` })),
+        el('div', { class: 'muted', text: story || q.boss ? '마감 없음' : `마감까지 ${q.expires - s.day}일` })),
       el('div', { class: 'card-foot' },
         el('span', { class: 'muted small', text: story ? `${story.name} 필수` : weightHint(q.type) }),
         el('button', { class: 'btn', text: '파견', disabled: idle.length ? null : 'disabled', onclick: () => openDispatch(q) })));
@@ -348,6 +349,17 @@ const UI = (() => {
     refresh();
   }
 
+  function bossInfo(key) {
+    const s = Game.state, b = BOSSES[key];
+    const clears = s.regionClears[key] || 0;
+    const status = s.bossDefeated[key] ? '토벌 완료 · 지역 평정 (보상 +10%)'
+      : s.quests.some((q) => q.boss === key) || s.missions.some((mi) => mi.quest.boss === key) ? '출현 중! 의뢰 게시판을 확인하세요'
+        : `이 지역 의뢰 ${Math.min(clears, b.clears)}/${b.clears}회 성공 시 출현`;
+    return el('div', { class: `row boss-row ${s.bossDefeated[key] ? 'done' : ''}` },
+      Sprites.clone(Sprites.monster(b.enemy, 2, 0), 'mini'),
+      el('div', { class: 'grow' }, el('div', { class: 'small bad', text: `보스: ${b.name}` }), el('div', { class: 'small muted', text: status })));
+  }
+
   // ───────── 탭: 지도 ─────────
   function renderMap(root) {
     const s = Game.state;
@@ -376,6 +388,7 @@ const UI = (() => {
         el('div', { class: 'enemy-list' }, r.enemies.map((e) => el('div', { class: 'enemy' },
           Sprites.clone(Sprites.monster(e, 2, 0), 'mini'), el('span', { class: 'small', text: e })))),
         outpost,
+        open && BOSSES[key] ? bossInfo(key) : null,
         away.length ? el('div', { class: 'small', text: `이 지역에서 의뢰 수행 중: ${away.map((mi) => mi.quest.title).join(', ')}` }) : null,
         open ? el('h3', { text: `게시된 의뢰 (${quests.length})` }) : null,
         open ? el('div', { class: 'list' }, quests.length ? quests.map((q) => el('div', { class: 'row' },
@@ -536,7 +549,7 @@ const UI = (() => {
     if (modalOpen || !s.pendingReports.length) return;
     const r = s.pendingReports.shift();
     Game.save();
-    if (r.special === 'dialog') return openDialog(r);
+    if (r.special === 'dialog' || r.special === 'notice') return openDialog(r);
     if (r.special) return openModal(specialReport(r), true);
     if (s.settings.battle) {
       openModal(Battle.play(r, () => openModal(missionReport(r), true)), true);
@@ -571,8 +584,10 @@ const UI = (() => {
 
   // 특별 용병 대화 (한 줄씩 타자기 효과)
   function openDialog(r) {
-    const h = HEROES[r.hero];
-    const look = { cls: h.cls, ...h.look };
+    const h = r.hero && HEROES[r.hero];
+    const portraitImg = h
+      ? Sprites.clone(Sprites.merc({ cls: h.cls, ...h.look, adv: h.adv }, 5, 0), 'big-portrait')
+      : Sprites.clone(Sprites.monster(r.enemy, 5, 0), 'big-portrait');
     let line = 0, timer = null, typing = false;
     const speaker = el('div', { class: 'dialog-speaker' });
     const text = el('div', { class: 'dialog-text' });
@@ -604,7 +619,7 @@ const UI = (() => {
     openModal(el('div', { class: 'dialog' },
       el('div', { class: 'dialog-title', text: r.title }),
       el('div', { class: 'dialog-body', onclick: (e) => { if (e.target !== next) advance(); } },
-        el('div', { class: 'dialog-portrait' }, Sprites.clone(Sprites.merc(look, 5, 0), 'big-portrait')),
+        el('div', { class: `dialog-portrait ${h ? '' : 'boss'}` }, portraitImg),
         el('div', { class: 'dialog-box' }, speaker, text)),
       footer,
       el('div', { class: 'modal-actions' }, next)), true);
@@ -613,14 +628,23 @@ const UI = (() => {
 
   function specialReport(r) {
     const s = Game.state;
-    const restart = el('button', { class: 'btn primary', text: '새 게임', onclick: () => { closeModal(); Game.clearSave(); Game.newGame(); Game.emit(); } });
+    const restart = el('button', { class: `btn ${s.over ? 'primary' : 'danger'}`, text: '새 게임', onclick: () => { closeModal(); Game.clearSave(); Game.newGame(); Game.emit(); } });
     if (r.special === 'win') {
       return el('div', { class: 'report' },
         el('div', { class: 'report-banner good great', text: 'S랭크 달성!' }),
         el('p', { text: `${s.day}일 만에 ${s.guildName}이(가) 대륙 최고의 용병단이 되었습니다!` }),
         el('p', { class: 'muted', text: `완수 ${s.stats.completed} · 실패 ${s.stats.failed} · 전사 ${s.stats.fallen}` }),
         el('p', { class: 'muted small', text: '계속 플레이하며 남은 이야기를 마저 볼 수도 있습니다.' }),
-        el('div', { class: 'modal-actions' }, restart, el('button', { class: 'btn', text: '계속하기', onclick: closeModal })));
+        el('div', { class: 'modal-actions' }, restart, el('button', { class: 'btn primary', text: '계속하기', onclick: closeModal })));
+    }
+    if (r.special === 'legend') {
+      return el('div', { class: 'report' },
+        el('div', { class: 'report-banner good great', text: '전설의 용병단' }),
+        el('div', { class: 'report-members' }, Object.values(BOSSES).map((b) => Sprites.clone(Sprites.monster(b.enemy, 2, 0), 'mini'))),
+        el('p', { text: `${s.day}일째, ${s.guildName}은(는) 대륙의 모든 재앙을 물리쳤습니다.` }),
+        el('p', { text: '음유시인들은 앞으로 수백 년 동안 은빛 늑대의 이야기를 노래할 것입니다.' }),
+        el('p', { class: 'muted', text: `완수 ${s.stats.completed} · 실패 ${s.stats.failed} · 전사 ${s.stats.fallen} · 명성 ${s.rep}` }),
+        el('div', { class: 'modal-actions' }, restart, el('button', { class: 'btn primary', text: '계속하기', onclick: closeModal })));
     }
     const msg = r.special === 'bankrupt' ? '빚더미에 올라앉은 용병단은 결국 해산되었습니다...' : '모든 단원을 잃고 재기할 자금도 없습니다...';
     return el('div', { class: 'report' },

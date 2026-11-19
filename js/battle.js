@@ -143,8 +143,8 @@ const Battle = (() => {
     const def = ENEMIES[q.enemy] || {};
     const count = def.big ? 1 : (q.level >= 4 ? 3 : 2);
     const enemies = Array.from({ length: count }, (_, i) => {
-      const scale = def.big ? 3 : 2;
-      const pos = def.big ? [186, 116] : E_POS[i];
+      const scale = def.boss ? 4 : def.big ? 3 : 2;
+      const pos = def.boss ? [190, 122] : def.big ? [186, 116] : E_POS[i];
       return { kind: 'e', name: q.enemy, scale, x: pos[0] - (16 * scale) / 2 + 8, y: pos[1], ox: 0, oy: 0, alpha: 1, flash: 0, frame: 0, hp: 1, hpShow: 1 };
     });
     const acts = buildScript(won, party, enemies);

@@ -29,7 +29,7 @@ const Game = {
       facilities: { dorm: 0, training: 0, infirmary: 0, tavern: 0, board: 0, forge: 0 },
       stats: { completed: 0, failed: 0, fallen: 0 },
       inventory: [], shop: [], herbs: 1,
-      heroes: {}, outposts: {},
+      heroes: {}, outposts: {}, regionClears: {}, bossDefeated: {},
       settings: { battle: true },
       pendingReports: [], over: null, won: false,
     };
@@ -66,6 +66,8 @@ const Game = {
     if (s.herbs == null) s.herbs = 1;
     s.heroes = s.heroes || {};
     s.outposts = s.outposts || {};
+    s.regionClears = s.regionClears || {};
+    s.bossDefeated = s.bossDefeated || {};
     s.settings = { battle: true, ...(s.settings || {}) };
     const fixMerc = (m) => {
       m.equip = m.equip || { weapon: null, armor: null, trinket: null };
@@ -157,6 +159,7 @@ const Game = {
     const g = CLASSES[h.cls].growth;
     m.name = h.name; m.hero = key; m.trait = h.trait; m.title = h.title;
     m.look = { cls: h.cls, ...h.look };
+    if (h.adv) this.applyPromotion(m, h.adv);
     // 특별 용병은 주력 능력치가 조금 더 높다
     const main = Object.keys(g).filter((k) => k !== 'hp').sort((a, b) => g[b] - g[a])[0];
     m[main] += 3; m.maxHp += 4;
@@ -494,6 +497,7 @@ const Game = {
 
   questEnemy(type, region, level) {
     if (type === 'magic') return MAGIC_ENEMIES[clamp(Math.floor((level - 1) / 2.5), 0, MAGIC_ENEMIES.length - 1)];
+    if (type === 'explore' && Math.random() < 0.12) return '미믹';
     return pick(REGIONS[region].enemies);
   },
 
@@ -515,7 +519,7 @@ const Game = {
     const days = Math.max(1, rand(1, 3) + (level > 4 ? 1 : 0) + reg.travel - (s.outposts[region] ? 1 : 0));
     const party = opts.party || Math.min(4, 2 + Math.floor(Math.random() * 3));
     const req = Math.round(24 * Math.pow(1.4, level - 1) * (0.9 + Math.random() * 0.2) * (0.8 + party * 0.1));
-    const rewardMul = (1 + s.facilities.board * 0.08) * (s.outposts[region] ? 1.15 : 1);
+    const rewardMul = (1 + s.facilities.board * 0.08) * (s.outposts[region] ? 1.15 : 1) * (s.bossDefeated[region] ? 1.1 : 1);
     return {
       id: s.nextId++, type, title, level, days, maxParty: party, req, region, enemy,
       reward: Math.round((35 + level * 28 + level * level * 6) * (0.85 + Math.random() * 0.3) * (1 + days * 0.15) * rewardMul),
@@ -671,6 +675,11 @@ const Game = {
       won ? 'good' : 'bad');
     s.pendingReports.push(report);
 
+    if (won) s.regionClears[q.region] = (s.regionClears[q.region] || 0) + 1;
+    if (q.boss) {
+      if (won) this.defeatBoss(q.boss);
+      else s.quests.unshift({ ...q, id: s.nextId++ });
+    }
     if (q.story) {
       if (won) this.completeStory(q.story);
       else if (!s.heroes[q.story.hero].dead) {
@@ -713,6 +722,38 @@ const Game = {
     });
   },
 
+  // ───────── 지역 보스 ─────────
+  checkBosses() {
+    const s = this.state;
+    Object.entries(BOSSES).forEach(([region, b]) => {
+      if (s.bossDefeated[region] || !this.regionUnlocked(region)) return;
+      if ((s.regionClears[region] || 0) < b.clears) return;
+      const posted = s.quests.some((q) => q.boss === region) || s.missions.some((mi) => mi.quest.boss === region);
+      if (posted) return;
+      const level = REGIONS[region].levels[1];
+      const q = this.makeQuest({ region, type: b.type, enemy: b.enemy, title: b.title, level, party: 4 });
+      q.boss = region;
+      q.req = Math.round(q.req * 1.3);
+      q.reward = Math.round(q.reward * 2.5);
+      q.rep = q.rep * 3;
+      q.expires = STORY_EXPIRES;
+      s.quests.unshift(q);
+      this.log(`보스 출현! ${REGIONS[region].name}에 「${b.name}」이(가) 나타났습니다.`, 'event');
+      s.pendingReports.push({ special: 'notice', enemy: b.enemy, title: `보스 출현: ${b.name}`, lines: [[null, b.intro]], foot: '의뢰 게시판에 보스 의뢰가 올라왔습니다. 마감은 없습니다.' });
+    });
+  },
+
+  defeatBoss(region) {
+    const s = this.state, b = BOSSES[region];
+    s.bossDefeated[region] = true;
+    const it = this.makeUniqueItem(b.reward);
+    s.inventory.push(it);
+    this.log(`「${b.name}」 토벌! ${REGIONS[region].name}을(를) 평정했습니다. 전설 장비 「${it.name}」 획득.`, 'good');
+    s.pendingReports.push({ special: 'notice', enemy: b.enemy, title: `${b.name} 토벌!`, lines: [[null, b.outro]],
+      foot: `전설 장비 「${it.name}」 획득 · ${REGIONS[region].name} 의뢰 보상 +10%` });
+    if (Object.keys(BOSSES).every((k) => s.bossDefeated[k])) s.pendingReports.push({ special: 'legend' });
+  },
+
   completeStory(story) {
     const s = this.state;
     const h = HEROES[story.hero], hs = s.heroes[story.hero];
@@ -732,6 +773,7 @@ const Game = {
     }
     if (rw.rep) { s.rep += rw.rep; gains.push(`명성 +${rw.rep}`); }
     if (rw.newTitle && m) { m.title = rw.newTitle; gains.push(`새 칭호 「${rw.newTitle}」`); }
+    if (rw.awaken && m) { m.awakened = true; gains.push(`${m.name} 각성 (전투력 +15%)`); }
     this.log(`${h.name}의 이야기 「${ch.title}」 완료! ${gains.join(', ')}`, 'good');
     s.pendingReports.push({ special: 'dialog', hero: story.hero, title: `${ch.title} - 완료`, lines: ch.after, foot: gains.join(' · ') });
   },
@@ -792,6 +834,7 @@ const Game = {
       }
     }
     this.checkHeroes();
+    this.checkBosses();
 
     // 파산 판정
     if (s.gold < -200) {
