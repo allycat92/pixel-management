@@ -102,7 +102,8 @@ const Sprites = (() => {
 
   // 용병 외형 → 픽셀 배열(색상 문자열)
   function mercPixels(look) {
-    const cls = CLASSES[look.cls];
+    const adv = look.adv && ADV_CLASSES[look.adv];
+    const cls = adv ? { ...CLASSES[look.cls], outfit: adv.outfit, accent: adv.accent } : CLASSES[look.cls];
     const px = BODY.map((r) => r.split(''));
     applyHeadgear(px, cls.headgear, cls);
     const pal = {
@@ -134,7 +135,7 @@ const Sprites = (() => {
   }
 
   function merc(look, scale = 1, frame = 0, flip = false) {
-    const key = `${look.cls}|${look.skin}|${look.hair}|${look.longHair}|${scale}|${frame}|${flip}`;
+    const key = `${look.cls}|${look.adv || ''}|${look.skin}|${look.hair}|${look.longHair}|${scale}|${frame}|${flip}`;
     if (cache.has(key)) return cache.get(key);
     const c = canvas(16 * scale, 17 * scale);
     const ctx = c.getContext('2d');

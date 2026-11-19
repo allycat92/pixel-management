@@ -8,6 +8,9 @@ const rand = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
 const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const STORY_EXPIRES = 99999;
+const FRIEND_REL = 30, RIVAL_REL = -20;
+// 함께 다니면 사이가 틀어지는 특성 조합
+const TRAIT_CLASH = [['brave', 'coward'], ['greedy', 'diligent'], ['genius', 'lazy']];
 
 const Game = {
   state: null,
@@ -64,7 +67,14 @@ const Game = {
     s.heroes = s.heroes || {};
     s.outposts = s.outposts || {};
     s.settings = { battle: true, ...(s.settings || {}) };
-    const fixMerc = (m) => { m.equip = m.equip || { weapon: null, armor: null, trinket: null }; m.bond = m.bond || 0; };
+    const fixMerc = (m) => {
+      m.equip = m.equip || { weapon: null, armor: null, trinket: null };
+      m.bond = m.bond || 0;
+      if (m.fatigue == null) m.fatigue = 0;
+      if (m.morale == null) m.morale = 65;
+      m.rel = m.rel || {};
+      if (m.lastQuest == null) m.lastQuest = s.day;
+    };
     s.mercs.forEach(fixMerc); s.recruits.forEach(fixMerc);
     const fixQuest = (q) => {
       q.region = q.region || 'plains';
@@ -133,6 +143,7 @@ const Game = {
       maxHp: c.base.hp + rand(-2, 4),
       trait: pick(TRAIT_POOL),
       status: 'idle', injury: 0, missionId: null, quests: 0, bond: 0,
+      fatigue: 0, morale: rand(60, 75), rel: {}, lastQuest: this.state ? this.state.day : 1,
       equip: { weapon: null, armor: null, trinket: null },
       look: { cls, skin: pick(SKIN_TONES), hair: pick(HAIR_COLORS), longHair: Math.random() < 0.4 },
     };
@@ -155,12 +166,79 @@ const Game = {
   expToNext(m) { return m.level * 60 + m.level * m.level * 6; },
 
   levelUp(m, silent) {
-    const g = CLASSES[m.cls].growth;
+    const g = { ...CLASSES[m.cls].growth };
+    const adv = m.adv && ADV_CLASSES[m.adv];
+    if (adv) Object.entries(adv.growth).forEach(([k, v]) => { g[k] = (g[k] || 0) + v; });
     const roll = (v) => Math.floor(v) + (Math.random() < v % 1 ? 1 : 0);
     m.level++;
     m.str += roll(g.str); m.dex += roll(g.dex); m.int += roll(g.int);
     m.maxHp += roll(g.hp) + rand(0, 2);
-    if (!silent) this.log(`${m.name}이(가) 레벨 ${m.level}이 되었습니다!`, 'good');
+    if (!silent) {
+      this.changeMorale(m, 5);
+      this.log(`${m.name}이(가) 레벨 ${m.level}이 되었습니다!${this.canPromote(m) ? ' 전직할 수 있습니다!' : ''}`, 'good');
+    }
+  },
+
+  // ───────── 전직 ─────────
+  className(m) { return m.adv ? ADV_CLASSES[m.adv].name : CLASSES[m.cls].name; },
+  canPromote(m) { return !m.adv && m.level >= PROMOTE_LEVEL; },
+  promote(mercId, key) {
+    const s = this.state;
+    const m = s.mercs.find((x) => x.id === mercId);
+    const opt = m && PROMOTIONS[m.cls].find((p) => p.key === key);
+    if (!m || !opt || !this.canPromote(m) || m.status === 'quest') return;
+    if (s.gold < PROMOTE_COST) return this.toast('금화가 부족합니다.');
+    s.gold -= PROMOTE_COST;
+    this.applyPromotion(m, key);
+    this.changeMorale(m, 10);
+    this.log(`${m.name}이(가) ${opt.name}(으)로 전직했습니다! 스킬 「${opt.skill}」 습득. (-${PROMOTE_COST} 금화)`, 'good');
+    this.emit();
+  },
+  applyPromotion(m, key) {
+    const opt = ADV_CLASSES[key];
+    m.adv = key;
+    m.look = { ...m.look, adv: key };
+    Object.entries(opt.bonus).forEach(([k, v]) => { m[k] += v; });
+  },
+
+  // ───────── 컨디션: 피로 / 사기 / 관계 ─────────
+  changeMorale(m, d) { m.morale = clamp(Math.round((m.morale ?? 65) + d), 0, 100); },
+  moraleState(m) {
+    if (m.morale >= 80) return { label: '의욕적', cls: 'm-high', mul: 1.1 };
+    if (m.morale >= 45) return { label: '보통', cls: 'm-mid', mul: 1 };
+    if (m.morale >= 25) return { label: '불만', cls: 'm-low', mul: 0.92 };
+    return { label: '절망', cls: 'm-worst', mul: 0.8 };
+  },
+  fatigueState(m) {
+    if (m.fatigue >= 80) return { label: '탈진', cls: 'f-worst', mul: 0.75 };
+    if (m.fatigue >= 50) return { label: '피곤', cls: 'f-tired', mul: 0.9 };
+    return { label: '양호', cls: 'f-fresh', mul: 1 };
+  },
+  rel(a, b) { return (a.rel && a.rel[b.id]) || 0; },
+  addRel(a, b, d) {
+    a.rel = a.rel || {}; b.rel = b.rel || {};
+    const v = clamp(this.rel(a, b) + d, -100, 100);
+    a.rel[b.id] = v; b.rel[a.id] = v;
+  },
+  friendsOf(m) { return this.state.mercs.filter((x) => x.id !== m.id && this.rel(m, x) >= FRIEND_REL); },
+  rivalsOf(m) { return this.state.mercs.filter((x) => x.id !== m.id && this.rel(m, x) <= RIVAL_REL); },
+  traitsClash(a, b) { return TRAIT_CLASH.some(([x, y]) => (a.trait === x && b.trait === y) || (a.trait === y && b.trait === x)); },
+
+  feastCost() { return 20 + 15 * this.state.mercs.filter((m) => m.status !== 'quest').length; },
+  feastReady() { return this.state.day - (this.state.lastFeast ?? -99) >= 7; },
+  feast() {
+    const s = this.state;
+    if (!this.feastReady()) return this.toast('연회는 일주일에 한 번만 열 수 있습니다.');
+    const cost = this.feastCost();
+    if (s.gold < cost) return this.toast('금화가 부족합니다.');
+    const present = s.mercs.filter((m) => m.status !== 'quest');
+    if (!present.length) return this.toast('연회에 참석할 단원이 없습니다.');
+    s.gold -= cost;
+    s.lastFeast = s.day;
+    present.forEach((m) => { this.changeMorale(m, 15); m.fatigue = Math.max(0, m.fatigue - 15); });
+    for (let i = 0; i < present.length; i++) for (let j = i + 1; j < present.length; j++) this.addRel(present[i], present[j], 4);
+    this.log(`길드 홀에서 연회를 열었습니다! 단원 ${present.length}명의 사기가 오르고 피로가 풀렸습니다. (-${cost} 금화)`, 'good');
+    this.emit();
   },
 
   // 레벨업 했으면 true
@@ -191,7 +269,8 @@ const Game = {
   },
   hireCost(m) { return this.wage(m) * (m.hero ? 4 : 3); },
 
-  power(m, type) {
+  // party를 넘기면 전우/불화/지휘 효과까지 반영
+  power(m, type, party) {
     const w = type ? QUEST_TYPES[type].weights : { str: 1, dex: 1, int: 1, hp: 0.1 };
     let p = this.eff(m, 'str') * w.str + this.eff(m, 'dex') * w.dex + this.eff(m, 'int') * w.int
       + this.eff(m, 'maxHp') * w.hp + m.level * 3;
@@ -199,7 +278,49 @@ const Game = {
     if (m.trait === 'coward') p *= 0.9;
     if (m.trait === 'berserker') p *= 1.25;
     if (m.trait === 'arcane') p *= type === 'magic' ? 1.35 : 1.1;
+    if (m.awakened) p *= 1.15;
+    // 직업 스킬 / 상급 직업 스킬
+    if (m.cls === 'mage' && type === 'magic') p *= 1.2;
+    const t = type;
+    if (m.adv === 'swordmaster' && (t === 'hunt' || t === 'defense')) p *= 1.3;
+    if (m.adv === 'ranger' && (t === 'explore' || t === 'escort')) p *= 1.25;
+    if (m.adv === 'elementalist' && (t === 'hunt' || t === 'magic')) p *= 1.3;
+    if (m.adv === 'battlepriest') p *= 1.2;
+    if (m.adv === 'assassin' && t === 'hunt') p *= 1.3;
+    // 컨디션
+    p *= this.moraleState(m).mul * this.fatigueState(m).mul;
+    if (party) {
+      const others = party.filter((x) => x.id !== m.id);
+      const friends = others.filter((x) => this.rel(m, x) >= FRIEND_REL).length;
+      const rivals = others.filter((x) => this.rel(m, x) <= RIVAL_REL).length;
+      p *= (1 + 0.08 * Math.min(friends, 2)) * Math.pow(0.9, rivals);
+      if (party.some((x) => x.trait === 'commander')) p *= 1.08;
+    }
     return Math.round(p);
+  },
+
+  // 파티 전체에 걸리는 직업·특성 효과
+  partyMods(party) {
+    const has = (f) => party.some(f);
+    const mods = { success: 0, injury: 1, death: 1, gold: 1, great: 1, greatGold: 1, days: 0, noDisaster: false, healHalf: false, loot: 0, noMoraleLoss: false };
+    if (has((m) => m.cls === 'warrior')) mods.injury *= 0.85;
+    if (has((m) => m.cls === 'archer')) mods.success += 0.04;
+    if (has((m) => m.cls === 'cleric')) { mods.injury *= 0.5; mods.death *= 0.35; }
+    mods.gold += party.filter((m) => m.cls === 'rogue').length * 0.12;
+    if (has((m) => m.trait === 'lucky')) mods.success += 0.05;
+    if (has((m) => m.trait === 'hawkeye')) mods.success += 0.08;
+    if (has((m) => m.trait === 'saint')) { mods.death = 0; mods.injury *= 0.7; }
+    if (has((m) => m.trait === 'greedy')) mods.gold += 0.1;
+    if (has((m) => m.trait === 'shadow')) mods.gold += 0.25;
+    if (has((m) => m.trait === 'captain')) { mods.gold += 0.15; mods.noMoraleLoss = true; }
+    if (has((m) => m.adv === 'paladin')) { mods.injury *= 0.7; mods.death *= 0.5; }
+    if (has((m) => m.adv === 'ranger')) mods.days -= 1;
+    if (has((m) => m.adv === 'sniper')) mods.great *= 2;
+    if (has((m) => m.adv === 'warder')) { mods.noDisaster = true; mods.injury *= 0.8; }
+    if (has((m) => m.adv === 'highpriest')) { mods.death = 0; mods.healHalf = true; }
+    if (has((m) => m.adv === 'assassin')) mods.greatGold += 0.3;
+    if (has((m) => m.adv === 'thief')) { mods.gold += 0.25; mods.loot = 0.25; }
+    return mods;
   },
 
   hire(id) {
@@ -414,7 +535,7 @@ const Game = {
     }
   },
 
-  partyPower(party, type) { return party.reduce((sum, m) => sum + this.power(m, type), 0); },
+  partyPower(party, type) { return party.reduce((sum, m) => sum + this.power(m, type, party), 0); },
 
   successChance(quest, party) {
     if (!party.length) return 0;
@@ -423,8 +544,7 @@ const Game = {
     // 직업 조합 보너스: 서로 다른 직업 수
     const kinds = new Set(party.map((m) => m.cls)).size;
     c += (kinds - 1) * 0.03;
-    if (party.some((m) => m.trait === 'lucky')) c += 0.05;
-    if (party.some((m) => m.trait === 'hawkeye')) c += 0.08;
+    c += this.partyMods(party).success;
     return clamp(c, 0.03, 0.97);
   },
 
@@ -434,17 +554,23 @@ const Game = {
     return !party.some((m) => m.hero === quest.story.hero);
   },
 
+  questDays(q, party) { return Math.max(1, q.days + (party.length ? this.partyMods(party).days : 0)); },
+
   dispatch(questId, mercIds) {
     const s = this.state;
     const q = s.quests.find((x) => x.id === questId);
     const party = mercIds.map((id) => s.mercs.find((m) => m.id === id)).filter((m) => m && m.status === 'idle');
     if (!q || !party.length || this.storyHeroMissing(q, party)) return;
     const chance = this.successChance(q, party);
+    const days = this.questDays(q, party);
     s.quests = s.quests.filter((x) => x.id !== questId);
-    const mission = { id: s.nextId++, quest: q, party: party.map((m) => m.id), startDay: s.day, returnDay: s.day + q.days, chance };
+    const mission = { id: s.nextId++, quest: q, party: party.map((m) => m.id), startDay: s.day, returnDay: s.day + days, chance };
     s.missions.push(mission);
-    party.forEach((m) => { m.status = 'quest'; m.missionId = mission.id; });
-    this.log(`[${q.title}] 의뢰에 ${party.map((m) => m.name).join(', ')} 파견. (${q.days}일 소요)`);
+    party.forEach((m) => {
+      m.status = 'quest'; m.missionId = mission.id; m.lastQuest = s.day;
+      m.fatigue = Math.min(100, m.fatigue + 10 + days * 8);
+    });
+    this.log(`[${q.title}] 의뢰에 ${party.map((m) => m.name).join(', ')} 파견. (${days}일 소요)`);
     this.emit();
   },
 
@@ -454,24 +580,25 @@ const Game = {
     const party = mission.party.map((id) => s.mercs.find((m) => m.id === id)).filter(Boolean);
     const roll = Math.random();
     const chance = mission.chance;
+    const mods = this.partyMods(party);
     let outcome;
-    if (roll < chance * 0.25) outcome = 'great';
+    if (roll < chance * 0.25 * mods.great) outcome = 'great';
     else if (roll < chance) outcome = 'success';
-    else if (roll > chance + (1 - chance) * 0.75 && chance < 0.6) outcome = 'disaster';
+    else if (roll > chance + (1 - chance) * 0.75 && chance < 0.6) outcome = mods.noDisaster ? 'fail' : 'disaster';
     else outcome = 'fail';
     const won = outcome === 'great' || outcome === 'success';
 
     const report = { quest: q, outcome, gold: 0, rep: 0, members: [] };
-    const hasCleric = party.some((m) => m.cls === 'cleric');
-    const hasSaint = party.some((m) => m.trait === 'saint');
-    const rogues = party.filter((m) => m.cls === 'rogue').length;
-    const greedy = party.some((m) => m.trait === 'greedy');
-    const shadow = party.some((m) => m.trait === 'shadow');
 
     if (won) {
-      let gold = q.reward * (outcome === 'great' ? 1.5 : 1);
-      gold *= 1 + rogues * 0.12 + (greedy ? 0.1 : 0) + (shadow ? 0.25 : 0);
+      const gold = q.reward * (outcome === 'great' ? 1.5 * mods.greatGold : 1) * mods.gold;
       report.gold = Math.round(gold);
+      if (Math.random() < mods.loot) {
+        const it = this.makeItem(pick(Object.keys(ITEM_BASES)), this.shopMaxTier());
+        s.inventory.push(it);
+        report.loot = it.name;
+        this.log(`보물 사냥! 「${it.name}」을(를) 손에 넣었습니다.`, 'good');
+      }
       report.rep = Math.round(q.rep * (outcome === 'great' ? 1.5 : 1));
       s.stats.completed++;
     } else {
@@ -491,9 +618,7 @@ const Game = {
       m.missionId = null; m.status = 'idle'; m.quests++;
       if (won && m.hero) m.bond++;
       // 사망 판정 (대실패 때만)
-      let deathChance = outcome === 'disaster' ? 0.3 : 0;
-      if (hasCleric) deathChance *= 0.35;
-      if (hasSaint) deathChance = 0;
+      let deathChance = (outcome === 'disaster' ? 0.3 : 0) * mods.death;
       if (m.trait === 'sturdy') deathChance *= 0.6;
       if (Math.random() < deathChance) {
         r.dead = true;
@@ -507,15 +632,38 @@ const Game = {
       }
       r.exp = Math.round(baseExp * expMul);
       r.levelUp = this.gainExp(m, r.exp);
-      let inj = injuryBase;
-      if (hasCleric) inj *= 0.5;
-      if (hasSaint) inj *= 0.7;
+      let inj = injuryBase * mods.injury;
       if (m.trait === 'sturdy' || m.trait === 'coward') inj *= 0.5;
+      if (m.fatigue >= 80) inj *= 1.5;
+      // 사기
+      const dm = { great: 6, success: 2, fail: -6, disaster: -12 }[outcome];
+      if (dm > 0 || !mods.noMoraleLoss) this.changeMorale(m, dm);
       if (Math.random() < inj) {
         r.injury = rand(2, 4) + (outcome === 'disaster' ? 2 : 0);
+        if (mods.healHalf) r.injury = Math.ceil(r.injury / 2);
         m.status = 'injured'; m.injury = r.injury;
       }
       report.members.push(r);
+    });
+
+    // 함께 다녀온 단원끼리 관계 변화, 전사자 애도
+    const survivors = party.filter((m) => s.mercs.includes(m));
+    for (let i = 0; i < survivors.length; i++) {
+      for (let j = i + 1; j < survivors.length; j++) {
+        const a = survivors[i], b = survivors[j];
+        const before = this.rel(a, b);
+        const d = this.traitsClash(a, b) ? -6 : (outcome === 'great' ? 8 : won ? 5 : 3);
+        this.addRel(a, b, d);
+        if (before < FRIEND_REL && this.rel(a, b) >= FRIEND_REL) this.log(`${a.name}와(과) ${b.name}이(가) 전우가 되었습니다! 함께 출격하면 전투력이 오릅니다.`, 'good');
+        if (before > RIVAL_REL && this.rel(a, b) <= RIVAL_REL) this.log(`${a.name}와(과) ${b.name}의 사이가 틀어졌습니다. 함께 보내면 전투력이 떨어집니다.`, 'bad');
+      }
+    }
+    report.members.filter((r) => r.dead).forEach((r) => {
+      s.mercs.forEach((m) => {
+        const grief = (m.rel && m.rel[r.id]) >= FRIEND_REL;
+        this.changeMorale(m, grief ? -25 : -8);
+        if (grief) this.log(`${m.name}이(가) 전우 ${r.name}의 죽음에 깊이 슬퍼합니다.`, 'bad');
+      });
     });
 
     const label = { great: '대성공', success: '성공', fail: '실패', disaster: '대실패' }[outcome];
@@ -603,6 +751,12 @@ const Game = {
     // 부상 회복 / 훈련
     const heal = 1 + s.facilities.infirmary * 0.5;
     s.mercs.forEach((m) => {
+      const idleDays = s.day - (m.lastQuest ?? s.day);
+      if (m.status !== 'quest') m.fatigue = Math.max(0, m.fatigue - (m.status === 'injured' ? 10 : 15 + s.facilities.dorm * 3));
+      if (m.status !== 'quest' && idleDays > 7) this.changeMorale(m, -2); // 너무 오래 놀면 지루해한다
+      else if (m.morale > 80) this.changeMorale(m, -2); // 들뜬 기분은 서서히 가라앉는다
+      else if (m.morale > 70) this.changeMorale(m, -1);
+      else if (m.morale < 55) this.changeMorale(m, 1);
       if (m.status === 'injured') {
         m.injury -= heal * (m.trait === 'sturdy' ? 1.5 : 1);
         if (m.injury <= 0) { m.injury = 0; m.status = 'idle'; this.log(`${m.name}이(가) 부상에서 회복했습니다.`); }
@@ -657,6 +811,7 @@ const Game = {
     const total = s.mercs.reduce((sum, m) => sum + this.wage(m), 0);
     if (s.gold >= total) {
       s.gold -= total;
+      s.mercs.forEach((m) => this.changeMorale(m, 3));
       this.log(`주급 정산: 단원 ${s.mercs.length}명에게 금화 ${total}을 지급했습니다.`);
     } else {
       // 돈이 모자라면 대기 중인 단원부터 떠나고, 남은 금액은 빚이 된다
@@ -673,6 +828,15 @@ const Game = {
       s.gold -= owed;
       this.log(`주급 정산: 금화 ${owed} 지급.${s.gold < 0 ? ' 용병단이 빚을 지고 있습니다!' : ''}`, s.gold < 0 ? 'bad' : '');
     }
+    // 사기가 바닥난 단원은 떠날 수 있다
+    s.mercs.filter((m) => m.status !== 'quest' && m.morale <= 15).forEach((m) => {
+      if (Math.random() < 0.4) {
+        this.returnEquipment(m);
+        s.mercs = s.mercs.filter((x) => x.id !== m.id);
+        if (m.hero) { s.heroes[m.hero].hired = false; m.status = 'idle'; m.injury = 0; m.morale = 50; s.recruits.unshift(m); }
+        this.log(`불만이 쌓인 ${m.name}이(가) 짐을 싸서 용병단을 떠났습니다!`, 'bad');
+      }
+    });
     this.refreshRecruits();
     this.refreshShop();
     this.log('주점에 새 지원자가, 상점에 새 물건이 들어왔습니다.');

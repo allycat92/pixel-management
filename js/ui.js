@@ -60,6 +60,33 @@ const UI = (() => {
     }));
   }
 
+  function skillLine(m) {
+    const base = CLASS_SKILLS[m.cls];
+    const adv = m.adv && ADV_CLASSES[m.adv];
+    return el('div', { class: 'skill-line small' },
+      el('span', { class: 'skill', title: base.desc, text: base.name }),
+      adv ? el('span', { class: 'skill adv', title: adv.desc, text: adv.skill }) : null,
+      m.awakened ? el('span', { class: 'skill awake', title: '각성: 전투력 +15%', text: '각성' }) : null);
+  }
+
+  function conditionLine(m) {
+    const ms = Game.moraleState(m), fs = Game.fatigueState(m);
+    return el('div', { class: 'cond-line small' },
+      el('span', { class: 'muted', text: '피로' }),
+      el('div', { class: 'bar thin cond-bar' }, el('div', { class: `bar-fill ${fs.cls}`, style: `width:${m.fatigue}%` })),
+      el('span', { class: `cond ${fs.cls}`, text: fs.label }),
+      el('span', { class: 'muted', text: '사기' }),
+      el('span', { class: `cond ${ms.cls}`, title: `사기 ${m.morale}/100`, text: `${ms.label} ${m.morale}` }));
+  }
+
+  function relationLine(m) {
+    const f = Game.friendsOf(m), r = Game.rivalsOf(m);
+    if (!f.length && !r.length) return null;
+    return el('div', { class: 'rel-line small' },
+      f.length ? el('span', { class: 'good', text: `전우: ${f.map((x) => x.name).join(', ')}` }) : null,
+      r.length ? el('span', { class: 'bad', text: `불화: ${r.map((x) => x.name).join(', ')}` }) : null);
+  }
+
   function mercCard(m, opts = {}) {
     const c = CLASSES[m.cls];
     const card = el('div', { class: `card merc-card ${m.status} ${m.hero ? 'hero' : ''}` },
@@ -67,10 +94,12 @@ const UI = (() => {
         el('div', { class: 'portrait-wrap' }, portrait(m.look)),
         el('div', { class: 'card-title' },
           el('div', { class: 'name' }, m.name, el('span', { class: 'lv', text: ` Lv.${m.level}` })),
-          el('div', { class: 'sub' }, el('span', { class: `cls cls-${m.cls}`, text: c.name }), ' ',
+          el('div', { class: 'sub' }, el('span', { class: `cls cls-${m.cls} ${m.adv ? 'adv' : ''}`, text: Game.className(m) }), ' ',
             el('span', { class: `trait ${TRAITS[m.trait].unique ? 'unique' : ''}`, title: TRAITS[m.trait].desc, text: TRAITS[m.trait].name })),
           opts.recruit ? null : statusLabel(m))),
       heroLine(m),
+      skillLine(m),
+      opts.recruit ? null : conditionLine(m),
       el('div', { class: 'stats' },
         statBar('힘', m.str, Game.equipBonus(m, 'str'), 40, 'f-str'),
         statBar('민첩', m.dex, Game.equipBonus(m, 'dex'), 40, 'f-dex'),
@@ -80,6 +109,7 @@ const UI = (() => {
         el('div', { class: 'bar thin' }, el('div', { class: 'bar-fill f-exp', style: `width:${(m.exp / Game.expToNext(m)) * 100}%` })),
         el('span', { text: `EXP ${m.exp}/${Game.expToNext(m)}` })),
       opts.recruit ? null : equipRow(m),
+      opts.recruit ? null : relationLine(m),
       el('div', { class: 'card-foot' },
         el('span', { class: 'muted', text: `주급 ${Game.wage(m)}` }),
         el('div', { class: 'btns' }, opts.actions || [])));
@@ -89,9 +119,15 @@ const UI = (() => {
   // ───────── 탭: 용병단 ─────────
   function renderRoster(root) {
     const s = Game.state;
+    const feastBtn = el('button', {
+      class: 'btn small', disabled: Game.feastReady() && s.gold >= Game.feastCost() ? null : 'disabled',
+      title: '대기 중인 단원 사기 +15, 피로 -15, 서로 친밀도 상승 (주 1회)', onclick: () => Game.feast(),
+    }, Game.feastReady() ? `🍖 연회 열기 (${Game.feastCost()})` : `연회 (${7 - (s.day - s.lastFeast)}일 후)`);
     root.append(el('div', { class: 'panel-head' },
       el('h2', { text: `단원 명부 (${s.mercs.length}/${Game.capacity()})` }),
-      el('span', { class: 'muted', text: `주급 합계 ${Game.weeklyWageTotal()} · 정산까지 ${Game.daysToPayday()}일 · 약초 ${s.herbs}개` })));
+      el('div', { class: 'row-inline' },
+        el('span', { class: 'muted', text: `주급 합계 ${Game.weeklyWageTotal()} · 정산까지 ${Game.daysToPayday()}일 · 약초 ${s.herbs}개` }),
+        feastBtn)));
     if (!s.mercs.length) root.append(el('p', { class: 'empty', text: '단원이 없습니다. 주점에서 용병을 고용하세요.' }));
     const grid = el('div', { class: 'grid' });
     s.mercs.forEach((m) => {
@@ -99,6 +135,9 @@ const UI = (() => {
       if (m.status === 'injured') {
         actions.push(el('button', { class: 'btn small', disabled: s.herbs > 0 ? null : 'disabled', title: '부상 3일 회복', onclick: () => Game.useHerb(m.id) },
           itemIcon('herb', 0), ` 약초`));
+      }
+      if (m.status !== 'quest' && Game.canPromote(m)) {
+        actions.push(el('button', { class: 'btn small primary', text: '전직', onclick: () => openPromote(m.id) }));
       }
       if (m.status !== 'quest') {
         actions.push(el('button', { class: 'btn small', text: '장비', onclick: () => openEquip(m.id) }));
@@ -124,6 +163,29 @@ const UI = (() => {
       });
       root.append(list);
     }
+  }
+
+  // ───────── 전직 창 ─────────
+  function openPromote(mercId) {
+    const s = Game.state;
+    const m = s.mercs.find((x) => x.id === mercId);
+    if (!m) return;
+    const statName = { str: '힘', dex: '민첩', int: '지력', maxHp: '체력' };
+    const choices = PROMOTIONS[m.cls].map((p) => el('div', { class: 'promo-card' },
+      el('div', { class: 'portrait-wrap' }, Sprites.clone(Sprites.merc({ ...m.look, adv: p.key }, 4, 0), 'promo-portrait')),
+      el('div', { class: 'name', text: p.name }),
+      el('div', { class: 'skill adv', text: `스킬: ${p.skill}` }),
+      el('div', { class: 'small', text: p.desc }),
+      el('div', { class: 'small good', text: `즉시 ${Object.entries(p.bonus).map(([k, v]) => `${statName[k]}+${v}`).join(' ')}` }),
+      el('button', {
+        class: 'btn primary small', disabled: s.gold < PROMOTE_COST ? 'disabled' : null,
+        onclick: () => { closeModal(); Game.promote(m.id, p.key); },
+      }, icon('coin'), ` ${PROMOTE_COST} 전직`)));
+    openModal(el('div', {},
+      el('h2', {}, Sprites.clone(Sprites.merc(m.look, 2, 0), 'mini'), ` ${m.name}의 전직`),
+      el('p', { class: 'muted small', text: `전직은 되돌릴 수 없습니다. 기존 스킬 「${CLASS_SKILLS[m.cls].name}」은 유지됩니다.` }),
+      el('div', { class: 'promo-choices' }, choices),
+      el('div', { class: 'modal-actions' }, el('button', { class: 'btn', text: '취소', onclick: closeModal }))));
   }
 
   // ───────── 장비 창 ─────────
@@ -232,6 +294,13 @@ const UI = (() => {
       const c = Game.successChance(q, party);
       const [label, cls] = chanceLabel(c);
       const missingHero = Game.storyHeroMissing(q, party);
+      const pairs = [];
+      for (let i = 0; i < party.length; i++) for (let j = i + 1; j < party.length; j++) pairs.push([party[i], party[j]]);
+      const friends = pairs.filter(([a, b]) => Game.rel(a, b) >= FRIEND_REL);
+      const rivals = pairs.filter(([a, b]) => Game.rel(a, b) <= RIVAL_REL);
+      const clashes = pairs.filter(([a, b]) => Game.traitsClash(a, b));
+      const days = Game.questDays(q, party);
+      const tired = party.filter((m) => m.fatigue >= 50);
       summary.replaceChildren(...[
         el('div', {}, `파티 전투력 `, el('b', { text: pw }), ` / 권장 ${q.req}`),
         el('div', { class: 'bar big' }, el('div', { class: 'bar-fill f-power', style: `width:${Math.min(100, (pw / q.req) * 50)}%` }), el('div', { class: 'bar-mark' })),
@@ -239,6 +308,11 @@ const UI = (() => {
         party.some((m) => m.cls === 'cleric') ? el('div', { class: 'good small', text: '✚ 성직자 동행: 부상·사망 위험 감소' }) : null,
         party.some((m) => m.trait === 'saint') ? el('div', { class: 'good small', text: '✚ 성녀의 가호: 사망 위험 없음' }) : null,
         missingHero ? el('div', { class: 'bad small', text: `${HEROES[q.story.hero].name}이(가) 파티에 있어야 합니다.` }) : null,
+        friends.length ? el('div', { class: 'good small', text: `♥ 전우 시너지: ${friends.map(([a, b]) => `${a.name}·${b.name}`).join(', ')}` }) : null,
+        rivals.length ? el('div', { class: 'bad small', text: `✖ 불화: ${rivals.map(([a, b]) => `${a.name}·${b.name}`).join(', ')} (전투력 감소)` }) : null,
+        clashes.length ? el('div', { class: 'muted small', text: `성격이 안 맞는 조합: ${clashes.map(([a, b]) => `${a.name}·${b.name}`).join(', ')} (관계 악화)` }) : null,
+        tired.length ? el('div', { class: 'bad small', text: `피로한 단원: ${tired.map((m) => m.name).join(', ')} (전투력 감소, 부상 위험)` }) : null,
+        party.length && days !== q.days ? el('div', { class: 'good small', text: `레인저의 길잡이: 소요 ${days}일` }) : null,
       ].filter(Boolean));
       go.disabled = !party.length || missingHero;
       list.querySelectorAll('.pick').forEach((row) => {
@@ -258,8 +332,9 @@ const UI = (() => {
         },
       },
       Sprites.clone(Sprites.merc(m.look, 2, 0), 'mini'),
-      el('span', { class: 'grow' }, `${m.name} `, el('span', { class: 'muted', text: `${CLASSES[m.cls].name} Lv.${m.level}` })),
-      el('span', { class: `trait small ${TRAITS[m.trait].unique ? 'unique' : ''}`, text: TRAITS[m.trait].name }),
+      el('span', { class: 'grow' }, `${m.name} `, el('span', { class: 'muted', text: `${Game.className(m)} Lv.${m.level}` })),
+      el('span', { class: `cond small ${Game.fatigueState(m).cls}`, title: `피로 ${m.fatigue}`, text: Game.fatigueState(m).label }),
+      el('span', { class: `cond small ${Game.moraleState(m).cls}`, title: `사기 ${m.morale}`, text: Game.moraleState(m).label }),
       el('b', { class: 'power', text: Game.power(m, q.type) })));
     });
     if (!idle.length) list.append(el('div', { class: 'muted small', text: '대기 중인 단원이 없습니다.' }));

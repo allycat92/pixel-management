@@ -136,4 +136,72 @@ const RANDOM_EVENTS = [
       return `${m.name} 경험치 +25${lv ? ' (레벨 업!)' : ''}`;
     },
   },
+  {
+    text: '단원 둘이 사소한 일로 크게 말다툼을 벌였습니다.',
+    run: (g) => {
+      const idle = g.state.mercs.filter((m) => m.status !== 'quest');
+      if (idle.length < 2) return '다행히 금방 화해했습니다.';
+      const [a, b] = idle.sort(() => Math.random() - 0.5);
+      g.addRel(a, b, -15); g.changeMorale(a, -5); g.changeMorale(b, -5);
+      return `${a.name}·${b.name} 관계 악화`;
+    },
+  },
+  {
+    text: '단원 둘이 밤새 술잔을 기울이며 속 얘기를 나눴습니다.',
+    run: (g) => {
+      const idle = g.state.mercs.filter((m) => m.status !== 'quest');
+      if (idle.length < 2) return '하지만 술친구가 없었습니다.';
+      const [a, b] = idle.sort(() => Math.random() - 0.5);
+      g.addRel(a, b, 12); g.changeMorale(a, 4); g.changeMorale(b, 4);
+      return `${a.name}·${b.name} 관계 개선`;
+    },
+  },
 ];
+
+// ───────── 직업 스킬 / 전직 ─────────
+const CLASS_SKILLS = {
+  warrior: { name: '방패막이', desc: '파티 부상 확률 -15%' },
+  archer:  { name: '정찰', desc: '파티 성공률 +4%' },
+  mage:    { name: '마력 해석', desc: '마법 조사에서 본인 전투력 +20%' },
+  cleric:  { name: '치유', desc: '파티 부상 확률 -50%, 사망 위험 -65%' },
+  rogue:   { name: '약탈', desc: '보상 금화 +12%' },
+};
+
+const PROMOTE_LEVEL = 8;
+const PROMOTE_COST = 350;
+
+// 직업마다 두 갈래 상급 직업. bonus: 전직 즉시 능력치, growth: 레벨업 성장 추가
+const PROMOTIONS = {
+  warrior: [
+    { key: 'paladin', name: '성기사', skill: '수호의 맹세', desc: '파티 부상 확률 -30%, 사망 위험 -50%',
+      bonus: { maxHp: 20, str: 2, int: 3 }, growth: { hp: 2, int: 0.6 }, outfit: '#c9ced6', accent: '#d9a441' },
+    { key: 'swordmaster', name: '검성', skill: '일섬', desc: '토벌·방어 의뢰에서 본인 전투력 +30%',
+      bonus: { str: 6, dex: 3 }, growth: { str: 0.8, dex: 0.5 }, outfit: '#5a2430', accent: '#e8e4d8' },
+  ],
+  archer: [
+    { key: 'ranger', name: '레인저', skill: '길잡이', desc: '탐사·호위에서 본인 전투력 +25%, 파티 이동 -1일',
+      bonus: { dex: 4, maxHp: 8 }, growth: { dex: 0.5, hp: 1 }, outfit: '#2f5a2a', accent: '#d9a441' },
+    { key: 'sniper', name: '저격수', skill: '급소 사격', desc: '파티 대성공 확률 2배',
+      bonus: { dex: 7 }, growth: { dex: 0.8 }, outfit: '#4a4a5a', accent: '#d6455d' },
+  ],
+  mage: [
+    { key: 'elementalist', name: '원소술사', skill: '원소 폭풍', desc: '토벌·마법 조사에서 본인 전투력 +30%',
+      bonus: { int: 7 }, growth: { int: 0.8 }, outfit: '#9c3b2e', accent: '#f39c12' },
+    { key: 'warder', name: '결계술사', skill: '방어 결계', desc: '파티의 대실패를 실패로 막고, 부상 확률 -20%',
+      bonus: { int: 4, maxHp: 10 }, growth: { int: 0.4, hp: 1.5 }, outfit: '#2e6b7a', accent: '#7fd6e8' },
+  ],
+  cleric: [
+    { key: 'highpriest', name: '대사제', skill: '부활의 기도', desc: '파티 사망 위험 없음, 귀환 시 부상 기간 절반',
+      bonus: { int: 5, maxHp: 8 }, growth: { int: 0.6, hp: 1 }, outfit: '#f2ecd8', accent: '#7fd6e8' },
+    { key: 'battlepriest', name: '전투사제', skill: '신성 강타', desc: '본인 전투력 +20% (치유 효과는 유지)',
+      bonus: { str: 5, maxHp: 10 }, growth: { str: 0.9, hp: 1 }, outfit: '#a88a4a', accent: '#f2ecd8' },
+  ],
+  rogue: [
+    { key: 'assassin', name: '암살자', skill: '암살', desc: '토벌에서 본인 전투력 +30%, 대성공 시 보상 +30%',
+      bonus: { dex: 5, str: 3 }, growth: { dex: 0.6, str: 0.4 }, outfit: '#1f1a28', accent: '#d6455d' },
+    { key: 'thief', name: '대도', skill: '보물 사냥', desc: '보상 금화 +25%, 성공 시 25% 확률로 장비 획득',
+      bonus: { dex: 4, int: 3 }, growth: { dex: 0.5, int: 0.4 }, outfit: '#5a4a2a', accent: '#f2c94c' },
+  ],
+};
+const ADV_CLASSES = {};
+Object.entries(PROMOTIONS).forEach(([cls, list]) => list.forEach((p) => { ADV_CLASSES[p.key] = { ...p, base: cls }; }));
