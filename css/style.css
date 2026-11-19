@@ -269,3 +269,70 @@ h3 { font-size: 14px; margin: 8px 0; }
   .grid { grid-template-columns: 1fr; }
   .tab { padding: 8px 10px; font-size: 12px; }
 }
+
+/* ───────── 확장: 특별 용병 / 장비 / 지도 / 전투 / 대화 ───────── */
+.btns { display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
+.merc-card.hero, .pick.hero { border-color: var(--accent); }
+.merc-card.hero { background: linear-gradient(180deg, #4a3a2a 0, var(--panel-2) 60px); }
+.hero-line { display: flex; align-items: baseline; gap: 4px; flex-wrap: wrap; }
+.hero-title { color: var(--gold); font-size: 12px; font-weight: bold; }
+.hero-desc { color: var(--gold); margin: 0; }
+.trait.unique { background: #8a6210; color: #fff4b0; }
+.bar { display: flex; }
+.bar-bonus { background: #7ed3c8; }
+.stat-val.boosted { color: #7ed3c8; }
+.equip-row { display: flex; gap: 6px; }
+.slot {
+  width: 24px; height: 24px; display: grid; place-items: center;
+  background: #1b1420; border: 2px solid var(--line);
+}
+.slot-empty { color: #5a4a66; font-size: 10px; }
+.slot-empty.big { width: 24px; text-align: center; }
+.slot.tier-1 { border-color: #9a8a7a; } .slot.tier-2 { border-color: #d6dde4; }
+.slot.tier-3 { border-color: #7fd6e8; } .slot.tier-4 { border-color: #b48ae8; } .slot.tier-5 { border-color: #f2c94c; }
+.tier-text-1 { color: #c9bca9; } .tier-text-2 { color: #e8eef2; } .tier-text-3 { color: #7fd6e8; }
+.tier-text-4 { color: #c8a8f0; } .tier-text-5 { color: #f2c94c; font-weight: bold; }
+.item-row .item-name { font-weight: bold; }
+.item-row.tier-5 { border-color: #c58f1e; }
+.item-icon { background: #1b1420; border: 2px solid var(--shadow); padding: 2px; line-height: 0; }
+.diff { color: #7ed3c8; }
+.pad { padding: 4px 8px; }
+.modal-body h3 { margin: 12px 0 6px; color: var(--muted); font-size: 12px; }
+
+.quest-card.story { border-color: var(--accent); background: linear-gradient(180deg, #4a3a2a, var(--panel-2) 70px); }
+.story-banner { background: var(--accent); color: var(--bg); font-weight: bold; font-size: 12px; margin: -10px -10px 0; padding: 2px 10px; }
+.monster { width: 48px; height: 51px; }
+.quest-icon .icon { width: 32px; height: 32px; }
+.card-title .small .icon { vertical-align: middle; }
+.badge.star:not(:empty) { background: var(--accent); color: var(--bg); }
+
+.map-layout { display: grid; grid-template-columns: minmax(0, 3fr) minmax(220px, 2fr); gap: 14px; align-items: start; }
+.map-wrap { border: 2px solid var(--line); box-shadow: 0 0 0 2px var(--shadow); line-height: 0; background: #24305e; }
+.world-map { width: 100%; height: auto; aspect-ratio: 320 / 180; cursor: pointer; display: block; }
+.region-info { background: var(--panel-2); border: 2px solid var(--line); padding: 10px; display: flex; flex-direction: column; gap: 6px; }
+.region-info p { margin: 0; }
+.region-name { color: var(--gold) !important; font-size: 15px !important; margin: 0 !important; }
+.enemy-list { display: flex; gap: 8px; flex-wrap: wrap; }
+.enemy { display: flex; flex-direction: column; align-items: center; background: #241b29; padding: 2px 6px; border: 1px solid var(--shadow); }
+
+.battle { display: flex; flex-direction: column; gap: 6px; }
+.battle-head { font-weight: bold; color: var(--gold); }
+.battle-canvas { width: 100%; height: auto; aspect-ratio: 256 / 144; border: 2px solid var(--shadow); display: block; }
+.battle-vs { text-align: center; color: var(--bad); font-weight: bold; }
+.modal-body:has(.battle) { max-width: 600px; }
+
+.dialog-title { color: var(--gold); font-weight: bold; font-size: 15px; margin-bottom: 10px; }
+.dialog-body { display: flex; gap: 12px; align-items: flex-end; cursor: pointer; }
+.dialog-portrait { background: #241b29; border: 2px solid var(--accent); padding: 4px; line-height: 0; flex-shrink: 0; }
+.big-portrait { width: 80px; height: 85px; }
+.dialog-box { flex: 1; min-height: 96px; background: #1b1420; border: 2px solid var(--line); padding: 10px 12px; }
+.dialog-speaker { color: var(--gold); font-weight: bold; margin-bottom: 4px; }
+.dialog-text { min-height: 40px; }
+.dialog-text.narration { color: var(--muted); font-style: italic; }
+.dialog-foot { color: var(--good); margin-top: 8px; min-height: 16px; }
+.option { margin: 10px 0; cursor: pointer; }
+
+@media (max-width: 640px) {
+  .map-layout { grid-template-columns: 1fr; }
+  .big-portrait { width: 64px; height: 68px; }
+}

@@ -44,6 +44,12 @@ const TRAITS = {
   lazy:     { name: '게으름', desc: '훈련장 경험치 절반' },
   diligent: { name: '성실', desc: '주급 -20%' },
   none:     { name: '평범', desc: '특별한 점은 없다' },
+  // 특별 용병 전용 특성
+  hawkeye:   { name: '매의 눈', desc: '파티 성공률 +8%', unique: true },
+  saint:     { name: '성녀의 가호', desc: '파티 사망 위험 없음, 부상 확률 -30%', unique: true },
+  shadow:    { name: '그림자 걸음', desc: '보상 금화 +25%', unique: true },
+  berserker: { name: '광전사', desc: '전투력 +25%', unique: true },
+  arcane:    { name: '마탑의 유산', desc: '전투력 +10%, 마법 조사에서 추가 +25%', unique: true },
 };
 const TRAIT_POOL = ['brave', 'coward', 'sturdy', 'lucky', 'greedy', 'genius', 'lazy', 'diligent', 'none', 'none'];
 
@@ -62,22 +68,18 @@ const QUEST_TYPES = {
   hunt: {
     name: '토벌', icon: 'sword', weights: { str: 1.3, dex: 0.8, int: 0.6, hp: 0.12 },
     titles: ['{e} 토벌', '{e} 소굴 소탕', '{e} 무리 퇴치', '날뛰는 {e} 처치'],
-    enemies: ['고블린', '들늑대', '오크', '거대 거미', '해골 병사', '트롤', '와이번', '리치의 망령'],
   },
   escort: {
     name: '호위', icon: 'shield', weights: { str: 1.0, dex: 0.9, int: 0.6, hp: 0.2 },
     titles: ['{p}까지 상단 호위', '{p}행 순례자 호위', '귀족 마차 호위 ({p})', '{p} 보급품 수송 호위'],
-    places: ['북부 요새', '항구 도시', '은빛 숲 마을', '광산 도시', '왕도', '사막 교역소'],
   },
   explore: {
     name: '탐사', icon: 'map', weights: { str: 0.5, dex: 1.3, int: 1.0, hp: 0.08 },
     titles: ['{p} 지도 작성', '{p} 실종자 수색', '{p}의 유적 탐사', '{p} 정찰 임무'],
-    places: ['안개 늪지', '잊힌 지하묘지', '서리 협곡', '고대 숲', '버려진 광산', '용의 등뼈 산맥'],
   },
   magic: {
     name: '마법 조사', icon: 'orb', weights: { str: 0.3, dex: 0.6, int: 1.5, hp: 0.06 },
     titles: ['{p}의 저주 해제', '{p} 마력 이상 조사', '{p} 봉인 강화', '{p}의 유령 퇴마'],
-    places: ['마탑 폐허', '공동묘지', '옛 성채', '수정 동굴', '마녀의 오두막', '달빛 신전'],
   },
 };
 
@@ -87,6 +89,7 @@ const FACILITIES = {
   infirmary: { name: '의무실', max: 5, baseCost: 130, desc: (l) => `부상 회복 속도 ${100 + l * 50}%` },
   tavern:    { name: '주점', max: 5, baseCost: 140, desc: (l) => `지원자 ${3 + l}명, 지원자 최고 레벨 +${l}` },
   board:     { name: '의뢰 게시판', max: 5, baseCost: 160, desc: (l) => `게시 의뢰 최대 ${3 + l}개, 보상 +${l * 8}%` },
+  forge:     { name: '대장간', max: 5, baseCost: 200, desc: (l) => l ? `상점 물품 최대 등급 +${l >= 3 ? 1 : 0}, 진열 ${4 + l}개, 가격 -${l * 4}%` : '상점 진열 4개' },
 };
 
 const RANKS = [

@@ -189,5 +189,185 @@ const Sprites = (() => {
     return c;
   }
 
-  return { merc, icon, clone, shade, OUTLINE };
+  // ───────── 몬스터 ─────────
+  const MONSTER_TPL = {
+    imp: [
+      '................',
+      '................',
+      '..O..OOOOOO..O..',
+      '..OOOMMMMMMOOO..',
+      '...OMMMMMMMMO...',
+      '...OMEMMMEMMO...',
+      '...OMMMMMMMMO...',
+      '....OMTMMTMO....',
+      '..O..OMMMMO.....',
+      '.ODO.OAAAAO.....',
+      '.ODOOAAAAAAO....',
+      '..OMOAAAAAAMO...',
+      '..O.OAAAAAAOMO..',
+      '.....ODDODDO....',
+      '.....ODO.ODO....',
+      '....OOOO.OOOO...',
+    ],
+    beast: [
+      '................',
+      '................',
+      '................',
+      '..O.O...........',
+      '.OMOMO..........',
+      'OMMMMMO.........',
+      'OEMMMMO.......O.',
+      'OMMMMMMOOOOOOOMO',
+      '.OTTMMMMMMMMMMDO',
+      '..OOMMMMLLMMMMDO',
+      '....OMMMMMMMMMDO',
+      '....OMDDMMMDDMO.',
+      '....OMO.OO.OMMO.',
+      '....OMO....OMO..',
+      '...OOOO...OOOO..',
+      '................',
+    ],
+    bug: [
+      '................',
+      '................',
+      '................',
+      '................',
+      '.....OOOOOO.....',
+      '....OMMLLMMO....',
+      '.O.OMMLMMMMMO.O.',
+      'O.OOMMMMMMMMOO.O',
+      '.OO.OMMMMMMO.OO.',
+      'O..OOEMMMMEOO..O',
+      '..O.OMMMMMMO.O..',
+      '.O..OMTOOTMO..O.',
+      'O..O.OOOOOO.O..O',
+      '...O........O...',
+      '................',
+      '................',
+    ],
+    brute: [
+      '................',
+      '.....OOOOOO.....',
+      '....OMMMMMMO....',
+      '...OMEMMMMEMO...',
+      '...OMMMMMMMMO...',
+      '...OMTMTTMTMO...',
+      '.OOOOMMMMMMOOOO.',
+      'OMMMMMMMMMMMMMMO',
+      'OMMOMMLLLLMMOMMO',
+      'OMMOMMMMMMMMOMMO',
+      'ODDOMMMMMMMMODDO',
+      '.OO.OAAAAAAO.OO.',
+      '....OMMOOMMO....',
+      '....OMMOOMMO....',
+      '...ODDDOODDDO...',
+      '...OOOOOOOOOO...',
+    ],
+    slime: [
+      '................',
+      '................',
+      '................',
+      '................',
+      '................',
+      '................',
+      '......OOOO......',
+      '....OOMMMMOO....',
+      '...OMLLMMMMMO...',
+      '..OMLMMMMMMMMO..',
+      '..OMMEMMMMEMMO..',
+      '.OMMMMMMMMMMMMO.',
+      '.OMMMMMDDMMMMMO.',
+      '.ODMMMMMMMMMMDO.',
+      '..ODDDDDDDDDDO..',
+      '...OOOOOOOOOO...',
+    ],
+    ghost: [
+      '................',
+      '.....OOOOOO.....',
+      '....OMMMMMMO....',
+      '...OMLMMMMMMO...',
+      '...OMDDMMDDMO...',
+      '...OMDEMMDEMO...',
+      '...OMMMMMMMMO...',
+      '..OMMMMDDMMMMO..',
+      '..OMMMMMMMMMMO..',
+      '.OMLMMMMMMMMLMO.',
+      '.OMMOMMMMMMOMMO.',
+      '..OO.OMMMMMO.O..',
+      '.....OMMMMDO....',
+      '......OMDDO.....',
+      '.......OO.......',
+      '................',
+    ],
+    drake: [
+      '................',
+      '..........OO....',
+      '.OO......OAAO...',
+      'OEMO....OAAAAO..',
+      'OMMMO..OAAAAAAO.',
+      '.OTMMO.OAAAAAAAO',
+      '..OOMMOAAAAAOOO.',
+      '....OMMMMAAOO...',
+      '....OMMMMMMMO...',
+      '...OMMLLMMMMMO..',
+      '...OMMLLMMMMMMO.',
+      '....OMMMMMMMMDDO',
+      '....OMOOMMOOODDO',
+      '....OO..OO...OO.',
+      '................',
+      '................',
+    ],
+  };
+
+  function monster(name, scale = 2, frame = 0, flash = false) {
+    const key = `mon|${name}|${scale}|${frame}|${flash}`;
+    if (cache.has(key)) return cache.get(key);
+    const def = ENEMIES[name] || ENEMIES['고블린'];
+    const rows = MONSTER_TPL[def.tpl];
+    const pal = { O: OUTLINE, T: '#ffffff', A: '#7a5236', ...def.pal };
+    const c = canvas(16 * scale, 17 * scale);
+    const ctx = c.getContext('2d');
+    rows.forEach((row, y) => row.split('').forEach((ch, x) => {
+      if (ch === '.') return;
+      let dy = y;
+      if (frame === 1) dy = def.tpl === 'slime' ? y + (y < 10 ? 1 : 0) : (y < 11 ? y + 1 : y);
+      ctx.fillStyle = flash ? (ch === 'O' ? '#ffffff' : '#ffe8e8') : (pal[ch] || pal.M);
+      ctx.fillRect(x * scale, dy * scale, scale, scale);
+    }));
+    cache.set(key, c);
+    return c;
+  }
+
+  // ───────── 장비 아이콘 ─────────
+  const ITEM_ICONS = {
+    sword:   ['.......M', '......MO', '.....MO.', '....MO..', '.W.MO...', '..WO....', '.WOW....', 'W.......'],
+    bow:     ['..WWO...', '.W..S...', 'W...S...', 'W...SMM.', 'W...S...', 'W...S...', '.W..S...', '..WWO...'],
+    staff:   ['.....MM.', '....MLLM', '....MLLM', '.....MM.', '....W...', '...W....', '..W.....', '.W......'],
+    dagger:  ['........', '......M.', '.....MO.', '....MO..', '..WMO...', '...W....', '..W.....', '........'],
+    mace:    ['....MMM.', '....MLM.', '....MMM.', '...W....', '..W.....', '.W......', 'W.......', '........'],
+    plate:   ['.MM..MM.', 'MMMMMMMM', 'MMLMMLMM', '.MMMMMM.', '.MMLLMM.', '.MMMMMM.', '.MM..MM.', '........'],
+    leather: ['.WW..WW.', 'WWWWWWWW', 'WWMWWMWW', '.WWWWWW.', '.WWMMWW.', '.WWWWWW.', '.WW..WW.', '........'],
+    robe:    ['..C..C..', '.CCCCCC.', '.CCMMCC.', '.CCCCCC.', 'CCCMMCCC', 'CCCCCCCC', 'CCCCCCCC', '........'],
+    ring:    ['...LL...', '..LMML..', '...MM...', '..M..M..', '.M....M.', '.M....M.', '..M..M..', '...MM...'],
+    amulet:  ['.W....W.', '..W..W..', '...WW...', '...MM...', '..MLLM..', '..MLLM..', '...MM...', '........'],
+    herb:    ['....G...', '...GLG..', '..GLGLG.', '...GGG..', '....W...', '...GW...', '..G.W...', '....W...'],
+  };
+
+  function itemIcon(base, tier = 1, scale = 2) {
+    const key = `item|${base}|${tier}|${scale}`;
+    if (cache.has(key)) return cache.get(key);
+    const metal = tier ? TIERS[tier].color : '#d6dde4';
+    const pal = { M: metal, L: '#ffffff', O: shade(metal, -70), W: '#8a5a2b', S: '#e8e4d8', C: tier >= 3 ? '#3d4a9c' : '#6b5a7a', G: '#4fa84a' };
+    if (base === 'herb') pal.L = '#a7d26a';
+    const c = canvas(8 * scale, 8 * scale);
+    const ctx = c.getContext('2d');
+    ITEM_ICONS[base].forEach((row, y) => row.split('').forEach((ch, x) => {
+      if (ch === '.') return;
+      ctx.fillStyle = pal[ch]; ctx.fillRect(x * scale, y * scale, scale, scale);
+    }));
+    cache.set(key, c);
+    return c;
+  }
+
+  return { merc, monster, icon, itemIcon, clone, shade, OUTLINE };
 })();
