@@ -54,7 +54,7 @@ const INITIAL_RELATIONS = {
   'crown|north': -45, 'crown|cities': 20, 'crown|church': 40, 'crown|elves': -25, 'crown|clans': -70,
   'north|cities': -10, 'north|church': 5, 'north|elves': -5, 'north|clans': -20,
   'cities|church': -10, 'cities|elves': 0, 'cities|clans': -45,
-  'church|elves': -30, 'church|clans': -40,
+  'church|elves': -45, 'church|clans': -55,
   'elves|clans': -10,
 };
 const INITIAL_WARS = [['crown', 'clans']];
@@ -188,3 +188,66 @@ const FACTION_LOANS = {
 // 평판 60 이상이면 매주 세력 정예 용병이 모집소에 온다. 평판이 0 아래로 떨어지면 본국으로 소환된다.
 const ELITE_AT = 60;
 const FACTION_TRAITS = { crown: 'royalguard', north: 'northknight', cities: 'broker', church: 'blessed', elves: 'sylvan', clans: 'warcry' };
+
+// ───────── 세력 행동강령 ─────────
+// aggression: 호전성(선전포고·공세 빈도), warAt: 이 관계 이하에서 선전포고를 고려, peaceAt: 이 전쟁 피로에서 강화를 고려
+// reach: 원정 거리(지방 단위), defense: 자기 영토 장악도 손실 배율, targets: 주적(가중치), drift: 매주 관계 경향
+// activity: 분쟁 의뢰를 내는 빈도, bias: 선호하는 의뢰 유형, pay: 보수 배율
+const DOCTRINES = {
+  crown: {
+    name: '왕권 확립', motto: '반역자는 왕의 검을 받으리라.',
+    desc: '왕국은 하나의 왕관 아래 통일되어야 한다. 자치를 외치는 북부 귀족과 국경을 넘보는 부족을 용납하지 않는다.',
+    aggression: 1.3, warAt: -45, peaceAt: 65, reach: 1, defense: 1,
+    targets: { north: 2.2, clans: 1.6 }, drift: { north: -3, clans: -1, church: 1 },
+    activity: 1.1, bias: { siege: 2, raid: 1.5, counterspy: 1.5 }, pay: 1,
+  },
+  north: {
+    name: '자치 수호', motto: '북부는 굴복하지 않는다.',
+    desc: '북부는 왕의 영지가 아니다. 먼저 칼을 뽑기보다는 버티며, 왕권이 손을 뻗으면 공작과 방어로 맞선다.',
+    aggression: 0.8, warAt: -60, peaceAt: 45, reach: 1, defense: 0.8,
+    targets: { crown: 1.6 }, drift: { crown: -1, cities: 1 },
+    activity: 1, bias: { sabotage: 2, warDefense: 2, rescue: 1.2 }, pay: 1,
+  },
+  cities: {
+    name: '이윤 추구', motto: '금화는 피보다 진하다.',
+    desc: '전쟁은 장사에 해롭다. 먼저 전쟁을 걸지 않고 강화를 서두른다. 다만 노예 무역을 방해하는 부족에게는 용병을 아끼지 않는다.',
+    aggression: 0.35, warAt: -70, peaceAt: 30, reach: 1, defense: 1,
+    targets: { clans: 1.5 }, drift: { clans: -1, crown: 1, north: 1, elves: 1 },
+    activity: 1, bias: { envoy: 3, sabotage: 2, counterspy: 1.2 }, pay: 1.2,
+  },
+  church: {
+    name: '성전', motto: '빛이 닿지 않는 곳은 불로 밝힌다.',
+    desc: '빛을 모르는 이종족은 정화되어야 한다. 엘프와 오크를 향한 성전을 멈추지 않으며, 성전군은 먼 땅까지 원정한다.',
+    aggression: 1.5, warAt: -40, peaceAt: 80, reach: 2, defense: 1,
+    targets: { elves: 2.6, clans: 2.6 }, drift: { elves: -3, clans: -3, crown: 1 },
+    activity: 1.15, bias: { raid: 2, siege: 1.5, counterspy: 2, rescue: 0.5 }, pay: 1,
+  },
+  elves: {
+    name: '숲의 침묵', motto: '숲은 기다린다.',
+    desc: '엘프는 숲 밖의 일에 관여하지 않는다. 먼저 전쟁을 걸지 않지만, 숲에 들어온 적에게는 끈질기게 저항한다.',
+    aggression: 0.15, warAt: -85, peaceAt: 25, reach: 1, defense: 0.6,
+    targets: {}, drift: {},
+    activity: 0.55, bias: { warDefense: 3, envoy: 2, counterspy: 1, siege: 0.2, raid: 0.5 }, pay: 1,
+  },
+  clans: {
+    name: '피의 맹세', motto: '모래는 피를 기억한다.',
+    desc: '빼앗긴 땅과 사슬에 묶인 형제들을 잊지 않는다. 습격으로 적을 지치게 하고, 노예 상인과 성전군을 증오한다.',
+    aggression: 1.2, warAt: -50, peaceAt: 55, reach: 1, defense: 1,
+    targets: { cities: 1.8, crown: 1.5, church: 1.4 }, drift: { cities: -2, church: -1 },
+    activity: 1.1, bias: { raid: 3, rescue: 2 }, pay: 1,
+  },
+};
+
+// 지방 사이 거리 (인접 단계)
+const PROV_DIST = (() => {
+  const d = {};
+  PROVINCE_KEYS.forEach((a) => {
+    d[a] = { [a]: 0 };
+    const q = [a];
+    while (q.length) {
+      const p = q.shift();
+      ADJACENCY[p].forEach((n) => { if (d[a][n] == null) { d[a][n] = d[a][p] + 1; q.push(n); } });
+    }
+  });
+  return d;
+})();

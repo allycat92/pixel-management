@@ -168,9 +168,23 @@ Object.assign(Game, {
   frontOf(a, b) {
     return this.provincesOf(a).filter((p) => ADJACENCY[p].some((q) => this.owner(q) === b));
   },
+  doctrine(f) { return DOCTRINES[f] || DOCTRINES.cities; },
+  // att 세력이 칠 수 있는 def 세력의 지방 (원정 거리 안)
+  reachable(att, def) {
+    const reach = this.doctrine(att).reach;
+    const mine = this.provincesOf(att);
+    return this.provincesOf(def).filter((p) => mine.some((q) => PROV_DIST[q][p] <= reach));
+  },
+  // 공세 쪽 고르기: 국력 × 호전성
+  pickAttacker(a, b) {
+    const wa = this.strength(a) * this.doctrine(a).aggression, wb = this.strength(b) * this.doctrine(b).aggression;
+    return Math.random() < wa / (wa + wb) ? a : b;
+  },
+
   changeControl(p, d, attacker, out) {
     const pr = this.state.provinces[p];
     const before = pr.control;
+    if (d < 0 && attacker) d *= this.doctrine(pr.owner).defense; // 숲의 엘프, 북부 귀족은 끈질기게 버틴다
     pr.control = clamp(Math.round(pr.control + d), 0, 100);
     if (out) out.push({ p, d: pr.control - before });
     if (pr.control <= 0 && attacker && attacker !== pr.owner && this.atWar(attacker, pr.owner)) {
@@ -202,8 +216,9 @@ Object.assign(Game, {
     this.state.relations[relKey(a, b)] = Math.min(this.relation(a, b), -60);
     if (!silent) {
       this.log(`⚔ ${FACTIONS[a].name}이(가) ${FACTIONS[b].name}에 전쟁을 선포했습니다!`, 'world');
+      const da = this.doctrine(a);
       s.pendingReports.push({ special: 'news', title: '전쟁 발발', factions: [a, b],
-        text: `${FACTIONS[a].name}이(가) ${FACTIONS[b].name}에 전쟁을 선포했습니다. 양측 모두 용병을 찾기 시작할 것입니다.` });
+        text: `「${da.motto}」 — ${FACTIONS[a].name}이(가) ${da.name}의 기치 아래 ${FACTIONS[b].name}에 전쟁을 선포했습니다. 양측 모두 용병을 찾기 시작할 것입니다.` });
     }
   },
   endWar(a, b, reason) {
@@ -233,10 +248,9 @@ Object.assign(Game, {
     s.wars.forEach((w) => {
       w.weariness += 0.7;
       // 양측이 번갈아 상대 전선을 압박
-      const sa = this.strength(w.a), sb = this.strength(w.b);
-      const att = Math.random() < sa / (sa + sb) ? w.a : w.b;
+      const att = this.pickAttacker(w.a, w.b);
       const def = att === w.a ? w.b : w.a;
-      const fronts = this.frontOf(def, att);
+      const fronts = this.reachable(att, def);
       if (fronts.length && Math.random() < 0.6) {
         const p = pick(fronts);
         const ratio = this.strength(att) / this.strength(def);
@@ -266,6 +280,8 @@ Object.assign(Game, {
     if (!this.atWar(att, def)) return;
     const sa = this.strength(att), sb = this.strength(def);
     if (Math.random() < sa / (sa + sb)) {
+      // 수도는 길드가 개입하지 않은 결전으로는 함락되지 않는다 (포위만 된다)
+      if (this.owner(p) === def && this.isCapital(p)) { this.changeControl(p, -30); this.log(`「${PROVINCES[p].name}」 결전: ${FACTIONS[att].name}이(가) 수도를 포위했지만 함락시키지 못했습니다.`, 'world'); return; }
       if (this.owner(p) === def) this.transferProvince(p, att);
       this.log(`「${PROVINCES[p].name}」 결전: ${FACTIONS[att].name}의 승리 (길드는 참전하지 않았습니다)`, 'world');
     } else {
@@ -283,15 +299,29 @@ Object.assign(Game, {
       for (let j = i + 1; j < FACTION_KEYS.length; j++) {
         const a = FACTION_KEYS[i], b = FACTION_KEYS[j];
         if (!this.provincesOf(a).length || !this.provincesOf(b).length) continue;
-        this.changeRelation(a, b, rand(-5, 3) - (this.atWar(a, b) ? 2 : 0));
-        const border = this.frontOf(a, b).length > 0;
-        if (!this.atWar(a, b) && border && this.relation(a, b) <= -50 && Math.random() < 0.3 && s.wars.length < 3) {
-          Math.random() < 0.5 ? this.startWar(a, b) : this.startWar(b, a);
-        }
+        const da = this.doctrine(a), db = this.doctrine(b);
+        this.changeRelation(a, b, rand(-4, 3) + (da.drift[b] || 0) + (db.drift[a] || 0) - (this.atWar(a, b) ? 2 : 0));
+        // 서로를 주적으로 두지 않은 세력끼리는 시간이 지나면 앙금이 누그러진다
+        if (!da.targets[b] && !db.targets[a] && !this.atWar(a, b) && this.relation(a, b) < -20) this.changeRelation(a, b, 3);
       }
     }
+    // 강령에 따른 선전포고: 호전적인 세력이 주적을 먼저 친다
+    const decl = [];
+    FACTION_KEYS.forEach((a) => FACTION_KEYS.forEach((b) => { if (a !== b) decl.push([a, b]); }));
+    decl.sort(() => Math.random() - 0.5).forEach(([a, b]) => {
+      if (s.wars.length >= 3 || this.atWar(a, b) || !this.provincesOf(a).length || !this.provincesOf(b).length) return;
+      if (this.warsOf(a).length >= 2) return;
+      const d = this.doctrine(a);
+      const t = d.targets[b] || 1;
+      const threshold = d.warAt + (d.targets[b] ? 10 : -15); // 주적이 아니면 웬만해선 먼저 치지 않는다
+      if (this.relation(a, b) > threshold || !this.reachable(a, b).length) return;
+      if (Math.random() < clamp(0.08 * d.aggression * t, 0, 0.6)) this.startWar(a, b);
+    });
+    // 강화: 두 세력의 강화 성향 평균. 공세 측이 크게 이기고 있으면 버틴다
     s.wars.slice().forEach((w) => {
-      if (w.weariness >= 50 && Math.random() < 0.3) this.endWar(w.a, w.b);
+      const need = (this.doctrine(w.a).peaceAt + this.doctrine(w.b).peaceAt) / 2;
+      const aggressorWinning = w.score > 40 && this.doctrine(w.a).aggression >= 1.2;
+      if (w.weariness >= need && !aggressorWinning && Math.random() < 0.3) this.endWar(w.a, w.b);
     });
     // 국경 분쟁: 맞닿은 두 세력 사이에 사건이 터진다
     if (Math.random() < 0.5) {

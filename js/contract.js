@@ -84,7 +84,7 @@ Object.assign(Game, {
     const war = t.cat === 'campaign' || (!!target && this.atWar(issuer, target));
     const catMul = war ? 1.5 : t.cat === 'conflict' ? 0.7 : t.cat === 'diplomacy' ? 0.6 : 0.3;
     const mul = (1 + s.facilities.board * 0.08) * (s.branches[p] ? 1.1 : 1) * (s.bossDefeated[p] ? 1.1 : 1)
-      * this.standingMul(issuer) * catMul;
+      * this.standingMul(issuer) * catMul * (FACTIONS[issuer].neutral ? 1 : this.doctrine(issuer).pay);
     return {
       id: s.nextId++, type: opts.type, cat: t.cat, war, title, level, size, days, req, province: p, issuer, target, enemy,
       reward: Math.round((40 + level * 30 + level * level * 3) * (0.85 + Math.random() * 0.3) * (1 + days * 0.12) * mul),
@@ -97,15 +97,30 @@ Object.assign(Game, {
   makeConflictContract(issuer) {
     const s = this.state;
     if (!issuer || FACTIONS[issuer].neutral || !this.willHire(issuer)) return null;
+    const doc = this.doctrine(issuer);
     const enemies = this.warsOf(issuer);
-    const rivals = FACTION_KEYS.filter((f) => f !== issuer && !enemies.includes(f) && this.relation(issuer, f) <= -15 && this.provincesOf(f).length);
+    // 주적은 관계가 조금만 나빠도 평시 공작 대상이 된다
+    const rivals = FACTION_KEYS.filter((f) => f !== issuer && !enemies.includes(f) && this.provincesOf(f).length
+      && this.relation(issuer, f) <= (doc.targets[f] ? 10 : -15));
+    const weighted = (list) => {
+      const w = list.map((t) => doc.bias[t] ?? 1);
+      let x = Math.random() * w.reduce((a, b) => a + b, 0);
+      for (let i = 0; i < list.length; i++) { x -= w[i]; if (x <= 0) return list[i]; }
+      return list[0];
+    };
+    const pickTarget = (list) => {
+      const w = list.map((f) => doc.targets[f] || 1);
+      let x = Math.random() * w.reduce((a, b) => a + b, 0);
+      for (let i = 0; i < list.length; i++) { x -= w[i]; if (x <= 0) return list[i]; }
+      return list[0];
+    };
     let target, type, p;
     if (enemies.length && Math.random() < 0.8) {
-      target = pick(enemies);
-      type = pick(['raid', 'raid', 'siege', 'sabotage', 'rescue', 'warDefense', 'warDefense', 'envoy']);
+      target = pickTarget(enemies);
+      type = weighted(['raid', 'siege', 'sabotage', 'rescue', 'warDefense', 'envoy']);
     } else if (rivals.length) {
-      target = pick(rivals);
-      type = pick(['sabotage', 'sabotage', 'rescue', 'counterspy', 'counterspy', 'envoy']);
+      target = pickTarget(rivals);
+      type = weighted(['sabotage', 'rescue', 'counterspy', 'envoy']);
     } else return null;
     if (type === 'warDefense') {
       const fr = this.frontOf(issuer, target).filter((q) => this.provinceOpen(q));
@@ -116,8 +131,8 @@ Object.assign(Game, {
       if (!own.length) return null;
       p = pick(own);
     } else {
-      // 상대 지방 중 의뢰 세력과 맞닿은 곳(전쟁이면), 아니면 아무 상대 지방
-      let cand = this.frontOf(target, issuer).filter((q) => this.provinceOpen(q));
+      // 상대 지방 중 의뢰 세력이 닿는 곳(원정 거리), 아니면 아무 상대 지방
+      let cand = this.reachable(issuer, target).filter((q) => this.provinceOpen(q));
       if (!cand.length) cand = this.provincesOf(target).filter((q) => this.provinceOpen(q));
       if (!cand.length) {
         // 상대 땅에 닿을 수 없으면 의뢰 세력의 땅에서 상대의 첩자를 잡는다
@@ -133,7 +148,7 @@ Object.assign(Game, {
   makeRandomContract() {
     const p = this.pickProvince();
     const owner = this.owner(p);
-    const conflictChance = this.warsOf(owner).length ? 0.6 : 0.35;
+    const conflictChance = (this.warsOf(owner).length ? 0.6 : 0.35) * (FACTIONS[owner].neutral ? 1 : this.doctrine(owner).activity);
     if (Math.random() < conflictChance) {
       // 이 지방 소유 세력, 또는 그와 싸우는 세력이 의뢰주
       const issuer = Math.random() < 0.6 ? owner : pick([owner, ...this.warsOf(owner)]);
@@ -159,10 +174,9 @@ Object.assign(Game, {
   // ───────── 대규모 결전 ─────────
   offerCampaign(w) {
     const s = this.state;
-    const sa = this.strength(w.a), sb = this.strength(w.b);
-    const attacker = Math.random() < sa / (sa + sb) ? w.a : w.b;
+    const attacker = this.pickAttacker(w.a, w.b);
     const defender = attacker === w.a ? w.b : w.a;
-    const fronts = this.frontOf(defender, attacker);
+    const fronts = this.reachable(attacker, defender);
     if (!fronts.length) return;
     const p = pick(fronts);
     const cp = { id: s.nextId++, attacker, defender, slots: 2 };

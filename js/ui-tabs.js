@@ -322,7 +322,7 @@
       const owner = st.owner;
       const open = Game.provinceOpen(p);
       const contracts = s.contracts.filter((c) => c.province === p);
-      const wars = Game.warsOf(owner).filter((f) => ADJACENCY[p].some((q) => Game.owner(q) === f));
+      const wars = Game.warsOf(owner).filter((f) => Game.reachable(f, owner).includes(p));
       const boss = BOSSES[p];
       info.replaceChildren(...[
         el('h3', { class: 'region-name', text: pr.name }),
@@ -362,6 +362,26 @@
     return el('div', { class: 'chips' }, el('span', { class: 'small muted', text: '평판 변화' }), parts);
   }
 
+  function doctrineBox(f) {
+    const d = DOCTRINES[f];
+    const level = (v, lo, hi, labels) => (v >= hi ? labels[2] : v >= lo ? labels[1] : labels[0]);
+    const aggr = level(d.aggression, 0.7, 1.2, ['소극적', '보통', '호전적']);
+    const peace = level(d.peaceAt, 40, 60, ['빠름', '보통', '완강']);
+    const foes = Object.keys(d.targets).sort((a, b) => d.targets[b] - d.targets[a]);
+    const likes = Object.entries(d.bias).filter(([, v]) => v >= 1.5).sort((a, b) => b[1] - a[1]).map(([k]) => QUEST_TYPES[k].name);
+    return el('div', { class: 'doctrine' },
+      el('div', { class: 'doctrine-head' }, el('span', { class: 'doctrine-name', text: `강령: ${d.name}` }), el('span', { class: 'doctrine-motto', text: `「${d.motto}」` })),
+      el('div', { class: 'small', text: d.desc }),
+      el('div', { class: 'chips' },
+        el('span', { class: `chip ${aggr === '호전적' ? 'bad' : aggr === '소극적' ? 'good' : ''}`, text: `호전성 ${aggr}` }),
+        el('span', { class: 'chip', text: `강화 ${peace}` }),
+        d.reach > 1 ? el('span', { class: 'chip warn', text: `원정 ${d.reach}지방` }) : null,
+        d.defense < 1 ? el('span', { class: 'chip good', text: `수비 ×${d.defense}` }) : null,
+        d.pay > 1 ? el('span', { class: 'chip good', text: `보수 ×${d.pay}` }) : null,
+        foes.length ? el('span', { class: 'chip bad' }, '주적 ', foes.map((g) => factionFlag(g, 1))) : el('span', { class: 'chip', text: '주적 없음' }),
+        likes.length ? el('span', { class: 'chip', text: `주로 ${likes.join('·')} 의뢰` }) : null));
+  }
+
   T.factions = (root) => {
     const s = Game.state;
     root.append(el('div', { class: 'panel-head' },
@@ -376,7 +396,7 @@
             el('div', {}, `${FACTIONS[w.a].name} vs ${FACTIONS[w.b].name}`),
             el('div', { class: 'war-bar' }, el('div', { class: 'war-fill', style: `width:${pct}%;background:${FACTIONS[w.a].color}` }),
               el('div', { class: 'war-rest', style: `background:${FACTIONS[w.b].color}` })),
-            el('div', { class: 'small muted', text: `${s.day - w.start}일째 · 전쟁 피로 ${Math.round(w.weariness)} · 전선 ${Game.frontOf(w.a, w.b).length + Game.frontOf(w.b, w.a).length}곳` })),
+            el('div', { class: 'small muted', text: `${s.day - w.start}일째 · 전쟁 피로 ${Math.round(w.weariness)} · 전선 ${new Set([...Game.reachable(w.a, w.b), ...Game.reachable(w.b, w.a)]).size}곳` })),
           factionFlag(w.b, 2));
       })));
     }
@@ -392,6 +412,7 @@
             el('div', { class: 'name', text: F.name }),
             el('div', { class: 'small muted', text: `국력 ${Game.strength(f)} · 영토 ${provs.length}곳${provs.length ? '' : ' (망명)'}` }))),
         el('p', { class: 'small muted desc', text: F.desc }),
+        doctrineBox(f),
         el('div', { class: 'standing' },
           el('span', { class: 'small', text: '평판' }),
           el('div', { class: 'stand-bar' }, el('div', { class: 'stand-mid' }),

@@ -102,7 +102,7 @@ const WorldMap = (() => {
       const o = s.provinces[k].owner;
       if (!Game.provinceOpen(k)) drawLock(ctx, x + 9, y + 2);
       if (Game.isCapital(k)) drawStar(ctx, x, y - 2);
-      const atWarFront = Game.warsOf(o).some((f) => ADJACENCY[k].some((q) => s.provinces[q].owner === f));
+      const atWarFront = !FACTIONS[o].neutral && Game.warsOf(o).some((f) => Game.reachable(f, o).includes(k));
       if (atWarFront && blink) drawSwords(ctx, x - 9, y - 2);
       if (s.branches[k]) drawFlag(ctx, x + 6, y - 1, '#7a2430');
       if (s.contracts.some((c) => c.province === k && (c.boss || c.campaign)) && !blink) px(ctx, x - 1, y - 9, 3, 3, '#ef6a6a');

@@ -452,3 +452,9 @@ h3 { font-size: 14px; margin: 8px 0; }
 .chip.war { margin-left: 4px; background: #8f2d3a; color: #fff; border-color: #5e1d26; }
 .war-gold { color: var(--gold); font-weight: bold; }
 .perks { display: flex; flex-direction: column; gap: 1px; }
+
+/* ───────── 세력 행동강령 ───────── */
+.doctrine { background: #241b29; border: 1px solid var(--line); border-left: 3px solid var(--fc); padding: 6px 8px; display: flex; flex-direction: column; gap: 4px; }
+.doctrine-head { display: flex; flex-wrap: wrap; gap: 6px; align-items: baseline; }
+.doctrine-name { color: var(--gold); font-weight: bold; font-size: 12px; }
+.doctrine-motto { color: var(--muted); font-size: 11px; font-style: italic; }
