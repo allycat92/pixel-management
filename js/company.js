@@ -97,7 +97,8 @@ Object.assign(Game, {
   // ───────── 외부 용병단 ─────────
   makeExtCompany() {
     const s = this.state, r = this.rankIndex();
-    const level = clamp(rand(Math.max(1, Math.round(r * 1.6)), Math.round(r * 1.6) + 3), 1, 18);
+    const late = this.lateGame() ? 4 : 0; // 재앙 이후엔 노련한 용병단도 시장에 나온다
+    const level = clamp(rand(Math.max(1, Math.round(r * 1.6)) + late, Math.round(r * 1.6) + 3 + late), 1, 22);
     const size = rand(4, 6);
     const disposition = pick(['gold', 'gold', 'honor', 'faction', 'faction']);
     const sympathy = disposition === 'faction' ? pick(FACTION_KEYS) : null;

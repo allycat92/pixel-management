@@ -3,6 +3,7 @@
 
 // 지방 등급별 의뢰 난이도 범위
 const TIER_LEVELS = [[1, 3], [2, 5], [3, 6], [4, 8], [5, 9], [7, 10]];
+const LATE_MAX_LEVEL = 14;
 
 // 의뢰 결과가 세계에 주는 영향 (평판, 장악도, 전쟁 판세)
 const CONTRACT_EFFECTS = {
@@ -29,12 +30,16 @@ const HOPS = (() => {
 })();
 
 Object.assign(Game, {
+  // 재앙이 대두한 뒤에는 의뢰 난이도 상한이 열린다 (★10 → ★14)
+  lateGame() { return !!(this.state.calamity || this.state.calamityDefeated); },
+  maxContractLevel() { return this.lateGame() ? LATE_MAX_LEVEL : 10; },
+
   contractLevel(p, bonus = 0) {
-    const r = this.rankIndex();
+    const r = this.rankIndex(), late = this.lateGame();
     const [lo0, hi0] = TIER_LEVELS[PROVINCES[p].tier];
-    const hi = Math.min(hi0, r + 2);
-    const lo = Math.min(Math.max(lo0, r), hi);
-    return clamp(rand(lo, hi) + bonus + (Math.random() < 0.15 ? 1 : 0), 1, 10);
+    const hi = late ? Math.min(hi0 + 4, r + 6) : Math.min(hi0, r + 2);
+    const lo = Math.min(Math.max(lo0 + (late ? 2 : 0), r), hi);
+    return clamp(rand(lo, hi) + bonus + (Math.random() < 0.15 ? 1 : 0), 1, this.maxContractLevel());
   },
 
   travelDays(p) { return Math.max(1, rand(1, 2) + Math.max(0, (HOPS[p] ?? 2) - 1) - (this.state.branches[p] ? 1 : 0)); },
@@ -74,9 +79,9 @@ Object.assign(Game, {
     const s = this.state;
     const p = opts.province;
     const t = QUEST_TYPES[opts.type];
-    const level = opts.level || this.contractLevel(p);
     const issuer = opts.issuer || this.owner(p);
     const target = opts.target || null;
+    const level = opts.level || this.contractLevel(p, this.isCalamity(target) ? 1 : 0); // 재앙 토벌은 한 단계 더 험하다
     const enemy = t.cat === 'monster' ? (opts.enemy || this.monsterEnemy(opts.type, p, level))
       : this.isCalamity(target) ? (opts.enemy || pick(FACTIONS[target].monsters)) : (opts.enemy || null);
     const size = opts.size || ({ monster: rand(2, 4), conflict: { raid: rand(3, 4), siege: rand(4, 6), sabotage: rand(2, 3), rescue: rand(3, 4), warDefense: rand(4, 5), counterspy: rand(2, 3) }[opts.type], diplomacy: 3 }[t.cat]) || 4;
@@ -191,7 +196,8 @@ Object.assign(Game, {
     const cp = { id: s.nextId++, attacker, defender, slots: 2 };
     // 길드가 아직 그 지방에 닿지 못하면 국력대로 바로 결판
     if (PROVINCES[p].tier > this.rankIndex() + 1 || this.rankIndex() < 1) { this.autoResolveCampaign(cp, p); return; }
-    const level = clamp(Math.max(TIER_LEVELS[PROVINCES[p].tier][1], this.rankIndex() + 2), 3, 10);
+    const late = this.lateGame() ? 3 : 0;
+    const level = clamp(Math.max(TIER_LEVELS[PROVINCES[p].tier][1], this.rankIndex() + 2) + late, 3, this.maxContractLevel());
     cp.slots = level >= 7 ? 3 : 2;
     const sides = [['attack', attacker, defender], ['defend', defender, attacker]];
     let offered = 0;
@@ -337,6 +343,7 @@ Object.assign(Game, {
     else outcome = 'fail';
     const won = outcome === 'great' || outcome === 'success';
     report.outcome = outcome;
+    report.seed = rand(1, 1e9); // 전투 연출용 시드
 
     // 금화: 외부 용병단 몫을 전력 비율대로 떼어 준다
     if (won) {
@@ -423,14 +430,17 @@ Object.assign(Game, {
       if (won) o.c.wins++; else o.c.losses++;
       const lostHere = dead.filter((r) => r.company === o.c.id).length;
       o.c.cohesion = clamp(o.c.cohesion + (won ? 5 : 2) - lostHere * 20, 0, 100);
-      report.companies.push({ name: o.c.name, color: o.c.color, own: true });
+      report.companies.push({
+        name: o.c.name, color: o.c.color, own: true,
+        members: o.ms.map((m) => ({ id: m.id, name: m.name, look: m.look, cls: m.cls, level: m.level, leader: m.id === o.c.leaderId })),
+      });
     });
     ext.forEach((e) => {
       const before = e.loyalty;
       const lost = e.betrayed ? 0 : this.extAfterMission(e, outcome, c);
       if (e.betrayed) { e.missionId = null; this.state.companies = this.state.companies.filter((x) => x.id !== e.id); }
       report.ext.push({ name: e.name, color: e.color, look: e.captain.look, lost, loyalty: e.loyalty - before, betrayed: !!e.betrayed });
-      report.companies.push({ name: e.name, color: e.color, own: false });
+      report.companies.push({ name: e.name, color: e.color, own: false, size: e.size + lost, level: e.level, look: e.captain.look, betrayed: !!e.betrayed });
     });
 
     if (won) s.provClears[c.province] = (s.provClears[c.province] || 0) + 1;
