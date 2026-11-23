@@ -165,7 +165,7 @@ const Scene = (() => {
   function draw() {
     ctx.drawImage(bg, 0, 0);
     if (!Game.state) return;
-    drawBoard(Game.state.quests.length);
+    drawBoard(Game.state.contracts.length);
     drawFire();
     // 주점 주인 NPC
     const barkeep = { cls: 'archer', skin: '#e0ac7e', hair: '#8a5a2b', longHair: false };

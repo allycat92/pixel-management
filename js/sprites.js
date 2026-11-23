@@ -103,7 +103,8 @@ const Sprites = (() => {
   // 용병 외형 → 픽셀 배열(색상 문자열)
   function mercPixels(look) {
     const adv = look.adv && ADV_CLASSES[look.adv];
-    const cls = adv ? { ...CLASSES[look.cls], outfit: adv.outfit, accent: adv.accent } : CLASSES[look.cls];
+    let cls = adv ? { ...CLASSES[look.cls], outfit: adv.outfit, accent: adv.accent } : CLASSES[look.cls];
+    if (look.tint) cls = { ...cls, outfit: look.tint.outfit, accent: look.tint.accent }; // 세력 병사 제복
     const px = BODY.map((r) => r.split(''));
     applyHeadgear(px, cls.headgear, cls);
     const pal = {
@@ -135,7 +136,7 @@ const Sprites = (() => {
   }
 
   function merc(look, scale = 1, frame = 0, flip = false) {
-    const key = `${look.cls}|${look.adv || ''}|${look.skin}|${look.hair}|${look.longHair}|${scale}|${frame}|${flip}`;
+    const key = `${look.cls}|${look.adv || ''}|${look.tint ? look.tint.outfit : ''}|${look.skin}|${look.hair}|${look.longHair}|${scale}|${frame}|${flip}`;
     if (cache.has(key)) return cache.get(key);
     const c = canvas(16 * scale, 17 * scale);
     const ctx = c.getContext('2d');
@@ -388,5 +389,28 @@ const Sprites = (() => {
     return c;
   }
 
-  return { merc, monster, icon, itemIcon, clone, shade, OUTLINE };
+  // 깃발 (용병단·세력 문장): 8x10 픽셀
+  function flag(color, accent = '#d9a441', scale = 2, mark = 0) {
+    const key = `flag|${color}|${accent}|${scale}|${mark}`;
+    if (cache.has(key)) return cache.get(key);
+    const c = canvas(8 * scale, 10 * scale);
+    const ctx = c.getContext('2d');
+    const P = (x, y, w, h, col) => { ctx.fillStyle = col; ctx.fillRect(x * scale, y * scale, w * scale, h * scale); };
+    P(0, 0, 1, 10, '#5a3a20');
+    P(1, 0, 7, 7, OUTLINE);
+    P(1, 1, 6, 5, color);
+    P(1, 7, 3, 2, OUTLINE); P(5, 7, 3, 2, OUTLINE);
+    P(1, 6, 3, 2, color); P(5, 6, 2, 2, color);
+    const marks = [
+      [[3, 2], [4, 2], [3, 3], [4, 3]],                 // 사각
+      [[3, 2], [4, 3], [3, 4], [2, 3]],                 // 마름모
+      [[2, 2], [5, 2], [3, 3], [4, 3], [3, 4], [4, 4]], // 늑대
+      [[3, 1], [3, 2], [3, 3], [3, 4], [2, 2], [4, 2]], // 검
+    ];
+    marks[mark % marks.length].forEach(([x, y]) => P(x, y, 1, 1, accent));
+    cache.set(key, c);
+    return c;
+  }
+
+  return { merc, monster, icon, itemIcon, flag, clone, shade, OUTLINE };
 })();

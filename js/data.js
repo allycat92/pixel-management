@@ -68,44 +68,78 @@ const HAIR_COLORS = ['#2b1d14', '#5a3720', '#a8642a', '#e3c565', '#c9c2b8', '#8c
 // 의뢰 유형: 스탯 가중치가 다르다
 const QUEST_TYPES = {
   hunt: {
-    name: '토벌', icon: 'sword', weights: { str: 1.3, dex: 0.8, int: 0.6, hp: 0.12 },
+    cat: 'monster', name: '토벌', icon: 'sword', weights: { str: 1.3, dex: 0.8, int: 0.6, hp: 0.12 },
     titles: ['{e} 토벌', '{e} 소굴 소탕', '{e} 무리 퇴치', '날뛰는 {e} 처치'],
   },
   escort: {
-    name: '호위', icon: 'shield', weights: { str: 1.0, dex: 0.9, int: 0.6, hp: 0.2 },
+    cat: 'monster', name: '호위', icon: 'shield', weights: { str: 1.0, dex: 0.9, int: 0.6, hp: 0.2 },
     titles: ['{p}까지 상단 호위', '{p}행 순례자 호위', '귀족 마차 호위 ({p})', '{p} 보급품 수송 호위'],
   },
   explore: {
-    name: '탐사', icon: 'map', weights: { str: 0.5, dex: 1.3, int: 1.0, hp: 0.08 },
+    cat: 'monster', name: '탐사', icon: 'map', weights: { str: 0.5, dex: 1.3, int: 1.0, hp: 0.08 },
     titles: ['{p} 지도 작성', '{p} 실종자 수색', '{p}의 유적 탐사', '{p} 정찰 임무'],
   },
   magic: {
-    name: '마법 조사', icon: 'orb', weights: { str: 0.3, dex: 0.6, int: 1.5, hp: 0.06 },
+    cat: 'monster', name: '마법 조사', icon: 'orb', weights: { str: 0.3, dex: 0.6, int: 1.5, hp: 0.06 },
     titles: ['{p}의 저주 해제', '{p} 마력 이상 조사', '{p} 봉인 강화', '{p}의 유령 퇴마'],
   },
   defense: {
-    name: '방어', icon: 'shield', weights: { str: 1.1, dex: 0.6, int: 0.7, hp: 0.3 },
+    cat: 'monster', name: '방어', icon: 'shield', weights: { str: 1.1, dex: 0.6, int: 0.7, hp: 0.3 },
     titles: ['{p} 방어전', '{e}의 습격 저지', '{p} 성벽 수비', '{p} 피난민 보호'],
+  },
+  // ── 세력 분쟁 의뢰: {t} 대상 세력, {i} 의뢰 세력, {p} 장소 ──
+  raid: {
+    cat: 'conflict', name: '습격', icon: 'sword', weights: { str: 1.2, dex: 1.0, int: 0.5, hp: 0.15 },
+    titles: ['{t}의 보급대 습격', '{p}의 {t} 군량고 기습', '{t} 정찰대 섬멸', '{p} 인근 {t} 야영지 기습'],
+  },
+  siege: {
+    cat: 'conflict', name: '거점 공략', icon: 'shield', weights: { str: 1.2, dex: 0.6, int: 0.8, hp: 0.25 },
+    titles: ['{p} 요새 공략', '{t}의 {p} 거점 탈환', '{p} 성채 공성전'],
+  },
+  sabotage: {
+    cat: 'conflict', name: '공작', icon: 'map', weights: { str: 0.4, dex: 1.4, int: 1.1, hp: 0.05 },
+    titles: ['{t} 군수 창고 방화', '{p}의 {t} 밀서 탈취', '{t} 지휘관 동선 정탐', '{p}에 거짓 소문 퍼뜨리기'],
+  },
+  rescue: {
+    cat: 'conflict', name: '구출', icon: 'heart', weights: { str: 0.8, dex: 1.2, int: 0.8, hp: 0.12 },
+    titles: ['{t}에 잡힌 포로 구출', '{p} 감옥 습격', '{t} 진영의 인질 구출'],
+  },
+  warDefense: {
+    cat: 'conflict', name: '방어전', icon: 'shield', weights: { str: 1.1, dex: 0.6, int: 0.7, hp: 0.3 },
+    titles: ['{t}의 침공으로부터 {p} 방어', '{p} 성벽 수비 ({t} 공세)', '{p} 피난민 호송 ({t} 추격)'],
+  },
+  counterspy: {
+    cat: 'conflict', name: '방첩', icon: 'map', weights: { str: 0.6, dex: 1.1, int: 1.2, hp: 0.08 },
+    titles: ['{p}에 잠입한 {t} 첩자 색출', '{t} 밀정 체포', '{p}의 {t} 선동꾼 추적'],
+  },
+  envoy: {
+    cat: 'diplomacy', name: '사절 호위', icon: 'star', weights: { str: 0.9, dex: 0.9, int: 1.0, hp: 0.15 },
+    titles: ['{t}와(과)의 강화 사절 호위', '{p} 회담장 경호', '{t}행 밀사 호위'],
+  },
+  battle: {
+    cat: 'campaign', name: '결전', icon: 'sword', weights: { str: 1.1, dex: 0.8, int: 0.8, hp: 0.2 },
+    titles: ['{p} 회전', '{p} 결전', '{p} 공방전'],
   },
 };
 
 const FACILITIES = {
-  dorm:      { name: '숙소', max: 5, baseCost: 120, desc: (l) => `최대 단원 수 ${4 + l * 2}명` },
+  dorm:      { name: '숙소', max: 5, baseCost: 120, desc: (l) => `길드 소속 단원 최대 ${6 + l * 3}명` },
+  barracks:  { name: '병영', max: 4, baseCost: 220, desc: (l) => `직속 용병단 최대 ${1 + l}개, 정원 ${4 + (l >= 2 ? 1 : 0) + (l >= 4 ? 1 : 0)}명` },
   training:  { name: '훈련장', max: 5, baseCost: 150, desc: (l) => l ? `대기 단원 매일 경험치 +${l * 5}` : '아직 없음 (대기 단원 성장 불가)' },
   infirmary: { name: '의무실', max: 5, baseCost: 130, desc: (l) => `부상 회복 속도 ${100 + l * 50}%` },
-  tavern:    { name: '주점', max: 5, baseCost: 140, desc: (l) => `지원자 ${3 + l}명, 지원자 최고 레벨 +${l}` },
-  board:     { name: '의뢰 게시판', max: 5, baseCost: 160, desc: (l) => `게시 의뢰 최대 ${3 + l}개, 보상 +${l * 8}%` },
+  tavern:    { name: '모집소', max: 5, baseCost: 140, desc: (l) => `지원자 ${3 + l}명, 지원자 최고 레벨 +${l}, 용병단 시장 ${2 + Math.floor(l / 2)}곳` },
+  board:     { name: '정보망', max: 5, baseCost: 160, desc: (l) => `게시 의뢰 최대 ${4 + l}개, 보상 +${l * 8}%` },
   forge:     { name: '대장간', max: 5, baseCost: 200, desc: (l) => l ? `상점 물품 최대 등급 +${l >= 3 ? 1 : 0}, 진열 ${4 + l}개, 가격 -${l * 4}%` : '상점 진열 4개' },
 };
 
 const RANKS = [
   { name: 'F', rep: 0 },
-  { name: 'E', rep: 60 },
-  { name: 'D', rep: 180 },
-  { name: 'C', rep: 400 },
-  { name: 'B', rep: 750 },
-  { name: 'A', rep: 1350 },
-  { name: 'S', rep: 2500 },
+  { name: 'E', rep: 80 },
+  { name: 'D', rep: 260 },
+  { name: 'C', rep: 600 },
+  { name: 'B', rep: 1100 },
+  { name: 'A', rep: 1900 },
+  { name: 'S', rep: 3200 },
 ];
 
 const RANDOM_EVENTS = [
@@ -114,11 +148,11 @@ const RANDOM_EVENTS = [
     run: (g) => { const v = 20 + g.rankIndex() * 15; g.state.gold += v; return `금화 +${v}`; },
   },
   {
-    text: '익명의 후원자가 용병단에 기부금을 보냈습니다.',
+    text: '익명의 후원자가 길드에 기부금을 보냈습니다.',
     run: (g) => { const v = 40 + g.rankIndex() * 25; g.state.gold += v; return `금화 +${v}`; },
   },
   {
-    text: '음유시인이 용병단의 무용담을 노래로 퍼뜨렸습니다.',
+    text: '음유시인이 길드 용병단들의 무용담을 노래로 퍼뜨렸습니다.',
     run: (g) => { const v = 5 + g.rankIndex() * 4; g.state.rep += v; return `명성 +${v}`; },
   },
   {

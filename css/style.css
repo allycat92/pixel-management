@@ -365,3 +365,84 @@ h3 { font-size: 14px; margin: 8px 0; }
 .boss-row { padding: 4px 8px; }
 .boss-row.done { border-color: var(--accent); }
 .q-defense { background: #5a6a7a; }
+
+/* ───────── 길드 · 용병단 · 세력 개편 ───────── */
+.flag { image-rendering: pixelated; flex-shrink: 0; }
+.chips { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+.chip { display: inline-flex; align-items: center; gap: 3px; padding: 1px 6px; font-size: 11px; background: #241b29; border: 1px solid var(--line); }
+.chip.good { color: var(--good); } .chip.bad { color: var(--bad); } .chip.warn { color: var(--gold); }
+.warn { color: var(--gold); }
+.ftag { display: inline-flex; align-items: center; gap: 3px; padding: 0 5px 0 2px; font-size: 11px; background: #241b29; border: 1px solid var(--fc); border-left-width: 3px; }
+.parties { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; margin: 2px 0; }
+.group-title { color: var(--gold); margin: 16px 0 8px; font-size: 13px; }
+.notes { text-align: left; margin-top: 6px; color: var(--muted); }
+
+.company-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px; }
+.company-panel { background: var(--panel-2); border: 2px solid var(--line); border-top: 4px solid var(--cc); box-shadow: 0 0 0 2px var(--shadow), 4px 4px 0 2px var(--shadow); display: flex; flex-direction: column; }
+.company-panel.market { border-top-style: dashed; }
+.company-head { display: flex; gap: 10px; align-items: flex-start; padding: 8px 10px; background: linear-gradient(180deg, color-mix(in srgb, var(--cc) 30%, transparent), transparent); }
+.company-head .flag { margin-top: 2px; }
+.cname { font-weight: bold; font-size: 14px; display: flex; align-items: center; gap: 4px; }
+.company-status { text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; max-width: 120px; }
+.cohesion { display: grid; grid-template-columns: auto 1fr auto; gap: 6px; align-items: center; margin-top: 3px; }
+.f-cohesion { background: #7ed3c8; } .f-loyal { background: #c8a8f0; }
+.members { display: flex; flex-direction: column; }
+.mrow { display: flex; align-items: center; gap: 8px; padding: 4px 10px; border-top: 1px solid var(--line); cursor: pointer; }
+.mrow:hover { background: #3f3248; }
+.mrow.quest { opacity: 0.7; }
+.mname { font-size: 13px; }
+.crown { color: var(--gold); margin-right: 3px; }
+.hero-mark { color: var(--gold); }
+.mtags { display: flex; gap: 3px; flex-wrap: wrap; justify-content: flex-end; max-width: 50%; }
+.tag-promo { background: #8a6210; color: #fff4b0; }
+.company-foot { display: flex; gap: 6px; flex-wrap: wrap; padding: 8px 10px; border-top: 1px solid var(--line); margin-top: auto; align-items: center; }
+.input.small { padding: 2px 4px; font-size: 12px; flex: 0 1 auto; }
+.members.reserve { background: var(--panel-2); border: 2px solid var(--line); }
+.reserve-item { display: flex; align-items: center; border-top: 1px solid var(--line); padding-right: 8px; }
+.reserve-item .mrow { flex: 1; border-top: 0; }
+
+.quest-card.cat-conflict { border-left: 4px solid #b84a58; }
+.quest-card.cat-diplomacy { border-left: 4px solid #7ed3c8; }
+.quest-card.campaign { border-color: #d9a441; background: linear-gradient(180deg, #4a3a1a, var(--panel-2) 70px); }
+.campaign-banner { background: #8a6210; color: #fff4b0; }
+.q-raid { background: #8f2d3a; } .q-siege { background: #6b2418; } .q-sabotage { background: #3b3346; }
+.q-rescue { background: #2e6b7a; } .q-warDefense { background: #3d5a9c; } .q-envoy { background: #2e8a8a; } .q-battle { background: #c58f1e; color: #1b1420; }
+
+.dispatch .pick { align-items: center; }
+.member-pick { margin: 6px 0; }
+.mchip { display: inline-flex; align-items: center; gap: 4px; padding: 2px 6px 2px 2px; border: 2px solid var(--line); background: #241b29; cursor: pointer; font-size: 12px; opacity: 0.5; }
+.mchip.on { opacity: 1; border-color: var(--gold); }
+.mchip.tired { color: var(--bad); }
+.mchip .mini { width: 24px; height: 26px; }
+
+.faction-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 14px; }
+.faction-card { border-top: 4px solid var(--fc); }
+.standing { display: grid; grid-template-columns: auto 1fr auto; gap: 6px; align-items: center; }
+.stand-bar { position: relative; height: 10px; background: #1b1420; border: 1px solid var(--shadow); }
+.stand-mid { position: absolute; left: 50%; top: -2px; bottom: -2px; width: 1px; background: var(--muted); }
+.stand-fill { position: absolute; top: 0; bottom: 0; }
+.stand-fill.pos { background: var(--good); } .stand-fill.neg { background: var(--bad); }
+.stand-label { font-size: 12px; min-width: 64px; text-align: right; }
+.s-hostile { color: var(--bad); } .s-cold { color: #f0955a; } .s-neutral { color: var(--ink); }
+.s-friendly { color: #b8e0a0; } .s-trusted { color: var(--good); } .s-ally { color: #7ed3c8; }
+.rel-chips .chip { font-size: 10px; }
+.r-war { color: #fff; background: #8f2d3a; } .r-hostile { color: var(--bad); } .r-tense { color: var(--gold); }
+.r-peace { color: var(--muted); } .r-ally { color: var(--good); }
+.war-row .grow { display: flex; flex-direction: column; gap: 3px; }
+.war-bar { display: flex; height: 8px; border: 1px solid var(--shadow); }
+.war-fill { height: 100%; } .war-rest { flex: 1; height: 100%; }
+.log-line.world { color: #c8b8f0; }
+.ticker.world { color: #c8b8f0; }
+
+.choice-box { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+.choice-prompt { color: var(--gold); font-weight: bold; }
+.btn.choice { justify-content: flex-start; text-align: left; }
+.news-banner { background: #3d2a5a; color: #e8d8ff; }
+.news-flags { display: flex; justify-content: center; gap: 24px; margin: 10px 0; }
+.report-member.ext .portrait { filter: saturate(0.85); }
+
+@media (max-width: 640px) {
+  .company-grid, .faction-grid { grid-template-columns: 1fr; }
+  .mtags { max-width: 45%; }
+}
+.q-counterspy { background: #4a4a6a; }

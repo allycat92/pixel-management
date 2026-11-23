@@ -13,8 +13,8 @@ const Battle = (() => {
     frost:  { sky: ['#7a9ac8', '#c8dcf0'], ground: '#e8eef2', dark: '#b0bcc8', deco: 'peak' },
     dragon: { sky: ['#3a1414', '#7a2a1a'], ground: '#4a2a20', dark: '#2e1a14', deco: 'lava' },
   };
-  const P_POS = [[78, 106], [54, 94], [54, 122], [30, 108]];
-  const E_POS = [[178, 106], [204, 92], [206, 122]];
+  const P_POS = [[78, 106], [54, 94], [54, 122], [30, 108], [100, 94], [100, 122]];
+  const E_POS = [[178, 106], [204, 92], [206, 122], [228, 106], [228, 130]];
 
   let raf = null;
 
@@ -107,7 +107,9 @@ const Battle = (() => {
     const flash = e.flash > 0;
     let img;
     if (e.kind === 'p') img = Sprites.merc(e.look, 2, e.frame, e.flip);
+    else if (e.soldier) img = Sprites.merc(e.soldier, 2, e.frame, true);
     else img = Sprites.monster(e.name, e.scale, e.frame, flash);
+    if (e.soldier && flash && e.flash % 2) ctx.globalAlpha = 0.3 * e.alpha;
     const x = Math.round(e.x + e.ox), y = Math.round(e.y - img.height + e.oy);
     // 그림자
     ctx.fillStyle = 'rgba(0,0,0,0.25)';
@@ -134,19 +136,37 @@ const Battle = (() => {
     cvs.width = W; cvs.height = H; cvs.className = 'battle-canvas';
     const ctx = cvs.getContext('2d');
     ctx.imageSmoothingEnabled = false;
-    const bg = background(q.region);
+    const bg = background(TERRAIN[PROVINCES[q.province].terrain].bg);
 
-    const party = report.members.slice(0, 4).map((m, i) => ({
-      kind: 'p', look: m.look, cls: m.cls, name: m.name, dead: m.dead, injured: m.injury > 0,
+    // 아군: 직속 단원 + 외부 용병단 단장 (최대 6)
+    const fighters = [
+      ...report.members.map((m) => ({ look: m.look, cls: m.cls, dead: m.dead, injured: m.injury > 0 })),
+      ...(report.ext || []).map((e) => ({ look: e.look, cls: e.look.cls, dead: false, injured: false })),
+    ].slice(0, 6);
+    const party = fighters.map((m, i) => ({
+      kind: 'p', look: m.look, cls: m.cls, dead: m.dead, injured: m.injured,
       x: P_POS[i][0] - 16, y: P_POS[i][1], ox: 0, oy: 0, alpha: 1, flash: 0, frame: 0, flip: false, hp: 1, hpShow: 1,
     }));
-    const def = ENEMIES[q.enemy] || {};
-    const count = def.big ? 1 : (q.level >= 4 ? 3 : 2);
-    const enemies = Array.from({ length: count }, (_, i) => {
-      const scale = def.boss ? 4 : def.big ? 3 : 2;
-      const pos = def.boss ? [190, 122] : def.big ? [186, 116] : E_POS[i];
-      return { kind: 'e', name: q.enemy, scale, x: pos[0] - (16 * scale) / 2 + 8, y: pos[1], ox: 0, oy: 0, alpha: 1, flash: 0, frame: 0, hp: 1, hpShow: 1 };
-    });
+    // 적: 괴물, 또는 대상 세력 병사
+    let enemies, vsText;
+    if (q.enemy) {
+      const def = ENEMIES[q.enemy] || {};
+      const count = def.big ? 1 : (q.level >= 4 ? 3 : 2);
+      enemies = Array.from({ length: count }, (_, i) => {
+        const scale = def.boss ? 4 : def.big ? 3 : 2;
+        const pos = def.boss ? [190, 122] : def.big ? [186, 116] : E_POS[i];
+        return { kind: 'e', name: q.enemy, scale, x: pos[0] - (16 * scale) / 2 + 8, y: pos[1], ox: 0, oy: 0, alpha: 1, flash: 0, frame: 0, hp: 1, hpShow: 1 };
+      });
+      vsText = `VS ${q.enemy}${count > 1 ? ` ×${count}` : ''}`;
+    } else {
+      const f = q.target || q.issuer;
+      const count = q.campaign ? 5 : q.level >= 5 ? 4 : 3;
+      enemies = Array.from({ length: count }, (_, i) => ({
+        kind: 'e', soldier: UI.h.soldierLook(f, i + q.id), cls: FACTIONS[f].soldier.classes[(i + q.id) % 4],
+        scale: 2, x: E_POS[i][0] - 8, y: E_POS[i][1], ox: 0, oy: 0, alpha: 1, flash: 0, frame: 0, hp: 1, hpShow: 1,
+      }));
+      vsText = `VS ${FACTIONS[f].name} ${FACTIONS[f].unitName}`;
+    }
     const acts = buildScript(won, party, enemies);
     const total = acts.length * STEP + END;
     const pops = []; // 데미지 숫자
@@ -156,10 +176,10 @@ const Battle = (() => {
     wrap.className = 'battle';
     const head = document.createElement('div');
     head.className = 'battle-head';
-    head.textContent = `${q.title} — ${REGIONS[q.region].name}`;
+    head.textContent = `${q.title} — ${PROVINCES[q.province].name}`;
     const vs = document.createElement('div');
     vs.className = 'battle-vs';
-    vs.textContent = `VS ${q.enemy}${count > 1 ? ` ×${count}` : ''}`;
+    vs.textContent = vsText;
     const skip = document.createElement('button');
     skip.className = 'btn small';
     skip.textContent = '건너뛰기 ▶▶';
@@ -194,13 +214,14 @@ const Battle = (() => {
       const a = acts[idx];
       if (a) {
         const dir = a.from.kind === 'p' ? 1 : -1;
-        const ranged = a.from.kind === 'p' && RANGED[a.from.cls];
+        const ranged = (a.from.kind === 'p' || a.from.soldier) && RANGED[a.from.cls];
         if (ranged) {
           a.from.ox = local < 0.2 ? -dir * 2 : 0;
           if (local > 0.15 && local < 0.42) {
             const k = (local - 0.15) / 0.27;
+            const sx = a.from.kind === 'p' ? a.from.x + 28 : a.from.x + 2;
             shots.length = 0;
-            shots.push({ kind: ranged, x: a.from.x + 28 + (a.to.x + 8 - a.from.x - 28) * k, y: a.from.y - 22 + (a.to.y - a.from.y) * k });
+            shots.push({ kind: ranged, dir, x: sx + (a.to.x + 12 - sx) * k, y: a.from.y - 22 + (a.to.y - a.from.y) * k });
           } else shots.length = 0;
         } else {
           const k = local < 0.42 ? local / 0.42 : Math.max(0, 1 - (local - 0.42) / 0.4);
@@ -233,7 +254,7 @@ const Battle = (() => {
       [...all].sort((p, q2) => p.y - q2.y).forEach((e) => drawEntity(ctx, e, t));
       party.forEach((p) => { if (p.dying && now - p.dying > 400) ctx.drawImage(Sprites.icon('skull', 2), p.x + 8, p.y - 52); });
       shots.forEach((s) => {
-        if (s.kind === 'arrow') { px(ctx, s.x, s.y, 8, 1, '#e8e4d8'); px(ctx, s.x + 7, s.y - 1, 2, 3, '#d6dde4'); }
+        if (s.kind === 'arrow') { px(ctx, s.x, s.y, 8, 1, '#e8e4d8'); px(ctx, s.dir > 0 ? s.x + 7 : s.x - 1, s.y - 1, 2, 3, '#d6dde4'); }
         else if (s.kind === 'fire') { px(ctx, s.x, s.y - 2, 5, 5, '#f39c12'); px(ctx, s.x + 1, s.y - 1, 3, 3, '#f2c94c'); px(ctx, s.x - 3, s.y, 3, 1, '#e74c3c'); }
         else { px(ctx, s.x, s.y - 3, 1, 7, '#fff4b0'); px(ctx, s.x - 3, s.y, 7, 1, '#fff4b0'); }
       });
