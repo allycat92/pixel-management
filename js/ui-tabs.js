@@ -131,7 +131,8 @@
     const parts = [];
     if (eff.issuer && !FACTIONS[c.issuer].neutral) parts.push(el('span', { class: 'chip good' }, factionFlag(c.issuer, 1), ` ${FACTIONS[c.issuer].short} ${signed(eff.issuer)}`));
     if (eff.target && c.target) parts.push(el('span', { class: 'chip bad' }, factionFlag(c.target, 1), ` ${FACTIONS[c.target].short} ${signed(eff.target)}`));
-    if (c.type === 'battle' && c.campaign) parts.push(el('span', { class: 'chip warn', text: c.campaign.side === 'attack' ? `승리 시 ${PROVINCES[c.province].name} 점령` : `패배 시 ${PROVINCES[c.province].name} 함락` }));
+    if (c.final) parts.push(el('span', { class: 'chip warn', text: `승리 시 ${FACTIONS[c.target].leader} 토벌 — 재앙 종식` }));
+    else if (c.type === 'battle' && c.campaign) parts.push(el('span', { class: 'chip warn', text: c.campaign.side === 'attack' ? `승리 시 ${PROVINCES[c.province].name} 점령` : `패배 시 ${PROVINCES[c.province].name} 함락` }));
     else if (eff.control) parts.push(el('span', { class: 'chip', text: `장악도 ${signed(eff.control)}` }));
     if (eff.relation) parts.push(el('span', { class: 'chip good', text: '양 세력 관계 개선' }));
     if (c.type === 'sabotage') parts.push(el('span', { class: 'chip warn', text: '정체 노출 위험' }));
@@ -146,10 +147,11 @@
     const visual = c.enemy
       ? Sprites.clone(Sprites.monster(c.enemy, 3, 0), 'monster')
       : Sprites.clone(Sprites.merc(UI.h.soldierLook(c.target || c.issuer, c.id), 3, 0, true), 'monster');
-    const banner = c.campaign ? el('div', { class: 'story-banner campaign-banner' }, `⚔ 대규모 결전 · 용병단 ${c.campaign.slots}개 투입 · ${c.campaign.side === 'attack' ? '공격측' : '방어측'}`)
+    const banner = c.final ? el('div', { class: 'story-banner final-banner' }, `☠ 최종 결전 · 용병단 ${c.campaign.slots}개 투입 · ${FACTIONS[c.target].name}`)
+      : c.campaign ? el('div', { class: 'story-banner campaign-banner' }, `⚔ 대규모 결전 · 용병단 ${c.campaign.slots}개 투입 · ${c.campaign.side === 'attack' ? '공격측' : '방어측'}`)
       : story ? el('div', { class: 'story-banner' }, `★ ${story.name}의 이야기 ${c.story.ch + 1}장`)
         : c.boss ? el('div', { class: 'story-banner boss-banner' }, `☠ 재앙 · ${BOSSES[c.boss].name}`) : null;
-    return el('div', { class: `card quest-card cat-${c.cat} ${story ? 'story' : ''} ${c.boss ? 'boss' : ''} ${c.campaign ? 'campaign' : ''}` },
+    return el('div', { class: `card quest-card cat-${c.cat} ${story ? 'story' : ''} ${c.boss ? 'boss' : ''} ${c.campaign ? 'campaign' : ''} ${c.final ? 'final' : ''}` },
       banner,
       el('div', { class: 'card-head' },
         el('div', { class: 'quest-icon' }, visual),
@@ -382,11 +384,44 @@
         likes.length ? el('span', { class: 'chip', text: `주로 ${likes.join('·')} 의뢰` }) : null));
   }
 
+  // 재앙 세력 / 봉인 상태
+  function calamityPanel() {
+    const s = Game.state;
+    const cal = s.calamity;
+    if (!cal) {
+      const n = (s.destroyed || []).length;
+      const text = s.calamityDefeated
+        ? `${FACTIONS[s.calamityDefeated].leader}은(는) 쓰러졌습니다. 대륙에 다시 아침이 찾아왔습니다.`
+        : `왕국은 용의 맹약으로 마물을, 교단은 성광의 봉인으로 마계의 문을 막고 있습니다. 패권국이 무너지거나 세력이 ${CALAMITY_TRIGGER}개 멸망하면 봉인이 깨집니다.`;
+      return el('div', { class: `seal-panel ${s.omen ? 'omen' : ''}` },
+        el('div', { class: 'seal-head' }, el('b', { text: s.calamityDefeated ? '봉인 회복' : '봉인 상태' }),
+          s.calamityDefeated ? null : el('span', { class: `chip ${n >= CALAMITY_TRIGGER - 1 ? 'bad' : ''}`, text: `멸망한 세력 ${n}/${CALAMITY_TRIGGER}` }),
+          s.omen && !s.calamityDefeated ? el('span', { class: 'chip bad', text: `징조: ${FACTIONS[s.omen].name}` }) : null),
+        el('div', { class: 'small', text: text }));
+    }
+    const F = FACTIONS[cal];
+    const provs = Game.provincesOf(cal);
+    const fin = s.contracts.find((c) => c.final);
+    return el('div', { class: 'calamity-panel', style: `--fc:${F.color}` },
+      el('div', { class: 'portrait-wrap' }, Sprites.clone(Sprites.monster(F.leader, 4, 0), 'big-portrait')),
+      el('div', { class: 'grow' },
+        el('div', { class: 'cal-name' }, factionFlag(cal, 2), ` ${F.name} — ${F.leaderTitle} ${F.leader}`),
+        el('div', { class: 'small', text: F.desc }),
+        el('div', { class: 'chips' },
+          el('span', { class: 'chip bad', text: `국력 ${Game.strength(cal)} (매일 증가)` }),
+          el('span', { class: `chip ${provs.length >= CALAMITY_DARKNESS - 2 ? 'bad' : 'warn'}`, text: `점령 ${provs.length}/${CALAMITY_DARKNESS} (도달 시 암흑시대)` }),
+          el('span', { class: 'chip', text: `${s.day - s.calamityDay}일째` })),
+        fin ? el('div', { class: 'row-inline' },
+          el('span', { class: 'small', text: `최종 결전 요구 전투력 ${fin.req} — 재앙의 영토를 빼앗을수록 낮아집니다.` }),
+          el('button', { class: 'btn small primary', text: '최종 결전', onclick: () => openDispatch(fin) })) : null));
+  }
+
   T.factions = (root) => {
     const s = Game.state;
     root.append(el('div', { class: 'panel-head' },
       el('h2', { text: '세력' }),
       el('span', { class: 'muted small', text: `평판이 높을수록 혜택이 커지지만 쉽게 깎이고, 깊이 떨어진 평판은 잘 오르지 않습니다. 길드 명성 보정: 평판 하락 -${Math.round((1 - Game.fameShield()) * 100)}%` })));
+    root.append(calamityPanel());
     if (s.wars.length) {
       root.append(el('h3', { class: 'group-title', text: '진행 중인 전쟁' }));
       root.append(el('div', { class: 'list' }, s.wars.map((w) => {
@@ -406,11 +441,17 @@
       const v = Game.standing(f);
       const ss = Game.standingState(v);
       const provs = Game.provincesOf(f);
-      return el('div', { class: 'card faction-card', style: `--fc:${F.color}` },
+      if (Game.isDestroyed(f)) {
+        return el('div', { class: 'card faction-card destroyed', style: `--fc:${F.color}` },
+          el('div', { class: 'card-head' }, factionFlag(f, 4),
+            el('div', { class: 'card-title' }, el('div', { class: 'name', text: F.name }), el('div', { class: 'small bad', text: '☠ 멸망' }))),
+          el('p', { class: 'small muted desc', text: `「${DOCTRINES[f].motto}」 — 그 외침은 이제 역사 속으로 사라졌습니다.` }));
+      }
+      return el('div', { class: `card faction-card ${F.hegemon ? 'hegemon' : ''}`, style: `--fc:${F.color}` },
         el('div', { class: 'card-head' }, factionFlag(f, 4),
           el('div', { class: 'card-title' },
-            el('div', { class: 'name', text: F.name }),
-            el('div', { class: 'small muted', text: `국력 ${Game.strength(f)} · 영토 ${provs.length}곳${provs.length ? '' : ' (망명)'}` }))),
+            el('div', { class: 'name' }, F.name, F.hegemon ? el('span', { class: 'chip hegemon-chip', text: '패권국' }) : null),
+            el('div', { class: 'small muted', text: `국력 ${Game.strength(f)} · 영토 ${provs.length}곳` }))),
         el('p', { class: 'small muted desc', text: F.desc }),
         doctrineBox(f),
         el('div', { class: 'standing' },
@@ -423,8 +464,9 @@
           perkLine(v >= 45, `45 신뢰: ${F.perk.desc}`),
           perkLine(v >= FACTION_LOANS[f][0].at, `${FACTION_LOANS[f][0].at} 대여: ${FACTION_LOANS[f][0].name}`),
           perkLine(v >= ELITE_AT, `${ELITE_AT} 매주 정예 용병 (${TRAITS[FACTION_TRAITS[f]].name})`),
-          perkLine(v >= FACTION_LOANS[f][1].at, `${FACTION_LOANS[f][1].at} 대여: ${FACTION_LOANS[f][1].name}`)),
-        el('div', { class: 'chips rel-chips' }, FACTION_KEYS.filter((g) => g !== f).map((g) => {
+          perkLine(v >= FACTION_LOANS[f][1].at, `${FACTION_LOANS[f][1].at} 대여: ${FACTION_LOANS[f][1].name}`),
+          FACTION_LOANS[f][2] ? perkLine(v >= FACTION_LOANS[f][2].at, `${FACTION_LOANS[f][2].at} 전설 대여: ${FACTION_LOANS[f][2].name}`) : null),
+        el('div', { class: 'chips rel-chips' }, FACTION_KEYS.filter((g) => g !== f && !Game.isDestroyed(g)).map((g) => {
           const rs = Game.relationState(f, g);
           return el('span', { class: `chip ${rs.cls}`, title: `관계 ${Game.relation(f, g)}` }, factionFlag(g, 1), ` ${FACTIONS[g].short} ${rs.label}`);
         })));

@@ -32,6 +32,11 @@ const ENEMIES = {
   '늪의 마녀':   { tpl: 'ghost', pal: { M: '#5a8a4a', D: '#3a5a2a', L: '#a7d26a', E: '#f2c94c' }, big: true, boss: true },
   '모래 폭군':   { tpl: 'bug', pal: { M: '#b0402a', D: '#7a2418', L: '#e8a14f', E: '#f2c94c' }, big: true, boss: true },
   '서리 거인 왕': { tpl: 'brute', pal: { M: '#7fb4dc', D: '#4f84ac', L: '#e8f4ff', A: '#d9a441', E: '#ffffff' }, big: true, boss: true },
+  // ── 마왕군 ──
+  '마족 전사':   { tpl: 'demon', pal: { M: '#8a2430', D: '#5a1420', L: '#c25a5a', A: '#3a2a2a', E: '#f2c94c' } },
+  '지옥견':     { tpl: 'beast', pal: { M: '#7a2418', D: '#4a140c', E: '#f39c12' } },
+  '데스 나이트': { tpl: 'imp', pal: { M: '#4a4a5a', D: '#2a2a36', A: '#6b2a6b', E: '#7ed3c8' } },
+  '마왕 베르녹스': { tpl: 'demon', pal: { M: '#4a1a3a', D: '#22081a', L: '#8a3a6a', A: '#d6455d', E: '#f2c94c' }, big: true, boss: true },
   '고룡 이그니스': { tpl: 'drake', pal: { M: '#2a2a3a', D: '#14141e', L: '#d6455d', A: '#7a2430', E: '#f39c12' }, big: true, boss: true },
 };
 
@@ -67,12 +72,6 @@ const BOSSES = {
     intro: '서리 거인 왕이 거인 군단을 이끌고 북부 요새로 내려옵니다. 요새가 무너지면 북부 전체가 위험합니다.',
     outro: '거인 왕이 무릎을 꿇었습니다. 북부 요새의 종이 승리를 알립니다.',
     reward: { base: 'ring', name: '서리 왕관 반지', bonus: { str: 10, dex: 10, int: 10 } },
-  },
-  dragon: {
-    enemy: '고룡 이그니스', name: '고룡 이그니스', type: 'hunt', title: '용의 등뼈, 고룡 토벌', clears: 7,
-    intro: '천 년의 잠에서 깨어난 고룡 이그니스. 그 날갯짓 한 번에 전쟁 중인 군대들마저 퇴각했습니다.',
-    outro: '고룡이 쓰러졌습니다. 은빛 늑대 길드의 이름은 이제 전설이 되었습니다.',
-    reward: { base: 'sword', name: '용살검 이그니스', bonus: { str: 18, dex: 8, hp: 15 } },
   },
 };
 

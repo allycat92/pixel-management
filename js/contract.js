@@ -47,7 +47,11 @@ Object.assign(Game, {
 
   // 의뢰를 줄 수 있는 세력인가 (평판 -40 이하면 거래 끊김)
   // 길드 명성이 높으면 다소 껄끄러운 세력도 일을 맡긴다
-  willHire(f) { return !f || FACTIONS[f].neutral || this.standing(f) + this.rankIndex() * 4 > -40; },
+  willHire(f) {
+    if (!f || FACTIONS[f].neutral) return true;
+    if (this.isCalamity(f) || this.isDestroyed(f)) return false; // 재앙은 용병을 고용하지 않는다
+    return this.standing(f) + this.rankIndex() * 4 > -40;
+  },
 
   // 의뢰가 열릴 지방 고르기
   pickProvince() {
@@ -73,7 +77,8 @@ Object.assign(Game, {
     const level = opts.level || this.contractLevel(p);
     const issuer = opts.issuer || this.owner(p);
     const target = opts.target || null;
-    const enemy = t.cat === 'monster' ? (opts.enemy || this.monsterEnemy(opts.type, p, level)) : null;
+    const enemy = t.cat === 'monster' ? (opts.enemy || this.monsterEnemy(opts.type, p, level))
+      : this.isCalamity(target) ? (opts.enemy || pick(FACTIONS[target].monsters)) : (opts.enemy || null);
     const size = opts.size || ({ monster: rand(2, 4), conflict: { raid: rand(3, 4), siege: rand(4, 6), sabotage: rand(2, 3), rescue: rand(3, 4), warDefense: rand(4, 5), counterspy: rand(2, 3) }[opts.type], diplomacy: 3 }[t.cat]) || 4;
     const days = opts.days || this.travelDays(p) + (level > 5 ? 1 : 0);
     const title = opts.title || pick(t.titles)
@@ -82,7 +87,8 @@ Object.assign(Game, {
     const req = Math.round(24 * Math.pow(1.4, level - 1) * (0.9 + Math.random() * 0.2) * (0.8 + Math.min(size, 6) * 0.1));
     // 금화는 전쟁에서 나온다: 전쟁 의뢰 ×1.5, 평시 분쟁 ×0.7, 외교 ×0.6, 괴물·치안 ×0.3
     const war = t.cat === 'campaign' || (!!target && this.atWar(issuer, target));
-    const catMul = war ? 1.5 : t.cat === 'conflict' ? 0.7 : t.cat === 'diplomacy' ? 0.6 : 0.3;
+    let catMul = war ? 1.5 : t.cat === 'conflict' ? 0.7 : t.cat === 'diplomacy' ? 0.6 : 0.3;
+    if (s.calamityDefeated && !war) catMul *= 1.8; // 재앙 이후 전후 복구 의뢰
     const mul = (1 + s.facilities.board * 0.08) * (s.branches[p] ? 1.1 : 1) * (s.bossDefeated[p] ? 1.1 : 1)
       * this.standingMul(issuer) * catMul * (FACTIONS[issuer].neutral ? 1 : this.doctrine(issuer).pay);
     return {
@@ -98,7 +104,9 @@ Object.assign(Game, {
     const s = this.state;
     if (!issuer || FACTIONS[issuer].neutral || !this.willHire(issuer)) return null;
     const doc = this.doctrine(issuer);
-    const enemies = this.warsOf(issuer);
+    let enemies = this.warsOf(issuer);
+    const cal = this.state.calamity;
+    if (cal && enemies.includes(cal) && Math.random() < 0.75) enemies = [cal];
     // 주적은 관계가 조금만 나빠도 평시 공작 대상이 된다
     const rivals = FACTION_KEYS.filter((f) => f !== issuer && !enemies.includes(f) && this.provincesOf(f).length
       && this.relation(issuer, f) <= (doc.targets[f] ? 10 : -15));
@@ -117,7 +125,8 @@ Object.assign(Game, {
     let target, type, p;
     if (enemies.length && Math.random() < 0.8) {
       target = pickTarget(enemies);
-      type = weighted(['raid', 'siege', 'sabotage', 'rescue', 'warDefense', 'envoy']);
+      type = this.isCalamity(target) ? pick(['raid', 'raid', 'siege', 'rescue', 'warDefense', 'warDefense'])
+        : weighted(['raid', 'siege', 'sabotage', 'rescue', 'warDefense', 'envoy']);
     } else if (rivals.length) {
       target = pickTarget(rivals);
       type = weighted(['sabotage', 'rescue', 'counterspy', 'envoy']);
@@ -429,6 +438,7 @@ Object.assign(Game, {
     this.log(`[${c.title}] ${label}! 금화 ${report.gold >= 0 ? '+' : ''}${report.gold}, 명성 ${report.rep >= 0 ? '+' : ''}${report.rep}`, won ? 'good' : 'bad');
     s.pendingReports.push(report);
 
+    if (c.final && !won && s.calamity) s.contracts.unshift({ ...c, id: s.nextId++ });
     if (c.boss) {
       if (won) this.defeatBoss(c.boss);
       else s.contracts.unshift({ ...c, id: s.nextId++ });
@@ -459,10 +469,22 @@ Object.assign(Game, {
     const w = c.target ? this.war(c.issuer, c.target) : null;
     const scoreFor = (d) => { if (w) w.score += w.a === c.issuer ? d : -d; };
 
+    if (c.final) {
+      if (won) this.defeatCalamity();
+      return;
+    }
     if (c.type === 'battle' && c.campaign) {
       const cp = c.campaign;
       const p = c.province;
-      if (won && cp.side === 'attack') { if (this.owner(p) === c.target && this.atWar(c.issuer, c.target)) this.transferProvince(p, c.issuer); }
+      if (won && cp.side === 'attack') {
+        if (this.owner(p) === c.target && this.atWar(c.issuer, c.target)) {
+          // 패권국의 수도는 장악도를 40 이하로 떨어뜨려 둔 뒤에야 결전으로 함락시킬 수 있다
+          if (this.isGuardedCapital(p, c.issuer) && this.state.provinces[p].control > 40) {
+            this.changeControl(p, -40, null, report.control);
+            report.notes.push(`${FACTIONS[c.target].name}의 수도는 함락되지 않았지만 크게 흔들렸습니다. (장악도 40 이하에서 결전에 이기면 함락)`);
+          } else this.transferProvince(p, c.issuer);
+        }
+      }
       else if (won && cp.side === 'defend') this.changeControl(p, 40, null, report.control);
       else if (!won && cp.side === 'defend') { if (this.owner(p) === c.issuer && this.atWar(c.issuer, c.target)) this.transferProvince(p, c.target); }
       else this.changeControl(p, 15, null, report.control);
@@ -480,6 +502,45 @@ Object.assign(Game, {
     if (eff.score) scoreFor(eff.score);
     if (eff.relation && c.target) this.changeRelation(c.issuer, c.target, eff.relation);
     if (eff.weariness && w) w.weariness += eff.weariness;
+  },
+
+  // ───────── 최종 결전 ─────────
+  // 재앙이 대두하면 수장이 버티는 근거지를 치는 최종 결전이 항상 걸려 있다. 재앙의 세가 클수록 어렵다.
+  finalLair() {
+    const cal = this.state.calamity;
+    if (!cal) return null;
+    const lairs = FACTIONS[cal].lairs.filter((p) => this.owner(p) === cal);
+    return lairs[0] || this.provincesOf(cal)[0] || null;
+  },
+  checkFinalBattle() {
+    const s = this.state;
+    const cal = s.calamity;
+    if (!cal) return;
+    const lair = this.finalLair();
+    const posted = s.contracts.find((c) => c.final);
+    if (posted && lair) {
+      // 세력이 줄어들면 요구 전투력이 갱신된다
+      posted.req = this.finalReq();
+      posted.province = lair;
+      return;
+    }
+    if (posted || s.missions.some((mi) => mi.contract.final) || !lair) return;
+    const F = FACTIONS[cal];
+    const issuer = this.aliveFactions().sort((a, b) => this.strength(b) - this.strength(a))[0] || 'locals';
+    const c = this.makeContract({ province: lair, issuer, target: cal, type: 'battle', level: 10, size: 14, days: 5, enemy: F.leader,
+      title: `최종 결전 — ${F.leader}` });
+    c.final = true;
+    c.campaign = { id: s.nextId++, attacker: issuer, defender: cal, slots: 3, side: 'attack' };
+    c.req = this.finalReq();
+    c.reward = Math.round(c.reward * 4);
+    c.rep = 600;
+    c.expires = STORY_EXPIRES;
+    s.contracts.unshift(c);
+  },
+  // 최종 결전의 요구 전투력: 재앙의 국력에 비례 (영토를 빼앗을수록 쉬워진다)
+  finalReq() {
+    const cal = this.state.calamity;
+    return Math.round(this.strength(cal) * 38);
   },
 
   // ───────── 특별 용병 ─────────
@@ -517,7 +578,7 @@ Object.assign(Game, {
       const owner = this.owner(ch.province);
       const target = ch.target && ch.target !== owner && !this.provincesOf(ch.target).length ? null : ch.target;
       let issuer = 'locals';
-      if (!target) issuer = owner;
+      if (!target) issuer = this.isCalamity(owner) || this.isDestroyed(owner) ? 'locals' : owner;
       else if (owner !== target && !FACTIONS[owner].neutral) issuer = owner;
       else if (h.faction && h.faction !== target) issuer = h.faction;
       const level = clamp(Math.max(TIER_LEVELS[PROVINCES[ch.province].tier][0], this.rankIndex() + 2), 1, 10);

@@ -2,7 +2,7 @@
 // 각 탭 화면은 ui-tabs.js 에서 UI.tabs 에 등록한다.
 'use strict';
 
-const FACTION_MARK = { crown: 3, north: 1, cities: 0, church: 1, elves: 2, clans: 3, locals: 0 };
+const FACTION_MARK = { crown: 3, north: 1, cities: 0, church: 1, elves: 2, clans: 3, beasts: 2, demons: 1, locals: 0 };
 
 const UI = (() => {
   let tab = 'companies';
@@ -375,6 +375,25 @@ const UI = (() => {
         el('p', { class: 'muted', text: `완수 ${s.stats.completed} · 실패 ${s.stats.failed} · 전사 ${s.stats.fallen}` }),
         el('p', { class: 'muted small', text: '계속 플레이하며 남은 이야기와 세력의 운명을 지켜볼 수 있습니다.' }),
         el('div', { class: 'modal-actions' }, restart, cont));
+    }
+    if (r.special === 'savior') {
+      const F = FACTIONS[r.calamity];
+      return el('div', { class: 'report' },
+        el('div', { class: 'report-banner good great', text: '대륙의 구원자' }),
+        el('div', { class: 'report-members' }, Sprites.clone(Sprites.monster(F.leader, 4, 0), 'big-portrait dead-boss')),
+        el('p', { text: `${s.day}일째, ${s.guildName}의 용병단들이 ${F.leaderTitle} ${F.leader}을(를) 쓰러뜨렸습니다.` }),
+        el('p', { text: `${F.name}은(는) 흩어지고, 살아남은 세력들은 폐허 위에서 다시 일어서기 시작합니다. 사람들은 이 시대를 은빛 늑대의 이름으로 기억할 것입니다.` }),
+        el('p', { class: 'muted small', text: `살아남은 세력: ${Game.aliveFactions().map((f) => FACTIONS[f].name).join(', ') || '없음'} · 이후 한동안 전후 복구 의뢰의 보수가 높아집니다.` }),
+        el('div', { class: 'modal-actions' }, restart, cont));
+    }
+    if (r.special === 'darkness') {
+      const F = FACTIONS[s.calamity] || FACTIONS.demons;
+      return el('div', { class: 'report' },
+        el('div', { class: 'report-banner bad disaster', text: '암흑시대' }),
+        el('div', { class: 'report-members' }, Sprites.clone(Sprites.monster(F.leader, 4, 0), 'big-portrait')),
+        el('p', { text: `${F.name}이(가) 대륙의 대부분을 집어삼켰습니다. ${F.leaderTitle} ${F.leader}의 그림자 아래, 길드의 깃발도 꺾였습니다.` }),
+        el('p', { class: 'muted', text: `${s.day}일 동안 버텼습니다. 최고 명성 ${s.rep}` }),
+        el('div', { class: 'modal-actions' }, restart));
     }
     if (r.special === 'legend') {
       return el('div', { class: 'report' },

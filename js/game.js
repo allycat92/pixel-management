@@ -463,6 +463,7 @@ const Game = {
     // 세계 진행 (전쟁 압박, 전역 결판)
     this.worldDaily();
     this.checkFactionRewards();
+    this.checkFinalBattle();
 
     // 단원 회복 / 훈련 / 사기
     const heal = (1 + s.facilities.infirmary * 0.5) * (this.perk('church') ? 1.5 : 1);

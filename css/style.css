@@ -458,3 +458,20 @@ h3 { font-size: 14px; margin: 8px 0; }
 .doctrine-head { display: flex; flex-wrap: wrap; gap: 6px; align-items: baseline; }
 .doctrine-name { color: var(--gold); font-weight: bold; font-size: 12px; }
 .doctrine-motto { color: var(--muted); font-size: 11px; font-style: italic; }
+
+/* ───────── 패권국 · 재앙 ───────── */
+.hegemon-chip { margin-left: 6px; background: #8a6210; color: #fff4b0; border-color: var(--gold); }
+.faction-card.hegemon { box-shadow: 0 0 0 2px var(--shadow), 4px 4px 0 2px var(--shadow), inset 0 0 0 1px var(--gold); }
+.faction-card.destroyed { opacity: 0.55; filter: grayscale(0.7); }
+.seal-panel { background: #241b29; border: 2px solid var(--line); padding: 8px 10px; display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px; }
+.seal-panel.omen { border-color: #8f2d3a; background: #2a1418; }
+.seal-head { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; color: var(--gold); }
+.calamity-panel { display: flex; gap: 12px; align-items: flex-start; padding: 10px; margin-bottom: 8px;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--fc) 70%, #000), #1b1420); border: 2px solid #b84a58;
+  box-shadow: 0 0 0 2px var(--shadow), 4px 4px 0 2px var(--shadow); animation: dread 1.6s steps(2) infinite alternate; }
+@keyframes dread { to { border-color: #f39c12; } }
+.calamity-panel .grow { display: flex; flex-direction: column; gap: 6px; }
+.cal-name { font-weight: bold; font-size: 15px; color: #ffd0d0; display: flex; align-items: center; gap: 4px; }
+.quest-card.final { border-color: #b84a58; background: linear-gradient(180deg, #3a0a1a, var(--panel-2) 80px); }
+.final-banner { background: #5e1d26; color: #ffd0d0; }
+.dead-boss { filter: grayscale(1) brightness(0.6); }
