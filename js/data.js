@@ -52,6 +52,13 @@ const TRAITS = {
   arcane:    { name: '마탑의 유산', desc: '전투력 +10%, 마법 조사에서 추가 +25%', unique: true },
   captain:   { name: '선장의 호령', desc: '파티 사기 하락 없음, 보상 금화 +15%', unique: true },
   commander: { name: '지휘', desc: '파티 전원 전투력 +8%', unique: true },
+  // 세력 정예 용병 특성
+  royalguard:  { name: '왕실 근위', desc: '방어·방어전·결전에서 전투력 +20%', unique: true },
+  northknight: { name: '북부 기사도', desc: '전투력 +5%, 부상 확률 절반', unique: true },
+  broker:      { name: '계약 전문가', desc: '보상 금화 +10%', unique: true },
+  blessed:     { name: '성광의 축복', desc: '파티 사망 위험 -50%', unique: true },
+  sylvan:      { name: '숲의 사수', desc: '파티 성공률 +5%', unique: true },
+  warcry:      { name: '전쟁 함성', desc: '전투력 +15%', unique: true },
 };
 const TRAIT_POOL = ['brave', 'coward', 'sturdy', 'lucky', 'greedy', 'genius', 'lazy', 'diligent', 'none', 'none'];
 

@@ -163,7 +163,7 @@
         c.target ? el('span', { class: 'small muted', text: 'vs' }) : null, c.target ? factionTag(c.target) : null,
         c.enemy ? el('span', { class: 'small muted', text: `· ${c.enemy}` }) : null),
       el('div', { class: 'quest-info' },
-        el('div', {}, icon('coin'), ` 보상 ${c.reward}`),
+        el('div', { class: c.war ? 'war-gold' : '' }, icon('coin'), ` 보상 ${c.reward}`, c.war ? el('span', { class: 'chip war', text: '전쟁' }) : null),
         el('div', {}, icon('star'), ` 명성 +${c.rep}`),
         el('div', { text: `권장 전투력 ${Game.effectiveReq(c)}` }),
         el('div', { text: `권장 ${c.size}명 · ${c.days}일` }),
@@ -184,7 +184,7 @@
     const s = Game.state;
     root.append(el('div', { class: 'panel-head' },
       el('h2', { text: '의뢰' }),
-      el('span', { class: 'muted small', text: '세력 분쟁 의뢰는 의뢰주의 평판을 올리는 대신 대상 세력의 평판을 떨어뜨립니다.' })));
+      el('span', { class: 'muted small', text: '금화는 전쟁 의뢰에서 나옵니다. 괴물·치안 의뢰는 보수가 적은 대신 명성과 경험을 쌓기 좋습니다.' })));
     const groups = [
       ['특별', s.contracts.filter((c) => c.campaign || c.story || c.boss)],
       ['세력 분쟁', s.contracts.filter((c) => !c.campaign && !c.story && !c.boss && c.cat !== 'monster')],
@@ -353,11 +353,20 @@
   };
 
   // ───────── 세력 ─────────
+  const perkLine = (on, text) => el('div', { class: `small ${on ? 'good' : 'muted'}`, text: `${on ? '✔' : '○'} ${text}` });
+  function standingWeightLine(f) {
+    const w = Game.standingWeights(f);
+    const parts = [];
+    if (w.gain < 1) parts.push(el('span', { class: 'chip bad', text: `상승 ×${w.gain}` }));
+    parts.push(el('span', { class: `chip ${w.loss > 1 ? 'bad' : 'good'}`, title: '높은 평판일수록 쉽게 깎이고, 길드 명성이 하락을 덜어 줍니다', text: `하락 ×${w.loss.toFixed(2)}` }));
+    return el('div', { class: 'chips' }, el('span', { class: 'small muted', text: '평판 변화' }), parts);
+  }
+
   T.factions = (root) => {
     const s = Game.state;
     root.append(el('div', { class: 'panel-head' },
       el('h2', { text: '세력' }),
-      el('span', { class: 'muted small', text: '평판 45 이상(신뢰)이면 혜택, -40 이하면 의뢰가 끊기고, -60 이하면 보복이 시작됩니다.' })));
+      el('span', { class: 'muted small', text: `평판이 높을수록 혜택이 커지지만 쉽게 깎이고, 깊이 떨어진 평판은 잘 오르지 않습니다. 길드 명성 보정: 평판 하락 -${Math.round((1 - Game.fameShield()) * 100)}%` })));
     if (s.wars.length) {
       root.append(el('h3', { class: 'group-title', text: '진행 중인 전쟁' }));
       root.append(el('div', { class: 'list' }, s.wars.map((w) => {
@@ -388,7 +397,12 @@
           el('div', { class: 'stand-bar' }, el('div', { class: 'stand-mid' }),
             el('div', { class: `stand-fill ${v >= 0 ? 'pos' : 'neg'}`, style: v >= 0 ? `left:50%;width:${v / 2}%` : `left:${50 + v / 2}%;width:${-v / 2}%` })),
           el('span', { class: `stand-label ${ss.cls}`, text: `${ss.label} ${v}` })),
-        el('div', { class: `small ${Game.perk(f) ? 'good' : 'muted'}`, text: `${Game.perk(f) ? '✔' : '○'} 신뢰 혜택: ${F.perk.desc}` }),
+        standingWeightLine(f),
+        el('div', { class: 'perks' },
+          perkLine(v >= 45, `45 신뢰: ${F.perk.desc}`),
+          perkLine(v >= FACTION_LOANS[f][0].at, `${FACTION_LOANS[f][0].at} 대여: ${FACTION_LOANS[f][0].name}`),
+          perkLine(v >= ELITE_AT, `${ELITE_AT} 매주 정예 용병 (${TRAITS[FACTION_TRAITS[f]].name})`),
+          perkLine(v >= FACTION_LOANS[f][1].at, `${FACTION_LOANS[f][1].at} 대여: ${FACTION_LOANS[f][1].name}`)),
         el('div', { class: 'chips rel-chips' }, FACTION_KEYS.filter((g) => g !== f).map((g) => {
           const rs = Game.relationState(f, g);
           return el('span', { class: `chip ${rs.cls}`, title: `관계 ${Game.relation(f, g)}` }, factionFlag(g, 1), ` ${FACTIONS[g].short} ${rs.label}`);
@@ -415,7 +429,9 @@
       const btn = el('button', { class: 'btn primary small', disabled: s.gold < cost ? 'disabled' : null, onclick: () => Game.hire(m.id) }, icon('coin'), ` ${cost} 고용`);
       const card = mercCard(m, { recruit: true, actions: [btn] });
       const h = m.hero && HEROES[m.hero];
-      const desc = h
+      const desc = m.elite
+        ? el('p', { class: 'small desc hero-desc' }, factionFlag(m.elite, 1), ` ${FACTIONS[m.elite].name} 정예 · ${TRAITS[m.trait].name}: ${TRAITS[m.trait].desc} · 평판이 0 아래로 떨어지면 소환됨`)
+        : h
         ? el('p', { class: 'small desc hero-desc' }, `특별 용병 · ${TRAITS[m.trait].name}: ${TRAITS[m.trait].desc}`, h.faction ? el('span', { class: 'muted' }, ` · 연고: ${FACTIONS[h.faction].name}`) : null)
         : el('p', { class: 'muted small desc', text: CLASSES[m.cls].desc });
       card.insertBefore(desc, card.querySelector('.stats'));
@@ -435,9 +451,10 @@
     return el('div', { class: `row item-row tier-${it.tier}` },
       el('div', { class: 'item-icon' }, itemIcon(it.base, it.tier, 3)),
       el('div', { class: 'grow' },
-        el('div', { class: `item-name tier-text-${it.tier}`, text: it.name }),
+        el('div', { class: `item-name tier-text-${it.tier}` }, it.name, it.loan ? el('span', { class: 'chip loan' }, factionFlag(it.loan, 1), ' 대여') : null),
         el('div', { class: 'small' }, el('span', { class: 'muted', text: `${SLOT_NAMES[it.slot]} · ` }), bonusText(it.bonus))),
-      el('button', { class: 'btn small', disabled: disabled ? 'disabled' : null, onclick: onClick }, icon('coin'), ` ${price} ${label}`));
+      it.loan ? el('span', { class: 'small muted', text: '판매 불가' })
+        : el('button', { class: 'btn small', disabled: disabled ? 'disabled' : null, onclick: onClick }, icon('coin'), ` ${price} ${label}`));
   }
 
   T.shop = (root) => {

@@ -155,3 +155,36 @@ const DISPOSITIONS = {
   faction: { name: '세력 동조', desc: '동조하는 세력을 공격하는 의뢰는 거부하거나 크게 반발한다.' },
 };
 const COMPANY_SPECIALTIES = ['hunt', 'defense', 'raid', 'siege', 'sabotage', 'escort', 'explore'];
+
+// ───────── 평판 혜택 ─────────
+// 신뢰(45)·맹우(75)에 닿으면 세력 무기고의 장비를 대여한다. 평판이 기준보다 10 이상 떨어지면 회수된다.
+const LOAN_RECALL_MARGIN = 10;
+const FACTION_LOANS = {
+  crown: [
+    { at: 45, base: 'sword', name: '왕실 근위 장검', bonus: { str: 12, dex: 5, hp: 6 } },
+    { at: 75, base: 'plate', name: '아스트라 기사 판금', bonus: { hp: 34, str: 6 } },
+  ],
+  north: [
+    { at: 45, base: 'leather', name: '북부 늑대 망토', bonus: { hp: 18, dex: 8 } },
+    { at: 75, base: 'ring', name: '발렌 공작가 인장 반지', bonus: { str: 8, dex: 8, int: 8 } },
+  ],
+  cities: [
+    { at: 45, base: 'dagger', name: '의회 인장 단검', bonus: { dex: 12, str: 6 } },
+    { at: 75, base: 'amulet', name: '황금 돛 부적', bonus: { hp: 12, dex: 7, int: 7 } },
+  ],
+  church: [
+    { at: 45, base: 'mace', name: '성광 철퇴', bonus: { str: 8, int: 10 } },
+    { at: 75, base: 'robe', name: '대신관의 백색 로브', bonus: { hp: 16, int: 14 } },
+  ],
+  elves: [
+    { at: 45, base: 'bow', name: '달빛 장궁', bonus: { dex: 14, str: 4 } },
+    { at: 75, base: 'amulet', name: '세계수 잎 부적', bonus: { hp: 14, int: 10 } },
+  ],
+  clans: [
+    { at: 45, base: 'sword', name: '부족장의 도끼', bonus: { str: 15, hp: 8 } },
+    { at: 75, base: 'leather', name: '붉은 모래 전사 갑옷', bonus: { hp: 24, dex: 8 } },
+  ],
+};
+// 평판 60 이상이면 매주 세력 정예 용병이 모집소에 온다. 평판이 0 아래로 떨어지면 본국으로 소환된다.
+const ELITE_AT = 60;
+const FACTION_TRAITS = { crown: 'royalguard', north: 'northknight', cities: 'broker', church: 'blessed', elves: 'sylvan', clans: 'warcry' };

@@ -446,3 +446,9 @@ h3 { font-size: 14px; margin: 8px 0; }
   .mtags { max-width: 45%; }
 }
 .q-counterspy { background: #4a4a6a; }
+
+/* ───────── 평판 혜택 / 전쟁 의뢰 ───────── */
+.chip.loan { margin-left: 6px; color: var(--gold); border-color: var(--accent); }
+.chip.war { margin-left: 4px; background: #8f2d3a; color: #fff; border-color: #5e1d26; }
+.war-gold { color: var(--gold); font-weight: bold; }
+.perks { display: flex; flex-direction: column; gap: 1px; }

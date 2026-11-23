@@ -35,10 +35,24 @@ Object.assign(Game, {
   standingMul(f) { return f && !FACTIONS[f].neutral ? 1 + this.standing(f) / 250 : 1; },
 
   // 평판 변경. 반환값: 실제 변화 목록 [{f, d}]
-  changeStanding(f, d, out) {
+  // 평판 가중치: 깊이 떨어진 평판은 잘 오르지 않고, 높은 평판은 쉽게 깎인다. 길드 명성은 하락을 덜어 준다.
+  fameShield() { return 1 - this.rankIndex() * 0.06; },
+  standingWeights(f) {
+    const v = this.standing(f);
+    const gain = v <= -70 ? 0.3 : v <= -40 ? 0.5 : v < 0 ? 0.8 : v > 50 ? Math.round((1 - (v - 50) / 100) * 100) / 100 : 1;
+    const loss = (1 + Math.max(0, v) / 100) * this.fameShield();
+    return { gain, loss };
+  },
+  changeStanding(f, d, out, raw) {
     if (!f || !this.state.factions[f] || !d) return;
     const st = this.state.factions[f];
     const before = st.standing;
+    if (!raw) {
+      const w = this.standingWeights(f);
+      const sign = Math.sign(d);
+      d = d * (d > 0 ? w.gain : w.loss);
+      d = sign * Math.max(1, Math.round(Math.abs(d)));
+    }
     st.standing = clamp(Math.round(st.standing + d), -100, 100);
     if (out) out.push({ f, d: st.standing - before });
     if (before > -60 && st.standing <= -60) this.log(`${FACTIONS[f].name}이(가) 길드를 적으로 간주하기 시작했습니다!`, 'bad');
@@ -51,6 +65,72 @@ Object.assign(Game, {
     if (d >= 0) return;
     FACTION_KEYS.forEach((g) => {
       if (g !== f && this.relation(f, g) >= 50) this.changeStanding(g, Math.round(d / 2), out);
+    });
+  },
+
+  // ───────── 평판 혜택: 장비 대여 / 정예 용병 ─────────
+  loanKey(f, i) { return `${f}:${i}`; },
+  findLoan(f, i) {
+    const s = this.state, key = this.loanKey(f, i);
+    const inInv = s.inventory.find((it) => it.loanKey === key);
+    if (inInv) return { item: inInv };
+    for (const m of s.mercs) for (const slot of Object.keys(m.equip)) {
+      if (m.equip[slot] && m.equip[slot].loanKey === key) return { item: m.equip[slot], merc: m, slot };
+    }
+    return null;
+  },
+  checkFactionRewards() {
+    const s = this.state;
+    s.loans = s.loans || {};
+    FACTION_KEYS.forEach((f) => {
+      const v = this.standing(f);
+      FACTION_LOANS[f].forEach((def, i) => {
+        const key = this.loanKey(f, i);
+        if (!s.loans[key] && v >= def.at) {
+          const it = this.makeUniqueItem(def);
+          it.tier = i === 0 ? 4 : 5;
+          it.loan = f; it.loanKey = key;
+          s.inventory.push(it);
+          s.loans[key] = true;
+          this.log(`${FACTIONS[f].name}이(가) 길드에 「${it.name}」을(를) 대여했습니다. (평판이 ${def.at - LOAN_RECALL_MARGIN} 아래로 떨어지면 회수)`, 'good');
+          s.pendingReports.push({ special: 'news', title: '장비 대여', factions: [f],
+            text: `${FACTIONS[f].name}의 무기고에서 「${it.name}」(${Object.entries(it.bonus).map(([k, b]) => `${STAT_NAMES[k]}+${b}`).join(' ')})을(를) 보내왔습니다. 평판이 떨어지면 회수됩니다.` });
+        } else if (s.loans[key] && v < def.at - LOAN_RECALL_MARGIN) {
+          const found = this.findLoan(f, i);
+          if (found) {
+            if (found.merc) found.merc.equip[found.slot] = null;
+            else s.inventory = s.inventory.filter((x) => x !== found.item);
+            this.log(`${FACTIONS[f].name}이(가) 대여했던 「${found.item.name}」을(를) 회수해 갔습니다.`, 'bad');
+          }
+          delete s.loans[key];
+        }
+      });
+    });
+  },
+  makeElite(f) {
+    const sd = FACTIONS[f].soldier;
+    const cls = pick(sd.classes);
+    const level = clamp(Math.round(this.rankIndex() * 1.6) + rand(3, 5), 3, 20);
+    const m = this.makeMerc(cls, level);
+    m.trait = FACTION_TRAITS[f];
+    m.elite = f;
+    m.title = `${FACTIONS[f].short} 정예`;
+    m.look = { cls, skin: pick(sd.skins), hair: pick(sd.hairs), longHair: Math.random() < 0.3, tint: { outfit: FACTIONS[f].color, accent: FACTIONS[f].accent } };
+    m.str += 2; m.dex += 2; m.int += 2; m.maxHp += 6;
+    return m;
+  },
+  weeklyElites() {
+    const s = this.state;
+    s.recruits = s.recruits.filter((r) => !r.elite || this.standing(r.elite) >= ELITE_AT);
+    FACTION_KEYS.forEach((f) => {
+      if (this.standing(f) >= ELITE_AT && !s.recruits.some((r) => r.elite === f)) {
+        s.recruits.unshift(this.makeElite(f));
+        this.log(`${FACTIONS[f].name}이(가) 정예 용병을 모집소로 보냈습니다.`, 'good');
+      }
+    });
+    // 관계가 틀어지면 정예 용병은 본국으로 소환된다
+    s.mercs.filter((m) => m.elite && m.status !== 'quest' && this.standing(m.elite) < 0).forEach((m) => {
+      this.removeMerc(m, `${FACTIONS[m.elite].name}의 소환 명령을 받고 길드를 떠났습니다.`, 'bad');
     });
   },
 
@@ -227,8 +307,10 @@ Object.assign(Game, {
       const st = s.factions[f];
       st.mod = Math.round(st.mod * 0.7); // 공작 피해는 서서히 회복
       // 높은 평판은 관리하지 않으면 서서히 식는다
-      if (st.standing > 30) st.standing -= 2;
-      if (st.standing <= -60 && this.provincesOf(f).length && Math.random() < 0.35) this.retaliate(f);
+      if (st.standing >= 75) st.standing -= 4;
+      else if (st.standing >= 50) st.standing -= 2;
+      else if (st.standing >= 30) st.standing -= 1;
+      if (st.standing <= -60 && this.provincesOf(f).length && Math.random() < 0.35 * (1 - this.rankIndex() * 0.08)) this.retaliate(f);
     });
   },
 

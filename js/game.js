@@ -223,7 +223,7 @@ const Game = {
     if (m.trait === 'diligent') w *= 0.8;
     return Math.round(w);
   },
-  hireCost(m) { return this.wage(m) * (m.hero ? 4 : 3); },
+  hireCost(m) { return this.wage(m) * (m.hero || m.elite ? 4 : 3); },
 
   // party를 넘기면 전우/불화/지휘 효과까지 반영
   power(m, type, party) {
@@ -234,6 +234,9 @@ const Game = {
     if (m.trait === 'coward') p *= 0.9;
     if (m.trait === 'berserker') p *= 1.25;
     if (m.trait === 'arcane') p *= type === 'magic' ? 1.35 : 1.1;
+    if (m.trait === 'royalguard' && ['defense', 'warDefense', 'battle'].includes(type)) p *= 1.2;
+    if (m.trait === 'northknight') p *= 1.05;
+    if (m.trait === 'warcry') p *= 1.15;
     if (m.awakened) p *= 1.15;
     // 직업 스킬 / 상급 직업 스킬
     if (m.cls === 'mage' && type === 'magic') p *= 1.2;
@@ -269,6 +272,9 @@ const Game = {
     if (has((m) => m.trait === 'greedy')) mods.gold += 0.1;
     if (has((m) => m.trait === 'shadow')) mods.gold += 0.25;
     if (has((m) => m.trait === 'captain')) { mods.gold += 0.15; mods.noMoraleLoss = true; }
+    if (has((m) => m.trait === 'broker')) mods.gold += 0.1;
+    if (has((m) => m.trait === 'blessed')) mods.death *= 0.5;
+    if (has((m) => m.trait === 'sylvan')) mods.success += 0.05;
     if (has((m) => m.adv === 'paladin')) { mods.injury *= 0.7; mods.death *= 0.5; }
     if (has((m) => m.adv === 'ranger')) mods.days -= 1;
     if (has((m) => m.adv === 'sniper')) mods.great *= 2;
@@ -336,7 +342,7 @@ const Game = {
     const lvBonus = s.facilities.tavern;
     const maxLv = 1 + lvBonus + Math.floor(this.rankIndex() * 1.2) + (this.perk('north') ? 2 : 0);
     const count = 3 + lvBonus;
-    const heroes = s.recruits.filter((r) => r.hero);
+    const heroes = s.recruits.filter((r) => r.hero || r.elite);
     s.recruits = heroes;
     for (let i = 0; i < count; i++) {
       s.recruits.push(this.makeMerc(pick(Object.keys(CLASSES)), rand(Math.max(1, maxLv - 2), maxLv)));
@@ -397,7 +403,7 @@ const Game = {
   sell(itemId) {
     const s = this.state;
     const it = s.inventory.find((x) => x.id === itemId);
-    if (!it) return;
+    if (!it || it.loan) return;
     const price = this.sellPrice(it);
     s.gold += price;
     s.inventory = s.inventory.filter((x) => x.id !== itemId);
@@ -456,6 +462,7 @@ const Game = {
 
     // 세계 진행 (전쟁 압박, 전역 결판)
     this.worldDaily();
+    this.checkFactionRewards();
 
     // 단원 회복 / 훈련 / 사기
     const heal = (1 + s.facilities.infirmary * 0.5) * (this.perk('church') ? 1.5 : 1);
@@ -544,6 +551,7 @@ const Game = {
     });
     this.weeklyCompanies();
     this.refreshRecruits();
+    this.weeklyElites();
     this.refreshShop();
     if (Math.floor(s.day / 7) % 2 === 0) this.refreshMarket();
     this.log('모집소에 새 지원자가, 상점에 새 물건이 들어왔습니다.');

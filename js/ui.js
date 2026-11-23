@@ -122,6 +122,7 @@ const UI = (() => {
             el('span', { class: `trait ${TRAITS[m.trait].unique ? 'unique' : ''}`, title: TRAITS[m.trait].desc, text: TRAITS[m.trait].name })),
           opts.recruit ? null : el('div', { class: 'row-inline small' }, statusLabel(m), co ? el('span', { class: 'muted', text: co.name }) : el('span', { class: 'muted', text: '예비 인원' })))),
       heroLine(m),
+      m.elite ? el('div', { class: 'hero-line' }, factionFlag(m.elite, 1), el('span', { class: 'hero-title', text: ` ${m.title}` })) : null,
       skillLine(m),
       opts.recruit ? null : conditionLine(m),
       el('div', { class: 'stats' },
@@ -228,7 +229,7 @@ const UI = (() => {
         body.append(el('div', { class: 'row item-row' },
           itemIcon(it.base, it.tier, 2),
           el('div', { class: 'grow' },
-            el('div', { class: `item-name tier-text-${it.tier}`, text: it.name }),
+            el('div', { class: `item-name tier-text-${it.tier}` }, it.name, it.loan ? el('span', { class: 'chip loan' }, factionFlag(it.loan, 1), ' 대여') : null),
             el('div', { class: 'small muted', text: bonusText(it.bonus) }),
             diffText ? el('div', { class: 'small diff', text: `변화: ${diffText}` }) : null),
           el('button', { class: 'btn small primary', text: '장착', onclick: () => { Game.equip(m.id, it.id); openEquip(m.id); } })));

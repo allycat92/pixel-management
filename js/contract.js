@@ -46,7 +46,8 @@ Object.assign(Game, {
   },
 
   // 의뢰를 줄 수 있는 세력인가 (평판 -40 이하면 거래 끊김)
-  willHire(f) { return !f || FACTIONS[f].neutral || this.standing(f) > -40; },
+  // 길드 명성이 높으면 다소 껄끄러운 세력도 일을 맡긴다
+  willHire(f) { return !f || FACTIONS[f].neutral || this.standing(f) + this.rankIndex() * 4 > -40; },
 
   // 의뢰가 열릴 지방 고르기
   pickProvince() {
@@ -79,10 +80,13 @@ Object.assign(Game, {
       .replace('{e}', enemy || '').replace('{p}', pick(PROVINCES[p].places))
       .replace('{t}', target ? FACTIONS[target].short : '').replace('{i}', FACTIONS[issuer].short);
     const req = Math.round(24 * Math.pow(1.4, level - 1) * (0.9 + Math.random() * 0.2) * (0.8 + Math.min(size, 6) * 0.1));
+    // 금화는 전쟁에서 나온다: 전쟁 의뢰 ×1.5, 평시 분쟁 ×0.7, 외교 ×0.6, 괴물·치안 ×0.3
+    const war = t.cat === 'campaign' || (!!target && this.atWar(issuer, target));
+    const catMul = war ? 1.5 : t.cat === 'conflict' ? 0.7 : t.cat === 'diplomacy' ? 0.6 : 0.3;
     const mul = (1 + s.facilities.board * 0.08) * (s.branches[p] ? 1.1 : 1) * (s.bossDefeated[p] ? 1.1 : 1)
-      * this.standingMul(issuer) * (t.cat === 'monster' ? 1 : 1.25);
+      * this.standingMul(issuer) * catMul;
     return {
-      id: s.nextId++, type: opts.type, cat: t.cat, title, level, size, days, req, province: p, issuer, target, enemy,
+      id: s.nextId++, type: opts.type, cat: t.cat, war, title, level, size, days, req, province: p, issuer, target, enemy,
       reward: Math.round((40 + level * 30 + level * level * 3) * (0.85 + Math.random() * 0.3) * (1 + days * 0.12) * mul),
       rep: Math.round((4 + level * 3 + (size >= 4 ? 2 : 0)) * (t.cat === 'monster' ? 1 : 1.2)),
       expires: s.day + rand(3, 6),
@@ -345,7 +349,7 @@ Object.assign(Game, {
     allMembers.forEach((m) => {
       const r = { id: m.id, name: m.name, cls: m.cls, look: m.look, exp: 0, levelUp: false, injury: 0, dead: false, company: m.companyId };
       m.missionId = null; m.status = 'idle'; m.quests++;
-      if (won && m.hero) m.bond++;
+      if (won && m.hero) m.bond += HEROES[m.hero].faction && this.standing(HEROES[m.hero].faction) >= 45 ? 2 : 1;
       let deathChance = (outcome === 'disaster' ? 0.3 : 0) * mods.death;
       if (m.trait === 'sturdy') deathChance *= 0.6;
       if (Math.random() < deathChance) {
@@ -360,7 +364,7 @@ Object.assign(Game, {
       r.exp = Math.round(baseExp * expMul);
       r.levelUp = this.gainExp(m, r.exp);
       let inj = injuryBase * mods.injury;
-      if (m.trait === 'sturdy' || m.trait === 'coward') inj *= 0.5;
+      if (m.trait === 'sturdy' || m.trait === 'coward' || m.trait === 'northknight') inj *= 0.5;
       if (m.fatigue >= 80) inj *= 1.5;
       const dm = { great: 6, success: 2, fail: -6, disaster: -12 }[outcome];
       if (dm > 0 || !mods.noMoraleLoss) this.changeMorale(m, dm);
@@ -433,7 +437,7 @@ Object.assign(Game, {
     if (eff.issuer) this.changeStanding(c.issuer, Math.round(eff.issuer * (eff.issuer > 0 ? boost : 1)), out);
     if (eff.target && c.target) this.changeStandingWithAllies(c.target, eff.target, out);
     // 공작은 성공해도 정체가 드러날 수 있다
-    if (c.type === 'sabotage' && won && Math.random() < 0.3) {
+    if (c.type === 'sabotage' && won && c.target && Math.random() < 0.3) {
       this.changeStanding(c.target, -9, out);
       report.notes.push(`${FACTIONS[c.target].name}에 길드의 개입이 드러났습니다.`);
     }
@@ -577,7 +581,7 @@ Object.assign(Game, {
       c.cat = 'monster';
       c.boss = p;
       c.req = Math.round(c.req * 1.3);
-      c.reward = Math.round(c.reward * 2.5);
+      c.reward = Math.round(c.reward * 4);
       c.rep *= 3;
       c.expires = STORY_EXPIRES;
       s.contracts.unshift(c);
