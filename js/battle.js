@@ -174,8 +174,9 @@ const Battle = (() => {
     }
   }
 
-  // 앞쪽 수풀 (유닛 위에 겹쳐 그려 깊이를 준다)
+  // 앞쪽 수풀 (유닛 위에 겹쳐 그려 깊이를 준다). 일러스트 배경에는 앞쪽 모서리 장식이 이미 그려져 있어 쓰지 않는다 (null)
   function foreground(terrain) {
+    if (typeof Art !== 'undefined' && Art.image && Art.image(`bg/battle/${terrain}`)) return null;
     const f = document.createElement('canvas'); f.width = CW; f.height = CH;
     const c = f.getContext('2d');
     const P = PAL[terrain] || PAL.plains;
@@ -1396,7 +1397,7 @@ const Battle = (() => {
 
     // 분위기 입자, 앞쪽 수풀
     drawAmbient(ctx, view);
-    ctx.drawImage(view.fg, 0, 0);
+    if (view.fg) ctx.drawImage(view.fg, 0, 0);
 
     // 체력바·이름표 (앞쪽 유닛부터 자리를 잡고, 이름표가 겹치면 위로 비켜 쌓는다)
     ctx.textAlign = 'center';

@@ -19,7 +19,7 @@
 실행:
   python3 tools/art/sheets.py                          # art/inbox/sheet_*.png 전부
   python3 tools/art/sheets.py art/inbox/sheet_captain_blademaster.png
-  옵션: --id ID  --grid CxR  --flip  --height 64  --colors 40  --work DIR
+  옵션: --id ID  --grid CxR  --flip  --height 64 | --scale 0.1654  --cell 96  --colors 40  --work DIR
         --dry-run (manifest 를 건드리지 않음)  --no-register  --aseprite OUT.aseprite
 필요: Pillow + NumPy (sprite-gen venv 가 있으면 숨쉬기 루프에 쓴다)
 """
@@ -560,8 +560,15 @@ def process(path, sid, a, reqs):
         crops.append((rgb[y0:y1, x0:x1], aa[y0:y1, x0:x1]))
     # 모든 자세에 같은 배율: idle 의 몸 높이 → height
     body = body_height(crops[0][1])
-    scale = height / body
-    log(f'  배율 {scale:.4f} (idle 몸 높이 {body}px → {height}px, 칸 {CELL}x{CELL}; 머리 위로 솟은 가는 무기 끝은 빼고 잰다)')
+    if a.scale:
+        # 같은 가이드 격자(발바닥 y=870, 머리 110px)에 그린 캐릭터들은 같은 배율로 줄여야 크기가 서로 맞는다.
+        # (idle 높이로 맞추면 모자·큰 머리숱까지 64px 에 들어가 그 캐릭터만 작아진다)
+        scale = a.scale
+        height = body * scale
+        log(f'  배율 {scale:.4f} 고정 (--scale; idle 몸 높이 {body}px → {height:.1f}px, 칸 {CELL}x{CELL})')
+    else:
+        scale = height / body
+        log(f'  배율 {scale:.4f} (idle 몸 높이 {body}px → {height}px, 칸 {CELL}x{CELL}; 머리 위로 솟은 가는 무기 끝은 빼고 잰다)')
     small = []
     for (c_rgb, c_a), nm in zip(crops, names):
         hh = body_height(c_a) * scale
@@ -659,6 +666,8 @@ def main():
     ap.add_argument('--poses', type=int, choices=[1, 2, 3, 4], help='한 줄 띠의 자세 수 (기본: 가로로 긴 그림은 4, 아니면 자동)')
     ap.add_argument('--flip', action='store_true', help='왼쪽을 보고 그려진 그림을 뒤집는다')
     ap.add_argument('--height', type=int, help='idle 자세의 몸 높이 px (기본: 요청서, 없으면 64)')
+    ap.add_argument('--scale', type=float, help='원본 → 게임 배율을 고정 (--height 대신). 같은 가이드 격자에 그린 시트끼리 크기를 맞출 때: '
+                    '대장 1x4 띠는 앵커 바렌의 0.1654')
     ap.add_argument('--cell', type=int, help='칸 크기 (기본: 요청서, 없으면 80; 발 위치는 칸 가운데·바닥 4px 위)')
     ap.add_argument('--colors', type=int, default=40, help='시트 공통 팔레트 색 수 (기본 40)')
     ap.add_argument('--alpha', type=float, default=0.45, help='축소 후 알파 기준 (기본 0.45)')

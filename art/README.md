@@ -58,7 +58,14 @@
 ```bash
 python3 tools/art/sheets.py                       # art/inbox/sheet_*.png 전부 → assets/art/sheets/ + manifest
 python3 tools/art/sheets.py art/inbox/sheet_hero_kai.png --dry-run --work /tmp/sheets   # 미리보기만
+# GPT 대장 1×4 띠(가이드 격자: 발바닥 y=870, 머리 110px)는 하나씩, 앵커 바렌과 같은 배율·96 칸으로:
+python3 tools/art/sheets.py art/inbox/sheet_captain_ironwall.png --scale 0.1654 --cell 96
+python3 tools/art/sheets.py art/inbox/sheet_captain_lancer.png --scale 0.1654 --cell 112   # 창을 앞으로 뻗는 타격이 96 칸보다 넓다
 ```
+- `--scale`: 같은 가이드 격자에 그린 시트는 같은 배율로 줄인다. 기본(`--height 64`)은 대기 자세의 모자·머리숱까지 64px에 넣으므로
+  모자가 높은 이사벨·머리숱이 큰 키아라가 바렌보다 9~11% 작아진다. `--cell 96`: 무기를 치켜든 준비 자세(마그다 89px)가 80 칸에 들어가지 않아 줄어드는 것을 막는다.
+  칸 크기는 시트마다 달라도 된다 (전투 화면은 manifest의 cell·anchor를 그대로 쓴다).
+- `sheet_captain_lancer_mounted.png`(2×2 기마 예비 그림)는 게임에서 쓰지 않으므로 **등록하지 않는다** (인자 없이 `sheets.py`를 돌리면 함께 처리되니 파일을 하나씩 지정할 것).
 - 입력: 1×4 띠(대기·준비·타격·피격), 2×2 격자, 또는 전신 한 장(대기만). 자세 수는 자동으로 찾는다 (`--grid 4x1`로 강제).
 - 칸마다 배경 제거 → 대기 자세 몸 높이를 64px로 맞춘 같은 배율로 축소 → 알파 정리 → 1px 어두운 가장자리 → 가장자리까지 포함한 시트 공통 팔레트(`--colors`, 기본 40색)
   → 80×80 칸, 발 (40,76) → 대기는 `sprite-gen breathe --mode pixel` 숨쉬기 4칸 → 시트 png + Aseprite json-array(태그 idle/attack/hit)

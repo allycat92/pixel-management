@@ -3,7 +3,8 @@
 
 - 단색 배경(투명이 아닌 경우)은 네 모서리 색을 기준으로 지운다 (초상화만).
 - 투명 여백을 잘라 내고, 요청서의 '게임 내 크기'에 맞춰 축소한다.
-- 팔레트를 줄여(초상화 32색, 이벤트 48색) 도트 느낌을 맞춘다.
+- 팔레트를 줄여(초상화 32색, 이벤트 48색) 도트 느낌을 맞춘다. 이미 색을 줄여 그린 배경(<=256색)은
+  원본 자신의 팔레트로 맞춘다 (드문 색이 사라지지 않게).
 - manifest.json 은 덮어쓰지 않고 고친다: 이 스크립트가 만든 항목만 갱신하고, 다른 항목
   (전투 시트 sheet/*, register_sheet.py·sheets.py 가 넣은 것 등)은 그대로 둔다.
 - 전투 캐릭터 시트(요청서 kind 'sheet')는 여기서 처리하지 않는다 → tools/art/sheets.py
@@ -58,6 +59,14 @@ def quantize_rgba(im, colors):
     return out
 
 
+def to_palette(im, colors):
+    """불투명 그림을 주어진 색 목록(<=256)에 디더 없이 맞춘다."""
+    pal = Image.new('P', (1, 1))
+    flat = [v for c in colors for v in c[:3]]
+    pal.putpalette(flat + flat[:3] * (256 - len(colors)))
+    return im.convert('RGB').quantize(palette=pal, dither=Image.Dither.NONE).convert('RGBA')
+
+
 HANDLED = {'portrait': 'portraits', 'event': 'events', 'background': 'backgrounds'}
 
 
@@ -85,8 +94,14 @@ def process(item, src):
         else:
             nh = int(w / target)
             im = im.crop((0, (h - nh) // 2, w, (h - nh) // 2 + nh))
+        src_pal = im.convert('RGB').getcolors(256) if item['kind'] == 'background' else None
         im = im.resize((ow, oh), Image.Resampling.BOX)
-        im = quantize_rgba(im, 48)
+        if src_pal:
+            # 이미 색을 줄여 그린 배경(<=256색): 축소한 그림을 원본 자신의 팔레트에 맞춘다.
+            # median-cut 으로 다시 줄이면 창밖 하늘·덩굴·성의 분홍 같은 드문 색이 회색·갈색으로 사라진다.
+            im = to_palette(im, [c for _, c in src_pal])
+        else:
+            im = quantize_rgba(im, 48)
     sub = HANDLED[item['kind']]
     os.makedirs(os.path.join(OUT, sub), exist_ok=True)
     rel = f'assets/art/{sub}/{item["file"]}'

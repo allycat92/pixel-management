@@ -7,6 +7,29 @@ const Scene = (() => {
   const actors = new Map(); // mercId -> {x, y, tx, ty, flip, wait, phase}
   let tick = 0;
 
+  // 덧그림 자리: 코드로 그린 방(code)과 일러스트 배경(art: assets/art bg/guild/day|night, 320x120)은 가구 위치가 다르다.
+  //  board: 의뢰 쪽지 [x, y, 가로 간격, 세로 간격], fire: 불꽃 [왼쪽 x, 바닥 y, 빛 중심 x, y], counter: 바텐더 앞에 다시 그릴 카운터 [x, y, w, h],
+  //  keep: 바텐더 위치, walk: 돌아다닐 바닥 [x0, x1, 발 y0, 발 y1] 중 하나 (일러스트는 식탁·의자를 피한 앞쪽 띠와 융단 길),
+  //  rest: 부상자가 쉬는 벽난로 앞 [x, 발 y]
+  const LAYOUT = {
+    code: { board: [121, 21, 11, 11], fire: [280, 70, 290, 78], counter: [6, 50, 52, 28], keep: [24, 36],
+      walk: [[64, 266, FLOOR + 18, H - 4]], rest: [240, FLOOR + 30] },
+    art: { board: [147, 36, 14, 13], fire: [288, 76, 297, 84], counter: [0, 68, 56, 22], keep: [24, 53],
+      walk: [[56, 282, 110, 118], [152, 182, 92, 118], [52, 66, 96, 118]], rest: [276, 98] },
+  };
+  let layoutName = 'code';
+  // 길드 홀 그림: 한 주(7일)의 마지막 이틀(급료일 전야)은 밤 그림. 그림이 없으면 다른 쪽, 그것도 없으면 코드로 그린 방.
+  function guildArt() {
+    if (typeof Art === 'undefined' || !Art.image || !Game.state) return null;
+    const night = Game.state.day % 7 === 6 || Game.state.day % 7 === 0;
+    const a = Art.image('bg/guild/day'), b = Art.image('bg/guild/night');
+    return night ? b || a : a || b;
+  }
+  function spot(L) {
+    const z = L.walk[rand(0, L.walk.length - 1)];
+    return { x: rand(z[0], z[1] - 16), y: rand(z[2], z[3]) - 16 };
+  }
+
   function init(canvasEl) {
     cvs = canvasEl; ctx = cvs.getContext('2d');
     cvs.width = W; cvs.height = H;
@@ -91,28 +114,28 @@ const Scene = (() => {
     return b;
   }
 
-  function drawBoard(quests) {
-    const n = Math.min(quests, 6);
+  function drawBoard(quests, L) {
+    const n = Math.min(quests, 6), [bx, by, dx, dy] = L.board;
     for (let i = 0; i < n; i++) {
-      const x = 121 + (i % 3) * 11, y = 21 + Math.floor(i / 3) * 11;
+      const x = bx + (i % 3) * dx, y = by + Math.floor(i / 3) * dy;
       px(ctx, x, y, 9, 9, i % 2 ? '#efe2c0' : '#e8d5a3');
       px(ctx, x + 4, y, 1, 1, '#c0392b');
       px(ctx, x + 2, y + 3, 5, 1, '#8a7a5a'); px(ctx, x + 2, y + 5, 4, 1, '#8a7a5a');
     }
   }
 
-  function drawFire() {
-    const fx = 268 + 10;
+  function drawFire(L) {
+    const [fx, base, gx, gy] = L.fire;
     const cols = ['#f2c94c', '#f39c12', '#e74c3c', '#fff4b0'];
     for (let i = 0; i < 26; i++) {
-      const x = fx + 2 + Math.floor(Math.random() * 20);
+      const x = fx + Math.floor(Math.random() * 20);
       const h = 4 + Math.floor(Math.random() * 12);
-      const y = 70 - h;
+      const y = base - h;
       px(ctx, x, y, 1, h, cols[Math.floor(Math.random() * 3)]);
     }
-    px(ctx, fx + 8, 62 + (tick % 2), 4, 6, cols[3]);
+    px(ctx, fx + 6, base - 8 + (tick % 2), 4, 6, cols[3]);
     // 바닥에 비치는 불빛
-    const glow = ctx.createRadialGradient(290, 78, 4, 290, 78, 60);
+    const glow = ctx.createRadialGradient(gx, gy, 4, gx, gy, 60);
     glow.addColorStop(0, `rgba(242, 160, 60, ${0.18 + Math.random() * 0.06})`);
     glow.addColorStop(1, 'rgba(242, 160, 60, 0)');
     ctx.fillStyle = glow;
@@ -125,8 +148,9 @@ const Scene = (() => {
     for (const id of [...actors.keys()]) if (!ids.has(id)) actors.delete(id);
     present.forEach((m) => {
       if (!actors.has(m.id)) {
+        const p = spot(LAYOUT[layoutName]);
         actors.set(m.id, {
-          x: rand(70, 250), y: rand(FLOOR + 2, H - 20), tx: 0, ty: 0, flip: Math.random() < 0.5,
+          x: p.x, y: p.y, tx: 0, ty: 0, flip: Math.random() < 0.5,
           wait: rand(5, 30), phase: rand(0, 3),
         });
         const a = actors.get(m.id); a.tx = a.x; a.ty = a.y;
@@ -136,13 +160,14 @@ const Scene = (() => {
 
   function update() {
     if (!Game.state) return;
+    const L = LAYOUT[layoutName];
     syncActors(Game.state.mercs);
     Game.state.mercs.forEach((m) => {
       const a = actors.get(m.id);
       if (!a) return;
       if (m.status === 'injured') {
         // 부상자는 벽난로 앞에서 쉰다
-        a.tx = 240 + (m.id % 3) * 8; a.ty = FLOOR + 14 + (m.id % 2) * 8;
+        a.tx = L.rest[0] + (m.id % 3) * 8; a.ty = L.rest[1] - 16 + (m.id % 2) * 8;
       } else if (a.wait > 0) {
         a.wait--;
         return;
@@ -150,7 +175,8 @@ const Scene = (() => {
       const dx = a.tx - a.x, dy = a.ty - a.y;
       if (Math.abs(dx) < 1 && Math.abs(dy) < 1) {
         if (m.status !== 'injured') {
-          a.tx = rand(64, 250); a.ty = rand(FLOOR + 2, H - 20);
+          const p = spot(L);
+          a.tx = p.x; a.ty = p.y;
           a.wait = rand(8, 40);
         }
         return;
@@ -163,14 +189,19 @@ const Scene = (() => {
   }
 
   function draw() {
-    ctx.drawImage(bg, 0, 0);
+    const art = guildArt(), room = art || bg;
+    const name = art ? 'art' : 'code';
+    if (name !== layoutName) { layoutName = name; actors.clear(); } // 가구 위치가 바뀌면 단원 자리도 새로
+    const L = LAYOUT[layoutName];
+    ctx.drawImage(room, 0, 0, W, H);
     if (!Game.state) return;
-    drawBoard(Game.state.contracts.length);
-    drawFire();
+    drawBoard(Game.state.contracts.length, L);
+    drawFire(L);
     // 주점 주인 NPC
     const barkeep = { cls: 'archer', skin: '#e0ac7e', hair: '#8a5a2b', longHair: false };
-    ctx.drawImage(Sprites.merc(barkeep, 1, tick % 8 < 4 ? 0 : 1), 24, 36);
-    ctx.drawImage(bg, 6, 50, 52, 28, 6, 50, 52, 28); // 카운터를 앞에 다시 그림
+    ctx.drawImage(Sprites.merc(barkeep, 1, tick % 8 < 4 ? 0 : 1), L.keep[0], L.keep[1]);
+    const [cx, cy, cw, ch] = L.counter;
+    ctx.drawImage(room, cx * room.width / W, cy * room.height / H, cw * room.width / W, ch * room.height / H, cx, cy, cw, ch); // 카운터를 앞에 다시 그림
 
     const list = Game.state.mercs
       .map((m) => ({ m, a: actors.get(m.id) }))
