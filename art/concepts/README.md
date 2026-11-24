@@ -9,3 +9,4 @@ so each image can be regenerated.
 
 - `captain_blademaster` (바렌): #5 = aesthetic reference, #8 = pixelization reference.
 - `captain_ironwall` (브리긴다): #8 = design reference.
+- `captain_tactician` (이사벨): #7 = design reference.
