@@ -15,10 +15,16 @@ DESIGN: shaggy grey fur with a darker back and a lighter belly; amber eyes; bare
 
 COLOURS (keep close, muted): fur grey #8a8f99, dark #5c606a, light grey-beige belly; eyes amber #f2c94c; mouth dark red-brown.
 
-FIX:
+FROM concept.png (the owner's pick, NovelAI draft #6; design only) TAKE: the head held below the shoulder line with a snarl and bared fangs, a thick darker ruff over the neck and shoulders, pale cheeks and muzzle, pale lower legs and paws, a long bushy tail hanging low, a lean long-legged build.
+
+FIX (do not reproduce the draft here):
   - a common monster seen in large numbers: an ordinary member of its kind, no unique features, no crown, banner or trophy
   - a real wolf (not a werewolf, never standing up)
   - exactly four legs, one tail and one head in every pose
+  - the draft fur is a noise of thin hatching strokes: a few big fur clumps in 2-3 tones
+  - the draft fur is olive / khaki grey: neutral-cool grey as in COLOURS, darker back, lighter belly
+  - the draft eye is orange-red: amber
+  - the draft has four legs and one tail - keep exactly that; paint the two far legs a tone darker so all four read separately
 
 POSES (no posekit mannequin for this creature: the text gives the pose, guide_layout.png the place and size):
   1. idle (top-left quadrant): standing on all fours, head lowered, snarling, tail down
@@ -30,7 +36,7 @@ REFERENCES (folder art/requests/phase3/monster_wolf/ on branch claude/dot-fantas
   - art/inbox/sheet_captain_blademaster.png on the art-inbox branch (in a chat: the attached approved Baren sheet) = the APPROVED STYLE ANCHOR: match its rendering, outline, palette treatment and lighting
   - guide_layout.png (layout, baseline and the SIZE BOX of each pose - the lines, boxes and labels are guide-only)
   - guide_scale.png (the same pixel scale as a 4-head human captain; the grey human is NOT drawn)
-  - concept.png - NOT IN THE FOLDER YET: it is added after the owner picks a NovelAI design draft. Do not start this sheet before concept.png is there
+  - concept.png (DESIGN ONLY)
 
 DO NOT COPY: from the concept draft take ONLY the design (costume pieces, colours, hair, face marks, headgear, weapon/shield type, silhouette idea). Do NOT copy its proportions, rendering/shading technique, outline weight, saturation, lighting or level of detail - the NovelAI drafts are not consistent with each other.
 
@@ -62,7 +68,8 @@ SELF-CHECK before saving (redraw if any fails):
 ## 주인용 요약 (한국어)
 
 - 순서: 1차 몬스터 **2번째** (메시지 E) — 승인된 바렌 그림(`art-inbox` 브랜치의 `art/inbox/sheet_captain_blademaster.png`)의 화풍에 맞춘다.
-- **초안 대기**: 주인이 NovelAI 초안(`jobs_monsters.json`)을 고르면 `art/concepts/monster_wolf/`에 두고 `handoff.py`의 `CREATURES['monster_wolf']['concepts']`에 `{'concept.png': 'monster_wolf/concept_NN.png'}`를 넣어 다시 실행한다. 그 전에는 그림 쪽에 보내지 않는다.
+- **초안** `concept.png` = `art/concepts/monster_wolf/concept_06.png` (주인이 고른 #6, 디자인만) — 가져올 것: 어깨선 아래로 낮춘 머리와 드러낸 송곳니, 목·어깨의 짙은 갈기, 밝은 뺨·주둥이, 밝은 다리 끝·발, 낮게 늘어진 굵은 꼬리, 다리가 긴 마른 체격.
+- **초안에서 고칠 것** (영어 블록 FIX 끝부분): 가는 빗금 털(노이즈) → 큰 털 덩어리 2~3단. 올리브·카키빛 회색 → 중성·찬 회색(등 짙게, 배 밝게). 주황빛 붉은 눈 → 호박색. 다리 넷·꼬리 하나 그대로, 먼 쪽 다리 둘은 한 단계 어둡게.
 - 설계: 회색 들늑대, 머리 낮추고 으르렁, 꼬리 아래. 작은 몬스터(대기 상자 약 420x250px). 물기 근접 공격.
 - 자세: ① 네 발로 서서 으르렁 ② 뒷다리에 웅크려 덮칠 준비 ③ 오른쪽으로 덮치며 문다(뒷발 하나는 바닥) ④ 머리를 젖히며 뒤로 물러남
 - 배치: 1536x1024 **2x2 격자** (768x512 네 칸: 왼쪽 위 대기, 오른쪽 위 공격 준비, 왼쪽 아래 공격 타격, 오른쪽 아래 피격), 칸마다 맨 아래 픽셀 y=461. posekit 마네킹 없음(사람 골격이 아니다) — 자세는 글로, 자리·크기는 `guide_layout.png`의 상자로.
@@ -77,7 +84,7 @@ SELF-CHECK before saving (redraw if any fails):
 | (`art-inbox`의 `art/inbox/sheet_captain_blademaster.png`) | 승인된 바렌 시트 — 화풍 기준, 꼭 같이 첨부 |
 | `guide_layout.png` | 결과물 배치: 2x2 칸, 바닥선, 자세별 크기 상자 (선·상자·글씨는 가이드에만) |
 | `guide_scale.png` | 같은 배율의 사람(회색, 그리지 않음)과 대기 상자 — 크기 비교 |
-| (`concept.png`) | **대기** — 주인이 NovelAI 초안을 고르면 들어간다 |
+| `concept.png` | 주인이 고른 NovelAI 디자인 초안 (디자인만 참고) |
 
 ### 받은 뒤 (Claude Code)
 

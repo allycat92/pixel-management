@@ -15,11 +15,17 @@ DESIGN: a deep hood with a dark face and two cyan eyes (small clusters, no halo)
 
 COLOURS (keep close, muted): robes pale blue #b8c8e8, shade #7a8ab0, light #e8f0ff (muted); eyes cyan #6ff0f0; face, hands dark grey-blue.
 
-FIX:
+FROM concept.png (the owner's pick, NovelAI draft #7; design only) TAKE: the deep hood over a dark face with two small cyan eyes, the heavy draped hood and shoulder cloth, the long ragged hem in strips, thin skeletal hands with long claws reaching forward, the forward-leaning hovering posture.
+
+FIX (do not reproduce the draft here):
   - a common monster seen in large numbers: an ordinary member of its kind, no unique features, no crown, banner or trophy
   - the tail tip is the lowest point and sits on the baseline (the engine places that point on the ground)
   - paint it fully opaque (no semi-transparency): the ghostly look comes from the colours and the tattered edges
   - no glow halo, smoke or particles around it
+  - the draft robes are teal / mint: pale blue as in COLOURS
+  - the draft robe dissolves into a dark semi-transparent smear with a separate curly tendril at its side: a fully opaque tattered robe that narrows into ONE wispy tail, its tip the lowest point, on the baseline
+  - the draft face is pure black: dark grey-blue as in COLOURS, the cyan eyes small with no halo
+  - the draft hides the near hand in the robe folds: both skeletal hands clearly readable in every pose
 
 POSES (no posekit mannequin for this creature: the text gives the pose, guide_layout.png the place and size):
   1. idle: hovering, arms hanging, the robe tail wisping down to the baseline
@@ -31,7 +37,7 @@ REFERENCES (folder art/requests/phase3/monster_wraith/ on branch claude/dot-fant
   - art/inbox/sheet_captain_blademaster.png on the art-inbox branch (in a chat: the attached approved Baren sheet) = the APPROVED STYLE ANCHOR: match its rendering, outline, palette treatment and lighting
   - guide_layout.png (layout, baseline and the SIZE BOX of each pose - the lines, boxes and labels are guide-only)
   - guide_scale.png (the same pixel scale as a 4-head human captain; the grey human is NOT drawn)
-  - concept.png - NOT IN THE FOLDER YET: it is added after the owner picks a NovelAI design draft. Do not start this sheet before concept.png is there
+  - concept.png (DESIGN ONLY)
 
 DO NOT COPY: from the concept draft take ONLY the design (costume pieces, colours, hair, face marks, headgear, weapon/shield type, silhouette idea). Do NOT copy its proportions, rendering/shading technique, outline weight, saturation, lighting or level of detail - the NovelAI drafts are not consistent with each other.
 
@@ -63,7 +69,8 @@ SELF-CHECK before saving (redraw if any fails):
 ## 주인용 요약 (한국어)
 
 - 순서: 1차 몬스터 **8번째** (메시지 E) — 승인된 바렌 그림(`art-inbox` 브랜치의 `art/inbox/sheet_captain_blademaster.png`)의 화풍에 맞춘다.
-- **초안 대기**: 주인이 NovelAI 초안(`jobs_monsters.json`)을 고르면 `art/concepts/monster_wraith/`에 두고 `handoff.py`의 `CREATURES['monster_wraith']['concepts']`에 `{'concept.png': 'monster_wraith/concept_NN.png'}`를 넣어 다시 실행한다. 그 전에는 그림 쪽에 보내지 않는다.
+- **초안** `concept.png` = `art/concepts/monster_wraith/concept_07.png` (주인이 고른 #7, 디자인만) — 가져올 것: 어두운 얼굴에 작은 청록 눈 둘이 있는 깊은 후드, 무겁게 늘어진 후드·어깨 천, 갈래갈래 찢어진 긴 밑단, 앞으로 뻗은 긴 손톱의 앙상한 손, 앞으로 기운 채 떠 있는 자세.
+- **초안에서 고칠 것** (영어 블록 FIX 끝부분): 청록·민트빛 로브 → 연청색. 반투명하게 번지며 사라지는 밑단과 옆의 따로 떨어진 꼬불 꼬리 → 불투명한 해진 로브가 가는 꼬리 하나로 좁아지고 그 끝이 바닥선. 새까만 얼굴 → 짙은 청회색, 눈은 작게 번짐 없이. 로브 주름에 묻힌 가까운 손 → 두 손 모두 잘 보이게.
 - 설계: 후드 쓴 떠다니는 유령, 해진 긴 연청색 로브가 가는 꼬리로 끝남, 앙상한 손톱, 다리 없음. 대기 약 240x360px. 게임에서는 원거리(엔진이 저주탄을 그림).
 - 자세: ① 팔을 늘어뜨리고 떠 있음(꼬리 끝이 바닥선) ② 팔을 위·뒤로 들고 로브가 뒤로 부풂 ③ 두 손을 앞으로 내밀며 울부짖음(시전) ④ 몸이 뒤로 꺾이며 팔이 위로
 - 배치: 1536x1024 **한 줄 4자세**, 맨 아래 픽셀 y=870. posekit 마네킹 없음(사람 골격이 아니다) — 자세는 글로, 자리·크기는 `guide_layout.png`의 상자로.
@@ -78,7 +85,7 @@ SELF-CHECK before saving (redraw if any fails):
 | (`art-inbox`의 `art/inbox/sheet_captain_blademaster.png`) | 승인된 바렌 시트 — 화풍 기준, 꼭 같이 첨부 |
 | `guide_layout.png` | 결과물 배치: 한 줄 네 자리, 바닥선, 자세별 크기 상자 (선·상자·글씨는 가이드에만) |
 | `guide_scale.png` | 같은 배율의 사람(회색, 그리지 않음)과 대기 상자 — 크기 비교 |
-| (`concept.png`) | **대기** — 주인이 NovelAI 초안을 고르면 들어간다 |
+| `concept.png` | 주인이 고른 NovelAI 디자인 초안 (디자인만 참고) |
 
 ### 받은 뒤 (Claude Code)
 

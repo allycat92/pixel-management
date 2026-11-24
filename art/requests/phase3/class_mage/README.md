@@ -20,10 +20,18 @@ KEY COLOURS (the most important rule of this sheet): ONE sheet is shared by ever
 
 COLOURS of everything else (keep close, muted): skin (hands, a sliver of the face in shadow) #f2c9a0; staff, pouches, boots warm browns; crystal amber #d9a441 (muted).
 
+FROM concept.png (the owner's pick, NovelAI draft #9; design only) TAKE: the pointed hat with its brim pulled down over the eyes, the high stand-up collar hiding mouth and chin, a small shoulder capelet, the long robe with wide bell sleeves and one trim line down the front, brown belt with pouches, brown boots, the free hand raised open.
+
 FIX (do not reproduce the draft here):
   - the face stays covered / shadowed the SAME way in ALL FOUR poses: the visor, hood, mask, brim or veil never slips, opens or falls back, not even in the hit pose; the shadowed face is a warm or neutral dark (e.g. #3a2e2a), never blue and never a key colour
   - NO fire, glow or magic effect anywhere: the engine draws the spell VFX; the casting hand is open and empty
   - the hat stays inside the figure's space (no huge brim reaching the neighbouring figure)
+  - the draft's slate-blue / teal / cyan cloth only marks WHERE the key colours go: repaint those areas with the exact KEY COLOURS ramps above (flat), never with the draft's own blues, teals or cyans (the draft trim is bright cyan: the front line, cuffs, capelet edge and hem are accent keys)
+  - the draft's face opening is a flat pure-black void: paint it as the warm / neutral face shadow (#3a2e2a family), not pure black
+  - the draft has a second amber crystal FLOATING above the open hand: delete it - the raised hand is open and EMPTY; the only crystal is the small one on top of the staff
+  - the draft staff is a thin cane held low with its crystal at hand height: a straight staff the length of the guide staff, crystal at its top
+  - the draft has no hat band and no sash: add both, in the accent keys
+  - the draft hat is very tall with a very wide brim: compact (cone about one head tall, brim no wider than the shoulders)
 
 POSES (the guide mannequin fixes pose, proportions, size and position; its colours, round head, plain clothes and fist-shaped hands are placeholders - follow the text for hands and weapon details):
   1. idle: staff held diagonally in front with both hands
@@ -35,7 +43,7 @@ REFERENCES (folder art/requests/phase3/class_mage/ on branch claude/dot-fantasy-
   - art/inbox/sheet_captain_blademaster.png on the art-inbox branch (in a chat: the attached approved Baren sheet) = the APPROVED STYLE ANCHOR. Match its proportions, rendering, outline, palette treatment, lighting and character scale exactly
   - guide_strip.png (layout + poses + size: the most important reference)
   - guide_1_idle.png .. guide_4_hit.png (the same four poses, larger)
-  - concept.png - NOT IN THE FOLDER YET: it is added after the owner picks a NovelAI design draft. Do not start this sheet before concept.png is there
+  - concept.png (DESIGN ONLY)
 
 DO NOT COPY: from the concept draft take ONLY the design (costume pieces, colours, hair, face marks, headgear, weapon/shield type, silhouette idea). Do NOT copy its proportions, rendering/shading technique, outline weight, saturation, lighting or level of detail - the NovelAI drafts are not consistent with each other.
 
@@ -71,7 +79,6 @@ SELF-CHECK before saving (redraw if any fails):
 ## 주인용 요약 (한국어)
 
 - 순서: 일반 병과 **3번째** (메시지 D, 대장 9명 다음) — 승인된 바렌 그림(`art-inbox` 브랜치의 `art/inbox/sheet_captain_blademaster.png`)의 화풍에 맞춘다.
-- **초안 대기**: 주인이 NovelAI 초안(`jobs_classes.json`)을 고르면 `art/concepts/class_mage/`에 두고 `handoff.py`의 `CHARS['class_mage']['concepts']`에 `{'concept.png': 'class_mage/concept_NN.png'}`를 넣어 다시 실행한다. 그 전에는 그림 쪽에 보내지 않는다.
 - **얼굴 가림** (주인 요청): 이 그림 한 장을 서로 다른 여러 사람이 같이 쓰므로 얼굴이 가려지는 복장 — 마법사는 깊게 눌러쓴 모자 챙 + 높은 깃, 얼굴은 그늘. 네 자세 모두 같은 만큼 가린다(피격 때도 벗겨지지 않음). 가려진 얼굴 그늘은 따뜻하거나 중성인 어두운 색(파랑·열쇠 색 금지). 상급·최상급 직업은 어울릴 때만, 억지로 하지 않는다.
 - **열쇠 색** (전투에서 진영 색으로 바뀐다): 제복 `#263459` `#394b78` `#52679c` `#7489be`, 장식 `#3f7a6c` `#5ea590` `#96d1bb` — 이 7색은 그 자리에만, 평평하게. 다른 곳에는 파랑·청회색·청록을 쓰지 않는다.
 - 결과 파일: `art/inbox/sheet_class_mage.png` (id `sheet/class/mage`)
@@ -79,6 +86,8 @@ SELF-CHECK before saving (redraw if any fails):
 - 자세(가이드 프레임): ① 대기 `idle_0` ② 공격 준비 `cast_1` ③ 공격 타격 `key_strike` ④ 피격 `key_hit` (`key_*` = handoff.py 의 KEY_POSES: 준비는 체중 뒤로, 타격은 내딛는 런지, 피격은 상체가 뒤로 젖혀짐)
 - 초안에서 가져올 것: 깊게 눌러쓴 챙 넓은 고깔모자(챙이 눈을 가림) + 입·턱을 가린 높은 깃(얼굴은 그늘), 정강이까지 오는 로브와 허리띠 천, 갈색 주머니, 호박색 작은 수정이 달린 곧은 나무 지팡이.
 - 고칠 것: 모자·로브·높은 깃 = 제복 열쇠 색, 모자 띠·로브 테두리·허리띠 천 = 장식 열쇠 색. 수정은 따뜻한 호박색(파랑·청록 금지), 효과 없음. 펠릭스와 같은 시전 틀.
+- **초안** `concept.png` = `art/concepts/class_mage/concept_09.png` (주인이 고른 #9, 디자인만) — 가져올 것: 눈을 가리게 눌러쓴 고깔모자, 입·턱을 가린 높은 깃, 작은 어깨 망토, 넓은 종 모양 소매의 긴 로브와 앞섶의 테두리 선 하나, 주머니 달린 갈색 띠, 갈색 장화, 들어 올린 빈 손.
+- **초안에서 고칠 것** (영어 블록 FIX 끝부분): 초안의 청회색·밝은 시안 테두리는 열쇠 색 자리 표시 → 정확한 열쇠 색(앞섶·소맷부리·어깨 망토 끝·밑단 = 장식). 새까만 얼굴 → 따뜻한 어둠. 손 위에 떠 있는 두 번째 수정 삭제 — 든 손은 빈 손, 수정은 지팡이 끝의 작은 것 하나뿐. 낮게 든 가는 지팡이 → 가이드 길이의 곧은 지팡이, 수정은 끝에. 모자 띠·허리 천 추가(장식). 너무 큰 모자 → 작게(뿔 높이 머리 하나, 챙은 어깨 너비 이하).
 - 초안에서 가져오지 말 것: 비율(등신), 칠하는 방식, 외곽선 굵기, 채도, 조명, 디테일 양 — 모두 4등신·앵커 화풍으로 통일.
 - 가이드 띠: 머리 하나 = 110 px (모든 캐릭터 같음). 선 키라면 440 px 이지만 대기 자세가 웅크려서 정수리~발바닥 약 401 px(높이의 39%). 모자·투구·깃털·무기는 따로. 발바닥(맨 아래 픽셀) y=870.
 
@@ -92,7 +101,7 @@ SELF-CHECK before saving (redraw if any fails):
 | `guide_2_windup.png` | 자세 가이드 832x1216 — 공격 준비 |
 | `guide_3_strike.png` | 자세 가이드 832x1216 — 공격 타격 |
 | `guide_4_hit.png` | 자세 가이드 832x1216 — 피격 |
-| (`concept.png`) | **대기** — 주인이 NovelAI 초안을 고르면 들어간다 |
+| `concept.png` | 주인이 고른 NovelAI 디자인 초안 (디자인만 참고) |
 
 ### 받은 뒤 (Claude Code)
 

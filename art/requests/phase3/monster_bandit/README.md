@@ -15,9 +15,16 @@ CHARACTER: a short hand axe in the near hand (where the guide holds the sword, s
 
 COLOURS (keep close, muted): skin #e0ac7e; bandana dark red #8f2d3a; jerkin brown leather #a8764e / #6b4a32; axe head NEUTRAL steel grey.
 
+FROM concept.png (the owner's pick, NovelAI draft #1; design only) TAKE: the red bandana with two short tails at the back, long dark hair, stubble and a sneer, a torn short-sleeved shirt under a sleeveless jerkin, a rope belt wound several times, dark trousers, worn boots folded down at the top, a short hand axe.
+
 FIX (do not reproduce the draft here):
   - a common monster seen in large numbers: an ordinary member of its kind, no unique features, no crown, banner or trophy
   - he must read differently from the desert bandit: red bandana, bare face, axe and buckler
+  - exactly ONE head (sibling drafts of this design came out with a duplicated head): one head, one neck
+  - the draft holds a second wooden handle / club in the far hand and has NO buckler: the far arm carries ONLY the small round wooden buckler of CHARACTER; exactly one axe, nothing else in the hands
+  - the draft holds the axe across the belly: the axe only in the near hand, as the guide holds the sword
+  - the draft jerkin is black and the build bulky and muscle-heavy: a patched brown leather jerkin (COLOURS) on a wiry build
+  - the draft bandana is bright red: muted dark red #8f2d3a
 
 POSES (the guide mannequin fixes pose, proportions, size and position; its colours, round head, plain clothes and fist-shaped hands are placeholders - follow the text for hands and weapon details):
   1. idle: buckler forward, axe ready
@@ -29,7 +36,7 @@ REFERENCES (folder art/requests/phase3/monster_bandit/ on branch claude/dot-fant
   - art/inbox/sheet_captain_blademaster.png on the art-inbox branch (in a chat: the attached approved Baren sheet) = the APPROVED STYLE ANCHOR. Match its proportions, rendering, outline, palette treatment, lighting and character scale exactly
   - guide_strip.png (layout + poses + size: the most important reference)
   - guide_1_idle.png .. guide_4_hit.png (the same four poses, larger)
-  - concept.png - NOT IN THE FOLDER YET: it is added after the owner picks a NovelAI design draft. Do not start this sheet before concept.png is there
+  - concept.png (DESIGN ONLY)
 
 DO NOT COPY: from the concept draft take ONLY the design (costume pieces, colours, hair, face marks, headgear, weapon/shield type, silhouette idea). Do NOT copy its proportions, rendering/shading technique, outline weight, saturation, lighting or level of detail - the NovelAI drafts are not consistent with each other.
 
@@ -64,13 +71,14 @@ SELF-CHECK before saving (redraw if any fails):
 ## 주인용 요약 (한국어)
 
 - 순서: 1차 몬스터 **5번째** (메시지 E) — 승인된 바렌 그림(`art-inbox` 브랜치의 `art/inbox/sheet_captain_blademaster.png`)의 화풍에 맞춘다.
-- **초안 대기**: 주인이 NovelAI 초안(`jobs_monsters.json`)을 고르면 `art/concepts/monster_bandit/`에 두고 `handoff.py`의 `CHARS['monster_bandit']['concepts']`에 `{'concept.png': 'monster_bandit/concept_NN.png'}`를 넣어 다시 실행한다. 그 전에는 그림 쪽에 보내지 않는다.
 - 몬스터 설계: 산적 — SMALL (human scale); 공격 melee: axe chop; 나오는 곳 plains, holy-ground and coast battles (the starting region).
 - 결과 파일: `art/inbox/sheet_monster_bandit.png` (id `sheet/monster/산적`)
 - 무기: posekit `sword_shield` 마네킹 → a short hand axe in the near hand (where the guide holds the sword, same angle) and a SMALL round wooden buckler on the far arm (about 0.6 heads across, smaller than the guide shield)
 - 자세(가이드 프레임): ① 대기 `idle_0` ② 공격 준비 `key_windup` ③ 공격 타격 `key_strike` ④ 피격 `key_hit` (`key_*` = handoff.py 의 KEY_POSES: 준비는 체중 뒤로, 타격은 내딛는 런지, 피격은 상체가 뒤로 젖혀짐)
 - 초안에서 가져올 것: 붉은 두건, 수염 자국·비웃는 얼굴, 기운 가죽 조끼, 밧줄 허리띠, 짧은 손도끼 + 작은 둥근 나무 버클러.
 - 고칠 것: 사막 도적과 확실히 다르게(붉은 두건·드러난 얼굴·도끼·버클러). 버클러는 가이드 방패보다 작게.
+- **초안** `concept.png` = `art/concepts/monster_bandit/concept_01.png` (주인이 고른 #1, 디자인만) — 가져올 것: 뒤로 짧은 꼬리 둘이 늘어진 붉은 두건, 검은 긴 머리, 수염 자국과 비웃음, 찢어진 반소매 셔츠 위 민소매 조끼, 여러 번 감은 밧줄 허리띠, 짙은 바지, 끝을 접은 낡은 장화, 짧은 손도끼.
+- **초안에서 고칠 것** (영어 블록 FIX 끝부분): 머리는 정확히 하나(같은 초안의 다른 장들은 머리가 둘). 먼 손의 두 번째 나무 자루(곤봉)를 없애고 버클러만(초안에는 버클러가 없다) — 도끼 하나뿐. 배 앞에 가로로 든 도끼 → 가까운 손(가이드 손). 검은 조끼·우람한 근육 → 기운 갈색 가죽 조끼, 마른 체격. 새빨간 두건 → 탁한 짙은 빨강 #8f2d3a.
 - 초안에서 가져오지 말 것: 비율(등신), 칠하는 방식, 외곽선 굵기, 채도, 조명, 디테일 양 — 모두 4등신·앵커 화풍으로 통일.
 - 가이드 띠: 머리 하나 = 110 px (모든 캐릭터 같음). 선 키라면 440 px 이지만 대기 자세가 웅크려서 정수리~발바닥 약 401 px(높이의 39%). 모자·투구·깃털·무기는 따로. 발바닥(맨 아래 픽셀) y=870.
 
@@ -84,7 +92,7 @@ SELF-CHECK before saving (redraw if any fails):
 | `guide_2_windup.png` | 자세 가이드 832x1216 — 공격 준비 |
 | `guide_3_strike.png` | 자세 가이드 832x1216 — 공격 타격 |
 | `guide_4_hit.png` | 자세 가이드 832x1216 — 피격 |
-| (`concept.png`) | **대기** — 주인이 NovelAI 초안을 고르면 들어간다 |
+| `concept.png` | 주인이 고른 NovelAI 디자인 초안 (디자인만 참고) |
 
 ### 받은 뒤 (Claude Code)
 

@@ -20,10 +20,17 @@ KEY COLOURS (the most important rule of this sheet): ONE sheet is shared by ever
 
 COLOURS of everything else (keep close, muted): skin (hands only; the face is in shadow) #e0ac7e; leather armour, straps, boots warm dark brown #4a3a2e (NOT black, NOT blue-grey); dagger NEUTRAL steel grey.
 
+FROM concept.png (the owner's pick, NovelAI draft #2; design only) TAKE: the deep hood with its cloth wrapped over the mouth and nose (only a dark eye slit), the low crouched stance, dark-brown leather chest armour, many brown leather straps around the thighs and shins, soft boots, ONE dagger.
+
 FIX (do not reproduce the draft here):
   - the face stays covered / shadowed the SAME way in ALL FOUR poses: the visor, hood, mask, brim or veil never slips, opens or falls back, not even in the hit pose; the shadowed face is a warm or neutral dark (e.g. #3a2e2a), never blue and never a key colour
   - exactly ONE dagger, reverse grip, in the near hand; the other hand is always empty
   - the dark leather stays WARM brown (never blue-grey), so it never comes close to the uniform keys; add a warm rim light on the upper-left edges so it reads on the dark battlefield
+  - the draft's slate-blue / teal / cyan cloth only marks WHERE the key colours go: repaint those areas with the exact KEY COLOURS ramps above (flat), never with the draft's own blues, teals or cyans
+  - the draft draws hood and scarf as ONE bright cyan piece: the hood plus the short shoulder cape (which the draft lacks) use the OUTFIT keys, the scarf over mouth and nose the ACCENT keys - two clearly separate pieces
+  - the draft sleeves, trousers and boots are navy blue: warm dark brown / warm dark grey (nothing blue outside the keys)
+  - the draft's head is sunk into the chest and the arms are knotted across the belly with the blade poking out behind the hip: normal 4-head anatomy with the head clearly above the shoulders, the dagger only in the near hand, reverse grip, as the guide draws it
+  - the draft eye slit is pure black: warm-dark shadow, at most two small eye glints
 
 POSES (the guide mannequin fixes pose, proportions, size and position; its colours, round head, plain clothes and fist-shaped hands are placeholders - follow the text for hands and weapon details):
   1. idle: low ready stance, dagger hand low in front, free hand up as a guard
@@ -35,7 +42,7 @@ REFERENCES (folder art/requests/phase3/class_rogue/ on branch claude/dot-fantasy
   - art/inbox/sheet_captain_blademaster.png on the art-inbox branch (in a chat: the attached approved Baren sheet) = the APPROVED STYLE ANCHOR. Match its proportions, rendering, outline, palette treatment, lighting and character scale exactly
   - guide_strip.png (layout + poses + size: the most important reference)
   - guide_1_idle.png .. guide_4_hit.png (the same four poses, larger)
-  - concept.png - NOT IN THE FOLDER YET: it is added after the owner picks a NovelAI design draft. Do not start this sheet before concept.png is there
+  - concept.png (DESIGN ONLY)
 
 DO NOT COPY: from the concept draft take ONLY the design (costume pieces, colours, hair, face marks, headgear, weapon/shield type, silhouette idea). Do NOT copy its proportions, rendering/shading technique, outline weight, saturation, lighting or level of detail - the NovelAI drafts are not consistent with each other.
 
@@ -71,7 +78,6 @@ SELF-CHECK before saving (redraw if any fails):
 ## 주인용 요약 (한국어)
 
 - 순서: 일반 병과 **5번째** (메시지 D, 대장 9명 다음) — 승인된 바렌 그림(`art-inbox` 브랜치의 `art/inbox/sheet_captain_blademaster.png`)의 화풍에 맞춘다.
-- **초안 대기**: 주인이 NovelAI 초안(`jobs_classes.json`)을 고르면 `art/concepts/class_rogue/`에 두고 `handoff.py`의 `CHARS['class_rogue']['concepts']`에 `{'concept.png': 'class_rogue/concept_NN.png'}`를 넣어 다시 실행한다. 그 전에는 그림 쪽에 보내지 않는다.
 - **얼굴 가림** (주인 요청): 이 그림 한 장을 서로 다른 여러 사람이 같이 쓰므로 얼굴이 가려지는 복장 — 도적은 깊은 후드 + 스카프, 얼굴은 그늘. 네 자세 모두 같은 만큼 가린다(피격 때도 벗겨지지 않음). 가려진 얼굴 그늘은 따뜻하거나 중성인 어두운 색(파랑·열쇠 색 금지). 상급·최상급 직업은 어울릴 때만, 억지로 하지 않는다.
 - **열쇠 색** (전투에서 진영 색으로 바뀐다): 제복 `#263459` `#394b78` `#52679c` `#7489be`, 장식 `#3f7a6c` `#5ea590` `#96d1bb` — 이 7색은 그 자리에만, 평평하게. 다른 곳에는 파랑·청회색·청록을 쓰지 않는다.
 - 결과 파일: `art/inbox/sheet_class_rogue.png` (id `sheet/class/rogue`)
@@ -79,6 +85,8 @@ SELF-CHECK before saving (redraw if any fails):
 - 자세(가이드 프레임): ① 대기 `key_idle` ② 공격 준비 `key_windup` ③ 공격 타격 `key_strike` ④ 피격 `key_hit` (`key_*` = handoff.py 의 KEY_POSES: 준비는 체중 뒤로, 타격은 내딛는 런지, 피격은 상체가 뒤로 젖혀짐)
 - 초안에서 가져올 것: 깊게 눌러쓴 후드(얼굴은 그늘, 눈빛 두 점까지만) + 짧은 어깨 망토, 입·코를 가린 스카프, 끈 많은 짙은 갈색 가죽 갑옷, 역수 단검 하나.
 - 고칠 것: 후드·어깨 망토 = 제복 열쇠 색, 스카프·가는 허리 천 = 장식 열쇠 색. 가죽은 따뜻한 짙은 갈색(청회색 금지) + 왼쪽 위 따뜻한 림 라이트. 진과 같은 틀.
+- **초안** `concept.png` = `art/concepts/class_rogue/concept_02.png` (주인이 고른 #2, 디자인만) — 가져올 것: 입·코까지 감싼 깊은 후드(어두운 눈 틈만), 낮게 웅크린 자세, 짙은 갈색 가죽 가슴 갑옷, 허벅지·정강이를 감은 갈색 가죽 끈 여럿, 부드러운 장화, 단검 하나.
+- **초안에서 고칠 것** (영어 블록 FIX 끝부분): 초안은 후드와 스카프가 한 덩어리의 밝은 시안 → 후드 + (초안에 없는) 짧은 어깨 망토 = 제복 열쇠 색, 입·코의 스카프 = 장식 열쇠 색, 따로 보이게. 남색 소매·바지·장화 → 따뜻한 짙은 갈색·회색(열쇠 색 밖에 파랑 없음). 가슴에 파묻힌 머리·배 앞에 꼬인 팔·엉덩이 뒤로 삐져나온 칼 → 정상 4등신, 머리는 어깨 위, 단검은 가까운 손에 역수로(가이드대로). 새까만 눈 틈 → 따뜻한 어둠, 눈빛 두 점까지.
 - 초안에서 가져오지 말 것: 비율(등신), 칠하는 방식, 외곽선 굵기, 채도, 조명, 디테일 양 — 모두 4등신·앵커 화풍으로 통일.
 - 가이드 띠: 머리 하나 = 110 px (모든 캐릭터 같음). 선 키라면 440 px 이지만 대기 자세가 웅크려서 정수리~발바닥 약 401 px(높이의 39%). 모자·투구·깃털·무기는 따로. 발바닥(맨 아래 픽셀) y=870.
 
@@ -92,7 +100,7 @@ SELF-CHECK before saving (redraw if any fails):
 | `guide_2_windup.png` | 자세 가이드 832x1216 — 공격 준비 |
 | `guide_3_strike.png` | 자세 가이드 832x1216 — 공격 타격 |
 | `guide_4_hit.png` | 자세 가이드 832x1216 — 피격 |
-| (`concept.png`) | **대기** — 주인이 NovelAI 초안을 고르면 들어간다 |
+| `concept.png` | 주인이 고른 NovelAI 디자인 초안 (디자인만 참고) |
 
 ### 받은 뒤 (Claude Code)
 

@@ -42,6 +42,14 @@ Known inconsistencies in the current drafts (`art/requests/phase3/<id>/concept.p
   bib / chest (remove it: no cross or symbol anywhere; her armband stays a plain dark-red band);
   fixer holds two daggers (should be one, reverse grip); tactician is too tall for the 4-head spec;
   the mounted lancer draft's horse head looks doubled (draw exactly one).
+- Generic classes and the first eight monsters: each chosen draft's own defects are listed in its package README
+  (`FROM concept.png ... TAKE` + the `the draft ...` lines at the end of FIX, from `draft=` in `handoff.py`). The big ones:
+  the class drafts' slate / teal / cyan cloth is only the key-colour SLOT (paint the exact key ramps) and their faces are flat
+  black voids (paint a warm-dark shadow); the mage draft has a second crystal floating over its hand, the cleric a glowing
+  white starburst and a morning star, the rogue a hunched body with the head sunk into the chest; the skeleton, bandit and
+  desert-bandit designs had duplicated-head siblings (exactly one head), the bandit draft holds a second handle and no
+  buckler, the desert bandit a huge sickle blade; the harpy draft is too revealing (cover the whole torso with feathers /
+  leather, two wings only), the giant spider is near-black (exactly 8 legs + rim light), the gargoyle's wings fill the canvas.
 - The three Baren action drafts (windup/strike/hit) drift in coat length and art style even with
   the same seed — frame-to-frame consistency must come from the pose guides + one style anchor,
   not from the drafts.
@@ -88,9 +96,9 @@ Known inconsistencies in the current drafts (`art/requests/phase3/<id>/concept.p
   results go ONLY to the `art-inbox` branch (its own older `art/STYLE.md` and requests are not the rules).
 - Order: Baren (anchor, wait for approval) → ironwall, tactician, lancer, huntress, hedgemage, fieldmedic, fixer, veteran
   → optional lancer mounted sheet (`sheet_captain_lancer_mounted.png`, 2x2 grid, wider cell, not used by the game yet;
-  the horse must have exactly one head) → Felix recolour (message C) → after the owner picks NovelAI drafts: the five
-  generic classes (message D) and the first eight monsters (message E) → later groups (promoted classes, heroes, the other
-  monsters and bosses, the other captains).
+  the horse must have exactly one head) → Felix recolour (message C, wait for the owner's approval) → the five generic
+  classes (message D) and the first eight monsters (message E): the owner's NovelAI design picks are in, every package has
+  its `concept.png` and draft notes → later groups (promoted classes, heroes, the other monsters and bosses, the other captains).
 - The copy-paste messages for the image agent are in `art/requests/phase3_gpt.md`.
 
 ## Magenta rule (every sheet)
@@ -138,4 +146,6 @@ The eight most frequent non-boss monsters (counted from `Battle.plan` over simul
   shows the idle box next to a grey 4-head human at the same scale. Boxes, lines, labels and the grey human are guide-only.
 - Ranged monsters (harpy, gargoyle, wraith) get a cast / shriek pose; the engine draws the projectile.
 
-Both batches wait for the owner's NovelAI design picks (`concept.png` is missing until then; the README says so).
+Both batches have the owner's NovelAI design picks (`art/concepts/selections.json`: classes warrior #5, archer #10, mage #9,
+cleric #4, rogue #2; monsters skeleton #1, wolf #6, desert bandit #5, harpy #9, bandit #1, gargoyle #2, giant spider #3,
+wraith #7) as `concept.png` in their packages, with per-draft keep / fix notes. Messages D and E are ready to send.

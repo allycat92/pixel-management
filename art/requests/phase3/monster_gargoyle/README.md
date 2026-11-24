@@ -15,10 +15,17 @@ DESIGN: grey stone skin with a few big cracks and chipped edges; curved horns; b
 
 COLOURS (keep close, muted): stone grey #6b737c, dark #44494f, light #9aa3ad; eyes red #d6455d; mouth dark.
 
-FIX:
+FROM concept.png (the owner's pick, NovelAI draft #2; design only) TAKE: the blue-grey stone body with crack lines, the beaked snout with a red eye, stone wing bones with dark membranes, the crouch on all fours with big hooked claws, the long thin tail ending in a spade tip.
+
+FIX (do not reproduce the draft here):
   - a common monster seen in large numbers: an ordinary member of its kind, no unique features, no crown, banner or trophy
   - stone texture only as a few big cracks, not noise
   - the engine draws the fire: no flames, glow or dust in the drawing
+  - the draft wings span the whole canvas: in idle fold them half open so the pose fits its box (~380 x 330); only the wind-up spreads them wide
+  - the draft has no readable horns: add two clear curved horns
+  - the draft runs the wing bones down into the front claws (wing and arm merged): two separate stone arms with claws, and two wings growing from the back - exactly two wings, four limbs, one tail, one head
+  - the draft cracks cover every surface: only a few big cracks
+  - the draft wing membranes are near-black: dark stone grey #44494f so they read on the dark battlefield
 
 POSES (no posekit mannequin for this creature: the text gives the pose, guide_layout.png the place and size):
   1. idle (top-left quadrant): crouched like a statue on all fours, wings folded half open, head low
@@ -30,7 +37,7 @@ REFERENCES (folder art/requests/phase3/monster_gargoyle/ on branch claude/dot-fa
   - art/inbox/sheet_captain_blademaster.png on the art-inbox branch (in a chat: the attached approved Baren sheet) = the APPROVED STYLE ANCHOR: match its rendering, outline, palette treatment and lighting
   - guide_layout.png (layout, baseline and the SIZE BOX of each pose - the lines, boxes and labels are guide-only)
   - guide_scale.png (the same pixel scale as a 4-head human captain; the grey human is NOT drawn)
-  - concept.png - NOT IN THE FOLDER YET: it is added after the owner picks a NovelAI design draft. Do not start this sheet before concept.png is there
+  - concept.png (DESIGN ONLY)
 
 DO NOT COPY: from the concept draft take ONLY the design (costume pieces, colours, hair, face marks, headgear, weapon/shield type, silhouette idea). Do NOT copy its proportions, rendering/shading technique, outline weight, saturation, lighting or level of detail - the NovelAI drafts are not consistent with each other.
 
@@ -62,7 +69,8 @@ SELF-CHECK before saving (redraw if any fails):
 ## 주인용 요약 (한국어)
 
 - 순서: 1차 몬스터 **6번째** (메시지 E) — 승인된 바렌 그림(`art-inbox` 브랜치의 `art/inbox/sheet_captain_blademaster.png`)의 화풍에 맞춘다.
-- **초안 대기**: 주인이 NovelAI 초안(`jobs_monsters.json`)을 고르면 `art/concepts/monster_gargoyle/`에 두고 `handoff.py`의 `CREATURES['monster_gargoyle']['concepts']`에 `{'concept.png': 'monster_gargoyle/concept_NN.png'}`를 넣어 다시 실행한다. 그 전에는 그림 쪽에 보내지 않는다.
+- **초안** `concept.png` = `art/concepts/monster_gargoyle/concept_02.png` (주인이 고른 #2, 디자인만) — 가져올 것: 금 간 청회색 돌 몸, 부리 같은 주둥이와 붉은 눈, 돌 날개 뼈와 어두운 날개막, 큰 갈고리 발톱으로 네 발 웅크림, 끝이 삽 모양인 가는 긴 꼬리.
+- **초안에서 고칠 것** (영어 블록 FIX 끝부분): 화면을 가로지르는 날개 → 대기에서는 반쯤 접어 상자(약 380x330)에 들게, 펼치는 것은 공격 준비뿐. 뿔이 안 보임 → 굽은 뿔 둘. 날개 뼈가 앞발로 이어져 팔과 날개가 붙음 → 발톱 달린 팔 둘 + 등에서 나온 날개 둘(날개 둘·다리 넷·꼬리 하나·머리 하나). 온몸의 잔금 → 큰 금 몇 개. 새까만 날개막 → 짙은 돌 회색 #44494f.
 - 설계: 살아 움직이는 돌 악마상: 웅크린 몸, 박쥐 날개, 굽은 뿔, 꼬리. 웅크린 대기 약 380x330px. 게임에서는 원거리(엔진이 불덩이를 그림).
 - 자세: ① 석상처럼 네 발로 웅크림 ② 뒷다리로 일어서며 날개 펼침 ③ 낮게 앞으로 덮치며 입을 크게 벌림 ④ 주저앉듯 뒤로 밀리며 날개가 젖혀짐
 - 배치: 1536x1024 **2x2 격자** (768x512 네 칸: 왼쪽 위 대기, 오른쪽 위 공격 준비, 왼쪽 아래 공격 타격, 오른쪽 아래 피격), 칸마다 맨 아래 픽셀 y=461. posekit 마네킹 없음(사람 골격이 아니다) — 자세는 글로, 자리·크기는 `guide_layout.png`의 상자로.
@@ -77,7 +85,7 @@ SELF-CHECK before saving (redraw if any fails):
 | (`art-inbox`의 `art/inbox/sheet_captain_blademaster.png`) | 승인된 바렌 시트 — 화풍 기준, 꼭 같이 첨부 |
 | `guide_layout.png` | 결과물 배치: 2x2 칸, 바닥선, 자세별 크기 상자 (선·상자·글씨는 가이드에만) |
 | `guide_scale.png` | 같은 배율의 사람(회색, 그리지 않음)과 대기 상자 — 크기 비교 |
-| (`concept.png`) | **대기** — 주인이 NovelAI 초안을 고르면 들어간다 |
+| `concept.png` | 주인이 고른 NovelAI 디자인 초안 (디자인만 참고) |
 
 ### 받은 뒤 (Claude Code)
 

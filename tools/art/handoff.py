@@ -16,7 +16,8 @@ Kinds: captains (CHARS, concept + portrait), generic class sheets (CHARS kind 'c
 phase3.json item.tint, the engine recolours the uniform per faction), humanoid monsters (CHARS kind 'monster', posekit
 guides) and non-humanoid monsters (CREATURES: no mannequin; guide_layout.png = 2x2 / 1x4 layout with a size box per pose,
 guide_scale.png = the idle box next to a 4-head human at the same scale). concepts={} = the owner has not picked a NovelAI
-draft yet: the package has no concept.png and its README says so (add the pick and rerun).
+draft yet: the package has no concept.png and its README says so (add the pick and rerun). draft=dict(keep, fix) = notes on the
+chosen draft itself (what to take from it, its defects; fix is appended to FIX), ko['draft_keep'/'draft_fix'] the Korean summary.
 
 Needs art/requests/phase3.json (node tools/art/requests.js) for names and game colours.
 Deterministic: the same inputs give byte-identical files. Concept and portrait files are copied
@@ -27,6 +28,7 @@ import argparse
 import copy
 import json
 import os
+import re
 import shutil
 import sys
 
@@ -372,7 +374,7 @@ CHARS = {
 # (js/battle.js sheetRecolor: key -> target x key luminance / mean luminance of that role's keys). So the uniform is painted
 # ONLY with the key ramps of phase3.json item.tint (= CLASS_KEYS in tools/art/requests.js), flat, and the keys are used
 # nowhere else; sheets.py snaps colours within KEY_TOL back to the keys and registers them (--tint-outfit / --tint-accent).
-# concepts={} = the owner has not picked a NovelAI draft yet (jobs_classes.json); the package then has no concept.png.
+# concepts = the owner's NovelAI pick (art/concepts/selections.json); {} would mean no pick yet (the package then has no concept.png).
 # Face coverage (owner request): one sheet stands for many DIFFERENT people, so the base-class outfits hide or shade the face
 # where it suits the class (warrior visor, archer hood + mask, mage hat brim + high collar, cleric cowl + veil, rogue hood).
 # Later promoted / master classes only where natural - never forced.
@@ -381,13 +383,31 @@ CLASS_COMMON_KEEP = ['the FACE is covered or in shadow (see the headgear below),
 CLASS_COMMON_FIX = ['the face stays covered / shadowed the SAME way in ALL FOUR poses: the visor, hood, mask, brim or veil never '
                     'slips, opens or falls back, not even in the hit pose; the shadowed face is a warm or neutral dark '
                     '(e.g. #3a2e2a), never blue and never a key colour']
+# draft notes (owner's NovelAI pick, concept.png): `draft` = what to take from the drawing (keep) and its defects (fix, appended
+# to FIX). The class drafts were prompted "plain slate blue ... pale teal trim": that only marks the key-colour SLOT.
+CLASS_DRAFT_FIX = ('the draft\'s slate-blue / teal / cyan cloth only marks WHERE the key colours go: repaint those areas with the exact '
+                   'KEY COLOURS ramps above (flat), never with the draft\'s own blues, teals or cyans')
+DRAFT_VOID_FIX = ('the draft\'s face opening is a flat pure-black void: paint it as the warm / neutral face shadow (#3a2e2a family), '
+                  'not pure black')
+ONE_HEAD_FIX = 'exactly ONE head (sibling drafts of this design came out with a duplicated head): one head, one neck'
 FACE_KO = ('- **얼굴 가림** (주인 요청): 이 그림 한 장을 서로 다른 여러 사람이 같이 쓰므로 얼굴이 가려지는 복장 — {face}. '
            '네 자세 모두 같은 만큼 가린다(피격 때도 벗겨지지 않음). 가려진 얼굴 그늘은 따뜻하거나 중성인 어두운 색(파랑·열쇠 색 금지). '
            '상급·최상급 직업은 어울릴 때만, 억지로 하지 않는다.')
 CHARS.update({
     'class_warrior': dict(
         kind='class', en='Warrior', order=11, weapon='sword_shield',
-        frames=dict(idle='idle_0', windup='key_windup', strike='key_strike', hit='key_hit'), concepts={},
+        frames=dict(idle='idle_0', windup='key_windup', strike='key_strike', hit='key_hit'),
+        concepts={'concept.png': 'class_warrior/concept_05.png'},
+        draft=dict(keep=('the plain foot-soldier look: closed steel helm with the visor down and one dark eye slit (its small top spike may '
+                         'stay, small), mail coif and mail sleeves under a sleeveless knee-length tabard split at the front, brown belt with a '
+                         'square buckle, brown gloves, grey trousers, tall brown boots, a plain round shield on the far arm and a straight arming sword'),
+                   fix=[CLASS_DRAFT_FIX,
+                        'the draft shield is bare wood grain: its FACE uses the outfit keys (flat, no wood texture) with one accent-key band, '
+                        'and a plain iron rim and boss (see CHARACTER)',
+                        'the draft tabard has no trim: add the accent-key border trim',
+                        'the draft\'s ochre-yellow boot cuffs become plain warm brown (nothing yellow on the figure)',
+                        'the draft helm is bright polished silver with white glints: neutral mid steel grey, small highlights only',
+                        'the draft\'s rear leg crosses awkwardly behind the front one: legs and stance come ONLY from the guide']),
         weapon_desc=('a plain one-handed arming sword in the near hand and a round wooden shield (the guide shield\'s size) on the far arm; '
                      'the shield FACE is painted with the outfit keys (it shows the faction colour), its rim and boss are plain iron'),
         keep=CLASS_COMMON_KEEP + ['closed steel great helm with the VISOR DOWN: no face shows, only a dark horizontal eye slit '
@@ -405,11 +425,25 @@ CHARS.update({
                   hit='torso thrown back, weight on the rear leg, head jerked back; shield up in front of the chest, sword arm dropped down-back'),
         ko=dict(keep='면갑을 내린 강철 그레이트 헬름(눈 틈만 보임), 사슬 갑옷, 무릎 길이 민소매 겉옷(제복), 가죽 띠, 갈색 장갑·장화, 한손검 + 둥근 나무 방패.',
                 fix='겉옷·방패 면 = 제복 열쇠 색, 겉옷 테두리·방패의 띠 하나 = 장식 열쇠 색. 금속은 푸른 기 없는 중성 회색. 문장·무늬 없음. 면갑은 네 자세 모두 내린 채.',
-                face='전사는 면갑을 내린 투구(눈 틈만)'),
+                face='전사는 면갑을 내린 투구(눈 틈만)',
+                draft_keep='면갑 내린 투구(눈 틈 하나, 위의 작은 뿔은 작게 둬도 됨), 사슬 두건·사슬 소매, 앞이 갈라진 무릎 길이 민소매 겉옷, 네모 버클 갈색 띠, 갈색 장갑, 회색 바지, 갈색 긴 장화, 둥근 방패 + 곧은 한손검.',
+                draft_fix='초안의 청회색·청록은 열쇠 색 자리 표시일 뿐 → 정확한 열쇠 색으로. 나무결 방패 → 방패 면은 제복 열쇠 색(평평하게) + 장식 띠 하나, 쇠 테·쇠 돌기. '
+                          '겉옷에 장식 테두리 추가. 노란 장화 끝단 → 갈색. 번쩍이는 은색 투구 → 중성 회색. 꼬인 뒷다리 → 자세는 가이드대로.'),
     ),
     'class_archer': dict(
         kind='class', en='Archer', order=12, weapon='bow',
-        frames=dict(idle='idle_0', windup='attack_2', strike='attack_3', hit='key_hit'), concepts={},
+        frames=dict(idle='idle_0', windup='attack_2', strike='attack_3', hit='key_hit'),
+        concepts={'concept.png': 'class_archer/concept_10.png'},
+        draft=dict(keep=('the hood up with the face mask running down into a short cowl over the shoulders (hood, mask and cowl one cloth), '
+                         'long-sleeved knee-length tunic with a flared skirt, small brown leather bodice-vest with one diagonal strap, brown belt '
+                         'with pouches, long brown gloves / bracers, tall brown boots with turned-down cuffs, a quiver of arrows on the back'),
+                   fix=[CLASS_DRAFT_FIX,
+                        'the draft face opening is a pure-black void with no eyes: a narrow warm-dark shadow strip at eye level (#3a2e2a family, '
+                        'at most two tiny eye glints); the mask still covers everything below the nose',
+                        'the draft bow is a long bow whose string line breaks and crosses the body: a short recurve bow the size of the guide bow '
+                        'with ONE clean string; an arrow only on the drawn bow in the wind-up',
+                        'the draft has no trim: accent keys on the hood\'s front edge and the tunic hem',
+                        'the draft trousers are blue-purple grey: warm dark grey-brown (nothing blue outside the keys)']),
         weapon_desc='a short recurve bow the size of the guide bow (brown wood), a brown leather quiver of arrows on the back',
         keep=CLASS_COMMON_KEEP + ['the HOOD of the tunic is UP, and a cloth MASK covers the lower face up to the nose, so only a '
                                   'shadowed strip around the eyes shows (hair hidden)',
@@ -426,11 +460,25 @@ CHARS.update({
                   hit='torso thrown back, weight on the rear leg, head jerked back, hood and mask still in place; bow dropped low-forward, drawing hand flung back'),
         ko=dict(keep='후드를 쓰고 천 마스크로 코 아래를 가린 얼굴(눈 둘레만 그늘 속에), 무릎 길이 후드 상의(제복), 갈색 가죽 조끼·팔 보호대, 등의 화살통, 짧은 활.',
                 fix='후드 상의·마스크 = 제복 열쇠 색, 후드 앞 가장자리·상의 밑단 = 장식 열쇠 색. 화살은 당길 때만, 쏜 뒤에는 없음.',
-                face='궁수는 후드 + 코 아래를 가린 천 마스크'),
+                face='궁수는 후드 + 코 아래를 가린 천 마스크',
+                draft_keep='후드와 마스크가 어깨의 짧은 두건 망토로 이어지는 한 장의 천, 긴 소매 무릎 길이 상의(밑자락 퍼짐), 대각선 띠 하나 있는 작은 가죽 조끼, 주머니 달린 갈색 띠, 긴 갈색 장갑, 끝단 접힌 갈색 장화, 등의 화살통.',
+                draft_fix='초안의 청회색은 열쇠 색 자리 표시 → 정확한 열쇠 색. 눈 없는 새까만 얼굴 구멍 → 눈높이의 좁은 따뜻한 어둠(눈빛 두 점까지), 코 아래는 마스크. '
+                          '긴 활·끊긴 시위 → 가이드 크기 짧은 활, 시위 하나. 후드 앞 가장자리·상의 밑단에 장식 열쇠 색 추가. 청보라 바지 → 따뜻한 짙은 회갈색.'),
     ),
     'class_cleric': dict(
         kind='class', en='Cleric', order=14, weapon='staff',
-        frames=dict(idle='idle_0', windup='cast_1', strike='key_strike', hit='key_hit'), concepts={},
+        frames=dict(idle='idle_0', windup='cast_1', strike='key_strike', hit='key_hit'),
+        concepts={'concept.png': 'class_cleric/concept_04.png'},
+        draft=dict(keep=('the deep cowl falling to the shoulders with the veil across the lower face (one cloth), a mail shirt with brown '
+                         'leather sleeves under it, a long tabard with a border trim and a chest disc, brown belt with a round buckle, a small '
+                         'brown book at the hip, grey trousers, tall brown boots, the free hand raised open'),
+                   fix=[CLASS_DRAFT_FIX + ' (the draft even uses two different blues: cowl, veil and tabard are all the same outfit keys)',
+                        DRAFT_VOID_FIX,
+                        'the draft chest emblem is a glowing white starburst: a plain flat filled circle in the accent keys - no rays, no glow, no white',
+                        'the draft weapon is a long-handled spiked ball (morning star): the short flanged mace of CHARACTER (~1.3 heads)',
+                        'the draft tabard reaches the ankles: knee length, so the legs read in the wide stance',
+                        'the draft\'s book is a pouch with a gold stud: a small plain closed brown book, no symbol',
+                        'the draft\'s raised hand has spread, claw-like fingers: a calm open palm']),
         weapon_desc=('a one-handed flanged steel mace with a wooden handle about 1.3 heads long (~140 px), in the near hand where the guide holds '
                      'the staff and at the same angle; it is SHORTER than the guide staff (its head sits about halfway up the guide staff)'),
         keep=CLASS_COMMON_KEEP + ['a deep COWL (hood) pulled low over the brow and a short VEIL of the same cloth across the lower face, '
@@ -447,11 +495,27 @@ CHARS.update({
                   hit='torso thrown back, weight on the rear leg, head jerked back, cowl and veil still in place'),
         ko=dict(keep='이마까지 깊게 내린 두건(카울)과 아래 얼굴을 가린 베일(얼굴은 그늘), 사슬 갑옷 위 무릎 길이 겉옷(제복), 가슴의 무늬 없는 둥근 해 원판, 허리의 작은 책, 한손 철퇴.',
                 fix='겉옷·두건·베일 = 제복 열쇠 색, 테두리·두건 앞 가장자리·가슴 원판 = 장식 열쇠 색. 십자·치유 빛 없음. 2·3번은 공격·치유 겸용 자세(마그다와 같은 틀, 철퇴는 짧게).',
-                face='성직자는 깊은 두건 + 베일, 얼굴은 그늘'),
+                face='성직자는 깊은 두건 + 베일, 얼굴은 그늘',
+                draft_keep='어깨까지 내려오는 깊은 두건과 아래 얼굴의 베일(한 장의 천), 갈색 가죽 소매 위 사슬 갑옷, 테두리와 가슴 원판이 있는 겉옷, 둥근 버클 갈색 띠, 허리의 작은 갈색 책, 회색 바지, 갈색 긴 장화, 들어 올린 빈 손.',
+                draft_fix='초안의 두 가지 파랑(두건 청록·겉옷 파랑)은 열쇠 색 자리 표시 → 두건·베일·겉옷 모두 같은 제복 열쇠 색. 새까만 얼굴 → 따뜻한 어둠. '
+                          '빛나는 흰 별 문양 → 장식 열쇠 색의 무늬 없는 둥근 원판(빛·햇살 없음). 긴 자루 가시 철퇴 → 짧은 플랜지 철퇴. 발목까지 오는 겉옷 → 무릎 길이. '
+                          '금 장식 주머니 → 무늬 없는 작은 책. 갈퀴 같은 손가락 → 차분하게 편 손바닥.'),
     ),
     'class_mage': dict(
         kind='class', en='Mage', order=13, weapon='staff',
-        frames=dict(idle='idle_0', windup='cast_1', strike='key_strike', hit='key_hit'), concepts={},
+        frames=dict(idle='idle_0', windup='cast_1', strike='key_strike', hit='key_hit'),
+        concepts={'concept.png': 'class_mage/concept_09.png'},
+        draft=dict(keep=('the pointed hat with its brim pulled down over the eyes, the high stand-up collar hiding mouth and chin, a small '
+                         'shoulder capelet, the long robe with wide bell sleeves and one trim line down the front, brown belt with pouches, '
+                         'brown boots, the free hand raised open'),
+                   fix=[CLASS_DRAFT_FIX + ' (the draft trim is bright cyan: the front line, cuffs, capelet edge and hem are accent keys)',
+                        DRAFT_VOID_FIX,
+                        'the draft has a second amber crystal FLOATING above the open hand: delete it - the raised hand is open and EMPTY; '
+                        'the only crystal is the small one on top of the staff',
+                        'the draft staff is a thin cane held low with its crystal at hand height: a straight staff the length of the guide staff, '
+                        'crystal at its top',
+                        'the draft has no hat band and no sash: add both, in the accent keys',
+                        'the draft hat is very tall with a very wide brim: compact (cone about one head tall, brim no wider than the shoulders)']),
         weapon_desc=('a straight wooden staff the length of the guide staff with a small AMBER crystal at the top instead of the guide\'s blue orb '
                      '(warm orange-yellow, no glow; never a blue or teal crystal)'),
         keep=CLASS_COMMON_KEEP + ['wide-brimmed pointed HAT (compact brim) pulled LOW, its brim hiding the eyes, and a HIGH COLLAR '
@@ -467,11 +531,25 @@ CHARS.update({
                   hit='torso thrown back, weight on the rear leg, head jerked back, hat still on and still low'),
         ko=dict(keep='깊게 눌러쓴 챙 넓은 고깔모자(챙이 눈을 가림) + 입·턱을 가린 높은 깃(얼굴은 그늘), 정강이까지 오는 로브와 허리띠 천, 갈색 주머니, 호박색 작은 수정이 달린 곧은 나무 지팡이.',
                 fix='모자·로브·높은 깃 = 제복 열쇠 색, 모자 띠·로브 테두리·허리띠 천 = 장식 열쇠 색. 수정은 따뜻한 호박색(파랑·청록 금지), 효과 없음. 펠릭스와 같은 시전 틀.',
-                face='마법사는 깊게 눌러쓴 모자 챙 + 높은 깃, 얼굴은 그늘'),
+                face='마법사는 깊게 눌러쓴 모자 챙 + 높은 깃, 얼굴은 그늘',
+                draft_keep='눈을 가리게 눌러쓴 고깔모자, 입·턱을 가린 높은 깃, 작은 어깨 망토, 넓은 종 모양 소매의 긴 로브와 앞섶의 테두리 선 하나, 주머니 달린 갈색 띠, 갈색 장화, 들어 올린 빈 손.',
+                draft_fix='초안의 청회색·밝은 시안 테두리는 열쇠 색 자리 표시 → 정확한 열쇠 색(앞섶·소맷부리·어깨 망토 끝·밑단 = 장식). 새까만 얼굴 → 따뜻한 어둠. '
+                          '손 위에 떠 있는 두 번째 수정 삭제 — 든 손은 빈 손, 수정은 지팡이 끝의 작은 것 하나뿐. 낮게 든 가는 지팡이 → 가이드 길이의 곧은 지팡이, 수정은 끝에. '
+                          '모자 띠·허리 천 추가(장식). 너무 큰 모자 → 작게(뿔 높이 머리 하나, 챙은 어깨 너비 이하).'),
     ),
     'class_rogue': dict(
         kind='class', en='Rogue', order=15, weapon='none',
-        frames=dict(idle='key_idle', windup='key_windup', strike='key_strike', hit='key_hit'), concepts={},
+        frames=dict(idle='key_idle', windup='key_windup', strike='key_strike', hit='key_hit'),
+        concepts={'concept.png': 'class_rogue/concept_02.png'},
+        draft=dict(keep=('the deep hood with its cloth wrapped over the mouth and nose (only a dark eye slit), the low crouched stance, dark-brown '
+                         'leather chest armour, many brown leather straps around the thighs and shins, soft boots, ONE dagger'),
+                   fix=[CLASS_DRAFT_FIX,
+                        'the draft draws hood and scarf as ONE bright cyan piece: the hood plus the short shoulder cape (which the draft lacks) '
+                        'use the OUTFIT keys, the scarf over mouth and nose the ACCENT keys - two clearly separate pieces',
+                        'the draft sleeves, trousers and boots are navy blue: warm dark brown / warm dark grey (nothing blue outside the keys)',
+                        'the draft\'s head is sunk into the chest and the arms are knotted across the belly with the blade poking out behind the hip: '
+                        'normal 4-head anatomy with the head clearly above the shoulders, the dagger only in the near hand, reverse grip, as the guide draws it',
+                        'the draft eye slit is pure black: warm-dark shadow, at most two small eye glints']),
         weapon_desc=('ONE short dagger in the near hand (screen-left arm = the character\'s right), REVERSE grip '
                      '(blade leaving the little-finger side, running back along the forearm), exactly as the guide draws it'),
         keep=CLASS_COMMON_KEEP + ['deep HOOD pulled low so the face is in shadow (at most two small eye glints) and a short SHOULDER CAPE',
@@ -489,7 +567,11 @@ CHARS.update({
                   hit='torso thrown back, weight on the rear leg, head jerked back, hood and scarf still in place; dagger arm flung back, free hand up'),
         ko=dict(keep='깊게 눌러쓴 후드(얼굴은 그늘, 눈빛 두 점까지만) + 짧은 어깨 망토, 입·코를 가린 스카프, 끈 많은 짙은 갈색 가죽 갑옷, 역수 단검 하나.',
                 fix='후드·어깨 망토 = 제복 열쇠 색, 스카프·가는 허리 천 = 장식 열쇠 색. 가죽은 따뜻한 짙은 갈색(청회색 금지) + 왼쪽 위 따뜻한 림 라이트. 진과 같은 틀.',
-                face='도적은 깊은 후드 + 스카프, 얼굴은 그늘'),
+                face='도적은 깊은 후드 + 스카프, 얼굴은 그늘',
+                draft_keep='입·코까지 감싼 깊은 후드(어두운 눈 틈만), 낮게 웅크린 자세, 짙은 갈색 가죽 가슴 갑옷, 허벅지·정강이를 감은 갈색 가죽 끈 여럿, 부드러운 장화, 단검 하나.',
+                draft_fix='초안은 후드와 스카프가 한 덩어리의 밝은 시안 → 후드 + (초안에 없는) 짧은 어깨 망토 = 제복 열쇠 색, 입·코의 스카프 = 장식 열쇠 색, 따로 보이게. '
+                          '남색 소매·바지·장화 → 따뜻한 짙은 갈색·회색(열쇠 색 밖에 파랑 없음). 가슴에 파묻힌 머리·배 앞에 꼬인 팔·엉덩이 뒤로 삐져나온 칼 → '
+                          '정상 4등신, 머리는 어깨 위, 단검은 가까운 손에 역수로(가이드대로). 새까만 눈 틈 → 따뜻한 어둠, 눈빛 두 점까지.'),
     ),
 })
 
@@ -498,7 +580,19 @@ MONSTER_COMMON_FIX = ['a common monster seen in large numbers: an ordinary membe
 CHARS.update({
     'monster_skeleton': dict(
         kind='monster', en='Skeleton soldier', enemy='해골 병사', order=21, weapon='sword_shield',
-        frames=dict(idle='idle_0', windup='key_windup', strike='key_strike', hit='key_hit'), concepts={},
+        frames=dict(idle='idle_0', windup='key_windup', strike='key_strike', hit='key_hit'),
+        concepts={'concept.png': 'monster_skeleton/concept_01.png'},
+        draft=dict(keep=('the rusty brown bowl-shaped open-faced helmet over a grinning skull, two red eye points, the big ribcage, dirty '
+                         'off-white bones, tattered dark cloth hanging from the shoulders and as a ragged loincloth, the round wooden shield with '
+                         'an iron rim, bare bony feet'),
+                   fix=[ONE_HEAD_FIX + ': one skull inside one helmet',
+                        'the draft sword is a hooked, machete-like blade: a straight, notched one-handed sword in the near hand as the guide holds it',
+                        'the draft faces the viewer and fills the far leg and forearm solid black: three-quarter view facing right, every limb '
+                        'drawn as bone (no black silhouette limbs)',
+                        'the draft spine is thin and leaves a hole of background at the waist: a chunky spine and pelvis, no background showing '
+                        'through the torso',
+                        'the draft cloth is blue-black: dark faded brown (COLOURS)',
+                        'the draft eyes glow with a halo: two small red clusters, no halo']),
         brief=dict(silhouette='a human-sized undead soldier: the same 4-head build as the captains (the helmeted skull is the 110 px head), round shield and sword',
                    size='SMALL (human scale, the same height as a captain)', attack='melee: sword slash',
                    where='frost and holy-ground battles, magic-investigation contracts, the demon calamity army (the most frequent monster in battle)'),
@@ -514,11 +608,23 @@ CHARS.update({
                   strike='step-in lunge; sword cutting forward and down at full extension, shield pulled in',
                   hit='torso thrown back, weight on the rear leg, skull snapped back, jaw open; shield up, sword arm dropped down-back'),
         ko=dict(keep='녹슨 개방형 투구 아래 해골, 눈구멍의 작은 붉은 점 둘, 굵게 단순화한 뼈, 허리의 해진 천, 이 빠진 녹슨 한손검 + 쇠테 두른 둥근 나무 방패.',
-                fix='뼈는 굵게(가는 뼈는 64px 에서 사라진다), 순백 금지, 초록 불꽃·빛 없음. 사람과 같은 크기.'),
+                fix='뼈는 굵게(가는 뼈는 64px 에서 사라진다), 순백 금지, 초록 불꽃·빛 없음. 사람과 같은 크기.',
+                draft_keep='녹슨 갈색 사발 모양 개방형 투구와 이를 드러낸 해골, 붉은 눈 점 둘, 큰 갈비뼈, 때 묻은 흰 뼈, 어깨와 허리에 걸친 해진 검은 천, 쇠테 두른 둥근 나무 방패, 맨발 뼈.',
+                draft_fix='머리는 정확히 하나(같은 초안의 다른 장들은 머리가 둘). 갈고리 진 마체테 같은 칼 → 곧고 이 빠진 한손검(가이드 손). 정면을 보며 먼 다리·팔이 새까만 덩어리 → '
+                          '오른쪽 보는 3/4, 모든 팔다리를 뼈로. 가는 척추·허리에 뚫린 배경 구멍 → 굵은 척추·골반, 몸통에 구멍 없음. 청흑색 천 → 바랜 짙은 갈색. 눈의 빛 번짐 없이 작은 붉은 점.'),
     ),
     'monster_desert-bandit': dict(
         kind='monster', en='Desert bandit', enemy='사막 도적', order=23, weapon='sword_shield',
-        frames=dict(idle='idle_0', windup='key_windup', strike='key_strike', hit='key_hit'), concepts={},
+        frames=dict(idle='idle_0', windup='key_windup', strike='key_strike', hit='key_hit'),
+        concepts={'concept.png': 'monster_desert-bandit/concept_05.png'},
+        draft=dict(keep=('the sand head wrap and face veil, the loose sand tunic with wrapped forearms, an open vest, a sash with a long cloth '
+                         'flap hanging at the front, very baggy trousers gathered at the shins, dark wrapped boots, the low wide fighting stance '
+                         'with the free hand raised as a guard'),
+                   fix=[ONE_HEAD_FIX,
+                        'the draft scimitar is a huge sickle-like crescent: a normal scimitar about as long as the guide sword with a moderate '
+                        'curve, in the near hand as the guide holds the sword',
+                        'the draft eye gap reads like dark goggles: a narrow skin-coloured gap between wrap and veil with two eyes, no goggles',
+                        'the draft vest and sash are dark wine-red: brown #8d5a3b (COLOURS)']),
         brief=dict(silhouette='a human raider in loose desert robes and a head wrap, one curved sword',
                    size='SMALL (human scale)', attack='melee: scimitar slash', where='desert battles (the two desert provinces)'),
         weapon_desc=('a curved scimitar in the near hand (where the guide holds the sword, same angle). NO shield: the guide\'s round shield is a '
@@ -534,11 +640,24 @@ CHARS.update({
                   strike='step-in lunge; scimitar slashing forward and down at full extension, free hand pulled back',
                   hit='torso thrown back, weight on the rear leg, wincing; scimitar arm dropped down-back, free hand up'),
         ko=dict(keep='모래색 머리 두건과 얼굴 가리개(눈만 보임), 헐렁한 모래색 겉옷, 갈색 가죽 조끼·허리 천, 통 넓은 바지와 장화, 곡도(시미터) 하나.',
-                fix='방패 없음 — 가이드의 둥근 방패 자리는 빈손(막는 자세). 모래색이 사막 배경에 묻히지 않게 외곽선·명암 분명히.'),
+                fix='방패 없음 — 가이드의 둥근 방패 자리는 빈손(막는 자세). 모래색이 사막 배경에 묻히지 않게 외곽선·명암 분명히.',
+                draft_keep='모래색 머리 두건과 얼굴 가리개, 팔뚝을 감은 헐렁한 모래색 상의, 앞이 열린 조끼, 앞에 긴 천이 늘어진 허리 천, 정강이에서 모인 아주 헐렁한 바지, 감싼 짙은 장화, 낮고 넓은 자세와 막는 빈손.',
+                draft_fix='머리는 정확히 하나(같은 초안의 다른 장들은 머리가 둘). 낫 같은 거대한 초승달 칼 → 가이드 칼 길이의 보통 곡도(적당히 휨), 가이드 손. '
+                          '고글처럼 보이는 눈 틈 → 피부색 좁은 틈과 두 눈(고글 없음). 와인빛 조끼·허리 천 → 갈색 #8d5a3b.'),
     ),
     'monster_bandit': dict(
         kind='monster', en='Bandit', enemy='산적', order=25, weapon='sword_shield',
-        frames=dict(idle='idle_0', windup='key_windup', strike='key_strike', hit='key_hit'), concepts={},
+        frames=dict(idle='idle_0', windup='key_windup', strike='key_strike', hit='key_hit'),
+        concepts={'concept.png': 'monster_bandit/concept_01.png'},
+        draft=dict(keep=('the red bandana with two short tails at the back, long dark hair, stubble and a sneer, a torn short-sleeved shirt '
+                         'under a sleeveless jerkin, a rope belt wound several times, dark trousers, worn boots folded down at the top, '
+                         'a short hand axe'),
+                   fix=[ONE_HEAD_FIX,
+                        'the draft holds a second wooden handle / club in the far hand and has NO buckler: the far arm carries ONLY the small '
+                        'round wooden buckler of CHARACTER; exactly one axe, nothing else in the hands',
+                        'the draft holds the axe across the belly: the axe only in the near hand, as the guide holds the sword',
+                        'the draft jerkin is black and the build bulky and muscle-heavy: a patched brown leather jerkin (COLOURS) on a wiry build',
+                        'the draft bandana is bright red: muted dark red #8f2d3a']),
         brief=dict(silhouette='a scruffy human outlaw with a hand axe and a small buckler', size='SMALL (human scale)',
                    attack='melee: axe chop', where='plains, holy-ground and coast battles (the starting region)'),
         weapon_desc=('a short hand axe in the near hand (where the guide holds the sword, same angle) and a SMALL round wooden buckler on the far arm '
@@ -552,7 +671,10 @@ CHARS.update({
                   strike='step-in lunge; axe chopping forward and down at full extension, buckler pulled in',
                   hit='torso thrown back, weight on the rear leg, wincing; buckler up, axe arm dropped down-back'),
         ko=dict(keep='붉은 두건, 수염 자국·비웃는 얼굴, 기운 가죽 조끼, 밧줄 허리띠, 짧은 손도끼 + 작은 둥근 나무 버클러.',
-                fix='사막 도적과 확실히 다르게(붉은 두건·드러난 얼굴·도끼·버클러). 버클러는 가이드 방패보다 작게.'),
+                fix='사막 도적과 확실히 다르게(붉은 두건·드러난 얼굴·도끼·버클러). 버클러는 가이드 방패보다 작게.',
+                draft_keep='뒤로 짧은 꼬리 둘이 늘어진 붉은 두건, 검은 긴 머리, 수염 자국과 비웃음, 찢어진 반소매 셔츠 위 민소매 조끼, 여러 번 감은 밧줄 허리띠, 짙은 바지, 끝을 접은 낡은 장화, 짧은 손도끼.',
+                draft_fix='머리는 정확히 하나(같은 초안의 다른 장들은 머리가 둘). 먼 손의 두 번째 나무 자루(곤봉)를 없애고 버클러만(초안에는 버클러가 없다) — 도끼 하나뿐. '
+                          '배 앞에 가로로 든 도끼 → 가까운 손(가이드 손). 검은 조끼·우람한 근육 → 기운 갈색 가죽 조끼, 마른 체격. 새빨간 두건 → 탁한 짙은 빨강 #8f2d3a.'),
     ),
 })
 
@@ -564,6 +686,13 @@ QBASE = round(0.9 * (SH_ // 2))   # 461
 CREATURES = {
     'monster_wolf': dict(
         en='Wild wolf', enemy='들늑대', order=22, layout='2x2',
+        concepts={'concept.png': 'monster_wolf/concept_06.png'},
+        draft=dict(keep=('the head held below the shoulder line with a snarl and bared fangs, a thick darker ruff over the neck and shoulders, '
+                         'pale cheeks and muzzle, pale lower legs and paws, a long bushy tail hanging low, a lean long-legged build'),
+                   fix=['the draft fur is a noise of thin hatching strokes: a few big fur clumps in 2-3 tones',
+                        'the draft fur is olive / khaki grey: neutral-cool grey as in COLOURS, darker back, lighter belly',
+                        'the draft eye is orange-red: amber',
+                        'the draft has four legs and one tail - keep exactly that; paint the two far legs a tone darker so all four read separately']),
         boxes=dict(idle=(420, 250), windup=(400, 220), strike=(540, 260), hit=(400, 280)),
         brief=dict(silhouette='a lean grey wild wolf in side three-quarter view, head low, tail down: a long horizontal shape',
                    size='SMALL: shoulder about half a standing human, nose to tail about one human height (idle ~420 x 250 px)',
@@ -576,10 +705,24 @@ CREATURES = {
                   strike='leaping lunge to the right: body stretched, forelegs reaching forward, jaws wide open; one hind paw still touches the baseline',
                   hit='recoiling backward: head thrown up and back, yelping, hind legs bent, front paws lifted'),
         ko=dict(brief='회색 들늑대, 머리 낮추고 으르렁, 꼬리 아래. 작은 몬스터(대기 상자 약 420x250px). 물기 근접 공격.',
-                pose='① 네 발로 서서 으르렁 ② 뒷다리에 웅크려 덮칠 준비 ③ 오른쪽으로 덮치며 문다(뒷발 하나는 바닥) ④ 머리를 젖히며 뒤로 물러남'),
+                pose='① 네 발로 서서 으르렁 ② 뒷다리에 웅크려 덮칠 준비 ③ 오른쪽으로 덮치며 문다(뒷발 하나는 바닥) ④ 머리를 젖히며 뒤로 물러남',
+                draft_keep='어깨선 아래로 낮춘 머리와 드러낸 송곳니, 목·어깨의 짙은 갈기, 밝은 뺨·주둥이, 밝은 다리 끝·발, 낮게 늘어진 굵은 꼬리, 다리가 긴 마른 체격.',
+                draft_fix='가는 빗금 털(노이즈) → 큰 털 덩어리 2~3단. 올리브·카키빛 회색 → 중성·찬 회색(등 짙게, 배 밝게). 주황빛 붉은 눈 → 호박색. 다리 넷·꼬리 하나 그대로, 먼 쪽 다리 둘은 한 단계 어둡게.'),
     ),
     'monster_harpy': dict(
         en='Harpy', enemy='하피', order=24, layout='2x2',
+        concepts={'concept.png': 'monster_harpy/concept_09.png'},
+        draft=dict(keep=('two large blue-purple feathered wings in place of arms, wild spiky brown-auburn hair, red eyes, brown feathered '
+                         'thighs, scaly bird legs ending in big curved talons, the hovering pose with dangling talons'),
+                   fix=['the draft is too revealing (fur bandeau, bare shoulders and bare midriff): cover the WHOLE torso - shoulders, chest '
+                        'and belly - with a feather bodice / fitted brown leather wrap continuous with the feathered thighs; no exposed chest or '
+                        'skin anywhere except the face and neck',
+                        'the draft shows a third wing-shaped mass behind the hips: exactly TWO wings; behind the hips only the short fan of tail feathers',
+                        'the draft blurs the wing roots with human shoulders: the wings grow from the shoulders INSTEAD of arms (three small claws '
+                        'at the wing bend), no human arms or hands',
+                        'the draft wingspan fills the whole canvas: fold the wings enough that each pose fits its box',
+                        'the draft legs are yellow-green: brown as in COLOURS',
+                        'the draft is a blank-faced anime girl facing the viewer: three-quarter view facing right, a fierce, wild face']),
         boxes=dict(idle=(440, 400), windup=(420, 420), strike=(560, 340), hit=(480, 400)),
         brief=dict(silhouette='a hovering bird-woman: human head and torso (4-head proportions, head 110 px), wings instead of arms, bird legs with '
                               'talons, a feather tail - wide because of the wings',
@@ -587,7 +730,7 @@ CREATURES = {
                    attack='ranged in the game data (template "drake": the engine shoots a fire bolt): a shrieking pose, no projectile drawn',
                    where='desert battles and the beast calamity army'),
         design=['wild auburn hair', 'red eyes, a fierce face', 'purple feathered wings instead of arms (three small claws at the wing bend)',
-                'a feathered chest wrap (no bare chest)', 'scaly bird legs with big talons', 'a short fan of tail feathers'],
+                'a feather bodice covering the shoulders, chest and belly (no bare skin except the face and neck)', 'scaly bird legs with big talons', 'a short fan of tail feathers'],
         colours=[('skin', '#e0ac7e (muted)'), ('feathers', 'muted purple #8a6aa8 shaded with #5a4a7a (blue-purple, never pink or magenta)'),
                  ('legs and talons', 'brown #a8764e'), ('eyes', 'red #d6455d')],
         fix=['tasteful: the chest is covered with feathers',
@@ -598,10 +741,24 @@ CREATURES = {
                   strike='lunging forward: head and chest thrust forward, mouth wide open shrieking, wings flung forward, talons reaching forward-down',
                   hit='knocked back: wings flung up and out, body jerked back, feathers ruffled, wincing'),
         ko=dict(brief='공중에 뜬 새 여인. 사람 머리·몸통(4등신), 팔 대신 보라 날개, 새 다리·발톱. 날개 때문에 넓다(대기 약 440x400px). 게임에서는 원거리(엔진이 불덩이를 그림).',
-                pose='① 날개 반쯤 들고 낮게 떠 있음(발톱 끝이 바닥선) ② 날개를 높이 뒤로, 입 벌림 ③ 머리·가슴을 앞으로 내밀며 비명, 날개 앞으로 ④ 날개가 위로 젖혀지며 뒤로 밀림'),
+                pose='① 날개 반쯤 들고 낮게 떠 있음(발톱 끝이 바닥선) ② 날개를 높이 뒤로, 입 벌림 ③ 머리·가슴을 앞으로 내밀며 비명, 날개 앞으로 ④ 날개가 위로 젖혀지며 뒤로 밀림',
+                draft_keep='팔 대신 큰 청보라 깃털 날개 둘, 삐죽한 갈색·적갈색 머리, 붉은 눈, 깃털 덮인 갈색 허벅지, 큰 굽은 발톱의 비늘 새 다리, 발톱을 늘어뜨리고 떠 있는 자세.',
+                draft_fix='초안은 노출이 심하다(털 가슴띠·맨 어깨·맨 배) → 어깨·가슴·배 전체를 허벅지 깃털과 이어지는 깃털 상의·갈색 가죽으로 덮는다, 얼굴·목 말고 맨살 없음. '
+                          '엉덩이 뒤 세 번째 날개 같은 덩어리 → 날개는 정확히 둘, 뒤에는 짧은 꼬리 깃털만. 날개는 팔 대신(사람 팔·손 없음, 날개 꺾임에 작은 발톱 셋). '
+                          '화면을 가득 채운 날개 → 자세마다 상자 안에 들게 접는다. 연두색 다리 → 갈색. 정면을 보는 무표정 애니 소녀 → 오른쪽 보는 3/4, 사나운 얼굴.'),
     ),
     'monster_gargoyle': dict(
         en='Gargoyle', enemy='가고일', order=26, layout='2x2',
+        concepts={'concept.png': 'monster_gargoyle/concept_02.png'},
+        draft=dict(keep=('the blue-grey stone body with crack lines, the beaked snout with a red eye, stone wing bones with dark membranes, the '
+                         'crouch on all fours with big hooked claws, the long thin tail ending in a spade tip'),
+                   fix=['the draft wings span the whole canvas: in idle fold them half open so the pose fits its box (~380 x 330); only the '
+                        'wind-up spreads them wide',
+                        'the draft has no readable horns: add two clear curved horns',
+                        'the draft runs the wing bones down into the front claws (wing and arm merged): two separate stone arms with claws, and '
+                        'two wings growing from the back - exactly two wings, four limbs, one tail, one head',
+                        'the draft cracks cover every surface: only a few big cracks',
+                        'the draft wing membranes are near-black: dark stone grey #44494f so they read on the dark battlefield']),
         boxes=dict(idle=(380, 330), windup=(520, 420), strike=(560, 340), hit=(460, 360)),
         brief=dict(silhouette='a hunched stone demon statue come alive: crouching on clawed hands and feet, bat wings, curved horns, a tail',
                    size='SMALL: crouched about 0.8 of a human idle height (idle ~380 x 330 px); wider when the wings spread',
@@ -616,10 +773,23 @@ CREATURES = {
                   strike='lunging forward low: head thrust forward with the jaws wide open (spitting), claws reaching forward, wings swept back',
                   hit='knocked back onto the haunches: head thrown back, wings flung up, one claw raised to guard'),
         ko=dict(brief='살아 움직이는 돌 악마상: 웅크린 몸, 박쥐 날개, 굽은 뿔, 꼬리. 웅크린 대기 약 380x330px. 게임에서는 원거리(엔진이 불덩이를 그림).',
-                pose='① 석상처럼 네 발로 웅크림 ② 뒷다리로 일어서며 날개 펼침 ③ 낮게 앞으로 덮치며 입을 크게 벌림 ④ 주저앉듯 뒤로 밀리며 날개가 젖혀짐'),
+                pose='① 석상처럼 네 발로 웅크림 ② 뒷다리로 일어서며 날개 펼침 ③ 낮게 앞으로 덮치며 입을 크게 벌림 ④ 주저앉듯 뒤로 밀리며 날개가 젖혀짐',
+                draft_keep='금 간 청회색 돌 몸, 부리 같은 주둥이와 붉은 눈, 돌 날개 뼈와 어두운 날개막, 큰 갈고리 발톱으로 네 발 웅크림, 끝이 삽 모양인 가는 긴 꼬리.',
+                draft_fix='화면을 가로지르는 날개 → 대기에서는 반쯤 접어 상자(약 380x330)에 들게, 펼치는 것은 공격 준비뿐. 뿔이 안 보임 → 굽은 뿔 둘. '
+                          '날개 뼈가 앞발로 이어져 팔과 날개가 붙음 → 발톱 달린 팔 둘 + 등에서 나온 날개 둘(날개 둘·다리 넷·꼬리 하나·머리 하나). 온몸의 잔금 → 큰 금 몇 개. 새까만 날개막 → 짙은 돌 회색 #44494f.'),
     ),
     'monster_giant-spider': dict(
         en='Giant spider', enemy='거대 거미', order=27, layout='2x2',
+        concepts={'concept.png': 'monster_giant-spider/concept_03.png'},
+        draft=dict(keep=('the big round abdomen behind a smaller head, the cluster of glossy red eyes (two big, several small) on the front of '
+                         'the head, short pedipalps at the mouth, long jointed legs in a wide arch, the low crouch'),
+                   fix=['exactly EIGHT legs, four per side, in every pose (count them); the short pedipalps at the mouth are not legs and stay short',
+                        'the draft body and legs are near-black on a dark ground: dark purple carapace as in COLOURS plus a clear cool rim light '
+                        'along the top edges of the abdomen, the head and every leg',
+                        'the draft is covered in fine hair noise: a smooth carapace and only a few short spikes on the legs',
+                        'the draft legs are very long and thin: thicker, shorter legs so the idle fits about 520 x 220 px and every leg survives '
+                        'downscaling',
+                        'the draft fangs are hidden in the hair: two clear fangs']),
         boxes=dict(idle=(520, 220), windup=(480, 320), strike=(600, 260), hit=(500, 240)),
         brief=dict(silhouette='a low, wide eight-legged spider in side three-quarter view; the body about knee-to-chest height of a human',
                    size='SMALL in the data but WIDE: about 520 x 220 px in idle (legs spread)', attack='melee: lunging bite with the fangs',
@@ -633,10 +803,21 @@ CREATURES = {
                   strike='lunging forward: body low and stretched, front legs stabbing forward-down, fangs open',
                   hit='recoiling backward: legs curled and splayed, body tipped back'),
         ko=dict(brief='낮고 넓은 다리 여덟 개 거미, 짙은 보라 등껍질, 붉은 눈 무리, 큰 독니. 대기 약 520x220px. 물기 근접 공격.',
-                pose='① 여덟 다리로 웅크림(앞다리 조금 듦) ② 앞다리 두 쌍을 높이 들고 일어섬 ③ 낮게 앞으로 덮치며 앞다리로 찍음 ④ 다리를 오므리며 뒤로 젖혀짐'),
+                pose='① 여덟 다리로 웅크림(앞다리 조금 듦) ② 앞다리 두 쌍을 높이 들고 일어섬 ③ 낮게 앞으로 덮치며 앞다리로 찍음 ④ 다리를 오므리며 뒤로 젖혀짐',
+                draft_keep='작은 머리 뒤의 크고 둥근 배, 머리 앞의 반짝이는 붉은 눈 무리(큰 눈 둘 + 작은 눈 여럿), 입가의 짧은 더듬이다리, 넓게 휜 긴 마디 다리, 낮게 웅크린 자세.',
+                draft_fix='다리는 모든 자세에서 정확히 여덟(한쪽에 넷) — 입가의 짧은 더듬이다리는 다리가 아니고 짧게. 어두운 바닥에 묻히는 새까만 몸 → 짙은 보라 등껍질 + 배·머리·다리 윗선의 찬 림 라이트. '
+                          '온몸의 잔털 노이즈 → 매끈한 등껍질, 다리에 짧은 가시 몇 개. 아주 길고 가는 다리 → 굵고 짧게(대기 약 520x220px, 줄여도 다리가 보이게). 털에 묻힌 독니 → 큰 독니 둘이 보이게.'),
     ),
     'monster_wraith': dict(
         en='Wraith', enemy='망령', order=28, layout='1x4',
+        concepts={'concept.png': 'monster_wraith/concept_07.png'},
+        draft=dict(keep=('the deep hood over a dark face with two small cyan eyes, the heavy draped hood and shoulder cloth, the long ragged '
+                         'hem in strips, thin skeletal hands with long claws reaching forward, the forward-leaning hovering posture'),
+                   fix=['the draft robes are teal / mint: pale blue as in COLOURS',
+                        'the draft robe dissolves into a dark semi-transparent smear with a separate curly tendril at its side: a fully opaque '
+                        'tattered robe that narrows into ONE wispy tail, its tip the lowest point, on the baseline',
+                        'the draft face is pure black: dark grey-blue as in COLOURS, the cyan eyes small with no halo',
+                        'the draft hides the near hand in the robe folds: both skeletal hands clearly readable in every pose']),
         boxes=dict(idle=(240, 360), windup=(260, 380), strike=(320, 340), hit=(280, 350)),
         brief=dict(silhouette='a hooded floating ghost in long tattered robes that thin into a wispy tail; skeletal clawed hands; no legs',
                    size='SMALL: about a human idle height (idle ~240 x 360 px)',
@@ -653,7 +834,10 @@ CREATURES = {
                   strike='lunging forward: both clawed hands thrust forward, hood forward, mouth open wailing (casting)',
                   hit='recoiling: body bent back, arms flung up, robe torn and fluttering backward'),
         ko=dict(brief='후드 쓴 떠다니는 유령, 해진 긴 연청색 로브가 가는 꼬리로 끝남, 앙상한 손톱, 다리 없음. 대기 약 240x360px. 게임에서는 원거리(엔진이 저주탄을 그림).',
-                pose='① 팔을 늘어뜨리고 떠 있음(꼬리 끝이 바닥선) ② 팔을 위·뒤로 들고 로브가 뒤로 부풂 ③ 두 손을 앞으로 내밀며 울부짖음(시전) ④ 몸이 뒤로 꺾이며 팔이 위로'),
+                pose='① 팔을 늘어뜨리고 떠 있음(꼬리 끝이 바닥선) ② 팔을 위·뒤로 들고 로브가 뒤로 부풂 ③ 두 손을 앞으로 내밀며 울부짖음(시전) ④ 몸이 뒤로 꺾이며 팔이 위로',
+                draft_keep='어두운 얼굴에 작은 청록 눈 둘이 있는 깊은 후드, 무겁게 늘어진 후드·어깨 천, 갈래갈래 찢어진 긴 밑단, 앞으로 뻗은 긴 손톱의 앙상한 손, 앞으로 기운 채 떠 있는 자세.',
+                draft_fix='청록·민트빛 로브 → 연청색. 반투명하게 번지며 사라지는 밑단과 옆의 따로 떨어진 꼬불 꼬리 → 불투명한 해진 로브가 가는 꼬리 하나로 좁아지고 그 끝이 바닥선. '
+                          '새까만 얼굴 → 짙은 청회색, 눈은 작게 번짐 없이. 로브 주름에 묻힌 가까운 손 → 두 손 모두 잘 보이게.'),
     ),
 }
 
@@ -892,6 +1076,36 @@ def brief_en(b):
     return ('BRIEF: ' + b['silhouette'] + f'. Size: {b["size"]}. Attack: {b["attack"]}. Appears in: {b["where"]}.')
 
 
+def draft_pick(C):
+    """→ (art/concepts path, sample number) of concept.png, or (None, None)."""
+    src = C.get('concepts', {}).get('concept.png')
+    if not src:
+        return None, None
+    m = re.search(r'concept_(?:[a-z]_)?(\d+)\.png$', src)
+    return src, int(m.group(1)) if m else None
+
+
+def draft_en(C):
+    """the 'take from the draft' line of the prompt (None without draft notes)."""
+    if not C.get('draft'):
+        return None
+    _, n = draft_pick(C)
+    return f'FROM concept.png (the owner\'s pick, NovelAI draft #{n}; design only) TAKE: {C["draft"]["keep"]}.'
+
+
+def fixes(C, common=()):
+    return list(common) + C['fix'] + (C['draft']['fix'] if C.get('draft') else [])
+
+
+def draft_ko(C):
+    """Korean owner-summary lines about the chosen draft."""
+    src, n = draft_pick(C)
+    if not src or not C.get('draft'):
+        return []
+    return [f'- **초안** `concept.png` = `art/concepts/{src}` (주인이 고른 #{n}, 디자인만) — 가져올 것: {C["ko"]["draft_keep"]}',
+            f'- **초안에서 고칠 것** (영어 블록 FIX 끝부분): {C["ko"]["draft_fix"]}']
+
+
 def task_en(cid, C, it):
     key = cid.split('_', 1)[1]
     kind = C.get('kind', 'captain')
@@ -927,7 +1141,9 @@ def readme(cid, C, it, info, has_portrait, mounted_item=None, minfo=None):
         P.append(f'COLOURS of everything else (keep close, muted): {colours_line(C, it)}.')
     else:
         P.append(f'COLOURS (keep close, muted): {colours_line(C, it)}.')
-    P.append('FIX (do not reproduce the draft here):\n' + '\n'.join(f'  - {f}' for f in C['fix']))
+    if draft_en(C):
+        P.append(draft_en(C))
+    P.append('FIX (do not reproduce the draft here):\n' + '\n'.join(f'  - {f}' for f in fixes(C)))
     P.append('POSES (the guide mannequin fixes pose, proportions, size and position; its colours, round head, plain clothes and '
              'fist-shaped hands are placeholders - follow the text for hands and weapon details):\n'
              + '\n'.join(f'  {i + 1}. {en}: {C["pose"][p]}' for i, (p, _, _, en) in enumerate(POSES)))
@@ -973,6 +1189,7 @@ def readme(cid, C, it, info, has_portrait, mounted_item=None, minfo=None):
           + ' (`key_*` = handoff.py 의 KEY_POSES: 준비는 체중 뒤로, 타격은 내딛는 런지, 피격은 상체가 뒤로 젖혀짐)',
           f'- 초안에서 가져올 것: {C["ko"]["keep"]}',
           f'- 고칠 것: {C["ko"]["fix"]}',
+          *draft_ko(C),
           '- 초안에서 가져오지 말 것: 비율(등신), 칠하는 방식, 외곽선 굵기, 채도, 조명, 디테일 양 — 모두 4등신·앵커 화풍으로 통일.',
           f'- 가이드 띠: 머리 하나 = {info["px_per_head"]:g} px (모든 캐릭터 같음). 선 키라면 {int(HEADS) * HEAD_PX} px 이지만 대기 자세가 웅크려서 '
           f'정수리~발바닥 약 {info["idle_px"]} px(높이의 {info["idle_pct"]}%). 모자·투구·깃털·무기는 따로. 발바닥(맨 아래 픽셀) y={BASELINE}.',
@@ -1116,7 +1333,8 @@ def readme_creature(cid, C, it, slots, sinfo):
     P = [task_en(cid, dict(C, kind='monster'), it), brief_en(C['brief']),
          'DESIGN: ' + '; '.join(C['design']) + '.',
          'COLOURS (keep close, muted): ' + '; '.join(f'{k} {v}' for k, v in C['colours']) + '.',
-         'FIX:\n' + '\n'.join(f'  - {f}' for f in MONSTER_COMMON_FIX + C['fix'])]
+         *([draft_en(C)] if draft_en(C) else []),
+         'FIX (do not reproduce the draft here):\n' + '\n'.join(f'  - {f}' for f in fixes(C, MONSTER_COMMON_FIX))]
     pos = (lambda p: f' ({QPOS_EN[p]} quadrant)') if two else (lambda p: '')
     P.append('POSES (no posekit mannequin for this creature: the text gives the pose, guide_layout.png the place and size):\n'
              + '\n'.join(f'  {i + 1}. {en}{pos(p)}: {C["pose"][p]}' for i, (p, _, _, en) in enumerate(POSES)))
@@ -1162,7 +1380,8 @@ def readme_creature(cid, C, it, slots, sinfo):
     b = C['brief']
     L += ['## 주인용 요약 (한국어)', '',
           f'- 순서: 1차 몬스터 **{C["order"] - 20}번째** (메시지 E) — 승인된 바렌 그림(`art-inbox` 브랜치의 `{ANCHOR_FILE}`)의 화풍에 맞춘다.',
-          '- ' + CONCEPT_PENDING_KO.format(cid=cid, jobs='monsters', table='CREATURES') if 'concept.png' not in C.get('concepts', {}) else '- 초안: `concept.png` (디자인만)',
+          *(['- ' + CONCEPT_PENDING_KO.format(cid=cid, jobs='monsters', table='CREATURES')] if 'concept.png' not in C.get('concepts', {})
+            else draft_ko(C) or ['- 초안: `concept.png` (디자인만)']),
           f'- 설계: {C["ko"]["brief"]}',
           f'- 자세: {C["ko"]["pose"]}',
           '- 배치: ' + ('1536x1024 **2x2 격자** (768x512 네 칸: ' + ', '.join(f'{QPOS_KO[p]} {ko}' for p, _, ko, _ in POSES)

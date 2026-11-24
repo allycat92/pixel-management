@@ -20,10 +20,17 @@ KEY COLOURS (the most important rule of this sheet): ONE sheet is shared by ever
 
 COLOURS of everything else (keep close, muted): skin (the strip around the eyes, in shadow) #e0ac7e shaded warm; vest, bracers, quiver, bow warm browns; arrowheads NEUTRAL steel grey.
 
+FROM concept.png (the owner's pick, NovelAI draft #10; design only) TAKE: the hood up with the face mask running down into a short cowl over the shoulders (hood, mask and cowl one cloth), long-sleeved knee-length tunic with a flared skirt, small brown leather bodice-vest with one diagonal strap, brown belt with pouches, long brown gloves / bracers, tall brown boots with turned-down cuffs, a quiver of arrows on the back.
+
 FIX (do not reproduce the draft here):
   - the face stays covered / shadowed the SAME way in ALL FOUR poses: the visor, hood, mask, brim or veil never slips, opens or falls back, not even in the hit pose; the shadowed face is a warm or neutral dark (e.g. #3a2e2a), never blue and never a key colour
   - an arrow appears ONLY on the drawn bow in the wind-up; after the release (strike) there is NO flying arrow (the engine draws projectiles)
   - the leather vest stays brown and small, so the tunic underneath still shows clearly on the chest, sleeves and skirt
+  - the draft's slate-blue / teal / cyan cloth only marks WHERE the key colours go: repaint those areas with the exact KEY COLOURS ramps above (flat), never with the draft's own blues, teals or cyans
+  - the draft face opening is a pure-black void with no eyes: a narrow warm-dark shadow strip at eye level (#3a2e2a family, at most two tiny eye glints); the mask still covers everything below the nose
+  - the draft bow is a long bow whose string line breaks and crosses the body: a short recurve bow the size of the guide bow with ONE clean string; an arrow only on the drawn bow in the wind-up
+  - the draft has no trim: accent keys on the hood's front edge and the tunic hem
+  - the draft trousers are blue-purple grey: warm dark grey-brown (nothing blue outside the keys)
 
 POSES (the guide mannequin fixes pose, proportions, size and position; its colours, round head, plain clothes and fist-shaped hands are placeholders - follow the text for hands and weapon details):
   1. idle: bow held low in front, ready
@@ -35,7 +42,7 @@ REFERENCES (folder art/requests/phase3/class_archer/ on branch claude/dot-fantas
   - art/inbox/sheet_captain_blademaster.png on the art-inbox branch (in a chat: the attached approved Baren sheet) = the APPROVED STYLE ANCHOR. Match its proportions, rendering, outline, palette treatment, lighting and character scale exactly
   - guide_strip.png (layout + poses + size: the most important reference)
   - guide_1_idle.png .. guide_4_hit.png (the same four poses, larger)
-  - concept.png - NOT IN THE FOLDER YET: it is added after the owner picks a NovelAI design draft. Do not start this sheet before concept.png is there
+  - concept.png (DESIGN ONLY)
 
 DO NOT COPY: from the concept draft take ONLY the design (costume pieces, colours, hair, face marks, headgear, weapon/shield type, silhouette idea). Do NOT copy its proportions, rendering/shading technique, outline weight, saturation, lighting or level of detail - the NovelAI drafts are not consistent with each other.
 
@@ -71,7 +78,6 @@ SELF-CHECK before saving (redraw if any fails):
 ## 주인용 요약 (한국어)
 
 - 순서: 일반 병과 **2번째** (메시지 D, 대장 9명 다음) — 승인된 바렌 그림(`art-inbox` 브랜치의 `art/inbox/sheet_captain_blademaster.png`)의 화풍에 맞춘다.
-- **초안 대기**: 주인이 NovelAI 초안(`jobs_classes.json`)을 고르면 `art/concepts/class_archer/`에 두고 `handoff.py`의 `CHARS['class_archer']['concepts']`에 `{'concept.png': 'class_archer/concept_NN.png'}`를 넣어 다시 실행한다. 그 전에는 그림 쪽에 보내지 않는다.
 - **얼굴 가림** (주인 요청): 이 그림 한 장을 서로 다른 여러 사람이 같이 쓰므로 얼굴이 가려지는 복장 — 궁수는 후드 + 코 아래를 가린 천 마스크. 네 자세 모두 같은 만큼 가린다(피격 때도 벗겨지지 않음). 가려진 얼굴 그늘은 따뜻하거나 중성인 어두운 색(파랑·열쇠 색 금지). 상급·최상급 직업은 어울릴 때만, 억지로 하지 않는다.
 - **열쇠 색** (전투에서 진영 색으로 바뀐다): 제복 `#263459` `#394b78` `#52679c` `#7489be`, 장식 `#3f7a6c` `#5ea590` `#96d1bb` — 이 7색은 그 자리에만, 평평하게. 다른 곳에는 파랑·청회색·청록을 쓰지 않는다.
 - 결과 파일: `art/inbox/sheet_class_archer.png` (id `sheet/class/archer`)
@@ -79,6 +85,8 @@ SELF-CHECK before saving (redraw if any fails):
 - 자세(가이드 프레임): ① 대기 `idle_0` ② 공격 준비 `attack_2` ③ 공격 타격 `attack_3` ④ 피격 `key_hit` (`key_*` = handoff.py 의 KEY_POSES: 준비는 체중 뒤로, 타격은 내딛는 런지, 피격은 상체가 뒤로 젖혀짐)
 - 초안에서 가져올 것: 후드를 쓰고 천 마스크로 코 아래를 가린 얼굴(눈 둘레만 그늘 속에), 무릎 길이 후드 상의(제복), 갈색 가죽 조끼·팔 보호대, 등의 화살통, 짧은 활.
 - 고칠 것: 후드 상의·마스크 = 제복 열쇠 색, 후드 앞 가장자리·상의 밑단 = 장식 열쇠 색. 화살은 당길 때만, 쏜 뒤에는 없음.
+- **초안** `concept.png` = `art/concepts/class_archer/concept_10.png` (주인이 고른 #10, 디자인만) — 가져올 것: 후드와 마스크가 어깨의 짧은 두건 망토로 이어지는 한 장의 천, 긴 소매 무릎 길이 상의(밑자락 퍼짐), 대각선 띠 하나 있는 작은 가죽 조끼, 주머니 달린 갈색 띠, 긴 갈색 장갑, 끝단 접힌 갈색 장화, 등의 화살통.
+- **초안에서 고칠 것** (영어 블록 FIX 끝부분): 초안의 청회색은 열쇠 색 자리 표시 → 정확한 열쇠 색. 눈 없는 새까만 얼굴 구멍 → 눈높이의 좁은 따뜻한 어둠(눈빛 두 점까지), 코 아래는 마스크. 긴 활·끊긴 시위 → 가이드 크기 짧은 활, 시위 하나. 후드 앞 가장자리·상의 밑단에 장식 열쇠 색 추가. 청보라 바지 → 따뜻한 짙은 회갈색.
 - 초안에서 가져오지 말 것: 비율(등신), 칠하는 방식, 외곽선 굵기, 채도, 조명, 디테일 양 — 모두 4등신·앵커 화풍으로 통일.
 - 가이드 띠: 머리 하나 = 110 px (모든 캐릭터 같음). 선 키라면 440 px 이지만 대기 자세가 웅크려서 정수리~발바닥 약 401 px(높이의 39%). 모자·투구·깃털·무기는 따로. 발바닥(맨 아래 픽셀) y=870.
 
@@ -92,7 +100,7 @@ SELF-CHECK before saving (redraw if any fails):
 | `guide_2_windup.png` | 자세 가이드 832x1216 — 공격 준비 |
 | `guide_3_strike.png` | 자세 가이드 832x1216 — 공격 타격 |
 | `guide_4_hit.png` | 자세 가이드 832x1216 — 피격 |
-| (`concept.png`) | **대기** — 주인이 NovelAI 초안을 고르면 들어간다 |
+| `concept.png` | 주인이 고른 NovelAI 디자인 초안 (디자인만 참고) |
 
 ### 받은 뒤 (Claude Code)
 

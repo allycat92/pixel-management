@@ -3,6 +3,25 @@
 > 손으로 쓴 문서. 규칙은 `art/requests/gpt_handoff_notes.md`, 캐릭터별 자료는 `art/requests/phase3/<id>/`
 > (`python3 tools/art/handoff.py`로 만든다), 요청서 목록은 `art/requests/phase3.md`.
 
+## 보낼 순서 (지금부터 — 주인용)
+
+바렌·대장 8명은 끝났다. 남은 것은 **C → (펠릭스 승인) → D → E** 순서다. 웹(ChatGPT 처럼 저장소를 못 읽는 곳)이면 각각 `-웹` 판과 그 아래 첨부 목록을 쓴다.
+
+0. **먼저 푸시 확인** — 그림 쪽은 원격 `claude/dot-fantasy-management-game-saupju` 브랜치를 읽는다. Claude 에게 "푸시해 줘"라고 하면 올린다
+   (확인 방법은 아래 「주인용 사용법」 1번). 일반 병과·몬스터의 `concept.png`와 README 도 이 푸시로 올라간다.
+1. **메시지 C** (웹: C-웹) — 펠릭스 로브·모자 색만 고치기.
+   - **올라오면 Claude 가**: `art-inbox`에서 그 파일만 가져와 `sheets.py … --dry-run`으로 미리보기를 만들고, 로브·모자 위에 남은 마젠타 같은 픽셀(배경 지우기로 뚫릴 구멍)을 세어
+     게임 크기 미리보기와 함께 보여 준다.
+2. **펠릭스 승인** — 구멍이 없고 자세·소품이 그대로면 "승인"이라고 말한다.
+   - **승인하면 Claude 가**: 등록(`sheets.py` → `assets/art/sheets/` + manifest)하고 claude 브랜치에 커밋·푸시한다. 안 되면 고칠 점을 적은 C 를 다시 만들어 준다 (D 로 넘어가지 않는다).
+3. **메시지 D** (웹: D-웹, 직업마다 한 번) — 일반 병과 5종 (전사 → 궁수 → 마법사 → 성직자 → 도적). 몇 장씩 끊어서 올려도 된다.
+   - **올라올 때마다 Claude 가**: 받은 파일만 가져와 `sheets.py --dry-run` → `preview_x4.png`(게임 크기)와 `preview_tint_x4.png`(제복을 진영 색으로 바꿔 칠한 시험),
+     열쇠 색 비율을 보여 주고, 바뀌지 않은 파란 조각·얼굴 노출·README FIX 의 초안 결함이 남았는지 확인한다.
+     주인이 승인한 것만 등록(`--tint-outfit/--tint-accent` 자동) → 커밋·푸시, 다시 그릴 것은 `art/requests/feedback.md`에 적고 고칠 점 메시지를 만들어 준다.
+4. **메시지 E** (웹: E-웹, 몬스터마다 한 번) — 1차 몬스터 8종. D 와 같은 대화에 이어 보내도 된다.
+   - **올라올 때마다 Claude 가**: 같은 방식으로 미리보기(2x2 격자·배율·칸은 요청서에서) → 머리 수(해골·산적·사막 도적은 하나), 다리 수(거미 8, 늑대 4),
+     하피 몸통 가림, 날개 둘, 투사체·빛 없음을 확인 → 승인한 것만 등록 → 커밋·푸시. 게임 전투 화면에서도 확인한다.
+
 ## 브랜치 규칙 (그림 쪽에도 그대로 전한다)
 
 - **읽기**: 모든 자료(규칙·가이드·초안·README)는 `claude/dot-fantasy-management-game-saupju` 브랜치에서 읽는다.
@@ -34,11 +53,12 @@
 4. **메시지 B**(웹이면 **메시지 B-웹**)를 보낸다. 8명(+ 선택: 로드릭 기마)을 바렌에 맞춰 그린다. 몇 명씩 끊어서 올려도 된다.
 5. 올라올 때마다 Claude 에게 알리면 처리·확인하고, 다시 그릴 것은 `art/requests/feedback.md`에 적는다.
 6. **지금 (8명 납품 뒤)**: 펠릭스만 다시 — **메시지 C**(웹이면 **C-웹**). 자세는 그대로, 로브·모자 색만 고친다.
-7. **다음 묶음 (초안부터)**: 일반 병과 5종(**메시지 D**)과 1차 몬스터 8종(**메시지 E**). 꾸러미(`class_<key>/`, `monster_<key>/`)는 만들어 두었지만
-   `concept.png`가 비어 있다. 순서: 주인이 원하면 Claude 가 NovelAI **디자인 초안** 후보를 만든다(작업 목록 `jobs_classes.json`·`jobs_monsters.json`, 무료 범위)
-   → 주인이 고른다 → Claude 가 `art/concepts/<id>/`에 넣고 `handoff.py`의 `concepts`를 채워 다시 만든다 → 그 다음 D·E 를 보낸다.
-   NovelAI 는 여기까지(디자인 참고)만 한다. 최종 그림은 D·E 로 GPT 가 그린다 — NovelAI 로 게임에 바로 넣을 최종본을 만들지 않는다.
-   일반 병과는 **얼굴이 가려지는 복장**으로 뽑는다 (주인 요청, 아래 「일반 병과 — 얼굴 가림」).
+7. **다음 묶음 (준비 완료)**: 일반 병과 5종(**메시지 D**)과 1차 몬스터 8종(**메시지 E**). 주인이 NovelAI 디자인 초안을 골랐다
+   (병과: 전사 #5 · 궁수 #10 · 마법사 #9 · 성직자 #4 · 도적 #2 / 몬스터: 해골 병사 #1 · 들늑대 #6 · 사막 도적 #5 · 하피 #9 · 산적 #1 · 가고일 #2 · 거대 거미 #3 · 망령 #7;
+   `art/concepts/selections.json`). 꾸러미(`class_<key>/`, `monster_<key>/`)마다 `concept.png`와, 그 초안에서 가져올 것·고칠 것
+   (README 영어 블록의 `FROM concept.png … TAKE`와 FIX 끝의 `the draft …` 줄, 한국어 요약의 「초안」·「초안에서 고칠 것」)이 들어 있다.
+   펠릭스(C) 승인 뒤 D → E 로 보낸다 (맨 위 「보낼 순서」). NovelAI 는 디자인 참고까지만 — 최종 그림은 D·E 로 GPT 가 그린다.
+   일반 병과는 **얼굴이 가려지는 복장** (주인 요청, 아래 「일반 병과 — 얼굴 가림」); 초안의 청회색·청록 제복은 열쇠 색을 칠할 **자리 표시**일 뿐이다.
 
 ### 받은 뒤 처리 (Claude Code 가 한다)
 
@@ -337,7 +357,8 @@ NovelAI 최종본은 오류가 계속 나고, GPT 를 거치면 쉽게 끝난다
 
 - 일반 병과 5: `jobs_classes.json` (c1_warrior … c5_rogue, 832x1216), 1차 몬스터 8: `jobs_monsters.json` (m1_skeleton … m8_wraith; 늑대·하피·가고일·거미는 1216x832).
   Claude 세션 작업 폴더의 `nai/picks/`에 있고, 같은 프롬프트·시드·크기가 `phase3.json`의 `nai`에 있다
-  (`python3 tools/art/novelai.py --only sheet/class/warrior`도 같은 첫 장 → `art/concepts/class_warrior/drafts/nai_class_warrior_s21001.png`).
+  **주인이 고른 초안**은 `art/concepts/<id>/concept_NN.png` + `art/concepts/selections.json`이고, `phase3.json`의 `nai`도 이제 고른 장의 시드다
+  (`python3 tools/art/novelai.py --only sheet/class/warrior` → 고른 #5 를 다시 만든다: `art/concepts/class_warrior/drafts/nai_class_warrior_s21149.png`).
 - 일반 병과 5종의 프롬프트는 **얼굴 가림**으로 바뀌었다 (전사 `closed great helm, visor down`, 궁수 `hood up, … cloth mask`, 마법사 `hat pulled low, high collar`,
   성직자 `deep cowl, veil`, 도적 `deep hood, shadowed face`; 부정어에 `visible face details, detailed face, smile`).
 - 무료 범위(넓이 ≤ 1024x1024, 28 steps, 1장씩). 후보 수는 주인이 정한다 (지난번처럼 12장씩이면 13 x 12 = 156장).
@@ -345,9 +366,9 @@ NovelAI 최종본은 오류가 계속 나고, GPT 를 거치면 쉽게 끝난다
 
 ---
 
-## 메시지 D — 일반 병과 5종 (초안: 주인이 초안을 고른 뒤에 보낸다; 저장소용)
+## 메시지 D — 일반 병과 5종 (준비 완료: 펠릭스 승인 뒤 보낸다; 저장소용)
 
-> 보내기 전: 다섯 꾸러미 모두 `concept.png`가 있어야 한다 (README 에 "초안 대기"가 없어야 한다).
+> 다섯 꾸러미 모두 주인이 고른 초안 `concept.png`와 초안별 가져올 것·고칠 것이 들어 있다. 보내기 전에 이 커밋이 푸시됐는지만 확인한다.
 
 ```
 대장 9명은 끝났다. 다음은 일반 병과 5종 — 이름 없는 용병과 세력 병사 전부가 같이 쓰는 기본 그림이다. 직업마다 PNG 한 장 (1×4 한 줄).
@@ -376,7 +397,12 @@ NovelAI 최종본은 오류가 계속 나고, GPT 를 거치면 쉽게 끝난다
 - 얼굴은 가린다 (주인 요청): 한 그림이 서로 다른 수백 명을 대신하므로 전사 = 면갑 내린 투구(눈 틈만), 궁수 = 후드 + 코 아래 천 마스크,
   마법사 = 깊게 눌러쓴 모자 챙 + 높은 깃(얼굴은 그늘), 성직자 = 깊은 두건 + 베일(얼굴은 그늘), 도적 = 깊은 후드 + 스카프(얼굴은 그늘).
   네 자세 모두 같은 만큼 가리고(피격 때도 벗겨지지 않음), 얼굴 그늘은 따뜻하거나 중성인 어두운 색(파랑·열쇠 색 금지). 보이는 부분은 특징 없이. 문장·무늬 없음.
-- concept.png 는 디자인만. 화풍·비율은 앵커(바렌)와 똑같이.
+- concept.png = 내가 고른 NovelAI 디자인 초안 (디자인만). README 의 "FROM concept.png ... TAKE" 가 초안에서 가져올 것, FIX 끝의 "the draft ..." 줄이 초안에서 고칠 것이다.
+  초안의 청회색·청록·시안 옷은 열쇠 색을 칠할 자리 표시일 뿐 — 그 색을 따라 하지 말고 위의 열쇠 색으로. 초안의 새까만 얼굴 구멍은 따뜻한 어둠으로.
+- 초안 결함 중 특히: 전사 방패 면은 나무결이 아니라 제복 열쇠 색(+ 장식 띠 하나), 궁수는 가이드 크기 짧은 활에 시위 하나,
+  마법사는 손 위에 떠 있는 두 번째 수정 없음(수정은 지팡이 끝 하나, 든 손은 빈 손), 성직자 가슴은 빛나는 흰 별이 아니라 무늬 없는 둥근 원판 + 짧은 플랜지 철퇴(가시 철퇴 아님),
+  도적은 머리가 어깨 위에 있는 정상 4등신 몸 + 후드·어깨 망토(제복)와 스카프(장식)를 따로, 남색 옷은 따뜻한 짙은 갈색으로.
+- 화풍·비율은 앵커(바렌)와 똑같이.
 - 마젠타 규칙: 인물의 어떤 색도 #FF00FF 와 RGB 거리 150 미만이면 안 된다. 팔레트를 줄일 때 배경색과 합치지 마.
 - 저장 전 SELF-CHECK 확인, 틀리면 다시 그려.
 
@@ -387,11 +413,24 @@ NovelAI 최종본은 오류가 계속 나고, GPT 를 거치면 쉽게 끝난다
 
 ## 메시지 D-웹 — 저장소를 못 읽는 곳 (한 번에 한 직업)
 
-첨부 (이 순서로): 승인된 바렌 PNG(앵커), 그 직업 폴더의 `guide_strip.png`, `guide_1_idle.png` ~ `guide_4_hit.png`, `concept.png`.
+직업마다 새 메시지로 보낸다 (아래 순서). 메시지의 `<직업>`에 이름을 넣고, 맨 끝에 그 폴더 `README.md`의 "Prompt for GPT" 블록을 통째로 붙인다.
+첨부는 직업마다 **7장, 이 순서로** (폴더 = `art/requests/phase3/<폴더>/`, 바렌 = `art-inbox`의 승인된 `art/inbox/sheet_captain_blademaster.png`).
+받은 PNG 는 GitHub 웹에서 `art-inbox` 브랜치의 `art/inbox/<받은 PNG>`로 올리고 Claude 에게 알린다.
+
+| 순서 | `<직업>` | 폴더 | 첨부 (이 순서로) | 받은 PNG |
+|---|---|---|---|---|
+| 1 | 전사 | `class_warrior/` | 바렌 PNG, `class_warrior/guide_strip.png`, `class_warrior/guide_1_idle.png`, `class_warrior/guide_2_windup.png`, `class_warrior/guide_3_strike.png`, `class_warrior/guide_4_hit.png`, `class_warrior/concept.png` | `sheet_class_warrior.png` |
+| 2 | 궁수 | `class_archer/` | 바렌 PNG, `class_archer/guide_strip.png`, `class_archer/guide_1_idle.png`, `class_archer/guide_2_windup.png`, `class_archer/guide_3_strike.png`, `class_archer/guide_4_hit.png`, `class_archer/concept.png` | `sheet_class_archer.png` |
+| 3 | 마법사 | `class_mage/` | 바렌 PNG, `class_mage/guide_strip.png`, `class_mage/guide_1_idle.png`, `class_mage/guide_2_windup.png`, `class_mage/guide_3_strike.png`, `class_mage/guide_4_hit.png`, `class_mage/concept.png` | `sheet_class_mage.png` |
+| 4 | 성직자 | `class_cleric/` | 바렌 PNG, `class_cleric/guide_strip.png`, `class_cleric/guide_1_idle.png`, `class_cleric/guide_2_windup.png`, `class_cleric/guide_3_strike.png`, `class_cleric/guide_4_hit.png`, `class_cleric/concept.png` | `sheet_class_cleric.png` |
+| 5 | 도적 | `class_rogue/` | 바렌 PNG, `class_rogue/guide_strip.png`, `class_rogue/guide_1_idle.png`, `class_rogue/guide_2_windup.png`, `class_rogue/guide_3_strike.png`, `class_rogue/guide_4_hit.png`, `class_rogue/concept.png` | `sheet_class_rogue.png` |
 
 ```
 첫 번째 첨부(바렌)가 승인된 화풍 기준이다. 이 화풍으로 일반 병과 <직업> 그림을 그려 줘. 아래 영어 블록이 실제 지시다 (특히 KEY COLOURS).
-- 1536x1024, 1×4 한 줄, guide_strip.png 와 같은 자세·크기·위치, 배경 #FF00FF. concept.png 는 디자인만.
+첨부: 1) 바렌 — 화풍 기준. 2) guide_strip.png — 자세·배치·크기 견본 (가장 중요). 3)~6) guide_1_idle ~ guide_4_hit — 같은 자세 크게.
+7) concept.png — 내가 고른 디자인 초안 (디자인만; 블록의 FROM concept.png 가 가져올 것, FIX 끝의 "the draft ..." 줄이 고칠 것).
+- 1536x1024, 1×4 한 줄, guide_strip.png 와 같은 자세·크기·위치, 배경 #FF00FF.
+- 초안의 청회색·청록 옷은 열쇠 색을 칠할 자리 표시일 뿐이다. 그 색을 따라 하지 말고 아래 열쇠 색으로.
 - 제복은 #263459 #394b78 #52679c #7489be 로만, 장식은 #3f7a6c #5ea590 #96d1bb 로만, 평평하게. 이 7색은 다른 곳에 쓰지 않는다.
 - 얼굴은 블록의 CHARACTER 대로 가린다 (면갑·후드·마스크·모자 챙과 높은 깃·두건과 베일). 네 자세 모두 같은 만큼, 피격 때도 벗겨지지 않게.
 - 저장소 경로·커밋은 하지 말고 완성된 PNG 를 이 대화에 돌려줘. SELF-CHECK 확인 후 멈춰.
@@ -399,9 +438,9 @@ NovelAI 최종본은 오류가 계속 나고, GPT 를 거치면 쉽게 끝난다
 <여기에 그 직업 README.md 의 Prompt for GPT 블록>
 ```
 
-## 메시지 E — 1차 몬스터 8종 (초안: 주인이 초안을 고른 뒤에 보낸다; 저장소용)
+## 메시지 E — 1차 몬스터 8종 (준비 완료: D 다음에 보낸다; 저장소용)
 
-> 보내기 전: 여덟 꾸러미 모두 `concept.png`가 있어야 한다. D 와 같은 대화에 이어 보내도 되고 따로 보내도 된다.
+> 여덟 꾸러미 모두 주인이 고른 초안 `concept.png`와 초안별 가져올 것·고칠 것이 들어 있다. D 와 같은 대화에 이어 보내도 되고 따로 보내도 된다.
 
 ```
 다음은 전투에 가장 자주 나오는 보통 몬스터 8종이다. 몬스터마다 PNG 한 장.
@@ -426,6 +465,11 @@ NovelAI 최종본은 오류가 계속 나고, GPT 를 거치면 쉽게 끝난다
 - 사람형이 아닌 것은 posekit 마네킹이 없다: 자세는 글로, 자리·크기는 guide_layout.png 의 상자로 (상자·선·글씨는 그리지 마).
   guide_scale.png = 같은 배율의 4등신 사람 옆에 대기 크기 — 모두 사람과 같은 픽셀 배율이다 (크게 그리지 마).
   2×2 격자는 768x512 네 칸 (왼쪽 위 대기, 오른쪽 위 공격 준비, 왼쪽 아래 공격 타격, 오른쪽 아래 피격), 칸마다 맨 아래 픽셀이 칸 위에서 y=461.
+- concept.png = 내가 고른 NovelAI 디자인 초안 (디자인만). README 의 "FROM concept.png ... TAKE" 가 초안에서 가져올 것, FIX 끝의 "the draft ..." 줄이 초안에서 고칠 것이다.
+- 초안 결함 중 특히: 해골 병사·산적·사막 도적은 머리가 정확히 하나. 해골 병사는 곧은 이 빠진 칼(갈고리 칼 아님), 새까만 팔다리 없이 모두 뼈.
+  산적은 먼 손에 작은 버클러만(초안의 두 번째 자루·곤봉 없음), 도끼 하나. 사막 도적은 가이드 칼 길이의 보통 곡도(낫 같은 거대한 칼 아님), 고글 없음.
+  하피는 노출 없이 어깨·가슴·배 전체를 깃털·가죽으로 덮고(얼굴·목 말고 맨살 없음), 날개는 정확히 둘. 거대 거미는 다리 정확히 여덟(한쪽에 넷) + 어두운 바닥에서 보이게 찬 림 라이트.
+  가고일은 날개를 상자에 맞게 접고 굽은 뿔 둘. 망령은 불투명, 꼬리 하나, 연청색(초안의 청록 아님). 늑대는 빗금 털 대신 큰 털 덩어리, 중성 회색.
 - 다리·머리·꼬리 수를 지킨다 (늑대 네 다리·머리 하나, 거미 여덟 다리). 원거리 몬스터(하피·가고일·망령)도 투사체·빛·효과는 그리지 않는다 (엔진이 그린다).
 - 마젠타 규칙: 어떤 색도 #FF00FF 와 RGB 거리 150 미만이면 안 된다 (하피의 보라 깃털은 짙은 청보라로).
 - 저장 전 SELF-CHECK 확인, 틀리면 다시 그려.
@@ -437,12 +481,27 @@ NovelAI 최종본은 오류가 계속 나고, GPT 를 거치면 쉽게 끝난다
 
 ## 메시지 E-웹 — 저장소를 못 읽는 곳 (한 번에 한 몬스터)
 
-첨부 (이 순서로): 승인된 바렌 PNG(앵커), 사람형이면 `guide_strip.png`·`guide_1_idle.png` ~ `guide_4_hit.png`, 아니면 `guide_layout.png`·`guide_scale.png`, 그리고 `concept.png`.
+몬스터마다 새 메시지로 보낸다 (아래 순서). 메시지의 `<이름>`에 이름을 넣고, 맨 끝에 그 폴더 `README.md`의 "Prompt for GPT" 블록을 통째로 붙인다.
+첨부는 **이 순서로** — 사람형 셋은 7장, 나머지 다섯은 4장 (폴더 = `art/requests/phase3/<폴더>/`, 바렌 = `art-inbox`의 승인된 `art/inbox/sheet_captain_blademaster.png`).
+받은 PNG 는 GitHub 웹에서 `art-inbox` 브랜치의 `art/inbox/<받은 PNG>`로 올리고 Claude 에게 알린다.
+
+| 순서 | `<이름>` | 폴더 | 첨부 (이 순서로) | 받은 PNG |
+|---|---|---|---|---|
+| 1 | 해골 병사 | `monster_skeleton/` | 바렌 PNG, `monster_skeleton/guide_strip.png`, `monster_skeleton/guide_1_idle.png`, `monster_skeleton/guide_2_windup.png`, `monster_skeleton/guide_3_strike.png`, `monster_skeleton/guide_4_hit.png`, `monster_skeleton/concept.png` | `sheet_monster_skeleton.png` |
+| 2 | 들늑대 | `monster_wolf/` | 바렌 PNG, `monster_wolf/guide_layout.png`, `monster_wolf/guide_scale.png`, `monster_wolf/concept.png` | `sheet_monster_wolf.png` |
+| 3 | 사막 도적 | `monster_desert-bandit/` | 바렌 PNG, `monster_desert-bandit/guide_strip.png`, `monster_desert-bandit/guide_1_idle.png`, `monster_desert-bandit/guide_2_windup.png`, `monster_desert-bandit/guide_3_strike.png`, `monster_desert-bandit/guide_4_hit.png`, `monster_desert-bandit/concept.png` | `sheet_monster_desert-bandit.png` |
+| 4 | 하피 | `monster_harpy/` | 바렌 PNG, `monster_harpy/guide_layout.png`, `monster_harpy/guide_scale.png`, `monster_harpy/concept.png` | `sheet_monster_harpy.png` |
+| 5 | 산적 | `monster_bandit/` | 바렌 PNG, `monster_bandit/guide_strip.png`, `monster_bandit/guide_1_idle.png`, `monster_bandit/guide_2_windup.png`, `monster_bandit/guide_3_strike.png`, `monster_bandit/guide_4_hit.png`, `monster_bandit/concept.png` | `sheet_monster_bandit.png` |
+| 6 | 가고일 | `monster_gargoyle/` | 바렌 PNG, `monster_gargoyle/guide_layout.png`, `monster_gargoyle/guide_scale.png`, `monster_gargoyle/concept.png` | `sheet_monster_gargoyle.png` |
+| 7 | 거대 거미 | `monster_giant-spider/` | 바렌 PNG, `monster_giant-spider/guide_layout.png`, `monster_giant-spider/guide_scale.png`, `monster_giant-spider/concept.png` | `sheet_monster_giant-spider.png` |
+| 8 | 망령 | `monster_wraith/` | 바렌 PNG, `monster_wraith/guide_layout.png`, `monster_wraith/guide_scale.png`, `monster_wraith/concept.png` | `sheet_monster_wraith.png` |
 
 ```
 첫 번째 첨부(바렌)가 승인된 화풍 기준이다. 이 화풍과 같은 픽셀 배율로 몬스터 <이름>을 그려 줘. 아래 영어 블록이 실제 지시다.
+첨부: 1) 바렌 — 화풍 기준. 그 다음 가이드 — 사람형이면 guide_strip.png(자세·배치·크기 견본)와 guide_1_idle ~ guide_4_hit,
+아니면 guide_layout.png(배치·바닥선·자세별 크기 상자)와 guide_scale.png(같은 배율의 사람, 그리지 않음). 마지막 concept.png — 내가 고른 디자인 초안.
 - 배치는 블록의 DELIVERABLE 대로 (2×2 격자 또는 1×4 한 줄), 배경 #FF00FF, 가이드의 선·상자·글씨·회색 사람은 그리지 마.
-- concept.png 는 디자인만. 투사체·빛·효과 없음.
+- concept.png 는 디자인만: 블록의 FROM concept.png 가 가져올 것, FIX 끝의 "the draft ..." 줄이 초안에서 고칠 것이다. 투사체·빛·효과 없음.
 - 저장소 경로·커밋은 하지 말고 완성된 PNG 를 이 대화에 돌려줘. SELF-CHECK 확인 후 멈춰.
 
 <여기에 그 몬스터 README.md 의 Prompt for GPT 블록>

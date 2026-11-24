@@ -20,10 +20,19 @@ KEY COLOURS (the most important rule of this sheet): ONE sheet is shared by ever
 
 COLOURS of everything else (keep close, muted): skin (hands, a sliver of the face in shadow) #c68a5c; mail and mace head NEUTRAL steel grey; book, belt, boots warm browns.
 
+FROM concept.png (the owner's pick, NovelAI draft #4; design only) TAKE: the deep cowl falling to the shoulders with the veil across the lower face (one cloth), a mail shirt with brown leather sleeves under it, a long tabard with a border trim and a chest disc, brown belt with a round buckle, a small brown book at the hip, grey trousers, tall brown boots, the free hand raised open.
+
 FIX (do not reproduce the draft here):
   - the face stays covered / shadowed the SAME way in ALL FOUR poses: the visor, hood, mask, brim or veil never slips, opens or falls back, not even in the hit pose; the shadowed face is a warm or neutral dark (e.g. #3a2e2a), never blue and never a key colour
   - NO cross anywhere and NO healing glow or light: the engine draws the heal VFX; the forward hand is open and empty
   - slots 2-3 are the action / cast poses: the same sheet is used for attacks AND heals
+  - the draft's slate-blue / teal / cyan cloth only marks WHERE the key colours go: repaint those areas with the exact KEY COLOURS ramps above (flat), never with the draft's own blues, teals or cyans (the draft even uses two different blues: cowl, veil and tabard are all the same outfit keys)
+  - the draft's face opening is a flat pure-black void: paint it as the warm / neutral face shadow (#3a2e2a family), not pure black
+  - the draft chest emblem is a glowing white starburst: a plain flat filled circle in the accent keys - no rays, no glow, no white
+  - the draft weapon is a long-handled spiked ball (morning star): the short flanged mace of CHARACTER (~1.3 heads)
+  - the draft tabard reaches the ankles: knee length, so the legs read in the wide stance
+  - the draft's book is a pouch with a gold stud: a small plain closed brown book, no symbol
+  - the draft's raised hand has spread, claw-like fingers: a calm open palm
 
 POSES (the guide mannequin fixes pose, proportions, size and position; its colours, round head, plain clothes and fist-shaped hands are placeholders - follow the text for hands and weapon details):
   1. idle: mace held diagonally in front, free hand at the belt
@@ -35,7 +44,7 @@ REFERENCES (folder art/requests/phase3/class_cleric/ on branch claude/dot-fantas
   - art/inbox/sheet_captain_blademaster.png on the art-inbox branch (in a chat: the attached approved Baren sheet) = the APPROVED STYLE ANCHOR. Match its proportions, rendering, outline, palette treatment, lighting and character scale exactly
   - guide_strip.png (layout + poses + size: the most important reference)
   - guide_1_idle.png .. guide_4_hit.png (the same four poses, larger)
-  - concept.png - NOT IN THE FOLDER YET: it is added after the owner picks a NovelAI design draft. Do not start this sheet before concept.png is there
+  - concept.png (DESIGN ONLY)
 
 DO NOT COPY: from the concept draft take ONLY the design (costume pieces, colours, hair, face marks, headgear, weapon/shield type, silhouette idea). Do NOT copy its proportions, rendering/shading technique, outline weight, saturation, lighting or level of detail - the NovelAI drafts are not consistent with each other.
 
@@ -71,7 +80,6 @@ SELF-CHECK before saving (redraw if any fails):
 ## 주인용 요약 (한국어)
 
 - 순서: 일반 병과 **4번째** (메시지 D, 대장 9명 다음) — 승인된 바렌 그림(`art-inbox` 브랜치의 `art/inbox/sheet_captain_blademaster.png`)의 화풍에 맞춘다.
-- **초안 대기**: 주인이 NovelAI 초안(`jobs_classes.json`)을 고르면 `art/concepts/class_cleric/`에 두고 `handoff.py`의 `CHARS['class_cleric']['concepts']`에 `{'concept.png': 'class_cleric/concept_NN.png'}`를 넣어 다시 실행한다. 그 전에는 그림 쪽에 보내지 않는다.
 - **얼굴 가림** (주인 요청): 이 그림 한 장을 서로 다른 여러 사람이 같이 쓰므로 얼굴이 가려지는 복장 — 성직자는 깊은 두건 + 베일, 얼굴은 그늘. 네 자세 모두 같은 만큼 가린다(피격 때도 벗겨지지 않음). 가려진 얼굴 그늘은 따뜻하거나 중성인 어두운 색(파랑·열쇠 색 금지). 상급·최상급 직업은 어울릴 때만, 억지로 하지 않는다.
 - **열쇠 색** (전투에서 진영 색으로 바뀐다): 제복 `#263459` `#394b78` `#52679c` `#7489be`, 장식 `#3f7a6c` `#5ea590` `#96d1bb` — 이 7색은 그 자리에만, 평평하게. 다른 곳에는 파랑·청회색·청록을 쓰지 않는다.
 - 결과 파일: `art/inbox/sheet_class_cleric.png` (id `sheet/class/cleric`)
@@ -79,6 +87,8 @@ SELF-CHECK before saving (redraw if any fails):
 - 자세(가이드 프레임): ① 대기 `idle_0` ② 공격 준비 `cast_1` ③ 공격 타격 `key_strike` ④ 피격 `key_hit` (`key_*` = handoff.py 의 KEY_POSES: 준비는 체중 뒤로, 타격은 내딛는 런지, 피격은 상체가 뒤로 젖혀짐)
 - 초안에서 가져올 것: 이마까지 깊게 내린 두건(카울)과 아래 얼굴을 가린 베일(얼굴은 그늘), 사슬 갑옷 위 무릎 길이 겉옷(제복), 가슴의 무늬 없는 둥근 해 원판, 허리의 작은 책, 한손 철퇴.
 - 고칠 것: 겉옷·두건·베일 = 제복 열쇠 색, 테두리·두건 앞 가장자리·가슴 원판 = 장식 열쇠 색. 십자·치유 빛 없음. 2·3번은 공격·치유 겸용 자세(마그다와 같은 틀, 철퇴는 짧게).
+- **초안** `concept.png` = `art/concepts/class_cleric/concept_04.png` (주인이 고른 #4, 디자인만) — 가져올 것: 어깨까지 내려오는 깊은 두건과 아래 얼굴의 베일(한 장의 천), 갈색 가죽 소매 위 사슬 갑옷, 테두리와 가슴 원판이 있는 겉옷, 둥근 버클 갈색 띠, 허리의 작은 갈색 책, 회색 바지, 갈색 긴 장화, 들어 올린 빈 손.
+- **초안에서 고칠 것** (영어 블록 FIX 끝부분): 초안의 두 가지 파랑(두건 청록·겉옷 파랑)은 열쇠 색 자리 표시 → 두건·베일·겉옷 모두 같은 제복 열쇠 색. 새까만 얼굴 → 따뜻한 어둠. 빛나는 흰 별 문양 → 장식 열쇠 색의 무늬 없는 둥근 원판(빛·햇살 없음). 긴 자루 가시 철퇴 → 짧은 플랜지 철퇴. 발목까지 오는 겉옷 → 무릎 길이. 금 장식 주머니 → 무늬 없는 작은 책. 갈퀴 같은 손가락 → 차분하게 편 손바닥.
 - 초안에서 가져오지 말 것: 비율(등신), 칠하는 방식, 외곽선 굵기, 채도, 조명, 디테일 양 — 모두 4등신·앵커 화풍으로 통일.
 - 가이드 띠: 머리 하나 = 110 px (모든 캐릭터 같음). 선 키라면 440 px 이지만 대기 자세가 웅크려서 정수리~발바닥 약 401 px(높이의 39%). 모자·투구·깃털·무기는 따로. 발바닥(맨 아래 픽셀) y=870.
 
@@ -92,7 +102,7 @@ SELF-CHECK before saving (redraw if any fails):
 | `guide_2_windup.png` | 자세 가이드 832x1216 — 공격 준비 |
 | `guide_3_strike.png` | 자세 가이드 832x1216 — 공격 타격 |
 | `guide_4_hit.png` | 자세 가이드 832x1216 — 피격 |
-| (`concept.png`) | **대기** — 주인이 NovelAI 초안을 고르면 들어간다 |
+| `concept.png` | 주인이 고른 NovelAI 디자인 초안 (디자인만 참고) |
 
 ### 받은 뒤 (Claude Code)
 

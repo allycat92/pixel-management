@@ -86,7 +86,7 @@ python3 tools/art/sheets.py art/inbox/sheet_captain_lancer.png --scale 0.1654 --
 - `process.py`는 `sheet/*` 등 자기가 만들지 않은 manifest 항목을 건드리지 않는다.
 
 ### NovelAI (사용자가 원할 때만, 디자인 초안 전용)
-`python3 tools/art/novelai.py --only sheet/class/warrior` → `art/concepts/class_warrior/drafts/nai_class_warrior_s21001.png` (한 자세, 마젠타 배경; `drafts/`는 git 에 올리지 않는다).
+`python3 tools/art/novelai.py --only sheet/class/warrior` → `art/concepts/class_warrior/drafts/nai_class_warrior_s21149.png` (한 자세, 마젠타 배경; `drafts/`는 git 에 올리지 않는다).
 **NovelAI 그림은 게임 그림이 되지 않는다** (주인 결정: 최종 그림은 언제나 GPT). `novelai.py`는 `art/inbox/`·`assets/`·`art/requests/`에 쓰지 못하고
 `sheet_*.png` 이름도 만들지 않는다. `sheets.py`는 NovelAI 그림(PNG 메타데이터 `Software: NovelAI`, `art/concepts/`·`art/requests/`·`drafts/` 안, `nai_*` 이름)을 거부한다
 (`--allow-draft` = 파이프라인 시험용, 언제나 `--dry-run`이라 등록할 수 없다). 주인이 고른 초안만 `art/concepts/<id>/concept_NN.png`로 옮겨 꾸러미의 `concept.png`(디자인 참고)가 된다.

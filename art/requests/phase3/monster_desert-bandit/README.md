@@ -15,10 +15,16 @@ CHARACTER: a curved scimitar in the near hand (where the guide holds the sword, 
 
 COLOURS (keep close, muted): skin #c68a5c; head wrap, robe sand #e8d5a3 (muted, shaded toward warm grey; never white); vest, sash, boots brown #8d5a3b; scimitar NEUTRAL steel grey.
 
+FROM concept.png (the owner's pick, NovelAI draft #5; design only) TAKE: the sand head wrap and face veil, the loose sand tunic with wrapped forearms, an open vest, a sash with a long cloth flap hanging at the front, very baggy trousers gathered at the shins, dark wrapped boots, the low wide fighting stance with the free hand raised as a guard.
+
 FIX (do not reproduce the draft here):
   - a common monster seen in large numbers: an ordinary member of its kind, no unique features, no crown, banner or trophy
   - exactly one weapon (the scimitar); no shield, no second blade
   - the sand robe must not merge with the desert background: give it a darker outline and clear shading
+  - exactly ONE head (sibling drafts of this design came out with a duplicated head): one head, one neck
+  - the draft scimitar is a huge sickle-like crescent: a normal scimitar about as long as the guide sword with a moderate curve, in the near hand as the guide holds the sword
+  - the draft eye gap reads like dark goggles: a narrow skin-coloured gap between wrap and veil with two eyes, no goggles
+  - the draft vest and sash are dark wine-red: brown #8d5a3b (COLOURS)
 
 POSES (the guide mannequin fixes pose, proportions, size and position; its colours, round head, plain clothes and fist-shaped hands are placeholders - follow the text for hands and weapon details):
   1. idle: scimitar held ready in front, free hand up as a guard
@@ -30,7 +36,7 @@ REFERENCES (folder art/requests/phase3/monster_desert-bandit/ on branch claude/d
   - art/inbox/sheet_captain_blademaster.png on the art-inbox branch (in a chat: the attached approved Baren sheet) = the APPROVED STYLE ANCHOR. Match its proportions, rendering, outline, palette treatment, lighting and character scale exactly
   - guide_strip.png (layout + poses + size: the most important reference)
   - guide_1_idle.png .. guide_4_hit.png (the same four poses, larger)
-  - concept.png - NOT IN THE FOLDER YET: it is added after the owner picks a NovelAI design draft. Do not start this sheet before concept.png is there
+  - concept.png (DESIGN ONLY)
 
 DO NOT COPY: from the concept draft take ONLY the design (costume pieces, colours, hair, face marks, headgear, weapon/shield type, silhouette idea). Do NOT copy its proportions, rendering/shading technique, outline weight, saturation, lighting or level of detail - the NovelAI drafts are not consistent with each other.
 
@@ -65,13 +71,14 @@ SELF-CHECK before saving (redraw if any fails):
 ## 주인용 요약 (한국어)
 
 - 순서: 1차 몬스터 **3번째** (메시지 E) — 승인된 바렌 그림(`art-inbox` 브랜치의 `art/inbox/sheet_captain_blademaster.png`)의 화풍에 맞춘다.
-- **초안 대기**: 주인이 NovelAI 초안(`jobs_monsters.json`)을 고르면 `art/concepts/monster_desert-bandit/`에 두고 `handoff.py`의 `CHARS['monster_desert-bandit']['concepts']`에 `{'concept.png': 'monster_desert-bandit/concept_NN.png'}`를 넣어 다시 실행한다. 그 전에는 그림 쪽에 보내지 않는다.
 - 몬스터 설계: 사막 도적 — SMALL (human scale); 공격 melee: scimitar slash; 나오는 곳 desert battles (the two desert provinces).
 - 결과 파일: `art/inbox/sheet_monster_desert-bandit.png` (id `sheet/monster/사막 도적`)
 - 무기: posekit `sword_shield` 마네킹 → a curved scimitar in the near hand (where the guide holds the sword, same angle). NO shield: the guide's round shield is a placeholder - the far hand is EMPTY and held up open as a guard where the shield is
 - 자세(가이드 프레임): ① 대기 `idle_0` ② 공격 준비 `key_windup` ③ 공격 타격 `key_strike` ④ 피격 `key_hit` (`key_*` = handoff.py 의 KEY_POSES: 준비는 체중 뒤로, 타격은 내딛는 런지, 피격은 상체가 뒤로 젖혀짐)
 - 초안에서 가져올 것: 모래색 머리 두건과 얼굴 가리개(눈만 보임), 헐렁한 모래색 겉옷, 갈색 가죽 조끼·허리 천, 통 넓은 바지와 장화, 곡도(시미터) 하나.
 - 고칠 것: 방패 없음 — 가이드의 둥근 방패 자리는 빈손(막는 자세). 모래색이 사막 배경에 묻히지 않게 외곽선·명암 분명히.
+- **초안** `concept.png` = `art/concepts/monster_desert-bandit/concept_05.png` (주인이 고른 #5, 디자인만) — 가져올 것: 모래색 머리 두건과 얼굴 가리개, 팔뚝을 감은 헐렁한 모래색 상의, 앞이 열린 조끼, 앞에 긴 천이 늘어진 허리 천, 정강이에서 모인 아주 헐렁한 바지, 감싼 짙은 장화, 낮고 넓은 자세와 막는 빈손.
+- **초안에서 고칠 것** (영어 블록 FIX 끝부분): 머리는 정확히 하나(같은 초안의 다른 장들은 머리가 둘). 낫 같은 거대한 초승달 칼 → 가이드 칼 길이의 보통 곡도(적당히 휨), 가이드 손. 고글처럼 보이는 눈 틈 → 피부색 좁은 틈과 두 눈(고글 없음). 와인빛 조끼·허리 천 → 갈색 #8d5a3b.
 - 초안에서 가져오지 말 것: 비율(등신), 칠하는 방식, 외곽선 굵기, 채도, 조명, 디테일 양 — 모두 4등신·앵커 화풍으로 통일.
 - 가이드 띠: 머리 하나 = 110 px (모든 캐릭터 같음). 선 키라면 440 px 이지만 대기 자세가 웅크려서 정수리~발바닥 약 401 px(높이의 39%). 모자·투구·깃털·무기는 따로. 발바닥(맨 아래 픽셀) y=870.
 
@@ -85,7 +92,7 @@ SELF-CHECK before saving (redraw if any fails):
 | `guide_2_windup.png` | 자세 가이드 832x1216 — 공격 준비 |
 | `guide_3_strike.png` | 자세 가이드 832x1216 — 공격 타격 |
 | `guide_4_hit.png` | 자세 가이드 832x1216 — 피격 |
-| (`concept.png`) | **대기** — 주인이 NovelAI 초안을 고르면 들어간다 |
+| `concept.png` | 주인이 고른 NovelAI 디자인 초안 (디자인만 참고) |
 
 ### 받은 뒤 (Claude Code)
 

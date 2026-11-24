@@ -4,7 +4,7 @@
 주인 결정: NovelAI 로는 최종본을 만들지 않는다. 게임에 들어가는 그림은 언제나 GPT 를 거친다
 (art/requests/gpt_handoff_notes.md). 그래서 이 도구는:
   - 기본으로 art/concepts/<id>/drafts/nai_<id>_s<seed>.png 에 쓴다 (<id> = 요청서 파일 이름에서 sheet_ 와 .png 를 뺀 것,
-    예: sheet/class/warrior → art/concepts/class_warrior/drafts/nai_class_warrior_s21001.png). drafts/ 는 git 에 올리지 않는다.
+    예: sheet/class/warrior → art/concepts/class_warrior/drafts/nai_class_warrior_s21149.png). drafts/ 는 git 에 올리지 않는다.
   - art/inbox/, assets/, art/requests/ 아래에는 어떤 옵션으로도 쓰지 않는다 (sheet_*.png 이름도 만들지 않는다).
   - 결과 PNG 에는 NovelAI 메타데이터(Software: NovelAI)가 남는다. tools/art/sheets.py 는 이것을 보고 거부한다.
 주인이 고른 초안만 art/concepts/<id>/concept_NN.png 로 옮기고(selections.json), handoff.py 꾸러미의 concept.png(디자인 참고)가 된다.

@@ -20,10 +20,18 @@ KEY COLOURS (the most important rule of this sheet): ONE sheet is shared by ever
 
 COLOURS of everything else (keep close, muted): eye slit warm near-black #2a2220; helmet, mail, sword, shield rim and boss NEUTRAL steel grey (no blue tint), e.g. #c8c6c0 / #8a8a86 / #5c5c5a; leather and wood warm browns.
 
+FROM concept.png (the owner's pick, NovelAI draft #5; design only) TAKE: the plain foot-soldier look: closed steel helm with the visor down and one dark eye slit (its small top spike may stay, small), mail coif and mail sleeves under a sleeveless knee-length tabard split at the front, brown belt with a square buckle, brown gloves, grey trousers, tall brown boots, a plain round shield on the far arm and a straight arming sword.
+
 FIX (do not reproduce the draft here):
   - the face stays covered / shadowed the SAME way in ALL FOUR poses: the visor, hood, mask, brim or veil never slips, opens or falls back, not even in the hit pose; the shadowed face is a warm or neutral dark (e.g. #3a2e2a), never blue and never a key colour
   - the helm stays readable as a helmet at 64 px: a clear visor line and eye slit, NEUTRAL grey (no blue sheen)
   - no emblem, crest or heraldry: the faction colour comes from the recoloured keys only
+  - the draft's slate-blue / teal / cyan cloth only marks WHERE the key colours go: repaint those areas with the exact KEY COLOURS ramps above (flat), never with the draft's own blues, teals or cyans
+  - the draft shield is bare wood grain: its FACE uses the outfit keys (flat, no wood texture) with one accent-key band, and a plain iron rim and boss (see CHARACTER)
+  - the draft tabard has no trim: add the accent-key border trim
+  - the draft's ochre-yellow boot cuffs become plain warm brown (nothing yellow on the figure)
+  - the draft helm is bright polished silver with white glints: neutral mid steel grey, small highlights only
+  - the draft's rear leg crosses awkwardly behind the front one: legs and stance come ONLY from the guide
 
 POSES (the guide mannequin fixes pose, proportions, size and position; its colours, round head, plain clothes and fist-shaped hands are placeholders - follow the text for hands and weapon details):
   1. idle: shield up, sword ready
@@ -35,7 +43,7 @@ REFERENCES (folder art/requests/phase3/class_warrior/ on branch claude/dot-fanta
   - art/inbox/sheet_captain_blademaster.png on the art-inbox branch (in a chat: the attached approved Baren sheet) = the APPROVED STYLE ANCHOR. Match its proportions, rendering, outline, palette treatment, lighting and character scale exactly
   - guide_strip.png (layout + poses + size: the most important reference)
   - guide_1_idle.png .. guide_4_hit.png (the same four poses, larger)
-  - concept.png - NOT IN THE FOLDER YET: it is added after the owner picks a NovelAI design draft. Do not start this sheet before concept.png is there
+  - concept.png (DESIGN ONLY)
 
 DO NOT COPY: from the concept draft take ONLY the design (costume pieces, colours, hair, face marks, headgear, weapon/shield type, silhouette idea). Do NOT copy its proportions, rendering/shading technique, outline weight, saturation, lighting or level of detail - the NovelAI drafts are not consistent with each other.
 
@@ -71,7 +79,6 @@ SELF-CHECK before saving (redraw if any fails):
 ## 주인용 요약 (한국어)
 
 - 순서: 일반 병과 **1번째** (메시지 D, 대장 9명 다음) — 승인된 바렌 그림(`art-inbox` 브랜치의 `art/inbox/sheet_captain_blademaster.png`)의 화풍에 맞춘다.
-- **초안 대기**: 주인이 NovelAI 초안(`jobs_classes.json`)을 고르면 `art/concepts/class_warrior/`에 두고 `handoff.py`의 `CHARS['class_warrior']['concepts']`에 `{'concept.png': 'class_warrior/concept_NN.png'}`를 넣어 다시 실행한다. 그 전에는 그림 쪽에 보내지 않는다.
 - **얼굴 가림** (주인 요청): 이 그림 한 장을 서로 다른 여러 사람이 같이 쓰므로 얼굴이 가려지는 복장 — 전사는 면갑을 내린 투구(눈 틈만). 네 자세 모두 같은 만큼 가린다(피격 때도 벗겨지지 않음). 가려진 얼굴 그늘은 따뜻하거나 중성인 어두운 색(파랑·열쇠 색 금지). 상급·최상급 직업은 어울릴 때만, 억지로 하지 않는다.
 - **열쇠 색** (전투에서 진영 색으로 바뀐다): 제복 `#263459` `#394b78` `#52679c` `#7489be`, 장식 `#3f7a6c` `#5ea590` `#96d1bb` — 이 7색은 그 자리에만, 평평하게. 다른 곳에는 파랑·청회색·청록을 쓰지 않는다.
 - 결과 파일: `art/inbox/sheet_class_warrior.png` (id `sheet/class/warrior`)
@@ -79,6 +86,8 @@ SELF-CHECK before saving (redraw if any fails):
 - 자세(가이드 프레임): ① 대기 `idle_0` ② 공격 준비 `key_windup` ③ 공격 타격 `key_strike` ④ 피격 `key_hit` (`key_*` = handoff.py 의 KEY_POSES: 준비는 체중 뒤로, 타격은 내딛는 런지, 피격은 상체가 뒤로 젖혀짐)
 - 초안에서 가져올 것: 면갑을 내린 강철 그레이트 헬름(눈 틈만 보임), 사슬 갑옷, 무릎 길이 민소매 겉옷(제복), 가죽 띠, 갈색 장갑·장화, 한손검 + 둥근 나무 방패.
 - 고칠 것: 겉옷·방패 면 = 제복 열쇠 색, 겉옷 테두리·방패의 띠 하나 = 장식 열쇠 색. 금속은 푸른 기 없는 중성 회색. 문장·무늬 없음. 면갑은 네 자세 모두 내린 채.
+- **초안** `concept.png` = `art/concepts/class_warrior/concept_05.png` (주인이 고른 #5, 디자인만) — 가져올 것: 면갑 내린 투구(눈 틈 하나, 위의 작은 뿔은 작게 둬도 됨), 사슬 두건·사슬 소매, 앞이 갈라진 무릎 길이 민소매 겉옷, 네모 버클 갈색 띠, 갈색 장갑, 회색 바지, 갈색 긴 장화, 둥근 방패 + 곧은 한손검.
+- **초안에서 고칠 것** (영어 블록 FIX 끝부분): 초안의 청회색·청록은 열쇠 색 자리 표시일 뿐 → 정확한 열쇠 색으로. 나무결 방패 → 방패 면은 제복 열쇠 색(평평하게) + 장식 띠 하나, 쇠 테·쇠 돌기. 겉옷에 장식 테두리 추가. 노란 장화 끝단 → 갈색. 번쩍이는 은색 투구 → 중성 회색. 꼬인 뒷다리 → 자세는 가이드대로.
 - 초안에서 가져오지 말 것: 비율(등신), 칠하는 방식, 외곽선 굵기, 채도, 조명, 디테일 양 — 모두 4등신·앵커 화풍으로 통일.
 - 가이드 띠: 머리 하나 = 110 px (모든 캐릭터 같음). 선 키라면 440 px 이지만 대기 자세가 웅크려서 정수리~발바닥 약 401 px(높이의 39%). 모자·투구·깃털·무기는 따로. 발바닥(맨 아래 픽셀) y=870.
 
@@ -92,7 +101,7 @@ SELF-CHECK before saving (redraw if any fails):
 | `guide_2_windup.png` | 자세 가이드 832x1216 — 공격 준비 |
 | `guide_3_strike.png` | 자세 가이드 832x1216 — 공격 타격 |
 | `guide_4_hit.png` | 자세 가이드 832x1216 — 피격 |
-| (`concept.png`) | **대기** — 주인이 NovelAI 초안을 고르면 들어간다 |
+| `concept.png` | 주인이 고른 NovelAI 디자인 초안 (디자인만 참고) |
 
 ### 받은 뒤 (Claude Code)
 

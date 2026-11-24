@@ -337,24 +337,34 @@ const CLASS_DRAFT = {
   mage: { seed: 24001, tags: '1boy, solo, full body, four heads tall, young battle mage, face hidden in shadow, wide-brimmed pointed hat pulled low, high collar covering mouth, plain slate blue robe, pale teal trim, pale teal sash, belt pouches, brown boots, holding wooden staff, small amber crystal, open hand raised, wide stance, bent knees' },
   rogue: { seed: 25001, tags: '1boy, solo, full body, four heads tall, young rogue, face hidden, deep hood, shadowed face, plain slate blue hood and short cape, pale teal scarf over mouth, dark brown leather armor, many straps, dark trousers, black boots, holding dagger, reverse grip, single dagger, crouching, wide stance, bent knees' },
 };
+// 주인이 고른 초안 (art/concepts/selections.json: picks[0]) → 꾸러미의 concept.png. 없으면 아직 고르지 않은 것 (pending).
+const pickOf = (id) => {
+  const s = SEL[id];
+  return s && s.picks && s.picks.length ? { ...s, ...s.picks[0] } : null;
+};
 Object.entries(D.CLASSES).forEach(([key, K], i) => {
   const dr = CLASS_DRAFT[key];
   if (!dr) throw new Error(`no CLASS_DRAFT for class ${key}`);
+  const pick = pickOf(`class_${key}`);
   phase3.push(sheetItem({
     id: `sheet/class/${key}`, file: `sheet_class_${key}.png`, priority: 2, group: '일반 병과', order: i + 1, heads: 4,
     after: 'the 9 starter captains (priority 1)', style_anchor: ANCHOR_REF,
     name: `일반 병과 — ${K.name}`, cell: 96, scale: GPT_SCALE, tint: CLASS_KEYS,
-    package: CLASS_PKG(key), readme: `${CLASS_PKG(key)}/README.md`, concept: `${CLASS_PKG(key)}/concept.png (pending: the owner picks a NovelAI draft first)`,
+    package: CLASS_PKG(key), readme: `${CLASS_PKG(key)}/README.md`,
+    concept: pick ? `${CLASS_PKG(key)}/concept.png` : `${CLASS_PKG(key)}/concept.png (pending: the owner picks a NovelAI draft first)`,
+    ...(pick ? { concept_source: `art/concepts/class_${key}/${pick.file}` } : {}),
     guides: GUIDES.map((g) => `${CLASS_PKG(key)}/${g}`), guide_strip: `${CLASS_PKG(key)}/guide_strip.png`,
     game_colors: { outfit: K.outfit, accent: K.accent, note: 'not painted: the engine recolours the key colours to these (own guild) or to the faction / company colours' },
     prompt: `Battle sprite of a generic ${K.name} (${key}) used by every nameless mercenary and faction soldier of this class. `
-      + `Design, weapon, per-pose notes and the KEY COLOURS: ${CLASS_PKG(key)}/README.md. `
+      + `Design, weapon, per-pose notes (incl. what to keep and fix from the draft) and the KEY COLOURS: ${CLASS_PKG(key)}/README.md. `
+      + (pick ? `Concept draft ${CLASS_PKG(key)}/concept.png = design only; its slate-blue / teal uniform only marks where the key colours go. ` : '')
       + `The uniform (tabard / robe / hood / cape) is painted ONLY with the outfit keys ${CLASS_KEYS.outfit.join(' ')} and its trim ONLY with the accent keys ${CLASS_KEYS.accent.join(' ')}, flat, `
       + 'and those seven colours appear nowhere else (the game recolours them to each faction\'s colours). '
       + 'One sprite stands for many different people, so the face is covered or in shadow (helm visor / hood and mask / low hat brim and high collar / cowl and veil / deep hood, as the README says) in all four poses. '
       + `Match the approved style anchor ${ANCHOR_REF} (proportions, rendering, outline, palette, lighting, scale). ` + GUIDED_TAIL,
-    nai: { prompt: `${dr.tags}, ${NAI_STYLE}`, negative: NAI_NEG_BASE + NAI_ONE_HEAD + NAI_FACE_HIDDEN_NEG, seed: dr.seed, size: [832, 1216],
-      use: NAI_USE, source: 'design-draft job: scratchpad nai/picks/jobs_classes.json; seed = first sample, samples use seed + i*37' },
+    nai: pick ? { prompt: pick.prompt, negative: pick.negative, seed: pick.seed, size: pick.size, use: NAI_USE, source: `art/concepts/selections.json (#${pick.n})` }
+      : { prompt: `${dr.tags}, ${NAI_STYLE}`, negative: NAI_NEG_BASE + NAI_ONE_HEAD + NAI_FACE_HIDDEN_NEG, seed: dr.seed, size: [832, 1216],
+        use: NAI_USE, source: 'design-draft job: scratchpad nai/picks/jobs_classes.json; seed = first sample, samples use seed + i*37' },
   }));
 });
 // 3) 특별 용병 7명
@@ -415,19 +425,24 @@ MONSTER_BATCH1.forEach(([enemy, order, layout, cell, seed, size, tags, negExtra]
   const E = D.ENEMIES[enemy];
   if (!key || !E || E.boss) throw new Error(`MONSTER_BATCH1: ${enemy} is not a non-boss enemy in MONSTERS`);
   const human = MON_HUMANOID.has(enemy);
+  const pick = pickOf(`monster_${key}`);
   phase3.push(sheetItem({
     id: `sheet/monster/${enemy}`, file: `sheet_monster_${key}.png`, priority: 4, group: '지역 몬스터 1차', order, after: 'the 9 starter captains (priority 1)', style_anchor: ANCHOR_REF,
     name: `몬스터 — ${enemy}`, layout, cell, scale: GPT_SCALE, humanoid: human,
-    package: MON_PKG(key), readme: `${MON_PKG(key)}/README.md`, concept: `${MON_PKG(key)}/concept.png (pending: the owner picks a NovelAI draft first)`,
+    package: MON_PKG(key), readme: `${MON_PKG(key)}/README.md`,
+    concept: pick ? `${MON_PKG(key)}/concept.png` : `${MON_PKG(key)}/concept.png (pending: the owner picks a NovelAI draft first)`,
+    ...(pick ? { concept_source: `art/concepts/monster_${key}/${pick.file}` } : {}),
     ...(human ? { guides: GUIDES.map((g) => `${MON_PKG(key)}/${g}`), guide_strip: `${MON_PKG(key)}/guide_strip.png` }
       : { guide_layout: `${MON_PKG(key)}/guide_layout.png`, guide_scale: `${MON_PKG(key)}/guide_scale.png` }),
     colors: E.pal,
-    prompt: `Battle sprite of a monster (${enemy}). Design brief, size relative to the 4-head humans, the four poses and the layout: ${MON_PKG(key)}/README.md. `
+    prompt: `Battle sprite of a monster (${enemy}). Design brief, size relative to the 4-head humans, the four poses, the layout and what to keep and fix from the draft: ${MON_PKG(key)}/README.md. `
+      + (pick ? `Concept draft ${MON_PKG(key)}/concept.png = design only. ` : '')
       + `${layout === '2x2' ? 'FORMAT: one PNG 1536x1024 as a 2x2 grid of equal 768x512 quadrants (top: idle, wind-up; bottom: strike, hit), lowest pixel of each pose on y=461 of its quadrant, per guide_layout.png. ' : ''}`
       + `Same pixel scale as the humans (head 110 px), so it can stand next to them. Match the approved style anchor ${ANCHOR_REF}. `
       + (layout === '2x2' ? 'Front three-quarter view facing RIGHT, flat #FF00FF background, no lines, labels, floor, shadow, text or effects.' : GUIDED_TAIL),
-    nai: { prompt: `${tags}, ${NAI_STYLE}`, negative: NAI_NEG_BASE + NAI_ONE_HEAD + (negExtra || ''), seed, size,
-      use: NAI_USE, source: 'design-draft job: scratchpad nai/picks/jobs_monsters.json; seed = first sample, samples use seed + i*37' },
+    nai: pick ? { prompt: pick.prompt, negative: pick.negative, seed: pick.seed, size: pick.size, use: NAI_USE, source: `art/concepts/selections.json (#${pick.n})` }
+      : { prompt: `${tags}, ${NAI_STYLE}`, negative: NAI_NEG_BASE + NAI_ONE_HEAD + (negExtra || ''), seed, size,
+        use: NAI_USE, source: 'design-draft job: scratchpad nai/picks/jobs_monsters.json; seed = first sample, samples use seed + i*37' },
   }));
 });
 // 4-2) 나머지 보통 몬스터 (다음 묶음; 보스·재앙 수장은 그 뒤)
@@ -477,8 +492,8 @@ const md3 = [
   '',
   '1. **바렌(`captain_blademaster`)을 먼저** 그리고 멈춘다 → 주인이 승인하면 그 그림이 **화풍 기준(앵커)** 이 된다.',
   '2. 나머지 창설 후보 8명을 앵커에 맞춰 그린다 (아래 순서). 로드릭 기마(추가 선택, 게임 미사용)는 맨 마지막.',
-  '3. 그 다음: **일반 병과 5종**(메시지 D)과 **1차 몬스터 8종**(메시지 E). 꾸러미는 만들어 두었고(`class_<key>/`, `monster_<key>/`),',
-  '   주인이 NovelAI 초안을 고르면 `concept.png`가 들어간다. 그 전에는 보내지 않는다.',
+  '3. 그 다음: **일반 병과 5종**(메시지 D)과 **1차 몬스터 8종**(메시지 E). 주인이 NovelAI 디자인 초안을 골랐고(`art/concepts/selections.json`),',
+  '   꾸러미(`class_<key>/`, `monster_<key>/`)에 `concept.png`와 초안별 가져올 것·고칠 것(README 의 FROM concept.png / FIX)이 들어 있다 — 보낼 준비 완료.',
   '   일반 병과는 **얼굴이 가려지는 복장** (한 그림을 서로 다른 여러 사람이 같이 쓴다; 전사 면갑, 궁수 후드 + 마스크, 마법사 모자 챙 + 높은 깃, 성직자 두건 + 베일, 도적 깊은 후드).',
   '4. 그 뒤 묶음(특별 용병·나머지 몬스터·보스·나머지 대장·상급/최상급 직업)은 아직 디자인 초안이 없어 초상화(ref)와 아래 프롬프트만 있다.',
   '',
@@ -489,18 +504,18 @@ const md3 = [
   '- **모두 4등신** (머리 = 선 키의 1/4). 예전의 "3등신 치비" 규칙은 폐기.',
   '- 창설 후보 9명은 캐릭터마다 꾸러미 `art/requests/phase3/captain_<key>/` (concept.png · portrait.png · guide_1..4 · guide_strip.png · README.md)를 쓴다.',
   '  꾸러미는 `python3 tools/art/handoff.py`로 다시 만든다.',
-  '- 그림 쪽에 붙여 넣을 메시지: **`art/requests/phase3_gpt.md`** (메시지 A = 바렌만, 메시지 B = 승인 후 나머지).',
+  '- 그림 쪽에 붙여 넣을 메시지: **`art/requests/phase3_gpt.md`** (메시지 A = 바렌만, B = 승인 후 나머지, C = 펠릭스 색 고치기, D = 일반 병과, E = 1차 몬스터).',
   '',
   '## NovelAI로 만들 때 (코드 쪽, 사용자가 원할 때만)',
   '',
   '**NovelAI 는 디자인 초안 전용이다 (주인 결정).** 게임에 들어가는 최종 그림은 언제나 GPT 를 거친다 — NovelAI 로 최종본을 요청하지 않는다.',
   '`novelai.py`는 `art/concepts/<id>/drafts/nai_*.png`(또는 `--outdir`로 준 작업 폴더)에만 쓰고 `art/inbox/`·`assets/`에는 쓰지 못한다.',
   '`sheets.py`는 NovelAI 그림(PNG 메타데이터 `Software: NovelAI`, `art/concepts/`·`drafts/` 경로, `nai_` 이름)을 거부한다 (`--allow-draft`는 미리보기 시험용, 등록 불가).',
-  '창설 후보 9명의 NovelAI 프롬프트·시드·크기는 주인이 고른 초안 그대로다 (`art/concepts/selections.json`; `--only`가 `nai.seed`·`nai.size`를 쓴다). 나머지는 한 장에 한 자세(전투 대기 자세).',
+  '창설 후보 9명·일반 병과 5종·1차 몬스터 8종의 NovelAI 프롬프트·시드·크기는 주인이 고른 초안 그대로다 (`art/concepts/selections.json`; `--only`가 `nai.seed`·`nai.size`를 쓴다). 나머지는 한 장에 한 자세(전투 대기 자세).',
   '무료 범위(넓이 <= 1024x1024, 28 steps, 1장)로, 한 번에 몇 장씩만:',
   '',
   '```',
-  'python3 tools/art/novelai.py --only sheet/class/warrior   # → art/concepts/class_warrior/drafts/nai_class_warrior_s21001.png (초안만)',
+  'python3 tools/art/novelai.py --only sheet/class/warrior   # → art/concepts/class_warrior/drafts/nai_class_warrior_s21149.png (고른 초안 다시 만들기, 초안만)',
   '```',
   '',
 ];

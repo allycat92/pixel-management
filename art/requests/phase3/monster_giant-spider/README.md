@@ -15,11 +15,18 @@ DESIGN: dark purple carapace with a lighter purple sheen on the top edges; hairy
 
 COLOURS (keep close, muted): carapace dark purple #3b3346, darker #241b29, sheen #5a4a66; eyes red #d6455d.
 
-FIX:
+FROM concept.png (the owner's pick, NovelAI draft #3; design only) TAKE: the big round abdomen behind a smaller head, the cluster of glossy red eyes (two big, several small) on the front of the head, short pedipalps at the mouth, long jointed legs in a wide arch, the low crouch.
+
+FIX (do not reproduce the draft here):
   - a common monster seen in large numbers: an ordinary member of its kind, no unique features, no crown, banner or trophy
   - exactly eight legs, one body, one head
   - very dark: add a clear cool rim light along the top edges so it reads on the dark battlefield
   - no web, no poison drip, no effect
+  - exactly EIGHT legs, four per side, in every pose (count them); the short pedipalps at the mouth are not legs and stay short
+  - the draft body and legs are near-black on a dark ground: dark purple carapace as in COLOURS plus a clear cool rim light along the top edges of the abdomen, the head and every leg
+  - the draft is covered in fine hair noise: a smooth carapace and only a few short spikes on the legs
+  - the draft legs are very long and thin: thicker, shorter legs so the idle fits about 520 x 220 px and every leg survives downscaling
+  - the draft fangs are hidden in the hair: two clear fangs
 
 POSES (no posekit mannequin for this creature: the text gives the pose, guide_layout.png the place and size):
   1. idle (top-left quadrant): crouched on eight legs, the front pair slightly raised
@@ -31,7 +38,7 @@ REFERENCES (folder art/requests/phase3/monster_giant-spider/ on branch claude/do
   - art/inbox/sheet_captain_blademaster.png on the art-inbox branch (in a chat: the attached approved Baren sheet) = the APPROVED STYLE ANCHOR: match its rendering, outline, palette treatment and lighting
   - guide_layout.png (layout, baseline and the SIZE BOX of each pose - the lines, boxes and labels are guide-only)
   - guide_scale.png (the same pixel scale as a 4-head human captain; the grey human is NOT drawn)
-  - concept.png - NOT IN THE FOLDER YET: it is added after the owner picks a NovelAI design draft. Do not start this sheet before concept.png is there
+  - concept.png (DESIGN ONLY)
 
 DO NOT COPY: from the concept draft take ONLY the design (costume pieces, colours, hair, face marks, headgear, weapon/shield type, silhouette idea). Do NOT copy its proportions, rendering/shading technique, outline weight, saturation, lighting or level of detail - the NovelAI drafts are not consistent with each other.
 
@@ -63,7 +70,8 @@ SELF-CHECK before saving (redraw if any fails):
 ## 주인용 요약 (한국어)
 
 - 순서: 1차 몬스터 **7번째** (메시지 E) — 승인된 바렌 그림(`art-inbox` 브랜치의 `art/inbox/sheet_captain_blademaster.png`)의 화풍에 맞춘다.
-- **초안 대기**: 주인이 NovelAI 초안(`jobs_monsters.json`)을 고르면 `art/concepts/monster_giant-spider/`에 두고 `handoff.py`의 `CREATURES['monster_giant-spider']['concepts']`에 `{'concept.png': 'monster_giant-spider/concept_NN.png'}`를 넣어 다시 실행한다. 그 전에는 그림 쪽에 보내지 않는다.
+- **초안** `concept.png` = `art/concepts/monster_giant-spider/concept_03.png` (주인이 고른 #3, 디자인만) — 가져올 것: 작은 머리 뒤의 크고 둥근 배, 머리 앞의 반짝이는 붉은 눈 무리(큰 눈 둘 + 작은 눈 여럿), 입가의 짧은 더듬이다리, 넓게 휜 긴 마디 다리, 낮게 웅크린 자세.
+- **초안에서 고칠 것** (영어 블록 FIX 끝부분): 다리는 모든 자세에서 정확히 여덟(한쪽에 넷) — 입가의 짧은 더듬이다리는 다리가 아니고 짧게. 어두운 바닥에 묻히는 새까만 몸 → 짙은 보라 등껍질 + 배·머리·다리 윗선의 찬 림 라이트. 온몸의 잔털 노이즈 → 매끈한 등껍질, 다리에 짧은 가시 몇 개. 아주 길고 가는 다리 → 굵고 짧게(대기 약 520x220px, 줄여도 다리가 보이게). 털에 묻힌 독니 → 큰 독니 둘이 보이게.
 - 설계: 낮고 넓은 다리 여덟 개 거미, 짙은 보라 등껍질, 붉은 눈 무리, 큰 독니. 대기 약 520x220px. 물기 근접 공격.
 - 자세: ① 여덟 다리로 웅크림(앞다리 조금 듦) ② 앞다리 두 쌍을 높이 들고 일어섬 ③ 낮게 앞으로 덮치며 앞다리로 찍음 ④ 다리를 오므리며 뒤로 젖혀짐
 - 배치: 1536x1024 **2x2 격자** (768x512 네 칸: 왼쪽 위 대기, 오른쪽 위 공격 준비, 왼쪽 아래 공격 타격, 오른쪽 아래 피격), 칸마다 맨 아래 픽셀 y=461. posekit 마네킹 없음(사람 골격이 아니다) — 자세는 글로, 자리·크기는 `guide_layout.png`의 상자로.
@@ -78,7 +86,7 @@ SELF-CHECK before saving (redraw if any fails):
 | (`art-inbox`의 `art/inbox/sheet_captain_blademaster.png`) | 승인된 바렌 시트 — 화풍 기준, 꼭 같이 첨부 |
 | `guide_layout.png` | 결과물 배치: 2x2 칸, 바닥선, 자세별 크기 상자 (선·상자·글씨는 가이드에만) |
 | `guide_scale.png` | 같은 배율의 사람(회색, 그리지 않음)과 대기 상자 — 크기 비교 |
-| (`concept.png`) | **대기** — 주인이 NovelAI 초안을 고르면 들어간다 |
+| `concept.png` | 주인이 고른 NovelAI 디자인 초안 (디자인만 참고) |
 
 ### 받은 뒤 (Claude Code)
 
