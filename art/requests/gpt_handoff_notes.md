@@ -76,5 +76,48 @@ Known inconsistencies in the current drafts (`art/requests/phase3/<id>/concept.p
   results go ONLY to the `art-inbox` branch (its own older `art/STYLE.md` and requests are not the rules).
 - Order: Baren (anchor, wait for approval) → ironwall, tactician, lancer, huntress, hedgemage, fieldmedic, fixer, veteran
   → optional lancer mounted sheet (`sheet_captain_lancer_mounted.png`, 2x2 grid, wider cell, not used by the game yet;
-  the horse must have exactly one head) → later groups (classes, heroes, monsters, other captains) after the nine.
+  the horse must have exactly one head) → Felix recolour (message C) → after the owner picks NovelAI drafts: the five
+  generic classes (message D) and the first eight monsters (message E) → later groups (promoted classes, heroes, the other
+  monsters and bosses, the other captains).
 - The copy-paste messages for the image agent are in `art/requests/phase3_gpt.md`.
+
+## Magenta rule (every sheet)
+
+The background key is #FF00FF and the pipeline deletes every colour near it. Felix's first delivery saved his lit robe and
+hat exactly as #FF00FF (the palette reduction merged them with the background), so the robe came out full of holes.
+Every figure colour must stay at RGB distance >= 150 from #FF00FF (`sqrt((255-R)^2 + G^2 + (255-B)^2)`): no hot pink,
+magenta or bright violet; purples stay dark blue-purple (#5a4a7a). Reduce the palette of the figure only, never merging
+a figure colour into the background colour. The rule is in every package README (DELIVERABLE + SELF-CHECK).
+
+## Generic class sheets (`class_<key>`, message D): key colours
+
+One sheet per base class (warrior, archer, mage, cleric, rogue) is shared by every nameless mercenary and faction
+soldier, friend and foe; promoted classes fall back to it. The engine recolours the uniform per faction by replacing
+EXACT colours (`js/battle.js` `sheetRecolor`: key -> faction colour x key luminance / mean luminance of that role's keys).
+
+- outfit keys (tabard / robe / hooded tunic / hood and cape, the warrior's shield face), dark to light:
+  `#263459` `#394b78` `#52679c` `#7489be`
+- accent keys (trim, sash, headband, hat band, the cleric's chest disc, the rogue's scarf), dark to light:
+  `#3f7a6c` `#5ea590` `#96d1bb`
+- flat fills only on those areas (no dithering, gradients, texture or in-between shades); the seven keys appear nowhere
+  else, and nothing else on the figure is blue, slate, teal or mint (steel is neutral grey, leather and wood warm brown,
+  other shadows warm or neutral - this overrides the general "shadows toward purple/blue" rule for these sheets).
+- generic, unremarkable young face; no emblem or heraldry (the faction colour comes from the keys).
+- code side: `sheets.py` reads `tint` from `phase3.json`, snaps colours within RGB distance 34 of a key back to the key at
+  full resolution (non-key colours never become keys), writes `preview_tint_x4.png` (test recolour) and registers the keys
+  with `register_sheet.py --tint-outfit/--tint-accent`.
+
+## First monster batch (`monster_<key>`, message E)
+
+The eight most frequent non-boss monsters (counted from `Battle.plan` over simulated contracts; evidence in
+`phase3_gpt.md`): skeleton soldier, wild wolf, desert bandit, harpy, bandit, gargoyle, giant spider, wraith.
+
+- Same pixel scale as the humans (guide head 110 px) - monsters are never drawn bigger to fill the frame.
+- Humanoids (skeleton, desert bandit, bandit) use the posekit guide strip like the captains.
+- Non-humanoids have no mannequin: the README gives a design brief (silhouette, size, colours, attack) and four
+  descriptive poses; `guide_layout.png` shows the layout (2x2 quadrants for the wide wolf / harpy / gargoyle / spider,
+  lowest pixel on y=461 of each quadrant; the 1x4 row for the wraith) with a size box per pose, and `guide_scale.png`
+  shows the idle box next to a grey 4-head human at the same scale. Boxes, lines, labels and the grey human are guide-only.
+- Ranged monsters (harpy, gargoyle, wraith) get a cast / shriek pose; the engine draws the projectile.
+
+Both batches wait for the owner's NovelAI design picks (`concept.png` is missing until then; the README says so).
