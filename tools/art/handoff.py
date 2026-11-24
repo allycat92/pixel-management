@@ -9,8 +9,14 @@ and guide_strip.png — the four guides laid out exactly as the deliverable must
 idle is ~400 px ≈ 39% of the height, >= 32 px of magenta between figures and from the border).
 README.md = the English prompt block for GPT (per-character part first) + Korean notes for the owner.
 
-  python3 tools/art/handoff.py                       # every character in CHARS
+  python3 tools/art/handoff.py                       # every package in CHARS and CREATURES
   python3 tools/art/handoff.py captain_fixer --check # one package; --check also prints the layout
+
+Kinds: captains (CHARS, concept + portrait), generic class sheets (CHARS kind 'class': KEY COLOURS block from
+phase3.json item.tint, the engine recolours the uniform per faction), humanoid monsters (CHARS kind 'monster', posekit
+guides) and non-humanoid monsters (CREATURES: no mannequin; guide_layout.png = 2x2 / 1x4 layout with a size box per pose,
+guide_scale.png = the idle box next to a 4-head human at the same scale). concepts={} = the owner has not picked a NovelAI
+draft yet: the package has no concept.png and its README says so (add the pick and rerun).
 
 Needs art/requests/phase3.json (node tools/art/requests.js) for names and game colours.
 Deterministic: the same inputs give byte-identical files. Concept and portrait files are copied
@@ -283,9 +289,12 @@ CHARS = {
         weapon_desc='a long, slightly crooked wooden staff (plain wooden top instead of the guide\'s blue orb)',
         keep=['short messy blond hair', 'worn, patched pointed wizard hat', 'purple robe', 'rope belt', 'satchel on the hip',
               'dark trousers, brown boots', 'cheerful, young face'],
-        colours=[('skin', '#f5d6b8'), ('hair', 'blond #e3c565'), ('robe and hat', 'purple #5a4a7a'),
+        colours=[('skin', '#f5d6b8'), ('hair', 'blond #e3c565'),
+                 ('robe and hat', 'blue-purple #5a4a7a, shades #3a3052 / #4a3e66 / #5a4a7a / #74679a / #8f84b0 (never pink or magenta)'),
                  ('trim', 'dull ochre gold (#e8c86a desaturated)')],
-        fix=['the draft\'s bright yellow trim must be muted to a dull ochre gold',
+        fix=['the robe and hat stay in the dark blue-purple #5a4a7a family, lit side included: the first delivery painted the lit robe and hat '
+             'exactly #FF00FF, the background key, so the background removal punched holes in them (see the magenta rule)',
+             'the draft\'s bright yellow trim must be muted to a dull ochre gold',
              'NO fire, glow or magic effect anywhere: the engine draws the spell VFX; the casting hand is open and empty',
              'the hat must stay inside the figure\'s space (no huge brim that reaches the neighbouring figure)'],
         pose=dict(idle='staff held diagonally in front with both hands',
@@ -293,7 +302,8 @@ CHARS = {
                   strike='lunge; free arm extended straight forward, palm OPEN toward the enemy (casting); staff held upright behind in the near hand',
                   hit='torso thrown back, weight on the rear leg, wincing, hat still on'),
         ko=dict(keep='헝클어진 금발, 기운 자국 있는 낡은 고깔모자, 보라색 로브, 밧줄 허리띠, 허리 가방, 갈색 장화, 나무 지팡이.',
-                fix='밝은 노란 테두리 → 탁한 황토 금색. 불꽃·빛 등 효과 금지(엔진이 그린다), 시전하는 손은 앞으로 뻗은 빈 손바닥. 시전 자세(cast).'),
+                fix='로브·모자는 밝은 면까지 짙은 청보라 #5a4a7a 계열(첫 납품은 밝은 면이 배경 키 #FF00FF 와 같아 구멍이 뚫렸다). '
+                    '밝은 노란 테두리 → 탁한 황토 금색. 불꽃·빛 등 효과 금지(엔진이 그린다), 시전하는 손은 앞으로 뻗은 빈 손바닥. 시전 자세(cast).'),
     ),
     'captain_fieldmedic': dict(
         en='Magda', order=7, weapon='staff',
@@ -356,6 +366,277 @@ CHARS = {
     ),
 }
 
+# ───────── generic class sheets (kind 'class') ─────────
+# One sheet per base class, used by EVERY nameless mercenary and faction soldier of that class (promoted classes fall
+# back to it, js/art.js sheetFor). The engine recolours the uniform per faction / company by replacing EXACT key colours
+# (js/battle.js sheetRecolor: key -> target x key luminance / mean luminance of that role's keys). So the uniform is painted
+# ONLY with the key ramps of phase3.json item.tint (= CLASS_KEYS in tools/art/requests.js), flat, and the keys are used
+# nowhere else; sheets.py snaps colours within KEY_TOL back to the keys and registers them (--tint-outfit / --tint-accent).
+# concepts={} = the owner has not picked a NovelAI draft yet (jobs_classes.json); the package then has no concept.png.
+CLASS_COMMON_KEEP = ['generic young adult face with a neutral expression and no scars, marks or distinctive features '
+                     '(this one face stands for hundreds of soldiers)']
+CHARS.update({
+    'class_warrior': dict(
+        kind='class', en='Warrior', order=11, weapon='sword_shield',
+        frames=dict(idle='idle_0', windup='key_windup', strike='key_strike', hit='key_hit'), concepts={},
+        weapon_desc=('a plain one-handed arming sword in the near hand and a round wooden shield (the guide shield\'s size) on the far arm; '
+                     'the shield FACE is painted with the outfit keys (it shows the faction colour), its rim and boss are plain iron'),
+        keep=CLASS_COMMON_KEEP + ['open-faced steel helmet covering most of the hair (a little short dark-brown hair may show)',
+                                  'grey chainmail shirt', 'knee-length sleeveless TABARD over the mail', 'leather belt, brown gloves',
+                                  'dark trousers, brown boots', 'sturdy, ordinary soldier build'],
+        roles=dict(outfit='the tabard and the shield face', accent='the tabard\'s border trim and one plain band across the shield face'),
+        colours=[('skin', '#e0ac7e'), ('hair (mostly hidden)', 'dark brown #5a3720'),
+                 ('helmet, mail, sword, shield rim and boss', 'NEUTRAL steel grey (no blue tint), e.g. #c8c6c0 / #8a8a86 / #5c5c5a'),
+                 ('leather and wood', 'warm browns')],
+        fix=['no emblem, crest or heraldry: the faction colour comes from the recoloured keys only'],
+        pose=dict(idle='shield up, sword ready',
+                  windup='weight on the back leg; sword raised up and back behind the head, shield kept forward',
+                  strike='step-in lunge; sword cutting forward and down at full extension, shield pulled in',
+                  hit='torso thrown back, weight on the rear leg, wincing; shield up in front of the chest, sword arm dropped down-back'),
+        ko=dict(keep='무난한 젊은 얼굴(흉터·특징 없음), 머리를 거의 가린 강철 투구, 사슬 갑옷, 무릎 길이 민소매 겉옷(제복), 가죽 띠, 갈색 장갑·장화, 한손검 + 둥근 나무 방패.',
+                fix='겉옷·방패 면 = 제복 열쇠 색, 겉옷 테두리·방패의 띠 하나 = 장식 열쇠 색. 금속은 푸른 기 없는 중성 회색. 문장·무늬 없음.'),
+    ),
+    'class_archer': dict(
+        kind='class', en='Archer', order=12, weapon='bow',
+        frames=dict(idle='idle_0', windup='attack_2', strike='attack_3', hit='key_hit'), concepts={},
+        weapon_desc='a short recurve bow the size of the guide bow (brown wood), a brown leather quiver of arrows on the back',
+        keep=CLASS_COMMON_KEEP + ['short dark-brown hair', 'a cloth headband', 'knee-length HOODED TUNIC with the hood down on the shoulders',
+                                  'brown leather vest over the tunic', 'leather bracers', 'dark trousers, brown boots', 'lean build'],
+        roles=dict(outfit='the hooded tunic (hood, sleeves, skirt of the tunic)', accent='the headband and the tunic\'s hem trim'),
+        colours=[('skin', '#e0ac7e'), ('hair', 'dark brown #5a3720'), ('vest, bracers, quiver, bow', 'warm browns'),
+                 ('arrowheads', 'NEUTRAL steel grey')],
+        fix=['an arrow appears ONLY on the drawn bow in the wind-up; after the release (strike) there is NO flying arrow (the engine draws projectiles)',
+             'the leather vest stays brown and small, so the tunic underneath still shows clearly on the chest, sleeves and skirt'],
+        pose=dict(idle='bow held low in front, ready',
+                  windup='full draw: arrow nocked, string pulled back to the cheek',
+                  strike='release: bow arm extended, string straight, drawing hand flung back, no arrow',
+                  hit='torso thrown back, weight on the rear leg, wincing; bow dropped low-forward, drawing hand flung back'),
+        ko=dict(keep='무난한 젊은 얼굴, 짧은 짙은 갈색 머리, 머리띠, 후드를 내린 무릎 길이 후드 상의(제복), 갈색 가죽 조끼·팔 보호대, 등의 화살통, 짧은 활.',
+                fix='후드 상의 = 제복 열쇠 색, 머리띠·상의 밑단 = 장식 열쇠 색. 화살은 당길 때만, 쏜 뒤에는 없음.'),
+    ),
+    'class_cleric': dict(
+        kind='class', en='Cleric', order=14, weapon='staff',
+        frames=dict(idle='idle_0', windup='cast_1', strike='key_strike', hit='key_hit'), concepts={},
+        weapon_desc=('a one-handed flanged steel mace with a wooden handle about 1.3 heads long (~140 px), in the near hand where the guide holds '
+                     'the staff and at the same angle; it is SHORTER than the guide staff (its head sits about halfway up the guide staff)'),
+        keep=CLASS_COMMON_KEEP + ['short brown hair, no headgear', 'grey chainmail', 'knee-length TABARD over the mail',
+                                  'one plain round sun-disc emblem on the chest (a simple filled circle: no cross, no rays, no symbol inside)',
+                                  'a small brown leather book on the belt', 'dark trousers, brown boots'],
+        roles=dict(outfit='the tabard', accent='the tabard\'s border trim and the round chest emblem'),
+        colours=[('skin', '#c68a5c'), ('hair', 'brown #5a3720'), ('mail and mace head', 'NEUTRAL steel grey'), ('book, belt, boots', 'warm browns')],
+        fix=['NO cross anywhere and NO healing glow or light: the engine draws the heal VFX; the forward hand is open and empty',
+             'slots 2-3 are the action / cast poses: the same sheet is used for attacks AND heals'],
+        pose=dict(idle='mace held diagonally in front, free hand at the belt',
+                  windup='mace raised high in the near hand, free hand lifted (praying / gathering)',
+                  strike='lunge; free arm extended straight forward, palm OPEN (blessing or striking); mace held up behind in the near hand',
+                  hit='torso thrown back, weight on the rear leg, wincing'),
+        ko=dict(keep='무난한 젊은 얼굴, 짧은 갈색 머리(모자 없음), 사슬 갑옷 위 무릎 길이 겉옷(제복), 가슴의 무늬 없는 둥근 해 원판, 허리의 작은 책, 한손 철퇴.',
+                fix='겉옷 = 제복 열쇠 색, 테두리·가슴 원판 = 장식 열쇠 색. 십자·치유 빛 없음. 2·3번은 공격·치유 겸용 자세(마그다와 같은 틀, 철퇴는 짧게).'),
+    ),
+    'class_mage': dict(
+        kind='class', en='Mage', order=13, weapon='staff',
+        frames=dict(idle='idle_0', windup='cast_1', strike='key_strike', hit='key_hit'), concepts={},
+        weapon_desc=('a straight wooden staff the length of the guide staff with a small AMBER crystal at the top instead of the guide\'s blue orb '
+                     '(warm orange-yellow, no glow; never a blue or teal crystal)'),
+        keep=CLASS_COMMON_KEEP + ['short brown hair, the face partly shaded by the hat brim', 'wide-brimmed pointed HAT (compact brim)',
+                                  'long ROBE to the shins with a sash', 'brown belt pouches', 'brown boots'],
+        roles=dict(outfit='the hat and the robe', accent='the hat band, the robe\'s hem / cuff trim and the sash'),
+        colours=[('skin', '#f2c9a0'), ('hair', 'brown #5a3720'), ('staff, pouches, boots', 'warm browns'), ('crystal', 'amber #d9a441 (muted)')],
+        fix=['NO fire, glow or magic effect anywhere: the engine draws the spell VFX; the casting hand is open and empty',
+             'the hat stays inside the figure\'s space (no huge brim reaching the neighbouring figure)'],
+        pose=dict(idle='staff held diagonally in front with both hands',
+                  windup='staff raised high in the near hand, free hand lifted, gathering power',
+                  strike='lunge; free arm extended straight forward, palm OPEN toward the enemy (casting); staff held upright behind in the near hand',
+                  hit='torso thrown back, weight on the rear leg, wincing, hat still on'),
+        ko=dict(keep='무난한 젊은 얼굴(모자 챙 그늘), 짧은 갈색 머리, 챙 넓은 고깔모자, 정강이까지 오는 로브와 허리띠 천, 갈색 주머니, 호박색 작은 수정이 달린 곧은 나무 지팡이.',
+                fix='모자·로브 = 제복 열쇠 색, 모자 띠·로브 테두리·허리띠 천 = 장식 열쇠 색. 수정은 따뜻한 호박색(파랑·청록 금지), 효과 없음. 펠릭스와 같은 시전 틀.'),
+    ),
+    'class_rogue': dict(
+        kind='class', en='Rogue', order=15, weapon='none',
+        frames=dict(idle='key_idle', windup='key_windup', strike='key_strike', hit='key_hit'), concepts={},
+        weapon_desc=('ONE short dagger in the near hand (screen-left arm = the character\'s right), REVERSE grip '
+                     '(blade leaving the little-finger side, running back along the forearm), exactly as the guide draws it'),
+        keep=CLASS_COMMON_KEEP + ['deep HOOD shading the upper face (the eyes still readable) and a short SHOULDER CAPE', 'a SCARF over the mouth',
+                                  'dark-brown leather armour with straps', 'dark trousers, dark-brown boots', 'lean, agile build'],
+        roles=dict(outfit='the hood and the shoulder cape', accent='the scarf and one thin belt sash'),
+        colours=[('skin', '#e0ac7e'), ('leather armour, straps, boots', 'warm dark brown #4a3a2e (NOT black, NOT blue-grey)'),
+                 ('dagger', 'NEUTRAL steel grey')],
+        fix=['exactly ONE dagger, reverse grip, in the near hand; the other hand is always empty',
+             'the dark leather stays WARM brown (never blue-grey), so it never comes close to the uniform keys; add a warm rim light on the '
+             'upper-left edges so it reads on the dark battlefield'],
+        pose=dict(idle='low ready stance, dagger hand low in front, free hand up as a guard',
+                  windup='weight on the back leg; dagger hand raised high above the head (about to stab down), free hand forward',
+                  strike='lunge; dagger arm fully extended forward, free hand pulled back',
+                  hit='torso thrown back, weight on the rear leg, wincing; dagger arm flung back, free hand up'),
+        ko=dict(keep='무난한 젊은 얼굴(깊은 후드 그늘, 눈은 보이게), 후드 + 짧은 어깨 망토, 입을 가린 스카프, 끈 많은 짙은 갈색 가죽 갑옷, 역수 단검 하나.',
+                fix='후드·어깨 망토 = 제복 열쇠 색, 스카프·가는 허리 천 = 장식 열쇠 색. 가죽은 따뜻한 짙은 갈색(청회색 금지) + 왼쪽 위 따뜻한 림 라이트. 진과 같은 틀.'),
+    ),
+})
+
+# ───────── first monster batch: humanoids (kind 'monster', posekit guides like the captains) ─────────
+MONSTER_COMMON_FIX = ['a common monster seen in large numbers: an ordinary member of its kind, no unique features, no crown, banner or trophy']
+CHARS.update({
+    'monster_skeleton': dict(
+        kind='monster', en='Skeleton soldier', enemy='해골 병사', order=21, weapon='sword_shield',
+        frames=dict(idle='idle_0', windup='key_windup', strike='key_strike', hit='key_hit'), concepts={},
+        brief=dict(silhouette='a human-sized undead soldier: the same 4-head build as the captains (the helmeted skull is the 110 px head), round shield and sword',
+                   size='SMALL (human scale, the same height as a captain)', attack='melee: sword slash',
+                   where='frost and holy-ground battles, magic-investigation contracts, the demon calamity army (the most frequent monster in battle)'),
+        weapon_desc='a notched, rusty one-handed sword in the near hand and a battered round wooden shield with an iron rim on the far arm (the guide shield\'s size)',
+        keep=['skull under a rusty open-faced iron helmet', 'two small red points of light in the eye sockets (just two small red pixel clusters, no halo)',
+              'CHUNKY simplified bones: the ribcage as one shape, thick limb bones, big hands and feet', 'tattered dark cloth scraps at the hips',
+              'no skin, no hair'],
+        colours=[('bone', 'muted off-white #e8e4d8, shaded #a8a49a toward cool grey-violet (never pure white)'),
+                 ('helmet and sword', 'rusty iron #5c606a with brown rust'), ('eyes', 'red #d6455d'), ('cloth scraps', 'dark faded brown')],
+        fix=MONSTER_COMMON_FIX + ['bones must stay chunky: thin realistic bones vanish at 64 px', 'no green fire, glow or aura'],
+        pose=dict(idle='shield up, sword ready, slightly hunched',
+                  windup='weight on the back leg; sword raised up and back behind the head, shield kept forward',
+                  strike='step-in lunge; sword cutting forward and down at full extension, shield pulled in',
+                  hit='torso thrown back, weight on the rear leg, skull snapped back, jaw open; shield up, sword arm dropped down-back'),
+        ko=dict(keep='녹슨 개방형 투구 아래 해골, 눈구멍의 작은 붉은 점 둘, 굵게 단순화한 뼈, 허리의 해진 천, 이 빠진 녹슨 한손검 + 쇠테 두른 둥근 나무 방패.',
+                fix='뼈는 굵게(가는 뼈는 64px 에서 사라진다), 순백 금지, 초록 불꽃·빛 없음. 사람과 같은 크기.'),
+    ),
+    'monster_desert-bandit': dict(
+        kind='monster', en='Desert bandit', enemy='사막 도적', order=23, weapon='sword_shield',
+        frames=dict(idle='idle_0', windup='key_windup', strike='key_strike', hit='key_hit'), concepts={},
+        brief=dict(silhouette='a human raider in loose desert robes and a head wrap, one curved sword',
+                   size='SMALL (human scale)', attack='melee: scimitar slash', where='desert battles (the two desert provinces)'),
+        weapon_desc=('a curved scimitar in the near hand (where the guide holds the sword, same angle). NO shield: the guide\'s round shield is a '
+                     'placeholder - the far hand is EMPTY and held up open as a guard where the shield is'),
+        keep=['sand-coloured head wrap and a face veil (only the eyes show)', 'loose sand-coloured robe-tunic', 'brown leather vest and a sash',
+              'baggy trousers tucked into leather boots', 'tan skin on the hands'],
+        colours=[('skin', '#c68a5c'), ('head wrap, robe', 'sand #e8d5a3 (muted, shaded toward warm grey; never white)'),
+                 ('vest, sash, boots', 'brown #8d5a3b'), ('scimitar', 'NEUTRAL steel grey')],
+        fix=MONSTER_COMMON_FIX + ['exactly one weapon (the scimitar); no shield, no second blade',
+                                  'the sand robe must not merge with the desert background: give it a darker outline and clear shading'],
+        pose=dict(idle='scimitar held ready in front, free hand up as a guard',
+                  windup='weight on the back leg; scimitar raised up and back behind the head, free hand forward',
+                  strike='step-in lunge; scimitar slashing forward and down at full extension, free hand pulled back',
+                  hit='torso thrown back, weight on the rear leg, wincing; scimitar arm dropped down-back, free hand up'),
+        ko=dict(keep='모래색 머리 두건과 얼굴 가리개(눈만 보임), 헐렁한 모래색 겉옷, 갈색 가죽 조끼·허리 천, 통 넓은 바지와 장화, 곡도(시미터) 하나.',
+                fix='방패 없음 — 가이드의 둥근 방패 자리는 빈손(막는 자세). 모래색이 사막 배경에 묻히지 않게 외곽선·명암 분명히.'),
+    ),
+    'monster_bandit': dict(
+        kind='monster', en='Bandit', enemy='산적', order=25, weapon='sword_shield',
+        frames=dict(idle='idle_0', windup='key_windup', strike='key_strike', hit='key_hit'), concepts={},
+        brief=dict(silhouette='a scruffy human outlaw with a hand axe and a small buckler', size='SMALL (human scale)',
+                   attack='melee: axe chop', where='plains, holy-ground and coast battles (the starting region)'),
+        weapon_desc=('a short hand axe in the near hand (where the guide holds the sword, same angle) and a SMALL round wooden buckler on the far arm '
+                     '(about 0.6 heads across, smaller than the guide shield)'),
+        keep=['red bandana on the head', 'stubble and a sneer', 'patched brown leather jerkin', 'rope belt', 'dark trousers, worn boots', 'wiry build'],
+        colours=[('skin', '#e0ac7e'), ('bandana', 'dark red #8f2d3a'), ('jerkin', 'brown leather #a8764e / #6b4a32'),
+                 ('axe head', 'NEUTRAL steel grey')],
+        fix=MONSTER_COMMON_FIX + ['he must read differently from the desert bandit: red bandana, bare face, axe and buckler'],
+        pose=dict(idle='buckler forward, axe ready',
+                  windup='weight on the back leg; axe raised up and back behind the head, buckler kept forward',
+                  strike='step-in lunge; axe chopping forward and down at full extension, buckler pulled in',
+                  hit='torso thrown back, weight on the rear leg, wincing; buckler up, axe arm dropped down-back'),
+        ko=dict(keep='붉은 두건, 수염 자국·비웃는 얼굴, 기운 가죽 조끼, 밧줄 허리띠, 짧은 손도끼 + 작은 둥근 나무 버클러.',
+                fix='사막 도적과 확실히 다르게(붉은 두건·드러난 얼굴·도끼·버클러). 버클러는 가이드 방패보다 작게.'),
+    ),
+})
+
+# ───────── first monster batch: non-humanoids (kind 'creature', size-box guides, no posekit) ─────────
+# Same pixel scale as the humans (head 110 px; crouched human idle ~400 px). layout '2x2' = four 768x512 quadrants
+# (top: idle, wind-up; bottom: strike, hit), lowest pixel of each pose on y=QBASE of its quadrant (as the mounted sheet);
+# '1x4' = the captains' row, lowest pixel on BASELINE. boxes = (w, h) px of each pose (a size guide only, drawn as an outline).
+QBASE = round(0.9 * (SH_ // 2))   # 461
+CREATURES = {
+    'monster_wolf': dict(
+        en='Wild wolf', enemy='들늑대', order=22, layout='2x2',
+        boxes=dict(idle=(420, 250), windup=(400, 220), strike=(540, 260), hit=(400, 280)),
+        brief=dict(silhouette='a lean grey wild wolf in side three-quarter view, head low, tail down: a long horizontal shape',
+                   size='SMALL: shoulder about half a standing human, nose to tail about one human height (idle ~420 x 250 px)',
+                   attack='melee: lunging bite', where='plains and forest battles (the most frequent beast)'),
+        design=['shaggy grey fur with a darker back and a lighter belly', 'amber eyes', 'bared fangs, ears back', 'four legs, ONE tail, ONE head'],
+        colours=[('fur', 'grey #8a8f99, dark #5c606a, light grey-beige belly'), ('eyes', 'amber #f2c94c'), ('mouth', 'dark red-brown')],
+        fix=['a real wolf (not a werewolf, never standing up)', 'exactly four legs, one tail and one head in every pose'],
+        pose=dict(idle='standing on all fours, head lowered, snarling, tail down',
+                  windup='crouched back on the haunches, front low, ready to pounce, ears flat',
+                  strike='leaping lunge to the right: body stretched, forelegs reaching forward, jaws wide open; one hind paw still touches the baseline',
+                  hit='recoiling backward: head thrown up and back, yelping, hind legs bent, front paws lifted'),
+        ko=dict(brief='회색 들늑대, 머리 낮추고 으르렁, 꼬리 아래. 작은 몬스터(대기 상자 약 420x250px). 물기 근접 공격.',
+                pose='① 네 발로 서서 으르렁 ② 뒷다리에 웅크려 덮칠 준비 ③ 오른쪽으로 덮치며 문다(뒷발 하나는 바닥) ④ 머리를 젖히며 뒤로 물러남'),
+    ),
+    'monster_harpy': dict(
+        en='Harpy', enemy='하피', order=24, layout='2x2',
+        boxes=dict(idle=(440, 400), windup=(420, 420), strike=(560, 340), hit=(480, 400)),
+        brief=dict(silhouette='a hovering bird-woman: human head and torso (4-head proportions, head 110 px), wings instead of arms, bird legs with '
+                              'talons, a feather tail - wide because of the wings',
+                   size='SMALL: body like a human, the wings make it wide (idle ~440 x 400 px including the raised wings)',
+                   attack='ranged in the game data (template "drake": the engine shoots a fire bolt): a shrieking pose, no projectile drawn',
+                   where='desert battles and the beast calamity army'),
+        design=['wild auburn hair', 'red eyes, a fierce face', 'purple feathered wings instead of arms (three small claws at the wing bend)',
+                'a feathered chest wrap (no bare chest)', 'scaly bird legs with big talons', 'a short fan of tail feathers'],
+        colours=[('skin', '#e0ac7e (muted)'), ('feathers', 'muted purple #8a6aa8 shaded with #5a4a7a (blue-purple, never pink or magenta)'),
+                 ('legs and talons', 'brown #a8764e'), ('eyes', 'red #d6455d')],
+        fix=['tasteful: the chest is covered with feathers',
+             'the feathers stay blue-purple and dark enough: no pixel may come close to the #FF00FF background (see the magenta rule)',
+             'the engine draws the projectile and the glow: no fire, light or effect in the drawing'],
+        pose=dict(idle='hovering low with the wings half raised; talons dangling, the lowest talon on the baseline',
+                  windup='wings raised high and back, head drawn back, mouth open (about to shriek), talons drawn up',
+                  strike='lunging forward: head and chest thrust forward, mouth wide open shrieking, wings flung forward, talons reaching forward-down',
+                  hit='knocked back: wings flung up and out, body jerked back, feathers ruffled, wincing'),
+        ko=dict(brief='공중에 뜬 새 여인. 사람 머리·몸통(4등신), 팔 대신 보라 날개, 새 다리·발톱. 날개 때문에 넓다(대기 약 440x400px). 게임에서는 원거리(엔진이 불덩이를 그림).',
+                pose='① 날개 반쯤 들고 낮게 떠 있음(발톱 끝이 바닥선) ② 날개를 높이 뒤로, 입 벌림 ③ 머리·가슴을 앞으로 내밀며 비명, 날개 앞으로 ④ 날개가 위로 젖혀지며 뒤로 밀림'),
+    ),
+    'monster_gargoyle': dict(
+        en='Gargoyle', enemy='가고일', order=26, layout='2x2',
+        boxes=dict(idle=(380, 330), windup=(520, 420), strike=(560, 340), hit=(460, 360)),
+        brief=dict(silhouette='a hunched stone demon statue come alive: crouching on clawed hands and feet, bat wings, curved horns, a tail',
+                   size='SMALL: crouched about 0.8 of a human idle height (idle ~380 x 330 px); wider when the wings spread',
+                   attack='ranged in the game data (template "drake": the engine shoots a fire bolt): a roaring / spitting pose, no projectile drawn',
+                   where='the volcanic mountains and the beast calamity army'),
+        design=['grey stone skin with a few big cracks and chipped edges', 'curved horns', 'bat wings of stone', 'red eyes (two small red clusters)',
+                'big claws, a pointed tail'],
+        colours=[('stone', 'grey #6b737c, dark #44494f, light #9aa3ad'), ('eyes', 'red #d6455d'), ('mouth', 'dark')],
+        fix=['stone texture only as a few big cracks, not noise', 'the engine draws the fire: no flames, glow or dust in the drawing'],
+        pose=dict(idle='crouched like a statue on all fours, wings folded half open, head low',
+                  windup='rearing up on the hind legs, wings spread wide, claws raised, head pulled back',
+                  strike='lunging forward low: head thrust forward with the jaws wide open (spitting), claws reaching forward, wings swept back',
+                  hit='knocked back onto the haunches: head thrown back, wings flung up, one claw raised to guard'),
+        ko=dict(brief='살아 움직이는 돌 악마상: 웅크린 몸, 박쥐 날개, 굽은 뿔, 꼬리. 웅크린 대기 약 380x330px. 게임에서는 원거리(엔진이 불덩이를 그림).',
+                pose='① 석상처럼 네 발로 웅크림 ② 뒷다리로 일어서며 날개 펼침 ③ 낮게 앞으로 덮치며 입을 크게 벌림 ④ 주저앉듯 뒤로 밀리며 날개가 젖혀짐'),
+    ),
+    'monster_giant-spider': dict(
+        en='Giant spider', enemy='거대 거미', order=27, layout='2x2',
+        boxes=dict(idle=(520, 220), windup=(480, 320), strike=(600, 260), hit=(500, 240)),
+        brief=dict(silhouette='a low, wide eight-legged spider in side three-quarter view; the body about knee-to-chest height of a human',
+                   size='SMALL in the data but WIDE: about 520 x 220 px in idle (legs spread)', attack='melee: lunging bite with the fangs',
+                   where='forest battles (the elf woods)'),
+        design=['dark purple carapace with a lighter purple sheen on the top edges', 'hairy, segmented legs', 'a cluster of red eyes', 'two big fangs'],
+        colours=[('carapace', 'dark purple #3b3346, darker #241b29, sheen #5a4a66'), ('eyes', 'red #d6455d')],
+        fix=['exactly eight legs, one body, one head', 'very dark: add a clear cool rim light along the top edges so it reads on the dark battlefield',
+             'no web, no poison drip, no effect'],
+        pose=dict(idle='crouched on eight legs, the front pair slightly raised',
+                  windup='rearing up: the front two pairs of legs raised high, fangs bared',
+                  strike='lunging forward: body low and stretched, front legs stabbing forward-down, fangs open',
+                  hit='recoiling backward: legs curled and splayed, body tipped back'),
+        ko=dict(brief='낮고 넓은 다리 여덟 개 거미, 짙은 보라 등껍질, 붉은 눈 무리, 큰 독니. 대기 약 520x220px. 물기 근접 공격.',
+                pose='① 여덟 다리로 웅크림(앞다리 조금 듦) ② 앞다리 두 쌍을 높이 들고 일어섬 ③ 낮게 앞으로 덮치며 앞다리로 찍음 ④ 다리를 오므리며 뒤로 젖혀짐'),
+    ),
+    'monster_wraith': dict(
+        en='Wraith', enemy='망령', order=28, layout='1x4',
+        boxes=dict(idle=(240, 360), windup=(260, 380), strike=(320, 340), hit=(280, 350)),
+        brief=dict(silhouette='a hooded floating ghost in long tattered robes that thin into a wispy tail; skeletal clawed hands; no legs',
+                   size='SMALL: about a human idle height (idle ~240 x 360 px)',
+                   attack='ranged in the game data (template "ghost": the engine shoots a curse bolt): a casting / wailing pose, no projectile drawn',
+                   where='swamp and holy-ground battles, magic-investigation contracts, the demon calamity army'),
+        design=['a deep hood with a dark face and two cyan eyes (small clusters, no halo)', 'long tattered pale-blue robes',
+                'thin skeletal hands with long claws', 'the robe ends in a wispy, tattered tail (no legs, no feet)'],
+        colours=[('robes', 'pale blue #b8c8e8, shade #7a8ab0, light #e8f0ff (muted)'), ('eyes', 'cyan #6ff0f0'), ('face, hands', 'dark grey-blue')],
+        fix=['the tail tip is the lowest point and sits on the baseline (the engine places that point on the ground)',
+             'paint it fully opaque (no semi-transparency): the ghostly look comes from the colours and the tattered edges',
+             'no glow halo, smoke or particles around it'],
+        pose=dict(idle='hovering, arms hanging, the robe tail wisping down to the baseline',
+                  windup='arms raised up and back, claws spread, robe billowing back',
+                  strike='lunging forward: both clawed hands thrust forward, hood forward, mouth open wailing (casting)',
+                  hit='recoiling: body bent back, arms flung up, robe torn and fluttering backward'),
+        ko=dict(brief='후드 쓴 떠다니는 유령, 해진 긴 연청색 로브가 가는 꼬리로 끝남, 앙상한 손톱, 다리 없음. 대기 약 240x360px. 게임에서는 원거리(엔진이 저주탄을 그림).',
+                pose='① 팔을 늘어뜨리고 떠 있음(꼬리 끝이 바닥선) ② 팔을 위·뒤로 들고 로브가 뒤로 부풂 ③ 두 손을 앞으로 내밀며 울부짖음(시전) ④ 몸이 뒤로 꺾이며 팔이 위로'),
+    ),
+}
+
 HEIGHT_EN = (f'head = {HEAD_PX} px for every character. Standing height would be {int(HEADS) * HEAD_PX} px ({int(HEADS)} heads), but the guide '
              'idle pose is crouched, so the measured idle top-of-head to sole is about {idle_px} px. Headgear (hats, helmets, plumes) '
              'and weapons are extra and not counted')
@@ -367,6 +648,11 @@ STYLE_EN = [
     'dark, desaturated, NON-black outline used selectively (no thick uniform black lineart), soft rim light on one side',
     'readable at 1x game size (the idle figure becomes ~64 px tall on a dark battlefield): big clear shapes, strong silhouette, few tiny details',
 ]
+# the background key: sheets.py removes every colour near #FF00FF, so a figure colour there punches holes (Felix, 1st delivery)
+MAGENTA_EN = ('NO figure pixel may be magenta-like: every colour of the figure must stay clearly away from the background key #FF00FF, '
+              'RGB distance sqrt((255-R)^2 + G^2 + (255-B)^2) >= 150 (no hot pink, magenta or bright violet; purples stay dark blue-purple such as '
+              '#5a4a7a). If you reduce the palette, reduce the FIGURE colours only and never merge a figure colour into the background colour')
+MAGENTA_CHECK_EN = 'no figure pixel is #FF00FF or magenta-like (every figure colour at RGB distance >= 150 from #FF00FF)'
 SPEC_EN = [
     'ONE PNG, 1536x1024 (landscape), the SAME character drawn 4 times in ONE row (1x4, never a 2x2 grid or a single pose), left to right: idle, wind-up, strike, hit',
     'each figure exactly where guide_strip.png has it: same size, same scale, same position, same limb lengths',
@@ -374,6 +660,7 @@ SPEC_EN = [
     f'at least {GAP} px of empty magenta between any two figures and between a figure and the image border (a weapon may reach over a '
     'neighbour\'s column as in the guide, but never closer than that)',
     'background: perfectly flat solid magenta #FF00FF everywhere (preferred; a transparent PNG is also accepted) - no gradient, floor, cast shadow or scenery',
+    MAGENTA_EN,
     'NO text, labels, numbers, frames, grid lines, watermark; NO effects outside the body (no slash trails, sparks, dust, glow, motion lines, projectiles)',
 ]
 DONT_COPY_EN = ('from the concept draft take ONLY the design (costume pieces, colours, hair, face marks, headgear, weapon/shield type, '
@@ -386,8 +673,27 @@ CHECK_EN = [
     'same face, hair, outfit, colours and weapon in all four poses; exactly the weapons in CHARACTER (nothing extra)',
     'every FIX applied',
     f'no text, floor, shadow, effects or projectiles; >= {GAP} px of magenta between figures and from the border',
+    MAGENTA_CHECK_EN,
     'reads clearly when shrunk to 64 px tall on a dark background',
 ]
+KEYS_CHECK_EN = ('the uniform ({outfit}) uses ONLY the four outfit keys and the trim ({accent}) ONLY the three accent keys, exact hex, flat; '
+                 'the seven keys appear nowhere else and nothing else on the figure is blue, slate, teal or mint')
+
+
+def keys_en(tint, roles):
+    """the KEY COLOURS block of a class package (tint = phase3.json item.tint)."""
+    o, a = tint['outfit'], tint['accent']
+    return ('KEY COLOURS (the most important rule of this sheet): ONE sheet is shared by every faction and company, and the game recolours '
+            'the uniform at runtime by replacing these EXACT colours with the faction colours, keeping their light/dark steps.\n'
+            f'  - OUTFIT keys = {roles["outfit"]}, darkest to lightest: {o[0]} (deep shadow, folds), {o[1]} (shadow), {o[2]} (base), {o[3]} (lit side)\n'
+            f'  - ACCENT keys = {roles["accent"]}, darkest to lightest: {a[0]} (shadow), {a[1]} (base), {a[2]} (lit)\n'
+            '  - flat fills only on these areas: no dithering, gradient, noise, texture, soft blending or in-between shades; '
+            'their shading uses only these steps\n'
+            '  - these seven colours appear NOWHERE else (not on metal, skin, hair, leather, eyes, outline or background), and nothing else on '
+            'the figure is blue, slate, teal or mint: steel is NEUTRAL grey, leather and wood are warm browns, shadows on the other parts are '
+            'warm or neutral, never blue (this overrides the general "shadows toward purple/blue" style rule for this sheet)\n'
+            '  - outline the uniform with the normal dark outline (not a key colour); after export, check with a colour picker that the '
+            'uniform pixels are exactly these hex values')
 
 
 # ───────── rendering ─────────
@@ -544,7 +850,9 @@ def colours_line(C, it):
 
 def package_files(cid, C, has_portrait, mounted=False):
     """files of the package in the order an agent should look at them."""
-    fs = ['guide_strip.png', 'guide_1_idle.png', 'guide_2_windup.png', 'guide_3_strike.png', 'guide_4_hit.png', 'concept.png']
+    fs = ['guide_strip.png', 'guide_1_idle.png', 'guide_2_windup.png', 'guide_3_strike.png', 'guide_4_hit.png']
+    if 'concept.png' in C['concepts']:
+        fs.append('concept.png')
     if 'concept_pixel.png' in C['concepts']:
         fs.append('concept_pixel.png')
     if has_portrait:
@@ -554,9 +862,34 @@ def package_files(cid, C, has_portrait, mounted=False):
     return fs
 
 
+CONCEPT_PENDING_EN = ('concept.png - NOT IN THE FOLDER YET: it is added after the owner picks a NovelAI design draft. '
+                      'Do not start this sheet before concept.png is there')
+CONCEPT_PENDING_KO = ('**초안 대기**: 주인이 NovelAI 초안(`jobs_{jobs}.json`)을 고르면 `art/concepts/{cid}/`에 두고 `handoff.py`의 '
+                      '`{table}[\'{cid}\'][\'concepts\']`에 `{{\'concept.png\': \'{cid}/concept_NN.png\'}}`를 넣어 다시 실행한다. 그 전에는 그림 쪽에 보내지 않는다.')
+
+
+def brief_en(b):
+    return ('BRIEF: ' + b['silhouette'] + f'. Size: {b["size"]}. Attack: {b["attack"]}. Appears in: {b["where"]}.')
+
+
+def task_en(cid, C, it):
+    key = cid.split('_', 1)[1]
+    kind = C.get('kind', 'captain')
+    save = (f'Save it as art/inbox/{it["file"]} on the art-inbox branch (a new file there; do not rename). '
+            'In a chat without repository access, return the PNG in the chat instead.')
+    if kind == 'class':
+        return (f'TASK: draw the battle-sprite strip of the GENERIC {C["en"].lower()} class sprite ({it["name"].split(" — ")[-1]}). This ONE sheet is shared by every '
+                'nameless mercenary and faction soldier of this class, friend and foe, and the game recolours its uniform per faction '
+                '(see KEY COLOURS). ' + save)
+    if kind == 'monster':
+        return f'TASK: draw the battle-sprite strip of a {C["en"].lower()} ({C["enemy"]}), a common monster. ' + save
+    return f'TASK: draw the battle-sprite strip of {C["en"]} ({it["name"].split(" — ")[0]}, {key}), a mercenary captain. ' + save
+
+
 def readme(cid, C, it, info, has_portrait, mounted_item=None, minfo=None):
     key = cid.split('_', 1)[1]
     name = it['name']
+    kind = C.get('kind', 'captain')
     fr = C['frames']
     pkg = f'art/requests/phase3/{cid}'
     L = [f'# {name} — GPT handoff (`{cid}`)', '',
@@ -565,11 +898,15 @@ def readme(cid, C, it, info, has_portrait, mounted_item=None, minfo=None):
          f'> 모든 자료는 브랜치 `{BRANCH}`에서 읽고, 결과 PNG 는 `art-inbox` 브랜치에만 올린다.', '',
          '## Prompt for GPT (English)', '', '```']
     P = []
-    P.append(f'TASK: draw the battle-sprite strip of {C["en"]} ({name.split(" — ")[0]}, {key}), a mercenary captain. '
-             f'Save it as art/inbox/{it["file"]} on the art-inbox branch (a new file there; do not rename). '
-             'In a chat without repository access, return the PNG in the chat instead.')
+    P.append(task_en(cid, C, it))
+    if C.get('brief'):
+        P.append(brief_en(C['brief']))
     P.append(f'CHARACTER: {C["weapon_desc"]}; ' + '; '.join(C['keep']) + '.')
-    P.append(f'COLOURS (keep close, muted): {colours_line(C, it)}.')
+    if kind == 'class':
+        P.append(keys_en(it['tint'], C['roles']))
+        P.append(f'COLOURS of everything else (keep close, muted): {colours_line(C, it)}.')
+    else:
+        P.append(f'COLOURS (keep close, muted): {colours_line(C, it)}.')
     P.append('FIX (do not reproduce the draft here):\n' + '\n'.join(f'  - {f}' for f in C['fix']))
     P.append('POSES (the guide mannequin fixes pose, proportions, size and position; its colours, round head, plain clothes and '
              'fist-shaped hands are placeholders - follow the text for hands and weapon details):\n'
@@ -580,6 +917,8 @@ def readme(cid, C, it, info, has_portrait, mounted_item=None, minfo=None):
                       'concept_pixel.png': ' (how simple the shapes must stay)',
                       'portrait.png': ' (face and hair only)'}[f]
             for f in package_files(cid, C, has_portrait) if f not in ('guide_2_windup.png', 'guide_3_strike.png', 'guide_4_hit.png')]
+    if 'concept.png' not in C['concepts']:
+        refs.append(CONCEPT_PENDING_EN)
     if not C.get('anchor'):
         refs.insert(0, f'{ANCHOR_FILE} on the art-inbox branch (in a chat: the attached approved Baren sheet) = the APPROVED STYLE '
                        'ANCHOR. Match its proportions, rendering, outline, palette treatment, lighting and character scale exactly')
@@ -588,12 +927,26 @@ def readme(cid, C, it, info, has_portrait, mounted_item=None, minfo=None):
     P.append('DO NOT COPY: ' + DONT_COPY_EN + '.')
     P.append('STYLE (same for every character):\n' + '\n'.join(f'  - {s}' for s in STYLE_EN))
     P.append('DELIVERABLE:\n' + '\n'.join(f'  - {s.format(**info)}' for s in SPEC_EN))
-    P.append('SELF-CHECK before saving (redraw if any fails):\n' + '\n'.join(f'  [ ] {c.format(**info)}' for c in CHECK_EN))
+    checks = [c.format(**info) for c in CHECK_EN]
+    if kind == 'class':
+        checks.insert(4, KEYS_CHECK_EN.format(**C['roles']))
+    P.append('SELF-CHECK before saving (redraw if any fails):\n' + '\n'.join(f'  [ ] {c}' for c in checks))
     L += ['\n\n'.join(P), '```', '']
-    L += ['## 주인용 요약 (한국어)', '',
-          f'- 순서: **{C["order"]}번째**' + (' — **화풍 기준(앵커)**: 이 그림을 먼저 받아 승인한 뒤 나머지 8명을 맞춘다.' if C.get('anchor') else
-                                          f' — 승인된 바렌 그림(`art-inbox` 브랜치의 `{ANCHOR_FILE}`)의 화풍에 맞춘다.'),
-          f'- 결과 파일: `art/inbox/{it["file"]}` (id `{it["id"]}`)' + (f', 추가 선택: `art/inbox/{mounted_item["file"]}`' if mounted_item else ''),
+    style_ko = f' — 승인된 바렌 그림(`art-inbox` 브랜치의 `{ANCHOR_FILE}`)의 화풍에 맞춘다.'
+    order_ko = {'class': f'- 순서: 일반 병과 **{C["order"] - 10}번째** (메시지 D, 대장 9명 다음){style_ko}',
+                'monster': f'- 순서: 1차 몬스터 **{C["order"] - 20}번째** (메시지 E){style_ko}'}.get(
+        kind, f'- 순서: **{C["order"]}번째**' + (' — **화풍 기준(앵커)**: 이 그림을 먼저 받아 승인한 뒤 나머지 8명을 맞춘다.' if C.get('anchor') else style_ko))
+    L += ['## 주인용 요약 (한국어)', '', order_ko]
+    if 'concept.png' not in C['concepts']:
+        L.append('- ' + CONCEPT_PENDING_KO.format(cid=cid, jobs='classes' if kind == 'class' else 'monsters', table='CHARS'))
+    if kind == 'class':
+        t = it['tint']
+        L.append(f'- **열쇠 색** (전투에서 진영 색으로 바뀐다): 제복 {" ".join(f"`{c}`" for c in t["outfit"])}, '
+                 f'장식 {" ".join(f"`{c}`" for c in t["accent"])} — 이 7색은 그 자리에만, 평평하게. 다른 곳에는 파랑·청회색·청록을 쓰지 않는다.')
+    if C.get('brief'):
+        b = C['brief']
+        L.append(f'- 몬스터 설계: {C["enemy"]} — {b["size"]}; 공격 {b["attack"]}; 나오는 곳 {b["where"]}.')
+    L += [f'- 결과 파일: `art/inbox/{it["file"]}` (id `{it["id"]}`)' + (f', 추가 선택: `art/inbox/{mounted_item["file"]}`' if mounted_item else ''),
           f'- 무기: posekit `{C["weapon"]}` 마네킹 → {C["weapon_desc"]}',
           f'- 자세(가이드 프레임): ① 대기 `{fr["idle"]}` ② 공격 준비 `{fr["windup"]}` ③ 공격 타격 `{fr["strike"]}` ④ 피격 `{fr["hit"]}`'
           + ' (`key_*` = handoff.py 의 KEY_POSES: 준비는 체중 뒤로, 타격은 내딛는 런지, 피격은 상체가 뒤로 젖혀짐)',
@@ -609,7 +962,10 @@ def readme(cid, C, it, info, has_portrait, mounted_item=None, minfo=None):
     L.append('| `guide_strip.png` | 4개 가이드를 결과물과 똑같은 배치로 (1536x1024, #FF00FF) |')
     for _, fn, ko, _ in POSES:
         L.append(f'| `{fn}` | 자세 가이드 832x1216 — {ko} |')
-    L.append('| `concept.png` | 주인이 고른 NovelAI 디자인 초안 (디자인만 참고) |')
+    if 'concept.png' in C['concepts']:
+        L.append('| `concept.png` | 주인이 고른 NovelAI 디자인 초안 (디자인만 참고) |')
+    else:
+        L.append('| (`concept.png`) | **대기** — 주인이 NovelAI 초안을 고르면 들어간다 |')
     if 'concept_pixel.png' in C['concepts']:
         L.append('| `concept_pixel.png` | 도트로 줄여도 살아남는 단순한 형태의 기준 |')
     if has_portrait:
@@ -652,29 +1008,206 @@ def readme(cid, C, it, info, has_portrait, mounted_item=None, minfo=None):
     return '\n'.join(L)
 
 
+# ───────── creatures (non-humanoid monsters): size-box guides ─────────
+GUIDE_INK = (40, 36, 48)       # guide-only lines and labels
+GUIDE_BOX = (88, 80, 104)
+GUIDE_FILL = (150, 146, 160)
+QPOS_EN = {'idle': 'top-left', 'windup': 'top-right', 'strike': 'bottom-left', 'hit': 'bottom-right'}
+QPOS_KO = {'idle': '왼쪽 위', 'windup': '오른쪽 위', 'strike': '왼쪽 아래', 'hit': '오른쪽 아래'}
+
+
+def creature_slots(C):
+    """→ [(pose, baseline y, box (x0, y0, x1, y1), area (x0, y0, x1, y1))] in deliverable px."""
+    out = []
+    if C['layout'] == '2x2':
+        qw, qh = SW_ // 2, SH_ // 2
+        for i, (p, _, _, _) in enumerate(POSES):
+            qx, qy = (i % 2) * qw, (i // 2) * qh
+            w, h = C['boxes'][p]
+            base, cx = qy + QBASE, qx + qw // 2
+            assert w <= qw - 2 * MARGIN and h <= QBASE - MARGIN, (C['en'], p, w, h)
+            out.append((p, base, (cx - w // 2, base - h, cx - w // 2 + w, base), (qx, qy, qx + qw, qy + qh)))
+    else:
+        slot = (SW_ - 2 * MARGIN) / 4
+        for i, (p, _, _, _) in enumerate(POSES):
+            w, h = C['boxes'][p]
+            cx = int(round(MARGIN + slot * (i + 0.5)))
+            assert w <= slot - GAP and h <= BASELINE - MARGIN, (C['en'], p, w, h)
+            x0 = int(round(MARGIN + slot * i))
+            out.append((p, BASELINE, (cx - w // 2, BASELINE - h, cx - w // 2 + w, BASELINE), (x0, 0, int(round(x0 + slot)), SH_)))
+    return out
+
+
+def _dashed(dr, x0, x1, y, col, dash=12):
+    for x in range(x0, x1, 2 * dash):
+        dr.line([(x, y), (min(x + dash, x1), y)], fill=col, width=2)
+
+
+def layout_guide(C, slots):
+    """guide_layout.png: the deliverable layout (2x2 quadrants or the 1x4 row), each pose's baseline and size box.
+    Lines, boxes and labels are guide-only."""
+    from PIL import ImageDraw
+    img = Image.new('RGB', (SW_, SH_), MAGENTA)
+    dr = ImageDraw.Draw(img)
+    if C['layout'] == '2x2':
+        dr.rectangle([SW_ // 2 - 1, 0, SW_ // 2, SH_], fill=GUIDE_INK)
+        dr.rectangle([0, SH_ // 2 - 1, SW_, SH_ // 2], fill=GUIDE_INK)
+    for i, (p, base, (x0, y0, x1, y1), (ax0, ay0, ax1, ay1)) in enumerate(slots):
+        _dashed(dr, ax0 + 16, ax1 - 16, base, GUIDE_INK)
+        dr.rectangle([x0, y0, x1 - 1, y1 - 1], outline=GUIDE_BOX, width=3)
+        dr.text((x0 + 8, y0 + 8), f'{i + 1} {POSES[i][3]}', fill=GUIDE_INK)
+        dr.text((x0 + 8, y0 + 22), f'~{x1 - x0}x{y1 - y0} px', fill=GUIDE_INK)
+        dr.text((ax0 + 16, base + 8), f'baseline y={base}', fill=GUIDE_INK)
+    dr.text((12, 10), 'guide only: do NOT draw lines, boxes or text', fill=GUIDE_INK)
+    return img
+
+
+def scale_guide(C, human_parts):
+    """guide_scale.png: a grey 4-head human (the posekit idle mannequin at 110 px/head, as in every captain strip) next to
+    the creature's idle size box, both on y=BASELINE: the scale reference only."""
+    from PIL import ImageDraw
+    rgb, m, floor = render_tight(human_parts, HEAD_PX, 2.0)
+    canvas = np.empty((SH_, SW_, 3), np.uint8)
+    canvas[:] = MAGENTA
+    hx0, hy0 = 2 * MARGIN + 60, int(round(BASELINE - floor))
+    canvas[hy0:hy0 + m.shape[0], hx0:hx0 + m.shape[1]][m] = GUIDE_FILL
+    img = Image.fromarray(canvas, 'RGB')
+    dr = ImageDraw.Draw(img)
+    w, h = C['boxes']['idle']
+    bx0 = hx0 + m.shape[1] + 120
+    assert bx0 + w <= SW_ - MARGIN
+    dr.rectangle([bx0, BASELINE - h, bx0 + w - 1, BASELINE - 1], outline=GUIDE_BOX, width=3)
+    _dashed(dr, MARGIN, SW_ - MARGIN, BASELINE, GUIDE_INK)
+    dr.text((hx0, BASELINE + 12), f'human captain, idle (4 heads, head {HEAD_PX} px, ~{m.shape[0]} px tall)', fill=GUIDE_INK)
+    dr.text((bx0, BASELINE + 12), f'{C["en"].lower()}, idle: ~{w}x{h} px', fill=GUIDE_INK)
+    dr.text((12, 10), 'scale reference only (same pixel scale as the captains) - not a layout, do NOT draw the human', fill=GUIDE_INK)
+    return img, dict(human_px=int(m.shape[0]))
+
+
+def readme_creature(cid, C, it, slots, sinfo):
+    pkg = f'art/requests/phase3/{cid}'
+    two = C['layout'] == '2x2'
+    L = [f'# {it["name"]} — GPT handoff (`{cid}`)', '',
+         '> `python3 tools/art/handoff.py`로 자동 생성된다. 고칠 때는 `tools/art/handoff.py`의 `CREATURES`를 고치고 다시 실행.',
+         '> 공통 규칙: `art/requests/gpt_handoff_notes.md`. 전체 순서·붙여 넣을 메시지: `art/requests/phase3_gpt.md` (메시지 E).',
+         f'> 모든 자료는 브랜치 `{BRANCH}`에서 읽고, 결과 PNG 는 `art-inbox` 브랜치에만 올린다.', '',
+         '## Prompt for GPT (English)', '', '```']
+    P = [task_en(cid, dict(C, kind='monster'), it), brief_en(C['brief']),
+         'DESIGN: ' + '; '.join(C['design']) + '.',
+         'COLOURS (keep close, muted): ' + '; '.join(f'{k} {v}' for k, v in C['colours']) + '.',
+         'FIX:\n' + '\n'.join(f'  - {f}' for f in MONSTER_COMMON_FIX + C['fix'])]
+    pos = (lambda p: f' ({QPOS_EN[p]} quadrant)') if two else (lambda p: '')
+    P.append('POSES (no posekit mannequin for this creature: the text gives the pose, guide_layout.png the place and size):\n'
+             + '\n'.join(f'  {i + 1}. {en}{pos(p)}: {C["pose"][p]}' for i, (p, _, _, en) in enumerate(POSES)))
+    refs = [f'{ANCHOR_FILE} on the art-inbox branch (in a chat: the attached approved Baren sheet) = the APPROVED STYLE ANCHOR: match its '
+            'rendering, outline, palette treatment and lighting',
+            'guide_layout.png (layout, baseline and the SIZE BOX of each pose - the lines, boxes and labels are guide-only)',
+            'guide_scale.png (the same pixel scale as a 4-head human captain; the grey human is NOT drawn)']
+    refs.append('concept.png (DESIGN ONLY)' if 'concept.png' in C.get('concepts', {}) else CONCEPT_PENDING_EN)
+    P.append(f'REFERENCES (folder {pkg}/ on branch {BRANCH}: {REPO}/tree/{BRANCH}/{pkg} ; in a chat they are the attached images):\n'
+             + '\n'.join(f'  - {r}' for r in refs))
+    P.append('DO NOT COPY: ' + DONT_COPY_EN + '.')
+    style = [STYLE_EN[0],
+             f'natural creature proportions at the SAME pixel scale as the {int(HEADS)}-head humans (head {HEAD_PX} px; see guide_scale.png); NOT chibi',
+             'three-quarter view facing RIGHT (four-legged and eight-legged creatures mostly from the side with the head turned slightly toward '
+             'the viewer); light from the upper left',
+             *STYLE_EN[3:5],
+             'readable at 1x game size (the drawing is shrunk to about 16.5%: a 300 px pose becomes ~50 px) on a dark battlefield: big clear '
+             'shapes, strong silhouette, few tiny details']
+    P.append('STYLE (same as every character):\n' + '\n'.join(f'  - {x}' for x in style))
+    if two:
+        spec = ['ONE PNG, 1536x1024 (landscape), a 2x2 grid of four equal 768x512 quadrants, one pose per quadrant: top-left idle, '
+                'top-right wind-up, bottom-left strike, bottom-right hit (as guide_layout.png); never a 1x4 row or a single pose',
+                f'the lowest pixel of each pose (feet, paws, talons or tail tip) on y = {QBASE} of its quadrant (y = {QBASE} in the top row, '
+                f'y = {SH_ // 2 + QBASE} in the bottom row); each pose about the size of its box, all four at the same scale',
+                f'at least {GAP} px of empty magenta between the creature and its quadrant\'s edges; nothing crosses into another quadrant']
+    else:
+        spec = ['ONE PNG, 1536x1024 (landscape), the same creature 4 times in ONE row, left to right: idle, wind-up, strike, hit, each centred '
+                'on its slot of guide_layout.png; never a 2x2 grid or a single pose',
+                f'the lowest pixel of every pose on y = {BASELINE}; each pose about the size of its box, all four at the same scale',
+                f'at least {GAP} px of empty magenta between poses and from the border']
+    spec += ['background: perfectly flat solid magenta #FF00FF everywhere (preferred; a transparent PNG is also accepted) - no gradient, floor, '
+             'cast shadow or scenery', MAGENTA_EN,
+             'NO text, labels, numbers, guide lines or boxes, watermark; NO effects outside the body (no trails, sparks, dust, glow, motion lines, projectiles)']
+    P.append('DELIVERABLE:\n' + '\n'.join(f'  - {x}' for x in spec))
+    hb = C['boxes']['idle']
+    checks = [f'1536x1024, flat #FF00FF (or transparent), {"2x2 quadrants" if two else "ONE row"}: idle / wind-up / strike / hit as in guide_layout.png',
+              'the lowest pixel of every pose on its baseline; each pose about its box size; the same scale as guide_scale.png',
+              'the same creature, colours and proportions in all four poses; every FIX applied',
+              'no text, guide lines, boxes, floor, shadow, effects or projectiles', MAGENTA_CHECK_EN,
+              f'reads clearly when shrunk to game size (idle ~{round(hb[1] * 0.1654)} px tall) on a dark background']
+    P.append('SELF-CHECK before saving (redraw if any fails):\n' + '\n'.join(f'  [ ] {c}' for c in checks))
+    L += ['\n\n'.join(P), '```', '']
+    b = C['brief']
+    L += ['## 주인용 요약 (한국어)', '',
+          f'- 순서: 1차 몬스터 **{C["order"] - 20}번째** (메시지 E) — 승인된 바렌 그림(`art-inbox` 브랜치의 `{ANCHOR_FILE}`)의 화풍에 맞춘다.',
+          '- ' + CONCEPT_PENDING_KO.format(cid=cid, jobs='monsters', table='CREATURES') if 'concept.png' not in C.get('concepts', {}) else '- 초안: `concept.png` (디자인만)',
+          f'- 설계: {C["ko"]["brief"]}',
+          f'- 자세: {C["ko"]["pose"]}',
+          '- 배치: ' + ('1536x1024 **2x2 격자** (768x512 네 칸: ' + ', '.join(f'{QPOS_KO[p]} {ko}' for p, _, ko, _ in POSES)
+                       + f'), 칸마다 맨 아래 픽셀 y={QBASE}' if two else f'1536x1024 **한 줄 4자세**, 맨 아래 픽셀 y={BASELINE}')
+          + '. posekit 마네킹 없음(사람 골격이 아니다) — 자세는 글로, 자리·크기는 `guide_layout.png`의 상자로.',
+          '- 크기: 대장과 같은 배율(머리 110px). 자세별 상자 ' + ', '.join(f'{ko} {C["boxes"][p][0]}x{C["boxes"][p][1]}' for p, _, ko, _ in POSES)
+          + f' px. `guide_scale.png` = 같은 배율의 4등신 사람(대기 약 {sinfo["human_px"]} px) 옆에 대기 상자. 게임에서는 약 16.5% (대기 약 {round(hb[1] * 0.1654)} px 높이).',
+          f'- 공격: {b["attack"]}',
+          f'- 결과 파일: `art/inbox/{it["file"]}` (id `{it["id"]}`; 이름은 게임의 몬스터 이름 그대로)',
+          '', '### 파일 (ChatGPT 웹이면 이 순서로 첨부)', '',
+          '| 파일 | 내용 |', '|---|---|',
+          f'| (`art-inbox`의 `{ANCHOR_FILE}`) | 승인된 바렌 시트 — 화풍 기준, 꼭 같이 첨부 |',
+          '| `guide_layout.png` | 결과물 배치: ' + ('2x2 칸' if two else '한 줄 네 자리') + ', 바닥선, 자세별 크기 상자 (선·상자·글씨는 가이드에만) |',
+          '| `guide_scale.png` | 같은 배율의 사람(회색, 그리지 않음)과 대기 상자 — 크기 비교 |',
+          ('| `concept.png` | 주인이 고른 NovelAI 디자인 초안 (디자인만 참고) |' if 'concept.png' in C.get('concepts', {}) else
+           '| (`concept.png`) | **대기** — 주인이 NovelAI 초안을 고르면 들어간다 |'),
+          '', '### 받은 뒤 (Claude Code)', '', '```',
+          f'python3 tools/art/sheets.py art/inbox/{it["file"]} --dry-run --work /tmp/sheets   # 미리보기 (요청서의 scale·cell·layout 을 쓴다)',
+          f'python3 tools/art/sheets.py art/inbox/{it["file"]}                                 # 등록',
+          '```', '']
+    return '\n'.join(L)
+
+
 # ───────── main ─────────
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split('\n')[0])
-    ap.add_argument('ids', nargs='*', help='package ids (default: all of CHARS)')
+    ap.add_argument('ids', nargs='*', help='package ids (default: all of CHARS and CREATURES)')
     ap.add_argument('--out', default=OUT)
     ap.add_argument('--check', action='store_true', help='print the strip layout of every package')
     a = ap.parse_args()
     with open(REQ, encoding='utf-8') as f:
         items = {it['file']: it for it in json.load(f)['items']}
-    ids = a.ids or sorted(CHARS, key=lambda k: CHARS[k]['order'])
+    every = {**CHARS, **CREATURES}
+    ids = a.ids or sorted(every, key=lambda k: every[k]['order'])
     cache = {}
     for cid in ids:
-        if cid not in CHARS:
-            sys.exit(f'unknown id {cid} (have {", ".join(CHARS)})')
-        C = CHARS[cid]
+        if cid not in every:
+            sys.exit(f'unknown id {cid} (have {", ".join(every)})')
+        C = every[cid]
         it = items.get(f'sheet_{cid}.png')
         if not it:
             sys.exit(f'sheet_{cid}.png is not in {os.path.relpath(REQ, ROOT)} — run node tools/art/requests.js')
+        if C.get('enemy') and it['id'] != f'sheet/monster/{C["enemy"]}':
+            sys.exit(f'{cid}: phase3.json id {it["id"]} != sheet/monster/{C["enemy"]}')
+        if C.get('kind') == 'class' and not it.get('tint'):
+            sys.exit(f'{cid}: phase3.json item has no tint (key colours) — run node tools/art/requests.js')
         d = os.path.join(a.out, cid)
         os.makedirs(d, exist_ok=True)
-        for dst, src in C['concepts'].items():
+        for dst, src in C.get('concepts', {}).items():
             shutil.copyfile(os.path.join(CONCEPTS, src), os.path.join(d, dst))
+        if cid in CREATURES:
+            if 'sword_shield' not in cache:
+                cache['sword_shield'] = builds_for('sword_shield')
+            slots = creature_slots(C)
+            save_png(layout_guide(C, slots), os.path.join(d, 'guide_layout.png'))
+            simg, sinfo = scale_guide(C, cache['sword_shield'][2]['idle_0'][1])
+            save_png(simg, os.path.join(d, 'guide_scale.png'))
+            with open(os.path.join(d, 'README.md'), 'w', encoding='utf-8') as f:
+                f.write(readme_creature(cid, C, it, slots, sinfo))
+            size = sum(os.path.getsize(os.path.join(d, x)) for x in os.listdir(d))
+            print(f'{cid}: creature {C["layout"]}  boxes ' + ' '.join(f'{p}{C["boxes"][p][0]}x{C["boxes"][p][1]}' for p, _, _, _ in POSES)
+                  + f', human idle {sinfo["human_px"]} px, {size // 1024} KB')
+            if a.check:
+                print('   slots', [(p, base, box) for p, base, box, _ in slots])
+            continue
         portrait = os.path.join(ROOT, 'art', 'inbox', f'{cid}.png')
         if os.path.exists(portrait):
             shutil.copyfile(portrait, os.path.join(d, 'portrait.png'))

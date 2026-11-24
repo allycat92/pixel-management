@@ -307,20 +307,47 @@ D.STARTER_CAPTAINS.forEach((key, i) => {
     nai: { prompt: m.prompt, negative: m.negative, seed: m.seed, size: m.size, source: `art/concepts/selections.json (#${m.n})` },
   }));
 }
-// 2) 일반 병과 5종 (이름 없는 용병 전부가 쓰는 기본 그림 — 얼굴·머리색이 덜 드러나게)
-const CLASS_FIGURE = {
-  warrior: 'generic young mercenary soldier, open-face helmet hiding most of the hair, padded armor with a breastplate, round wooden shield on the back, one-handed sword',
-  archer: 'generic young mercenary archer, cloth headband, light leather armor, quiver on the back, short bow',
-  mage: 'generic young battle mage, wide-brimmed pointed hat hiding the hair, long robe with a belt and pouches, wooden staff with a crystal',
-  cleric: 'generic young war priest, short hair, simple white tabard with a gold sun emblem over chainmail, holy mace and a small book on the belt',
-  rogue: 'generic young rogue, deep hood shading the face, dark leather armor with many straps, scarf over the mouth, two daggers',
+// 2) 일반 병과 5종 — 이름 없는 용병·세력 병사 전부가 쓰는 기본 그림 (상급·최상급 직업도 이 시트로 대신한다).
+//    아군·적군·세력마다 같은 시트를 쓰고 전투에서 제복·장식만 진영 색으로 바꿔 칠한다 (js/battle.js sheetRecolor):
+//    열쇠 색과 정확히 같은 픽셀만, 대상 색 x (열쇠 밝기 / 같은 역할 열쇠 평균 밝기)로. 그래서 제복은 아래 열쇠 색으로만,
+//    평평하게(디더링·그라데이션 없이) 칠하고, 열쇠 색은 다른 곳에 쓰지 않는다. sheets.py 가 가까운 색(거리 34 안)을
+//    열쇠 색으로 되돌리고 register_sheet.py --tint-* 로 manifest 에 적는다. 꾸러미: art/requests/phase3/class_<key>/ (handoff.py).
+// 열쇠 색 (art/requests/phase3_gpt.md 메시지 D 와 같아야 한다):
+//   제복 = 차분한 청회색 4단(어둠 → 밝음), 장식 = 옅은 청록 3단. 서로 43 이상, 금속(중성 회색)·가죽·피부와는 더 멀다.
+const CLASS_KEYS = {
+  outfit: ['#263459', '#394b78', '#52679c', '#7489be'],
+  accent: ['#3f7a6c', '#5ea590', '#96d1bb'],
 };
-Object.entries(D.CLASSES).forEach(([key, K]) => {
+const GPT_SCALE = 0.1654;   // 앵커 바렌과 같은 배율 (가이드 격자 머리 110px → 게임 약 18px)
+const CLASS_PKG = (key) => `art/requests/phase3/class_${key}`;
+// NovelAI 디자인 초안 (주인이 고를 후보; 실행은 주인이 원할 때만). 제복은 말로만 "무늬 없는 청회색 + 옅은 청록 테두리".
+const NAI_STYLE = 'three-quarter view, facing right, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow';
+const NAI_NEG_BASE = 'lowres, bad anatomy, bad hands, text, watermark, signature, multiple views, cropped, blurry, background scenery, ground shadow, extra arms';
+const NAI_ONE_HEAD = ', two heads, multiple heads, conjoined, extra head';
+const CLASS_DRAFT = {
+  warrior: { seed: 21001, tags: '1boy, solo, full body, four heads tall, young mercenary soldier, generic face, short brown hair, open-faced steel helmet, chainmail, plain slate blue tabard, pale teal trim, leather belt, brown gloves, dark trousers, brown boots, holding sword, round wooden shield, wide stance, bent knees, fighting stance' },
+  archer: { seed: 22001, tags: '1girl, solo, full body, four heads tall, young mercenary archer, generic face, short dark brown hair, pale teal headband, plain slate blue hooded tunic, brown leather vest, leather bracers, quiver on back, dark trousers, brown boots, holding bow, short bow, wide stance, bent knees, ready stance' },
+  cleric: { seed: 23001, tags: '1girl, solo, full body, four heads tall, young war priest, generic face, short brown hair, plain slate blue tabard over chainmail, pale teal trim, round sun disc emblem, leather belt, small book on belt, dark trousers, brown boots, holding mace, open hand raised, wide stance, bent knees' },
+  mage: { seed: 24001, tags: '1boy, solo, full body, four heads tall, young battle mage, generic face, short brown hair, wide-brimmed pointed hat, plain slate blue robe, pale teal trim, pale teal sash, belt pouches, brown boots, holding wooden staff, small amber crystal, open hand raised, wide stance, bent knees' },
+  rogue: { seed: 25001, tags: '1boy, solo, full body, four heads tall, young rogue, generic face, deep hood, plain slate blue hood and short cape, pale teal scarf over mouth, dark brown leather armor, many straps, dark trousers, black boots, holding dagger, reverse grip, single dagger, crouching, wide stance, bent knees' },
+};
+Object.entries(D.CLASSES).forEach(([key, K], i) => {
+  const dr = CLASS_DRAFT[key];
+  if (!dr) throw new Error(`no CLASS_DRAFT for class ${key}`);
   phase3.push(sheetItem({
-    id: `sheet/class/${key}`, file: `sheet_class_${key}.png`, priority: 2, group: '일반 병과', heads: 4, after: 'the 9 starter captains (priority 1)', style_anchor: ANCHOR_REF,
-    name: `일반 병과 — ${K.name}`,
-    prompt: `Battle sprite of a ${CLASS_FIGURE[key]}. Main outfit color ${K.outfit}, accent ${K.accent}. ${ANCHOR_NOTE} ${SHEET_TAIL}`,
-    nai: nai(`1boy, solo, ${CLASS_FIGURE[key].replace('generic ', '')}, ${colorName(K.outfit)} outfit, ${colorName(K.accent)} trim, ${WEAPON_TAG[K.weapon]}`),
+    id: `sheet/class/${key}`, file: `sheet_class_${key}.png`, priority: 2, group: '일반 병과', order: i + 1, heads: 4,
+    after: 'the 9 starter captains (priority 1)', style_anchor: ANCHOR_REF,
+    name: `일반 병과 — ${K.name}`, cell: 96, scale: GPT_SCALE, tint: CLASS_KEYS,
+    package: CLASS_PKG(key), readme: `${CLASS_PKG(key)}/README.md`, concept: `${CLASS_PKG(key)}/concept.png (pending: the owner picks a NovelAI draft first)`,
+    guides: GUIDES.map((g) => `${CLASS_PKG(key)}/${g}`), guide_strip: `${CLASS_PKG(key)}/guide_strip.png`,
+    game_colors: { outfit: K.outfit, accent: K.accent, note: 'not painted: the engine recolours the key colours to these (own guild) or to the faction / company colours' },
+    prompt: `Battle sprite of a generic ${K.name} (${key}) used by every nameless mercenary and faction soldier of this class. `
+      + `Design, weapon, per-pose notes and the KEY COLOURS: ${CLASS_PKG(key)}/README.md. `
+      + `The uniform (tabard / robe / hood / cape) is painted ONLY with the outfit keys ${CLASS_KEYS.outfit.join(' ')} and its trim ONLY with the accent keys ${CLASS_KEYS.accent.join(' ')}, flat, `
+      + 'and those seven colours appear nowhere else (the game recolours them to each faction\'s colours). '
+      + `Match the approved style anchor ${ANCHOR_REF} (proportions, rendering, outline, palette, lighting, scale). ` + GUIDED_TAIL,
+    nai: { prompt: `${dr.tags}, ${NAI_STYLE}`, negative: NAI_NEG_BASE + NAI_ONE_HEAD, seed: dr.seed, size: [832, 1216],
+      source: 'draft job (not run yet): scratchpad nai/picks/jobs_classes.json; seed = first sample, samples use seed + i*37' },
   }));
 });
 // 3) 특별 용병 7명
@@ -358,11 +385,52 @@ const MONSTERS = [
   ['와이번', 'wyvern', 'red wyvern dragon, two legs, wings half spread, long tail', 84, 112],
   ['리치의 망령', 'lich-wraith', 'large purple lich ghost in a crown and robes, green soul fire in its hands', 88, 112],
 ];
+// 4-1) 1차 몬스터 8종: 전투에 가장 자주 나오는 보통 몬스터 (보스·재앙 수장 제외). 근거: tools/sim/bot.js 12판 x 365일의
+//      의뢰 보고서 8315건을 Battle.plan 으로 펼쳐 센 몬스터 수 (art/requests/phase3_gpt.md 메시지 E). 상위 7종 + 늪지를 덮는 망령
+//      (8위 고블린 3746 < 해골 병사 … 거대 거미 5343, 망령은 전체 2646이지만 첫 90일에는 699 > 고블린 504). 고블린은 다음 묶음 맨 앞.
+//      사람형(해골 병사·사막 도적·산적)은 대장과 같은 posekit 가이드 띠, 나머지는 크기 상자 가이드(handoff.py). 모두 대장과 같은 배율.
+//      [이름, 순서, 배치, 칸, NovelAI 초안 시드, 초안 크기, 초안 태그(사람형이면 four heads tall), 머리 둘 금지(한 머리 생물), 덧붙일 부정어]
+const MONSTER_BATCH1 = [
+  ['해골 병사', 1, '1x4', 96, 31001, [832, 1216], 'no humans, solo, full body, four heads tall, skeleton soldier, undead, chunky bones, cracked skull, red glowing eye sockets, rusty open-faced helmet, tattered dark cloth scraps, notched sword, round wooden shield, iron rim, wide stance, bent knees, fighting stance'],
+  ['들늑대', 2, '2x2', 112, 32001, [1216, 832], 'no humans, solo, full body, animal focus, wolf, grey wolf, wild wolf, shaggy grey fur, amber eyes, snarling, bared fangs, four legs, tail, standing, head lowered', ', extra legs'],
+  ['사막 도적', 3, '1x4', 96, 33001, [832, 1216], '1boy, solo, full body, four heads tall, desert bandit, raider, tan skin, sand-colored head wrap, face veil, only eyes visible, loose sand-colored robes, brown leather vest, sash, baggy trousers, leather boots, holding scimitar, curved sword, one-handed, wide stance, bent knees, fighting stance'],
+  ['하피', 4, '2x2', 112, 34001, [1216, 832], '1girl, solo, full body, four heads tall, monster girl, harpy, winged arms, purple feathered wings, bird legs, talons, feathered tail, wild auburn hair, red eyes, hovering, wings spread'],
+  ['산적', 5, '1x4', 96, 35001, [832, 1216], '1boy, solo, full body, four heads tall, bandit, stubble, sneer, red bandana, patched leather jerkin, rope belt, dark trousers, worn boots, holding axe, hand axe, small round wooden buckler, wide stance, bent knees, fighting stance'],
+  ['가고일', 6, '2x2', 112, 36001, [1216, 832], 'no humans, solo, full body, monster, gargoyle, grey stone skin, cracked stone, bat wings, curved horns, red eyes, claws, tail, crouching, hunched, wings half spread'],
+  ['거대 거미', 7, '2x2', 112, 37001, [1216, 832], 'no humans, solo, full body, monster, giant spider, eight legs, dark purple carapace, hairy legs, red eyes, fangs, crouching, front legs raised'],
+  ['망령', 8, '1x4', 96, 38001, [832, 1216], 'no humans, solo, full body, monster, wraith, ghost, floating, pale blue tattered robes, hood, skeletal hands, claws, glowing cyan eyes, no legs, wispy tail'],
+];
+const MON_HUMANOID = new Set(['해골 병사', '사막 도적', '산적']);   // 사람 골격: 대장과 같은 posekit 가이드 띠
+const MON_KEY = Object.fromEntries(MONSTERS.map(([enemy, key]) => [enemy, key]));
+const MON_PKG = (key) => `art/requests/phase3/monster_${key}`;
+MONSTER_BATCH1.forEach(([enemy, order, layout, cell, seed, size, tags, negExtra]) => {
+  const key = MON_KEY[enemy];
+  const E = D.ENEMIES[enemy];
+  if (!key || !E || E.boss) throw new Error(`MONSTER_BATCH1: ${enemy} is not a non-boss enemy in MONSTERS`);
+  const human = MON_HUMANOID.has(enemy);
+  phase3.push(sheetItem({
+    id: `sheet/monster/${enemy}`, file: `sheet_monster_${key}.png`, priority: 4, group: '지역 몬스터 1차', order, after: 'the 9 starter captains (priority 1)', style_anchor: ANCHOR_REF,
+    name: `몬스터 — ${enemy}`, layout, cell, scale: GPT_SCALE, humanoid: human,
+    package: MON_PKG(key), readme: `${MON_PKG(key)}/README.md`, concept: `${MON_PKG(key)}/concept.png (pending: the owner picks a NovelAI draft first)`,
+    ...(human ? { guides: GUIDES.map((g) => `${MON_PKG(key)}/${g}`), guide_strip: `${MON_PKG(key)}/guide_strip.png` }
+      : { guide_layout: `${MON_PKG(key)}/guide_layout.png`, guide_scale: `${MON_PKG(key)}/guide_scale.png` }),
+    colors: E.pal,
+    prompt: `Battle sprite of a monster (${enemy}). Design brief, size relative to the 4-head humans, the four poses and the layout: ${MON_PKG(key)}/README.md. `
+      + `${layout === '2x2' ? 'FORMAT: one PNG 1536x1024 as a 2x2 grid of equal 768x512 quadrants (top: idle, wind-up; bottom: strike, hit), lowest pixel of each pose on y=461 of its quadrant, per guide_layout.png. ' : ''}`
+      + `Same pixel scale as the humans (head 110 px), so it can stand next to them. Match the approved style anchor ${ANCHOR_REF}. `
+      + (layout === '2x2' ? 'Front three-quarter view facing RIGHT, flat #FF00FF background, no lines, labels, floor, shadow, text or effects.' : GUIDED_TAIL),
+    nai: { prompt: `${tags}, ${NAI_STYLE}`, negative: NAI_NEG_BASE + NAI_ONE_HEAD + (negExtra || ''), seed, size,
+      source: 'draft job (not run yet): scratchpad nai/picks/jobs_monsters.json; seed = first sample, samples use seed + i*37' },
+  }));
+});
+// 4-2) 나머지 보통 몬스터 (다음 묶음; 보스·재앙 수장은 그 뒤)
+const BATCH1 = new Set(MONSTER_BATCH1.map((m) => m[0]));
 MONSTERS.forEach(([enemy, key, look, height, cell]) => {
   if (!D.ENEMIES[enemy]) throw new Error(`unknown enemy ${enemy}`);
+  if (BATCH1.has(enemy)) return;
   const pal = D.ENEMIES[enemy].pal;
   phase3.push(sheetItem({
-    id: `sheet/monster/${enemy}`, file: `sheet_monster_${key}.png`, priority: 4, group: '지역 몬스터', after: 'the 9 starter captains (priority 1)', style_anchor: ANCHOR_REF,
+    id: `sheet/monster/${enemy}`, file: `sheet_monster_${key}.png`, priority: 4, group: '지역 몬스터 (다음 묶음)', after: 'the 9 starter captains (priority 1)', style_anchor: ANCHOR_REF,
     name: `몬스터 — ${enemy}`, height, ...(cell ? { cell } : {}),
     prompt: `Battle sprite of a monster: ${look}. Main color ${pal.M}, dark ${pal.D}${pal.A ? `, accent ${pal.A}` : ''}, eyes ${pal.E}.${cell ? ' A large monster: draw it bigger and heavier than a human (it is shown about 1.5x human height).' : ''} ${ANCHOR_NOTE} ${SHEET_TAIL}`,
     nai: nai(`no humans, solo, monster, ${look}`, NAI_MONSTER_TAIL),
@@ -402,7 +470,13 @@ const md3 = [
   '',
   '1. **바렌(`captain_blademaster`)을 먼저** 그리고 멈춘다 → 주인이 승인하면 그 그림이 **화풍 기준(앵커)** 이 된다.',
   '2. 나머지 창설 후보 8명을 앵커에 맞춰 그린다 (아래 순서). 로드릭 기마(추가 선택, 게임 미사용)는 맨 마지막.',
-  '3. 그 다음 묶음(일반 병과·특별 용병·몬스터·나머지 대장)은 **9명이 끝난 뒤**. 아직 디자인 초안이 없어서 초상화(ref)와 아래 프롬프트를 쓴다.',
+  '3. 그 다음: **일반 병과 5종**(메시지 D)과 **1차 몬스터 8종**(메시지 E). 꾸러미는 만들어 두었고(`class_<key>/`, `monster_<key>/`),',
+  '   주인이 NovelAI 초안을 고르면 `concept.png`가 들어간다. 그 전에는 보내지 않는다.',
+  '4. 그 뒤 묶음(특별 용병·나머지 몬스터·보스·나머지 대장·상급/최상급 직업)은 아직 디자인 초안이 없어 초상화(ref)와 아래 프롬프트만 있다.',
+  '',
+  `- **일반 병과 열쇠 색**: 제복 ${CLASS_KEYS.outfit.map((c) => `\`${c}\``).join(' ')} / 장식 ${CLASS_KEYS.accent.map((c) => `\`${c}\``).join(' ')} —`,
+  '  이 7색은 제복·장식에만 평평하게 쓰고 다른 곳에는 쓰지 않는다. 전투에서 진영 색으로 바꿔 칠한다 (`sheets.py`가 가까운 색을 되돌려 `--tint-*`로 등록).',
+  '- 일반 병과·1차 몬스터는 요청서에 `scale`(0.1654, 대장과 같은 배율)·`cell`·`layout`이 있어 `sheets.py`가 그대로 쓴다.',
   '',
   '- **모두 4등신** (머리 = 선 키의 1/4). 예전의 "3등신 치비" 규칙은 폐기.',
   '- 창설 후보 9명은 캐릭터마다 꾸러미 `art/requests/phase3/captain_<key>/` (concept.png · portrait.png · guide_1..4 · guide_strip.png · README.md)를 쓴다.',
@@ -426,9 +500,12 @@ phase3.forEach((it) => {
   if (sec !== cur3) { md3.push(sec, ''); cur3 = sec; }
   md3.push(`### ${it.order ? `${it.order}. ` : ''}${it.name}`,
     `- 파일: \`${it.file}\` · id: \`${it.id}\` · 생성: ${it.size} ${it.layout || '1x4'} ${it.layout === '2x2' ? '격자' : '띠'} · 게임: ${it.out}${it.ref ? ` · 참고: \`${it.ref}\`` : ''}`,
-    ...(it.package ? [`- 꾸러미: \`${it.package}/\` (README · concept · guide_strip)${it.style_anchor ? ` · 화풍 기준: \`${it.style_anchor}\`` : ' · **화풍 기준(앵커): 먼저 그리고 승인 대기**'}`] : []),
+    ...(it.package ? [`- 꾸러미: \`${it.package}/\` (README · concept · ${it.guide_layout ? 'guide_layout · guide_scale' : 'guide_strip'})${it.style_anchor ? ` · 화풍 기준: \`${it.style_anchor}\`` : ' · **화풍 기준(앵커): 먼저 그리고 승인 대기**'}`] : []),
+    ...(it.tint ? [`- 열쇠 색: 제복 ${it.tint.outfit.join(' ')} · 장식 ${it.tint.accent.join(' ')} (전투에서 진영 색으로 바꿔 칠함)`] : []),
+    ...(it.scale ? [`- 후처리: \`python3 tools/art/sheets.py art/inbox/${it.file}\` (요청서의 scale ${it.scale} · cell ${it.cell}${it.layout === '2x2' ? ' · 2x2' : ''}를 그대로 쓴다)`] : []),
     '', '```', it.prompt, '```', '',
-    '<details><summary>NovelAI (한 자세)</summary>', '', '```', it.nai.prompt, '', `Negative: ${it.nai.negative}`, '```', '', '</details>', '');
+    '<details><summary>NovelAI (한 자세)</summary>', '', '```', it.nai.prompt, '', `Negative: ${it.nai.negative}`,
+    ...(it.nai.seed ? ['', `Seed: ${it.nai.seed}${it.nai.size ? ` · size ${it.nai.size.join('x')}` : ''}`] : []), '```', '', '</details>', '');
 });
 fs.writeFileSync(path.join(ROOT, 'art/requests/phase3.md'), md3.join('\n'));
 console.log(`phase3 requests: ${phase3.length} items`);
