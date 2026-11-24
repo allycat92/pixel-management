@@ -16,3 +16,5 @@ so each image can be regenerated.
 - `captain_lancer` (로드릭): two variants — mounted #5 (`concept_a_05.png`) and on-foot noble knight #12 (`concept_b_12.png`).
   At 3x zoom the horse's head in #5 looks like two armoured chanfrons side by side (two eye slits, two muzzles) —
   owner to re-check; the mounted prompt says the draft's head looks doubled and to draw exactly one.
+- Generic classes (faces covered so the same sprite can be many different people; uniform = key-colour slot):
+  `class_warrior` #5, `class_archer` #10, `class_mage` #9, `class_cleric` #4, `class_rogue` #2.

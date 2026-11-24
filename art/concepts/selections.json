@@ -207,5 +207,110 @@
   "scale": 5.5,
   "sampler": "k_euler_ancestral",
   "note": "Owner picked both a mounted and an on-foot design; mounted variant has many duplicated-horse-head samples, #5 is clean. Story is \"knight who lost his horse\" - mounted version needs a story tweak (regains/earns a warhorse) and a wider battle cell."
+ },
+ "class_warrior": {
+  "job": "c1_warrior",
+  "picks": [
+   {
+    "n": 5,
+    "file": "concept_05.png",
+    "role": "design reference (generic class, face covered)",
+    "seed": 21149
+   }
+  ],
+  "model": "nai-diffusion-4-5-full",
+  "size": [
+   832,
+   1216
+  ],
+  "steps": 28,
+  "scale": 5.5,
+  "sampler": "k_euler_ancestral",
+  "prompt": "1boy, solo, full body, four heads tall, young mercenary soldier, face hidden, closed great helm, visor down, eye slit, chainmail, plain slate blue tabard, pale teal trim, leather belt, brown gloves, dark trousers, brown boots, holding sword, round wooden shield, wide stance, bent knees, fighting stance, three-quarter view, facing right, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+  "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, multiple views, cropped, blurry, background scenery, ground shadow, extra arms, two heads, multiple heads, conjoined, extra head, visible face details, detailed face, smile"
+ },
+ "class_archer": {
+  "job": "c2_archer",
+  "picks": [
+   {
+    "n": 10,
+    "file": "concept_10.png",
+    "role": "design reference (generic class, face covered)",
+    "seed": 22334
+   }
+  ],
+  "model": "nai-diffusion-4-5-full",
+  "size": [
+   832,
+   1216
+  ],
+  "steps": 28,
+  "scale": 5.5,
+  "sampler": "k_euler_ancestral",
+  "prompt": "1girl, solo, full body, four heads tall, young mercenary archer, face hidden, hood up, slate blue cloth mask covering lower face, shadowed eyes, plain slate blue hooded tunic, brown leather vest, leather bracers, quiver on back, dark trousers, brown boots, holding bow, short bow, wide stance, bent knees, ready stance, three-quarter view, facing right, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+  "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, multiple views, cropped, blurry, background scenery, ground shadow, extra arms, two heads, multiple heads, conjoined, extra head, visible face details, detailed face, smile"
+ },
+ "class_mage": {
+  "job": "c3_mage",
+  "picks": [
+   {
+    "n": 9,
+    "file": "concept_09.png",
+    "role": "design reference (generic class, face covered)",
+    "seed": 24297
+   }
+  ],
+  "model": "nai-diffusion-4-5-full",
+  "size": [
+   832,
+   1216
+  ],
+  "steps": 28,
+  "scale": 5.5,
+  "sampler": "k_euler_ancestral",
+  "prompt": "1boy, solo, full body, four heads tall, young battle mage, face hidden in shadow, wide-brimmed pointed hat pulled low, high collar covering mouth, plain slate blue robe, pale teal trim, pale teal sash, belt pouches, brown boots, holding wooden staff, small amber crystal, open hand raised, wide stance, bent knees, three-quarter view, facing right, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+  "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, multiple views, cropped, blurry, background scenery, ground shadow, extra arms, two heads, multiple heads, conjoined, extra head, visible face details, detailed face, smile"
+ },
+ "class_cleric": {
+  "job": "c4_cleric",
+  "picks": [
+   {
+    "n": 4,
+    "file": "concept_04.png",
+    "role": "design reference (generic class, face covered)",
+    "seed": 23112
+   }
+  ],
+  "model": "nai-diffusion-4-5-full",
+  "size": [
+   832,
+   1216
+  ],
+  "steps": 28,
+  "scale": 5.5,
+  "sampler": "k_euler_ancestral",
+  "prompt": "1girl, solo, full body, four heads tall, young war priest, face shadowed, deep cowl, veil, plain slate blue tabard over chainmail, pale teal trim, round sun disc emblem, leather belt, small book on belt, dark trousers, brown boots, holding mace, open hand raised, wide stance, bent knees, three-quarter view, facing right, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+  "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, multiple views, cropped, blurry, background scenery, ground shadow, extra arms, two heads, multiple heads, conjoined, extra head, visible face details, detailed face, smile"
+ },
+ "class_rogue": {
+  "job": "c5_rogue",
+  "picks": [
+   {
+    "n": 2,
+    "file": "concept_02.png",
+    "role": "design reference (generic class, face covered)",
+    "seed": 25038
+   }
+  ],
+  "model": "nai-diffusion-4-5-full",
+  "size": [
+   832,
+   1216
+  ],
+  "steps": 28,
+  "scale": 5.5,
+  "sampler": "k_euler_ancestral",
+  "prompt": "1boy, solo, full body, four heads tall, young rogue, face hidden, deep hood, shadowed face, plain slate blue hood and short cape, pale teal scarf over mouth, dark brown leather armor, many straps, dark trousers, black boots, holding dagger, reverse grip, single dagger, crouching, wide stance, bent knees, three-quarter view, facing right, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+  "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, multiple views, cropped, blurry, background scenery, ground shadow, extra arms, two heads, multiple heads, conjoined, extra head, visible face details, detailed face, smile"
  }
 }
