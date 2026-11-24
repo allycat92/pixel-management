@@ -4,6 +4,8 @@
 // 지방 등급별 의뢰 난이도 범위
 const TIER_LEVELS = [[1, 3], [2, 5], [3, 6], [4, 8], [5, 9], [7, 10]];
 const LATE_MAX_LEVEL = 14;
+// 권장 인원: 용병단 하나가 3~4명이므로 일반 의뢰는 2~4명, 결전은 용병단 수 × 3 + 1, 최종 결전은 3개 용병단 거의 만원
+const FINAL_SIZE = 11;
 
 // 의뢰 결과가 세계에 주는 영향 (평판, 장악도, 전쟁 판세)
 const CONTRACT_EFFECTS = {
@@ -84,12 +86,13 @@ Object.assign(Game, {
     const level = opts.level || this.contractLevel(p, this.isCalamity(target) ? 1 : 0); // 재앙 토벌은 한 단계 더 험하다
     const enemy = t.cat === 'monster' ? (opts.enemy || this.monsterEnemy(opts.type, p, level))
       : this.isCalamity(target) ? (opts.enemy || pick(FACTIONS[target].monsters)) : (opts.enemy || null);
-    const size = opts.size || ({ monster: rand(2, 4), conflict: { raid: rand(3, 4), siege: rand(4, 6), sabotage: rand(2, 3), rescue: rand(3, 4), warDefense: rand(4, 5), counterspy: rand(2, 3) }[opts.type], diplomacy: 3 }[t.cat]) || 4;
+    const size = opts.size || ({ monster: rand(2, 3), conflict: { raid: 3, siege: rand(3, 4), sabotage: 2, rescue: 3, warDefense: rand(3, 4), counterspy: 2 }[opts.type], diplomacy: 3 }[t.cat]) || 3;
     const days = opts.days || this.travelDays(p) + (level > 5 ? 1 : 0);
     const title = opts.title || pick(t.titles)
       .replace('{e}', enemy || '').replace('{p}', pick(PROVINCES[p].places))
       .replace('{t}', target ? FACTIONS[target].short : '').replace('{i}', FACTIONS[issuer].short);
-    const req = Math.round(24 * Math.pow(1.4, level - 1) * (0.9 + Math.random() * 0.2) * (0.8 + Math.min(size, 6) * 0.1));
+    // 권장 인원이 용병단 크기에 맞춰 줄었으므로(옛 4~6명 → 2~4명) 요구 전투력은 옛 인원 기준(×1.25)으로 매긴다
+    const req = Math.round(24 * Math.pow(1.4, level - 1) * (0.9 + Math.random() * 0.2) * (0.8 + Math.min(size * 1.25, 6) * 0.1));
     // 금화는 전쟁에서 나온다: 전쟁 의뢰 ×1.5, 평시 분쟁 ×0.7, 외교 ×0.6, 괴물·치안 ×0.3
     const war = t.cat === 'campaign' || (!!target && this.atWar(issuer, target));
     let catMul = war ? 1.5 : t.cat === 'conflict' ? 0.7 : t.cat === 'diplomacy' ? 0.6 : 0.3;
@@ -159,6 +162,8 @@ Object.assign(Game, {
     return this.makeContract({ province: p, issuer, target, type });
   },
 
+  campaignSize(slots) { return slots * 3 + 1; },
+
   makeRandomContract() {
     const p = this.pickProvince();
     const owner = this.owner(p);
@@ -203,7 +208,7 @@ Object.assign(Game, {
     let offered = 0;
     sides.forEach(([side, issuer, target]) => {
       if (!this.willHire(issuer)) return;
-      const c = this.makeContract({ province: p, issuer, target, type: 'battle', level, size: 4 * cp.slots, days: 4 });
+      const c = this.makeContract({ province: p, issuer, target, type: 'battle', level, size: this.campaignSize(cp.slots), days: 4 });
       c.req = Math.round(c.req * 1.05);
       c.reward = Math.round(c.reward * 1.8);
       c.rep = c.rep * 2;
@@ -235,7 +240,7 @@ Object.assign(Game, {
 
   ownCompanyPower(c, ms, type, contract) {
     const base = ms.reduce((sum, m) => sum + this.power(m, type, ms) * this.memberLeadMul(c, m, ms), 0);
-    return Math.round(base * this.cohesionMul(c) * this.leaderMul(c, type, ms, contract));
+    return Math.round(base * SQUAD_POWER * this.cohesionMul(c) * this.leaderMul(c, type, ms, contract));
   },
 
   unitsPower(contract, units) {
@@ -284,12 +289,17 @@ Object.assign(Game, {
   },
 
   // ───────── 파견 ─────────
+  // 한 의뢰에 보낼 수 있는 용병단 수: 일반 의뢰 1개, 결전은 의뢰에 적힌 수(2~3), 어떤 경우에도 3개까지
+  dispatchSlots(contract) { return Math.min(MAX_DISPATCH, contract.campaign ? contract.campaign.slots : 1); },
   dispatch(contractId, units) {
     const s = this.state;
     const c = s.contracts.find((x) => x.id === contractId);
     if (!c || !units.length || this.storyHeroMissing(c, units)) return;
+    const slots = this.dispatchSlots(c);
+    if (units.length > slots) return this.toast(`이 의뢰에는 용병단을 ${slots}개까지만 보낼 수 있습니다. (직속·외부 합계, 최대 ${MAX_DISPATCH}개)`);
     const { own, ext, allMembers } = this.unitParts(units);
     if (own.some((o) => o.c.missionId || !o.ms.length) || ext.some((e) => e.missionId)) return;
+    if (own.some((o) => o.ms.length > SQUAD_MAX || o.ms.some((m) => m.companyId !== o.c.id))) return;
     if (allMembers.some((m) => m.status !== 'idle')) return;
     const refused = ext.find((e) => this.extRefusal(e, c));
     if (refused) return this.toast(`「${refused.name}」: ${this.extRefusal(refused, c)}`);
@@ -432,10 +442,12 @@ Object.assign(Game, {
       if (won) o.c.wins++; else o.c.losses++;
       const lostHere = dead.filter((r) => r.company === o.c.id).length;
       o.c.cohesion = clamp(o.c.cohesion + (won ? 5 : 2) - lostHere * 20, 0, 100);
+      this.trimCompany(o.c); // 옛 저장에서 출격 중이던 큰 용병단은 귀환 후 정원에 맞춘다
       report.companies.push({
         name: o.c.name, color: o.c.color, own: true,
         members: o.ms.map((m) => ({ id: m.id, name: m.name, look: m.look, cls: m.cls, level: m.level, leader: this.isCaptain(m), unique: this.isCaptain(m) || !!m.hcls, sk: this.battleSkillsOf(m),
-          art: m.cap ? `portrait/captain/${m.cap}` : m.hero ? `portrait/hero/${m.hero}` : null })),
+          art: m.cap ? `portrait/captain/${m.cap}` : m.hero ? `portrait/hero/${m.hero}` : null,
+          capKey: m.cap || null, heroKey: m.hero || null })), // 전투 스프라이트 시트(sheet/captain/<capKey>, sheet/hero/<heroKey>)용
       });
     });
     ext.forEach((e) => {
@@ -545,7 +557,7 @@ Object.assign(Game, {
     if (posted || s.missions.some((mi) => mi.contract.final) || !lair) return;
     const F = FACTIONS[cal];
     const issuer = this.aliveFactions().sort((a, b) => this.strength(b) - this.strength(a))[0] || 'locals';
-    const c = this.makeContract({ province: lair, issuer, target: cal, type: 'battle', level: 10, size: 14, days: 5, enemy: F.leader,
+    const c = this.makeContract({ province: lair, issuer, target: cal, type: 'battle', level: 10, size: FINAL_SIZE, days: 5, enemy: F.leader,
       title: `최종 결전 — ${F.leader}` });
     c.final = true;
     c.campaign = { id: s.nextId++, attacker: issuer, defender: cal, slots: 3, side: 'attack' };
@@ -558,7 +570,7 @@ Object.assign(Game, {
   // 최종 결전의 요구 전투력: 재앙의 국력에 비례 (영토를 빼앗을수록 쉬워진다)
   finalReq() {
     const cal = this.state.calamity;
-    return Math.round(this.strength(cal) * 38);
+    return Math.round(this.strength(cal) * 33); // 3개 용병단이 3~4명씩이라 옛(×38)보다 낮춘다
   },
 
   // ───────── 특별 용병 ─────────
@@ -601,7 +613,7 @@ Object.assign(Game, {
       else if (owner !== target && !FACTIONS[owner].neutral) issuer = owner;
       else if (h.faction && h.faction !== target) issuer = h.faction;
       const level = clamp(Math.max(TIER_LEVELS[PROVINCES[ch.province].tier][0], this.rankIndex() + 2), 1, 10);
-      const c = this.makeContract({ province: ch.province, type: ch.type, target, issuer, enemy: ch.enemy, title: ch.title, level, size: 4 });
+      const c = this.makeContract({ province: ch.province, type: ch.type, target, issuer, enemy: ch.enemy, title: ch.title, level, size: 3 });
       c.story = { hero: m.hero, ch: hs.ch };
       c.expires = STORY_EXPIRES;
       c.reward = Math.round(c.reward * 1.5);
@@ -671,7 +683,7 @@ Object.assign(Game, {
       if ((s.provClears[p] || 0) < b.clears) return;
       if (s.contracts.some((c) => c.boss === p) || s.missions.some((mi) => mi.contract.boss === p)) return;
       const level = TIER_LEVELS[PROVINCES[p].tier][1];
-      const c = this.makeContract({ province: p, type: b.type, enemy: b.enemy, title: b.title, level, size: 5 });
+      const c = this.makeContract({ province: p, type: b.type, enemy: b.enemy, title: b.title, level, size: 4 });
       c.cat = 'monster';
       c.boss = p;
       c.req = Math.round(c.req * 1.3);

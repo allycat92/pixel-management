@@ -131,7 +131,7 @@ const QUEST_TYPES = {
 
 const FACILITIES = {
   dorm:      { name: '숙소', max: 5, baseCost: 120, desc: (l) => `길드 소속 단원 최대 ${6 + l * 3}명` },
-  barracks:  { name: '병영', max: 4, baseCost: 220, desc: (l) => `직속 용병단 최대 ${1 + l}개, 용병단당 대장 1 + 대원 ${4 + l}명` },
+  barracks:  { name: '병영', max: 4, baseCost: 220, desc: (l) => `직속 용병단 최대 ${1 + l}개, 용병단당 대장 1 + 대원 ${l >= 1 ? 3 : 2}명` },
   training:  { name: '훈련장', max: 5, baseCost: 150, desc: (l) => l ? `대기 단원 매일 경험치 +${l * 5}` : '아직 없음 (대기 단원 성장 불가)' },
   infirmary: { name: '의무실', max: 5, baseCost: 130, desc: (l) => `부상 회복 속도 ${100 + l * 50}%` },
   tavern:    { name: '모집소', max: 5, baseCost: 140, desc: (l) => `숙련병 레벨 +${l}, 용병단 시장 ${2 + Math.floor(l / 2)}곳` },
