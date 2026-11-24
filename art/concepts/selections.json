@@ -312,5 +312,183 @@
   "sampler": "k_euler_ancestral",
   "prompt": "1boy, solo, full body, four heads tall, young rogue, face hidden, deep hood, shadowed face, plain slate blue hood and short cape, pale teal scarf over mouth, dark brown leather armor, many straps, dark trousers, black boots, holding dagger, reverse grip, single dagger, crouching, wide stance, bent knees, three-quarter view, facing right, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
   "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, multiple views, cropped, blurry, background scenery, ground shadow, extra arms, two heads, multiple heads, conjoined, extra head, visible face details, detailed face, smile"
+ },
+ "monster_skeleton": {
+  "job": "m1_skeleton",
+  "name": "몬스터 — 해골 병사",
+  "picks": [
+   {
+    "n": 1,
+    "file": "concept_01.png",
+    "role": "design reference",
+    "seed": 31001
+   }
+  ],
+  "model": "nai-diffusion-4-5-full",
+  "size": [
+   832,
+   1216
+  ],
+  "steps": 28,
+  "scale": 5.5,
+  "sampler": "k_euler_ancestral",
+  "prompt": "no humans, solo, full body, four heads tall, skeleton soldier, undead, chunky bones, cracked skull, red glowing eye sockets, rusty open-faced helmet, tattered dark cloth scraps, notched sword, round wooden shield, iron rim, wide stance, bent knees, fighting stance, three-quarter view, facing right, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+  "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, multiple views, cropped, blurry, background scenery, ground shadow, extra arms, two heads, multiple heads, conjoined, extra head"
+ },
+ "monster_wolf": {
+  "job": "m2_wolf",
+  "name": "몬스터 — 들늑대",
+  "picks": [
+   {
+    "n": 6,
+    "file": "concept_06.png",
+    "role": "design reference",
+    "seed": 32186
+   }
+  ],
+  "model": "nai-diffusion-4-5-full",
+  "size": [
+   1216,
+   832
+  ],
+  "steps": 28,
+  "scale": 5.5,
+  "sampler": "k_euler_ancestral",
+  "prompt": "no humans, solo, full body, animal focus, wolf, grey wolf, wild wolf, shaggy grey fur, amber eyes, snarling, bared fangs, four legs, tail, standing, head lowered, three-quarter view, facing right, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+  "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, multiple views, cropped, blurry, background scenery, ground shadow, extra arms, two heads, multiple heads, conjoined, extra head, extra legs"
+ },
+ "monster_desert-bandit": {
+  "job": "m3_desert-bandit",
+  "name": "몬스터 — 사막 도적",
+  "picks": [
+   {
+    "n": 5,
+    "file": "concept_05.png",
+    "role": "design reference",
+    "seed": 33149
+   }
+  ],
+  "model": "nai-diffusion-4-5-full",
+  "size": [
+   832,
+   1216
+  ],
+  "steps": 28,
+  "scale": 5.5,
+  "sampler": "k_euler_ancestral",
+  "prompt": "1boy, solo, full body, four heads tall, desert bandit, raider, tan skin, sand-colored head wrap, face veil, only eyes visible, loose sand-colored robes, brown leather vest, sash, baggy trousers, leather boots, holding scimitar, curved sword, one-handed, wide stance, bent knees, fighting stance, three-quarter view, facing right, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+  "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, multiple views, cropped, blurry, background scenery, ground shadow, extra arms, two heads, multiple heads, conjoined, extra head"
+ },
+ "monster_harpy": {
+  "job": "m4_harpy",
+  "name": "몬스터 — 하피",
+  "picks": [
+   {
+    "n": 9,
+    "file": "concept_09.png",
+    "role": "design reference",
+    "seed": 34297
+   }
+  ],
+  "model": "nai-diffusion-4-5-full",
+  "size": [
+   1216,
+   832
+  ],
+  "steps": 28,
+  "scale": 5.5,
+  "sampler": "k_euler_ancestral",
+  "prompt": "1girl, solo, full body, four heads tall, monster girl, harpy, winged arms, purple feathered wings, bird legs, talons, feathered tail, wild auburn hair, red eyes, hovering, wings spread, three-quarter view, facing right, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+  "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, multiple views, cropped, blurry, background scenery, ground shadow, extra arms, two heads, multiple heads, conjoined, extra head",
+  "note": "Draft is too revealing: final art must cover the torso with feathers/leather."
+ },
+ "monster_bandit": {
+  "job": "m5_bandit",
+  "name": "몬스터 — 산적",
+  "picks": [
+   {
+    "n": 1,
+    "file": "concept_01.png",
+    "role": "design reference",
+    "seed": 35001
+   }
+  ],
+  "model": "nai-diffusion-4-5-full",
+  "size": [
+   832,
+   1216
+  ],
+  "steps": 28,
+  "scale": 5.5,
+  "sampler": "k_euler_ancestral",
+  "prompt": "1boy, solo, full body, four heads tall, bandit, stubble, sneer, red bandana, patched leather jerkin, rope belt, dark trousers, worn boots, holding axe, hand axe, small round wooden buckler, wide stance, bent knees, fighting stance, three-quarter view, facing right, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+  "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, multiple views, cropped, blurry, background scenery, ground shadow, extra arms, two heads, multiple heads, conjoined, extra head"
+ },
+ "monster_gargoyle": {
+  "job": "m6_gargoyle",
+  "name": "몬스터 — 가고일",
+  "picks": [
+   {
+    "n": 2,
+    "file": "concept_02.png",
+    "role": "design reference",
+    "seed": 36038
+   }
+  ],
+  "model": "nai-diffusion-4-5-full",
+  "size": [
+   1216,
+   832
+  ],
+  "steps": 28,
+  "scale": 5.5,
+  "sampler": "k_euler_ancestral",
+  "prompt": "no humans, solo, full body, monster, gargoyle, grey stone skin, cracked stone, bat wings, curved horns, red eyes, claws, tail, crouching, hunched, wings half spread, three-quarter view, facing right, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+  "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, multiple views, cropped, blurry, background scenery, ground shadow, extra arms, two heads, multiple heads, conjoined, extra head"
+ },
+ "monster_giant-spider": {
+  "job": "m7_giant-spider",
+  "name": "몬스터 — 거대 거미",
+  "picks": [
+   {
+    "n": 3,
+    "file": "concept_03.png",
+    "role": "design reference",
+    "seed": 37075
+   }
+  ],
+  "model": "nai-diffusion-4-5-full",
+  "size": [
+   1216,
+   832
+  ],
+  "steps": 28,
+  "scale": 5.5,
+  "sampler": "k_euler_ancestral",
+  "prompt": "no humans, solo, full body, monster, giant spider, eight legs, dark purple carapace, hairy legs, red eyes, fangs, crouching, front legs raised, three-quarter view, facing right, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+  "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, multiple views, cropped, blurry, background scenery, ground shadow, extra arms, two heads, multiple heads, conjoined, extra head",
+  "note": "Final art: exactly 8 legs, rim light so the dark body reads."
+ },
+ "monster_wraith": {
+  "job": "m8_wraith",
+  "name": "몬스터 — 망령",
+  "picks": [
+   {
+    "n": 7,
+    "file": "concept_07.png",
+    "role": "design reference",
+    "seed": 38223
+   }
+  ],
+  "model": "nai-diffusion-4-5-full",
+  "size": [
+   832,
+   1216
+  ],
+  "steps": 28,
+  "scale": 5.5,
+  "sampler": "k_euler_ancestral",
+  "prompt": "no humans, solo, full body, monster, wraith, ghost, floating, pale blue tattered robes, hood, skeletal hands, claws, glowing cyan eyes, no legs, wispy tail, three-quarter view, facing right, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+  "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, multiple views, cropped, blurry, background scenery, ground shadow, extra arms, two heads, multiple heads, conjoined, extra head"
  }
 }

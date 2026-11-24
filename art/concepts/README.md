@@ -18,3 +18,5 @@ so each image can be regenerated.
   owner to re-check; the mounted prompt says the draft's head looks doubled and to draw exactly one.
 - Generic classes (faces covered so the same sprite can be many different people; uniform = key-colour slot):
   `class_warrior` #5, `class_archer` #10, `class_mage` #9, `class_cleric` #4, `class_rogue` #2.
+- Monsters: `monster_skeleton` #1, `monster_wolf` #6, `monster_desert-bandit` #5, `monster_harpy` #9 (cover the torso with feathers/leather),
+  `monster_bandit` #1, `monster_gargoyle` #2, `monster_giant-spider` #3 (exactly 8 legs, rim light), `monster_wraith` #7.
