@@ -35,3 +35,34 @@
 
 시트에서 분리한 뒤 각 실루엣을 투명한 1024×1024 캔버스에 배치했다.
 현재 다시 그릴 후보는 없다.
+
+## 묶음 3 — 나머지 대장 24명
+
+- `captain_windhunter.png` — 나린 — 바람을 쫓는 사냥꾼 (바람 사냥꾼)
+- `captain_shadowlord.png` — 모로 — 항구의 쥐왕 (그림자 두목)
+- `captain_spellblade.png` — 카시안 — 파문당한 마검사 (마검사)
+- `captain_saintknight.png` — 엘리노어 — 성광의 기사 (성광 기사)
+- `captain_warlord.png` — 가르마크 — 백전의 전쟁군주 (전쟁군주)
+- `captain_khan.png` — 테무르 — 초원의 칸 (초원의 칸)
+- `captain_dragonslayer.png` — 지크린데 — 용살자 (용살자)
+- `captain_demonhunter.png` — 모르데카이 — 마귀 사냥꾼 (마귀 사냥꾼)
+- `captain_bard.png` — 리코 — 노래하는 검 (음유 검객)
+- `captain_beastmaster.png` — 오르가 — 늑대 무리의 어미 (야수 조련사)
+- `captain_runesmith.png` — 브로크 — 룬 새기는 대장장이 (룬 대장장이)
+- `captain_pilgrim.png` — 아멜리 — 맨발의 순례자 (순례 기사)
+- `captain_hexer.png` — 벨라도나 — 저주 거래상 (저주술사)
+- `captain_liberator.png` — 카토 — 쇠사슬을 끊은 자 (해방 검투사)
+- `captain_admiral.png` — 마렌 — 퇴역 제독 (퇴역 제독)
+- `captain_elfwarden.png` — 세레니엘 — 숲의 수호대장 (엘프 숲지기)
+- `captain_siegemaster.png` — 오토 — 성벽 파괴자 (공성 기술자)
+- `captain_inquisitorlord.png` — 발타자르 — 심문관장 (대심문관)
+- `captain_pirateking.png` — 크림슨 — 붉은 돛의 해적왕 (해적왕)
+- `captain_frostjarl.png` — 비요른 — 서리 협곡의 영주 (서리 영주)
+- `captain_archmagus.png` — 에우리아 — 마지막 대현자 (대현자)
+- `captain_lightbearer.png` — 루치아 — 빛을 든 사도 (빛의 사도)
+- `captain_shadowqueen.png` — 니클라 — 그림자 길드의 여왕 (밤의 여왕)
+- `captain_titan.png` — 우르그 — 거인의 피 (거인의 피)
+
+승인된 초상화 3장을 공통 참고로 사용했다. 시트 네 장에서 분리한 실루엣을
+최근접 보간으로 확대해 투명한 1024×1024 캔버스에 배치했다.
+현재 다시 그릴 후보는 없다.
