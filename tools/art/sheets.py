@@ -15,12 +15,16 @@
   → 80x80 칸에 발바닥 가운데를 (40,76)에 맞춰 배치
   → idle 은 sprite-gen breathe --mode pixel 로 4칸 숨쉬기 루프 (없으면 간단한 1px 들썩임)
   → 시트 png + Aseprite json-array(태그 idle/attack/hit) → tools/art/register_sheet.py 로 등록.
+  직업 시트(요청서 항목에 tint 가 있으면): 제복·장식 열쇠 색에 가까운 픽셀(RGB 거리 <= KEY_TOL)을 원본 해상도에서 찾아
+  축소 뒤에도 열쇠 색 그대로 남기고(다른 색은 열쇠 색이 되지 않는다), 열쇠 색을 register_sheet.py --tint-* 로 넘긴다.
+  작업 폴더의 preview_tint_x4.png = 전투처럼 시험 색(빨강 제복·노랑 장식)으로 바꿔 칠한 미리보기.
 
 실행:
   python3 tools/art/sheets.py                          # art/inbox/sheet_*.png 전부
   python3 tools/art/sheets.py art/inbox/sheet_captain_blademaster.png
   옵션: --id ID  --grid CxR  --flip  --height 64 | --scale 0.1654  --cell 96  --colors 40  --work DIR
-        --dry-run (manifest 를 건드리지 않음)  --no-register  --aseprite OUT.aseprite
+        --dry-run (manifest 를 건드리지 않음)  --no-register  --aseprite OUT.aseprite  --no-tint
+  요청서 항목의 scale · cell · height · layout(2x2) · tint 를 기본값으로 쓴다 (명령줄 옵션이 우선).
 필요: Pillow + NumPy (sprite-gen venv 가 있으면 숨쉬기 루프에 쓴다)
 """
 import argparse
@@ -48,6 +52,9 @@ OUTLINE = np.array([18, 16, 26], dtype=np.float32)
 POSES = {1: ['idle'], 2: ['idle', 'strike'], 3: ['idle', 'strike', 'hit'], 4: ['idle', 'windup', 'strike', 'hit']}
 DUR = {'idle': 240, 'windup': 150, 'strike': 260, 'hit': 220}
 FILE_RE = re.compile(r'^sheet_(captain|hero|class|monster)_([A-Za-z0-9-]+?)(?:@[A-Za-z0-9-]+)?\.png$')
+KEY_TOL = 34.0               # 열쇠 색으로 볼 RGB 거리 (열쇠 색끼리는 43 이상, 다른 재질과는 그보다 멀게 고른다: art/requests/phase3_gpt.md 메시지 D)
+KEY_MIN_SHARE = 0.04         # 대기 자세에서 제복 열쇠 색이 이 비율보다 적으면 경고 (열쇠 색으로 칠하지 않은 그림)
+TINT_TEST = {'outfit': '#b03a2e', 'accent': '#e0b040'}   # preview_tint_x4.png 의 시험 색
 
 
 def log(*a):
@@ -369,6 +376,72 @@ def snap(rgb, pal):
     return pal[idx].reshape(rgb.shape)
 
 
+# ───────── 직업 시트 열쇠 색 (진영 색으로 바꿔 칠할 제복·장식) ─────────
+
+def hex_rgb(h):
+    h = h.lstrip('#')
+    return np.array([int(h[i:i + 2], 16) for i in (0, 2, 4)], np.float32)
+
+
+def tint_keys(tint):
+    """{'outfit': [...], 'accent': [...]} → (열쇠 색 배열 Kx3, 역할 이름 목록 K)."""
+    cols, roles = [], []
+    for role in ('outfit', 'accent'):
+        for h in (tint or {}).get(role, []):
+            cols.append(hex_rgb(h))
+            roles.append(role)
+    return (np.array(cols, np.float32).reshape(-1, 3), roles)
+
+
+def key_label(rgb, a, keys):
+    """원본 해상도: 열쇠 색 번호(가장 가까운 열쇠 색이 KEY_TOL 안이고 불투명할 때), 아니면 -1."""
+    d = np.sqrt(((rgb[..., None, :] - keys[None, None]) ** 2).sum(-1))
+    lab = d.argmin(-1)
+    lab[(d.min(-1) > KEY_TOL) | (a < 0.5)] = -1
+    return lab
+
+
+def key_resize(lab, a, nk, nw, nh):
+    """열쇠 색 번호를 BOX 축소: 알파 가중으로 절반 이상이 열쇠 색이면 가장 많은 열쇠 색, 아니면 -1."""
+    def rs(ch):
+        return np.asarray(Image.fromarray(ch.astype(np.float32), 'F').resize((nw, nh), Image.Resampling.BOX))
+    pa = np.maximum(rs(a), 1e-4)
+    frac = np.stack([rs((lab == k) * a) / pa for k in range(nk)], -1)
+    out = frac.argmax(-1)
+    out[frac.sum(-1) < 0.5] = -1
+    return out
+
+
+def apply_keys(rgb, mask, klab, keys, roles):
+    """열쇠 픽셀을 열쇠 색 그대로 칠한다. 실루엣 가장자리(투명과 맞닿은 1px)의 열쇠 픽셀은
+    같은 역할의 가장 어두운 열쇠 색으로 (외곽선 구실을 하면서 바꿔 칠하기에 그대로 따라간다)."""
+    _, n4 = neighbours(mask)
+    edge = mask & (n4 < 4)
+    lum = keys @ np.array([0.299, 0.587, 0.114], np.float32)
+    darkest = {r: min((i for i in range(len(roles)) if roles[i] == r), key=lambda i: lum[i]) for r in set(roles)}
+    out = rgb.copy()
+    for k in range(len(keys)):
+        m = mask & (klab == k)
+        out[m & ~edge] = keys[k]
+        out[m & edge] = keys[darkest[roles[k]]]
+    return out
+
+
+def recolor_preview(sheet, keys, roles, test=TINT_TEST):
+    """js/battle.js sheetRecolor 와 같은 규칙: 열쇠 색 → 시험 색 x (열쇠 밝기 / 같은 역할 열쇠 평균 밝기)."""
+    out = sheet.copy()
+    w = np.array([0.299, 0.587, 0.114], np.float32)
+    for role in set(roles):
+        idx = [i for i in range(len(roles)) if roles[i] == role]
+        mean = float(np.mean([keys[i] @ w for i in idx])) or 1.0
+        tgt = hex_rgb(test[role])
+        for i in idx:
+            to = np.clip(np.round(tgt * float(keys[i] @ w) / mean), 0, 255).astype(np.uint8)
+            m = (out[..., 3] > 0) & np.all(out[..., :3] == keys[i].astype(np.uint8), -1)
+            out[m, :3] = to
+    return out
+
+
 def outline(rgb, mask):
     """투명과 맞닿은 가장자리 1px 를 어두운 보라 쪽으로 (선택적 외곽선)."""
     _, n4 = neighbours(mask)
@@ -537,9 +610,17 @@ def process(path, sid, a, reqs):
     log(f'  배경 키 색: {"투명" if key is None else "#%02x%02x%02x" % tuple(int(v) for v in key)}  ({im.width}x{im.height})')
     req = reqs.get(re.sub(r'@[A-Za-z0-9-]+(?=\.png$)', '', os.path.basename(path)), {})
     grid = tuple(int(v) for v in a.grid.lower().split('x')) if a.grid else None
+    if not grid and not a.poses and req.get('layout') == '2x2':
+        grid = (2, 2)   # 요청서가 2x2 격자 (넓은 몬스터·기마): 가로로 긴 그림이라도 1x4 띠로 짐작하지 않는다
+        log('  배치: 요청서의 2x2 격자')
     CELL = a.cell or req.get('cell') or 80
     ANCHOR = (CELL // 2, CELL - 4)
     height = a.height or req.get('height') or 64
+    req_scale = None if (a.scale or a.height) else req.get('scale')
+    tint = None if a.no_tint else req.get('tint')
+    keys, roles = tint_keys(tint)
+    if tint:
+        log(f'  열쇠 색: 제복 {", ".join(tint.get("outfit", []))} / 장식 {", ".join(tint.get("accent", []))} (거리 {KEY_TOL:g} 안)')
     expect = a.poses
     guess = False
     if not grid and not expect and im.width >= 1.3 * im.height:
@@ -558,19 +639,20 @@ def process(path, sid, a, reqs):
         aa = alpha * m
         x0, y0, x1, y1 = bbox(aa)
         crops.append((rgb[y0:y1, x0:x1], aa[y0:y1, x0:x1]))
+    klabs = [key_label(c_rgb, c_a, keys) if len(keys) else None for c_rgb, c_a in crops]
     # 모든 자세에 같은 배율: idle 의 몸 높이 → height
     body = body_height(crops[0][1])
-    if a.scale:
+    if a.scale or req_scale:
         # 같은 가이드 격자(발바닥 y=870, 머리 110px)에 그린 캐릭터들은 같은 배율로 줄여야 크기가 서로 맞는다.
         # (idle 높이로 맞추면 모자·큰 머리숱까지 64px 에 들어가 그 캐릭터만 작아진다)
-        scale = a.scale
+        scale = a.scale or req_scale
         height = body * scale
-        log(f'  배율 {scale:.4f} 고정 (--scale; idle 몸 높이 {body}px → {height:.1f}px, 칸 {CELL}x{CELL})')
+        log(f'  배율 {scale:.4f} 고정 ({"--scale" if a.scale else "요청서"}; idle 몸 높이 {body}px → {height:.1f}px, 칸 {CELL}x{CELL})')
     else:
         scale = height / body
         log(f'  배율 {scale:.4f} (idle 몸 높이 {body}px → {height}px, 칸 {CELL}x{CELL}; 머리 위로 솟은 가는 무기 끝은 빼고 잰다)')
     small = []
-    for (c_rgb, c_a), nm in zip(crops, names):
+    for (c_rgb, c_a), klab, nm in zip(crops, klabs, names):
         hh = body_height(c_a) * scale
         if nm != 'idle' and hh < height * 0.55:
             log(f'  실패: {nm} 자세 몸 높이 {hh:.0f}px 가 idle({height}px)의 절반 남짓도 안 된다 — 떨어진 조각(불꽃·구슬 등)이 자세로 잘린 듯하다 (--poses 1 / --grid 로 지정)')
@@ -582,20 +664,36 @@ def process(path, sid, a, reqs):
         s_rgb, s_a = box_resize(c_rgb, c_a, nw, nh)
         mask = s_a > a.alpha
         s_rgb, mask = cleanup(s_rgb, mask)
+        s_k = key_resize(klab, c_a, len(keys), nw, nh) if klab is not None else np.full(mask.shape, -1)
+        s_k[~mask] = -1
         bb = bbox(mask.astype(np.float32), 0.5)
         if bb is None:
             log(f'  실패: {nm} 자세가 축소 후 비었다')
             return False
         x0, y0, x1, y1 = bb
-        small.append((s_rgb[y0:y1, x0:x1], mask[y0:y1, x0:x1]))
+        small.append((s_rgb[y0:y1, x0:x1], mask[y0:y1, x0:x1], s_k[y0:y1, x0:x1]))
+        if len(keys):
+            share = {r: float(np.isin(s_k, [i for i in range(len(roles)) if roles[i] == r]).sum()) / max(1, int(mask.sum()))
+                     for r in ('outfit', 'accent')}
+            log(f'  {nm}: 열쇠 색 픽셀 제복 {share["outfit"]:.0%}, 장식 {share["accent"]:.0%}')
+            if nm == 'idle' and share['outfit'] < KEY_MIN_SHARE:
+                log(f'  주의: 대기 자세에 제복 열쇠 색이 {share["outfit"]:.1%} 뿐이다 — 열쇠 색으로 칠하지 않은 그림 같다 (진영 색으로 바뀌지 않는다)')
 
     # 외곽선(가장자리 어둡게)을 먼저 입힌 뒤 팔레트를 만들고 한 번만 양자화한다: 외곽 색도 공통 팔레트 안에 든다 (--colors 이하)
     if not a.no_outline:
-        small = [(outline(r, m), m) for r, m in small]
-    pal = build_palette(np.concatenate([r[m] for r, m in small]), a.colors)
+        small = [(outline(r, m), m, k) for r, m, k in small]
+    # 팔레트는 열쇠 색이 아닌 픽셀로만 만든다 (열쇠 색 자리는 비워 둔다). 우연히 열쇠 색과 똑같은 팔레트 색은 1 만큼 비켜서,
+    # 열쇠 색이 아닌 픽셀이 전투에서 바꿔 칠해지지 않게 한다.
+    rest = np.concatenate([r[m & (k < 0)] for r, m, k in small])
+    pal = build_palette(rest if len(rest) else np.zeros((1, 3), np.float32), max(8, a.colors - len(keys)))
+    for kc in keys:
+        same = np.all(pal == kc, -1)
+        pal[same, 0] = np.where(kc[0] > 0, kc[0] - 1, 1)
     cells = {}
-    for (s_rgb, mask), nm in zip(small, names):
+    for (s_rgb, mask, klab), nm in zip(small, names):
         q = snap(s_rgb, pal)
+        if len(keys):
+            q = apply_keys(q, mask, klab, keys, roles)
         q[~mask] = 0
         cell = place(q, mask, nm)
         if cell is None:
@@ -631,6 +729,8 @@ def process(path, sid, a, reqs):
         json.dump(data, f, indent=1)
     prev = os.path.join(wdir, 'preview_x4.png')
     preview(sheet, prev)
+    if len(keys):
+        preview(recolor_preview(sheet, keys, roles), os.path.join(wdir, 'preview_tint_x4.png'))
     ncol = len(np.unique(sheet[sheet[..., 3] > 0][:, :3], axis=0))
     log(f'  시트 {sheet.shape[1]}x{sheet.shape[0]}, {len(frames)}칸, {ncol}색, 태그 '
         + ', '.join(f'{t}({b - a_ + 1})' for t, a_, b in tags))
@@ -648,6 +748,10 @@ def process(path, sid, a, reqs):
            '--anchor', f'{ANCHOR[0]},{ANCHOR[1]}', '--facing', '1']
     if req.get('file') and req.get('id') == sid:
         cmd += ['--file', req['file']]  # 요청서의 파일 이름 (괴물 id 에는 한글·빈칸이 있어 그대로 파일 이름으로 쓰지 않는다)
+    if tint and sid.startswith('sheet/class/'):
+        for role in ('outfit', 'accent'):
+            if tint.get(role):
+                cmd += [f'--tint-{role}', ','.join(tint[role])]
     if a.dry_run:
         cmd.append('--dry-run')
     r = subprocess.run(cmd, capture_output=True, text=True)
@@ -672,6 +776,7 @@ def main():
     ap.add_argument('--colors', type=int, default=40, help='시트 공통 팔레트 색 수 (기본 40)')
     ap.add_argument('--alpha', type=float, default=0.45, help='축소 후 알파 기준 (기본 0.45)')
     ap.add_argument('--no-outline', action='store_true', help='가장자리 어둡게 하기를 끈다')
+    ap.add_argument('--no-tint', action='store_true', help='요청서의 열쇠 색(tint)을 쓰지 않는다 (직업 시트를 바꿔 칠하지 않는 그림으로)')
     ap.add_argument('--work', help='중간 결과·미리보기를 둘 폴더 (기본: 임시 폴더)')
     ap.add_argument('--dry-run', action='store_true', help='시트는 만들되 manifest 는 바꾸지 않는다')
     ap.add_argument('--no-register', action='store_true', help='register_sheet.py 를 부르지 않는다')
