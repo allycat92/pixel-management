@@ -1,6 +1,131 @@
 {
+  "event/bankrupt": {
+    "file": "assets/art/events/event_bankrupt.png",
+    "h": 270,
+    "w": 480
+  },
+  "event/darkness": {
+    "file": "assets/art/events/event_darkness.png",
+    "h": 270,
+    "w": 480
+  },
+  "event/destroyed": {
+    "file": "assets/art/events/event_destroyed.png",
+    "h": 270,
+    "w": 480
+  },
+  "event/final": {
+    "file": "assets/art/events/event_final.png",
+    "h": 270,
+    "w": 480
+  },
+  "event/rise_beasts": {
+    "file": "assets/art/events/event_rise_beasts.png",
+    "h": 270,
+    "w": 480
+  },
+  "event/rise_demons": {
+    "file": "assets/art/events/event_rise_demons.png",
+    "h": 270,
+    "w": 480
+  },
+  "event/savior": {
+    "file": "assets/art/events/event_savior.png",
+    "h": 270,
+    "w": 480
+  },
+  "event/start": {
+    "file": "assets/art/events/event_start.png",
+    "h": 270,
+    "w": 480
+  },
+  "event/win": {
+    "file": "assets/art/events/event_win.png",
+    "h": 270,
+    "w": 480
+  },
+  "portrait/boss/beasts": {
+    "file": "assets/art/portraits/boss_beasts.png",
+    "h": 128,
+    "w": 128
+  },
+  "portrait/boss/demons": {
+    "file": "assets/art/portraits/boss_demons.png",
+    "h": 128,
+    "w": 128
+  },
+  "portrait/captain/admiral": {
+    "file": "assets/art/portraits/captain_admiral.png",
+    "h": 128,
+    "w": 128
+  },
+  "portrait/captain/archmagus": {
+    "file": "assets/art/portraits/captain_archmagus.png",
+    "h": 128,
+    "w": 128
+  },
+  "portrait/captain/bard": {
+    "file": "assets/art/portraits/captain_bard.png",
+    "h": 128,
+    "w": 128
+  },
+  "portrait/captain/beastmaster": {
+    "file": "assets/art/portraits/captain_beastmaster.png",
+    "h": 128,
+    "w": 128
+  },
   "portrait/captain/blademaster": {
     "file": "assets/art/portraits/captain_blademaster.png",
+    "h": 128,
+    "w": 128
+  },
+  "portrait/captain/demonhunter": {
+    "file": "assets/art/portraits/captain_demonhunter.png",
+    "h": 128,
+    "w": 128
+  },
+  "portrait/captain/dragonslayer": {
+    "file": "assets/art/portraits/captain_dragonslayer.png",
+    "h": 128,
+    "w": 128
+  },
+  "portrait/captain/elfwarden": {
+    "file": "assets/art/portraits/captain_elfwarden.png",
+    "h": 128,
+    "w": 128
+  },
+  "portrait/captain/fieldmedic": {
+    "file": "assets/art/portraits/captain_fieldmedic.png",
+    "h": 128,
+    "w": 128
+  },
+  "portrait/captain/fixer": {
+    "file": "assets/art/portraits/captain_fixer.png",
+    "h": 128,
+    "w": 128
+  },
+  "portrait/captain/frostjarl": {
+    "file": "assets/art/portraits/captain_frostjarl.png",
+    "h": 128,
+    "w": 128
+  },
+  "portrait/captain/hedgemage": {
+    "file": "assets/art/portraits/captain_hedgemage.png",
+    "h": 128,
+    "w": 128
+  },
+  "portrait/captain/hexer": {
+    "file": "assets/art/portraits/captain_hexer.png",
+    "h": 128,
+    "w": 128
+  },
+  "portrait/captain/huntress": {
+    "file": "assets/art/portraits/captain_huntress.png",
+    "h": 128,
+    "w": 128
+  },
+  "portrait/captain/inquisitorlord": {
+    "file": "assets/art/portraits/captain_inquisitorlord.png",
     "h": 128,
     "w": 128
   },
@@ -9,8 +134,123 @@
     "h": 128,
     "w": 128
   },
+  "portrait/captain/khan": {
+    "file": "assets/art/portraits/captain_khan.png",
+    "h": 128,
+    "w": 128
+  },
+  "portrait/captain/lancer": {
+    "file": "assets/art/portraits/captain_lancer.png",
+    "h": 128,
+    "w": 128
+  },
+  "portrait/captain/liberator": {
+    "file": "assets/art/portraits/captain_liberator.png",
+    "h": 128,
+    "w": 128
+  },
+  "portrait/captain/lightbearer": {
+    "file": "assets/art/portraits/captain_lightbearer.png",
+    "h": 128,
+    "w": 128
+  },
+  "portrait/captain/pilgrim": {
+    "file": "assets/art/portraits/captain_pilgrim.png",
+    "h": 128,
+    "w": 128
+  },
+  "portrait/captain/pirateking": {
+    "file": "assets/art/portraits/captain_pirateking.png",
+    "h": 128,
+    "w": 128
+  },
+  "portrait/captain/runesmith": {
+    "file": "assets/art/portraits/captain_runesmith.png",
+    "h": 128,
+    "w": 128
+  },
+  "portrait/captain/saintknight": {
+    "file": "assets/art/portraits/captain_saintknight.png",
+    "h": 128,
+    "w": 128
+  },
+  "portrait/captain/shadowlord": {
+    "file": "assets/art/portraits/captain_shadowlord.png",
+    "h": 128,
+    "w": 128
+  },
+  "portrait/captain/shadowqueen": {
+    "file": "assets/art/portraits/captain_shadowqueen.png",
+    "h": 128,
+    "w": 128
+  },
+  "portrait/captain/siegemaster": {
+    "file": "assets/art/portraits/captain_siegemaster.png",
+    "h": 128,
+    "w": 128
+  },
+  "portrait/captain/spellblade": {
+    "file": "assets/art/portraits/captain_spellblade.png",
+    "h": 128,
+    "w": 128
+  },
   "portrait/captain/tactician": {
     "file": "assets/art/portraits/captain_tactician.png",
+    "h": 128,
+    "w": 128
+  },
+  "portrait/captain/titan": {
+    "file": "assets/art/portraits/captain_titan.png",
+    "h": 128,
+    "w": 128
+  },
+  "portrait/captain/veteran": {
+    "file": "assets/art/portraits/captain_veteran.png",
+    "h": 128,
+    "w": 128
+  },
+  "portrait/captain/warlord": {
+    "file": "assets/art/portraits/captain_warlord.png",
+    "h": 128,
+    "w": 128
+  },
+  "portrait/captain/windhunter": {
+    "file": "assets/art/portraits/captain_windhunter.png",
+    "h": 128,
+    "w": 128
+  },
+  "portrait/hero/astel": {
+    "file": "assets/art/portraits/hero_astel.png",
+    "h": 128,
+    "w": 128
+  },
+  "portrait/hero/grom": {
+    "file": "assets/art/portraits/hero_grom.png",
+    "h": 128,
+    "w": 128
+  },
+  "portrait/hero/kai": {
+    "file": "assets/art/portraits/hero_kai.png",
+    "h": 128,
+    "w": 128
+  },
+  "portrait/hero/lyra": {
+    "file": "assets/art/portraits/hero_lyra.png",
+    "h": 128,
+    "w": 128
+  },
+  "portrait/hero/marisol": {
+    "file": "assets/art/portraits/hero_marisol.png",
+    "h": 128,
+    "w": 128
+  },
+  "portrait/hero/oswin": {
+    "file": "assets/art/portraits/hero_oswin.png",
+    "h": 128,
+    "w": 128
+  },
+  "portrait/hero/seraphine": {
+    "file": "assets/art/portraits/hero_seraphine.png",
     "h": 128,
     "w": 128
   }
