@@ -18,12 +18,15 @@ const Scene = (() => {
       walk: [[56, 282, 110, 118], [152, 182, 92, 118], [52, 66, 96, 118]], rest: [276, 98] },
   };
   let layoutName = 'code';
+  let night = false; // 지금 밤 그림인가 (일러스트 벽난로: 낮에는 꺼져 있고 밤에는 그림 속 불이 타고 있다)
   // 길드 홀 그림: 한 주(7일)의 마지막 이틀(급료일 전야)은 밤 그림. 그림이 없으면 다른 쪽, 그것도 없으면 코드로 그린 방.
   function guildArt() {
     if (typeof Art === 'undefined' || !Art.image || !Game.state) return null;
-    const night = Game.state.day % 7 === 6 || Game.state.day % 7 === 0;
+    const wantNight = Game.state.day % 7 === 6 || Game.state.day % 7 === 0;
     const a = Art.image('bg/guild/day'), b = Art.image('bg/guild/night');
-    return night ? b || a : a || b;
+    const pic = wantNight ? b || a : a || b;
+    night = !!pic && pic === b;
+    return pic;
   }
   function spot(L) {
     const z = L.walk[rand(0, L.walk.length - 1)];
@@ -124,6 +127,28 @@ const Scene = (() => {
     }
   }
 
+  // 일러스트 벽난로: 낮 그림은 불이 꺼져 있으므로 아무것도 덧그리지 않고, 밤 그림은 그림 속 불 위에
+  // 따뜻한 빛만 은은하게 일렁이게 한다 (1px 불꽃 막대를 그리면 바코드처럼 보인다)
+  function drawHearthGlow(L) {
+    if (!night) return;
+    const [, , gx, gy] = L.fire;
+    const f = 0.5 + 0.5 * Math.sin(tick * 0.9) * Math.sin(tick * 0.37 + 1.3);
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    const core = ctx.createRadialGradient(gx, gy - 12, 2, gx, gy - 12, 22 + f * 3);
+    core.addColorStop(0, `rgba(255, 170, 70, ${0.10 + f * 0.07})`);
+    core.addColorStop(1, 'rgba(255, 140, 50, 0)');
+    ctx.fillStyle = core;
+    ctx.fillRect(gx - 30, gy - 42, 60, 60);
+    ctx.restore();
+    // 바닥에 비치는 불빛
+    const floor = ctx.createRadialGradient(gx, gy + 6, 4, gx, gy + 6, 56);
+    floor.addColorStop(0, `rgba(242, 150, 60, ${0.10 + f * 0.05})`);
+    floor.addColorStop(1, 'rgba(242, 150, 60, 0)');
+    ctx.fillStyle = floor;
+    ctx.fillRect(gx - 60, gy - 20, 120, H - gy + 20);
+  }
+
   function drawFire(L) {
     const [fx, base, gx, gy] = L.fire;
     const cols = ['#f2c94c', '#f39c12', '#e74c3c', '#fff4b0'];
@@ -196,7 +221,7 @@ const Scene = (() => {
     ctx.drawImage(room, 0, 0, W, H);
     if (!Game.state) return;
     drawBoard(Game.state.contracts.length, L);
-    drawFire(L);
+    if (layoutName === 'art') drawHearthGlow(L); else drawFire(L);
     // 주점 주인 NPC
     const barkeep = { cls: 'archer', skin: '#e0ac7e', hair: '#8a5a2b', longHair: false };
     ctx.drawImage(Sprites.merc(barkeep, 1, tick % 8 < 4 ? 0 : 1), L.keep[0], L.keep[1]);

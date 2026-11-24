@@ -791,17 +791,17 @@ const Battle = (() => {
     const sh = useArt() && Art.sheetFor(u);
     if (sh) {
       const m = sh.meta;
-      let i;
+      let i, walkFx = false; // walkFx: 걷기 동작이 없는 시트가 걷는 중 → 그릴 때 걸음 흔들림을 덧붙인다
       if (force) { const a = Art.anim(m, force); i = Math.min(a.to, a.from + 1); }
       else if (!u.alive) i = Art.anim(m, 'hit').to;
       else if (c - r.atkAt < r.atkDur) { const a = Art.anim(m, r.atkAnim); i = frameAt(a, ((c - r.atkAt) / r.atkDur) * a.total, true); }
       else if (c - r.hitAt < 0.22) { const a = Art.anim(m, 'hit'); i = frameAt(a, ((c - r.hitAt) / 0.22) * a.total, true); }
-      else if (u.moving) i = frameAt(Art.anim(m, 'walk'), (c + r.phase) * 1000, false);
+      else if (u.moving) { i = frameAt(Art.anim(m, 'walk'), (c + r.phase) * 1000, false); walkFx = !m.anims.walk; }
       else i = frameAt(Art.anim(m, 'idle'), (c + r.phase) * 1000, false);
       const f = m.frames[i] || m.frames[0];
       const rc = sheetRecolor(sh, u);
       return { img: rc ? rc.img : sh.img, sx: f[0], sy: f[1], sw: m.cell[0], sh: m.cell[1], ax: m.anchor[0], ay: m.anchor[1], face: m.facing,
-        key: `${rc ? rc.key : sh.id}#${i}`, sheet: sh, k: sheetK(u, sh) };
+        key: `${rc ? rc.key : sh.id}#${i}`, sheet: sh, k: sheetK(u, sh), walkFx };
     }
     const walking = (u.moving && u.alive) || force === 'walk';
     const t = (c + r.phase) * 1000;
@@ -819,9 +819,19 @@ const Battle = (() => {
 
   // 한 칸 그리기: (X, Y) 가 발 위치, flip 이면 좌우 반전
   // fr.k: 그리는 배율 (괴물 우두머리 시트 1.5 등, 기본 1)
-  function blit(ctx, fr, X, Y, flip, img) {
+  // tf: 걸음 흔들림 { bob: 들썩임(px), lean: 앞으로 기울기(발 기준 기울임), sx/sy: 눌림 } — 발은 땅에 붙인 채 몸만 움직인다
+  function blit(ctx, fr, X, Y, flip, img, tf) {
     const src = img || fr.img, sx = img ? 0 : fr.sx, sy = img ? 0 : fr.sy;
     const k = fr.k || 1, dw = Math.round(fr.sw * k), dh = Math.round(fr.sh * k), ax = Math.round(fr.ax * k), ay = Math.round(fr.ay * k);
+    if (tf) {
+      ctx.save();
+      ctx.translate(Math.round(X), Math.round(Y) - (tf.bob || 0));
+      if (tf.lean) ctx.transform(1, 0, tf.lean, 1, 0, 0);
+      ctx.scale((flip ? -1 : 1) * (tf.sx || 1), tf.sy || 1);
+      ctx.drawImage(src, sx, sy, fr.sw, fr.sh, -ax, -ay, dw, dh);
+      ctx.restore();
+      return;
+    }
     if (!flip) { ctx.drawImage(src, sx, sy, fr.sw, fr.sh, Math.round(X) - ax, Math.round(Y) - ay, dw, dh); return; }
     ctx.save();
     ctx.translate(Math.round(X), 0);
@@ -847,6 +857,42 @@ const Battle = (() => {
     return c;
   }
 
+  // 한 칸의 1px 테두리 (실루엣을 밀어 그린 뒤 원래 실루엣을 지운다). 칸마다 한 번만 만든다.
+  //  mode 'ring': 사방 외곽선, 'tl': 그림 좌표의 왼쪽·위 가장자리만 (빛 받는 쪽 테두리), 'tr': 오른쪽·위 (좌우 반전해 그릴 때)
+  const edgeCache = new Map();
+  const EDGE_OFF = { ring: [[1, 0], [-1, 0], [0, 1], [0, -1]], tl: [[-1, 0], [0, -1], [-1, -1]], tr: [[1, 0], [0, -1], [1, -1]] };
+  function edgeOf(fr, color, mode) {
+    const key = `${fr.key}|${color}|${mode}`;
+    let c = edgeCache.get(key);
+    if (c) return c;
+    const sil = tinted(fr, color);
+    c = document.createElement('canvas');
+    c.width = fr.sw; c.height = fr.sh;
+    const x = c.getContext('2d');
+    EDGE_OFF[mode].forEach(([dx, dy]) => x.drawImage(sil, dx, dy));
+    x.globalCompositeOperation = 'destination-out';
+    x.drawImage(sil, 0, 0);
+    if (edgeCache.size > 600) edgeCache.clear();
+    edgeCache.set(key, c);
+    return c;
+  }
+
+  // 시트 인물의 테두리: 어두운 땅(화산·늪 등)에서는 빛 받는 쪽(화면 왼쪽 위)에 밝은 테두리, 밝은 땅에서는 옅은 어두운 외곽선.
+  // 어두운 갑옷의 대장이 어두운 땅에 묻히지 않게 한다.
+  function drawRim(ctx, view, fr, X, Y, flip, tf) {
+    if (!fr.sheet) return;
+    if (view.groundLum < 95) {
+      ctx.globalAlpha = 0.55;
+      blit(ctx, fr, X, Y, flip, edgeOf(fr, '#ffe8c8', flip ? 'tr' : 'tl'), tf);
+      ctx.globalAlpha = 0.22;
+      blit(ctx, fr, X, Y, flip, edgeOf(fr, '#ffe8c8', 'ring'), tf);
+    } else {
+      ctx.globalAlpha = 0.3;
+      blit(ctx, fr, X, Y, flip, edgeOf(fr, '#120a16', 'ring'), tf);
+    }
+    ctx.globalAlpha = 1;
+  }
+
   // 그림이 실제로 차지하는 영역 (투명 여백 제외)
   const boxCache = new Map();
   function opaqueBox(fr) {
@@ -869,6 +915,9 @@ const Battle = (() => {
     boxCache.set(fr.key, b);
     return b;
   }
+
+  // 눈에 잘 보여야 하는 인물: 아군 부대장(대장)과 직속 단원(특별 용병)
+  const keepVisible = (u) => (u.captain && u.side === 0) || !!u.unique;
 
   // 유닛의 키·너비 (발에서 머리 꼭대기까지): 체력바·이름표·깃발 위치에 쓴다. 기본 서 있는 칸 기준이라 흔들리지 않는다.
   function stature(view, u) {
@@ -905,8 +954,20 @@ const Battle = (() => {
 
   // 렌더러 상태: 입자, 화면 흔들림, 타격 멈춤
   function makeView(terrain) {
-    return { bg: background(terrain), fg: foreground(terrain), parts: [], sigils: [], slashes: [], vfx: [], amb: [], terrain, shake: 0, stop: 0, flash: 0, flashColor: '#ffffff',
-      clock: 0, rs: new Map() };  // clock: 연출 시계(초) — 타격 멈춤 동안은 서 있다
+    const bg = background(terrain);
+    return { bg, fg: foreground(terrain), parts: [], sigils: [], slashes: [], vfx: [], amb: [], terrain, shake: 0, stop: 0, flash: 0, flashColor: '#ffffff',
+      clock: 0, rs: new Map(), groundLum: groundLum(bg) };  // clock: 연출 시계(초) — 타격 멈춤 동안은 서 있다
+  }
+
+  // 싸움터(인물이 서는 띠)의 평균 밝기 0~255: 인물 테두리 색을 고른다
+  function groundLum(bg) {
+    try {
+      const y0 = Math.round(CH * 0.45), h = Math.round(CH * 0.5);
+      const d = bg.getContext('2d').getImageData(0, y0, CW, h).data;
+      let sum = 0, n = 0;
+      for (let i = 0; i < d.length; i += 4 * 37) { sum += 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]; n++; }
+      return n ? sum / n : 128;
+    } catch (e) { return 128; }
   }
 
   const rnd = (a, b) => a + Math.random() * (b - a);
@@ -936,6 +997,8 @@ const Battle = (() => {
         const u = nearestUnit(st, f.x, f.y + off);
         f.foot = (f.y + off) * Z;
         f.tall = u ? stature(view, u).h : 34;
+        // 대장 위에 뜨는 숫자·치유 표시는 몸 옆으로 비켜 그린다 (가슴을 덮지 않게)
+        if (u && keepVisible(u)) { f.capW = stature(view, u).w; f.capFace = u.face || (u.side === 0 ? 1 : -1); }
       }
       if (f.kind === 'skill' && f.type === 'atk') {
         const u = st.units.find((e) => e.alive && (f.look ? e.look === f.look : e.mon === f.mon && Math.abs(e.x - f.x) + Math.abs(e.y - f.y) < 4));
@@ -1257,6 +1320,17 @@ const Battle = (() => {
 
     // 유닛: 쓰러진 유닛 먼저, 그다음 발 위치(y) 순으로 — 아래쪽(앞쪽) 인물이 위에 그려진다
     const sorted = st.units.filter((u) => !u.fled).sort((a, b) => (a.alive - b.alive) || a.y - b.y || a.x - b.x);
+    // 대장은 바로 앞(발 위치가 조금 아래)에 겹쳐 선 자기 편 대원보다 나중에 그린다 → 난전에서 대원 머리에 가려지지 않는다
+    sorted.filter((u) => u.alive && u.captain).forEach((c) => {
+      const i = sorted.indexOf(c);
+      let j = -1;
+      for (let k = i + 1; k < sorted.length; k++) {
+        const o = sorted[k];
+        if (o.alive && o.side === c.side && !o.captain && o.y - c.y < 9 && Math.abs(o.x - c.x) < 12) j = k;
+      }
+      if (j > i) { sorted.splice(i, 1); sorted.splice(j, 0, c); }
+    });
+    const drawn = []; // 그린 순서대로 몸통 영역 (대장이 가려졌는지 판단)
     for (const u of sorted) {
       const r = rsOf(view, u);
       // 연출 상태 갱신: 근접 공격(앞으로 내딛기)·피격 번쩍임이 새로 시작됐는지
@@ -1298,12 +1372,25 @@ const Battle = (() => {
         ctx.drawImage(glow(gc, gr), X - gr, Y - Math.round(S.h * 0.45) - gr);
         ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
       }
-      blit(ctx, fr, X, Y, flip);
+      // 걷기 동작이 없는 시트: 두 걸음마다 1~2px 들썩이고, 발이 닿는 순간 살짝 눌리며, 가는 쪽으로 조금 기운다
+      // (연출 시계 기준이라 타격 멈춤 동안은 함께 멈춘다)
+      let tf = null;
+      if (fr.walkFx) {
+        const step = (((view.clock + r.phase) / 0.27) % 1 + 1) % 1;
+        const land = step < 0.14 || step > 0.9;
+        tf = { bob: Math.round(Math.sin(step * Math.PI) * 2), lean: -face * 0.05, sx: land ? 1.03 : 1, sy: land ? 0.97 : 1 };
+      }
+      blit(ctx, fr, X, Y, flip, null, tf);
+      drawRim(ctx, view, fr, X, Y, flip, tf);
       // 맞은 순간 하얗게 번쩍 (흰 실루엣을 짧게 덧그린다: 연타를 맞아도 계속 하얗지 않게 처음 0.08초만)
       if (u.flash > 0.1) {
         ctx.globalAlpha = 0.25 + 0.45 * Math.min(1, (u.flash - 0.1) / 0.08);
-        blit(ctx, fr, X, Y, flip, tinted(fr, '#ffffff'));
+        blit(ctx, fr, X, Y, flip, tinted(fr, '#ffffff'), tf);
         ctx.globalAlpha = 1;
+      }
+      {
+        const bx = X + (flip ? -S.cx : S.cx);
+        drawn.push({ u, fr, X, Y, flip, tf, x0: bx - S.w * 0.42, x1: bx + S.w * 0.42, y0: Y - S.h + 2, y1: Y - 2 });
       }
       const top = Y - S.h;
       // 부대 깃발: 대장 등 뒤
@@ -1321,6 +1408,28 @@ const Battle = (() => {
       }
       if (u.g.routed && Math.floor(now / 250) % 2) text(ctx, '!', X, top - 2, 14, '#ffffff');
     }
+    // 그래도 앞쪽 인물에 몸이 꽤 가려진 아군 대장·특별 용병: 윤곽선과 옅은 몸을 그 위에 덧그려 자리를 알린다
+    drawn.forEach((d, i) => {
+      if (!keepVisible(d.u)) return;
+      const area = (d.x1 - d.x0) * (d.y1 - d.y0);
+      let cover = 0;
+      for (let k = i + 1; k < drawn.length; k++) {
+        const o = drawn[k];
+        const w = Math.min(d.x1, o.x1) - Math.max(d.x0, o.x0), h = Math.min(d.y1, o.y1) - Math.max(d.y0, o.y0);
+        if (w > 0 && h > 0) cover += w * h;
+      }
+      // 켜고 끌 때 깜빡이지 않게 연출 시계로 0.15초 동안 서서히 (타격 멈춤 동안은 그대로)
+      const r = rsOf(view, d.u), want = cover >= area * 0.12 ? 1 : 0;
+      const step = Math.max(0, view.clock - (r.occAt || view.clock)) / 0.15;
+      r.occAt = view.clock;
+      r.occ = want > (r.occ || 0) ? Math.min(want, (r.occ || 0) + step) : Math.max(want, (r.occ || 0) - step);
+      if (r.occ <= 0.01) return;
+      ctx.globalAlpha = 0.24 * r.occ;
+      blit(ctx, d.fr, d.X, d.Y, d.flip, null, d.tf);
+      ctx.globalAlpha = 0.8 * r.occ;
+      blit(ctx, d.fr, d.X, d.Y, d.flip, edgeOf(d.fr, d.u.side === 0 ? '#ffe27a' : '#ff8a8a', 'ring'), d.tf);
+      ctx.globalAlpha = 1;
+    });
 
     // 투사체 (빛 번짐)
     ctx.globalCompositeOperation = 'lighter';
@@ -1399,33 +1508,69 @@ const Battle = (() => {
     drawAmbient(ctx, view);
     if (view.fg) ctx.drawImage(view.fg, 0, 0);
 
-    // 체력바·이름표 (앞쪽 유닛부터 자리를 잡고, 이름표가 겹치면 위로 비켜 쌓는다)
+    // 체력바·이름표
+    //  - 아군 대장·특별 용병의 몸통 위에는 다른 유닛의 체력바·이름표를 놓지 않는다 (옆으로 비키고, 자리가 없으면 감춘다)
+    //  - 대장의 체력바·이름표는 맨 나중에 (맨 위에) 그린다
     ctx.textAlign = 'center';
     ctx.font = '11px Galmuri11, monospace';
+    const live = st.units.filter((u) => u.alive && !u.fled).sort((a, b) => b.y - a.y);
+    const bodies = drawn.filter((d) => keepVisible(d.u)).map((d) => ({ u: d.u, x0: d.x0 - 2, x1: d.x1 + 2, y0: d.y0 + 2, y1: d.y1 - 4 }));
+    const onBody = (u, x, y, w, h) => bodies.some((b) => b.u !== u && x < b.x1 && x + w > b.x0 && y < b.y1 && y + h > b.y0);
     const tags = [];
-    st.units.filter((u) => u.alive && !u.fled).sort((a, b) => b.y - a.y).forEach((u) => {
-      const X = Math.round(u.x * Z), top = Math.round(u.y * Z - stature(view, u).h) - 2;
-      const color = u.side === 0 ? '#7ee07e' : '#ff6a6a';
-      if (u.captain || u.named || u.boss) {
-        const w = u.boss ? 60 : 32;
-        segBar(ctx, X - w / 2, top - 8, w, u.hp / u.maxHp, color, u.boss ? 10 : 5);
-        if (u.side === 0 && (u.unique || u.named)) {
-          const name = u.named || '';
-          const tw = Math.ceil(ctx.measureText(name).width) + 8;
-          let y = top - 24;
-          for (let k = 0; k < 4 && tags.some((t) => X - tw / 2 < t.x + t.w && X + tw / 2 > t.x && y < t.y + 15 && y + 15 > t.y); k++) y -= 15;
-          tags.push({ x: X - tw / 2, y, w: tw, name, X, unique: u.unique });
-        }
-      } else if (u.hp < u.maxHp) {
-        px(ctx, X - 12, top - 5, 24, 4, '#140e18');
-        px(ctx, X - 11, top - 4, Math.max(0, Math.round(22 * (u.hp / u.maxHp))), 2, color);
+    const tagHit = (x, y, w) => tags.some((t) => x < t.x + t.w && x + w > t.x && y < t.y + 15 && y + 15 > t.y);
+    // 대장 몸통을 피하는 가로 비킴 (없으면 null)
+    const dodge = (u, x, y, w, h, max) => {
+      for (let d = 0; d <= max; d += 4) {
+        if (!onBody(u, x + d, y, w, h)) return d;
+        if (d && !onBody(u, x - d, y, w, h)) return -d;
       }
-    });
-    tags.forEach((t) => {
+      return null;
+    };
+    const tagOf = (u, X, top) => {
+      const name = u.named || '';
+      const tw = Math.ceil(ctx.measureText(name).width) + 8;
+      let y = top - 24;
+      for (let k = 0; k < 4 && (tagHit(X - tw / 2, y, tw) || (!keepVisible(u) && onBody(u, X - tw / 2, y, tw, 14))); k++) y -= 15;
+      if (!keepVisible(u) && onBody(u, X - tw / 2, y, tw, 14)) return null;
+      const t = { x: X - tw / 2, y, w: tw, name, X, unique: u.unique };
+      tags.push(t);
+      return t;
+    };
+    const drawTag = (t) => {
       px(ctx, t.x, t.y, t.w, 14, t.unique ? '#2a3a7a' : '#2a2a3a');
       px(ctx, t.x, t.y, t.w, 1, '#8aa0ff');
       ctx.fillStyle = '#ffffff'; ctx.fillText(t.name, t.X, t.y + 11);
+    };
+    const geo = (u) => ({ X: Math.round(u.x * Z), top: Math.round(u.y * Z - stature(view, u).h) - 2, color: u.side === 0 ? '#7ee07e' : '#ff6a6a' });
+    // 대장 이름표 자리를 먼저 잡아 둔다 (다른 이름표가 그 자리를 피한다)
+    const keyTags = live.filter((u) => keepVisible(u) && u.side === 0 && (u.unique || u.named)).map((u) => { const g = geo(u); return tagOf(u, g.X, g.top); });
+    // 1) 일반 병사의 작은 체력바
+    live.forEach((u) => {
+      if (u.captain || u.named || u.boss || keepVisible(u) || u.hp >= u.maxHp) return;
+      const { X, top, color } = geo(u);
+      const d = dodge(u, X - 12, top - 5, 24, 4, 20);
+      if (d == null) return;
+      px(ctx, X + d - 12, top - 5, 24, 4, '#140e18');
+      px(ctx, X + d - 11, top - 4, Math.max(0, Math.round(22 * (u.hp / u.maxHp))), 2, color);
     });
+    // 2) 적 부대장·우두머리·이름 있는 병사 (대장이 아닌 쪽)
+    live.forEach((u) => {
+      if (keepVisible(u) || !(u.captain || u.named || u.boss)) return;
+      const { X, top, color } = geo(u);
+      const w = u.boss ? 60 : 32;
+      const d = dodge(u, X - w / 2, top - 8, w, 6, 24);
+      if (d == null) return;
+      segBar(ctx, X + d - w / 2, top - 8, w, u.hp / u.maxHp, color, u.boss ? 10 : 5);
+      if (u.side === 0 && u.named) { const t = tagOf(u, X + d, top); if (t) drawTag(t); }
+    });
+    // 3) 아군 대장·특별 용병: 맨 위에
+    live.forEach((u) => {
+      if (!keepVisible(u)) return;
+      const { X, top, color } = geo(u);
+      const w = u.boss ? 60 : 32;
+      segBar(ctx, X - w / 2, top - 8, w, u.hp / u.maxHp, color, u.boss ? 10 : 5);
+    });
+    keyTags.forEach((t) => { if (t) drawTag(t); });
 
     // 피해 숫자·스킬 이름·치유
     st.fx.forEach((f) => {
@@ -1435,7 +1580,11 @@ const Battle = (() => {
       const Y = f.kind === 'pop' ? head + 26 : f.kind === 'heal' ? head + 18 : f.kind === 'label' ? head - 30 : f.y * Z;
       if (f.kind === 'pop') {
         if (!(f.crit || f.ally && f.named || f.mine)) return; // 화면이 어지럽지 않게
-        if (f.jx == null) { f.jx = rnd(-14, 14); f.jy = rnd(-6, 6); }
+        if (f.jx == null) {
+          f.jx = rnd(-14, 14); f.jy = rnd(-6, 6);
+          // 대장이 맞은 숫자: 가슴 대신 등 뒤 옆으로 (몸 너비의 절반 + 여유)
+          if (f.capW) { f.jx = -f.capFace * (f.capW * 0.5 + rnd(6, 14)); f.jy = rnd(-14, -4); }
+        }
         const up = Math.min(1, f.t * 5);
         const y = Y - 6 - up * 10 - f.t * 14 + f.jy;
         ctx.globalAlpha = f.t > 0.5 ? Math.max(0, 1 - (f.t - 0.5) * 5) : 1;
@@ -1443,7 +1592,7 @@ const Battle = (() => {
         ctx.globalAlpha = 1;
       } else if (f.kind === 'heal' && f.named) {
         ctx.globalAlpha = Math.max(0, 1 - f.t * 1.4);
-        text(ctx, '+', X, Y - f.t * 30, 16, '#8cff8c');
+        text(ctx, '+', X + (f.capW ? f.capFace * (f.capW * 0.5 + 6) : 0), Y - f.t * 30, 16, '#8cff8c');
         ctx.globalAlpha = 1;
       } else if (f.kind === 'label') {
         const y = Math.round(Y - f.t * 16);
