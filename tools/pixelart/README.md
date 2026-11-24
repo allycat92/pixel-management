@@ -53,6 +53,8 @@ when a weapon would leave the canvas). Deterministic; the fit never depends on `
 - **GPT image generation**: attach `guide_<frame>.png` (optionally also the stick image and the
   approved character art) with "match this pose and proportions exactly; redraw it as <character>".
 - Generate the idle frame first, then reuse its look (same seed / reference image) for the other frames.
+- **GPT handoff packages**: `python3 tools/art/handoff.py` renders the four key-pose guides per character plus
+  `guide_strip.png` (the 1536x1024 deliverable layout) into `art/requests/phase3/<id>/` — see `art/requests/gpt_handoff_notes.md`.
 
 Known limits: the figure is a 2D mannequin (no real 3D rotation, so twisting poses are faked by
 moving the shoulders); hair, clothing, capes and smears are left to the model; the eye marks only

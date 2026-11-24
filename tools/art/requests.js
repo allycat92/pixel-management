@@ -182,15 +182,17 @@ const SHEET_TAIL = [
   'FORMAT: one PNG, 1536x1024 (landscape). The SAME character drawn FOUR times in ONE horizontal row, evenly spaced, left to right:',
   '(1) idle battle-ready stance, (2) attack wind-up (weapon drawn back / spell gathering), (3) attack strike at full extension, (4) hit reaction (recoiling backwards, wincing).',
   'Every copy: full body head to toe, SAME size and SAME scale, all four pairs of feet standing on ONE common horizontal baseline at about 85% of the image height,',
-  'each figure about 55% of the image height, generous empty space around each figure; figures and weapons never touch or overlap each other or the image border.',
+  'each figure about 40% of the image height (the same character scale as the style anchor), generous empty space around each figure; figures and weapons never touch or overlap each other or the image border.',
   'All four face RIGHT in a front three-quarter view.',
-  'STYLE: high-quality HD pixel art for a modern 2D fantasy tactics game; chibi-leaning 3-heads-tall proportions (big head, compact body), wide dynamic stance with bent knees,',
+  'STYLE: high-quality HD pixel art for a modern 2D fantasy tactics game; humanoids are 4 heads tall (head = 1/4 of the standing height; NOT chibi),',
+  'creatures keep natural proportions at the same pixel scale; wide dynamic stance with bent knees, light from the upper left,',
   'readable silhouette, muted hue-shifted palette (shadows shift toward purple/blue, highlights toward warm yellow), dark desaturated (NOT pure black) outline used selectively,',
   'soft rim light on one side, flat cel shading with 2-3 tones, crisp pixel clusters, no anti-aliasing blur.',
   'BACKGROUND: perfectly flat solid magenta #FF00FF everywhere (chroma key), no gradient, no floor, no cast shadow, no scenery.',
   'NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines).',
 ].join(' ');
-const NAI_TAIL = 'chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow';
+const ANCHOR_NOTE = 'Match the approved style anchor art/inbox/sheet_captain_blademaster.png (art-inbox branch): its rendering, outline, palette treatment, lighting and character scale.';
+const NAI_TAIL = 'four heads tall, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow';
 const NAI_MONSTER_TAIL = 'full body, three-quarter view, facing right, battle stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow';
 const NAI_NEG = 'lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background';
 
@@ -216,18 +218,6 @@ const HEADGEAR_TAG = { band: 'headband', helmet: 'helmet', hat: 'hat', hood: 'ho
 const WEAPON_TAG = { sword: 'holding sword', bow: 'holding bow, quiver', staff: 'holding staff', mace: 'holding mace', dagger: 'holding dagger' };
 const genderTag = (text) => (/\b(woman|girl)\b/i.test(text) ? '1girl' : '1boy');
 
-// 창설 후보 9명은 손으로 다듬은 태그 (나머지는 FIGURE 문장 + 게임 색에서 만든다)
-const NAI_CHAR = {
-  blademaster: '1boy, solo, young swordsman, messy dark brown hair, white headband, long headband tails, scar on cheek, dark crimson half cape, dark navy tunic, leather belt, cross strap, dark trousers, brown boots, holding katana with both hands, sword held diagonally',
-  ironwall: '1girl, solo, mature female, broad shoulders, auburn hair, long braid, steel helmet, slate grey plate armor, gold trim, huge tower shield, holding mace',
-  tactician: '1girl, solo, mature female, long dark blue hair, sharp eyes, officer hat, dark grey military coat, gold epaulettes, gold buttons, holding baton, short staff',
-  lancer: '1boy, solo, mature male, brown hair, stubble, dented knight helmet, blue surcoat, chainmail, white trim, holding lance, long lance pointed forward',
-  huntress: '1girl, solo, auburn hair, ponytail, freckles, olive green hunter outfit, leather vest, rope coil on belt, headband, holding short bow, quiver',
-  hedgemage: '1boy, solo, young male, messy blonde hair, patched wizard hat, purple robe, gold trim, holding crooked wooden staff, small flame on staff tip',
-  fieldmedic: '1girl, solo, mature female, dark skin, black hair, hair tied back, white field coat, red armband, satchel, bandages, holding mace',
-  fixer: '1boy, solo, slicked back black hair, half hood, black leather coat, grey scarf, holding short knife, reverse grip',
-  veteran: '1boy, solo, old man, white hair, white beard, scars, battered helmet, olive grey gambeson, chainmail, holding sword',
-};
 // 손으로 쓴 인물 묘사(figure)가 머리·무기를 이미 말하면 게임 데이터에서 만든 태그를 덧붙이지 않는다
 // (예: 'war axe' 뒤에 'holding sword', 'shaved head' 뒤에 'dark brown hair' 가 붙어 NovelAI 가 섞어 그리던 문제)
 const FIG_HAIR_RE = /hair|bald|shaved/i;
@@ -247,16 +237,69 @@ const nai = (charTags, tail = NAI_TAIL) => ({ prompt: `${charTags}, ${tail}`, ne
 const phase3 = [];
 const sheetItem = (o) => ({ kind: 'sheet', size: '1536x1024', out: `${o.cell || 80}x${o.cell || 80} cells, body ~${o.height || 64}px`, ...o });
 
-// 1) 창설 후보 대장 9명
-D.STARTER_CAPTAINS.forEach((key) => {
+// 1) 창설 후보 대장 9명 — GPT handoff 꾸러미(art/requests/phase3/captain_<key>/, tools/art/handoff.py)를 따른다.
+//    주인이 고른 NovelAI 초안(art/concepts/selections.json)은 디자인 참고만, 자세·비율은 posekit 가이드, 화풍은 바렌(앵커).
+const SEL = JSON.parse(fs.readFileSync(path.join(ROOT, 'art/concepts/selections.json'), 'utf8'));
+const ANCHOR = 'art/inbox/sheet_captain_blademaster.png';
+const PKG = (key) => `art/requests/phase3/captain_${key}`;
+const GUIDES = ['guide_1_idle.png', 'guide_2_windup.png', 'guide_3_strike.png', 'guide_4_hit.png'];
+const GUIDED_TAIL = [
+  'FORMAT: one PNG, 1536x1024 (landscape), the SAME character four times in ONE row, left to right: (1) idle, (2) attack wind-up, (3) attack strike, (4) hit reaction.',
+  'Match guide_strip.png of the package EXACTLY: same poses, limb lengths, proportions, size and position of each figure;',
+  'feet on one common baseline at y=870 (85% of the height), the idle figure about 400 px tall (39% of the height, 110 px per head - the same for every character); figures and weapons never touch each other or the border.',
+  'STYLE: 4 heads tall (head = 1/4 of the standing height, NOT chibi), front three-quarter view facing RIGHT, light from the upper left,',
+  'high-quality HD pixel art, muted hue-shifted palette (shadows toward purple/blue, highlights toward warm yellow), flat cel shading with 2-3 tones,',
+  'dark desaturated NON-black outline used selectively, soft rim light, readable at 1x (~64 px tall) on a dark battlefield.',
+  'The concept draft is a DESIGN reference only (costume, colours, hair, marks, weapon) - never copy its proportions, rendering, outline, saturation or lighting.',
+  'BACKGROUND: perfectly flat solid magenta #FF00FF, no gradient, floor, cast shadow or scenery.',
+  'NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines, projectiles).',
+].join(' ');
+const colorsOf = (look, cls) => ({ skin: look.skin, hair: look.hair, outfit: cls.outfit, accent: cls.accent });
+const selPick = (key) => {
+  const s = SEL[`captain_${key}`];
+  if (key === 'lancer') return { ...s, ...s.variants.find((v) => v.job === '04b_lancer_noble') };
+  return { ...s, ...s.picks[0] };
+};
+D.STARTER_CAPTAINS.forEach((key, i) => {
   const C = D.CAPTAINS[key], CC = D.CAPTAIN_CLASSES[key];
+  const sel = selPick(key);
+  const anchor = key === 'blademaster';
   phase3.push(sheetItem({
     id: `sheet/captain/${key}`, file: `sheet_captain_${key}.png`, priority: 1, group: '창설 후보 대장',
     name: `${C.name} — ${C.title} (${CC.name})`, ref: `art/inbox/captain_${key}.png`,
-    prompt: `Battle sprite of ${C.name}, a mercenary captain: ${FIGURE[key]}. Class: ${CC.name} (${CC.style}). Colors: ${lookText(C.look, CC)}. Weapon: ${CC.weapon}. Keep the face, hair and outfit of the reference portrait. ${SHEET_TAIL}`,
-    nai: nai(NAI_CHAR[key]),
+    order: anchor ? 1 : i + 1, heads: 4, ...(anchor ? { style_anchor_role: 'draw first, wait for owner approval' } : { style_anchor: ANCHOR }),
+    package: PKG(key), readme: `${PKG(key)}/README.md`, concept: `${PKG(key)}/concept.png`,
+    concept_source: `art/concepts/captain_${key}/${sel.file}`,
+    guides: GUIDES.map((g) => `${PKG(key)}/${g}`), guide_strip: `${PKG(key)}/guide_strip.png`,
+    colors: colorsOf(C.look, CC),
+    prompt: `Battle sprite of ${C.name} (${key}), a mercenary captain. Class: ${CC.name} (${CC.style}). `
+      + `Design (what to keep and what to fix), weapon and per-pose notes: ${PKG(key)}/README.md; concept draft ${PKG(key)}/concept.png (design only), `
+      + `portrait ${PKG(key)}/portrait.png (face only). Game colors: ${lookText(C.look, CC)}. `
+      + (anchor ? 'This image is the STYLE ANCHOR for every other character: draw it first, then stop for approval. '
+        : `Match the approved style anchor ${ANCHOR} (proportions, rendering, outline, palette, lighting, scale). `)
+      + GUIDED_TAIL,
+    nai: { prompt: sel.prompt, negative: sel.negative, seed: sel.seed, source: `art/concepts/selections.json (#${sel.n})` },
   }));
 });
+// 1+) 로드릭 기마 (추가 선택, 게임은 아직 쓰지 않는다): 넓은 칸, 2x2 격자, 9명 다음 맨 마지막
+{
+  const C = D.CAPTAINS.lancer, CC = D.CAPTAIN_CLASSES.lancer;
+  const m = SEL.captain_lancer.variants.find((v) => v.job === '04a_lancer_mounted');
+  phase3.push(sheetItem({
+    id: 'sheet/captain/lancer_mounted', file: 'sheet_captain_lancer_mounted.png', priority: 1, group: '창설 후보 대장',
+    name: `${C.name} — 기마 (추가 선택, 게임 미사용)`, ref: 'art/inbox/captain_lancer.png',
+    order: 10, heads: 4, optional: true, unused: true, layout: '2x2', cell: 160, height: 96, style_anchor: ANCHOR,
+    package: PKG('lancer'), readme: `${PKG('lancer')}/README.md`, concept: `${PKG('lancer')}/concept_mounted.png`,
+    concept_source: `art/concepts/captain_lancer/${m.file}`, guide_strip: `${PKG('lancer')}/guide_mounted_layout.png`,
+    colors: colorsOf(C.look, CC),
+    prompt: `OPTIONAL, LAST. Mounted variant of ${C.name} (lancer) for a possible later "regains a warhorse" form; the game does not use it yet. `
+      + `Same knight, armour, colours and style as the approved art/inbox/sheet_captain_lancer.png and the style anchor ${ANCHOR}. `
+      + `Design: ${PKG('lancer')}/concept_mounted.png (design only). The horse has EXACTLY ONE head. `
+      + `FORMAT: one PNG 1536x1024 as a 2x2 grid of equal quadrants (top: idle, wind-up; bottom: strike, hit), layout and size per ${PKG('lancer')}/guide_mounted_layout.png and ${PKG('lancer')}/README.md. `
+      + 'Rider 4 heads tall, front three-quarter view facing right, flat #FF00FF background, no floor, shadow, text or effects.',
+    nai: { prompt: m.prompt, negative: m.negative, seed: m.seed, source: `art/concepts/selections.json (#${m.n})` },
+  }));
+}
 // 2) 일반 병과 5종 (이름 없는 용병 전부가 쓰는 기본 그림 — 얼굴·머리색이 덜 드러나게)
 const CLASS_FIGURE = {
   warrior: 'generic young mercenary soldier, open-face helmet hiding most of the hair, padded armor with a breastplate, round wooden shield on the back, one-handed sword',
@@ -267,9 +310,9 @@ const CLASS_FIGURE = {
 };
 Object.entries(D.CLASSES).forEach(([key, K]) => {
   phase3.push(sheetItem({
-    id: `sheet/class/${key}`, file: `sheet_class_${key}.png`, priority: 2, group: '일반 병과',
+    id: `sheet/class/${key}`, file: `sheet_class_${key}.png`, priority: 2, group: '일반 병과', heads: 4, after: 'the 9 starter captains (priority 1)', style_anchor: ANCHOR,
     name: `일반 병과 — ${K.name}`,
-    prompt: `Battle sprite of a ${CLASS_FIGURE[key]}. Main outfit color ${K.outfit}, accent ${K.accent}. ${SHEET_TAIL}`,
+    prompt: `Battle sprite of a ${CLASS_FIGURE[key]}. Main outfit color ${K.outfit}, accent ${K.accent}. ${ANCHOR_NOTE} ${SHEET_TAIL}`,
     nai: nai(`1boy, solo, ${CLASS_FIGURE[key].replace('generic ', '')}, ${colorName(K.outfit)} outfit, ${colorName(K.accent)} trim, ${WEAPON_TAG[K.weapon]}`),
   }));
 });
@@ -277,9 +320,9 @@ Object.entries(D.CLASSES).forEach(([key, K]) => {
 Object.entries(D.HEROES).forEach(([key, h]) => {
   const H = D.HERO_CLASSES[h.hcls];
   phase3.push(sheetItem({
-    id: `sheet/hero/${key}`, file: `sheet_hero_${key}.png`, priority: 3, group: '특별 용병',
+    id: `sheet/hero/${key}`, file: `sheet_hero_${key}.png`, priority: 3, group: '특별 용병', heads: 4, after: 'the 9 starter captains (priority 1)', style_anchor: ANCHOR,
     name: `${h.name} — ${h.title} (${H.name})`, ref: `art/inbox/hero_${key}.png`,
-    prompt: `Battle sprite of ${h.name}: ${HERO_FIGURE[key]}. Class: ${H.name} (${H.style}). Colors: ${lookText(h.look, H)}. Weapon: ${H.weapon}. Keep the face, hair and outfit of the reference portrait. ${SHEET_TAIL}`,
+    prompt: `Battle sprite of ${h.name}: ${HERO_FIGURE[key]}. Class: ${H.name} (${H.style}). Colors: ${lookText(h.look, H)}. Weapon: ${H.weapon}. Keep the face, hair and outfit of the reference portrait. ${ANCHOR_NOTE} ${SHEET_TAIL}`,
     nai: nai(naiFromFigure(HERO_FIGURE[key], h.look, H)),
   }));
 });
@@ -312,9 +355,9 @@ MONSTERS.forEach(([enemy, key, look, height, cell]) => {
   if (!D.ENEMIES[enemy]) throw new Error(`unknown enemy ${enemy}`);
   const pal = D.ENEMIES[enemy].pal;
   phase3.push(sheetItem({
-    id: `sheet/monster/${enemy}`, file: `sheet_monster_${key}.png`, priority: 4, group: '지역 몬스터',
+    id: `sheet/monster/${enemy}`, file: `sheet_monster_${key}.png`, priority: 4, group: '지역 몬스터', after: 'the 9 starter captains (priority 1)', style_anchor: ANCHOR,
     name: `몬스터 — ${enemy}`, height, ...(cell ? { cell } : {}),
-    prompt: `Battle sprite of a monster: ${look}. Main color ${pal.M}, dark ${pal.D}${pal.A ? `, accent ${pal.A}` : ''}, eyes ${pal.E}.${cell ? ' A large monster: draw it bigger and heavier than a human (it is shown about 1.5x human height).' : ''} ${SHEET_TAIL}`,
+    prompt: `Battle sprite of a monster: ${look}. Main color ${pal.M}, dark ${pal.D}${pal.A ? `, accent ${pal.A}` : ''}, eyes ${pal.E}.${cell ? ' A large monster: draw it bigger and heavier than a human (it is shown about 1.5x human height).' : ''} ${ANCHOR_NOTE} ${SHEET_TAIL}`,
     nai: nai(`no humans, solo, monster, ${look}`, NAI_MONSTER_TAIL),
   }));
 });
@@ -323,9 +366,9 @@ Object.entries(D.CAPTAINS).forEach(([key, C]) => {
   if (D.STARTER_CAPTAINS.includes(key)) return;
   const CC = D.CAPTAIN_CLASSES[key];
   phase3.push(sheetItem({
-    id: `sheet/captain/${key}`, file: `sheet_captain_${key}.png`, priority: 5, group: '나머지 대장',
+    id: `sheet/captain/${key}`, file: `sheet_captain_${key}.png`, priority: 5, group: '나머지 대장', heads: 4, after: 'the 9 starter captains (priority 1)', style_anchor: ANCHOR,
     name: `${C.name} — ${C.title} (${CC.name})`, ref: `art/inbox/captain_${key}.png`,
-    prompt: `Battle sprite of ${C.name}, a mercenary captain: ${FIGURE[key]}. Class: ${CC.name} (${CC.style}). Colors: ${lookText(C.look, CC)}. Weapon: ${CC.weapon}. Keep the face, hair and outfit of the reference portrait. ${SHEET_TAIL}`,
+    prompt: `Battle sprite of ${C.name}, a mercenary captain: ${FIGURE[key]}. Class: ${CC.name} (${CC.style}). Colors: ${lookText(C.look, CC)}. Weapon: ${CC.weapon}. Keep the face, hair and outfit of the reference portrait. ${ANCHOR_NOTE} ${SHEET_TAIL}`,
     nai: nai(naiFromFigure(FIGURE[key], C.look, CC)),
   }));
 });
@@ -334,30 +377,35 @@ fs.writeFileSync(path.join(ROOT, 'art/requests/phase3.json'), JSON.stringify({ v
 const md3 = [
   '# 그림 요청서 — 3단계 (전투 캐릭터 스프라이트 시트)',
   '',
-  '> `node tools/art/requests.js`로 자동 생성된다. 규격은 `art/STYLE.md`의 **전투 캐릭터**, 절차는 `art/README.md`.',
+  '> `node tools/art/requests.js`로 자동 생성된다. 규격은 `art/STYLE.md`의 **전투 캐릭터**, 절차는 `art/README.md`,',
+  '> GPT 에 넘기는 규칙은 `art/requests/gpt_handoff_notes.md` (이 문서보다 우선).',
   '> 그림 쪽은 **핵심 자세 4개를 한 줄로** 크게 그리기만 한다. 칸 자르기·축소·팔레트·숨쉬기 루프·시트 조립·게임 등록은',
   '> 코드 쪽이 `python3 tools/art/sheets.py`로 한다. 걷기·돌진·피격 번쩍임·스킬 효과는 게임 엔진이 그린다.',
   '',
-  `총 ${phase3.length}장 · 결과물은 \`art/inbox/<file>\`에 PNG로 넣는다. 우선순위 1부터.`,
+  `총 ${phase3.length}장 · 결과물은 \`art/inbox/<file>\`에 PNG로 넣는다.`,
   '',
-  '## 그림 쪽에 그대로 붙여 넣을 지시 (한 메시지에 여러 캐릭터 가능)',
+  '## 진행 순서 (주인과 합의한 것)',
   '',
-  '```',
-  'art/STYLE.md 의 "전투 캐릭터" 절과 art/requests/phase3.md 를 읽고, 우선순위 1 묶음(창설 후보 대장 9명)의',
-  '전투 스프라이트를 그려 줘. 캐릭터마다 PNG 한 장:',
-  '- 1536x1024 가로 그림 한 장에 같은 캐릭터를 한 줄로 4번: ① 대기 ② 공격 준비 ③ 공격 타격 ④ 피격.',
-  '- 네 자세 모두 같은 크기, 발바닥이 같은 가로선 위, 오른쪽을 보는 정면 3/4 시점, 서로 닿지 않게 넉넉한 간격.',
-  '- 배경은 완전히 평평한 마젠타 #FF00FF. 바닥·그림자·글자·칸 선·효과(검기, 불꽃, 먼지) 금지.',
-  '- 요청서의 프롬프트를 그대로 쓰고, ref 에 적힌 초상화를 참고 이미지로 넣어 얼굴·머리·옷을 맞춘다.',
-  '- 저장: art/inbox/<요청서의 file 이름> (예: art/inbox/sheet_captain_blademaster.png). 이름을 바꾸지 말 것.',
-  '- 네 자세의 얼굴이 완벽히 같을 필요는 없지만 옷·색·무기·크기는 같아야 한다. 망가진 캐릭터만 다시 그린다.',
-  '- 끝나면 art/inbox/NOTES.md 에 만든 파일과 다시 그리고 싶은 것을 적고 art-inbox 브랜치에 푸시.',
-  '```',
+  '| 단계 | 누가 | 결과 |',
+  '|---|---|---|',
+  '| 디자인 초안 | NovelAI | `art/concepts/` (주인이 고른 것만, 디자인 참고용) |',
+  '| 자세 가이드 | 코드 (`tools/pixelart/posekit.py`) | 4등신 마네킹, 캐릭터마다 `guide_strip.png` |',
+  '| 최종 그림 | **GPT** | 한 화풍으로 통일한 1536x1024 띠 한 장씩 |',
+  '| 후처리 | `tools/art/sheets.py` | 80x80 칸 시트 + manifest |',
+  '',
+  '1. **바렌(`captain_blademaster`)을 먼저** 그리고 멈춘다 → 주인이 승인하면 그 그림이 **화풍 기준(앵커)** 이 된다.',
+  '2. 나머지 창설 후보 8명을 앵커에 맞춰 그린다 (아래 순서). 로드릭 기마(추가 선택, 게임 미사용)는 맨 마지막.',
+  '3. 그 다음 묶음(일반 병과·특별 용병·몬스터·나머지 대장)은 **9명이 끝난 뒤**. 아직 디자인 초안이 없어서 초상화(ref)와 아래 프롬프트를 쓴다.',
+  '',
+  '- **모두 4등신** (머리 = 선 키의 1/4). 예전의 "3등신 치비" 규칙은 폐기.',
+  '- 창설 후보 9명은 캐릭터마다 꾸러미 `art/requests/phase3/captain_<key>/` (concept.png · portrait.png · guide_1..4 · guide_strip.png · README.md)를 쓴다.',
+  '  꾸러미는 `python3 tools/art/handoff.py`로 다시 만든다.',
+  '- 그림 쪽에 붙여 넣을 메시지: **`art/requests/phase3_gpt.md`** (메시지 A = 바렌만, 메시지 B = 승인 후 나머지).',
   '',
   '## NovelAI로 만들 때 (코드 쪽, 사용자가 원할 때만)',
   '',
-  '각 항목의 **NovelAI** 프롬프트는 한 장에 한 자세(전투 대기 자세)를 만든다. `sheets.py`가 숨쉬기 idle 로 바꾸고,',
-  '공격·피격은 엔진(돌진·번쩍임·VFX)이 대신한다. 무료 범위(넓이 <= 1024x1024, 28 steps, 1장)로, 한 번에 몇 장씩만:',
+  '창설 후보 9명의 **NovelAI** 프롬프트는 주인이 고른 초안의 프롬프트·시드 그대로다 (`art/concepts/selections.json`). 나머지는 한 장에 한 자세(전투 대기 자세).',
+  '무료 범위(넓이 <= 1024x1024, 28 steps, 1장)로, 한 번에 몇 장씩만:',
   '',
   '```',
   'python3 tools/art/novelai.py --only sheet/captain/ironwall      # → art/inbox/sheet_captain_ironwall.png',
@@ -367,10 +415,11 @@ const md3 = [
 ];
 let cur3 = '';
 phase3.forEach((it) => {
-  const sec = `## ${it.priority}. ${it.group}`;
+  const sec = `## ${it.priority}. ${it.group}${it.after ? ' (창설 후보 9명 다음)' : ''}`;
   if (sec !== cur3) { md3.push(sec, ''); cur3 = sec; }
-  md3.push(`### ${it.name}`,
-    `- 파일: \`${it.file}\` · id: \`${it.id}\` · 생성: ${it.size} 1x4 띠 · 게임: ${it.out}${it.ref ? ` · 참고: \`${it.ref}\`` : ''}`,
+  md3.push(`### ${it.order ? `${it.order}. ` : ''}${it.name}`,
+    `- 파일: \`${it.file}\` · id: \`${it.id}\` · 생성: ${it.size} ${it.layout || '1x4'} ${it.layout === '2x2' ? '격자' : '띠'} · 게임: ${it.out}${it.ref ? ` · 참고: \`${it.ref}\`` : ''}`,
+    ...(it.package ? [`- 꾸러미: \`${it.package}/\` (README · concept · guide_strip)${it.style_anchor ? ` · 화풍 기준: \`${it.style_anchor}\`` : ' · **화풍 기준(앵커): 먼저 그리고 승인 대기**'}`] : []),
     '', '```', it.prompt, '```', '',
     '<details><summary>NovelAI (한 자세)</summary>', '', '```', it.nai.prompt, '', `Negative: ${it.nai.negative}`, '```', '', '</details>', '');
 });

@@ -13,5 +13,7 @@
 - NovelAI: `tools/art/novelai.py` may generate images **only when the user asks**, within the free tier
   (area <= 1024x1024, <= 28 steps, 1 image per call, `--max` 2 per run; no `--allow-paid` unless the user says so).
   The token is injected by the cloud proxy (or `NOVELAI_TOKEN` locally); never write it to files or logs.
+- GPT handoff (battle sprites): `python3 tools/art/handoff.py` builds `art/requests/phase3/<id>/` (concept, posekit guides,
+  `guide_strip.png` layout, README with the GPT prompt); rules in `art/requests/gpt_handoff_notes.md`, messages in `art/requests/phase3_gpt.md`.
 - Procedural pixel characters: `tools/pixelart/` (`python3 tools/pixelart/baren.py OUT_DIR`).
 - Aseprite: never commit Aseprite binaries (EULA forbids redistribution). Build notes only.

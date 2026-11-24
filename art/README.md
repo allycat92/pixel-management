@@ -12,9 +12,10 @@
 
 1. `art/STYLE.md`(화풍 기준), 지시받은 단계의 요청서 `art/requests/phaseN.md`, `art/requests/feedback.md`(피드백)를 읽는다.
    - 같은 내용의 기계용 목록은 `art/requests/phaseN.json`.
-   - **3단계(전투 캐릭터)**는 `phase3.md` 맨 위의 "그림 쪽에 그대로 붙여 넣을 지시"를 따른다: 캐릭터마다
-     1536×1024 한 장에 핵심 자세 4개를 한 줄로, 마젠타 `#FF00FF` 배경. 한 메시지에 여러 캐릭터를 한꺼번에 해도 된다.
-   - 승인된 그림 `art/inbox/captain_blademaster.png`, `captain_ironwall.png`, `captain_tactician.png`를 화풍 기준 그림으로 쓴다.
+   - **3단계(전투 캐릭터)**는 `art/requests/gpt_handoff_notes.md`(가장 우선)와 캐릭터 꾸러미 `art/requests/phase3/<id>/README.md`를 따른다:
+     캐릭터마다 1536×1024 한 장에 핵심 자세 4개를 한 줄로, 꾸러미의 `guide_strip.png`와 같은 배치, 마젠타 `#FF00FF` 배경.
+     **바렌을 먼저** 그리고 승인을 기다린다. 승인된 바렌 그림이 나머지 모두의 화풍 기준(앵커)이다 (아래 「GPT handoff」).
+   - 초상화(1단계)는 승인된 그림 `art/inbox/captain_blademaster.png`, `captain_ironwall.png`, `captain_tactician.png`를 화풍 기준 그림으로 쓴다.
 2. 요청받은 묶음의 그림을 프롬프트로 생성한다.
    - 프롬프트는 화풍 기준을 지키는 범위에서 다듬어도 된다.
    - 초상화는 **배경 투명 PNG**. 전투 캐릭터는 **평평한 마젠타 배경**(투명도 됨).
@@ -35,6 +36,22 @@
    - 전투 캐릭터(`sheet_*.png`)는 `python3 tools/art/sheets.py`로 처리한다 (아래 「전투 캐릭터 시트」).
 3. 게임은 `manifest.json`에 있는 그림을 쓰고, 없는 그림은 기존 코드 생성 도트로 대신한다. 그래서 일부만 들어와도 게임이 깨지지 않는다.
 4. 화면에서 확인한 뒤 고칠 점과 다음 묶음을 `art/requests/feedback.md`에 적어 푸시한다.
+
+## GPT handoff — 3단계 전투 캐릭터 (주인과 합의한 흐름)
+
+| 단계 | 누가 | 결과 |
+|---|---|---|
+| 1. 디자인 초안 | NovelAI (사용자가 원할 때만, 무료 범위) | `art/concepts/<id>/` — 주인이 고른 것만 (`selections.json`) |
+| 2. 자세 가이드 | 코드 `tools/pixelart/posekit.py` | 4등신 마네킹, 무기별 프레임 |
+| 3. 꾸러미 | 코드 `python3 tools/art/handoff.py` | `art/requests/phase3/<id>/` — concept · portrait · guide_1..4 · `guide_strip.png` · README(한국어 요약 + GPT용 영어 프롬프트) |
+| 4. 최종 그림 | **GPT** (한 화풍) | `art/inbox/sheet_<id>.png` → `art-inbox` 브랜치 |
+| 5. 후처리 | 코드 `python3 tools/art/sheets.py` | 80×80 칸 시트 + manifest |
+
+- NovelAI 초안끼리는 화풍·비율이 제각각이다 → **디자인(옷·색·무기·흉터)만** 가져오고, 비율은 posekit(4등신), 화풍은 앵커가 정한다.
+- 순서: 바렌(앵커) → 주인 승인 → 나머지 창설 후보 8명 → (선택) 로드릭 기마 → 그 뒤 일반 병과·특별 용병·몬스터·나머지 대장.
+- 주인이 그림 쪽에 붙여 넣을 메시지 A(바렌만) / B(승인 후 나머지): **`art/requests/phase3_gpt.md`**.
+- 꾸러미 다시 만들기: `node tools/art/requests.js && python3 tools/art/handoff.py` (같은 입력 → 같은 파일).
+  새 캐릭터는 `handoff.py`의 `CHARS`에 무기(posekit)·프레임·초안·고칠 점을 더한다. 직업·캐릭터별 posekit 자세 세트는 미뤘다 (일반 마네킹 + 가장 가까운 무기).
 
 ## 전투 캐릭터 시트 (코드 쪽)
 
@@ -62,6 +79,6 @@ python3 tools/art/sheets.py art/inbox/sheet_hero_kai.png --dry-run --work /tmp/s
 ## 단계
 - **1단계 (완료)**: 용병대장 33명 · 특별 용병 7명 · 재앙 수장 2명 초상화, 이벤트 그림 9장 — 총 51장.
 - 2단계 (예정): 전투 배경 7종, 길드 홀, 대륙 지도.
-- **3단계 (진행)**: 전투 캐릭터 시트 — 창설 후보 대장 9 → 일반 병과 5 → 특별 용병 7 → 지역 몬스터 22 → 나머지 대장 24 (`phase3.md`).
-  바렌(`sheet/captain/blademaster`)은 NovelAI 그림으로 먼저 들어갔다.
+- **3단계 (진행)**: 전투 캐릭터 시트 — 창설 후보 대장 9 (+ 로드릭 기마, 선택) → 일반 병과 5 → 특별 용병 7 → 지역 몬스터 22 → 나머지 대장 24 (`phase3.md`).
+  바렌(`sheet/captain/blademaster`)은 임시로 NovelAI 그림이 들어가 있다. GPT 의 승인된 바렌 그림이 오면 바꾼다.
 - 4단계 (예정): 깃발·문장, 의뢰서·UI 장식, 장비 아이콘.

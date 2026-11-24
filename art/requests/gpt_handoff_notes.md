@@ -48,3 +48,24 @@ Known inconsistencies in the current drafts (`art/requests/phase3/<id>/concept.p
    lighter outline so they read at 1x game scale.
 5. **Per-character message** = style anchor image + that character's concept draft + its pose
    guides + the per-character notes (what to keep, what to fix) from its `README.md`.
+
+## Per-character packages (built by code)
+
+`python3 tools/art/handoff.py` writes one folder per character, `art/requests/phase3/<id>/`:
+
+| file | what it is |
+|---|---|
+| `concept.png` | the owner's chosen NovelAI draft — DESIGN ONLY (Baren also `concept_pixel.png` = #8, how simple the shapes must stay) |
+| `portrait.png` | the approved portrait — face and hair only |
+| `guide_1_idle.png` .. `guide_4_hit.png` | posekit 4-head mannequin, 832x1216, one per key pose |
+| `guide_strip.png` | the four guides laid out EXACTLY as the deliverable: 1536x1024, flat #FF00FF, feet on y=870 (85%), 110 px per head for every character (idle ≈ 400 px ≈ 39%), figures never touching |
+| `README.md` | Korean summary for the owner + the English prompt block for GPT (keep / fix / do-not-copy / poses / deliverable / self-check) |
+
+- The old "figure about 55% of the height" could not fit four wide stances with weapons in 1536 px;
+  the guide strip (≈40%) is the size reference now. The pipeline normalises the idle height to 64 px anyway.
+- Weapons use the generic posekit mannequin with the closest weapon (per-class / per-character pose kits are deferred);
+  the README says what the placeholder becomes (tower shield, mace, cane, dagger ...).
+- Order: Baren (anchor, wait for approval) → ironwall, tactician, lancer, huntress, hedgemage, fieldmedic, fixer, veteran
+  → optional lancer mounted sheet (`sheet_captain_lancer_mounted.png`, 2x2 grid, wider cell, not used by the game yet;
+  the horse must have exactly one head) → later groups (classes, heroes, monsters, other captains) after the nine.
+- The copy-paste messages for the image agent are in `art/requests/phase3_gpt.md`.
