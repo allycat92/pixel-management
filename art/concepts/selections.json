@@ -67,5 +67,26 @@
   "sampler": "k_euler_ancestral",
   "prompt": "1girl, solo, full body, four heads tall, young female officer, long dark indigo hair, straight hair, black tricorne hat, charcoal military coat, gold epaulettes, gold buttons, leather belt, dark trousers, black boots, holding staff in one hand, pointing forward with other hand, giving orders, calm expression, standing, three-quarter view, facing right, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
   "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, multiple views, cropped, blurry, background scenery, ground shadow, extra arms, two heads, multiple heads, conjoined, extra head"
+ },
+ "captain_huntress": {
+  "job": "05_huntress",
+  "picks": [
+   {
+    "n": 4,
+    "file": "concept_04.png",
+    "role": "design reference",
+    "seed": 8112
+   }
+  ],
+  "model": "nai-diffusion-4-5-full",
+  "size": [
+   832,
+   1216
+  ],
+  "steps": 28,
+  "scale": 5.5,
+  "sampler": "k_euler_ancestral",
+  "prompt": "1girl, solo, full body, four heads tall, young huntress, long auburn hair, ponytail, ochre headband, freckles, olive green hooded tunic, leather vest, rope coil on belt, quiver on back, dark trousers, brown boots, holding bow, drawing bow, arrow nocked, aiming, wide stance, bent knees, three-quarter view, facing right, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+  "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, multiple views, cropped, blurry, background scenery, ground shadow, extra arms, two heads, multiple heads, conjoined, extra head"
  }
 }
