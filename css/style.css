@@ -317,7 +317,8 @@ h3 { font-size: 14px; margin: 8px 0; }
 
 .battle { display: flex; flex-direction: column; gap: 6px; }
 .battle-head { font-weight: bold; color: var(--gold); }
-.battle-canvas { width: 100%; height: auto; aspect-ratio: 320 / 180; border: 2px solid var(--shadow); display: block; image-rendering: pixelated; }
+/* 640x360 캔버스를 정수 배율(1배, 고해상도 화면에선 2배)로 보여 도트가 고르게 찍히게 한다. 좁은 화면에서만 줄어든다. */
+.battle-canvas { width: 100%; height: auto; aspect-ratio: auto 320 / 180; border: 2px solid var(--shadow); display: block; image-rendering: pixelated; box-sizing: border-box; }
 .battle-timer { float: right; color: var(--muted, #b8a98a); font-weight: normal; }
 .modal-body:has(.battle) { max-width: 760px; }
 .battle-roster { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 11px; }
@@ -570,7 +571,7 @@ img.art { image-rendering: pixelated; display: block; }
 .event-art { width: 100%; height: auto; max-height: 240px; aspect-ratio: 16 / 9; object-fit: cover; border: 2px solid var(--shadow); margin: 6px 0; }
 
 /* 전투 컷인 */
-.battle-stage { position: relative; }
+.battle-stage { position: relative; width: 100%; max-width: 644px; margin: 0 auto; }
 .cutin { position: absolute; left: 0; right: 0; top: 18%; height: 34%; display: flex; align-items: center; gap: 10px;
   padding: 0 4%; background: linear-gradient(90deg, rgba(27, 20, 32, 0.92) 0%, rgba(27, 20, 32, 0.75) 60%, rgba(27, 20, 32, 0) 100%);
   border-top: 2px solid var(--gold); border-bottom: 2px solid var(--gold); opacity: 0; pointer-events: none; transform: translateX(-30%); }
