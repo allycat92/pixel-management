@@ -123,9 +123,9 @@ const BATTLE_BGS = [
   ['coast', '해안', 'Rocky seashore with a harbor town in the distance, sea horizon, blue sky with gulls far away'],
 ];
 const phase2 = BATTLE_BGS.map(([key, name, desc]) => ({
-  id: `bg/battle/${key}`, file: `bg_battle_${key}.png`, kind: 'background', size: '1536x864', out: '320x180',
+  id: `bg/battle/${key}`, file: `bg_battle_${key}.png`, kind: 'background', size: '1536x864', out: '640x360',
   name: `전투 배경 — ${name}`,
-  prompt: `${desc}. Side-view battlefield background: sky and distant scenery fill only the top third; the lower two thirds are FLAT, open, walkable ground seen from a slight high angle, with little detail so small sprites standing on it stay readable. ${BG_TAIL}`,
+  prompt: `${desc}. Moody, richly painted HD pixel-art battlefield in a modern indie 2D game style, slightly dark and atmospheric. Layered depth: distant scenery and tree line in the top third, a mid layer of bushes, rocks, ruins or fences along the horizon, and a wide, FLAT, open, walkable ground area in the lower two thirds seen from a slight high angle (textured soil, scattered grass tufts and small stones, a faint dirt path). Keep the center of the ground calm and low-contrast so small character sprites stay readable; put denser foliage only near the left and right edges. ${BG_TAIL}`,
 }));
 phase2.push({
   id: 'bg/guild/day', file: 'bg_guild_day.png', kind: 'background', size: '1536x576', out: '320x120',

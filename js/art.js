@@ -41,5 +41,8 @@ const Art = (() => {
     event: (key) => `event/${key}`,
   };
 
-  return { load, has, img, idOf, count: () => Object.keys(manifest).length };
+  // 캔버스에 그릴 그림 (불러오기가 끝난 것만)
+  const image = (id) => (images[id] && images[id].complete && images[id].naturalWidth ? images[id] : null);
+
+  return { load, has, img, image, idOf, count: () => Object.keys(manifest).length };
 })();

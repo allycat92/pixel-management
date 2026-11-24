@@ -6,59 +6,59 @@
 총 10장 · 결과물은 `art/inbox/<file>`에 PNG로 넣는다. 배경은 투명이 아니라 꽉 찬 그림.
 
 ### 전투 배경 — 평원
-- 파일: `bg_battle_plains.png` · 생성 크기: 1536x864 · 게임 내 크기: 320x180
+- 파일: `bg_battle_plains.png` · 생성 크기: 1536x864 · 게임 내 크기: 640x360
 
 ```
-Open green grassland under a bright blue sky, distant rolling hills, a few wildflowers. Side-view battlefield background: sky and distant scenery fill only the top third; the lower two thirds are FLAT, open, walkable ground seen from a slight high angle, with little detail so small sprites standing on it stay readable. Pixel art background in a 16-bit fantasy JRPG style, limited palette (about 48 colors), clean pixel clusters, no anti-aliasing, no text, no watermark, no UI, NO characters or creatures.
+Open green grassland under a bright blue sky, distant rolling hills, a few wildflowers. Moody, richly painted HD pixel-art battlefield in a modern indie 2D game style, slightly dark and atmospheric. Layered depth: distant scenery and tree line in the top third, a mid layer of bushes, rocks, ruins or fences along the horizon, and a wide, FLAT, open, walkable ground area in the lower two thirds seen from a slight high angle (textured soil, scattered grass tufts and small stones, a faint dirt path). Keep the center of the ground calm and low-contrast so small character sprites stay readable; put denser foliage only near the left and right edges. Pixel art background in a 16-bit fantasy JRPG style, limited palette (about 48 colors), clean pixel clusters, no anti-aliasing, no text, no watermark, no UI, NO characters or creatures.
 ```
 
 ### 전투 배경 — 숲
-- 파일: `bg_battle_forest.png` · 생성 크기: 1536x864 · 게임 내 크기: 320x180
+- 파일: `bg_battle_forest.png` · 생성 크기: 1536x864 · 게임 내 크기: 640x360
 
 ```
-Edge of a dense old forest, tall dark trees at the back, mossy clearing in front. Side-view battlefield background: sky and distant scenery fill only the top third; the lower two thirds are FLAT, open, walkable ground seen from a slight high angle, with little detail so small sprites standing on it stay readable. Pixel art background in a 16-bit fantasy JRPG style, limited palette (about 48 colors), clean pixel clusters, no anti-aliasing, no text, no watermark, no UI, NO characters or creatures.
+Edge of a dense old forest, tall dark trees at the back, mossy clearing in front. Moody, richly painted HD pixel-art battlefield in a modern indie 2D game style, slightly dark and atmospheric. Layered depth: distant scenery and tree line in the top third, a mid layer of bushes, rocks, ruins or fences along the horizon, and a wide, FLAT, open, walkable ground area in the lower two thirds seen from a slight high angle (textured soil, scattered grass tufts and small stones, a faint dirt path). Keep the center of the ground calm and low-contrast so small character sprites stay readable; put denser foliage only near the left and right edges. Pixel art background in a 16-bit fantasy JRPG style, limited palette (about 48 colors), clean pixel clusters, no anti-aliasing, no text, no watermark, no UI, NO characters or creatures.
 ```
 
 ### 전투 배경 — 늪지
-- 파일: `bg_battle_swamp.png` · 생성 크기: 1536x864 · 게임 내 크기: 320x180
+- 파일: `bg_battle_swamp.png` · 생성 크기: 1536x864 · 게임 내 크기: 640x360
 
 ```
-Murky swamp with dead trees, reeds and shallow dark water at the back, foggy grey-green sky. Side-view battlefield background: sky and distant scenery fill only the top third; the lower two thirds are FLAT, open, walkable ground seen from a slight high angle, with little detail so small sprites standing on it stay readable. Pixel art background in a 16-bit fantasy JRPG style, limited palette (about 48 colors), clean pixel clusters, no anti-aliasing, no text, no watermark, no UI, NO characters or creatures.
+Murky swamp with dead trees, reeds and shallow dark water at the back, foggy grey-green sky. Moody, richly painted HD pixel-art battlefield in a modern indie 2D game style, slightly dark and atmospheric. Layered depth: distant scenery and tree line in the top third, a mid layer of bushes, rocks, ruins or fences along the horizon, and a wide, FLAT, open, walkable ground area in the lower two thirds seen from a slight high angle (textured soil, scattered grass tufts and small stones, a faint dirt path). Keep the center of the ground calm and low-contrast so small character sprites stay readable; put denser foliage only near the left and right edges. Pixel art background in a 16-bit fantasy JRPG style, limited palette (about 48 colors), clean pixel clusters, no anti-aliasing, no text, no watermark, no UI, NO characters or creatures.
 ```
 
 ### 전투 배경 — 사막
-- 파일: `bg_battle_desert.png` · 생성 크기: 1536x864 · 게임 내 크기: 320x180
+- 파일: `bg_battle_desert.png` · 생성 크기: 1536x864 · 게임 내 크기: 640x360
 
 ```
-Red-orange desert with dunes and sandstone mesas, hot orange sky. Side-view battlefield background: sky and distant scenery fill only the top third; the lower two thirds are FLAT, open, walkable ground seen from a slight high angle, with little detail so small sprites standing on it stay readable. Pixel art background in a 16-bit fantasy JRPG style, limited palette (about 48 colors), clean pixel clusters, no anti-aliasing, no text, no watermark, no UI, NO characters or creatures.
+Red-orange desert with dunes and sandstone mesas, hot orange sky. Moody, richly painted HD pixel-art battlefield in a modern indie 2D game style, slightly dark and atmospheric. Layered depth: distant scenery and tree line in the top third, a mid layer of bushes, rocks, ruins or fences along the horizon, and a wide, FLAT, open, walkable ground area in the lower two thirds seen from a slight high angle (textured soil, scattered grass tufts and small stones, a faint dirt path). Keep the center of the ground calm and low-contrast so small character sprites stay readable; put denser foliage only near the left and right edges. Pixel art background in a 16-bit fantasy JRPG style, limited palette (about 48 colors), clean pixel clusters, no anti-aliasing, no text, no watermark, no UI, NO characters or creatures.
 ```
 
 ### 전투 배경 — 설원
-- 파일: `bg_battle_frost.png` · 생성 크기: 1536x864 · 게임 내 크기: 320x180
+- 파일: `bg_battle_frost.png` · 생성 크기: 1536x864 · 게임 내 크기: 640x360
 
 ```
-Snowy canyon with icy cliffs and pine trees, pale blue sky. Side-view battlefield background: sky and distant scenery fill only the top third; the lower two thirds are FLAT, open, walkable ground seen from a slight high angle, with little detail so small sprites standing on it stay readable. Pixel art background in a 16-bit fantasy JRPG style, limited palette (about 48 colors), clean pixel clusters, no anti-aliasing, no text, no watermark, no UI, NO characters or creatures.
+Snowy canyon with icy cliffs and pine trees, pale blue sky. Moody, richly painted HD pixel-art battlefield in a modern indie 2D game style, slightly dark and atmospheric. Layered depth: distant scenery and tree line in the top third, a mid layer of bushes, rocks, ruins or fences along the horizon, and a wide, FLAT, open, walkable ground area in the lower two thirds seen from a slight high angle (textured soil, scattered grass tufts and small stones, a faint dirt path). Keep the center of the ground calm and low-contrast so small character sprites stay readable; put denser foliage only near the left and right edges. Pixel art background in a 16-bit fantasy JRPG style, limited palette (about 48 colors), clean pixel clusters, no anti-aliasing, no text, no watermark, no UI, NO characters or creatures.
 ```
 
 ### 전투 배경 — 화산 산맥
-- 파일: `bg_battle_mountain.png` · 생성 크기: 1536x864 · 게임 내 크기: 320x180
+- 파일: `bg_battle_mountain.png` · 생성 크기: 1536x864 · 게임 내 크기: 640x360
 
 ```
-Volcanic mountain range with lava cracks and smoke, dark red sky (the Dragon Spine). Side-view battlefield background: sky and distant scenery fill only the top third; the lower two thirds are FLAT, open, walkable ground seen from a slight high angle, with little detail so small sprites standing on it stay readable. Pixel art background in a 16-bit fantasy JRPG style, limited palette (about 48 colors), clean pixel clusters, no anti-aliasing, no text, no watermark, no UI, NO characters or creatures.
+Volcanic mountain range with lava cracks and smoke, dark red sky (the Dragon Spine). Moody, richly painted HD pixel-art battlefield in a modern indie 2D game style, slightly dark and atmospheric. Layered depth: distant scenery and tree line in the top third, a mid layer of bushes, rocks, ruins or fences along the horizon, and a wide, FLAT, open, walkable ground area in the lower two thirds seen from a slight high angle (textured soil, scattered grass tufts and small stones, a faint dirt path). Keep the center of the ground calm and low-contrast so small character sprites stay readable; put denser foliage only near the left and right edges. Pixel art background in a 16-bit fantasy JRPG style, limited palette (about 48 colors), clean pixel clusters, no anti-aliasing, no text, no watermark, no UI, NO characters or creatures.
 ```
 
 ### 전투 배경 — 성역
-- 파일: `bg_battle_holy.png` · 생성 크기: 1536x864 · 게임 내 크기: 320x180
+- 파일: `bg_battle_holy.png` · 생성 크기: 1536x864 · 게임 내 크기: 640x360
 
 ```
-Sacred pilgrimage grounds with white stone ruins, a distant cathedral spire, calm golden sky. Side-view battlefield background: sky and distant scenery fill only the top third; the lower two thirds are FLAT, open, walkable ground seen from a slight high angle, with little detail so small sprites standing on it stay readable. Pixel art background in a 16-bit fantasy JRPG style, limited palette (about 48 colors), clean pixel clusters, no anti-aliasing, no text, no watermark, no UI, NO characters or creatures.
+Sacred pilgrimage grounds with white stone ruins, a distant cathedral spire, calm golden sky. Moody, richly painted HD pixel-art battlefield in a modern indie 2D game style, slightly dark and atmospheric. Layered depth: distant scenery and tree line in the top third, a mid layer of bushes, rocks, ruins or fences along the horizon, and a wide, FLAT, open, walkable ground area in the lower two thirds seen from a slight high angle (textured soil, scattered grass tufts and small stones, a faint dirt path). Keep the center of the ground calm and low-contrast so small character sprites stay readable; put denser foliage only near the left and right edges. Pixel art background in a 16-bit fantasy JRPG style, limited palette (about 48 colors), clean pixel clusters, no anti-aliasing, no text, no watermark, no UI, NO characters or creatures.
 ```
 
 ### 전투 배경 — 해안
-- 파일: `bg_battle_coast.png` · 생성 크기: 1536x864 · 게임 내 크기: 320x180
+- 파일: `bg_battle_coast.png` · 생성 크기: 1536x864 · 게임 내 크기: 640x360
 
 ```
-Rocky seashore with a harbor town in the distance, sea horizon, blue sky with gulls far away. Side-view battlefield background: sky and distant scenery fill only the top third; the lower two thirds are FLAT, open, walkable ground seen from a slight high angle, with little detail so small sprites standing on it stay readable. Pixel art background in a 16-bit fantasy JRPG style, limited palette (about 48 colors), clean pixel clusters, no anti-aliasing, no text, no watermark, no UI, NO characters or creatures.
+Rocky seashore with a harbor town in the distance, sea horizon, blue sky with gulls far away. Moody, richly painted HD pixel-art battlefield in a modern indie 2D game style, slightly dark and atmospheric. Layered depth: distant scenery and tree line in the top third, a mid layer of bushes, rocks, ruins or fences along the horizon, and a wide, FLAT, open, walkable ground area in the lower two thirds seen from a slight high angle (textured soil, scattered grass tufts and small stones, a faint dirt path). Keep the center of the ground calm and low-contrast so small character sprites stay readable; put denser foliage only near the left and right edges. Pixel art background in a 16-bit fantasy JRPG style, limited palette (about 48 colors), clean pixel clusters, no anti-aliasing, no text, no watermark, no UI, NO characters or creatures.
 ```
 
 ### 길드 홀 실내 — 낮
