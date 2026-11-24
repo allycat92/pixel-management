@@ -15,7 +15,7 @@ CHARACTER: a curved scimitar in the near hand (where the guide holds the sword, 
 
 COLOURS (keep close, muted): skin #c68a5c; head wrap, robe sand #e8d5a3 (muted, shaded toward warm grey; never white); vest, sash, boots brown #8d5a3b; scimitar NEUTRAL steel grey.
 
-FROM concept.png (the owner's pick, NovelAI draft #5; design only) TAKE: the sand head wrap and face veil, the loose sand tunic with wrapped forearms, an open vest, a sash with a long cloth flap hanging at the front, very baggy trousers gathered at the shins, dark wrapped boots, the low wide fighting stance with the free hand raised as a guard.
+FROM concept.png (the owner's pick, NovelAI draft #5; design only) TAKE: the sand head wrap and face veil, the loose sand tunic with wrapped forearms, an open vest, a sash with a long cloth flap hanging at the front, very baggy trousers gathered at the shins, dark wrapped boots, the alert fighting attitude with the free hand raised as a guard (attitude only: legs, stance width, crouch depth and size exactly as guide_strip.png).
 
 FIX (do not reproduce the draft here):
   - a common monster seen in large numbers: an ordinary member of its kind, no unique features, no crown, banner or trophy
@@ -77,7 +77,7 @@ SELF-CHECK before saving (redraw if any fails):
 - 자세(가이드 프레임): ① 대기 `idle_0` ② 공격 준비 `key_windup` ③ 공격 타격 `key_strike` ④ 피격 `key_hit` (`key_*` = handoff.py 의 KEY_POSES: 준비는 체중 뒤로, 타격은 내딛는 런지, 피격은 상체가 뒤로 젖혀짐)
 - 초안에서 가져올 것: 모래색 머리 두건과 얼굴 가리개(눈만 보임), 헐렁한 모래색 겉옷, 갈색 가죽 조끼·허리 천, 통 넓은 바지와 장화, 곡도(시미터) 하나.
 - 고칠 것: 방패 없음 — 가이드의 둥근 방패 자리는 빈손(막는 자세). 모래색이 사막 배경에 묻히지 않게 외곽선·명암 분명히.
-- **초안** `concept.png` = `art/concepts/monster_desert-bandit/concept_05.png` (주인이 고른 #5, 디자인만) — 가져올 것: 모래색 머리 두건과 얼굴 가리개, 팔뚝을 감은 헐렁한 모래색 상의, 앞이 열린 조끼, 앞에 긴 천이 늘어진 허리 천, 정강이에서 모인 아주 헐렁한 바지, 감싼 짙은 장화, 낮고 넓은 자세와 막는 빈손.
+- **초안** `concept.png` = `art/concepts/monster_desert-bandit/concept_05.png` (주인이 고른 #5, 디자인만) — 가져올 것: 모래색 머리 두건과 얼굴 가리개, 팔뚝을 감은 헐렁한 모래색 상의, 앞이 열린 조끼, 앞에 긴 천이 늘어진 허리 천, 정강이에서 모인 아주 헐렁한 바지, 감싼 짙은 장화, 싸울 태세와 막는 빈손(태도만 — 다리·자세 폭·크기는 guide_strip.png 그대로).
 - **초안에서 고칠 것** (영어 블록 FIX 끝부분): 머리는 정확히 하나(같은 초안의 다른 장들은 머리가 둘). 낫 같은 거대한 초승달 칼 → 가이드 칼 길이의 보통 곡도(적당히 휨), 가이드 손. 고글처럼 보이는 눈 틈 → 피부색 좁은 틈과 두 눈(고글 없음). 와인빛 조끼·허리 천 → 갈색 #8d5a3b.
 - 초안에서 가져오지 말 것: 비율(등신), 칠하는 방식, 외곽선 굵기, 채도, 조명, 디테일 양 — 모두 4등신·앵커 화풍으로 통일.
 - 가이드 띠: 머리 하나 = 110 px (모든 캐릭터 같음). 선 키라면 440 px 이지만 대기 자세가 웅크려서 정수리~발바닥 약 401 px(높이의 39%). 모자·투구·깃털·무기는 따로. 발바닥(맨 아래 픽셀) y=870.

@@ -65,7 +65,9 @@ Known inconsistencies in the current drafts (`art/requests/phase3/<id>/concept.p
    the upper left, muted hue-shifted palette, dark non-black selective outlines, same character
    scale. Head = 110 px; standing height would be 440 px, but the guide idle pose is crouched, so
    idle top-of-head to sole is about 400 px (headgear and weapons are extra and not counted).
-   Soles (lowest pixel) on y=870. Only the 1x4 row is asked for (no 2x2 grid, no single pose).
+   Soles (lowest pixel) on y=870. Layout: the 1x4 row for captains, generic classes and the humanoid / wraith monsters
+   (no single pose); a 2x2 grid of 768x512 quadrants only where the package README's DELIVERABLE says so (the wide
+   wolf, harpy, gargoyle and giant spider, and the optional mounted lancer). The README DELIVERABLE decides.
 3. **Poses come from posekit guides only:** match the guide's pose, limb lengths and proportions
    exactly; the draft only says what the character wears and carries.
 4. **Readability on the dark battlefield:** very dark or very bright outfits get a rim light /
@@ -115,14 +117,27 @@ One sheet per base class (warrior, archer, mage, cleric, rogue) is shared by eve
 soldier, friend and foe; promoted classes fall back to it. The engine recolours the uniform per faction by replacing
 EXACT colours (`js/battle.js` `sheetRecolor`: key -> faction colour x key luminance / mean luminance of that role's keys).
 
-- outfit keys (tabard / robe and high collar / hooded tunic and mask / cowl and veil / hood and cape, the warrior's shield face), dark to light:
+- outfit keys (tabard / the mage's hat, robe with shoulder capelet and high collar / hooded tunic and mask / cowl and veil /
+  hood and cape, the warrior's shield face), dark to light:
   `#263459` `#394b78` `#52679c` `#7489be`
-- accent keys (trim, sash, hood / cowl edge, hat band, the cleric's chest disc, the rogue's scarf), dark to light:
+- accent keys (trim, sash, hood / cowl edge, hat band, the mage's front trim line and capelet edge, the cleric's chest disc,
+  the rogue's scarf), dark to light:
   `#3f7a6c` `#5ea590` `#96d1bb`
 - flat fills only on those areas (no dithering, gradients, texture or in-between shades); the seven keys appear nowhere
   else, and nothing else on the figure is blue, slate, teal or mint (steel is neutral grey, leather and wood warm brown,
   other shadows warm or neutral - this overrides the general "shadows toward purple/blue" rule for these sheets).
-- no emblem or heraldry (the faction colour comes from the keys).
+- every NON-key colour of the figure (outline and shadows included) stays at RGB distance >= 50 from all seven keys:
+  `sheets.py` snaps colours within 34 (`KEY_TOL`) onto the keys, and shades 34-50 away stay as untinted blue islands.
+  Do NOT reuse the anchor's dark violet-navy outline / shadow colours on these sheets (#474269, #2c2840, #28253c,
+  #444061 ... are about 25% of Baren's figure pixels and lie within 34 of #263459 / #394b78, so the faction recolour
+  would tint every outline): use a warm / neutral dark ramp, e.g. outline `#2a2220`, shadows `#3a2e2a` / `#4a3a2e`.
+  Match the anchor's outline weight and placement, not its hue. A final "snap the uniform areas to the nearest key"
+  palette pass on the figure is allowed. Each class README has a one-line Python check: pixel count per exact key and
+  the near-key non-key pixels (distance 1-49, target 0).
+- covered heads keep the scale: the helm / hood / cowl / brim-and-collar encloses the 110 px head (outer silhouette
+  ~115-125 px); it does not sit around a full 110 px head and enlarge the figure.
+- no emblem or heraldry (the faction colour comes from the keys). The cleric's plain filled accent-key chest disc is the one
+  allowed shape: it is not an emblem.
 - **faces covered (owner request):** one generic sheet stands for many different people, so the base-class outfits
   hide or shade the face where it suits the class — warrior: closed helm, visor down (eye slit only); archer: hood up +
   cloth mask over the lower face; mage: hat brim pulled low + high collar, face in shadow; cleric: deep cowl + veil, face

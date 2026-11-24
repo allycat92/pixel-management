@@ -9,16 +9,19 @@
 ```
 TASK: draw the battle-sprite strip of the GENERIC archer class sprite (궁수). This ONE sheet is shared by every nameless mercenary and faction soldier of this class, friend and foe, and the game recolours its uniform per faction (see KEY COLOURS). Save it as art/inbox/sheet_class_archer.png on the art-inbox branch (a new file there; do not rename). In a chat without repository access, return the PNG in the chat instead.
 
-CHARACTER: a short recurve bow the size of the guide bow (brown wood), a brown leather quiver of arrows on the back; the FACE is covered or in shadow (see the headgear below), because this one sprite stands for hundreds of different soldiers; whatever little of the face shows is generic, with no scars, marks or distinctive features; the HOOD of the tunic is UP, and a cloth MASK covers the lower face up to the nose, so only a shadowed strip around the eyes shows (hair hidden); knee-length HOODED TUNIC; brown leather vest over the tunic; leather bracers; dark trousers, brown boots; lean build.
+CHARACTER: a short recurve bow the size of the guide bow (brown wood), a brown leather quiver of arrows on the back; the FACE is covered or in shadow (see the headgear below), because this one sprite stands for hundreds of different soldiers; whatever little of the face shows is generic, with no scars, marks or distinctive features; the HOOD of the tunic is UP, and a cloth MASK covers the lower face up to the nose, so only a narrow warm-dark shadow strip at eye level shows, no skin (hair hidden); knee-length HOODED TUNIC; brown leather vest over the tunic; leather bracers; dark trousers, brown boots; lean build.
 
 KEY COLOURS (the most important rule of this sheet): ONE sheet is shared by every faction and company, and the game recolours the uniform at runtime by replacing these EXACT colours with the faction colours, keeping their light/dark steps.
   - OUTFIT keys = the hooded tunic (hood, sleeves, skirt of the tunic) and the face mask, darkest to lightest: #263459 (deep shadow, folds), #394b78 (shadow), #52679c (base), #7489be (lit side)
   - ACCENT keys = the hood's front edge and the tunic's hem trim, darkest to lightest: #3f7a6c (shadow), #5ea590 (base), #96d1bb (lit)
   - flat fills only on these areas: no dithering, gradient, noise, texture, soft blending or in-between shades; their shading uses only these steps
   - these seven colours appear NOWHERE else (not on metal, skin, hair, leather, eyes, outline or background), and nothing else on the figure is blue, slate, teal or mint: steel is NEUTRAL grey, leather and wood are warm browns, shadows on the other parts are warm or neutral, never blue (this overrides the general "shadows toward purple/blue" style rule for this sheet)
-  - outline the uniform with the normal dark outline (not a key colour); after export, check with a colour picker that the uniform pixels are exactly these hex values
+  - every NON-key colour on the figure (outline, shadows, metal, leather, skin, eyes ...) must be at RGB distance sqrt(dR^2 + dG^2 + dB^2) >= 50 from all seven keys: the pipeline snaps colours within 34 of a key ONTO the key (so they get recoloured), and shades 34-50 away stay as untinted blue islands
+  - outline and shadows: use a warm / neutral dark ramp, e.g. outline #2a2220, shadows #3a2e2a / #4a3a2e, and outline the uniform with that same warm dark (never a key colour). Do NOT reuse the anchor (Baren)'s dark violet-navy outline and shadow colours (#474269, #2c2840, #28253c, #444061 ...) on this sheet: they are within the snap distance of the outfit keys, so the game would recolour every outline and shadow with the faction colour. Match the anchor's outline WEIGHT and placement, not its hue
+  - anti-aliased, blended or compressed in-between shades of the keys are failures. A final palette pass that snaps every pixel of the uniform areas to its nearest key is allowed (figure only; never snap other parts or the background onto a key)
+  - after export, run this check from the repository root (in a chat, run it on your PNG if you can run Python): python3 -c "from PIL import Image; import numpy as np; K=['263459','394b78','52679c','7489be','3f7a6c','5ea590','96d1bb']; k=np.array([[int(h[i:i+2],16) for i in (0,2,4)] for h in K]); a=np.asarray(Image.open('art/inbox/sheet_class_archer.png').convert('RGBA')).astype(int); p=a[...,:3][(a[...,3]>127)&(np.sqrt(((a[...,:3]-[255,0,255])**2).sum(-1))>=150)]; d=np.sqrt(((p[:,None,:]-k[None])**2).sum(-1)); m=d.min(1); print('exact key pixels:', {'#'+h: int((d[:,i]==0).sum()) for i,h in enumerate(K)}); print('near-key non-key pixels (distance 1-49, target 0):', int(((m>0)&(m<50)).sum()))" - it prints the pixel count of each exact key (each key you used > 0) and the near-key non-key pixels (target 0)
 
-COLOURS of everything else (keep close, muted): skin (the strip around the eyes, in shadow) #e0ac7e shaded warm; vest, bracers, quiver, bow warm browns; arrowheads NEUTRAL steel grey.
+COLOURS of everything else (keep close, muted): eye strip warm-dark shadow #3a2e2a with at most two tiny eye glints - no skin visible (gloved hands, no skin anywhere); vest, bracers, quiver, bow warm browns; arrowheads NEUTRAL steel grey.
 
 FROM concept.png (the owner's pick, NovelAI draft #10; design only) TAKE: the hood up with the face mask running down into a short cowl over the shoulders (hood, mask and cowl one cloth), long-sleeved knee-length tunic with a flared skirt, small brown leather bodice-vest with one diagonal strap, brown belt with pouches, long brown gloves / bracers, tall brown boots with turned-down cuffs, a quiver of arrows on the back.
 
@@ -26,6 +29,7 @@ FIX (do not reproduce the draft here):
   - the face stays covered / shadowed the SAME way in ALL FOUR poses: the visor, hood, mask, brim or veil never slips, opens or falls back, not even in the hit pose; the shadowed face is a warm or neutral dark (e.g. #3a2e2a), never blue and never a key colour
   - an arrow appears ONLY on the drawn bow in the wind-up; after the release (strike) there is NO flying arrow (the engine draws projectiles)
   - the leather vest stays brown and small, so the tunic underneath still shows clearly on the chest, sleeves and skirt
+  - HEAD SIZE: the hood and the mask enclose the 110 px head (outer silhouette about 115-125 px from crown to chin); do not draw a 110 px head and then a bigger helm / hood around it, and do not enlarge the figure (this overrides "headgear is extra" in DELIVERABLE for this sheet)
   - the draft's slate-blue / teal / cyan cloth only marks WHERE the key colours go: repaint those areas with the exact KEY COLOURS ramps above (flat), never with the draft's own blues, teals or cyans
   - the draft face opening is a pure-black void with no eyes: a narrow warm-dark shadow strip at eye level (#3a2e2a family, at most two tiny eye glints); the mask still covers everything below the nose
   - the draft bow is a long bow whose string line breaks and crosses the body: a short recurve bow the size of the guide bow with ONE clean string; an arrow only on the drawn bow in the wind-up
@@ -39,7 +43,7 @@ POSES (the guide mannequin fixes pose, proportions, size and position; its colou
   4. hit reaction: torso thrown back, weight on the rear leg, head jerked back, hood and mask still in place; bow dropped low-forward, drawing hand flung back
 
 REFERENCES (folder art/requests/phase3/class_archer/ on branch claude/dot-fantasy-management-game-saupju: https://github.com/allycat92/pixel-management/tree/claude/dot-fantasy-management-game-saupju/art/requests/phase3/class_archer ; in a chat they are the attached images):
-  - art/inbox/sheet_captain_blademaster.png on the art-inbox branch (in a chat: the attached approved Baren sheet) = the APPROVED STYLE ANCHOR. Match its proportions, rendering, outline, palette treatment, lighting and character scale exactly
+  - art/inbox/sheet_captain_blademaster.png on the art-inbox branch (in a chat: the attached approved Baren sheet) = the APPROVED STYLE ANCHOR. Match its proportions, rendering, outline, palette treatment, lighting and character scale exactly - EXCEPT its dark violet-navy outline and shadow colours: on this sheet they would turn into key colours (use the warm dark ramp #2a2220 / #3a2e2a / #4a3a2e, see KEY COLOURS)
   - guide_strip.png (layout + poses + size: the most important reference)
   - guide_1_idle.png .. guide_4_hit.png (the same four poses, larger)
   - concept.png (DESIGN ONLY)
@@ -68,7 +72,7 @@ SELF-CHECK before saving (redraw if any fails):
   [ ] soles of all four on y = 870; same size in all four; head ~110 px; idle ~401 px without headgear
   [ ] 4 heads tall; front three-quarter view facing right; light from the upper left
   [ ] same face, hair, outfit, colours and weapon in all four poses; exactly the weapons in CHARACTER (nothing extra)
-  [ ] the uniform (the hooded tunic (hood, sleeves, skirt of the tunic) and the face mask) uses ONLY the four outfit keys and the trim (the hood's front edge and the tunic's hem trim) ONLY the three accent keys, exact hex, flat; the seven keys appear nowhere else and nothing else on the figure is blue, slate, teal or mint
+  [ ] the uniform (the hooded tunic (hood, sleeves, skirt of the tunic) and the face mask) uses ONLY the four outfit keys and the trim (the hood's front edge and the tunic's hem trim) ONLY the three accent keys, exact hex, flat; the seven keys appear nowhere else and nothing else on the figure is blue, slate, teal or mint; every other figure colour (outline and shadows included) is at RGB distance >= 50 from all seven keys: the key check prints 0 near-key pixels
   [ ] every FIX applied
   [ ] no text, floor, shadow, effects or projectiles; >= 32 px of magenta between figures and from the border
   [ ] no figure pixel is #FF00FF or magenta-like (every figure colour at RGB distance >= 150 from #FF00FF)
@@ -80,6 +84,8 @@ SELF-CHECK before saving (redraw if any fails):
 - 순서: 일반 병과 **2번째** (메시지 D, 대장 9명 다음) — 승인된 바렌 그림(`art-inbox` 브랜치의 `art/inbox/sheet_captain_blademaster.png`)의 화풍에 맞춘다.
 - **얼굴 가림** (주인 요청): 이 그림 한 장을 서로 다른 여러 사람이 같이 쓰므로 얼굴이 가려지는 복장 — 궁수는 후드 + 코 아래를 가린 천 마스크. 네 자세 모두 같은 만큼 가린다(피격 때도 벗겨지지 않음). 가려진 얼굴 그늘은 따뜻하거나 중성인 어두운 색(파랑·열쇠 색 금지). 상급·최상급 직업은 어울릴 때만, 억지로 하지 않는다.
 - **열쇠 색** (전투에서 진영 색으로 바뀐다): 제복 `#263459` `#394b78` `#52679c` `#7489be`, 장식 `#3f7a6c` `#5ea590` `#96d1bb` — 이 7색은 그 자리에만, 평평하게. 다른 곳에는 파랑·청회색·청록을 쓰지 않는다.
+- **열쇠 색 거리**: 열쇠 색이 아닌 모든 색(외곽선·그늘 포함)은 7색 모두와 RGB 거리 50 이상 — `sheets.py`는 거리 34 안을 열쇠 색으로 붙인다. 바렌의 남보라 외곽선·그늘(#474269 등)은 그 안이라 쓰지 않고 따뜻한 어둠 `#2a2220` / `#3a2e2a` / `#4a3a2e`을 쓴다. 영어 블록 KEY COLOURS 의 확인 한 줄이 열쇠 색별 픽셀 수와 「열쇠 색 근처 픽셀」(목표 0)을 센다.
+- **머리 크기**: 투구·후드·두건·모자 챙과 깃이 110px 머리를 감싼다(바깥 실루엣 약 115~125px). 머리 110px 위에 더 큰 투구를 씌워 인물을 키우지 않는다.
 - 결과 파일: `art/inbox/sheet_class_archer.png` (id `sheet/class/archer`)
 - 무기: posekit `bow` 마네킹 → a short recurve bow the size of the guide bow (brown wood), a brown leather quiver of arrows on the back
 - 자세(가이드 프레임): ① 대기 `idle_0` ② 공격 준비 `attack_2` ③ 공격 타격 `attack_3` ④ 피격 `key_hit` (`key_*` = handoff.py 의 KEY_POSES: 준비는 체중 뒤로, 타격은 내딛는 런지, 피격은 상체가 뒤로 젖혀짐)

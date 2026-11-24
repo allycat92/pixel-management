@@ -15,16 +15,18 @@ DESIGN: shaggy grey fur with a darker back and a lighter belly; amber eyes; bare
 
 COLOURS (keep close, muted): fur grey #8a8f99, dark #5c606a, light grey-beige belly; eyes amber #f2c94c; mouth dark red-brown.
 
-FROM concept.png (the owner's pick, NovelAI draft #6; design only) TAKE: the head held below the shoulder line with a snarl and bared fangs, a thick darker ruff over the neck and shoulders, pale cheeks and muzzle, pale lower legs and paws, a long bushy tail hanging low, a lean long-legged build.
+FROM concept.png (the owner's pick, NovelAI draft #6; design only) TAKE: the head held below the shoulder line with a snarl and bared fangs, a thick darker ruff over the neck and shoulders, pale cheeks and muzzle, pale lower legs and paws, a long bushy tail, a lean long-legged build.
 
 FIX (do not reproduce the draft here):
   - a common monster seen in large numbers: an ordinary member of its kind, no unique features, no crown, banner or trophy
   - a real wolf (not a werewolf, never standing up)
   - exactly four legs, one tail and one head in every pose
+  - the PAWS are the lowest pixels (on the baseline, as DELIVERABLE says); the low-hanging tail tip always stays above the paw line
   - the draft fur is a noise of thin hatching strokes: a few big fur clumps in 2-3 tones
   - the draft fur is olive / khaki grey: neutral-cool grey as in COLOURS, darker back, lighter belly
   - the draft eye is orange-red: amber
   - the draft has four legs and one tail - keep exactly that; paint the two far legs a tone darker so all four read separately
+  - the draft holds the tail out level and the ears up: the tail hangs low and the ears are laid back (as in DESIGN / POSES)
 
 POSES (no posekit mannequin for this creature: the text gives the pose, guide_layout.png the place and size):
   1. idle (top-left quadrant): standing on all fours, head lowered, snarling, tail down
@@ -68,8 +70,8 @@ SELF-CHECK before saving (redraw if any fails):
 ## 주인용 요약 (한국어)
 
 - 순서: 1차 몬스터 **2번째** (메시지 E) — 승인된 바렌 그림(`art-inbox` 브랜치의 `art/inbox/sheet_captain_blademaster.png`)의 화풍에 맞춘다.
-- **초안** `concept.png` = `art/concepts/monster_wolf/concept_06.png` (주인이 고른 #6, 디자인만) — 가져올 것: 어깨선 아래로 낮춘 머리와 드러낸 송곳니, 목·어깨의 짙은 갈기, 밝은 뺨·주둥이, 밝은 다리 끝·발, 낮게 늘어진 굵은 꼬리, 다리가 긴 마른 체격.
-- **초안에서 고칠 것** (영어 블록 FIX 끝부분): 가는 빗금 털(노이즈) → 큰 털 덩어리 2~3단. 올리브·카키빛 회색 → 중성·찬 회색(등 짙게, 배 밝게). 주황빛 붉은 눈 → 호박색. 다리 넷·꼬리 하나 그대로, 먼 쪽 다리 둘은 한 단계 어둡게.
+- **초안** `concept.png` = `art/concepts/monster_wolf/concept_06.png` (주인이 고른 #6, 디자인만) — 가져올 것: 어깨선 아래로 낮춘 머리와 드러낸 송곳니, 목·어깨의 짙은 갈기, 밝은 뺨·주둥이, 밝은 다리 끝·발, 굵고 긴 꼬리, 다리가 긴 마른 체격.
+- **초안에서 고칠 것** (영어 블록 FIX 끝부분): 가는 빗금 털(노이즈) → 큰 털 덩어리 2~3단. 올리브·카키빛 회색 → 중성·찬 회색(등 짙게, 배 밝게). 주황빛 붉은 눈 → 호박색. 다리 넷·꼬리 하나 그대로, 먼 쪽 다리 둘은 한 단계 어둡게. 초안은 꼬리를 수평으로 들고 귀를 세웠다 → 꼬리는 낮게 늘어뜨리고 귀는 뒤로 젖힌다(DESIGN·POSES 대로). 바닥선에는 발, 꼬리 끝은 발보다 위.
 - 설계: 회색 들늑대, 머리 낮추고 으르렁, 꼬리 아래. 작은 몬스터(대기 상자 약 420x250px). 물기 근접 공격.
 - 자세: ① 네 발로 서서 으르렁 ② 뒷다리에 웅크려 덮칠 준비 ③ 오른쪽으로 덮치며 문다(뒷발 하나는 바닥) ④ 머리를 젖히며 뒤로 물러남
 - 배치: 1536x1024 **2x2 격자** (768x512 네 칸: 왼쪽 위 대기, 오른쪽 위 공격 준비, 왼쪽 아래 공격 타격, 오른쪽 아래 피격), 칸마다 맨 아래 픽셀 y=461. posekit 마네킹 없음(사람 골격이 아니다) — 자세는 글로, 자리·크기는 `guide_layout.png`의 상자로.

@@ -9,20 +9,20 @@
 ```
 TASK: draw the battle-sprite strip of a harpy (하피), a common monster. Save it as art/inbox/sheet_monster_harpy.png on the art-inbox branch (a new file there; do not rename). In a chat without repository access, return the PNG in the chat instead.
 
-BRIEF: a hovering bird-woman: human head and torso (4-head proportions, head 110 px), wings instead of arms, bird legs with talons, a feather tail - wide because of the wings. Size: SMALL: body like a human, the wings make it wide (idle ~440 x 400 px including the raised wings). Attack: ranged in the game data (template "drake": the engine shoots a fire bolt): a shrieking pose, no projectile drawn. Appears in: desert battles and the beast calamity army.
+BRIEF: a hovering bird-woman: human head and torso at the captains' scale (head 110 px, torso like a 4-head human's), wings instead of arms, SHORT scaly bird legs with the knees drawn up and talons, a feather tail - wide because of the wings. Size: SMALL: body like a human but with short tucked bird legs, so talon tip to crown is about 330 px; the half-raised wing tips add the rest of the idle box (~440 x 400 px). If they conflict, the 110 px head wins: keep the legs short and tucked, never shrink the head to fit the box (the box may grow to ~430 px tall). Attack: ranged in the game data (template "drake": the engine shoots a fire bolt): a shrieking pose, no projectile drawn. Appears in: desert battles and the beast calamity army.
 
-DESIGN: wild auburn hair; red eyes, a fierce face; purple feathered wings instead of arms (three small claws at the wing bend); a feather bodice covering the shoulders, chest and belly (no bare skin except the face and neck); scaly bird legs with big talons; a short fan of tail feathers.
+DESIGN: wild auburn hair; red eyes, a fierce face; purple feathered wings instead of arms (three small claws at the wing bend); a brown feather bodice covering the shoulders, chest and belly (no bare skin except the face and neck); short scaly bird legs with big talons, knees drawn up while hovering; a short fan of purple tail feathers.
 
-COLOURS (keep close, muted): skin #e0ac7e (muted); feathers muted purple #8a6aa8 shaded with #5a4a7a (blue-purple, never pink or magenta); legs and talons brown #a8764e; eyes red #d6455d.
+COLOURS (keep close, muted): skin #e0ac7e (muted); wing and tail feathers muted purple #8a6aa8 shaded with #5a4a7a (blue-purple, never pink or magenta); their highlights stay cool or neutral (toward grey-lavender such as #a898c0), never warm - warming purple drifts toward pink (this overrides "highlights toward warm yellow" for the purple feathers); bodice feathers, thigh feathers, legs and talons brown #a8764e family; eyes red #d6455d.
 
-FROM concept.png (the owner's pick, NovelAI draft #9; design only) TAKE: two large blue-purple feathered wings in place of arms, wild spiky brown-auburn hair, red eyes, brown feathered thighs, scaly bird legs ending in big curved talons, the hovering pose with dangling talons.
+FROM concept.png (the owner's pick, NovelAI draft #9; design only) TAKE: two large blue-purple feathered wings in place of arms, wild spiky brown-auburn hair, red eyes, brown feathered thighs, scaly bird legs ending in big curved talons, the hovering pose with the talons hanging down (legs kept short, see BRIEF).
 
 FIX (do not reproduce the draft here):
   - a common monster seen in large numbers: an ordinary member of its kind, no unique features, no crown, banner or trophy
-  - tasteful: the chest is covered with feathers
+  - tasteful: the chest is covered with brown feathers
   - the feathers stay blue-purple and dark enough: no pixel may come close to the #FF00FF background (see the magenta rule)
   - the engine draws the projectile and the glow: no fire, light or effect in the drawing
-  - the draft is too revealing (fur bandeau, bare shoulders and bare midriff): cover the WHOLE torso - shoulders, chest and belly - with a feather bodice / fitted brown leather wrap continuous with the feathered thighs; no exposed chest or skin anywhere except the face and neck
+  - the draft is too revealing (fur bandeau, bare shoulders and bare midriff): cover the WHOLE torso - shoulders, chest and belly - with a BROWN feather bodice (#a8764e family, continuous with the brown feathered thighs; purple only on the wings and the tail); no exposed chest or skin anywhere except the face and neck
   - the draft shows a third wing-shaped mass behind the hips: exactly TWO wings; behind the hips only the short fan of tail feathers
   - the draft blurs the wing roots with human shoulders: the wings grow from the shoulders INSTEAD of arms (three small claws at the wing bend), no human arms or hands
   - the draft wingspan fills the whole canvas: fold the wings enough that each pose fits its box
@@ -30,7 +30,7 @@ FIX (do not reproduce the draft here):
   - the draft is a blank-faced anime girl facing the viewer: three-quarter view facing right, a fierce, wild face
 
 POSES (no posekit mannequin for this creature: the text gives the pose, guide_layout.png the place and size):
-  1. idle (top-left quadrant): hovering low with the wings half raised; talons dangling, the lowest talon on the baseline
+  1. idle (top-left quadrant): hovering low with the wings half raised; short legs with the knees drawn up, talons hanging below them, the lowest talon on the baseline
   2. attack wind-up (top-right quadrant): wings raised high and back, head drawn back, mouth open (about to shriek), talons drawn up
   3. attack strike (bottom-left quadrant): lunging forward: head and chest thrust forward, mouth wide open shrieking, wings flung forward, talons reaching forward-down
   4. hit reaction (bottom-right quadrant): knocked back: wings flung up and out, body jerked back, feathers ruffled, wincing
@@ -73,7 +73,7 @@ SELF-CHECK before saving (redraw if any fails):
 - 순서: 1차 몬스터 **4번째** (메시지 E) — 승인된 바렌 그림(`art-inbox` 브랜치의 `art/inbox/sheet_captain_blademaster.png`)의 화풍에 맞춘다.
 - **초안** `concept.png` = `art/concepts/monster_harpy/concept_09.png` (주인이 고른 #9, 디자인만) — 가져올 것: 팔 대신 큰 청보라 깃털 날개 둘, 삐죽한 갈색·적갈색 머리, 붉은 눈, 깃털 덮인 갈색 허벅지, 큰 굽은 발톱의 비늘 새 다리, 발톱을 늘어뜨리고 떠 있는 자세.
 - **초안에서 고칠 것** (영어 블록 FIX 끝부분): 초안은 노출이 심하다(털 가슴띠·맨 어깨·맨 배) → 어깨·가슴·배 전체를 허벅지 깃털과 이어지는 깃털 상의·갈색 가죽으로 덮는다, 얼굴·목 말고 맨살 없음. 엉덩이 뒤 세 번째 날개 같은 덩어리 → 날개는 정확히 둘, 뒤에는 짧은 꼬리 깃털만. 날개는 팔 대신(사람 팔·손 없음, 날개 꺾임에 작은 발톱 셋). 화면을 가득 채운 날개 → 자세마다 상자 안에 들게 접는다. 연두색 다리 → 갈색. 정면을 보는 무표정 애니 소녀 → 오른쪽 보는 3/4, 사나운 얼굴.
-- 설계: 공중에 뜬 새 여인. 사람 머리·몸통(4등신), 팔 대신 보라 날개, 새 다리·발톱. 날개 때문에 넓다(대기 약 440x400px). 게임에서는 원거리(엔진이 불덩이를 그림).
+- 설계: 공중에 뜬 새 여인. 사람 머리·몸통(대장과 같은 배율, 머리 110px), 팔 대신 보라 날개, 무릎을 당긴 짧은 새 다리·발톱(발톱~정수리 약 330px, 나머지 높이는 반쯤 든 날개 끝). 날개 때문에 넓다(대기 약 440x400px). 상자와 맞지 않으면 머리 110px 가 우선(다리를 짧게, 머리를 줄이지 않음). 몸통 깃털은 갈색(허벅지와 이어짐), 보라는 날개·꼬리만, 보라의 밝은 면은 차갑게(분홍 쪽 금지). 게임에서는 원거리(엔진이 불덩이를 그림).
 - 자세: ① 날개 반쯤 들고 낮게 떠 있음(발톱 끝이 바닥선) ② 날개를 높이 뒤로, 입 벌림 ③ 머리·가슴을 앞으로 내밀며 비명, 날개 앞으로 ④ 날개가 위로 젖혀지며 뒤로 밀림
 - 배치: 1536x1024 **2x2 격자** (768x512 네 칸: 왼쪽 위 대기, 오른쪽 위 공격 준비, 왼쪽 아래 공격 타격, 오른쪽 아래 피격), 칸마다 맨 아래 픽셀 y=461. posekit 마네킹 없음(사람 골격이 아니다) — 자세는 글로, 자리·크기는 `guide_layout.png`의 상자로.
 - 크기: 대장과 같은 배율(머리 110px). 자세별 상자 대기 440x400, 공격 준비 420x420, 공격 타격 560x340, 피격 480x400 px. `guide_scale.png` = 같은 배율의 4등신 사람(대기 약 407 px) 옆에 대기 상자. 게임에서는 약 16.5% (대기 약 66 px 높이).
