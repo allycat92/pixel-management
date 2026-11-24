@@ -434,7 +434,8 @@ Object.assign(Game, {
       o.c.cohesion = clamp(o.c.cohesion + (won ? 5 : 2) - lostHere * 20, 0, 100);
       report.companies.push({
         name: o.c.name, color: o.c.color, own: true,
-        members: o.ms.map((m) => ({ id: m.id, name: m.name, look: m.look, cls: m.cls, level: m.level, leader: this.isCaptain(m), unique: this.isCaptain(m) || !!m.hcls, sk: this.battleSkillsOf(m) })),
+        members: o.ms.map((m) => ({ id: m.id, name: m.name, look: m.look, cls: m.cls, level: m.level, leader: this.isCaptain(m), unique: this.isCaptain(m) || !!m.hcls, sk: this.battleSkillsOf(m),
+          art: m.cap ? `portrait/captain/${m.cap}` : m.hero ? `portrait/hero/${m.hero}` : null })),
       });
     });
     ext.forEach((e) => {

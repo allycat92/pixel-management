@@ -25,6 +25,10 @@ const UI = (() => {
   const icon = (name, scale = 2) => Sprites.clone(Sprites.icon(name, scale), 'icon');
   const itemIcon = (base, tier, scale = 2) => Sprites.clone(Sprites.itemIcon(base, tier, scale), 'icon');
   const portrait = (look, scale = 3) => Sprites.clone(Sprites.merc(look, scale, 0), 'portrait');
+  // 일러스트가 있으면 일러스트, 없으면 도트 초상화
+  const artPortrait = (artId, look, cls = 'portrait', scale = 3) => Art.img(artId, `${cls} art-portrait`) || Sprites.clone(Sprites.merc(look, scale, 0), cls);
+  // 이벤트 그림 (없으면 null)
+  const eventArt = (key) => Art.img(Art.idOf.event(key), 'event-art');
   const mini = (look) => Sprites.clone(Sprites.merc(look, 2, 0), 'mini');
   const bonusText = (b) => Object.entries(b).map(([k, v]) => `${STAT_NAMES[k]}+${v}`).join(' ');
   const signed = (v) => `${v > 0 ? '+' : ''}${v}`;
@@ -136,7 +140,7 @@ const UI = (() => {
     const statMax = Math.max(40, Math.round(m.level * 4.2)), hpMax = Math.max(90, m.level * 12);
     return el('div', { class: `card merc-card ${m.status} ${m.hero ? 'hero' : ''} ${Game.isCaptain(m) ? 'captain' : ''}` },
       el('div', { class: 'card-head' },
-        el('div', { class: 'portrait-wrap' }, portrait(m.look)),
+        el('div', { class: 'portrait-wrap' }, artPortrait(Art.idOf.merc(m), m.look)),
         el('div', { class: 'card-title' },
           el('div', { class: 'name' }, m.name, el('span', { class: 'lv', text: ` Lv.${m.level}` })),
           el('div', { class: 'sub' }, roleBadge(m), ' ', el('span', { class: `cls cls-${m.cls} ${m.adv || m.cap ? 'adv' : ''}`, text: Game.className(m) }), ' ',
@@ -365,7 +369,7 @@ const UI = (() => {
     const cards = STARTER_CAPTAINS.map((k) => {
       const C = CAPTAINS[k], CC = CAPTAIN_CLASSES[k];
       return el('div', { class: 'promo-card starter-card' },
-        el('div', { class: 'portrait-wrap' }, Sprites.clone(Sprites.merc({ cls: CC.style, cap: k, ...C.look }, 5, 0), 'big-portrait')),
+        el('div', { class: 'portrait-wrap' }, artPortrait(Art.idOf.captain(k), { cls: CC.style, cap: k, ...C.look }, 'big-portrait', 5)),
         el('div', { class: 'name', text: C.name }),
         el('div', { class: 'small muted', text: C.title }),
         el('div', { class: 'skill adv', text: CC.name }),
@@ -376,6 +380,7 @@ const UI = (() => {
         el('button', { class: 'btn primary', onclick: () => { Game.chooseStarter(k); closeModal(); showReports(); } }, `${C.name}와(과) 시작한다`));
     });
     openModal(el('div', {},
+      eventArt('start'),
       el('h2', { text: '첫 용병대장을 고르세요' }),
       el('p', { class: 'muted small', text: `용병단을 이끌 대장입니다. 대장은 고유 직업, 액티브 스킬 2개, 지휘(패시브)를 가진 단 한 명뿐인 인물이며, 선택받지 못한 ${STARTER_CAPTAINS.length - 1}명은 다시 만날 수 없습니다. 이후 대장은 길드 등급이 오를 때 공개되는 대장별 영입 과제를 달성해 여러 명을 얻을 수 있습니다.` }),
       el('div', { class: 'starter-choices' }, cards)), true);
@@ -383,10 +388,11 @@ const UI = (() => {
 
   function openDialog(r) {
     const h = r.hero && HEROES[r.hero];
+    const calKey = r.enemy && Object.keys(FACTIONS).find((f) => FACTIONS[f].calamity && FACTIONS[f].leader === r.enemy);
     const portraitImg = h
-      ? Sprites.clone(Sprites.merc({ cls: HERO_CLASSES[h.hcls].style, hcls: h.hcls, ...h.look }, 5, 0), 'big-portrait')
-      : r.captain ? Sprites.clone(Sprites.merc({ cls: CAPTAIN_CLASSES[r.captain].style, cap: r.captain, ...CAPTAINS[r.captain].look }, 5, 0), 'big-portrait')
-      : Sprites.clone(Sprites.monster(r.enemy, 5, 0), 'big-portrait');
+      ? artPortrait(Art.idOf.hero(r.hero), { cls: HERO_CLASSES[h.hcls].style, hcls: h.hcls, ...h.look }, 'big-portrait', 5)
+      : r.captain ? artPortrait(Art.idOf.captain(r.captain), { cls: CAPTAIN_CLASSES[r.captain].style, cap: r.captain, ...CAPTAINS[r.captain].look }, 'big-portrait', 5)
+      : (calKey && Art.img(Art.idOf.boss(calKey), 'big-portrait art-portrait')) || Sprites.clone(Sprites.monster(r.enemy, 5, 0), 'big-portrait');
     let lines = r.lines.slice();
     let line = 0, timer = null, typing = false, choiceDone = !r.choice;
     const speaker = el('div', { class: 'dialog-speaker' });
@@ -434,6 +440,7 @@ const UI = (() => {
     next.addEventListener('click', advance);
     openModal(el('div', { class: 'dialog' },
       el('div', { class: 'dialog-title', text: r.title }),
+      r.art ? eventArt(r.art) : null,
       el('div', { class: 'dialog-body', onclick: (e) => { if (e.target !== next && choiceDone) advance(); else if (typing) advance(); } },
         el('div', { class: `dialog-portrait ${h ? '' : 'boss'}` }, portraitImg),
         el('div', { class: 'dialog-box' }, speaker, text)),
@@ -449,6 +456,7 @@ const UI = (() => {
     if (r.special === 'news') {
       return el('div', { class: 'report news' },
         el('div', { class: 'report-banner news-banner', text: r.title }),
+        r.title.endsWith('멸망') ? eventArt('destroyed') : null,
         el('div', { class: 'news-flags' }, r.factions.map((f) => factionFlag(f, 4))),
         el('p', { text: r.text }),
         el('div', { class: 'modal-actions' }, el('button', { class: 'btn primary', text: '확인', onclick: closeModal })));
@@ -456,6 +464,7 @@ const UI = (() => {
     if (r.special === 'win') {
       return el('div', { class: 'report' },
         el('div', { class: 'report-banner good great', text: 'S랭크 달성!' }),
+        eventArt('win'),
         el('p', { text: `${s.day}일 만에 ${s.guildName}이(가) 대륙 최고의 길드가 되었습니다!` }),
         el('p', { class: 'muted', text: `완수 ${s.stats.completed} · 실패 ${s.stats.failed} · 전사 ${s.stats.fallen}` }),
         el('p', { class: 'muted small', text: '계속 플레이하며 남은 이야기와 세력의 운명을 지켜볼 수 있습니다.' }),
@@ -465,7 +474,7 @@ const UI = (() => {
       const F = FACTIONS[r.calamity];
       return el('div', { class: 'report' },
         el('div', { class: 'report-banner good great', text: '대륙의 구원자' }),
-        el('div', { class: 'report-members' }, Sprites.clone(Sprites.monster(F.leader, 4, 0), 'big-portrait dead-boss')),
+        eventArt('savior') || el('div', { class: 'report-members' }, Sprites.clone(Sprites.monster(F.leader, 4, 0), 'big-portrait dead-boss')),
         el('p', { text: `${s.day}일째, ${s.guildName}의 용병단들이 ${F.leaderTitle} ${F.leader}을(를) 쓰러뜨렸습니다.` }),
         el('p', { text: `${F.name}은(는) 흩어지고, 살아남은 세력들은 폐허 위에서 다시 일어서기 시작합니다. 사람들은 이 시대를 은빛 늑대의 이름으로 기억할 것입니다.` }),
         el('p', { class: 'muted small', text: `살아남은 세력: ${Game.aliveFactions().map((f) => FACTIONS[f].name).join(', ') || '없음'} · 이후 한동안 전후 복구 의뢰의 보수가 높아집니다.` }),
@@ -475,7 +484,7 @@ const UI = (() => {
       const F = FACTIONS[s.calamity] || FACTIONS.demons;
       return el('div', { class: 'report' },
         el('div', { class: 'report-banner bad disaster', text: '암흑시대' }),
-        el('div', { class: 'report-members' }, Sprites.clone(Sprites.monster(F.leader, 4, 0), 'big-portrait')),
+        eventArt('darkness') || el('div', { class: 'report-members' }, Sprites.clone(Sprites.monster(F.leader, 4, 0), 'big-portrait')),
         el('p', { text: `${F.name}이(가) 대륙의 대부분을 집어삼켰습니다. ${F.leaderTitle} ${F.leader}의 그림자 아래, 길드의 깃발도 꺾였습니다.` }),
         el('p', { class: 'muted', text: `${s.day}일 동안 버텼습니다. 최고 명성 ${s.rep}` }),
         el('div', { class: 'modal-actions' }, restart));
@@ -491,6 +500,7 @@ const UI = (() => {
     const msg = r.special === 'bankrupt' ? '빚더미에 올라앉은 길드는 결국 문을 닫았습니다...' : '모든 단원과 계약을 잃고 재기할 자금도 없습니다...';
     return el('div', { class: 'report' },
       el('div', { class: 'report-banner bad disaster', text: '게임 오버' }),
+      r.special === 'bankrupt' ? eventArt('bankrupt') : null,
       el('p', { text: msg }),
       el('p', { class: 'muted', text: `${s.day}일 동안 버텼습니다. 최고 명성 ${s.rep}` }),
       el('div', { class: 'modal-actions' }, restart));
@@ -620,7 +630,7 @@ const UI = (() => {
 
   return {
     init, render, toast, tabs, setTab,
-    h: { el, icon, itemIcon, portrait, mini, bonusText, signed, companyFlag, factionFlag, factionTag, soldierLook, condTags, statusLabel, mercCard, roleBadge, skillList },
+    h: { el, icon, itemIcon, portrait, artPortrait, eventArt, mini, bonusText, signed, companyFlag, factionFlag, factionTag, soldierLook, condTags, statusLabel, mercCard, roleBadge, skillList },
     openModal, closeModal, confirmBox, openMerc,
   };
 })();

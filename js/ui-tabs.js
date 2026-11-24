@@ -406,7 +406,7 @@
     const provs = Game.provincesOf(cal);
     const fin = s.contracts.find((c) => c.final);
     return el('div', { class: 'calamity-panel', style: `--fc:${F.color}` },
-      el('div', { class: 'portrait-wrap' }, Sprites.clone(Sprites.monster(F.leader, 4, 0), 'big-portrait')),
+      el('div', { class: 'portrait-wrap' }, Art.img(Art.idOf.boss(cal), 'big-portrait art-portrait') || Sprites.clone(Sprites.monster(F.leader, 4, 0), 'big-portrait')),
       el('div', { class: 'grow' },
         el('div', { class: 'cal-name' }, factionFlag(cal, 2), ` ${F.name} — ${F.leaderTitle} ${F.leader}`),
         el('div', { class: 'small', text: F.desc }),
@@ -493,7 +493,7 @@
     const ch = CAPTAIN_CHALLENGES[key] && (cs.status === 'challenge' || cs.status === 'locked') ? Game.challengeOf(key) : null;
     return el('div', { class: `card cap-card st-${cs.status}` },
       el('div', { class: 'card-head' },
-        el('div', { class: 'portrait-wrap' }, UI.h.portrait(lookOf)),
+        el('div', { class: 'portrait-wrap' }, UI.h.artPortrait(Art.idOf.captain(key), lookOf)),
         el('div', { class: 'card-title' },
           el('div', { class: 'name' }, C.name, el('span', { class: 'muted small', text: ` ${C.title}` })),
           el('div', { class: 'sub' }, el('span', { class: 'role-badge captain', text: '♛ 대장' }), ' ', el('span', { class: 'cls adv', text: CC.name })),

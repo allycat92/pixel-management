@@ -123,7 +123,7 @@ const Battle = (() => {
     (report.companies || []).forEach((c) => {
       if (c.own && c.members) {
         const ms = [...c.members].sort((a, b) => (b.leader ? 1 : 0) - (a.leader ? 1 : 0) || b.level - a.level);
-        const units = ms.map((m) => ({ look: m.look, cls: m.cls, str: (0.85 + m.level * 0.035) * (m.leader ? 1.15 : 1), named: m.name, doomed: deadIds.has(m.id), sk: m.sk, unique: m.unique }));
+        const units = ms.map((m) => ({ look: m.look, cls: m.cls, str: (0.85 + m.level * 0.035) * (m.leader ? 1.15 : 1), named: m.name, doomed: deadIds.has(m.id), sk: m.sk, unique: m.unique, art: m.art }));
         // 대원이 셋이 안 되면 수습 용병이 머릿수를 채운다
         looksFor(c.color, Math.max(0, 4 - units.length)).forEach((lk) => units.push({ look: lk, cls: lk.cls, str: 0.7, recruit: true }));
         groups.push({ side: 0, name: c.name, color: c.color, player: true, units: units.slice(0, 9) });
@@ -246,7 +246,7 @@ const Battle = (() => {
         g.captain = g.units[0];
       });
     });
-    return { r, units, groups: gs, shots: [], fx: [], t: 0, over: false, winner: null, endT: 0, events: [] };
+    return { r, units, groups: gs, shots: [], fx: [], t: 0, over: false, winner: null, endT: 0, events: [], cutins: [] };
   }
 
   const groupAlive = (g) => g.units.filter((u) => u.alive && !u.fled);
@@ -333,6 +333,8 @@ const Battle = (() => {
   function useSkill(st, u, sk, t, live) {
     sk.left = sk.cd * (0.9 + st.r() * 0.2);
     if (sk !== u.skills[0] && (u.named || u.captain || u.boss)) st.fx.push({ kind: 'label', x: u.x, y: u.y - 26, text: sk.name, t: 0, side: u.side });
+    // 아군 대장·특별 용병의 특기는 컷인으로 보여 준다
+    if (sk !== u.skills[0] && u.unique && u.side === 0) st.cutins.push({ t: st.t, name: u.named, skill: sk.name, art: u.art, look: u.look });
     if (sk.tgt === 'self') {
       st.units.filter((a) => a.alive && !a.fled && a.side === u.side && dist(a, u) <= sk.aoe).forEach((a) => addBuff(st, a, sk.buff));
       st.fx.push({ kind: 'ring', x: u.x, y: u.y - 6, r: sk.aoe, t: 0, color: sk.buff.def ? '#7fd6e8' : '#ef6a6a' });
@@ -704,7 +706,26 @@ const Battle = (() => {
     foot.append(speedBtn, skip);
     const ticker = document.createElement('div');
     ticker.className = 'battle-ticker';
-    wrap.append(head, cvs, ticker, roster, foot);
+    const stage = document.createElement('div');
+    stage.className = 'battle-stage';
+    const cutin = document.createElement('div');
+    cutin.className = 'cutin';
+    stage.append(cvs, cutin);
+    wrap.append(head, stage, ticker, roster, foot);
+    let cutShown = 0, lastCut = -1e9;
+    const showCutin = (c) => {
+      const pic = (typeof Art !== 'undefined' && Art.img(c.art, 'cutin-pic')) || Sprites.clone(Sprites.merc(c.look, 6, 0), 'cutin-pic');
+      const txt = document.createElement('div');
+      txt.className = 'cutin-text';
+      txt.innerHTML = '';
+      const n = document.createElement('div'); n.className = 'cutin-name'; n.textContent = c.name || '';
+      const k = document.createElement('div'); k.className = 'cutin-skill'; k.textContent = c.skill;
+      txt.append(n, k);
+      cutin.replaceChildren(pic, txt);
+      cutin.classList.remove('play');
+      void cutin.offsetWidth; // 애니메이션 다시 시작
+      cutin.classList.add('play');
+    };
     let shownEvents = 0;
 
     let finished = false;
@@ -723,6 +744,11 @@ const Battle = (() => {
         st.fx.forEach((f) => { f.t += DT; });
         st.fx = st.fx.filter((f) => f.t < (f.kind === 'label' ? 1.2 : 0.7));
       }
+      // 컷인: 너무 잦지 않게 1.3초 간격
+      if (st.cutins.length > cutShown && now - lastCut > 1300) {
+        showCutin(st.cutins[st.cutins.length - 1]);
+        cutShown = st.cutins.length; lastCut = now;
+      } else if (st.cutins.length > cutShown && now - lastCut <= 1300) cutShown = st.cutins.length;
       const ended = st.over && st.t - st.endT > 0.6;
       draw(ctx, bg, st, now, ended ? { text: labelText, good: won } : null);
       if (now - rosterTick > 200) {

@@ -72,12 +72,20 @@ python3 -m http.server 8000
 | `js/faction.js` | 평판, 세력 관계, 영토, 전쟁, 세계 진행 |
 | `js/contract.js` | 의뢰 생성·파견·판정, 세력 영향, 결전, 이야기, 보스 |
 | `js/captains.js` | 용병대장 영입: 창설 선택, 영입 과제, 영입 의뢰 |
+| `js/art.js` | 외부 일러스트 불러오기 (`assets/art/manifest.json`, 없으면 도트로 대체) |
 | `js/scene.js` | 상단 길드 홀 애니메이션 |
 | `js/battle.js` | 실시간 집단 전투 (부대 편성, 자율 AI, 시뮬레이션·재생) |
 | `js/map.js` | 세력 영토 지도 |
 | `js/ui.js`, `js/ui-tabs.js` | 공통 UI·대화·보고서 / 각 탭 화면 |
 
 새 세력·지방은 `js/world.js`, 새 몬스터·장비·특별 용병은 `js/content.js`, 새 의뢰 유형은 `js/data.js`(+ `js/contract.js`의 `CONTRACT_EFFECTS`)에 항목을 추가해 늘릴 수 있습니다.
+
+## 그림 작업 (일러스트)
+외부 이미지 생성 도구(ChatGPT 등)와 GitHub로 그림을 주고받습니다. 절차는 [`art/README.md`](art/README.md), 화풍 기준은 [`art/STYLE.md`](art/STYLE.md)입니다.
+- 요청서 생성: `node tools/art/requests.js` → `art/requests/phase1.md` (게임 데이터에서 자동 생성)
+- 납품: `art/inbox/`에 요청서의 파일 이름으로 PNG 저장
+- 후처리: `python3 tools/art/process.py` → `assets/art/` + `manifest.json` (Pillow 필요)
+- 게임은 등록된 그림만 쓰고, 없는 그림은 기존 도트로 대신합니다.
 
 ## 크레딧
 

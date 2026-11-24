@@ -560,3 +560,27 @@ h3 { font-size: 14px; margin: 8px 0; }
 .challenge { background: #241b29; border-left: 3px solid var(--gold); padding: 4px 6px; display: flex; flex-direction: column; gap: 1px; }
 .cap-card.st-challenge { border-color: #c58f1e; }
 .cap-status.s-challenge { color: var(--gold); }
+
+/* ───────── 일러스트 ───────── */
+img.art { image-rendering: pixelated; display: block; }
+.art-portrait { object-fit: contain; }
+.portrait.art-portrait { width: 56px; height: 56px; }
+.big-portrait.art-portrait { width: 96px; height: 96px; }
+@media (max-width: 640px) { .big-portrait.art-portrait { width: 72px; height: 72px; } }
+.event-art { width: 100%; height: auto; max-height: 240px; aspect-ratio: 16 / 9; object-fit: cover; border: 2px solid var(--shadow); margin: 6px 0; }
+
+/* 전투 컷인 */
+.battle-stage { position: relative; }
+.cutin { position: absolute; left: 0; right: 0; top: 18%; height: 34%; display: flex; align-items: center; gap: 10px;
+  padding: 0 4%; background: linear-gradient(90deg, rgba(27, 20, 32, 0.92) 0%, rgba(27, 20, 32, 0.75) 60%, rgba(27, 20, 32, 0) 100%);
+  border-top: 2px solid var(--gold); border-bottom: 2px solid var(--gold); opacity: 0; pointer-events: none; transform: translateX(-30%); }
+.cutin.play { animation: cutin 1.15s ease-out forwards; }
+.cutin-pic { height: 92%; width: auto; aspect-ratio: 1; image-rendering: pixelated; }
+.cutin-name { color: var(--muted); font-size: 12px; }
+.cutin-skill { color: var(--gold); font-size: 20px; font-weight: bold; text-shadow: 2px 2px 0 #1b1420; }
+@keyframes cutin {
+  0% { opacity: 0; transform: translateX(-30%); }
+  18% { opacity: 1; transform: translateX(0); }
+  75% { opacity: 1; transform: translateX(2%); }
+  100% { opacity: 0; transform: translateX(6%); }
+}
