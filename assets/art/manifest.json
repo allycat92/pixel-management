@@ -253,5 +253,51 @@
     "file": "assets/art/portraits/hero_seraphine.png",
     "h": 128,
     "w": 128
+  },
+  "sheet/captain/blademaster": {
+    "file": "assets/art/sheets/sheet_captain_blademaster.png",
+    "h": 80,
+    "sheet": {
+      "anchor": [
+        40,
+        76
+      ],
+      "anims": {
+        "idle": {
+          "from": 0,
+          "ms": [
+            240,
+            240,
+            240,
+            240
+          ],
+          "to": 3
+        }
+      },
+      "cell": [
+        80,
+        80
+      ],
+      "facing": 1,
+      "frames": [
+        [
+          0,
+          0
+        ],
+        [
+          80,
+          0
+        ],
+        [
+          160,
+          0
+        ],
+        [
+          240,
+          0
+        ]
+      ]
+    },
+    "w": 320
   }
 }
