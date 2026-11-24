@@ -1,1 +1,17 @@
-{}
+{
+  "portrait/captain/blademaster": {
+    "file": "assets/art/portraits/captain_blademaster.png",
+    "h": 128,
+    "w": 128
+  },
+  "portrait/captain/ironwall": {
+    "file": "assets/art/portraits/captain_ironwall.png",
+    "h": 128,
+    "w": 128
+  },
+  "portrait/captain/tactician": {
+    "file": "assets/art/portraits/captain_tactician.png",
+    "h": 128,
+    "w": 128
+  }
+}

@@ -564,9 +564,9 @@ h3 { font-size: 14px; margin: 8px 0; }
 /* ───────── 일러스트 ───────── */
 img.art { image-rendering: pixelated; display: block; }
 .art-portrait { object-fit: contain; }
-.portrait.art-portrait { width: 56px; height: 56px; }
-.big-portrait.art-portrait { width: 96px; height: 96px; }
-@media (max-width: 640px) { .big-portrait.art-portrait { width: 72px; height: 72px; } }
+.portrait.art-portrait { width: 64px; height: 64px; }
+.big-portrait.art-portrait { width: 128px; height: 128px; }
+@media (max-width: 640px) { .big-portrait.art-portrait { width: 96px; height: 96px; } }
 .event-art { width: 100%; height: auto; max-height: 240px; aspect-ratio: 16 / 9; object-fit: cover; border: 2px solid var(--shadow); margin: 6px 0; }
 
 /* 전투 컷인 */
