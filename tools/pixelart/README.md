@@ -58,3 +58,14 @@ Known limits: the figure is a 2D mannequin (no real 3D rotation, so twisting pos
 moving the shoulders); hair, clothing, capes and smears are left to the model; the eye marks only
 indicate facing; long weapons make the whole set a little smaller (idle body: katana / sword_shield 73%,
 staff 72%, bow 70%, spear 70%), since one scale must fit the widest strike / thrust frame.
+
+## Deferred: per-class / per-character pose kits
+
+Agreed to postpone (long task). The current `posekit.py` is one generic 4-head mannequin with
+weapon variants. Later it should get:
+- per-class pose sets (warrior/archer/cleric/mage/rogue and their promotion lines: stance,
+  weapon handling, cast gestures, signature skill poses);
+- per-character overrides for the unique captains/heroes (body type, height, bulk, signature
+  weapon and skill poses, cape/hair secondary motion hints);
+- body-type parameters (heavy armour, slight caster, old veteran) instead of one build.
+Until then, use the generic guides and describe class-specific details in the GPT request.
