@@ -10,12 +10,14 @@
 
 ## 그림을 만드는 쪽이 할 일
 
-1. `art/STYLE.md`(화풍 기준), `art/requests/phase1.md`(그림 요청서), `art/requests/feedback.md`(피드백)를 읽는다.
-   - 같은 내용의 기계용 목록은 `art/requests/phase1.json`.
+1. `art/STYLE.md`(화풍 기준), 지시받은 단계의 요청서 `art/requests/phaseN.md`, `art/requests/feedback.md`(피드백)를 읽는다.
+   - 같은 내용의 기계용 목록은 `art/requests/phaseN.json`.
+   - **3단계(전투 캐릭터)**는 `phase3.md` 맨 위의 "그림 쪽에 그대로 붙여 넣을 지시"를 따른다: 캐릭터마다
+     1536×1024 한 장에 핵심 자세 4개를 한 줄로, 마젠타 `#FF00FF` 배경. 한 메시지에 여러 캐릭터를 한꺼번에 해도 된다.
    - 승인된 그림 `art/inbox/captain_blademaster.png`, `captain_ironwall.png`, `captain_tactician.png`를 화풍 기준 그림으로 쓴다.
 2. 요청받은 묶음의 그림을 프롬프트로 생성한다.
    - 프롬프트는 화풍 기준을 지키는 범위에서 다듬어도 된다.
-   - 초상화는 **배경 투명 PNG**.
+   - 초상화는 **배경 투명 PNG**. 전투 캐릭터는 **평평한 마젠타 배경**(투명도 됨).
 3. 결과물을 **`art/inbox/<요청서의 파일 이름>`**으로 저장한다. (예: `art/inbox/captain_lancer.png`)
    - 파일 이름을 바꾸지 말 것. 이름으로 어느 요청인지 찾는다.
 4. `art/inbox/NOTES.md`에 만든 파일 목록, 다시 그리고 싶은 것, 요청서와 다르게 한 점을 적는다.
@@ -30,10 +32,32 @@
 2. `python3 tools/art/process.py`로 후처리한다.
    - 배경 제거(단색 배경일 때), 여백 자르기, 축소, 팔레트 정리.
    - `assets/art/`에 저장하고 `assets/art/manifest.json`을 갱신한다.
+   - 전투 캐릭터(`sheet_*.png`)는 `python3 tools/art/sheets.py`로 처리한다 (아래 「전투 캐릭터 시트」).
 3. 게임은 `manifest.json`에 있는 그림을 쓰고, 없는 그림은 기존 코드 생성 도트로 대신한다. 그래서 일부만 들어와도 게임이 깨지지 않는다.
 4. 화면에서 확인한 뒤 고칠 점과 다음 묶음을 `art/requests/feedback.md`에 적어 푸시한다.
+
+## 전투 캐릭터 시트 (코드 쪽)
+
+```bash
+python3 tools/art/sheets.py                       # art/inbox/sheet_*.png 전부 → assets/art/sheets/ + manifest
+python3 tools/art/sheets.py art/inbox/sheet_hero_kai.png --dry-run --work /tmp/sheets   # 미리보기만
+```
+- 입력: 1×4 띠(대기·준비·타격·피격), 2×2 격자, 또는 전신 한 장(대기만). 자세 수는 자동으로 찾는다 (`--grid 4x1`로 강제).
+- 칸마다 배경 제거 → 대기 자세 몸 높이를 64px로 맞춘 같은 배율로 축소 → 알파 정리 → 시트 공통 약 40색 → 1px 어두운 가장자리
+  → 80×80 칸, 발 (40,76) → 대기는 `sprite-gen breathe --mode pixel` 숨쉬기 4칸 → 시트 png + Aseprite json-array(태그 idle/attack/hit)
+  → `tools/art/register_sheet.py`로 `manifest.json`의 `sheet/<kind>/<key>` 항목 등록. `--aseprite OUT`이면 태그 붙은 .aseprite 도 (Aseprite 있을 때만).
+- 작업 폴더의 `preview_x4.png`를 열어 확인한다. 왼쪽을 보고 그려졌으면 `--flip`.
+- 이름 뒤에 `@`이 붙은 후보(`sheet_x_y@123.png`)는 직접 지정할 때만 처리한다.
+- `process.py`는 `sheet/*` 등 자기가 만들지 않은 manifest 항목을 건드리지 않는다.
+
+### NovelAI (사용자가 원할 때만)
+`python3 tools/art/novelai.py --only sheet/captain/ironwall` → `art/inbox/sheet_captain_ironwall.png` (한 자세, 마젠타 배경) → `sheets.py`.
+기본값은 무료 범위(넓이 ≤ 1024×1024, 28 steps, 1장)이고, 더 큰 설정은 `--allow-paid` 없이는 거부한다. 한 번에 `--max` 2장.
+토큰은 클라우드 세션의 프록시가 넣는다 (로컬에서는 `NOVELAI_TOKEN`). 대량 생성 금지.
 
 ## 단계
 - **1단계 (완료)**: 용병대장 33명 · 특별 용병 7명 · 재앙 수장 2명 초상화, 이벤트 그림 9장 — 총 51장.
 - 2단계 (예정): 전투 배경 7종, 길드 홀, 대륙 지도.
-- 3단계 (예정): 깃발·문장, 의뢰서·UI 장식, 장비 아이콘.
+- **3단계 (진행)**: 전투 캐릭터 시트 — 창설 후보 대장 9 → 일반 병과 5 → 특별 용병 7 → 지역 몬스터 22 → 나머지 대장 24 (`phase3.md`).
+  바렌(`sheet/captain/blademaster`)은 NovelAI 그림으로 먼저 들어갔다.
+- 4단계 (예정): 깃발·문장, 의뢰서·UI 장식, 장비 아이콘.
