@@ -13,7 +13,7 @@ import sys
 from PIL import Image
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..')
-REQ = os.path.join(ROOT, 'art', 'requests', 'phase1.json')
+REQ_DIR = os.path.join(ROOT, 'art', 'requests')
 INBOX = os.path.join(ROOT, 'art', 'inbox')
 OUT = os.path.join(ROOT, 'assets', 'art')
 MANIFEST = os.path.join(OUT, 'manifest.json')
@@ -70,7 +70,7 @@ def process(item, src):
         im = canvas.resize((ow, oh), Image.Resampling.BOX)
         im = quantize_rgba(im, 32)
     else:
-        # 이벤트 그림: 16:9로 가운데 자르고 축소
+        # 이벤트 그림·배경: 목표 비율로 가운데 자르고 축소
         w, h = im.size
         target = ow / oh
         if w / h > target:
@@ -81,7 +81,7 @@ def process(item, src):
             im = im.crop((0, (h - nh) // 2, w, (h - nh) // 2 + nh))
         im = im.resize((ow, oh), Image.Resampling.BOX)
         im = quantize_rgba(im, 48)
-    sub = 'portraits' if item['kind'] == 'portrait' else 'events'
+    sub = {'portrait': 'portraits', 'event': 'events', 'background': 'backgrounds'}[item['kind']]
     os.makedirs(os.path.join(OUT, sub), exist_ok=True)
     rel = f'assets/art/{sub}/{item["file"]}'
     im.save(os.path.join(ROOT, rel), optimize=True)
@@ -89,14 +89,17 @@ def process(item, src):
 
 
 def main():
-    with open(REQ, encoding='utf-8') as f:
-        req = json.load(f)
+    items = []
+    for name in sorted(os.listdir(REQ_DIR)):
+        if name.startswith('phase') and name.endswith('.json'):
+            with open(os.path.join(REQ_DIR, name), encoding='utf-8') as f:
+                items += json.load(f)['items']
     manifest = {}
     if os.path.exists(MANIFEST):
         with open(MANIFEST, encoding='utf-8') as f:
             manifest = json.load(f)
     done, missing = [], []
-    for item in req['items']:
+    for item in items:
         src = os.path.join(INBOX, item['file'])
         if not os.path.exists(src):
             missing.append(item['file'])

@@ -110,6 +110,34 @@ EVENTS.forEach(([key, name, desc]) => items.push({
   id: `event/${key}`, file: `event_${key}.png`, kind: 'event', size: '1536x864', out: '480x270', name, prompt: `${desc} ${EV_TAIL}`,
 }));
 
+// ───────── 2단계: 배경 ─────────
+const BG_TAIL = 'Pixel art background in a 16-bit fantasy JRPG style, limited palette (about 48 colors), clean pixel clusters, no anti-aliasing, no text, no watermark, no UI, NO characters or creatures.';
+const BATTLE_BGS = [
+  ['plains', '평원', 'Open green grassland under a bright blue sky, distant rolling hills, a few wildflowers'],
+  ['forest', '숲', 'Edge of a dense old forest, tall dark trees at the back, mossy clearing in front'],
+  ['swamp', '늪지', 'Murky swamp with dead trees, reeds and shallow dark water at the back, foggy grey-green sky'],
+  ['desert', '사막', 'Red-orange desert with dunes and sandstone mesas, hot orange sky'],
+  ['frost', '설원', 'Snowy canyon with icy cliffs and pine trees, pale blue sky'],
+  ['mountain', '화산 산맥', 'Volcanic mountain range with lava cracks and smoke, dark red sky (the Dragon Spine)'],
+  ['holy', '성역', 'Sacred pilgrimage grounds with white stone ruins, a distant cathedral spire, calm golden sky'],
+  ['coast', '해안', 'Rocky seashore with a harbor town in the distance, sea horizon, blue sky with gulls far away'],
+];
+const phase2 = BATTLE_BGS.map(([key, name, desc]) => ({
+  id: `bg/battle/${key}`, file: `bg_battle_${key}.png`, kind: 'background', size: '1536x864', out: '320x180',
+  name: `전투 배경 — ${name}`,
+  prompt: `${desc}. Side-view battlefield background: sky and distant scenery fill only the top third; the lower two thirds are FLAT, open, walkable ground seen from a slight high angle, with little detail so small sprites standing on it stay readable. ${BG_TAIL}`,
+}));
+phase2.push({
+  id: 'bg/guild/day', file: 'bg_guild_day.png', kind: 'background', size: '1536x576', out: '320x120',
+  name: '길드 홀 실내 — 낮',
+  prompt: 'Interior of a cozy medieval mercenary guild hall, wide side view: wooden bar counter with bottles on the left, a quest board with paper notices in the middle, a dark red banner with a silver wolf head, a stone fireplace on the right, wooden plank floor occupying the bottom third, warm daylight from windows. Empty room. ' + BG_TAIL,
+});
+phase2.push({
+  id: 'bg/guild/night', file: 'bg_guild_night.png', kind: 'background', size: '1536x576', out: '320x120',
+  name: '길드 홀 실내 — 밤',
+  prompt: 'The same mercenary guild hall interior at night (same layout: bar on the left, quest board in the middle, wolf banner, fireplace on the right, wooden floor in the bottom third), lit by fireplace and candles, windows show a starry night. Empty room. ' + BG_TAIL,
+});
+
 const out = { version: 1, phase: 1, inbox: 'art/inbox/', items };
 fs.writeFileSync(path.join(ROOT, 'art/requests/phase1.json'), JSON.stringify(out, null, 2) + '\n');
 
@@ -131,3 +159,17 @@ items.forEach((it) => {
 });
 fs.writeFileSync(path.join(ROOT, 'art/requests/phase1.md'), md.join('\n'));
 console.log(`requests: ${items.length} items`);
+
+fs.writeFileSync(path.join(ROOT, 'art/requests/phase2.json'), JSON.stringify({ version: 1, phase: 2, inbox: 'art/inbox/', items: phase2 }, null, 2) + '\n');
+const md2 = [
+  '# 그림 요청서 — 2단계 (배경)',
+  '',
+  '> `node tools/art/requests.js`로 자동 생성된다. 공통 규칙은 `art/STYLE.md`, 작업 절차는 `art/README.md`.',
+  '> 배경에는 **인물·괴물을 넣지 않는다.** 게임이 그 위에 유닛을 그린다.',
+  '',
+  `총 ${phase2.length}장 · 결과물은 \`art/inbox/<file>\`에 PNG로 넣는다. 배경은 투명이 아니라 꽉 찬 그림.`,
+  '',
+];
+phase2.forEach((it) => md2.push(`### ${it.name}`, `- 파일: \`${it.file}\` · 생성 크기: ${it.size} · 게임 내 크기: ${it.out}`, '', '```', it.prompt, '```', ''));
+fs.writeFileSync(path.join(ROOT, 'art/requests/phase2.md'), md2.join('\n'));
+console.log(`phase2 requests: ${phase2.length} items`);
