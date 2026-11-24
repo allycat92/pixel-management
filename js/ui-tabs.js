@@ -35,7 +35,7 @@
         companyFlag(c, 3),
         el('div', { class: 'grow' },
           el('div', { class: 'cname', text: c.name }),
-          el('div', { class: `small ${leader ? 'muted' : 'bad'}`, text: `${leader ? `대장 ${leader.name}(${Game.className(leader)})` : '대장 없음 (전투력 -15%)'} · 대원 ${units.length}/${Game.unitSlots()} · 전적 ${c.wins}승 ${c.losses}패 · 기본 전투력 ${ms.length ? Game.ownCompanyPower(c, ms, null) : 0}` }),
+          el('div', { class: `small ${leader ? 'muted' : 'bad'}`, text: `${leader ? `대장 ${leader.name}(${Game.className(leader)})` : '대장 없음 (전투력 -15%)'} · 대원 ${units.length}/${Game.unitSlots()}${Game.unitSlots() < 3 ? '(병영 1단계부터 3명)' : ''} · 전적 ${c.wins}승 ${c.losses}패 · 기본 전투력 ${ms.length ? Game.ownCompanyPower(c, ms, null) : 0}` }),
           leader ? el('div', { class: 'small lead-line', title: Game.leadOf(leader).desc }, '지휘 ', el('b', { text: `「${Game.leadOf(leader).name}」` }), ` ${Game.leadOf(leader).desc}${Game.leadScale(leader) > 1 ? ' (×1.5)' : ''}`) : null,
           el('div', { class: 'cohesion' }, el('span', { class: 'small muted', text: '결속도' }),
             el('div', { class: 'bar thin' }, el('div', { class: 'bar-fill f-cohesion', style: `width:${c.cohesion}%` })),
@@ -222,7 +222,7 @@
   // 파견 창: 용병단 고르기 (결전이면 여러 개), 직속 용병단은 출격 단원 고르기
   function openDispatch(c) {
     const s = Game.state;
-    const slots = c.campaign ? c.campaign.slots : 1;
+    const slots = Game.dispatchSlots(c); // 일반 의뢰 1개, 결전 2~3개 (직속·외부 합쳐 최대 MAX_DISPATCH)
     const sel = new Map(); // companyId -> Set(memberIds) | true
     const comps = s.companies.filter((co) => !co.missionId);
     const defaultMembers = (co) => new Set(Game.availableMembers(co).filter((m) => m.fatigue < 80).map((m) => m.id));
@@ -243,7 +243,7 @@
       if (sel.has(co.id)) sel.delete(co.id);
       else {
         if (slots === 1) sel.clear();
-        if (sel.size >= slots) return;
+        if (sel.size >= slots) return UI.toast(`이 의뢰에는 용병단을 ${slots}개까지만 보낼 수 있습니다. 다른 용병단을 먼저 빼세요.`);
         sel.set(co.id, co.own ? defaultMembers(co) : true);
       }
       refresh();
@@ -293,7 +293,8 @@
         el('div', {}, '총 전투력 ', el('b', { text: pw }), ` / 권장 ${req}`, el('span', { class: `small ${head < c.size ? 'bad' : 'muted'}`, text: ` · 인원 ${head}/${c.size}` })),
         el('div', { class: 'bar big' }, el('div', { class: 'bar-fill f-power', style: `width:${Math.min(100, (pw / req) * 50)}%` }), el('div', { class: 'bar-mark' })),
         us.length ? el('div', {}, '예상 성공률 ', el('b', { class: cls, text: `${Math.round(ch * 100)}% (${label})` }), el('span', { class: 'small muted', text: ` · 소요 ${Game.contractDays(c, us)}일` }))
-          : el('div', { class: 'muted', text: c.campaign ? `용병단을 최대 ${slots}개까지 고르세요.` : '용병단을 고르세요.' }),
+          : el('div', { class: 'muted', text: c.campaign ? `용병단을 최대 ${slots}개까지 고르세요. (직속·외부 합계)` : '용병단을 하나 고르세요.' }),
+        us.length && slots > 1 ? el('div', { class: `small ${us.length >= slots ? 'warn' : 'muted'}`, text: `용병단 ${us.length}/${slots}개${us.length >= slots ? ' · 더 보내려면 하나를 빼야 합니다' : ''} (한 전장에 아군 부대는 최대 ${MAX_DISPATCH}개)` }) : null,
         head < c.size && us.length ? el('div', { class: 'bad small', text: `권장 인원보다 ${c.size - head}명 부족해 성공률이 떨어집니다.` }) : null,
         hostile ? el('div', { class: 'bad small', text: `${FACTIONS[owner].name}의 적대 지역: 난이도 상승` }) : null,
         tired.length ? el('div', { class: 'bad small', text: `피로한 단원: ${tired.map((m) => m.name).join(', ')}` }) : null,

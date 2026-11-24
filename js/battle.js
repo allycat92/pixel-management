@@ -1,12 +1,16 @@
 // 실시간 집단 전투
-// 용병대장 1 + 대원 3~8로 이루어진 부대 6~10개가 전장에서 스스로 판단해 싸운다.
+// 용병대장 1 + 대원 2~3으로 이루어진 부대가 양쪽 최대 3개씩(3vs3) 전장에서 스스로 판단해 싸운다.
 // 의뢰의 결과(대성공/성공/실패/대실패)는 판정에서 정해지고, 전투는 시드를 바꿔 가며 실제로
 // 시뮬레이션해 그 결과가 나오는 판을 찾아 재생한다. 연출을 위해 짜 맞춘 각본은 없다.
 'use strict';
 
 const Battle = (() => {
   const W = 320, H = 180;
-  const TOP = 84, BOTTOM = 172;      // 전장의 위·아래 경계 (유닛 발 위치)
+  const TOP = 80, BOTTOM = 170;      // 전장의 위·아래 경계 (유닛 발 위치). 유닛은 발 위로 약 32 단위 높이로 그려진다
+  // 몸집: 캐릭터를 약 32(높이)×16(너비) 논리 단위로 그리므로 서로 이만큼 떨어져 선다
+  const SEP_X = 15, SEP_Y = 10;      // 같은 편끼리 최소 간격 (가로·깊이)
+  const SEP_FOE_X = 12;              // 맞붙은 적과의 최소 가로 간격 (근접 사거리보다 짧아야 한다)
+  const BODY = 4;                    // 근접 공격이 닿는 거리에 더하는 몸 폭
   const DT = 0.05;                   // 시뮬레이션 한 틱(초)
   const MAX_TIME = 90;               // 시간 제한(초)
   const END_HOLD = 2.2;              // 결판 후 화면 유지(초)
@@ -216,6 +220,12 @@ const Battle = (() => {
   }
 
   // ───────── 부대 편성 ─────────
+  // 양쪽 최대 3개 부대, 부대마다 3~4명(대장 1 + 2~3). 큰 도트(약 32×16 논리 단위)로 그려도 읽히는 규모.
+  const MAX_GROUPS = 3;              // 한 진영의 최대 부대 수
+  const GROUP_MIN = 3, GROUP_MAX = 4; // 부대 인원 (대장 포함)
+  // 적 부대 수: 낮은 난이도 2개, ★5 이상·결전·최종 결전·보스 3개
+  const enemyGroupsFor = (q) => (q.campaign || q.final || q.boss || q.level >= 5 ? 3 : 2);
+
   // report → 부대 설계도 (시드에 따라 결정적)
   function plan(report) {
     const q = report.quest;
@@ -226,17 +236,19 @@ const Battle = (() => {
       return { cls, skin: rPick(r, SKIN_TONES), hair: rPick(r, HAIR_COLORS), longHair: r() < 0.3, tint: { outfit: color, accent: '#d9a441' } };
     });
     const deadIds = new Set((report.members || []).filter((m) => m.dead).map((m) => m.id));
+    const extra = q.level >= 6 ? 1 : 0; // 높은 난이도일수록 꽉 찬 부대가 나온다
 
-    // 아군: 파견된 용병단
+    // 아군: 파견된 용병단 (직속 → 외부, 최대 3개)
     (report.companies || []).forEach((c) => {
+      if (groups.length >= MAX_GROUPS) return;
       if (c.own && c.members) {
         const ms = [...c.members].sort((a, b) => (b.leader ? 1 : 0) - (a.leader ? 1 : 0) || b.level - a.level);
-        const units = ms.map((m) => ({ look: m.look, cls: m.cls, str: (0.85 + m.level * 0.035) * (m.leader ? 1.15 : 1), named: m.name, doomed: deadIds.has(m.id), sk: m.sk, unique: m.unique, art: m.art }));
-        // 대원이 셋이 안 되면 수습 용병이 머릿수를 채운다
-        looksFor(c.color, Math.max(0, 4 - units.length)).forEach((lk) => units.push({ look: lk, cls: lk.cls, str: 0.7, recruit: true }));
-        groups.push({ side: 0, name: c.name, color: c.color, player: true, units: units.slice(0, 9) });
+        const units = ms.slice(0, GROUP_MAX).map((m) => ({ look: m.look, cls: m.cls, str: (0.85 + m.level * 0.035) * (m.leader ? 1.15 : 1), named: m.name, doomed: deadIds.has(m.id), sk: m.sk, unique: m.unique, art: m.art, capKey: m.capKey || (m.look && m.look.cap) || null, heroKey: m.heroKey || null }));
+        // 출격 인원이 셋이 안 되면 수습 용병이 머릿수를 채운다
+        looksFor(c.color, Math.max(0, GROUP_MIN - units.length)).forEach((lk) => units.push({ look: lk, cls: lk.cls, str: 0.7, recruit: true }));
+        groups.push({ side: 0, name: c.name, color: c.color, player: true, units });
       } else if (!c.own) {
-        const n = clamp(c.size || 5, 4, 9);
+        const n = clamp(c.size || GROUP_MIN, GROUP_MIN, GROUP_MAX);
         const units = [{ look: c.look, cls: c.look.cls, str: 0.9 + c.level * 0.03 }];
         looksFor(c.color, n - 1).forEach((lk) => units.push({ look: lk, cls: lk.cls, str: 0.8 + c.level * 0.025 }));
         groups.push({ side: 0, name: c.name, color: c.color, player: true, ext: true, betray: c.betrayed, units });
@@ -244,23 +256,20 @@ const Battle = (() => {
     });
     if (!groups.length) {
       // 옛 보고서 호환: 단원 목록만 있는 경우
-      const units = (report.members || []).map((m) => ({ look: m.look, cls: m.cls, str: 1, named: m.name, doomed: m.dead }));
-      looksFor('#3d5a9c', Math.max(0, 4 - units.length)).forEach((lk) => units.push({ look: lk, cls: lk.cls, str: 0.7, recruit: true }));
+      const units = (report.members || []).slice(0, GROUP_MAX).map((m) => ({ look: m.look, cls: m.cls, str: 1, named: m.name, doomed: m.dead }));
+      looksFor('#3d5a9c', Math.max(0, GROUP_MIN - units.length)).forEach((lk) => units.push({ look: lk, cls: lk.cls, str: 0.7, recruit: true }));
       groups.push({ side: 0, name: '길드 용병단', color: '#3d5a9c', player: true, units });
     }
 
-    // 부대 수: 6~10 (결전·최종전은 많게)
-    const big = q.campaign || q.final;
-    const total = clamp(6 + Math.floor(q.level / 4) + (big ? 2 : 0) + (q.boss ? 1 : 0), 6, 10);
-    const enemyN = Math.ceil(total / 2);
-    const allyFill = Math.max(0, total - enemyN - groups.length);
+    const enemyN = enemyGroupsFor(q);
+    const allyFill = Math.max(0, Math.min(MAX_GROUPS, enemyN) - groups.length);
 
-    // 아군 지원 부대: 의뢰주 세력의 병사들
+    // 아군 지원 부대: 의뢰주 세력의 병사들 (진영 부대 수를 적과 맞춘다)
     const issuer = q.issuer;
     const ally = FACTIONS[issuer] && !FACTIONS[issuer].neutral ? issuer : null;
     for (let i = 0; i < allyFill; i++) {
       const f = ally || 'locals';
-      const n = rInt(r, 4, 7);
+      const n = rInt(r, GROUP_MIN, GROUP_MAX);
       const units = Array.from({ length: n }, (_, k) => {
         const lk = UI.h.soldierLook(f, rInt(r, 0, 99) + k);
         return { look: lk, cls: lk.cls, str: ally ? 0.85 : 0.65 };
@@ -268,7 +277,7 @@ const Battle = (() => {
       groups.push({ side: 0, name: ally ? `${FACTIONS[f].short} ${FACTIONS[f].unitName}` : '마을 자경단', color: FACTIONS[f].color, units });
     }
 
-    // 적군
+    // 적군: 2~3개 부대, 부대마다 우두머리 + 2~3
     if (q.enemy) {
       const def = ENEMIES[q.enemy] || {};
       const cal = FACTIONS[q.target] && FACTIONS[q.target].calamity ? q.target : null;
@@ -279,7 +288,7 @@ const Battle = (() => {
         const lead = i === 0 ? q.enemy : (def.boss ? rPick(r, pool) : q.enemy);
         const ldef = ENEMIES[lead] || {};
         const units = [{ mon: lead, scale: ldef.boss ? 3 : 2, str: ldef.boss ? 1.4 : 1.1, boss: !!ldef.boss, bigMon: true }];
-        const n = rInt(r, 3, Math.min(8, 3 + Math.floor(q.level / 2)));
+        const n = ldef.boss ? rInt(r, 2, 3) : Math.min(GROUP_MAX - 1, rInt(r, GROUP_MIN - 1, GROUP_MAX - 1) + extra);
         for (let k = 0; k < n; k++) {
           const m = minion();
           units.push({ mon: m, scale: ENEMIES[m] && ENEMIES[m].big ? 2 : 1, str: 1, bigMon: !!(ENEMIES[m] && ENEMIES[m].big) });
@@ -289,7 +298,7 @@ const Battle = (() => {
     } else {
       const f = q.target || q.issuer;
       for (let i = 0; i < enemyN; i++) {
-        const n = rInt(r, 4, Math.min(9, 4 + Math.floor(q.level / 2)));
+        const n = Math.min(GROUP_MAX, rInt(r, GROUP_MIN, GROUP_MAX) + extra);
         const units = Array.from({ length: n }, (_, k) => {
           const lk = UI.h.soldierLook(f, rInt(r, 0, 99) + k);
           return { look: lk, cls: lk.cls, str: 1 };
@@ -309,11 +318,10 @@ const Battle = (() => {
     const bySide = [gs.filter((g) => g.side === 0), gs.filter((g) => g.side === 1)];
     bySide.forEach((list, side) => {
       list.forEach((g, i) => {
-        // 부대가 넷 이상이면 앞뒤 두 줄로 포진
-        const cols = list.length > 3 ? 2 : 1;
-        const col = i % cols, rowIdx = Math.floor(i / cols), inCol = Math.ceil((list.length - col) / cols);
-        const cy = TOP + 6 + ((BOTTOM - TOP - 12) * (rowIdx + 0.5)) / inCol;
-        const cx = side === 0 ? 66 - col * 38 : W - 66 + col * 38;
+        // 부대는 한 줄로 위아래에 늘어선다 (진영당 최대 3개). 가운데 부대는 조금 뒤에 서서 겹쳐 보이지 않게 한다.
+        const cy = TOP + ((BOTTOM - TOP) * (i + 0.5)) / list.length;
+        const back = list.length === 3 && i === 1 ? 10 : 0;
+        const cx = side === 0 ? 58 - back : W - 58 + back;
         g.units = groups[g.id].units.map((ud, k) => {
           const captain = k === 0;
           const base = ud.mon ? { ...MONSTER_STATS } : { ...(CLASS_STATS[ud.cls] || CLASS_STATS.warrior) };
@@ -331,12 +339,11 @@ const Battle = (() => {
           if (captain) str *= 1.15;
           if (ud.doomed) str *= 0.6;
           const hp = base.hp * str * (captain && !ud.mon ? 1.6 : 1) * (ud.unique ? 1.15 : 1);
-          // 대형: 대장이 가운데, 대원은 3열로 앞뒤에 선다
+          // 대형: 대장이 뒤 가운데, 대원 둘이 앞 위아래, 셋째는 맨 앞 (큰 도트끼리 겹치지 않는 간격)
           const fwd = side === 0 ? 1 : -1;
-          const fcol = captain ? 0 : Math.floor((k - 1) / 3);
-          const row = captain ? 1 : (k - 1) % 3;
-          const ox = captain ? -fwd * 4 : fwd * (8 - fcol * 12);
-          const oy = (row - 1) * 10;
+          const SLOT = [[-6, 0], [10, -9], [10, 9], [24, 0]];
+          const [sx, sy] = SLOT[k] || [-6 - 16 * (k - 3), k % 2 ? -9 : 9];
+          const ox = fwd * sx, oy = sy;
           const unit = {
             g, side, captain, ...ud,
             x: cx + ox + (r() - 0.5) * 4, y: clamp(cy + oy + (r() - 0.5) * 4, TOP, BOTTOM),
@@ -435,7 +442,7 @@ const Battle = (() => {
       }
       return best;
     }
-    const reach = (sk.dash ? Math.max(sk.range, 60) : sk.range);
+    const reach = (sk.dash ? Math.max(sk.range, 60) : sk.range + (sk.shot ? 0 : BODY));
     let best = null, bd = Infinity;
     for (const e of live) {
       if (e.side === u.side || e.g.routed) continue;
@@ -476,7 +483,7 @@ const Battle = (() => {
     if (sk.dash) {
       // 돌진: 대상 곁으로 뛰어든다
       const d = dist(u, t) || 1;
-      const stop = 8 + sizeOf(t);
+      const stop = SEP_FOE_X - 2 + sizeOf(t);
       if (d > stop) { u.x = t.x - ((t.x - u.x) / d) * stop; u.y = t.y - ((t.y - u.y) / d) * stop; }
       st.fx.push({ kind: 'dash', x: u.x, y: u.y - 6, t: 0 });
     }
@@ -563,14 +570,14 @@ const Battle = (() => {
       if (!tg) continue;
       const dx = tg.x - u.x, dy = tg.y - u.y, d = Math.hypot(dx, dy) || 1;
       u.face = dx >= 0 ? 1 : -1;
-      const reach = basic.range + sizeOf(tg);
+      const reach = basic.range + sizeOf(tg) + (basic.shot ? 0 : BODY);
       if (d > reach) {
         // 대장 근처로 모이려는 힘을 약간 섞는다 (부대 대형 유지)
         let mx = dx / d, my = dy / d;
         const cap = u.g.captain;
         if (!u.captain && cap.alive) {
           const cx = cap.x - u.x, cy = cap.y - u.y, cd = Math.hypot(cx, cy);
-          if (cd > 26) { mx += (cx / cd) * 0.45; my += (cy / cd) * 0.45; }
+          if (cd > 32) { mx += (cx / cd) * 0.45; my += (cy / cd) * 0.45; }
         }
         const ml = Math.hypot(mx, my) || 1;
         u.x += (mx / ml) * u.speed * DT; u.y += (my / ml) * u.speed * DT;
@@ -582,22 +589,25 @@ const Battle = (() => {
       }
       if (d <= reach && basic.left <= 0) useSkill(st, u, basic, tg, live);
     }
-    // 겹침 방지
+    // 겹침 방지: 가로로 넓고 깊이(세로)로 얕은 타원 간격. 큰 도트가 한 덩어리로 뭉개지지 않게 한다.
+    // 맞붙은 적끼리는 근접 사거리 안에 들어올 만큼만 떨어진다.
     for (let i = 0; i < live.length; i++) {
       const a = live[i];
       if (!a.alive) continue;
       for (let j = i + 1; j < live.length; j++) {
         const b = live[j];
         if (!b.alive) continue;
-        const ddx = b.x - a.x, ddy = b.y - a.y;
-        const min = 9 + sizeOf(a) * 0.75 + sizeOf(b) * 0.75;
-        if (Math.abs(ddx) > min || Math.abs(ddy) > min) continue;
-        const dd = Math.hypot(ddx, ddy) || 0.01;
-        if (dd >= min) continue;
-        const push = (min - dd) * 0.5;
-        const nx = ddx / dd, ny = ddy / dd;
-        a.x -= nx * push; a.y -= ny * push * 0.8;
-        b.x += nx * push; b.y += ny * push * 0.8;
+        const big = sizeOf(a) + sizeOf(b);
+        const mx = (a.side === b.side ? SEP_X : SEP_FOE_X) + big * 0.75, my = SEP_Y + big * 0.5;
+        const ddx = (b.x - a.x) || (j % 2 ? 0.01 : -0.01), ddy = b.y - a.y;
+        if (Math.abs(ddx) >= mx || Math.abs(ddy) >= my) continue;
+        const nx = ddx / mx, ny = ddy / my;
+        const nd = Math.hypot(nx, ny);
+        if (nd >= 1) continue;
+        const push = (1 - nd) * 0.5;
+        const ux = nx / nd, uy = ny / nd;
+        a.x -= ux * push * mx; a.y -= uy * push * my * 0.8;
+        b.x += ux * push * mx; b.y += uy * push * my * 0.8;
       }
     }
     live.forEach((u) => { u.y = clamp(u.y, TOP, BOTTOM); if (!u.g.routed) u.x = clamp(u.x, 6, W - 6); });

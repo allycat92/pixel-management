@@ -390,7 +390,7 @@ const CAPTAIN_CHALLENGES = {
   windhunter: { name: '질풍 같은 성장', conds: [{ t: 'rank', min: 2 }, { t: 'dayMax', v: 22 }] },
   shadowlord: { name: '도박꾼의 눈', conds: [{ t: 'stat', k: 'gambles', min: 3 }, { t: 'dayMax', v: 80 }] },
   bard: { name: '작은 극단', conds: [{ t: 'rep', min: 300 }, { t: 'mercsMax', v: 7 }] },
-  beastmaster: { name: '사냥 시즌', conds: [{ t: 'stat', k: 'monster', min: 18 }, { t: 'dayMax', v: 40 }] },
+  beastmaster: { name: '사냥 시즌', conds: [{ t: 'stat', k: 'monster', min: 22 }, { t: 'dayMax', v: 40 }] },
   runesmith: { name: '장인의 금고', conds: [{ t: 'gold', min: 4000 }, { t: 'dayMax', v: 40 }] },
   pilgrim: { name: '무사한 순례', conds: [{ t: 'stat', k: 'hardStreak', min: 6 }, { t: 'noDeath', days: 40 }, { t: 'dayMax', v: 70 }] },
   // 중반 1 (등급 C부터)
@@ -403,7 +403,7 @@ const CAPTAIN_CHALLENGES = {
   // 중반 2 (등급 B부터)
   warlord: { name: '군세의 증명', conds: [{ t: 'stat', k: 'campaign', min: 9 }, { t: 'companies', min: 4 }, { t: 'dayMax', v: 75 }] },
   khan: { name: '초원의 약탈', conds: [{ t: 'stat', k: 'raid', min: 8 }, { t: 'standing', f: 'clans', min: 20 }, { t: 'alive', f: 'clans' }] },
-  siegemaster: { name: '무너진 성벽들', conds: [{ t: 'stat', k: 'siege', min: 6 }, { t: 'dayMax', v: 130 }] },
+  siegemaster: { name: '무너진 성벽들', conds: [{ t: 'stat', k: 'siege', min: 8 }, { t: 'dayMax', v: 130 }] },
   inquisitorlord: { name: '심문소의 신뢰', conds: [{ t: 'standing', f: 'church', min: 60 }, { t: 'standing', f: 'elves', max: -20 }, { t: 'stat', k: 'counterspy', min: 4 }, { t: 'alive', f: 'church' }] },
   pirateking: { name: '해적왕의 판돈', conds: [{ t: 'gold', min: 10000 }, { t: 'stat', k: 'gambles', min: 5 }] },
   frostjarl: { name: '겨울을 지킨 자', conds: [{ t: 'standing', f: 'north', min: 40 }, { t: 'standing', f: 'crown', max: 0 }, { t: 'alive', f: 'north' }] },

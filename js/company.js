@@ -1,6 +1,14 @@
 // 용병단: 길드 직속 용병단과 외부 계약 용병단
 'use strict';
 
+// 용병단은 소수 정예다: 용병대장 1 + 대원 2~3명 (3~4명)
+const SQUAD_MAX = 4;          // 한 용병단(전투 부대)의 최대 인원
+const MAX_DISPATCH = 3;       // 한 의뢰에 보낼 수 있는 용병단 수 (직속 + 외부)
+const EXT_SIZE = [3, 4];      // 외부 용병단 인원 범위
+// 머릿수가 줄어든 만큼 한 사람의 몫이 크다 (용병단이 4~9명이던 시절과 전력·보수를 맞춘다)
+const SQUAD_POWER = 1.3;      // 직속 용병단 전투력 배율
+const EXT_MEMBER_MUL = 1.4;   // 외부 용병단 단원 한 명의 전투력·몸값 배율
+
 Object.assign(Game, {
   // ───────── 공통 ─────────
   company(id) { return this.state.companies.find((c) => c.id === id); },
@@ -10,8 +18,8 @@ Object.assign(Game, {
   reserve() { return this.state.mercs.filter((m) => m.companyId == null); },
   companyBusy(c) { return !!c.missionId; },
   maxCompanies() { return 1 + this.state.facilities.barracks; },
-  // 용병단 = 용병대장 1 + 대원 (병영 단계에 따라 4~8명)
-  unitSlots() { return 4 + this.state.facilities.barracks; },
+  // 용병단 = 용병대장 1 + 대원 2명, 병영 1단계부터 대원 3명 (3~4명)
+  unitSlots() { return this.state.facilities.barracks >= 1 ? 3 : 2; },
   companySize() { return 1 + this.unitSlots(); },
   captainOf(c) { return this.members(c).find((m) => this.isCaptain(m)) || null; },
   unitsOf(c) { return this.members(c).filter((m) => !this.isCaptain(m)); },
@@ -113,25 +121,64 @@ Object.assign(Game, {
   // 파견 가능한 단원(부상자 제외)
   availableMembers(c) { return this.members(c).filter((m) => m.status === 'idle'); },
 
+  // 정원을 넘는 대원을 예비 인원으로 돌린다 (옛 저장의 큰 용병단, 병영 축소 등)
+  // 대장은 빼지 않고, 특별 용병은 마지막까지 남기며, 레벨이 낮은 대원부터 뺀다. 출격 중인 단원은 귀환 후에 정리한다.
+  trimCompany(c) {
+    const over = this.unitsOf(c).length - this.unitSlots();
+    if (over <= 0) return [];
+    const out = this.unitsOf(c).filter((m) => m.status !== 'quest')
+      .sort((a, b) => (a.hero ? 1 : 0) - (b.hero ? 1 : 0) || a.level - b.level || a.id - b.id)
+      .slice(0, over);
+    out.forEach((m) => { m.companyId = null; });
+    return out;
+  },
+  // 저장을 불러올 때: 용병단 크기 규칙(대장 1 + 대원 2~3, 외부 3~4명)에 맞춘다. 몇 번을 돌려도 결과가 같다.
+  normalizeCompanies() {
+    const s = this.state;
+    const moved = [];
+    this.ownCompanies().forEach((c) => moved.push(...this.trimCompany(c)));
+    if (moved.length) {
+      this.log(`용병단 편제 개편: 용병단은 대장 1명과 대원 ${this.unitSlots()}명까지입니다. ${moved.map((m) => m.name).join(', ')}이(가) 예비 인원으로 옮겨졌습니다.`, 'event');
+    }
+    [...this.extCompanies(), ...(s.market || [])].forEach((c) => {
+      if (c.maxSize <= EXT_SIZE[1] && c.size <= EXT_SIZE[1]) return;
+      c.maxSize = Math.min(c.maxSize || c.size, EXT_SIZE[1]);
+      c.size = Math.min(c.size, c.maxSize);
+      Object.assign(c, this.extFees(c.level, c.maxSize));
+    });
+    // 이미 게시된 의뢰의 권장 인원도 새 규칙에 맞춘다
+    [...(s.contracts || []), ...(s.missions || []).map((mi) => mi.contract)].forEach((q) => {
+      const cap = q.final ? FINAL_SIZE : q.campaign ? this.campaignSize(q.campaign.slots) : SQUAD_MAX;
+      if (q.size > cap) q.size = cap;
+    });
+    return moved;
+  },
+
   // ───────── 외부 용병단 ─────────
   makeExtCompany() {
     const s = this.state, r = this.rankIndex();
     const late = this.lateGame() ? 4 : 0; // 재앙 이후엔 노련한 용병단도 시장에 나온다
     const level = clamp(rand(Math.max(1, Math.round(r * 1.6)) + late, Math.round(r * 1.6) + 3 + late), 1, 22);
-    const size = rand(4, 6);
+    const size = rand(EXT_SIZE[0], EXT_SIZE[1]);
     const disposition = pick(['gold', 'gold', 'honor', 'faction', 'faction']);
     const sympathy = disposition === 'faction' ? pick(FACTION_KEYS) : null;
     const cls = pick(Object.keys(CLASSES));
-    const base = (12 + level * 9) * size;
+    const { signFee, upkeep } = this.extFees(level, size);
     const share = disposition === 'gold' ? rand(35, 40) : disposition === 'honor' ? rand(22, 28) : rand(20, 30);
     const name = this.uniqueCompanyName();
     return {
       id: s.nextId++, own: false, name, color: pick(COMPANY_COLORS),
       captain: { name: pick(NAMES), cls, look: { cls, skin: pick(SKIN_TONES), hair: pick(HAIR_COLORS), longHair: Math.random() < 0.3 } },
       level, size, maxSize: size, specialty: pick(COMPANY_SPECIALTIES), disposition, sympathy,
-      loyalty: rand(50, 65), share, signFee: Math.round(base * 1.4), upkeep: Math.round(base * 0.55),
+      loyalty: rand(50, 65), share, signFee, upkeep,
       contractEnd: 0, wins: 0, losses: 0, missionId: null,
     };
+  },
+
+  // 계약금·유지비: 단원 한 명이 직속 단원 못지않은 정예라 머릿수당 값이 비싸다
+  extFees(level, size) {
+    const base = (12 + level * 9) * size * EXT_MEMBER_MUL;
+    return { signFee: Math.round(base * 1.4), upkeep: Math.round(base * 0.55) };
   },
 
   refreshMarket() {
@@ -141,7 +188,7 @@ Object.assign(Game, {
     for (let i = 0; i < count; i++) s.market.push(this.makeExtCompany());
   },
 
-  extPerMember(c) { return 16 + c.level * 7; },
+  extPerMember(c) { return Math.round((16 + c.level * 7) * EXT_MEMBER_MUL); },
   extPower(c, type) {
     const spec = c.specialty === type || (c.specialty === 'defense' && type === 'warDefense') ? 1.2 : 1;
     return Math.round(c.size * this.extPerMember(c) * spec * (0.9 + c.loyalty * 0.002));

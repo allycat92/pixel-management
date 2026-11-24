@@ -37,8 +37,8 @@ const Game = {
     };
     const s = this.state;
     this.initWorld();
-    // 시작 용병단: 대원 3명. 첫 용병대장은 후보 셋 중에서 고른다.
-    const units = ['warrior', 'archer', 'cleric'].map((cls) => { const m = this.makeUnit(cls, 1); s.mercs.push(m); return m; });
+    // 시작 용병단: 대원 2명 (용병대장과 합쳐 3명). 첫 용병대장은 후보 셋 중에서 고른다.
+    const units = ['warrior', 'cleric'].map((cls) => { const m = this.makeUnit(cls, 1); s.mercs.push(m); return m; });
     const co = this.createCompany(true);
     units.forEach((m) => { m.companyId = co.id; });
     co.cohesion = 30;
@@ -60,6 +60,7 @@ const Game = {
       const st = JSON.parse(raw);
       if (st.version !== SAVE_VERSION) return false;
       this.state = st;
+      this.normalizeCompanies(); // 용병단이 4~9명이던 저장: 정원을 넘는 대원은 예비 인원으로
       return true;
     } catch (e) { return false; }
   },
