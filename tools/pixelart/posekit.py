@@ -13,9 +13,12 @@ Per frame, on a flat #FF00FF background:
 plus sheet.png (all guides) and anim.gif / anim_<anim>.gif (small cells, looped per animation).
 
 Skeleton (head units; head = 1, standing height = --heads):
-  leg (hip joint -> floor) 1.75 + 0.6*(N-4), torso (hip -> shoulder line) 1.0 + 0.4*(N-4),
-  neck 0.25, head 1.0; thigh = shin; 2-bone IK (lengths are exact in every frame) for
+  leg (hip joint -> floor) 1.75 + 0.6*(N-4), torso (hip -> shoulder line) 1.05 + 0.4*(N-4),
+  neck 0.20, head 1.0; thigh = shin; 2-bone IK (lengths are exact in every frame) for
   legs (planted feet on the y=0 baseline) and arms (hands locked to points on the weapon).
+  One scale for every frame of a run (fitted so the idle body is ~73% of the image height and
+  every frame, weapon included, stays inside); only the x origin may slide per frame.
+  Every run prints IK / bone-length / baseline violations (expected: 0 warnings).
 
 Usage:
   python3 tools/pixelart/posekit.py OUT_DIR [--heads 4] [--weapon katana]
@@ -247,8 +250,9 @@ class Body:
         d = heads - 4.0
         self.N = heads
         self.head = 1.0
-        self.neck = 0.25
-        self.torso = 1.0 + 0.4 * d
+        self.neck = 0.20
+        self.hs = 1.0 / 1.09             # head drawing scale: hair top -> chin is exactly 1 head
+        self.torso = 1.05 + 0.4 * d
         self.leg = 1.75 + 0.6 * d
         self.ank = 0.12
         self.thigh = self.shin = (self.leg - self.ank) / 2
@@ -277,10 +281,11 @@ def solve(pose, B, weapon):
     J['SF'] = L(0.34 * sw, T - 0.07)
     J['HN'] = L(-0.17, 0.0)
     J['HF'] = L(0.17, 0.0)
-    J['neck0'] = L(0.04, T - 0.02)
+    J['neck0'] = L(0.04, T)
     hup = rot(up, pose.get('tilt', 0.0))
     ho = pose.get('head_off', (0.0, 0.0))
-    J['C'] = J['neck0'] + up * B.neck + hup * 0.55 + v2(ho[0], -ho[1])
+    J['hs'] = B.hs
+    J['C'] = J['neck0'] + up * B.neck + hup * (0.55 * B.hs) + v2(ho[0], -ho[1])   # chin sits on the neck
     J['hang'] = lean * 0.5 + pose.get('tilt', 0.0)
 
     # legs
@@ -313,18 +318,18 @@ def solve(pose, B, weapon):
 
 # ------------------------------------------------------------------ mannequin parts
 def head_parts(J, z0):
-    C, a = J['C'], J['hang']
-    hx, hy = rot(v2(1, 0), a), rot(v2(0, 1), a)
+    C, a, k = J['C'], J['hang'], J['hs']
+    hx, hy = rot(v2(1, 0), a) * k, rot(v2(0, 1), a) * k
 
     def H(u, v):
         return C + hx * u + hy * v
-    skull = ell(C, 0.43, 0.45, a)
+    skull = ell(C, 0.43 * k, 0.45 * k, a)
     jaw = poly([H(-0.32, 0.02), H(-0.27, 0.30), H(-0.08, 0.49), H(0.14, 0.55), H(0.31, 0.47),
                 H(0.41, 0.30), H(0.44, 0.06), H(0.2, -0.05), H(-0.2, -0.05)])
     hairline = poly([H(-0.75, -0.85), H(0.75, -0.85), H(0.75, -0.17), H(0.42, -0.15), H(0.22, -0.09),
                      H(0.04, -0.05), H(-0.02, 0.15), H(-0.10, 0.03), H(-0.28, 0.24), H(-0.50, 0.40),
                      H(-0.75, 0.40)])
-    hair = ('and', ell(H(-0.03, -0.04), 0.48, 0.50, a), hairline)
+    hair = ('and', ell(H(-0.03, -0.04), 0.48 * k, 0.50 * k, a), hairline)
     J['kp_nose'] = H(0.41, 0.30)
     J['kp_eyeN'] = H(0.12, 0.17)
     J['kp_eyeF'] = H(0.34, 0.16)
@@ -332,9 +337,9 @@ def head_parts(J, z0):
     return [
         ('head', ('or', skull, jaw), 'skin', z0, 0.16),
         ('hair', hair, 'hair', z0 + 1, 0.14),
-        ('ear', ell(H(-0.15, 0.11), 0.07, 0.10, a), 'skin', z0 + 2, 0.04),
-        ('eyeN', ell(H(0.12, 0.17), 0.05, 0.08, a), 'eye', z0 + 3, None),
-        ('eyeF', ell(H(0.34, 0.16), 0.035, 0.075, a), 'eye', z0 + 3, None),
+        ('ear', ell(H(-0.15, 0.11), 0.07 * k, 0.10 * k, a), 'skin', z0 + 2, 0.04),
+        ('eyeN', ell(H(0.12, 0.17), 0.05 * k, 0.08 * k, a), 'eye', z0 + 3, None),
+        ('eyeF', ell(H(0.34, 0.16), 0.035 * k, 0.075 * k, a), 'eye', z0 + 3, None),
     ]
 
 
@@ -382,7 +387,7 @@ def torso_parts(J, B, z0):
     pel = poly([L(-0.39, 0.18), L(0.38, 0.18), L(0.41, -0.08), L(0.18, -0.30), L(-0.18, -0.30),
                 L(-0.43, -0.08)])
     belt = poly([L(-0.385, 0.27), L(0.375, 0.27), L(0.38, 0.12), L(-0.39, 0.12)])
-    neck = cap(J['neck0'], J['C'] + rot(v2(0, 0.30), J['hang']), 0.12, 0.11)
+    neck = cap(J['neck0'], J['C'] + rot(v2(0, 0.30 * J['hs']), J['hang']), 0.12, 0.11)
     return [
         ('pelvis', pel, 'pelvis', z0, 0.12),
         ('torso', tor, 'torso', z0 + 1, 0.20),
@@ -400,16 +405,16 @@ def weapon_parts(J, weapon, pose):
         return out
     pn = np.array((d[1], -d[0])) * pose.get('edge', 1)          # spine side
     if weapon == 'katana':
-        Lb = 1.95
-        J['wtip'] = G + d * (0.04 + Lb) + pn * 0.07
-        J['wbutt'] = G - d * 0.56
-        out.append(('handle', cap(G - d * 0.56, G - d * 0.02, 0.055), 'wrap', 'handle', 0.03))
-        out.append(('pommel', ell(G - d * 0.57, 0.06, 0.06), 'brass', 'handle', None))
+        Lb = 1.62
+        J['wtip'] = G + d * (0.04 + Lb) + pn * 0.06
+        J['wbutt'] = G - d * 0.50
+        out.append(('handle', cap(G - d * 0.50, G - d * 0.02, 0.055), 'wrap', 'handle', 0.03))
+        out.append(('pommel', ell(G - d * 0.51, 0.06, 0.06), 'brass', 'handle', None))
         spine, edge = [], []
         n = 24
         for i in range(n + 1):
             t = i / n
-            c = G + d * (0.04 + Lb * t) + pn * (0.07 * t * t)
+            c = G + d * (0.04 + Lb * t) + pn * (0.06 * t * t)
             w = 0.075 * (1 - 0.3 * t)
             if t > 0.9:
                 k = (t - 0.9) / 0.1
@@ -432,14 +437,14 @@ def weapon_parts(J, weapon, pose):
         out.append(('blade', poly(bl), 'steel', 'blade', 0.035))
         out.append(('guard', cap(G - pn * 0.2, G + pn * 0.2, 0.04), 'brass', 'handle', 0.03))
     elif weapon in ('spear', 'staff'):
-        top, bot = (1.85, 1.2) if weapon == 'spear' else (1.55, 1.05)
-        J['wtip'] = G + d * (top + (0.42 if weapon == 'spear' else 0.32))
+        top, bot = (1.50, 0.95) if weapon == 'spear' else (1.45, 0.95)
+        J['wtip'] = G + d * (top + (0.36 if weapon == 'spear' else 0.32))
         J['wbutt'] = G - d * bot
         out.append(('shaft', cap(G - d * bot, G + d * top, 0.045), 'wood', 'handle', 0.03))
         if weapon == 'spear':
             h0 = G + d * top
-            hp = [h0 - d * 0.05 + pn * 0.035, h0 + d * 0.12 + pn * 0.08, h0 + d * 0.42,
-                  h0 + d * 0.12 - pn * 0.08, h0 - d * 0.05 - pn * 0.035]
+            hp = [h0 - d * 0.05 + pn * 0.035, h0 + d * 0.10 + pn * 0.08, h0 + d * 0.36,
+                  h0 + d * 0.10 - pn * 0.08, h0 - d * 0.05 - pn * 0.035]
             out.append(('spearhead', poly(hp), 'steel', 'blade', 0.03))
         else:
             out.append(('crook', cap(G + d * top, G + d * (top + 0.10) + pn * 0.12, 0.06, 0.05), 'wood',
@@ -599,10 +604,10 @@ def render_stick(J, R, weapon_line=True):
 # ------------------------------------------------------------------ pose library
 def grip_spec(weapon):
     return {
-        'katana': (('w', -0.13), ('w', -0.45)),
+        'katana': (('w', -0.12), ('w', -0.40)),
         'sword_shield': (('w', -0.14), None),
-        'spear': (('w', 0.0), ('w', -0.75)),
-        'staff': (('w', 0.0), ('w', -0.65)),
+        'spear': (('w', -0.62), ('w', 0.0)),     # near (right) hand at the rear
+        'staff': (('w', -0.55), ('w', 0.0)),
         'bow': (None, ('w', 0.0)),
         'none': (None, None),
     }[weapon]
@@ -614,7 +619,7 @@ def frames(weapon, B):
     k = B.leg / 1.75                                  # leg scale
     ka = (B.upper + B.fore) / 1.18                    # arm scale
     A = B.ank
-    hN, hF = grip_spec(weapon)
+    hN, hF = grip_spec('katana' if weapon == 'none' else weapon)
 
     def body(hip, lean, fN, fF, **kw):
         p = dict(hip=(hip[0], hip[1] * k), lean=lean,
@@ -632,19 +637,19 @@ def frames(weapon, B):
     bob = [0.0, -0.015, -0.03, -0.015]
     idle = [body((0.0, 1.40 + b), 0.08, stance['fN'], stance['fF'], toeN=0.85) for b in bob]
     walk = [
-        body((0.0, 1.54), 0.12, (-0.62, 0.17), (0.66,), faN=-22, toeN=0.9),
-        body((0.0, 1.62), 0.10, (-0.06, 0.40), (0.18,), faN=22, toeN=0.9),
-        body((0.0, 1.54), 0.12, (0.66,), (-0.62, 0.17), faF=-22),
-        body((0.0, 1.62), 0.10, (0.18,), (-0.06, 0.40), faF=22),
+        body((0.0, 1.50), 0.12, (-0.62, 0.17), (0.64,), faN=-22, toeN=0.9),
+        body((0.0, 1.60), 0.10, (-0.22, 0.46), (0.20,), faN=28, toeN=0.9, kneeN=(1.0, 0.3)),
+        body((0.0, 1.50), 0.12, (0.60,), (-0.66, 0.17), faF=-22),
+        body((0.0, 1.60), 0.10, (0.20,), (-0.22, 0.46), faF=28, kneeF=(1.0, 0.3)),
     ]
     attack = [
         body((-0.08, 1.30), 0.00, (-1.10,), (0.98,), toeN=0.85),                     # anticipation
-        body((-0.16, 1.26), -0.12, (-1.12,), (0.95,), toeN=0.85, tilt=0.06),          # wind-up
-        body((0.32, 1.22), 0.30, (-1.05,), (1.42,), toeN=0.85, tilt=-0.05),           # strike (lunge)
-        body((0.36, 1.18), 0.36, (-1.02,), (1.45,), toeN=0.85, tilt=-0.08),           # follow-through
+        body((-0.20, 1.30), -0.12, (-1.12,), (0.80,), toeN=0.85, tilt=0.06),          # wind-up
+        body((0.22, 1.20), 0.16, (-0.78,), (1.20,), toeN=0.85, tilt=-0.08),           # strike (lunge)
+        body((0.30, 1.10), 0.40, (-0.90,), (1.26,), toeN=0.85, tilt=-0.10),           # follow-through
         body((0.12, 1.34), 0.14, (-1.08,), (1.12,), toeN=0.85),                       # recover
     ]
-    hit = [body((-0.22, 1.42), -0.24, (-1.02,), (0.96,), toeN=0.85, tilt=-0.22, head_off=(-0.06, -0.02),
+    hit = [body((-0.22, 1.38), -0.24, (-1.00,), (0.86,), toeN=0.85, tilt=-0.22, head_off=(-0.06, -0.02),
                 faF=-6)]
     cast = [
         body((-0.02, 1.46), 0.04, (-0.95,), (0.92,), toeN=0.85),
@@ -671,20 +676,20 @@ def frames(weapon, B):
             arms('walk_%d' % i, grip=at(h, 0.80, 1.98 + (0.02 if i % 2 else 0.0)), wa=56 + (2 if i % 2 else 0),
                  handN=hN, handF=hF)
         # 0 anticipation: hands come up to the near shoulder, blade upright (hasso)
-        arms('attack_0', grip=at(hh('attack_0'), 0.05, 2.58), wa=96, handN=hN, handF=hF,
+        arms('attack_0', grip=at(hh('attack_0'), -0.30, 2.50), wa=108, handN=hN, handF=hF,
              elbN=(-0.6, 1.0), elbF=(0.3, 1.0), z={'blade': 'mid', 'farfore': 'front'})
         # 1 wind-up: hands above the near shoulder, blade cocked back behind the head
-        arms('attack_1', grip=at(hh('attack_1'), -0.20, 3.02), wa=150, handN=hN, handF=hF,
-             elbN=(-1.0, 0.3), elbF=(0.6, 0.6), z={'blade': 'back', 'farfore': 'front'})
+        arms('attack_1', grip=at(hh('attack_1'), -1.00, 2.92), wa=234, handN=hN, handF=hF,
+             elbN=(-1.0, 0.3), elbF=(0.3, 1.0), z={'blade': 'back', 'handle': 'back', 'farfore': 'back'})
         # 2 strike: arms extended forward, blade cutting down-forward
-        arms('attack_2', grip=at(hh('attack_2'), 1.22, 1.78), wa=-28, handN=hN, handF=hF,
+        arms('attack_2', grip=at(hh('attack_2'), 1.26, 1.96), wa=-54, handN=hN, handF=hF,
              elbN=(0.0, 1.0), elbF=(0.0, 1.0))
-        # 3 follow-through: blade carried low-forward
-        arms('attack_3', grip=at(hh('attack_3'), 1.02, 1.32), wa=-30, handN=hN, handF=hF,
+        # 3 follow-through: blade carried on down, low-forward
+        arms('attack_3', grip=at(hh('attack_3'), 0.86, 1.58), wa=-54, handN=hN, handF=hF,
              elbN=(0.0, 1.0), elbF=(0.0, 1.0))
         # 4 recover: back toward the guard
-        arms('attack_4', grip=at(hh('attack_4'), 0.86, 1.82), wa=36, handN=hN, handF=hF)
-        arms('hit_0', grip=at(hh('hit_0'), 0.52, 1.62), wa=12, handN=hN, handF=hF, elbF=(1.0, 0.5))
+        arms('attack_4', grip=at(hh('attack_4'), 0.80, 1.88), wa=48, handN=hN, handF=hF)
+        arms('hit_0', grip=at(hh('hit_0'), 0.32, 1.72), wa=18, handN=hN, handF=hF, elbF=(1.0, 0.5))
         # cast (katana): blade lowered in the near hand, free hand channels
         arms('cast_0', grip=at(hh('cast_0'), -0.42, 1.55), wa=-120, handN=('w', -0.13),
              handF=('p',) + at(hh('cast_0'), 0.42, 2.12), elbF=(0.3, 1.0), elbN=(-0.5, 0.5))
@@ -692,29 +697,33 @@ def frames(weapon, B):
              handF=('p',) + at(hh('cast_1'), 0.66, 2.98), elbF=(0.6, 0.6), elbN=(-0.5, 0.5))
         arms('cast_2', grip=at(hh('cast_2'), -0.40, 1.52), wa=-122, handN=('w', -0.13),
              handF=('p',) + at(hh('cast_2'), 1.42, 2.36), elbF=(0.0, 1.0), elbN=(-0.5, 0.5))
-        if weapon == 'none':
-            for n in F:
-                F[n].pop('grip', None)
-                F[n]['handN'] = ('p', F[n]['hip'][0] + 0.55, F[n]['hip'][1] + 0.55)
-                F[n]['handF'] = F[n]['handF'] if F[n]['handF'][0] == 'p' else ('p', F[n]['hip'][0] + 0.85,
-                                                                              F[n]['hip'][1] + 0.62)
+        if weapon == 'none':                 # unarmed: fists stay where they held the katana
+            for n, p in F.items():
+                G, d = P(*p.pop('grip')), wdir(p.pop('wa'))
+                for side in 'NF':
+                    sp = p['hand' + side]
+                    if sp[0] == 'w':
+                        q = G + d * sp[1] + (v2(-0.06, 0.04) if side == 'N' else v2(-0.04, -0.10))
+                        p['hand' + side] = ('p', q[0], -q[1])
+                p.pop('z', None)
     elif weapon == 'sword_shield':
         for i in range(4):
             h = hh('idle_%d' % i)
-            arms('idle_%d' % i, grip=at(h, 0.30, 1.62), wa=62, handN=hN,
+            arms('idle_%d' % i, grip=at(h, -0.02, 1.72), wa=72, handN=hN,
                  handF=('p',) + at(h, 0.78, 2.02), elbF=(0.4, 1.0))
         for i in range(4):
             h = hh('walk_%d' % i)
-            arms('walk_%d' % i, grip=at(h, 0.30, 1.62), wa=60, handN=hN,
+            arms('walk_%d' % i, grip=at(h, -0.02, 1.72), wa=70, handN=hN,
                  handF=('p',) + at(h, 0.78, 2.02), elbF=(0.4, 1.0))
         arms('attack_0', grip=at(hh('attack_0'), -0.18, 2.40), wa=100, handN=hN,
              handF=('p',) + at(hh('attack_0'), 0.72, 2.05), elbN=(-1.0, 0.4))
         arms('attack_1', grip=at(hh('attack_1'), -0.50, 2.80), wa=150, handN=hN,
              handF=('p',) + at(hh('attack_1'), 0.80, 2.10), elbN=(-0.4, -1.0), z={'blade': 'back'})
+        zs = {'shield': 58, 'boss': 58.5}
         arms('attack_2', grip=at(hh('attack_2'), 1.05, 2.00), wa=-25, handN=hN,
-             handF=('p',) + at(hh('attack_2'), 0.48, 1.70), elbN=(0.0, 1.0), shield_ang=-20)
+             handF=('p',) + at(hh('attack_2'), 0.62, 2.10), elbN=(0.0, 1.0), shield_ang=-20, z=zs)
         arms('attack_3', grip=at(hh('attack_3'), 0.90, 1.45), wa=-40, handN=hN,
-             handF=('p',) + at(hh('attack_3'), 0.40, 1.80), elbN=(0.0, 1.0), shield_ang=-20)
+             handF=('p',) + at(hh('attack_3'), 0.55, 2.10), elbN=(0.0, 1.0), shield_ang=-20, z=zs)
         arms('attack_4', grip=at(hh('attack_4'), 0.40, 1.70), wa=50, handN=hN,
              handF=('p',) + at(hh('attack_4'), 0.80, 2.00))
         arms('hit_0', grip=at(hh('hit_0'), 0.00, 1.55), wa=20, handN=hN,
@@ -725,33 +734,34 @@ def frames(weapon, B):
     elif weapon in ('spear', 'staff'):
         for i in range(4):
             h = hh('idle_%d' % i)
-            arms('idle_%d' % i, grip=at(h, 0.62, 2.00), wa=24 if weapon == 'spear' else 78, handN=hN, handF=hF)
+            arms('idle_%d' % i, grip=at(h, 0.62, 2.10), wa=34 if weapon == 'spear' else 78, handN=hN, handF=hF)
         for i in range(4):
             h = hh('walk_%d' % i)
-            arms('walk_%d' % i, grip=at(h, 0.62, 2.00), wa=22 if weapon == 'spear' else 78, handN=hN, handF=hF)
+            arms('walk_%d' % i, grip=at(h, 0.62, 2.10), wa=32 if weapon == 'spear' else 78, handN=hN, handF=hF)
         if weapon == 'spear':
-            arms('attack_0', grip=at(hh('attack_0'), 0.30, 1.95), wa=14, handN=hN, handF=hF)
-            arms('attack_1', grip=at(hh('attack_1'), -0.15, 2.02), wa=8, handN=hN, handF=hF,
+            arms('attack_0', grip=at(hh('attack_0'), 0.40, 2.05), wa=18, handN=hN, handF=hF)
+            arms('attack_1', grip=at(hh('attack_1'), 0.05, 2.05), wa=10, handN=hN, handF=hF,
                  elbN=(-0.5, 1.0))
-            arms('attack_2', grip=at(hh('attack_2'), 1.15, 2.05), wa=2, handN=hN, handF=hF)
-            arms('attack_3', grip=at(hh('attack_3'), 1.10, 1.95), wa=-2, handN=hN, handF=hF)
-            arms('attack_4', grip=at(hh('attack_4'), 0.65, 2.00), wa=16, handN=hN, handF=hF)
+            arms('attack_2', grip=at(hh('attack_2'), 0.76, 2.05), wa=3, handN=hN, handF=hF)
+            arms('attack_3', grip=at(hh('attack_3'), 0.72, 1.98), wa=-1, handN=hN, handF=hF)
+            arms('attack_4', grip=at(hh('attack_4'), 0.58, 2.05), wa=24, handN=hN, handF=hF)
         else:
             arms('attack_0', grip=at(hh('attack_0'), 0.25, 2.30), wa=100, handN=hN, handF=hF)
-            arms('attack_1', grip=at(hh('attack_1'), -0.15, 2.85), wa=140, handN=hN, handF=hF,
-                 elbN=(-1.0, 0.3), z={'blade': 'back'})
-            arms('attack_2', grip=at(hh('attack_2'), 1.05, 1.95), wa=-10, handN=hN, handF=hF)
-            arms('attack_3', grip=at(hh('attack_3'), 0.95, 1.60), wa=-24, handN=hN, handF=hF)
+            arms('attack_1', grip=at(hh('attack_1'), -0.30, 2.80), wa=140, handN=hN, handF=hF,
+                 elbN=(-1.0, 0.3), z={'blade': 'back', 'handle': 'mid'})
+            arms('attack_2', grip=at(hh('attack_2'), 0.92, 2.00), wa=-26, handN=hN, handF=hF)
+            arms('attack_3', grip=at(hh('attack_3'), 0.80, 1.62), wa=-44, handN=hN, handF=hF)
             arms('attack_4', grip=at(hh('attack_4'), 0.65, 2.00), wa=60, handN=hN, handF=hF)
-        arms('hit_0', grip=at(hh('hit_0'), 0.35, 1.70), wa=40 if weapon == 'staff' else 10, handN=hN,
+        arms('hit_0', grip=at(hh('hit_0'), 0.40, 1.85), wa=40 if weapon == 'staff' else 14, handN=hN,
              handF=hF)
         # cast: weapon in the near hand, planted / raised; free hand channels
-        arms('cast_0', grip=at(hh('cast_0'), 0.10, 1.95), wa=84, handN=('w', 0.0),
-             handF=('p',) + at(hh('cast_0'), 0.55, 2.10), elbN=(-0.6, 0.8))
-        arms('cast_1', grip=at(hh('cast_1'), 0.05, 2.75), wa=88, handN=('w', 0.0),
-             handF=('p',) + at(hh('cast_1'), 0.70, 2.80), elbN=(-0.8, 0.5))
-        arms('cast_2', grip=at(hh('cast_2'), 0.55, 2.45), wa=60, handN=('w', 0.0),
-             handF=('p',) + at(hh('cast_2'), 1.45, 2.40), elbN=(-0.3, 1.0))
+        zc = {'blade': 'mid', 'handle': 'mid'}
+        arms('cast_0', grip=at(hh('cast_0'), -0.62, 1.95), wa=94, handN=('w', 0.0),
+             handF=('p',) + at(hh('cast_0'), 0.50, 2.10), elbN=(-0.6, 0.8), z=zc)
+        arms('cast_1', grip=at(hh('cast_1'), -0.62, 2.55), wa=96, handN=('w', 0.0),
+             handF=('p',) + at(hh('cast_1'), 0.70, 2.85), elbN=(-0.8, 0.5), z=zc)
+        arms('cast_2', grip=at(hh('cast_2'), 0.35, 2.55), wa=62, handN=('w', 0.0),
+             handF=('p',) + at(hh('cast_2'), 1.40, 2.40), elbN=(-0.3, 1.0))
     elif weapon == 'bow':
         def rest(h):
             return dict(grip=at(h, 0.80, 1.70), wa=-20, handF=hF, handN=('p',) + at(h, 0.05, 1.55),
@@ -759,16 +769,18 @@ def frames(weapon, B):
         for n in ('idle_0', 'idle_1', 'idle_2', 'idle_3', 'walk_0', 'walk_1', 'walk_2', 'walk_3'):
             arms(n, **rest(hh(n)))
         h = hh('attack_0')
-        arms('attack_0', grip=at(h, 0.95, 2.10), wa=5, handF=hF, handN=('p',) + at(h, 0.80, 2.12),
+        arms('attack_0', grip=at(h, 0.90, 2.10), wa=5, handF=hF, handN=('p',) + at(h, 0.72, 2.12),
              nocked=True, draw=0.0, elbF=(0.0, 1.0))
+        for n in ('attack_1', 'attack_2', 'attack_3'):          # archers stay upright while drawing
+            F[n].update(lean=0.06, tilt=0.0, hip=(F[n]['hip'][0] - 0.12, F[n]['hip'][1]))
         h = hh('attack_1')
-        arms('attack_1', grip=at(h, 1.05, 2.25), wa=2, handF=hF, handN=('p',) + at(h, 0.35, 2.28),
+        arms('attack_1', grip=at(h, 1.18, 2.30), wa=2, handF=hF, handN=('p',) + at(h, 0.35, 2.28),
              nocked=True, draw=0.5, elbF=(0.0, 1.0), elbN=(-0.3, -1.0))
         h = hh('attack_2')
-        arms('attack_2', grip=at(h, 1.20, 2.30), wa=0, handF=hF, handN=('p',) + at(h, 0.05, 2.32),
+        arms('attack_2', grip=at(h, 1.30, 2.34), wa=0, handF=hF, handN=('p',) + at(h, 0.00, 2.38),
              nocked=True, draw=1.0, elbF=(0.0, 1.0), elbN=(-0.3, -1.0))
         h = hh('attack_3')
-        arms('attack_3', grip=at(h, 1.22, 2.28), wa=0, handF=hF, handN=('p',) + at(h, -0.15, 2.38),
+        arms('attack_3', grip=at(h, 1.30, 2.32), wa=0, handF=hF, handN=('p',) + at(h, -0.25, 2.50),
              nocked=False, draw=0.0, elbF=(0.0, 1.0), elbN=(-0.3, -1.0))
         h = hh('attack_4')
         arms('attack_4', **rest(h))
@@ -777,7 +789,7 @@ def frames(weapon, B):
              elbF=(0.5, 1.0))
         for i, (hx, hy) in enumerate(((0.45, 2.05), (0.60, 2.95), (1.35, 2.40))):
             n = 'cast_%d' % i
-            arms(n, grip=at(hh(n), -0.35, 1.70), wa=-100, handF=('p',) + at(hh(n), hx, hy),
+            arms(n, grip=at(hh(n), -0.45, 1.62), wa=-172, handF=('p',) + at(hh(n), hx, hy),
                  handN=('w', 0.0), elbN=(-0.5, 0.5), elbF=(0.3, 1.0))
     return F
 
@@ -816,20 +828,17 @@ def is_body(n):
 
 
 def fit(builds, W, H, feet, body_h, ref, margin):
-    """one scale + origin for every frame: body of the reference frame = body_h px tall, feet on
-    `feet`; body centred, then shifted / shrunk until every frame (weapon included) is inside."""
+    """One scale for every frame (so the character never changes size between frames) and a
+    per-frame x origin. Scale: the reference frame's body (feet -> head top, weapon excluded) is
+    body_h px tall, shrunk if any frame (weapon included) cannot fit. Origin: the reference body
+    is centred; a frame whose weapon would leave the canvas is slid sideways just enough."""
     bb = bbox(builds[ref][1], is_body)
     s = body_h / max(-bb[1], 1e-6)
-    allb = [bbox(b[1]) for b in builds.values()]
-    bodyb = [bbox(b[1], is_body) for b in builds.values()]
-    x0 = min(b[0] for b in allb)
-    x1 = max(b[2] for b in allb)
-    y0 = min(b[1] for b in allb)
-    bx0 = min(b[0] for b in bodyb)
-    bx1 = max(b[2] for b in bodyb)
-    s = min(s, (W - 2 * margin) / (x1 - x0), (feet - margin) / -y0)
-    ox = W / 2 - (bx0 + bx1) / 2 * s
-    ox = min(max(ox, margin - x0 * s), W - margin - x1 * s)
+    boxes = {n: bbox(b[1]) for n, b in builds.items()}
+    for n, b in boxes.items():
+        s = min(s, (W - 2 * margin) / (b[2] - b[0]), (feet - margin) / -b[1])
+    ox0 = W / 2 - (bb[0] + bb[2]) / 2 * s
+    ox = {n: min(max(ox0, margin - b[0] * s), W - margin - b[2] * s) for n, b in boxes.items()}
     return s, ox, feet
 
 
@@ -847,6 +856,10 @@ def check(name, J, B, pose):
     for k, v in bones.items():
         if abs(v - want[k[:-1]]) > 1e-3:
             msgs.append('bone %s %.3f != %.3f' % (k, v, want[k[:-1]]))
+    if 'wtip' in J:
+        for nm in ('wtip', 'wbutt'):
+            if J[nm][1] > 0.02:
+                msgs.append('weapon %s %.2f below the floor' % (nm[1:], J[nm][1]))
     for side in 'NF':
         planted = pose['foot' + side][1] <= B.ank + 1e-6
         if planted and abs(J['ank' + side][1] + B.ank) > 1e-3:
@@ -877,8 +890,8 @@ def main(argv=None):
 
     # fit on the full set so scale/origin never depend on --frames
     builds = {n: build(F[n], B, a.weapon) for n in ALL_FRAMES}
-    gs, gox, goy = fit(builds, GW, GH, GH * GUIDE_FEET, GH * GUIDE_BODY, 'idle_0', 0.03 * GW)
-    ss_, sox, soy = fit(builds, SW, SW, SMALL_FEET, SMALL_BODY, 'idle_0', 1.5)
+    gs, gox, goy = fit(builds, GW, GH, GH * GUIDE_FEET, GH * GUIDE_BODY, 'idle_0', 0.025 * GW)
+    ss_, sox, soy = fit(builds, SW, SW, SMALL_FEET, SMALL_BODY, 'idle_0', 1.0)
     print('guide scale %.1f px/head (standing height %.0f px = %.0f%%), small %.1f px/head'
           % (gs, gs * B.N, 100 * gs * B.N / GH, ss_))
     bad = 0
@@ -887,19 +900,20 @@ def main(argv=None):
         for m in check(n, J, B, F[n]):
             print('  %s: %s' % (n, m))
             bad += 1
-        Rg = Raster(GW, GH, gs, gox, goy, a.ss)
+        Rg = Raster(GW, GH, gs, gox[n], goy, a.ss)
         render_guide(parts, Rg, 5.0).save(os.path.join(a.out, 'guide_%s.png' % n))
         render_stick(J, Rg, not a.no_stick_weapon).save(os.path.join(a.out, 'stick_%s.png' % n))
-        Rs = Raster(SW, SW, ss_, sox, soy, 4)
+        Rs = Raster(SW, SW, ss_, sox[n], soy, 4)
         render_guide(parts, Rs, 0.9).save(os.path.join(a.out, 'small_%s.png' % n))
     if a.check:
         J, parts = build(stand_pose(B), B, 'none')
-        Rg = Raster(GW, GH, gs, gox, goy, a.ss)
+        Rg = Raster(GW, GH, gs, gox['idle_0'], goy, a.ss)
         img = render_guide(parts, Rg, 5.0)
         dr = ImageDraw.Draw(img)
         for i in range(int(B.N) + 1):
             y = goy - i * gs
             dr.line((40, y, 140, y), fill=(0, 0, 0), width=3)
+            dr.line((40, y, GW - 40, y), fill=(0, 0, 0), width=1)
             dr.text((150, y - 8), '%d' % i, fill=(0, 0, 0))
         img.save(os.path.join(a.out, 'stand.png'))
     write_sheet(a.out, names)
