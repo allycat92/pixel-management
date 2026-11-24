@@ -88,5 +88,124 @@
   "sampler": "k_euler_ancestral",
   "prompt": "1girl, solo, full body, four heads tall, young huntress, long auburn hair, ponytail, ochre headband, freckles, olive green hooded tunic, leather vest, rope coil on belt, quiver on back, dark trousers, brown boots, holding bow, drawing bow, arrow nocked, aiming, wide stance, bent knees, three-quarter view, facing right, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
   "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, multiple views, cropped, blurry, background scenery, ground shadow, extra arms, two heads, multiple heads, conjoined, extra head"
+ },
+ "captain_hedgemage": {
+  "job": "06_hedgemage",
+  "picks": [
+   {
+    "n": 8,
+    "file": "concept_08.png",
+    "role": "design reference",
+    "seed": 9260
+   }
+  ],
+  "model": "nai-diffusion-4-5-full",
+  "size": [
+   832,
+   1216
+  ],
+  "steps": 28,
+  "scale": 5.5,
+  "sampler": "k_euler_ancestral",
+  "prompt": "1boy, solo, full body, four heads tall, young country mage, short messy blonde hair, worn wizard hat, patched hat, purple robe, yellow trim, rope belt, satchel, dark trousers, brown boots, holding wooden staff, fire in hand, casting spell, arm extended forward, wide stance, three-quarter view, facing right, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+  "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, multiple views, cropped, blurry, background scenery, ground shadow, extra arms, two heads, multiple heads, conjoined, extra head"
+ },
+ "captain_fieldmedic": {
+  "job": "07_fieldmedic",
+  "picks": [
+   {
+    "n": 3,
+    "file": "concept_03.png",
+    "role": "design reference",
+    "seed": 10075
+   }
+  ],
+  "model": "nai-diffusion-4-5-full",
+  "size": [
+   832,
+   1216
+  ],
+  "steps": 28,
+  "scale": 5.5,
+  "sampler": "k_euler_ancestral",
+  "prompt": "1girl, solo, full body, four heads tall, adult female field medic, long black hair, tied hair, tan skin, bandage on forehead, off-white coat, plain dark red armband, dark red scarf, apron, pouches on belt, dark trousers, brown boots, holding mace, other hand raised, healing glow, determined expression, standing, three-quarter view, facing right, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+  "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, multiple views, cropped, blurry, background scenery, ground shadow, extra arms, two heads, multiple heads, conjoined, extra head"
+ },
+ "captain_fixer": {
+  "job": "08_fixer",
+  "picks": [
+   {
+    "n": 5,
+    "file": "concept_05.png",
+    "role": "design reference",
+    "seed": 11149
+   }
+  ],
+  "model": "nai-diffusion-4-5-full",
+  "size": [
+   832,
+   1216
+  ],
+  "steps": 28,
+  "scale": 5.5,
+  "sampler": "k_euler_ancestral",
+  "prompt": "1boy, solo, full body, four heads tall, young rogue, short black hair, black hood, grey scarf over mouth, narrow eyes, black leather jacket, grey trim, leather belt, cross strap, dark trousers, black boots, holding single dagger, reverse grip, low crouch, wide stance, bent knees, ready to dash, three-quarter view, facing right, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+  "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, multiple views, cropped, blurry, background scenery, ground shadow, extra arms, two heads, multiple heads, conjoined, extra head"
+ },
+ "captain_veteran": {
+  "job": "09_veteran",
+  "picks": [
+   {
+    "n": 3,
+    "file": "concept_03.png",
+    "role": "design reference",
+    "seed": 12075
+   }
+  ],
+  "model": "nai-diffusion-4-5-full",
+  "size": [
+   832,
+   1216
+  ],
+  "steps": 28,
+  "scale": 5.5,
+  "sampler": "k_euler_ancestral",
+  "prompt": "1boy, solo, full body, four heads tall, old man, veteran soldier, short white hair, white beard, dented steel helmet, scars on face, olive grey gambeson, chainmail, leather belt, round wooden shield, dark trousers, worn boots, holding sword, shield raised, steady guard stance, wide stance, bent knees, three-quarter view, facing right, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+  "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, multiple views, cropped, blurry, background scenery, ground shadow, extra arms, two heads, multiple heads, conjoined, extra head"
+ },
+ "captain_lancer": {
+  "variants": [
+   {
+    "job": "04a_lancer_mounted",
+    "n": 5,
+    "file": "concept_a_05.png",
+    "role": "mounted variant (owner pick)",
+    "seed": 14149,
+    "size": [
+     1216,
+     832
+    ],
+    "prompt": "1boy, solo, full body, knight riding a horse, four heads tall, young knight, short brown hair, stubble, determined eyes, steel helmet with blue plume, visor raised, blue plate armor, white surcoat with blue emblem, red cape, armored warhorse, dark brown horse, blue caparison, holding lance, couched lance, charging, galloping, three-quarter view, facing right, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+    "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, multiple views, cropped, blurry, background scenery, ground shadow, extra arms, extra legs, two riders, multiple horses, conjoined"
+   },
+   {
+    "job": "04b_lancer_noble",
+    "n": 12,
+    "file": "concept_b_12.png",
+    "role": "on-foot noble knight variant (owner pick)",
+    "seed": 15408,
+    "size": [
+     832,
+     1216
+    ],
+    "prompt": "1boy, solo, full body, four heads tall, young noble knight, short brown hair, stubble, determined eyes, ornate steel helmet with blue plume, visor raised, polished blue plate armor, gold trim, worn white surcoat with blue lion emblem, tattered red cape, steel greaves, holding lance with blue pennant, lance pointed right, lunging, wide stance, bent knees, three-quarter view, facing right, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+    "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, multiple views, cropped, blurry, background scenery, ground shadow, extra arms, two heads, multiple heads, conjoined, extra head"
+   }
+  ],
+  "model": "nai-diffusion-4-5-full",
+  "steps": 28,
+  "scale": 5.5,
+  "sampler": "k_euler_ancestral",
+  "note": "Owner picked both a mounted and an on-foot design; mounted variant has many duplicated-horse-head samples, #5 is clean. Story is \"knight who lost his horse\" - mounted version needs a story tweak (regains/earns a warhorse) and a wider battle cell."
  }
 }
