@@ -11,9 +11,10 @@ TASK: draw the battle-sprite strip of Felix (펠릭스, hedgemage), a mercenary 
 
 CHARACTER: a long, slightly crooked wooden staff (plain wooden top instead of the guide's blue orb); short messy blond hair; worn, patched pointed wizard hat; purple robe; rope belt; satchel on the hip; dark trousers, brown boots; cheerful, young face.
 
-COLOURS (keep close, muted): skin #f5d6b8; hair blond #e3c565; robe and hat purple #5a4a7a; trim dull ochre gold (#e8c86a desaturated).
+COLOURS (keep close, muted): skin #f5d6b8; hair blond #e3c565; robe and hat blue-purple #5a4a7a, shades #3a3052 / #4a3e66 / #5a4a7a / #74679a / #8f84b0 (never pink or magenta); trim dull ochre gold (#e8c86a desaturated).
 
 FIX (do not reproduce the draft here):
+  - the robe and hat stay in the dark blue-purple #5a4a7a family, lit side included: the first delivery painted the lit robe and hat exactly #FF00FF, the background key, so the background removal punched holes in them (see the magenta rule)
   - the draft's bright yellow trim must be muted to a dull ochre gold
   - NO fire, glow or magic effect anywhere: the engine draws the spell VFX; the casting hand is open and empty
   - the hat must stay inside the figure's space (no huge brim that reaches the neighbouring figure)
@@ -47,6 +48,7 @@ DELIVERABLE:
   - the lowest pixel of every figure (its soles) on the line y = 870 (85% of the height); head = 110 px for every character. Standing height would be 440 px (4 heads), but the guide idle pose is crouched, so the measured idle top-of-head to sole is about 401 px. Headgear (hats, helmets, plumes) and weapons are extra and not counted
   - at least 32 px of empty magenta between any two figures and between a figure and the image border (a weapon may reach over a neighbour's column as in the guide, but never closer than that)
   - background: perfectly flat solid magenta #FF00FF everywhere (preferred; a transparent PNG is also accepted) - no gradient, floor, cast shadow or scenery
+  - NO figure pixel may be magenta-like: every colour of the figure must stay clearly away from the background key #FF00FF, RGB distance sqrt((255-R)^2 + G^2 + (255-B)^2) >= 150 (no hot pink, magenta or bright violet; purples stay dark blue-purple such as #5a4a7a). If you reduce the palette, reduce the FIGURE colours only and never merge a figure colour into the background colour
   - NO text, labels, numbers, frames, grid lines, watermark; NO effects outside the body (no slash trails, sparks, dust, glow, motion lines, projectiles)
 
 SELF-CHECK before saving (redraw if any fails):
@@ -56,6 +58,7 @@ SELF-CHECK before saving (redraw if any fails):
   [ ] same face, hair, outfit, colours and weapon in all four poses; exactly the weapons in CHARACTER (nothing extra)
   [ ] every FIX applied
   [ ] no text, floor, shadow, effects or projectiles; >= 32 px of magenta between figures and from the border
+  [ ] no figure pixel is #FF00FF or magenta-like (every figure colour at RGB distance >= 150 from #FF00FF)
   [ ] reads clearly when shrunk to 64 px tall on a dark background
 ```
 
@@ -66,7 +69,7 @@ SELF-CHECK before saving (redraw if any fails):
 - 무기: posekit `staff` 마네킹 → a long, slightly crooked wooden staff (plain wooden top instead of the guide's blue orb)
 - 자세(가이드 프레임): ① 대기 `idle_0` ② 공격 준비 `cast_1` ③ 공격 타격 `key_strike` ④ 피격 `key_hit` (`key_*` = handoff.py 의 KEY_POSES: 준비는 체중 뒤로, 타격은 내딛는 런지, 피격은 상체가 뒤로 젖혀짐)
 - 초안에서 가져올 것: 헝클어진 금발, 기운 자국 있는 낡은 고깔모자, 보라색 로브, 밧줄 허리띠, 허리 가방, 갈색 장화, 나무 지팡이.
-- 고칠 것: 밝은 노란 테두리 → 탁한 황토 금색. 불꽃·빛 등 효과 금지(엔진이 그린다), 시전하는 손은 앞으로 뻗은 빈 손바닥. 시전 자세(cast).
+- 고칠 것: 로브·모자는 밝은 면까지 짙은 청보라 #5a4a7a 계열(첫 납품은 밝은 면이 배경 키 #FF00FF 와 같아 구멍이 뚫렸다). 밝은 노란 테두리 → 탁한 황토 금색. 불꽃·빛 등 효과 금지(엔진이 그린다), 시전하는 손은 앞으로 뻗은 빈 손바닥. 시전 자세(cast).
 - 초안에서 가져오지 말 것: 비율(등신), 칠하는 방식, 외곽선 굵기, 채도, 조명, 디테일 양 — 모두 4등신·앵커 화풍으로 통일.
 - 가이드 띠: 머리 하나 = 110 px (모든 캐릭터 같음). 선 키라면 440 px 이지만 대기 자세가 웅크려서 정수리~발바닥 약 401 px(높이의 39%). 모자·투구·깃털·무기는 따로. 발바닥(맨 아래 픽셀) y=870.
 
