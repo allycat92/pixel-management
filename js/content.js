@@ -366,16 +366,55 @@ const HEROES = {
 // ───────── 용병대장: 영입 서사 ─────────
 // 용병대장은 이름과 사연을 가진 단 한 명뿐인 인물이다.
 // - 시작할 때 후보 아홉 중 하나를 고른다. 고르지 않은 여덟은 다시 만날 수 없다.
-// - 이후 길드 등급에 따라 네 번의 '갈림길'이 열린다. 갈림길마다 여섯 대장 중 한 명만 택할 수 있고,
-//   택한 대장의 영입 의뢰(2장)를 완수해야 합류한다. 택하지 않은 다섯은 영영 떠난다.
-// - 그래서 한 판에서 얻을 수 있는 대장은 최대 5명 (창설 1 + 초반 1 + 중반 2 + 후반 1).
+// - 이후 길드 등급에 따라 시기별 대장들의 '영입 과제'가 공개된다. 과제를 달성하면 그 대장의 영입 의뢰(2장)가 열리고,
+//   완수하면 합류한다. 과제끼리 서로 부딪혀서 한꺼번에 이루기 어렵지만, 효율적이거나 과감한 플레이로 여러 명을 얻을 수 있다.
 const STARTER_CAPTAINS = ['blademaster', 'ironwall', 'tactician', 'lancer', 'huntress', 'hedgemage', 'fieldmedic', 'fixer', 'veteran'];
+// 시기별 대장 묶음: 등급(rank)에 이르면 그 시기 대장들의 '영입 과제'가 공개된다.
 const CAPTAIN_PHASES = [
   { key: 'early', name: '초반', rank: 1, level: 5, list: ['windhunter', 'shadowlord', 'bard', 'beastmaster', 'runesmith', 'pilgrim'] },
   { key: 'mid1', name: '중반', rank: 3, level: 9, list: ['spellblade', 'saintknight', 'hexer', 'liberator', 'admiral', 'elfwarden'] },
   { key: 'mid2', name: '중반', rank: 4, level: 12, list: ['warlord', 'khan', 'siegemaster', 'inquisitorlord', 'pirateking', 'frostjarl'] },
   { key: 'late', name: '후반', rank: 5, level: 16, list: ['dragonslayer', 'demonhunter', 'archmagus', 'lightbearer', 'shadowqueen', 'titan'] },
 ];
+
+// ───────── 대장 영입 과제 ─────────
+// 과제의 조건을 '한순간에 모두' 만족하면 그 대장이 길드를 찾아오고, 영입 의뢰(2장)가 시작된다.
+// 조건끼리 서로 부딪히도록 짰다: 연승·무사고 vs 도박, 교단 우호 vs 교단 적대, 소수 정예 vs 대군, 금화 비축 vs 투자.
+// 기한(dayMax)을 넘기거나 조건이 불가능해지면(세력 멸망 등) 그 대장은 떠난다.
+// 조건 종류:
+//   rank / rep / gold(보유 금화) / standing(f, min|max) / alive(f) / dayMax(기한) / mercsMax(길드 인원 상한) / companies(직속 용병단 수)
+//   stat(k, min): streak 연속 성공, hardStreak 성공률 80% 미만 의뢰의 연속 성공(실패하면 0), gambles 성공률 40% 미만 의뢰 성공, bigGambles 25% 미만 성공, monster/magic/raid/siege/counterspy/campaign/calamity 의뢰 성공
+//   noDeath(days): 최근 n일 전사자 없음 / adv·masters: 상급·최상급 대원 수 / bosses: 재앙급 괴물 토벌 수 / calamity: 재앙이 대두한 적 있음
+const CAPTAIN_CHALLENGES = {
+  // 초반 (등급 E부터)
+  windhunter: { name: '질풍 같은 성장', conds: [{ t: 'rank', min: 2 }, { t: 'dayMax', v: 22 }] },
+  shadowlord: { name: '도박꾼의 눈', conds: [{ t: 'stat', k: 'gambles', min: 3 }, { t: 'dayMax', v: 80 }] },
+  bard: { name: '작은 극단', conds: [{ t: 'rep', min: 300 }, { t: 'mercsMax', v: 7 }] },
+  beastmaster: { name: '사냥 시즌', conds: [{ t: 'stat', k: 'monster', min: 18 }, { t: 'dayMax', v: 40 }] },
+  runesmith: { name: '장인의 금고', conds: [{ t: 'gold', min: 4000 }, { t: 'dayMax', v: 40 }] },
+  pilgrim: { name: '무사한 순례', conds: [{ t: 'stat', k: 'hardStreak', min: 6 }, { t: 'noDeath', days: 40 }, { t: 'dayMax', v: 70 }] },
+  // 중반 1 (등급 C부터)
+  spellblade: { name: '금기 연구', conds: [{ t: 'stat', k: 'magic', min: 10 }, { t: 'adv', min: 6 }, { t: 'dayMax', v: 80 }] },
+  saintknight: { name: '빛의 증명', conds: [{ t: 'standing', f: 'church', min: 50 }, { t: 'noDeath', days: 60 }, { t: 'standing', f: 'clans', max: -10 }] },
+  hexer: { name: '이단의 거래', conds: [{ t: 'standing', f: 'church', max: -20 }, { t: 'standing', f: 'cities', min: 10 }] },
+  liberator: { name: '쇠사슬 끊기', conds: [{ t: 'standing', f: 'clans', min: 30 }, { t: 'standing', f: 'church', max: 0 }, { t: 'alive', f: 'clans' }] },
+  admiral: { name: '의회의 신임', conds: [{ t: 'standing', f: 'cities', min: 50 }, { t: 'gold', min: 12000 }, { t: 'dayMax', v: 90 }] },
+  elfwarden: { name: '숲의 맹우', conds: [{ t: 'standing', f: 'elves', min: 50 }, { t: 'standing', f: 'church', max: 0 }, { t: 'alive', f: 'elves' }] },
+  // 중반 2 (등급 B부터)
+  warlord: { name: '군세의 증명', conds: [{ t: 'stat', k: 'campaign', min: 9 }, { t: 'companies', min: 4 }, { t: 'dayMax', v: 75 }] },
+  khan: { name: '초원의 약탈', conds: [{ t: 'stat', k: 'raid', min: 8 }, { t: 'standing', f: 'clans', min: 20 }, { t: 'alive', f: 'clans' }] },
+  siegemaster: { name: '무너진 성벽들', conds: [{ t: 'stat', k: 'siege', min: 6 }, { t: 'dayMax', v: 130 }] },
+  inquisitorlord: { name: '심문소의 신뢰', conds: [{ t: 'standing', f: 'church', min: 60 }, { t: 'standing', f: 'elves', max: -20 }, { t: 'stat', k: 'counterspy', min: 4 }, { t: 'alive', f: 'church' }] },
+  pirateking: { name: '해적왕의 판돈', conds: [{ t: 'gold', min: 10000 }, { t: 'stat', k: 'gambles', min: 5 }] },
+  frostjarl: { name: '겨울을 지킨 자', conds: [{ t: 'standing', f: 'north', min: 40 }, { t: 'standing', f: 'crown', max: 0 }, { t: 'alive', f: 'north' }] },
+  // 후반 (등급 A부터)
+  dragonslayer: { name: '괴물 사냥의 끝', conds: [{ t: 'bosses', min: 6 }, { t: 'dayMax', v: 120 }] },
+  demonhunter: { name: '재앙과 싸운 자', conds: [{ t: 'calamity' }, { t: 'stat', k: 'calamity', min: 8 }, { t: 'noDeath', days: 30 }] },
+  archmagus: { name: '대가의 제자들', conds: [{ t: 'masters', min: 5 }, { t: 'dayMax', v: 140 }] },
+  lightbearer: { name: '새벽의 순례', conds: [{ t: 'stat', k: 'hardStreak', min: 12 }, { t: 'noDeath', days: 90 }] },
+  shadowqueen: { name: '밤의 대도박', conds: [{ t: 'stat', k: 'gambles', min: 8 }, { t: 'gold', min: 15000 }] },
+  titan: { name: '거인의 시험', conds: [{ t: 'stat', k: 'bigGambles', min: 1 }, { t: 'standing', f: 'clans', min: 20 }] },
+};
 
 const CAPTAINS = {
   // ── 창설 후보 ──
@@ -455,7 +494,6 @@ const CAPTAINS = {
   },
   saintknight: {
     name: '엘리노어', title: '성광의 기사', trait: 'diligent', look: { skin: '#f2c9a0', hair: '#e3c565', longHair: true },
-    require: { standing: { church: 15 }, text: '성광 교단 평판 15 이상' },
     intro: [['엘리노어', '교단은 용병을 믿지 않아요. 하지만 저는 당신들이 지켜 낸 사람들을 봤습니다.'], ['엘리노어', '대성당령의 망자들을 잠재우는 일을 함께해 주세요. 교단이 허락한다면, 제 검은 당신 것입니다.']],
     chapters: [
       { province: 'sanctum', type: 'defense', enemy: '망령', title: '성당 묘지의 밤',
@@ -469,7 +507,6 @@ const CAPTAINS = {
   // ── 중반 갈림길 2 ──
   warlord: {
     name: '가르마크', title: '백전의 전쟁군주', trait: 'brave', look: { skin: '#c68a5c', hair: '#8c2f2f', longHair: false },
-    require: { standing: { crown: 20, north: 20 }, any: true, text: '왕국 또는 북부 평판 20 이상' },
     intro: [['가르마크', '왕국과 북부, 어느 쪽 전쟁이든 나가 봤다. 이제는 누구 편도 아닌 전쟁을 하고 싶군.'], ['가르마크', '북부 변경을 휩쓰는 오크 군단을 함께 꺾는다면, 내 군세를 네 깃발 아래 두지.']],
     chapters: [
       { province: 'valen', type: 'hunt', enemy: '오크', title: '변경의 오크 군단',
@@ -481,7 +518,6 @@ const CAPTAINS = {
   },
   khan: {
     name: '테무르', title: '초원의 칸', trait: 'lucky', look: { skin: '#8d5a3b', hair: '#2b1d14', longHair: true },
-    require: { standing: { clans: 10 }, text: '붉은 모래 부족 연합 평판 10 이상' },
     intro: [['테무르', '부족 연합은 내 말을 들으려 하지 않는다. 사막의 교역로가 끊기면 다 굶는데도.'], ['테무르', '교역로를 다시 열어 주면, 부족들도 나도 너를 형제라 부를 거다.']],
     chapters: [
       { province: 'oasis', type: 'escort', enemy: '사막 도적', title: '끊긴 교역로',
@@ -551,7 +587,6 @@ const CAPTAINS = {
   },
   pilgrim: {
     name: '아멜리', title: '맨발의 순례자', trait: 'diligent', look: { skin: '#f5d6b8', hair: '#e3c565', longHair: true },
-    require: { standing: { church: 0 }, text: '성광 교단 평판 0 이상' },
     intro: [['아멜리', '순례길에 도적이 들끓어 아무도 길을 나서지 못해요.'], ['아멜리', '순례자들을 지켜 주신다면, 이 발로 당신의 용병단과 함께 걷겠습니다.']],
     chapters: [
       { province: 'wheat', type: 'escort', enemy: '산적', title: '밀밭 순례길',
@@ -576,7 +611,6 @@ const CAPTAINS = {
   },
   liberator: {
     name: '카토', title: '쇠사슬을 끊은 자', trait: 'brave', look: { skin: '#8d5a3b', hair: '#2b1d14', longHair: false },
-    require: { standing: { clans: 0 }, text: '붉은 모래 부족 연합 평판 0 이상' },
     intro: [['카토', '노예 상인들이 아직도 황야에서 사람을 사고판다. 나도 그 쇠사슬에 묶여 있었지.'], ['카토', '갇힌 자들을 풀어 준다면, 이 주먹을 네 용병단을 위해 쓰겠다.']],
     chapters: [
       { province: 'oasis', type: 'escort', enemy: '사막 도적', title: '탈출한 노예들',
@@ -588,7 +622,6 @@ const CAPTAINS = {
   },
   admiral: {
     name: '마렌', title: '퇴역 제독', trait: 'genius', look: { skin: '#f2c9a0', hair: '#c9c2b8', longHair: false },
-    require: { standing: { cities: 15 }, text: '자유 도시 연맹 평판 15 이상' },
     intro: [['마렌', '자유 도시 의회가 나를 퇴역시켰지만, 바다는 아직 날 부르고 있소.'], ['마렌', '연안을 어지럽히는 놈들을 함께 정리해 준다면, 남은 함대 전술을 그대에게 넘기겠소.']],
     chapters: [
       { province: 'port', type: 'defense', enemy: '리자드맨', title: '세렌 부두 방어',
@@ -600,7 +633,6 @@ const CAPTAINS = {
   },
   elfwarden: {
     name: '세레니엘', title: '숲의 수호대장', trait: 'diligent', look: { skin: '#f5d6b8', hair: '#c9c2b8', longHair: true },
-    require: { standing: { elves: 20 }, text: '은빛 숲 엘프 평판 20 이상' },
     intro: [['세레니엘', '장로회는 인간을 믿지 않아요. 하지만 당신들이 숲을 위해 싸운 것을 봤습니다.'], ['세레니엘', '고대 숲 깊은 곳의 위협을 함께 걷어 낸다면, 순찰대를 이끌고 당신 곁에 서겠어요.']],
     chapters: [
       { province: 'silverwood', type: 'defense', enemy: '거대 거미', title: '순찰로 사수',
@@ -614,7 +646,6 @@ const CAPTAINS = {
   // ── 중반 갈림길 2 (추가) ──
   siegemaster: {
     name: '오토', title: '성벽 파괴자', trait: 'genius', look: { skin: '#e0ac7e', hair: '#5a3720', longHair: false },
-    require: { standing: { crown: 10, cities: 10 }, any: true, text: '왕국 또는 자유 도시 평판 10 이상' },
     intro: [['오토', '내가 설계한 투석기를 시험할 상대가 필요하오. 마침 발렌 외곽에 오크 요새가 있지.'], ['오토', '시험을 도와준다면 내 공성 기술을 전부 그대의 용병단에 바치겠소.']],
     chapters: [
       { province: 'valen', type: 'hunt', enemy: '오크', title: '오크 요새 시험 포격',
@@ -626,7 +657,6 @@ const CAPTAINS = {
   },
   inquisitorlord: {
     name: '발타자르', title: '심문관장', trait: 'diligent', look: { skin: '#f2c9a0', hair: '#2b1d14', longHair: false },
-    require: { standing: { church: 25 }, text: '성광 교단 평판 25 이상' },
     intro: [['발타자르', '대성당령에 첩자가 숨어 있다. 교단은 용병에게 이 일을 맡기는 것을 수치로 여기지.'], ['발타자르', '그러나 나는 결과만 본다. 첩자를 찾아내면, 심문소의 힘을 그대에게 빌려주겠다.']],
     chapters: [
       { province: 'sanctum', type: 'defense', enemy: '망령', title: '심문소의 망령',
@@ -649,7 +679,6 @@ const CAPTAINS = {
   },
   frostjarl: {
     name: '비요른', title: '서리 협곡의 영주', trait: 'sturdy', look: { skin: '#f5d6b8', hair: '#e3c565', longHair: true },
-    require: { standing: { north: 20 }, text: '북부 귀족 연합 평판 20 이상' },
     intro: [['비요른', '협곡의 겨울이 길어지고, 설인들이 마을로 내려온다. 내 영지 사람들이 얼어 죽고 있다.'], ['비요른', '겨울을 함께 버텨 준다면, 서리 영주의 도끼를 네 용병단에 걸겠다.']],
     chapters: [
       { province: 'frost', type: 'hunt', enemy: '설인', title: '설인 사냥',
@@ -696,7 +725,6 @@ const CAPTAINS = {
   },
   titan: {
     name: '우르그', title: '거인의 피', trait: 'brave', look: { skin: '#c68a5c', hair: '#5a3720', longHair: true },
-    require: { standing: { clans: 10 }, text: '붉은 모래 부족 연합 평판 10 이상' },
     intro: [['우르그', '거인의 피를 이은 부족은 이제 나 하나다. 용의 산맥에 조상의 무덤이 있지.'], ['우르그', '무덤을 지키는 것을 도와주면, 거인의 힘을 네 용병단에 빌려주겠다.']],
     chapters: [
       { province: 'redsand', type: 'hunt', enemy: '전갈 거인', title: '조상의 길',

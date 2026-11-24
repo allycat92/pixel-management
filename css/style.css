@@ -533,8 +533,8 @@ h3 { font-size: 14px; margin: 8px 0; }
 .cap-card.st-locked .portrait-wrap { filter: brightness(.35); }
 .cap-card.st-joined { border-color: var(--gold); }
 .cap-card.st-pursuing { border-color: #7fd6e8; }
-.cap-status.joined { color: var(--good); } .cap-status.lost { color: var(--bad); }
-.cap-status.pursuing, .cap-status.offered { color: var(--gold); }
+.cap-status.s-joined { color: var(--good); } .cap-status.s-lost { color: var(--bad); }
+.cap-status.s-pursuing { color: #7fd6e8; }
 .starter-choices { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 .starter-card .btn { margin-top: auto; }
 .starter-card .pitch { font-style: italic; color: var(--gold); }
@@ -557,3 +557,6 @@ h3 { font-size: 14px; margin: 8px 0; }
 .modal-body:has(.class-tree) { max-width: 1180px; }
 .starter-choices { grid-template-columns: repeat(3, 1fr); max-height: 70vh; overflow-y: auto; }
 @media (max-width: 980px) { .tree-col.masters { grid-template-columns: 1fr 1fr !important; } .class-tree { grid-template-columns: 1fr; } }
+.challenge { background: #241b29; border-left: 3px solid var(--gold); padding: 4px 6px; display: flex; flex-direction: column; gap: 1px; }
+.cap-card.st-challenge { border-color: #c58f1e; }
+.cap-status.s-challenge { color: var(--gold); }

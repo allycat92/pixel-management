@@ -692,6 +692,14 @@ const Game = {
         owed -= this.wage(m);
         this.removeMerc(m, '주급을 받지 못해 길드를 떠났습니다!', 'bad');
       }
+      // 대장은 떠나지 않는 대신 급료를 미루고 크게 실망한다
+      const caps = s.mercs.filter((m) => this.isCaptain(m)).sort((a, b) => this.wage(b) - this.wage(a));
+      while (s.gold < owed && caps.length) {
+        const m = caps.shift();
+        owed -= this.wage(m);
+        this.changeMorale(m, -25);
+        this.log(`용병대장 ${m.name}이(가) 급료를 받지 못했습니다. 떠나지는 않았지만 몹시 실망했습니다. (사기 -25)`, 'bad');
+      }
       s.gold -= owed;
       this.log(`주간 정산: 금화 ${owed} 지급.${s.gold < 0 ? ' 길드가 빚을 지고 있습니다!' : ''}`, s.gold < 0 ? 'bad' : '');
     }

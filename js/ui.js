@@ -377,7 +377,7 @@ const UI = (() => {
     });
     openModal(el('div', {},
       el('h2', { text: '첫 용병대장을 고르세요' }),
-      el('p', { class: 'muted small', text: `용병단을 이끌 대장입니다. 대장은 고유 직업, 액티브 스킬 2개, 지휘(패시브)를 가진 단 한 명뿐인 인물이며, 선택받지 못한 ${STARTER_CAPTAINS.length - 1}명은 다시 만날 수 없습니다. 이후 대장은 길드 등급이 오를 때 찾아오는 갈림길(후보 6명)에서 한 명씩만 얻을 수 있습니다.` }),
+      el('p', { class: 'muted small', text: `용병단을 이끌 대장입니다. 대장은 고유 직업, 액티브 스킬 2개, 지휘(패시브)를 가진 단 한 명뿐인 인물이며, 선택받지 못한 ${STARTER_CAPTAINS.length - 1}명은 다시 만날 수 없습니다. 이후 대장은 길드 등급이 오를 때 공개되는 대장별 영입 과제를 달성해 여러 명을 얻을 수 있습니다.` }),
       el('div', { class: 'starter-choices' }, cards)), true);
   }
 

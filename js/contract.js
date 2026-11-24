@@ -446,6 +446,7 @@ Object.assign(Game, {
     });
 
     if (won) s.provClears[c.province] = (s.provClears[c.province] || 0) + 1;
+    this.trackMission(mission, won, dead.length);
     const label = { great: '대성공', success: '성공', fail: '실패', disaster: '대실패' }[outcome];
     this.log(`[${c.title}] ${label}! 금화 ${report.gold >= 0 ? '+' : ''}${report.gold}, 명성 ${report.rep >= 0 ? '+' : ''}${report.rep}`, won ? 'good' : 'bad');
     s.pendingReports.push(report);

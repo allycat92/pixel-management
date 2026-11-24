@@ -483,52 +483,46 @@
 
   // ───────── 모집소 ─────────
   // 용병대장 한 명의 카드 (영입 현황판용)
-  function captainCard(key, actions) {
+  function captainCard(key) {
     const s = Game.state, C = CAPTAINS[key], CC = CAPTAIN_CLASSES[key], cs = s.captains[key];
-    const req = Game.captainRequirement(key);
     const statusText = {
-      candidate: '창설 후보', locked: '아직 오지 않음', offered: '갈림길 — 선택 대기', pursuing: `영입 의뢰 진행 중 (${cs.ch}/${(C.chapters || []).length}장)`,
-      joined: '합류', lost: '영입 불가',
+      candidate: '창설 후보', locked: '아직 소문이 없음', challenge: '영입 과제 진행 중', pursuing: `영입 의뢰 진행 중 (${cs.ch}/${(C.chapters || []).length}장)`,
+      joined: '합류', lost: cs.why ? `떠남 — ${cs.why}` : '영입 불가',
     }[cs.status];
     const lookOf = { cls: CC.style, cap: key, ...C.look };
+    const ch = CAPTAIN_CHALLENGES[key] && (cs.status === 'challenge' || cs.status === 'locked') ? Game.challengeOf(key) : null;
     return el('div', { class: `card cap-card st-${cs.status}` },
       el('div', { class: 'card-head' },
         el('div', { class: 'portrait-wrap' }, UI.h.portrait(lookOf)),
         el('div', { class: 'card-title' },
           el('div', { class: 'name' }, C.name, el('span', { class: 'muted small', text: ` ${C.title}` })),
           el('div', { class: 'sub' }, el('span', { class: 'role-badge captain', text: '♛ 대장' }), ' ', el('span', { class: 'cls adv', text: CC.name })),
-          el('div', { class: `small cap-status ${cs.status}`, text: statusText }))),
+          el("div", { class: `small cap-status s-${cs.status}`, text: statusText }))),
+      ch ? el('div', { class: 'challenge small' },
+        el('div', { class: 'challenge-name' }, el('b', { text: `과제 「${ch.name}」` }), ch.ok ? el('span', { class: 'good', text: ' 달성!' }) : null),
+        ch.conds.map((c) => el('div', { class: c.ok ? 'good' : c.dead ? 'bad' : 'muted', text: `${c.ok ? '✔' : c.dead ? '✘' : '·'} ${c.text}` }))) : null,
       el('div', { class: 'small muted', text: CC.desc }),
       UI.h.skillList({ actives: CC.acts.map((b) => ({ name: b.name, battle: describeBattle(b) })), passive: { name: CC.lead.name, desc: `지휘: ${CC.lead.desc}`, lead: true } }, { compact: true }),
-      cs.status === 'offered' && C.intro ? el('div', { class: 'small pitch', text: `“${C.intro[0][1]}”` }) : null,
-      C.require && cs.status !== 'joined' && cs.status !== 'lost'
-        ? el('div', { class: `small ${req.ok ? 'good' : 'bad'}`, text: `영입 조건: ${req.text} ${req.ok ? '✔' : '✘ (충족해야 영입 의뢰가 올라옵니다)'}` }) : null,
-      cs.status === 'pursuing' && C.chapters[cs.ch] ? el('div', { class: 'small warn', text: `다음: 「${C.chapters[cs.ch].title}」 — ${PROVINCES[C.chapters[cs.ch].province].name}` }) : null,
-      actions ? el('div', { class: 'card-foot' }, actions) : null);
+      cs.status === 'pursuing' && C.chapters[cs.ch] ? el('div', { class: 'small warn', text: `다음: 「${C.chapters[cs.ch].title}」 — ${PROVINCES[C.chapters[cs.ch].province].name}` }) : null);
   }
 
-  // 용병대장 영입 현황: 창설 → 초반 → 중반 → 중반 → 후반
+  // 용병대장 영입 현황: 창설 + 시기별 영입 과제
   function captainRoster() {
     const s = Game.state, r = Game.rankIndex();
     const box = el('div', { class: 'cap-roster' });
-    const starter = STARTER_CAPTAINS.find((k) => s.captains[k].status === 'joined');
     box.append(el('div', { class: 'cap-phase done' },
       el('div', { class: 'cap-phase-head' }, el('b', { text: '창설' }), el('span', { class: 'small muted', text: ` 첫 용병대장 (${STARTER_CAPTAINS.length}명 중 하나)` })),
       el('div', { class: 'cap-pair' }, STARTER_CAPTAINS.filter((k) => s.captains[k].status !== 'lost').map((k) => captainCard(k))),
       el('div', { class: 'small muted', text: `떠난 후보: ${STARTER_CAPTAINS.filter((k) => s.captains[k].status === 'lost').map((k) => `${CAPTAINS[k].name}(${CAPTAIN_CLASSES[k].name})`).join(', ')}` })));
     CAPTAIN_PHASES.forEach((ph) => {
       const st = s.phases[ph.key];
-      const head = el('div', { class: 'cap-phase-head' }, el('b', { text: `${ph.name} 갈림길` }),
-        el('span', { class: 'small muted', text: st === 'locked' ? ` 길드 등급 ${RANKS[ph.rank].name} 달성 시 (현재 ${RANKS[r].name})` : st === 'open' ? ` ${ph.list.length}명 중 한 명만 택할 수 있습니다` : ' 결정됨' }));
-      const cards = ph.list.map((k) => {
-        const act = st === 'open' ? el('button', { class: 'btn primary small', onclick: () => UI.confirmBox(
-          `${CAPTAINS[k].name}의 길을 택할까요? 나머지 ${ph.list.length - 1}명(${Game.rivalsOf(k).map((x) => CAPTAINS[x].name).join(', ')})은 길드를 떠나 다시 오지 않습니다.`, () => Game.pursueCaptain(k)) }, `${CAPTAINS[k].name}의 길을 택한다`) : null;
-        return captainCard(k, act);
-      });
-      // 결정된 갈림길은 택한 대장만 크게 보여 준다
-      const shown = st === 'chosen' ? ph.list.filter((k) => s.captains[k].status !== 'lost') : ph.list;
-      const lostNote = st === 'chosen' ? el('div', { class: 'small muted', text: `떠난 후보: ${ph.list.filter((k) => s.captains[k].status === 'lost').map((k) => `${CAPTAINS[k].name}(${CAPTAIN_CLASSES[k].name})`).join(', ')}` }) : null;
-      box.append(el('div', { class: `cap-phase ${st}` }, head, el('div', { class: 'cap-pair' }, shown.map((k) => cards[ph.list.indexOf(k)])), lostNote));
+      const joined = ph.list.filter((k) => s.captains[k].status === 'joined').length;
+      const head = el('div', { class: 'cap-phase-head' }, el('b', { text: `${ph.name} 영입 과제` }),
+        el('span', { class: 'small muted', text: st === 'locked' ? ` 길드 등급 ${RANKS[ph.rank].name} 달성 시 공개 (현재 ${RANKS[r].name})` : ` 합류 ${joined}/${ph.list.length}명 · 과제는 서로 부딪히니 어떤 대장을 노릴지 고르세요` }));
+      // 진행 중 → 영입 의뢰 중 → 합류 → 떠남 순
+      const order = { pursuing: 0, challenge: 1, locked: 1, joined: 2, lost: 3 };
+      const list = [...ph.list].sort((a, b) => order[s.captains[a].status] - order[s.captains[b].status]);
+      box.append(el('div', { class: `cap-phase ${st}` }, head, el('div', { class: 'cap-pair' }, list.map((k) => captainCard(k)))));
     });
     return box;
   }
@@ -537,8 +531,8 @@
     const s = Game.state;
     const joined = Object.values(s.captains || {}).filter((c) => c.status === 'joined').length;
     root.append(el('div', { class: 'panel-head' },
-      el('h2', { text: `용병대장 (${joined}/${1 + CAPTAIN_PHASES.length})` }),
-      el('span', { class: 'muted small', text: '대장은 고유 직업·높은 성장률·지휘 스킬을 지닌 단 한 명뿐인 인물입니다. 갈림길마다 한 명만 택할 수 있고, 택한 대장의 영입 의뢰를 완수해야 합류합니다.' })));
+      el('h2', { text: `용병대장 (합류 ${joined}명)` }),
+      el('span', { class: 'muted small', text: '대장은 고유 직업·높은 성장률·지휘 스킬을 지닌 단 한 명뿐인 인물입니다. 대장마다 영입 과제가 있고, 조건을 한순간에 모두 만족하면 찾아옵니다. 그 뒤 영입 의뢰를 완수하면 합류합니다.' })));
     root.append(captainRoster());
 
     // 특별 용병과 세력 정예
