@@ -39,7 +39,7 @@ X, Y = np.meshgrid(np.arange(W) + 0.5, np.arange(H) + 0.5)
 RAMP = {
     'cloak': [(34, 12, 24), (58, 20, 32), (84, 24, 34), (108, 30, 38), (142, 46, 44), (172, 76, 60)],
     'lining': [(24, 12, 26), (44, 18, 34)],
-    'tunic': [(20, 23, 38), (30, 35, 54), (42, 49, 72), (58, 67, 92), (82, 92, 116)],
+    'tunic': [(18, 20, 34), (27, 31, 49), (38, 44, 66), (54, 62, 87), (78, 88, 112)],
     'pants': [(15, 16, 20), (24, 26, 30), (35, 38, 40), (50, 54, 54), (70, 75, 72)],
     'greave': [(58, 56, 76), (94, 94, 112), (136, 136, 146), (178, 176, 176), (214, 210, 198)],
     'boot': [(18, 14, 22), (30, 24, 31), (46, 36, 40), (66, 52, 50), (92, 74, 64)],
@@ -388,7 +388,7 @@ HEAD = [
     "abbbcccbcccbccb",
     "UVVVWWWWWZZZZWb",
     "aUUVVVWWWWWWVcb",
-    "abbbbcb3c4cc3c.",
+    "abbbbcb3d4dc3d.",
     ".abbbbb4443433.",
     ".abbbb34kk43k3.",
     "..abb124s44433.",
@@ -606,7 +606,7 @@ def draw(P):
     # ---------------- torso (tunic, one value step above the trousers)
     tor = [L(-7.0, 16.2), L(-4.5, 17.8), L(3.5, 17.8), L(6.4, 16.0), L(7.4, 11.0), L(6.0, 5),
            L(5.2, 1.0), L(-5.6, 1.0), L(-6.6, 6), L(-7.6, 11)]
-    cv.part('torso', 'tunic', sh_poly(tor, bevel=4.5, strength=0.85), bias=0.06, cast=0.15)
+    cv.part('torso', 'tunic', sh_poly(tor, bevel=4.5, strength=0.85), bias=0.0, cast=0.15)
     cv.part('lapel', 'tunic', sh_capsule(L(1.0, 16.6), L(2.0, 4.0), 0.75, 0.6), group='torso', bias=0.34, line=False)
     cv.part('seam', 'tunic', sh_capsule(L(2.2, 16.0), L(3.0, 4.0), 0.5, 0.45), group='torso', bias=-0.5, line=False,
             rimmable=False)
@@ -715,7 +715,7 @@ def smear(img, tip, c, a0, thick, alpha=1.0, clip_y=62, pad=1.0, a1=None, r=None
     for i, col in enumerate(SMEAR_COLS):
         sel = m & (k == i)
         a_empty = int(255 * alpha * (1.0, 0.95, 0.8, 0.6)[i])
-        over_body = sel & body & (alpha >= 0.7 or i <= 1)
+        over_body = sel & body & (tt > 0.5) & (alpha >= 0.7 or i <= 1)
         img[over_body, :3] = col
         img[over_body, 3] = 255
         emp = sel & ~body
@@ -756,9 +756,9 @@ def frames():
     hx = 38.0
     steps = [  # footF, footN, dy, kneeF, kneeN
         (v2(hx + 14, 73.0), v2(hx - 14, 73.0), 1),
-        (v2(hx + 8, 73.0), v2(hx - 4, 70.0), -1),
+        (v2(hx + 9, 73.0), v2(hx - 7, 70.0), -1),
         (v2(hx - 12, 73.0), v2(hx + 14, 73.0), 1),
-        (v2(hx - 2, 70.0), v2(hx + 8, 73.0), -1),
+        (v2(hx - 5, 70.0), v2(hx + 9, 73.0), -1),
     ]
     F['walk'] = []
     for i, (fF, fN, dy) in enumerate(steps):
@@ -773,19 +773,19 @@ def frames():
                   footF=v2(53.0, 73.0), footN=v2(18.5, 73.0), cape=0.5, tail_ang=6, sword_back=True,
                   bendN=1, bendF=1, glint=0.2))
     # 1 wind-up: blade cocked behind the head, hips lower, shoulders turned back
-    A.append(pose(hip=v2(34.5, 48.5), lean=-0.1, grip=v2(32.0, 27.0), sword_dir=(-0.9, 0.42), blade_len=23,
+    A.append(pose(hip=v2(34.5, 48.5), lean=-0.1, grip=v2(29.0, 40.0), sword_dir=(-0.82, -0.57), blade_len=22,
                   footF=v2(52.5, 73.0), footN=v2(18.0, 73.0), cape=0.9, flare=0.2, tail_ang=-12, tail_len=1,
-                  sword_back=True, bendN=1, bendF=1, glint=0.5, head_off=v2(-0.5, 0.5)))
+                  sword_back=True, bendN=-1, bendF=1, glint=0.5, head_off=v2(-0.5, 0.5)))
     # 2 slash: lunge, blade cuts down-forward, big crescent from behind the head to the blade tip
     A.append(pose(hip=v2(41, 47.5), lean=0.28, grip=v2(54, 44), sword_dir=(0.85, 0.5), blade_len=23,
                   footF=v2(58.5, 73.0), footN=v2(21.0, 73.0), cape=1.6, flare=1.0, tail_ang=-14, tail_len=2,
                   capelet=1.0, glint=0.45, bendN=-1, bendF=-1, head_off=v2(1, 1),
-                  smear=dict(c=(46, 42), a0=-165, thick=8.5)))
+                  smear=dict(c=(48, 43), a0=-150, thick=8.5)))
     # 3 follow-through: blade carried on down-forward clear of the knee, smear tail fading
-    A.append(pose(hip=v2(41.5, 48), lean=0.22, grip=v2(53, 50), sword_dir=(1.0, 0.1), blade_len=21,
+    A.append(pose(hip=v2(41.5, 48), lean=0.22, grip=v2(51, 49), sword_dir=(1.0, 0.1), blade_len=21,
                   footF=v2(59.0, 73.0), footN=v2(21.5, 73.0), cape=2.0, flare=1.2, tail_ang=-8, tail_len=2,
                   capelet=1.2, glint=0.7, bendN=-1, bendF=-1, head_off=v2(1, 1),
-                  smear=dict(c=(46, 42), r=28.4, a0=-60, a1=22, thick=4.5, alpha=0.8)))
+                  smear=dict(c=(48, 43), r=26.4, a0=-62, a1=22, thick=4.5, alpha=0.8)))
     # 4 recover: settle back toward guard
     A.append(pose(hip=v2(39, 46.5), lean=0.16, grip=v2(49, 39), sword_dir=(1.0, -0.5),
                   footF=v2(55.0, 73.0), footN=v2(20.5, 73.0), cape=1.0, flare=0.5, tail_ang=-4, tail_len=1,
@@ -870,6 +870,7 @@ def main():
     F = frames()
     for anim, plist in F.items():
         for i, p in enumerate(plist):
+            print('%s_%d' % (anim, i)) if os.environ.get('BAREN_DEBUG') else None
             img = draw(p)
             check_margins(img, '%s_%d' % (anim, i))
             Image.fromarray(img, 'RGBA').save(os.path.join(fd, '%s_%d.png' % (anim, i)))
