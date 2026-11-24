@@ -30,7 +30,7 @@ recover), `hit_0`, `cast_0..2`. Per frame, on a flat `#FF00FF` background:
 
 | file | size | use |
 | --- | --- | --- |
-| `guide_<frame>.png` | 832x1216 | img2img init image: colour-blocked mannequin, 2 tones per part, light from the upper left, near limbs lighter than far limbs, feet at y≈1119 (92%), idle body ≈70-73% of the height |
+| `guide_<frame>.png` | 832x1216 | img2img init image: colour-blocked mannequin, 2 tones per part, light from the upper left, near limbs lighter than far limbs, feet at y≈1119 (92%), idle body ≈70-73% of the height (head = exactly 1/N of the standing height: hair top to chin is 1 head unit) |
 | `stick_<frame>.png` | 832x1216 | OpenPose (COCO-18) stick figure on black, plus a grey weapon line (`--no-stick-weapon` drops it). The near / screen-left side is the character's RIGHT |
 | `small_<frame>.png` | 80x80 | preview cell, feet at y=76 |
 
@@ -39,7 +39,7 @@ plus `sheet.png` (all guides), `anim.gif` (every animation looping side by side)
 
 Guarantees (each run prints violations; expected `0 check warnings`): bone lengths are identical
 in every frame (2-bone IK for arms and legs), planted feet sit on the y=0 baseline, hands are
-locked to points on the weapon grip, one scale for the whole set (only the x origin may slide
+locked to points on the weapon grip, weapon tip / butt never below the floor, one scale for the whole set (only the x origin may slide
 when a weapon would leave the canvas). Deterministic; the fit never depends on `--frames`.
 
 ### Intended use
@@ -56,4 +56,5 @@ when a weapon would leave the canvas). Deterministic; the fit never depends on `
 
 Known limits: the figure is a 2D mannequin (no real 3D rotation, so twisting poses are faked by
 moving the shoulders); hair, clothing, capes and smears are left to the model; the eye marks only
-indicate facing; long weapons (spear, staff) make the whole set a little smaller (~66-71%).
+indicate facing; long weapons make the whole set a little smaller (idle body: katana / sword_shield 73%,
+staff 72%, bow 70%, spear 70%), since one scale must fit the widest strike / thrust frame.

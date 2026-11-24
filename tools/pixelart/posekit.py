@@ -14,7 +14,7 @@ plus sheet.png (all guides) and anim.gif / anim_<anim>.gif (small cells, looped 
 
 Skeleton (head units; head = 1, standing height = --heads):
   leg (hip joint -> floor) 1.75 + 0.6*(N-4), torso (hip -> shoulder line) 1.05 + 0.4*(N-4),
-  neck 0.20, head 1.0; thigh = shin; 2-bone IK (lengths are exact in every frame) for
+  neck 0.20, head 1.0 (hair top -> chin, drawn at B.hs so it measures exactly 1); thigh = shin; 2-bone IK (lengths are exact in every frame) for
   legs (planted feet on the y=0 baseline) and arms (hands locked to points on the weapon).
   One scale for every frame of a run (fitted so the idle body is ~73% of the image height and
   every frame, weapon included, stays inside); only the x origin may slide per frame.
@@ -437,7 +437,7 @@ def weapon_parts(J, weapon, pose):
         out.append(('blade', poly(bl), 'steel', 'blade', 0.035))
         out.append(('guard', cap(G - pn * 0.2, G + pn * 0.2, 0.04), 'brass', 'handle', 0.03))
     elif weapon in ('spear', 'staff'):
-        top, bot = (1.50, 0.95) if weapon == 'spear' else (1.45, 0.95)
+        top, bot = (1.36, 0.76) if weapon == 'spear' else (1.45, 0.95)
         J['wtip'] = G + d * (top + (0.36 if weapon == 'spear' else 0.32))
         J['wbutt'] = G - d * bot
         out.append(('shaft', cap(G - d * bot, G + d * top, 0.045), 'wood', 'handle', 0.03))
@@ -703,18 +703,18 @@ def frames(weapon, B):
                 for side in 'NF':
                     sp = p['hand' + side]
                     if sp[0] == 'w':
-                        q = G + d * sp[1] + (v2(-0.06, 0.04) if side == 'N' else v2(-0.04, -0.10))
+                        q = G + d * sp[1] + (v2(-0.06, 0.04) if side == 'N' else v2(-0.04, -0.06))
                         p['hand' + side] = ('p', q[0], -q[1])
                 p.pop('z', None)
     elif weapon == 'sword_shield':
         for i in range(4):
             h = hh('idle_%d' % i)
-            arms('idle_%d' % i, grip=at(h, -0.02, 1.72), wa=72, handN=hN,
-                 handF=('p',) + at(h, 0.78, 2.02), elbF=(0.4, 1.0))
+            arms('idle_%d' % i, grip=at(h, 0.06, 1.66), wa=38, handN=hN,
+                 handF=('p',) + at(h, 0.78, 2.02), elbF=(0.4, 1.0), z={'blade': 'top', 'handle': 'top'})
         for i in range(4):
             h = hh('walk_%d' % i)
-            arms('walk_%d' % i, grip=at(h, -0.02, 1.72), wa=70, handN=hN,
-                 handF=('p',) + at(h, 0.78, 2.02), elbF=(0.4, 1.0))
+            arms('walk_%d' % i, grip=at(h, 0.06, 1.66), wa=36, handN=hN,
+                 handF=('p',) + at(h, 0.78, 2.02), elbF=(0.4, 1.0), z={'blade': 'top', 'handle': 'top'})
         arms('attack_0', grip=at(hh('attack_0'), -0.18, 2.40), wa=100, handN=hN,
              handF=('p',) + at(hh('attack_0'), 0.72, 2.05), elbN=(-1.0, 0.4))
         arms('attack_1', grip=at(hh('attack_1'), -0.50, 2.80), wa=150, handN=hN,
@@ -742,15 +742,15 @@ def frames(weapon, B):
             arms('attack_0', grip=at(hh('attack_0'), 0.40, 2.05), wa=18, handN=hN, handF=hF)
             arms('attack_1', grip=at(hh('attack_1'), 0.05, 2.05), wa=10, handN=hN, handF=hF,
                  elbN=(-0.5, 1.0))
-            arms('attack_2', grip=at(hh('attack_2'), 0.76, 2.05), wa=3, handN=hN, handF=hF)
-            arms('attack_3', grip=at(hh('attack_3'), 0.72, 1.98), wa=-1, handN=hN, handF=hF)
-            arms('attack_4', grip=at(hh('attack_4'), 0.58, 2.05), wa=24, handN=hN, handF=hF)
+            arms('attack_2', grip=at(hh('attack_2'), 0.70, 2.05), wa=3, handN=hN, handF=hF)
+            arms('attack_3', grip=at(hh('attack_3'), 0.62, 1.98), wa=-1, handN=hN, handF=hF)
+            arms('attack_4', grip=at(hh('attack_4'), 0.58, 2.05), wa=30, handN=hN, handF=hF)
         else:
-            arms('attack_0', grip=at(hh('attack_0'), 0.25, 2.30), wa=100, handN=hN, handF=hF)
-            arms('attack_1', grip=at(hh('attack_1'), -0.30, 2.80), wa=140, handN=hN, handF=hF,
+            arms('attack_0', grip=at(hh('attack_0'), 0.52, 2.34), wa=98, handN=hN, handF=hF)
+            arms('attack_1', grip=at(hh('attack_1'), -0.62, 2.72), wa=140, handN=hN, handF=hF,
                  elbN=(-1.0, 0.3), z={'blade': 'back', 'handle': 'mid'})
-            arms('attack_2', grip=at(hh('attack_2'), 0.92, 2.00), wa=-26, handN=hN, handF=hF)
-            arms('attack_3', grip=at(hh('attack_3'), 0.80, 1.62), wa=-44, handN=hN, handF=hF)
+            arms('attack_2', grip=at(hh('attack_2'), 0.98, 2.00), wa=-40, handN=hN, handF=hF)
+            arms('attack_3', grip=at(hh('attack_3'), 0.80, 1.66), wa=-48, handN=hN, handF=hF)
             arms('attack_4', grip=at(hh('attack_4'), 0.65, 2.00), wa=60, handN=hN, handF=hF)
         arms('hit_0', grip=at(hh('hit_0'), 0.40, 1.85), wa=40 if weapon == 'staff' else 14, handN=hN,
              handF=hF)
