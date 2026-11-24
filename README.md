@@ -74,7 +74,7 @@ python3 -m http.server 8000
 | `js/faction.js` | 평판, 세력 관계, 영토, 전쟁, 세계 진행 |
 | `js/contract.js` | 의뢰 생성·파견·판정, 세력 영향, 결전, 이야기, 보스 |
 | `js/captains.js` | 용병대장 영입: 창설 선택, 영입 과제, 영입 의뢰 |
-| `js/art.js` | 외부 일러스트 불러오기 (`assets/art/manifest.json`, 없으면 도트로 대체) |
+| `js/art.js` | 외부 일러스트·전투 스프라이트 시트 불러오기 (`assets/art/manifest.json`, 없으면 도트로 대체) |
 | `js/scene.js` | 상단 길드 홀 애니메이션 |
 | `js/battle.js` | 실시간 집단 전투 (부대 편성, 자율 AI, 시뮬레이션·재생) |
 | `js/map.js` | 세력 영토 지도 |
@@ -90,6 +90,8 @@ python3 -m http.server 8000
 - 납품: `art/inbox/`에 요청서의 파일 이름으로 PNG 저장
 - 후처리: `python3 tools/art/process.py` → `assets/art/` + `manifest.json` (Pillow 필요)
 - 게임은 등록된 그림만 쓰고, 없는 그림은 기존 도트로 대신합니다.
+- 전투 캐릭터 시트: `art/inbox/sheet_<captain|hero|class|monster>_<키>.png` (핵심 자세 4개 가로 띠 또는 전신 1장) → `python3 tools/art/sheets.py` → 80×80 칸 시트(발 기준점 40,76)로 바꿔 `tools/art/register_sheet.py`로 등록. 요청서는 `art/requests/phase3.md`.
+- 전투 화면은 등록된 시트(`sheet/captain/<키>` 등)를 1:1로 그리고, 없으면 코드 생성 도트를 키워 그립니다.
 
 ## 크레딧
 
