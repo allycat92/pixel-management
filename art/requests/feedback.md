@@ -13,10 +13,10 @@
 - 피부·머리·옷 색은 요청서의 16진수 색을 계속 지켜 줄 것 (게임 속 작은 도트와 같은 인물로 보이도록).
 
 ## 다음 작업
-`art/requests/phase1.md`의 남은 48장을 진행해 `art-inbox` 브랜치에 푸시. 순서 제안:
+`art/requests/phase1.md`의 남은 48장을 묶음별로 진행한다. 납품은 **Draft PR 「Art mailbox」의 브랜치**에 커밋·푸시한다 (`art/README.md`의 자동 왕복 절차). 묶음 순서:
 1. 창설 후보 대장 나머지 6명 (`captain_lancer` ~ `captain_veteran`)
 2. 특별 용병 7명 (`hero_*`)
 3. 나머지 대장 24명
 4. 재앙 수장 2명 (`boss_*`), 이벤트 그림 9장 (`event_*`)
 
-몇 장씩 나눠 푸시해도 된다. 푸시할 때마다 `art/inbox/NOTES.md`에 목록을 갱신할 것.
+코드 쪽이 PR 댓글로 묶음을 하나씩 요청한다. 푸시할 때마다 `art/inbox/NOTES.md`에 목록을 갱신할 것.
