@@ -41,13 +41,15 @@
 
 | 단계 | 누가 | 결과 |
 |---|---|---|
-| 1. 디자인 초안 | NovelAI (사용자가 원할 때만, 무료 범위) | `art/concepts/<id>/` — 주인이 고른 것만 (`selections.json`) |
+| 1. 디자인 초안 | NovelAI (사용자가 원할 때만, 무료 범위) — **초안 전용** | `art/concepts/<id>/` — 주인이 고른 것만 (`selections.json`) |
 | 2. 자세 가이드 | 코드 `tools/pixelart/posekit.py` | 4등신 마네킹, 무기별 프레임 |
 | 3. 꾸러미 | 코드 `python3 tools/art/handoff.py` | `art/requests/phase3/<id>/` — concept · portrait · guide_1..4 · `guide_strip.png` · README(한국어 요약 + GPT용 영어 프롬프트) |
 | 4. 최종 그림 | **GPT** (한 화풍) | `art/inbox/sheet_<id>.png` → `art-inbox` 브랜치 |
 | 5. 후처리 | 코드 `python3 tools/art/sheets.py` | 80×80 칸 시트 + manifest |
 
+- **NovelAI 는 디자인 초안 전용이다 (주인 결정).** 게임에 들어가는 최종 그림은 언제나 GPT 를 거친다 — NovelAI 로 최종본을 만들거나 시트로 등록하지 않는다.
 - NovelAI 초안끼리는 화풍·비율이 제각각이다 → **디자인(옷·색·무기·흉터)만** 가져오고, 비율은 posekit(4등신), 화풍은 앵커가 정한다.
+- 일반 병과(`class_<key>`)는 한 그림을 서로 다른 여러 사람이 같이 쓰므로 **얼굴이 가려지는 복장** (면갑·후드와 마스크·눌러쓴 모자 챙과 높은 깃·두건과 베일·깊은 후드). 상급 직업은 어울릴 때만.
 - 순서: 바렌(앵커) → 주인 승인 → 나머지 창설 후보 8명 → (선택) 로드릭 기마 → 펠릭스 색 고치기(메시지 C) → 주인이 NovelAI 초안을 고른 뒤 일반 병과 5(메시지 D)·1차 몬스터 8(메시지 E) → 그 뒤 특별 용병·나머지 몬스터·보스·나머지 대장·상급 직업.
 - **마젠타 규칙**: 그림의 모든 색은 배경 키 `#FF00FF`와 RGB 거리 150 이상 (펠릭스 첫 납품은 로브 밝은 면이 `#FF00FF`라 구멍이 뚫렸다).
 - 일반 병과(`class_<key>/`)·몬스터(`monster_<key>/`) 꾸러미도 `handoff.py`가 만든다. 사람이 아닌 몬스터는 posekit 대신 `guide_layout.png`(배치·크기 상자)와 `guide_scale.png`(같은 배율의 사람과 비교).
@@ -82,8 +84,11 @@ python3 tools/art/sheets.py art/inbox/sheet_captain_lancer.png --scale 0.1654 --
 - 이름 뒤에 `@`이 붙은 후보(`sheet_x_y@123.png`)는 직접 지정할 때만 처리한다.
 - `process.py`는 `sheet/*` 등 자기가 만들지 않은 manifest 항목을 건드리지 않는다.
 
-### NovelAI (사용자가 원할 때만)
-`python3 tools/art/novelai.py --only sheet/captain/ironwall` → `art/inbox/sheet_captain_ironwall.png` (한 자세, 마젠타 배경) → `sheets.py`.
+### NovelAI (사용자가 원할 때만, 디자인 초안 전용)
+`python3 tools/art/novelai.py --only sheet/class/warrior` → `art/concepts/class_warrior/drafts/nai_class_warrior_s21001.png` (한 자세, 마젠타 배경; `drafts/`는 git 에 올리지 않는다).
+**NovelAI 그림은 게임 그림이 되지 않는다** (주인 결정: 최종 그림은 언제나 GPT). `novelai.py`는 `art/inbox/`·`assets/`·`art/requests/`에 쓰지 못하고
+`sheet_*.png` 이름도 만들지 않는다. `sheets.py`는 NovelAI 그림(PNG 메타데이터 `Software: NovelAI`, `art/concepts/`·`art/requests/`·`drafts/` 안, `nai_*` 이름)을 거부한다
+(`--allow-draft` = 파이프라인 시험용, 언제나 `--dry-run`이라 등록할 수 없다). 주인이 고른 초안만 `art/concepts/<id>/concept_NN.png`로 옮겨 꾸러미의 `concept.png`(디자인 참고)가 된다.
 기본값은 무료 범위(넓이 ≤ 1024×1024, 28 steps, 1장)이고, 더 큰 설정은 `--allow-paid` 없이는 거부한다. 한 번에 `--max` 2장.
 토큰은 클라우드 세션의 프록시가 넣는다 (로컬에서는 `NOVELAI_TOKEN`). 대량 생성 금지.
 
@@ -91,5 +96,5 @@ python3 tools/art/sheets.py art/inbox/sheet_captain_lancer.png --scale 0.1654 --
 - **1단계 (완료)**: 용병대장 33명 · 특별 용병 7명 · 재앙 수장 2명 초상화, 이벤트 그림 9장 — 총 51장.
 - 2단계 (예정): 전투 배경 7종, 길드 홀, 대륙 지도.
 - **3단계 (진행)**: 전투 캐릭터 시트 — 창설 후보 대장 9 (+ 로드릭 기마, 선택; 펠릭스 다시) → 일반 병과 5 + 1차 몬스터 8 (꾸러미 준비, 초안 대기) → 특별 용병 7 → 나머지 몬스터 14·보스 → 나머지 대장 24 (`phase3.md`).
-  바렌(`sheet/captain/blademaster`)은 임시로 NovelAI 그림이 들어가 있다. GPT 의 승인된 바렌 그림이 오면 바꾼다.
+  바렌(`sheet/captain/blademaster`)은 승인된 GPT 그림으로 바뀌었다 (예전 임시 NovelAI 판은 교체; 등록된 시트 중 NovelAI 그림은 없다).
 - 4단계 (예정): 깃발·문장, 의뢰서·UI 장식, 장비 아이콘.

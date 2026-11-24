@@ -10,7 +10,9 @@
   (파일 하나는 `https://raw.githubusercontent.com/allycat92/pixel-management/claude/dot-fantasy-management-game-saupju/<경로>`).
 - **쓰기**: 결과 PNG 와 `art/inbox/NOTES.md`는 **`art-inbox` 브랜치에만** 올린다. `art-inbox`에 있는 예전 `art/STYLE.md`·`art/requests/`는
   옛 규칙이므로 읽지 않는다. `sheet_captain_*.png`는 `art-inbox`에서는 **새 파일**이다
-  (claude 브랜치의 `art/inbox/sheet_captain_blademaster.png`는 예전 NovelAI 판이고, 그림 쪽은 건드리지도 복사하지도 않는다).
+  (claude 브랜치의 `art/inbox/sheet_captain_blademaster.png`도 이제 승인된 GPT 판이다 — 예전 NovelAI 판은 교체됐다. 그림 쪽은 claude 브랜치 쪽을 건드리지 않는다).
+- **NovelAI 는 디자인 초안 전용이다 (주인 결정).** 게임에 들어가는 최종 그림은 언제나 GPT 를 거친다. NovelAI 로 최종본·시트를 요청하지 않고,
+  NovelAI 그림을 `art/inbox/sheet_*.png`로 올리지 않는다 (`sheets.py`가 NovelAI 그림을 거부한다).
 
 ## 주인용 사용법 (한국어)
 
@@ -28,13 +30,15 @@
    - 승인 기준: 4등신인가, 오른쪽을 보는 정면 3/4인가, 4자세가 가이드와 같은가, 64px 로 줄여도 읽히는가, 차분한 색·검정 아닌 외곽선인가,
      상의가 남색이고 진홍은 반망토뿐인가, 효과·바닥·글자가 없는가, 이 화풍으로 8명을 더 그려도 좋은가.
    - 마음에 안 들면 **메시지 A2**(다시 그리기)로 고칠 점을 적어 보낸다. 승인될 때까지 B 로 넘어가지 않는다.
-   - 승인하면 Claude 가 승인된 바렌을 claude 브랜치에도 커밋·푸시한다(예전 NovelAI 판을 바꾼다). 그 뒤 두 브랜치의 앵커가 같다.
+   - 승인하면 Claude 가 승인된 바렌을 claude 브랜치에도 커밋·푸시한다(예전 NovelAI 판을 바꾼다 — 완료). 그 뒤 두 브랜치의 앵커가 같다.
 4. **메시지 B**(웹이면 **메시지 B-웹**)를 보낸다. 8명(+ 선택: 로드릭 기마)을 바렌에 맞춰 그린다. 몇 명씩 끊어서 올려도 된다.
 5. 올라올 때마다 Claude 에게 알리면 처리·확인하고, 다시 그릴 것은 `art/requests/feedback.md`에 적는다.
 6. **지금 (8명 납품 뒤)**: 펠릭스만 다시 — **메시지 C**(웹이면 **C-웹**). 자세는 그대로, 로브·모자 색만 고친다.
 7. **다음 묶음 (초안부터)**: 일반 병과 5종(**메시지 D**)과 1차 몬스터 8종(**메시지 E**). 꾸러미(`class_<key>/`, `monster_<key>/`)는 만들어 두었지만
-   `concept.png`가 비어 있다. 순서: 주인이 원하면 Claude 가 NovelAI 초안 후보를 만든다(작업 목록 `jobs_classes.json`·`jobs_monsters.json`, 무료 범위)
+   `concept.png`가 비어 있다. 순서: 주인이 원하면 Claude 가 NovelAI **디자인 초안** 후보를 만든다(작업 목록 `jobs_classes.json`·`jobs_monsters.json`, 무료 범위)
    → 주인이 고른다 → Claude 가 `art/concepts/<id>/`에 넣고 `handoff.py`의 `concepts`를 채워 다시 만든다 → 그 다음 D·E 를 보낸다.
+   NovelAI 는 여기까지(디자인 참고)만 한다. 최종 그림은 D·E 로 GPT 가 그린다 — NovelAI 로 게임에 바로 넣을 최종본을 만들지 않는다.
+   일반 병과는 **얼굴이 가려지는 복장**으로 뽑는다 (주인 요청, 아래 「일반 병과 — 얼굴 가림」).
 
 ### 받은 뒤 처리 (Claude Code 가 한다)
 
@@ -263,11 +267,31 @@ git add art/inbox/sheet_captain_blademaster.png art/inbox/NOTES.md assets/art &&
 
 | 역할 | 열쇠 색 (어둠 → 밝음) | 밝기 비율 | 어디에 |
 |---|---|---|---|
-| 제복 outfit | `#263459` `#394b78` `#52679c` `#7489be` | 0.57 · 0.82 · 1.12 · 1.49 | 겉옷·로브·후드 상의·후드와 망토, 전사의 방패 면 |
-| 장식 accent | `#3f7a6c` `#5ea590` `#96d1bb` | 0.71 · 0.98 · 1.31 | 테두리, 허리 천, 머리띠, 모자 띠, 사제의 가슴 원판, 도적의 스카프 |
+| 제복 outfit | `#263459` `#394b78` `#52679c` `#7489be` | 0.57 · 0.82 · 1.12 · 1.49 | 겉옷·로브와 높은 깃·후드 상의와 마스크·두건과 베일·후드와 망토, 전사의 방패 면 |
+| 장식 accent | `#3f7a6c` `#5ea590` `#96d1bb` | 0.71 · 0.98 · 1.31 | 테두리, 허리 천, 후드·두건 앞 가장자리, 모자 띠, 사제의 가슴 원판, 도적의 스카프 |
 
 - 제복 = 차분한 청회색, 장식 = 옅은 청록. 열쇠 색끼리 RGB 거리 43 이상, 중성 회색 금속(#8a8a86 등)과도 그보다 멀다.
 - 우리 길드의 이름 없는 용병은 지금 제복 색(look.tint)이 없어 **열쇠 색 그대로(청회색·청록)** 보인다 — 주인 확인 필요.
+
+## 일반 병과 — 얼굴 가림 (주인 요청)
+
+> "일반직업쪽 시안 관련해서인데, 서로 다른 인물이어도 어색하지 않게 가급적 얼굴이 가려지는 복장 위주로 뽑으면 좋을 것 같아.
+> 하위 클래스에서는 어려울 수 있다는 점은 이해하니까 너무 억지로는 말고."
+
+한 그림을 서로 다른 여러 사람이 같이 쓰므로, 직업에 어울리는 만큼 얼굴을 가리거나 그늘지게 한다.
+
+| 직업 | 얼굴 가림 | 가린 천의 색 |
+|---|---|---|
+| 전사 | 면갑을 내린 강철 그레이트 헬름 — 눈 틈만 보인다 | 투구는 중성 회색 금속 |
+| 궁수 | 후드를 쓰고 천 마스크로 코 아래를 가림 — 눈 둘레만 그늘 속에 | 후드·마스크 = 제복 열쇠 색, 후드 앞 가장자리 = 장식 |
+| 마법사 | 챙 넓은 모자를 깊게 눌러씀(챙이 눈을 가림) + 입·턱을 가린 높은 깃 — 얼굴은 그늘 | 모자·높은 깃 = 제복, 모자 띠 = 장식 |
+| 성직자 | 이마까지 내린 깊은 두건 + 아래 얼굴의 베일 — 얼굴은 그늘 | 두건·베일 = 제복, 두건 앞 가장자리 = 장식 |
+| 도적 | 깊게 눌러쓴 후드(눈빛 두 점까지만) + 입·코를 가린 스카프 | 후드 = 제복, 스카프 = 장식 |
+
+- 네 자세 모두 같은 만큼 가린다 — 피격 자세에서도 면갑·후드·마스크·베일이 벗겨지거나 내려가지 않는다 (진의 피격 자세에서 복면이 내려간 것 같은 일 없게).
+- 그늘진 얼굴은 따뜻하거나 중성인 어두운 색(예: `#3a2e2a`) — 파랑이나 열쇠 색이 아니다.
+- 상급·최상급 직업(나중 묶음)은 그 직업에 자연스러울 때만 가린다. 억지로 하지 않는다.
+- NovelAI 초안 프롬프트(`phase3.json`의 `nai`, `jobs_classes.json`)에도 같은 내용이 들어갔다 (`face hidden`, 부정어 `visible face details, detailed face, smile`).
 
 ## 1차 몬스터 8종 — 고른 근거
 
@@ -305,11 +329,17 @@ git add art/inbox/sheet_captain_blademaster.png art/inbox/NOTES.md assets/art &&
 | 7 | 거대 거미 `sheet/monster/거대 거미` | `sheet_monster_giant-spider.png` | 2x2 · 112 | 520x220 | 근접 물기 |
 | 8 | 망령 `sheet/monster/망령` | `sheet_monster_wraith.png` | 1x4 · 96 | 240x360 | 원거리 (엔진: 저주탄) |
 
-## NovelAI 초안 작업 목록 (주인이 원할 때만, 아직 돌리지 않았다)
+## NovelAI 초안 작업 목록 (디자인 초안 전용, 주인이 원할 때만)
+
+**NovelAI 는 디자인 초안만 만든다.** 게임에 넣는 최종 그림은 언제나 GPT(메시지 D·E)를 거친다 — NovelAI 로 최종본을 요청하지 않는다 (주인 결정:
+NovelAI 최종본은 오류가 계속 나고, GPT 를 거치면 쉽게 끝난다). `novelai.py`는 `art/concepts/<id>/drafts/`(git 에 올리지 않음)나 작업 폴더에만 쓰고,
+`art/inbox/`·`assets/`에는 쓰지 못한다. `sheets.py`는 NovelAI 그림을 거부한다 (`--allow-draft` = 시험용, 항상 `--dry-run`).
 
 - 일반 병과 5: `jobs_classes.json` (c1_warrior … c5_rogue, 832x1216), 1차 몬스터 8: `jobs_monsters.json` (m1_skeleton … m8_wraith; 늑대·하피·가고일·거미는 1216x832).
   Claude 세션 작업 폴더의 `nai/picks/`에 있고, 같은 프롬프트·시드·크기가 `phase3.json`의 `nai`에 있다
-  (`python3 tools/art/novelai.py --only sheet/class/warrior --outdir art/concepts/class_warrior`도 같은 첫 장).
+  (`python3 tools/art/novelai.py --only sheet/class/warrior`도 같은 첫 장 → `art/concepts/class_warrior/drafts/nai_class_warrior_s21001.png`).
+- 일반 병과 5종의 프롬프트는 **얼굴 가림**으로 바뀌었다 (전사 `closed great helm, visor down`, 궁수 `hood up, … cloth mask`, 마법사 `hat pulled low, high collar`,
+  성직자 `deep cowl, veil`, 도적 `deep hood, shadowed face`; 부정어에 `visible face details, detailed face, smile`).
 - 무료 범위(넓이 ≤ 1024x1024, 28 steps, 1장씩). 후보 수는 주인이 정한다 (지난번처럼 12장씩이면 13 x 12 = 156장).
 - 초안의 제복은 말로만 "plain slate blue … pale teal trim" — 정확한 열쇠 색은 GPT 단계에서 지킨다.
 
@@ -334,8 +364,8 @@ git add art/inbox/sheet_captain_blademaster.png art/inbox/NOTES.md assets/art &&
 
 가장 중요한 규칙 — 열쇠 색 (README 의 KEY COLOURS):
 - 이 그림 한 장을 모든 진영이 같이 쓰고, 게임이 제복 색을 진영 색으로 바꿔 칠한다. 정확히 같은 색의 픽셀만 바뀐다.
-- 제복(겉옷·로브·후드 상의·후드와 망토, 전사의 방패 면)은 이 네 색으로만: #263459(가장 어두운 그늘·주름) #394b78(그늘) #52679c(바탕) #7489be(밝은 면).
-- 장식(테두리·허리 천·머리띠·모자 띠·사제의 가슴 원판·도적의 스카프)은 이 세 색으로만: #3f7a6c(그늘) #5ea590(바탕) #96d1bb(밝은 면).
+- 제복(겉옷·로브와 높은 깃·후드 상의와 마스크·두건과 베일·후드와 망토, 전사의 방패 면)은 이 네 색으로만: #263459(가장 어두운 그늘·주름) #394b78(그늘) #52679c(바탕) #7489be(밝은 면).
+- 장식(테두리·허리 천·후드와 두건의 앞 가장자리·모자 띠·사제의 가슴 원판·도적의 스카프)은 이 세 색으로만: #3f7a6c(그늘) #5ea590(바탕) #96d1bb(밝은 면).
 - 그 자리는 평평하게: 디더링·그라데이션·노이즈·질감·부드러운 섞임·중간 색 없이, 명암은 이 단계만으로.
 - 이 7색은 다른 곳(금속·피부·머리·가죽·눈·외곽선·배경)에 쓰지 않는다. 그 밖에는 파랑·청회색·청록·민트를 쓰지 않는다:
   금속은 푸른 기 없는 중성 회색, 가죽·나무는 따뜻한 갈색, 그 밖의 그늘도 따뜻하거나 중성 (이 시트에서는 "그늘은 보라·파랑 쪽" 규칙보다 이것이 우선).
@@ -343,7 +373,9 @@ git add art/inbox/sheet_captain_blademaster.png art/inbox/NOTES.md assets/art &&
 
 캐릭터마다:
 - 그 폴더 README.md 의 "Prompt for GPT" 블록이 지시다. guide_strip.png 와 같은 자세·크기·위치 (머리 110px, 발바닥 y=870).
-- 얼굴은 무난하고 특징 없는 젊은 얼굴 (흉터·표식 없음) — 한 얼굴이 수백 명을 대신한다. 문장·무늬 없음.
+- 얼굴은 가린다 (주인 요청): 한 그림이 서로 다른 수백 명을 대신하므로 전사 = 면갑 내린 투구(눈 틈만), 궁수 = 후드 + 코 아래 천 마스크,
+  마법사 = 깊게 눌러쓴 모자 챙 + 높은 깃(얼굴은 그늘), 성직자 = 깊은 두건 + 베일(얼굴은 그늘), 도적 = 깊은 후드 + 스카프(얼굴은 그늘).
+  네 자세 모두 같은 만큼 가리고(피격 때도 벗겨지지 않음), 얼굴 그늘은 따뜻하거나 중성인 어두운 색(파랑·열쇠 색 금지). 보이는 부분은 특징 없이. 문장·무늬 없음.
 - concept.png 는 디자인만. 화풍·비율은 앵커(바렌)와 똑같이.
 - 마젠타 규칙: 인물의 어떤 색도 #FF00FF 와 RGB 거리 150 미만이면 안 된다. 팔레트를 줄일 때 배경색과 합치지 마.
 - 저장 전 SELF-CHECK 확인, 틀리면 다시 그려.
@@ -361,6 +393,7 @@ git add art/inbox/sheet_captain_blademaster.png art/inbox/NOTES.md assets/art &&
 첫 번째 첨부(바렌)가 승인된 화풍 기준이다. 이 화풍으로 일반 병과 <직업> 그림을 그려 줘. 아래 영어 블록이 실제 지시다 (특히 KEY COLOURS).
 - 1536x1024, 1×4 한 줄, guide_strip.png 와 같은 자세·크기·위치, 배경 #FF00FF. concept.png 는 디자인만.
 - 제복은 #263459 #394b78 #52679c #7489be 로만, 장식은 #3f7a6c #5ea590 #96d1bb 로만, 평평하게. 이 7색은 다른 곳에 쓰지 않는다.
+- 얼굴은 블록의 CHARACTER 대로 가린다 (면갑·후드·마스크·모자 챙과 높은 깃·두건과 베일). 네 자세 모두 같은 만큼, 피격 때도 벗겨지지 않게.
 - 저장소 경로·커밋은 하지 말고 완성된 PNG 를 이 대화에 돌려줘. SELF-CHECK 확인 후 멈춰.
 
 <여기에 그 직업 README.md 의 Prompt for GPT 블록>

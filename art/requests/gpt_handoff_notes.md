@@ -9,6 +9,18 @@ Work split agreed with the project owner:
 | 3. final art | **GPT image model** | finished frames / sheet in ONE unified style |
 | 4. post-process | `tools/art/` pipeline | pixel cleanup, breathe idle loop, sheet + manifest |
 
+## NovelAI = design drafts ONLY (owner decision)
+
+Final game art **always goes through GPT**. NovelAI output is never a final asset and is never turned into a
+game sheet: the owner judged that NovelAI-made "finals" keep coming back with errors, while the GPT step finishes cleanly.
+
+- `tools/art/novelai.py` writes only to `art/concepts/<id>/drafts/nai_<id>_s<seed>.png` (git-ignored) or a scratch
+  `--outdir`; it refuses `art/inbox/`, `assets/` and `art/requests/` and never produces a `sheet_*.png` name.
+- `tools/art/sheets.py` refuses NovelAI images (NovelAI PNG metadata, files under `art/concepts/`, `art/requests/` or a
+  `drafts/` folder, `nai_*` names). `--allow-draft` exists only to test the pipeline and always implies `--dry-run`.
+- The owner's chosen draft becomes `art/concepts/<id>/concept_NN.png` and the package's `concept.png` — a design reference
+  for GPT, nothing more.
+
 ## IMPORTANT: the NovelAI drafts are NOT consistent with each other
 
 The owner reviewed the drafts and judged that, to a human eye, they do **not** read as one
@@ -95,14 +107,20 @@ One sheet per base class (warrior, archer, mage, cleric, rogue) is shared by eve
 soldier, friend and foe; promoted classes fall back to it. The engine recolours the uniform per faction by replacing
 EXACT colours (`js/battle.js` `sheetRecolor`: key -> faction colour x key luminance / mean luminance of that role's keys).
 
-- outfit keys (tabard / robe / hooded tunic / hood and cape, the warrior's shield face), dark to light:
+- outfit keys (tabard / robe and high collar / hooded tunic and mask / cowl and veil / hood and cape, the warrior's shield face), dark to light:
   `#263459` `#394b78` `#52679c` `#7489be`
-- accent keys (trim, sash, headband, hat band, the cleric's chest disc, the rogue's scarf), dark to light:
+- accent keys (trim, sash, hood / cowl edge, hat band, the cleric's chest disc, the rogue's scarf), dark to light:
   `#3f7a6c` `#5ea590` `#96d1bb`
 - flat fills only on those areas (no dithering, gradients, texture or in-between shades); the seven keys appear nowhere
   else, and nothing else on the figure is blue, slate, teal or mint (steel is neutral grey, leather and wood warm brown,
   other shadows warm or neutral - this overrides the general "shadows toward purple/blue" rule for these sheets).
-- generic, unremarkable young face; no emblem or heraldry (the faction colour comes from the keys).
+- no emblem or heraldry (the faction colour comes from the keys).
+- **faces covered (owner request):** one generic sheet stands for many different people, so the base-class outfits
+  hide or shade the face where it suits the class — warrior: closed helm, visor down (eye slit only); archer: hood up +
+  cloth mask over the lower face; mage: hat brim pulled low + high collar, face in shadow; cleric: deep cowl + veil, face
+  shadowed; rogue: deep hood (+ scarf), face shadowed. Same coverage in all four poses (nothing slips in the hit pose);
+  the face shadow is a warm / neutral dark, never blue or a key colour; hood / mask / cowl / veil / collar cloth uses the
+  outfit keys. Later promoted / master classes: only where natural for the class — don't force it.
 - code side: `sheets.py` reads `tint` from `phase3.json`, snaps colours within RGB distance 34 of a key back to the key at
   full resolution (non-key colours never become keys), writes `preview_tint_x4.png` (test recolour) and registers the keys
   with `register_sheet.py --tint-outfit/--tint-accent`.

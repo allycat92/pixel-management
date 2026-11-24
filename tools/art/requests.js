@@ -241,7 +241,7 @@ const sheetItem = (o) => ({ kind: 'sheet', size: '1536x1024', out: `${o.cell || 
 //    주인이 고른 NovelAI 초안(art/concepts/selections.json)은 디자인 참고만, 자세·비율은 posekit 가이드, 화풍은 바렌(앵커).
 const SEL = JSON.parse(fs.readFileSync(path.join(ROOT, 'art/concepts/selections.json'), 'utf8'));
 const ANCHOR = 'art/inbox/sheet_captain_blademaster.png';
-// 앵커는 art-inbox 브랜치에 올라온 GPT 그림이다 (claude 브랜치의 같은 경로에는 예전 NovelAI 판이 있을 수 있다).
+// 앵커는 art-inbox 브랜치에 올라온 GPT 그림이다 (claude 브랜치의 같은 경로도 이제 같은 GPT 판; 예전 NovelAI 판은 교체됐다).
 const ANCHOR_REF = `${ANCHOR} on the art-inbox branch`;
 const PKG = (key) => `art/requests/phase3/captain_${key}`;
 const GUIDES = ['guide_1_idle.png', 'guide_2_windup.png', 'guide_3_strike.png', 'guide_4_hit.png'];
@@ -321,15 +321,21 @@ const CLASS_KEYS = {
 const GPT_SCALE = 0.1654;   // 앵커 바렌과 같은 배율 (가이드 격자 머리 110px → 게임 약 18px)
 const CLASS_PKG = (key) => `art/requests/phase3/class_${key}`;
 // NovelAI 디자인 초안 (주인이 고를 후보; 실행은 주인이 원할 때만). 제복은 말로만 "무늬 없는 청회색 + 옅은 청록 테두리".
+// NovelAI 는 디자인 초안 전용이다: 게임에 들어가는 그림은 언제나 GPT 를 거친다 (novelai.py 는 art/concepts/<id>/drafts/ 에만 쓰고,
+// sheets.py 는 NovelAI 그림을 등록하지 않는다).
+const NAI_USE = 'design draft only (never game art: the final sheet is drawn by GPT; novelai.py writes art/concepts/<id>/drafts/, sheets.py refuses NovelAI images)';
 const NAI_STYLE = 'three-quarter view, facing right, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow';
 const NAI_NEG_BASE = 'lowres, bad anatomy, bad hands, text, watermark, signature, multiple views, cropped, blurry, background scenery, ground shadow, extra arms';
 const NAI_ONE_HEAD = ', two heads, multiple heads, conjoined, extra head';
+// 얼굴 가림 (주인 요청): 일반 병과 그림 한 장을 서로 다른 여러 사람이 같이 쓰므로, 직업에 어울리게 얼굴을 가리거나 그늘지게 한다
+// (전사 면갑, 궁수 후드 + 천 마스크, 마법사 눌러쓴 모자 챙 + 높은 깃, 성직자 두건 + 베일, 도적 깊은 후드). 상급 직업은 어울릴 때만.
+const NAI_FACE_HIDDEN_NEG = ', visible face details, detailed face, smile';
 const CLASS_DRAFT = {
-  warrior: { seed: 21001, tags: '1boy, solo, full body, four heads tall, young mercenary soldier, generic face, short brown hair, open-faced steel helmet, chainmail, plain slate blue tabard, pale teal trim, leather belt, brown gloves, dark trousers, brown boots, holding sword, round wooden shield, wide stance, bent knees, fighting stance' },
-  archer: { seed: 22001, tags: '1girl, solo, full body, four heads tall, young mercenary archer, generic face, short dark brown hair, pale teal headband, plain slate blue hooded tunic, brown leather vest, leather bracers, quiver on back, dark trousers, brown boots, holding bow, short bow, wide stance, bent knees, ready stance' },
-  cleric: { seed: 23001, tags: '1girl, solo, full body, four heads tall, young war priest, generic face, short brown hair, plain slate blue tabard over chainmail, pale teal trim, round sun disc emblem, leather belt, small book on belt, dark trousers, brown boots, holding mace, open hand raised, wide stance, bent knees' },
-  mage: { seed: 24001, tags: '1boy, solo, full body, four heads tall, young battle mage, generic face, short brown hair, wide-brimmed pointed hat, plain slate blue robe, pale teal trim, pale teal sash, belt pouches, brown boots, holding wooden staff, small amber crystal, open hand raised, wide stance, bent knees' },
-  rogue: { seed: 25001, tags: '1boy, solo, full body, four heads tall, young rogue, generic face, deep hood, plain slate blue hood and short cape, pale teal scarf over mouth, dark brown leather armor, many straps, dark trousers, black boots, holding dagger, reverse grip, single dagger, crouching, wide stance, bent knees' },
+  warrior: { seed: 21001, tags: '1boy, solo, full body, four heads tall, young mercenary soldier, face hidden, closed great helm, visor down, eye slit, chainmail, plain slate blue tabard, pale teal trim, leather belt, brown gloves, dark trousers, brown boots, holding sword, round wooden shield, wide stance, bent knees, fighting stance' },
+  archer: { seed: 22001, tags: '1girl, solo, full body, four heads tall, young mercenary archer, face hidden, hood up, slate blue cloth mask covering lower face, shadowed eyes, plain slate blue hooded tunic, brown leather vest, leather bracers, quiver on back, dark trousers, brown boots, holding bow, short bow, wide stance, bent knees, ready stance' },
+  cleric: { seed: 23001, tags: '1girl, solo, full body, four heads tall, young war priest, face shadowed, deep cowl, veil, plain slate blue tabard over chainmail, pale teal trim, round sun disc emblem, leather belt, small book on belt, dark trousers, brown boots, holding mace, open hand raised, wide stance, bent knees' },
+  mage: { seed: 24001, tags: '1boy, solo, full body, four heads tall, young battle mage, face hidden in shadow, wide-brimmed pointed hat pulled low, high collar covering mouth, plain slate blue robe, pale teal trim, pale teal sash, belt pouches, brown boots, holding wooden staff, small amber crystal, open hand raised, wide stance, bent knees' },
+  rogue: { seed: 25001, tags: '1boy, solo, full body, four heads tall, young rogue, face hidden, deep hood, shadowed face, plain slate blue hood and short cape, pale teal scarf over mouth, dark brown leather armor, many straps, dark trousers, black boots, holding dagger, reverse grip, single dagger, crouching, wide stance, bent knees' },
 };
 Object.entries(D.CLASSES).forEach(([key, K], i) => {
   const dr = CLASS_DRAFT[key];
@@ -345,9 +351,10 @@ Object.entries(D.CLASSES).forEach(([key, K], i) => {
       + `Design, weapon, per-pose notes and the KEY COLOURS: ${CLASS_PKG(key)}/README.md. `
       + `The uniform (tabard / robe / hood / cape) is painted ONLY with the outfit keys ${CLASS_KEYS.outfit.join(' ')} and its trim ONLY with the accent keys ${CLASS_KEYS.accent.join(' ')}, flat, `
       + 'and those seven colours appear nowhere else (the game recolours them to each faction\'s colours). '
+      + 'One sprite stands for many different people, so the face is covered or in shadow (helm visor / hood and mask / low hat brim and high collar / cowl and veil / deep hood, as the README says) in all four poses. '
       + `Match the approved style anchor ${ANCHOR_REF} (proportions, rendering, outline, palette, lighting, scale). ` + GUIDED_TAIL,
-    nai: { prompt: `${dr.tags}, ${NAI_STYLE}`, negative: NAI_NEG_BASE + NAI_ONE_HEAD, seed: dr.seed, size: [832, 1216],
-      source: 'draft job (not run yet): scratchpad nai/picks/jobs_classes.json; seed = first sample, samples use seed + i*37' },
+    nai: { prompt: `${dr.tags}, ${NAI_STYLE}`, negative: NAI_NEG_BASE + NAI_ONE_HEAD + NAI_FACE_HIDDEN_NEG, seed: dr.seed, size: [832, 1216],
+      use: NAI_USE, source: 'design-draft job: scratchpad nai/picks/jobs_classes.json; seed = first sample, samples use seed + i*37' },
   }));
 });
 // 3) 특별 용병 7명
@@ -420,7 +427,7 @@ MONSTER_BATCH1.forEach(([enemy, order, layout, cell, seed, size, tags, negExtra]
       + `Same pixel scale as the humans (head 110 px), so it can stand next to them. Match the approved style anchor ${ANCHOR_REF}. `
       + (layout === '2x2' ? 'Front three-quarter view facing RIGHT, flat #FF00FF background, no lines, labels, floor, shadow, text or effects.' : GUIDED_TAIL),
     nai: { prompt: `${tags}, ${NAI_STYLE}`, negative: NAI_NEG_BASE + NAI_ONE_HEAD + (negExtra || ''), seed, size,
-      source: 'draft job (not run yet): scratchpad nai/picks/jobs_monsters.json; seed = first sample, samples use seed + i*37' },
+      use: NAI_USE, source: 'design-draft job: scratchpad nai/picks/jobs_monsters.json; seed = first sample, samples use seed + i*37' },
   }));
 });
 // 4-2) 나머지 보통 몬스터 (다음 묶음; 보스·재앙 수장은 그 뒤)
@@ -463,7 +470,7 @@ const md3 = [
   '',
   '| 단계 | 누가 | 결과 |',
   '|---|---|---|',
-  '| 디자인 초안 | NovelAI | `art/concepts/` (주인이 고른 것만, 디자인 참고용) |',
+  '| 디자인 초안 | NovelAI | `art/concepts/` (주인이 고른 것만, 디자인 참고용 — 게임 그림으로 쓰지 않는다) |',
   '| 자세 가이드 | 코드 (`tools/pixelart/posekit.py`) | 4등신 마네킹, 캐릭터마다 `guide_strip.png` |',
   '| 최종 그림 | **GPT** | 한 화풍으로 통일한 1536x1024 띠 한 장씩 |',
   '| 후처리 | `tools/art/sheets.py` | 80x80 칸 시트 + manifest |',
@@ -472,6 +479,7 @@ const md3 = [
   '2. 나머지 창설 후보 8명을 앵커에 맞춰 그린다 (아래 순서). 로드릭 기마(추가 선택, 게임 미사용)는 맨 마지막.',
   '3. 그 다음: **일반 병과 5종**(메시지 D)과 **1차 몬스터 8종**(메시지 E). 꾸러미는 만들어 두었고(`class_<key>/`, `monster_<key>/`),',
   '   주인이 NovelAI 초안을 고르면 `concept.png`가 들어간다. 그 전에는 보내지 않는다.',
+  '   일반 병과는 **얼굴이 가려지는 복장** (한 그림을 서로 다른 여러 사람이 같이 쓴다; 전사 면갑, 궁수 후드 + 마스크, 마법사 모자 챙 + 높은 깃, 성직자 두건 + 베일, 도적 깊은 후드).',
   '4. 그 뒤 묶음(특별 용병·나머지 몬스터·보스·나머지 대장·상급/최상급 직업)은 아직 디자인 초안이 없어 초상화(ref)와 아래 프롬프트만 있다.',
   '',
   `- **일반 병과 열쇠 색**: 제복 ${CLASS_KEYS.outfit.map((c) => `\`${c}\``).join(' ')} / 장식 ${CLASS_KEYS.accent.map((c) => `\`${c}\``).join(' ')} —`,
@@ -485,12 +493,14 @@ const md3 = [
   '',
   '## NovelAI로 만들 때 (코드 쪽, 사용자가 원할 때만)',
   '',
-  '**NovelAI 는 디자인 초안 전용이다.** 결과는 `art/concepts/<id>/`에만 두고 `sheets.py`로 등록하지 않는다 (게임 그림은 GPT 의 띠 한 장).',
+  '**NovelAI 는 디자인 초안 전용이다 (주인 결정).** 게임에 들어가는 최종 그림은 언제나 GPT 를 거친다 — NovelAI 로 최종본을 요청하지 않는다.',
+  '`novelai.py`는 `art/concepts/<id>/drafts/nai_*.png`(또는 `--outdir`로 준 작업 폴더)에만 쓰고 `art/inbox/`·`assets/`에는 쓰지 못한다.',
+  '`sheets.py`는 NovelAI 그림(PNG 메타데이터 `Software: NovelAI`, `art/concepts/`·`drafts/` 경로, `nai_` 이름)을 거부한다 (`--allow-draft`는 미리보기 시험용, 등록 불가).',
   '창설 후보 9명의 NovelAI 프롬프트·시드·크기는 주인이 고른 초안 그대로다 (`art/concepts/selections.json`; `--only`가 `nai.seed`·`nai.size`를 쓴다). 나머지는 한 장에 한 자세(전투 대기 자세).',
   '무료 범위(넓이 <= 1024x1024, 28 steps, 1장)로, 한 번에 몇 장씩만:',
   '',
   '```',
-  'python3 tools/art/novelai.py --only sheet/captain/ironwall --outdir art/concepts/captain_ironwall   # 초안만, 등록하지 않는다',
+  'python3 tools/art/novelai.py --only sheet/class/warrior   # → art/concepts/class_warrior/drafts/nai_class_warrior_s21001.png (초안만)',
   '```',
   '',
 ];
@@ -504,7 +514,7 @@ phase3.forEach((it) => {
     ...(it.tint ? [`- 열쇠 색: 제복 ${it.tint.outfit.join(' ')} · 장식 ${it.tint.accent.join(' ')} (전투에서 진영 색으로 바꿔 칠함)`] : []),
     ...(it.scale ? [`- 후처리: \`python3 tools/art/sheets.py art/inbox/${it.file}\` (요청서의 scale ${it.scale} · cell ${it.cell}${it.layout === '2x2' ? ' · 2x2' : ''}를 그대로 쓴다)`] : []),
     '', '```', it.prompt, '```', '',
-    '<details><summary>NovelAI (한 자세)</summary>', '', '```', it.nai.prompt, '', `Negative: ${it.nai.negative}`,
+    '<details><summary>NovelAI 디자인 초안 (한 자세, 게임 그림 아님)</summary>', '', '```', it.nai.prompt, '', `Negative: ${it.nai.negative}`,
     ...(it.nai.seed ? ['', `Seed: ${it.nai.seed}${it.nai.size ? ` · size ${it.nai.size.join('x')}` : ''}`] : []), '```', '', '</details>', '');
 });
 fs.writeFileSync(path.join(ROOT, 'art/requests/phase3.md'), md3.join('\n'));

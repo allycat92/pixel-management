@@ -2,6 +2,10 @@
 
 Design references for the GPT final-art step — see `art/requests/gpt_handoff_notes.md`.
 They are **design-only** (costume, colours, weapon, marks); style is unified by GPT.
+NovelAI is for design drafts ONLY (owner decision): nothing here is ever processed into a game sheet — final game art
+always goes through GPT, and `tools/art/sheets.py` refuses files under `art/concepts/` and any NovelAI-made PNG.
+Raw candidates from `tools/art/novelai.py` land in `art/concepts/<id>/drafts/` (git-ignored); only the owner's picks are
+copied up as `concept_NN.png` and recorded in `selections.json`.
 
 `selections.json` records, per character, the chosen sample numbers from the numbered
 contact sheets, their role, and the exact NovelAI parameters (model, seed, prompt, negative)

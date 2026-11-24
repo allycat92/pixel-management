@@ -373,103 +373,123 @@ CHARS = {
 # ONLY with the key ramps of phase3.json item.tint (= CLASS_KEYS in tools/art/requests.js), flat, and the keys are used
 # nowhere else; sheets.py snaps colours within KEY_TOL back to the keys and registers them (--tint-outfit / --tint-accent).
 # concepts={} = the owner has not picked a NovelAI draft yet (jobs_classes.json); the package then has no concept.png.
-CLASS_COMMON_KEEP = ['generic young adult face with a neutral expression and no scars, marks or distinctive features '
-                     '(this one face stands for hundreds of soldiers)']
+# Face coverage (owner request): one sheet stands for many DIFFERENT people, so the base-class outfits hide or shade the face
+# where it suits the class (warrior visor, archer hood + mask, mage hat brim + high collar, cleric cowl + veil, rogue hood).
+# Later promoted / master classes only where natural - never forced.
+CLASS_COMMON_KEEP = ['the FACE is covered or in shadow (see the headgear below), because this one sprite stands for hundreds of '
+                     'different soldiers; whatever little of the face shows is generic, with no scars, marks or distinctive features']
+CLASS_COMMON_FIX = ['the face stays covered / shadowed the SAME way in ALL FOUR poses: the visor, hood, mask, brim or veil never '
+                    'slips, opens or falls back, not even in the hit pose; the shadowed face is a warm or neutral dark '
+                    '(e.g. #3a2e2a), never blue and never a key colour']
+FACE_KO = ('- **얼굴 가림** (주인 요청): 이 그림 한 장을 서로 다른 여러 사람이 같이 쓰므로 얼굴이 가려지는 복장 — {face}. '
+           '네 자세 모두 같은 만큼 가린다(피격 때도 벗겨지지 않음). 가려진 얼굴 그늘은 따뜻하거나 중성인 어두운 색(파랑·열쇠 색 금지). '
+           '상급·최상급 직업은 어울릴 때만, 억지로 하지 않는다.')
 CHARS.update({
     'class_warrior': dict(
         kind='class', en='Warrior', order=11, weapon='sword_shield',
         frames=dict(idle='idle_0', windup='key_windup', strike='key_strike', hit='key_hit'), concepts={},
         weapon_desc=('a plain one-handed arming sword in the near hand and a round wooden shield (the guide shield\'s size) on the far arm; '
                      'the shield FACE is painted with the outfit keys (it shows the faction colour), its rim and boss are plain iron'),
-        keep=CLASS_COMMON_KEEP + ['open-faced steel helmet covering most of the hair (a little short dark-brown hair may show)',
-                                  'grey chainmail shirt', 'knee-length sleeveless TABARD over the mail', 'leather belt, brown gloves',
+        keep=CLASS_COMMON_KEEP + ['closed steel great helm with the VISOR DOWN: no face shows, only a dark horizontal eye slit '
+                                  '(hair fully hidden)', 'grey chainmail shirt', 'knee-length sleeveless TABARD over the mail', 'leather belt, brown gloves',
                                   'dark trousers, brown boots', 'sturdy, ordinary soldier build'],
         roles=dict(outfit='the tabard and the shield face', accent='the tabard\'s border trim and one plain band across the shield face'),
-        colours=[('skin', '#e0ac7e'), ('hair (mostly hidden)', 'dark brown #5a3720'),
+        colours=[('eye slit', 'warm near-black #2a2220'),
                  ('helmet, mail, sword, shield rim and boss', 'NEUTRAL steel grey (no blue tint), e.g. #c8c6c0 / #8a8a86 / #5c5c5a'),
                  ('leather and wood', 'warm browns')],
-        fix=['no emblem, crest or heraldry: the faction colour comes from the recoloured keys only'],
+        fix=CLASS_COMMON_FIX + ['the helm stays readable as a helmet at 64 px: a clear visor line and eye slit, NEUTRAL grey (no blue sheen)',
+                                'no emblem, crest or heraldry: the faction colour comes from the recoloured keys only'],
         pose=dict(idle='shield up, sword ready',
                   windup='weight on the back leg; sword raised up and back behind the head, shield kept forward',
                   strike='step-in lunge; sword cutting forward and down at full extension, shield pulled in',
-                  hit='torso thrown back, weight on the rear leg, wincing; shield up in front of the chest, sword arm dropped down-back'),
-        ko=dict(keep='무난한 젊은 얼굴(흉터·특징 없음), 머리를 거의 가린 강철 투구, 사슬 갑옷, 무릎 길이 민소매 겉옷(제복), 가죽 띠, 갈색 장갑·장화, 한손검 + 둥근 나무 방패.',
-                fix='겉옷·방패 면 = 제복 열쇠 색, 겉옷 테두리·방패의 띠 하나 = 장식 열쇠 색. 금속은 푸른 기 없는 중성 회색. 문장·무늬 없음.'),
+                  hit='torso thrown back, weight on the rear leg, head jerked back; shield up in front of the chest, sword arm dropped down-back'),
+        ko=dict(keep='면갑을 내린 강철 그레이트 헬름(눈 틈만 보임), 사슬 갑옷, 무릎 길이 민소매 겉옷(제복), 가죽 띠, 갈색 장갑·장화, 한손검 + 둥근 나무 방패.',
+                fix='겉옷·방패 면 = 제복 열쇠 색, 겉옷 테두리·방패의 띠 하나 = 장식 열쇠 색. 금속은 푸른 기 없는 중성 회색. 문장·무늬 없음. 면갑은 네 자세 모두 내린 채.',
+                face='전사는 면갑을 내린 투구(눈 틈만)'),
     ),
     'class_archer': dict(
         kind='class', en='Archer', order=12, weapon='bow',
         frames=dict(idle='idle_0', windup='attack_2', strike='attack_3', hit='key_hit'), concepts={},
         weapon_desc='a short recurve bow the size of the guide bow (brown wood), a brown leather quiver of arrows on the back',
-        keep=CLASS_COMMON_KEEP + ['short dark-brown hair', 'a cloth headband', 'knee-length HOODED TUNIC with the hood down on the shoulders',
-                                  'brown leather vest over the tunic', 'leather bracers', 'dark trousers, brown boots', 'lean build'],
-        roles=dict(outfit='the hooded tunic (hood, sleeves, skirt of the tunic)', accent='the headband and the tunic\'s hem trim'),
-        colours=[('skin', '#e0ac7e'), ('hair', 'dark brown #5a3720'), ('vest, bracers, quiver, bow', 'warm browns'),
+        keep=CLASS_COMMON_KEEP + ['the HOOD of the tunic is UP, and a cloth MASK covers the lower face up to the nose, so only a '
+                                  'shadowed strip around the eyes shows (hair hidden)',
+                                  'knee-length HOODED TUNIC', 'brown leather vest over the tunic', 'leather bracers', 'dark trousers, brown boots', 'lean build'],
+        roles=dict(outfit='the hooded tunic (hood, sleeves, skirt of the tunic) and the face mask',
+                   accent='the hood\'s front edge and the tunic\'s hem trim'),
+        colours=[('skin (the strip around the eyes, in shadow)', '#e0ac7e shaded warm'), ('vest, bracers, quiver, bow', 'warm browns'),
                  ('arrowheads', 'NEUTRAL steel grey')],
-        fix=['an arrow appears ONLY on the drawn bow in the wind-up; after the release (strike) there is NO flying arrow (the engine draws projectiles)',
+        fix=CLASS_COMMON_FIX + ['an arrow appears ONLY on the drawn bow in the wind-up; after the release (strike) there is NO flying arrow (the engine draws projectiles)',
              'the leather vest stays brown and small, so the tunic underneath still shows clearly on the chest, sleeves and skirt'],
         pose=dict(idle='bow held low in front, ready',
                   windup='full draw: arrow nocked, string pulled back to the cheek',
                   strike='release: bow arm extended, string straight, drawing hand flung back, no arrow',
-                  hit='torso thrown back, weight on the rear leg, wincing; bow dropped low-forward, drawing hand flung back'),
-        ko=dict(keep='무난한 젊은 얼굴, 짧은 짙은 갈색 머리, 머리띠, 후드를 내린 무릎 길이 후드 상의(제복), 갈색 가죽 조끼·팔 보호대, 등의 화살통, 짧은 활.',
-                fix='후드 상의 = 제복 열쇠 색, 머리띠·상의 밑단 = 장식 열쇠 색. 화살은 당길 때만, 쏜 뒤에는 없음.'),
+                  hit='torso thrown back, weight on the rear leg, head jerked back, hood and mask still in place; bow dropped low-forward, drawing hand flung back'),
+        ko=dict(keep='후드를 쓰고 천 마스크로 코 아래를 가린 얼굴(눈 둘레만 그늘 속에), 무릎 길이 후드 상의(제복), 갈색 가죽 조끼·팔 보호대, 등의 화살통, 짧은 활.',
+                fix='후드 상의·마스크 = 제복 열쇠 색, 후드 앞 가장자리·상의 밑단 = 장식 열쇠 색. 화살은 당길 때만, 쏜 뒤에는 없음.',
+                face='궁수는 후드 + 코 아래를 가린 천 마스크'),
     ),
     'class_cleric': dict(
         kind='class', en='Cleric', order=14, weapon='staff',
         frames=dict(idle='idle_0', windup='cast_1', strike='key_strike', hit='key_hit'), concepts={},
         weapon_desc=('a one-handed flanged steel mace with a wooden handle about 1.3 heads long (~140 px), in the near hand where the guide holds '
                      'the staff and at the same angle; it is SHORTER than the guide staff (its head sits about halfway up the guide staff)'),
-        keep=CLASS_COMMON_KEEP + ['short brown hair, no headgear', 'grey chainmail', 'knee-length TABARD over the mail',
+        keep=CLASS_COMMON_KEEP + ['a deep COWL (hood) pulled low over the brow and a short VEIL of the same cloth across the lower face, '
+                                  'so the face is in shadow (hair hidden)', 'grey chainmail', 'knee-length TABARD over the mail',
                                   'one plain round sun-disc emblem on the chest (a simple filled circle: no cross, no rays, no symbol inside)',
                                   'a small brown leather book on the belt', 'dark trousers, brown boots'],
-        roles=dict(outfit='the tabard', accent='the tabard\'s border trim and the round chest emblem'),
-        colours=[('skin', '#c68a5c'), ('hair', 'brown #5a3720'), ('mail and mace head', 'NEUTRAL steel grey'), ('book, belt, boots', 'warm browns')],
-        fix=['NO cross anywhere and NO healing glow or light: the engine draws the heal VFX; the forward hand is open and empty',
+        roles=dict(outfit='the tabard, the cowl and the veil', accent='the tabard\'s border trim, the cowl\'s front edge and the round chest emblem'),
+        colours=[('skin (hands, a sliver of the face in shadow)', '#c68a5c'), ('mail and mace head', 'NEUTRAL steel grey'), ('book, belt, boots', 'warm browns')],
+        fix=CLASS_COMMON_FIX + ['NO cross anywhere and NO healing glow or light: the engine draws the heal VFX; the forward hand is open and empty',
              'slots 2-3 are the action / cast poses: the same sheet is used for attacks AND heals'],
         pose=dict(idle='mace held diagonally in front, free hand at the belt',
                   windup='mace raised high in the near hand, free hand lifted (praying / gathering)',
                   strike='lunge; free arm extended straight forward, palm OPEN (blessing or striking); mace held up behind in the near hand',
-                  hit='torso thrown back, weight on the rear leg, wincing'),
-        ko=dict(keep='무난한 젊은 얼굴, 짧은 갈색 머리(모자 없음), 사슬 갑옷 위 무릎 길이 겉옷(제복), 가슴의 무늬 없는 둥근 해 원판, 허리의 작은 책, 한손 철퇴.',
-                fix='겉옷 = 제복 열쇠 색, 테두리·가슴 원판 = 장식 열쇠 색. 십자·치유 빛 없음. 2·3번은 공격·치유 겸용 자세(마그다와 같은 틀, 철퇴는 짧게).'),
+                  hit='torso thrown back, weight on the rear leg, head jerked back, cowl and veil still in place'),
+        ko=dict(keep='이마까지 깊게 내린 두건(카울)과 아래 얼굴을 가린 베일(얼굴은 그늘), 사슬 갑옷 위 무릎 길이 겉옷(제복), 가슴의 무늬 없는 둥근 해 원판, 허리의 작은 책, 한손 철퇴.',
+                fix='겉옷·두건·베일 = 제복 열쇠 색, 테두리·두건 앞 가장자리·가슴 원판 = 장식 열쇠 색. 십자·치유 빛 없음. 2·3번은 공격·치유 겸용 자세(마그다와 같은 틀, 철퇴는 짧게).',
+                face='성직자는 깊은 두건 + 베일, 얼굴은 그늘'),
     ),
     'class_mage': dict(
         kind='class', en='Mage', order=13, weapon='staff',
         frames=dict(idle='idle_0', windup='cast_1', strike='key_strike', hit='key_hit'), concepts={},
         weapon_desc=('a straight wooden staff the length of the guide staff with a small AMBER crystal at the top instead of the guide\'s blue orb '
                      '(warm orange-yellow, no glow; never a blue or teal crystal)'),
-        keep=CLASS_COMMON_KEEP + ['short brown hair, the face partly shaded by the hat brim', 'wide-brimmed pointed HAT (compact brim)',
+        keep=CLASS_COMMON_KEEP + ['wide-brimmed pointed HAT (compact brim) pulled LOW, its brim hiding the eyes, and a HIGH COLLAR '
+                                  'covering the mouth and chin, so the face between them is in shadow (hair hidden)',
                                   'long ROBE to the shins with a sash', 'brown belt pouches', 'brown boots'],
-        roles=dict(outfit='the hat and the robe', accent='the hat band, the robe\'s hem / cuff trim and the sash'),
-        colours=[('skin', '#f2c9a0'), ('hair', 'brown #5a3720'), ('staff, pouches, boots', 'warm browns'), ('crystal', 'amber #d9a441 (muted)')],
-        fix=['NO fire, glow or magic effect anywhere: the engine draws the spell VFX; the casting hand is open and empty',
+        roles=dict(outfit='the hat, the robe and its high collar', accent='the hat band, the robe\'s hem / cuff trim and the sash'),
+        colours=[('skin (hands, a sliver of the face in shadow)', '#f2c9a0'), ('staff, pouches, boots', 'warm browns'), ('crystal', 'amber #d9a441 (muted)')],
+        fix=CLASS_COMMON_FIX + ['NO fire, glow or magic effect anywhere: the engine draws the spell VFX; the casting hand is open and empty',
              'the hat stays inside the figure\'s space (no huge brim reaching the neighbouring figure)'],
         pose=dict(idle='staff held diagonally in front with both hands',
                   windup='staff raised high in the near hand, free hand lifted, gathering power',
                   strike='lunge; free arm extended straight forward, palm OPEN toward the enemy (casting); staff held upright behind in the near hand',
-                  hit='torso thrown back, weight on the rear leg, wincing, hat still on'),
-        ko=dict(keep='무난한 젊은 얼굴(모자 챙 그늘), 짧은 갈색 머리, 챙 넓은 고깔모자, 정강이까지 오는 로브와 허리띠 천, 갈색 주머니, 호박색 작은 수정이 달린 곧은 나무 지팡이.',
-                fix='모자·로브 = 제복 열쇠 색, 모자 띠·로브 테두리·허리띠 천 = 장식 열쇠 색. 수정은 따뜻한 호박색(파랑·청록 금지), 효과 없음. 펠릭스와 같은 시전 틀.'),
+                  hit='torso thrown back, weight on the rear leg, head jerked back, hat still on and still low'),
+        ko=dict(keep='깊게 눌러쓴 챙 넓은 고깔모자(챙이 눈을 가림) + 입·턱을 가린 높은 깃(얼굴은 그늘), 정강이까지 오는 로브와 허리띠 천, 갈색 주머니, 호박색 작은 수정이 달린 곧은 나무 지팡이.',
+                fix='모자·로브·높은 깃 = 제복 열쇠 색, 모자 띠·로브 테두리·허리띠 천 = 장식 열쇠 색. 수정은 따뜻한 호박색(파랑·청록 금지), 효과 없음. 펠릭스와 같은 시전 틀.',
+                face='마법사는 깊게 눌러쓴 모자 챙 + 높은 깃, 얼굴은 그늘'),
     ),
     'class_rogue': dict(
         kind='class', en='Rogue', order=15, weapon='none',
         frames=dict(idle='key_idle', windup='key_windup', strike='key_strike', hit='key_hit'), concepts={},
         weapon_desc=('ONE short dagger in the near hand (screen-left arm = the character\'s right), REVERSE grip '
                      '(blade leaving the little-finger side, running back along the forearm), exactly as the guide draws it'),
-        keep=CLASS_COMMON_KEEP + ['deep HOOD shading the upper face (the eyes still readable) and a short SHOULDER CAPE', 'a SCARF over the mouth',
+        keep=CLASS_COMMON_KEEP + ['deep HOOD pulled low so the face is in shadow (at most two small eye glints) and a short SHOULDER CAPE',
+                                  'a SCARF over the mouth and nose',
                                   'dark-brown leather armour with straps', 'dark trousers, dark-brown boots', 'lean, agile build'],
         roles=dict(outfit='the hood and the shoulder cape', accent='the scarf and one thin belt sash'),
-        colours=[('skin', '#e0ac7e'), ('leather armour, straps, boots', 'warm dark brown #4a3a2e (NOT black, NOT blue-grey)'),
+        colours=[('skin (hands only; the face is in shadow)', '#e0ac7e'), ('leather armour, straps, boots', 'warm dark brown #4a3a2e (NOT black, NOT blue-grey)'),
                  ('dagger', 'NEUTRAL steel grey')],
-        fix=['exactly ONE dagger, reverse grip, in the near hand; the other hand is always empty',
+        fix=CLASS_COMMON_FIX + ['exactly ONE dagger, reverse grip, in the near hand; the other hand is always empty',
              'the dark leather stays WARM brown (never blue-grey), so it never comes close to the uniform keys; add a warm rim light on the '
              'upper-left edges so it reads on the dark battlefield'],
         pose=dict(idle='low ready stance, dagger hand low in front, free hand up as a guard',
                   windup='weight on the back leg; dagger hand raised high above the head (about to stab down), free hand forward',
                   strike='lunge; dagger arm fully extended forward, free hand pulled back',
-                  hit='torso thrown back, weight on the rear leg, wincing; dagger arm flung back, free hand up'),
-        ko=dict(keep='무난한 젊은 얼굴(깊은 후드 그늘, 눈은 보이게), 후드 + 짧은 어깨 망토, 입을 가린 스카프, 끈 많은 짙은 갈색 가죽 갑옷, 역수 단검 하나.',
-                fix='후드·어깨 망토 = 제복 열쇠 색, 스카프·가는 허리 천 = 장식 열쇠 색. 가죽은 따뜻한 짙은 갈색(청회색 금지) + 왼쪽 위 따뜻한 림 라이트. 진과 같은 틀.'),
+                  hit='torso thrown back, weight on the rear leg, head jerked back, hood and scarf still in place; dagger arm flung back, free hand up'),
+        ko=dict(keep='깊게 눌러쓴 후드(얼굴은 그늘, 눈빛 두 점까지만) + 짧은 어깨 망토, 입·코를 가린 스카프, 끈 많은 짙은 갈색 가죽 갑옷, 역수 단검 하나.',
+                fix='후드·어깨 망토 = 제복 열쇠 색, 스카프·가는 허리 천 = 장식 열쇠 색. 가죽은 따뜻한 짙은 갈색(청회색 금지) + 왼쪽 위 따뜻한 림 라이트. 진과 같은 틀.',
+                face='도적은 깊은 후드 + 스카프, 얼굴은 그늘'),
     ),
 })
 
@@ -940,6 +960,7 @@ def readme(cid, C, it, info, has_portrait, mounted_item=None, minfo=None):
     if 'concept.png' not in C['concepts']:
         L.append('- ' + CONCEPT_PENDING_KO.format(cid=cid, jobs='classes' if kind == 'class' else 'monsters', table='CHARS'))
     if kind == 'class':
+        L.append(FACE_KO.format(face=C['ko']['face']))
         t = it['tint']
         L.append(f'- **열쇠 색** (전투에서 진영 색으로 바뀐다): 제복 {" ".join(f"`{c}`" for c in t["outfit"])}, '
                  f'장식 {" ".join(f"`{c}`" for c in t["accent"])} — 이 7색은 그 자리에만, 평평하게. 다른 곳에는 파랑·청회색·청록을 쓰지 않는다.')
