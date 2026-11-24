@@ -284,7 +284,7 @@ Battle sprite of 카이: young elf man, pointed ears, long blond hair, green ran
 <details><summary>NovelAI (한 자세)</summary>
 
 ```
-1boy, solo, young elf man, pointed ears, long blond hair, green ranger cloak, silver longbow, blonde hair, long hair, green outfit, white trim, headband, holding bow, quiver, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow
+1boy, solo, young elf man, pointed ears, long blond hair, green ranger cloak, silver longbow, green outfit, white trim, headband, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow
 
 Negative: lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background
 ```
@@ -295,13 +295,13 @@ Negative: lowres, bad anatomy, bad hands, text, watermark, signature, logo, mult
 - 파일: `sheet_hero_seraphine.png` · id: `sheet/hero/seraphine` · 생성: 1536x1024 1x4 띠 · 게임: 80x80 cells, body ~64px · 참고: `art/inbox/hero_seraphine.png`
 
 ```
-Battle sprite of 세라핀: young woman, pale, brown hair, torn white saint robes with a red sash, sorrowful but kind. Class: 파문 성녀 (cleric). Colors: skin #f2c9a0, hair #e3c565 (long), outfit main color #f2ecd8, accent color #d6455d. Weapon: mace. Keep the face, hair and outfit of the reference portrait. FORMAT: one PNG, 1536x1024 (landscape). The SAME character drawn FOUR times in ONE horizontal row, evenly spaced, left to right: (1) idle battle-ready stance, (2) attack wind-up (weapon drawn back / spell gathering), (3) attack strike at full extension, (4) hit reaction (recoiling backwards, wincing). Every copy: full body head to toe, SAME size and SAME scale, all four pairs of feet standing on ONE common horizontal baseline at about 85% of the image height, each figure about 55% of the image height, generous empty space around each figure; figures and weapons never touch or overlap each other or the image border. All four face RIGHT in a front three-quarter view. STYLE: high-quality HD pixel art for a modern 2D fantasy tactics game; chibi-leaning 3-heads-tall proportions (big head, compact body), wide dynamic stance with bent knees, readable silhouette, muted hue-shifted palette (shadows shift toward purple/blue, highlights toward warm yellow), dark desaturated (NOT pure black) outline used selectively, soft rim light on one side, flat cel shading with 2-3 tones, crisp pixel clusters, no anti-aliasing blur. BACKGROUND: perfectly flat solid magenta #FF00FF everywhere (chroma key), no gradient, no floor, no cast shadow, no scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines).
+Battle sprite of 세라핀: young woman, pale, blonde hair, torn white saint robes with a red sash, sorrowful but kind. Class: 파문 성녀 (cleric). Colors: skin #f2c9a0, hair #e3c565 (long), outfit main color #f2ecd8, accent color #d6455d. Weapon: mace. Keep the face, hair and outfit of the reference portrait. FORMAT: one PNG, 1536x1024 (landscape). The SAME character drawn FOUR times in ONE horizontal row, evenly spaced, left to right: (1) idle battle-ready stance, (2) attack wind-up (weapon drawn back / spell gathering), (3) attack strike at full extension, (4) hit reaction (recoiling backwards, wincing). Every copy: full body head to toe, SAME size and SAME scale, all four pairs of feet standing on ONE common horizontal baseline at about 85% of the image height, each figure about 55% of the image height, generous empty space around each figure; figures and weapons never touch or overlap each other or the image border. All four face RIGHT in a front three-quarter view. STYLE: high-quality HD pixel art for a modern 2D fantasy tactics game; chibi-leaning 3-heads-tall proportions (big head, compact body), wide dynamic stance with bent knees, readable silhouette, muted hue-shifted palette (shadows shift toward purple/blue, highlights toward warm yellow), dark desaturated (NOT pure black) outline used selectively, soft rim light on one side, flat cel shading with 2-3 tones, crisp pixel clusters, no anti-aliasing blur. BACKGROUND: perfectly flat solid magenta #FF00FF everywhere (chroma key), no gradient, no floor, no cast shadow, no scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines).
 ```
 
 <details><summary>NovelAI (한 자세)</summary>
 
 ```
-1girl, solo, young woman, pale, brown hair, torn white saint robes with a red sash, sorrowful but kind, blonde hair, long hair, white outfit, tan trim, holding mace, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow
+1girl, solo, young woman, pale, blonde hair, torn white saint robes with a red sash, sorrowful but kind, long hair, white outfit, tan trim, holding mace, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow
 
 Negative: lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background
 ```
@@ -318,7 +318,7 @@ Battle sprite of 리라: young woman in a white half-mask, dark violet outfit, h
 <details><summary>NovelAI (한 자세)</summary>
 
 ```
-1girl, solo, young woman in a white half-mask, dark violet outfit, hood, quick daggers, mischievous smile, red hair, long hair, charcoal outfit, white trim, hood, holding dagger, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow
+1girl, solo, young woman in a white half-mask, dark violet outfit, hood, quick daggers, mischievous smile, red hair, long hair, charcoal outfit, white trim, hood, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow
 
 Negative: lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background
 ```
@@ -335,7 +335,7 @@ Battle sprite of 그롬: massive clan warrior man, brown skin, scarred, arena ch
 <details><summary>NovelAI (한 자세)</summary>
 
 ```
-1boy, solo, massive clan warrior man, brown skin, scarred, arena champion belt, greatsword, dark brown hair, short hair, crimson outfit, yellow trim, holding sword, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow
+1boy, solo, massive clan warrior man, brown skin, scarred, arena champion belt, greatsword, dark brown hair, short hair, crimson outfit, yellow trim, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow
 
 Negative: lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background
 ```
@@ -369,7 +369,7 @@ Battle sprite of 마리솔: woman pirate captain in her thirties, tricorn hat, n
 <details><summary>NovelAI (한 자세)</summary>
 
 ```
-1girl, solo, woman pirate captain in her thirties, tricorn hat, navy coat, flintlock pistol and bow, dark brown hair, long hair, navy outfit, tan trim, hat, holding bow, quiver, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow
+1girl, solo, woman pirate captain in her thirties, tricorn hat, navy coat, flintlock pistol and bow, dark brown hair, long hair, navy outfit, tan trim, hat, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow
 
 Negative: lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background
 ```
@@ -386,7 +386,7 @@ Battle sprite of 오스윈: old knight commander, grey hair, rusted silver plate
 <details><summary>NovelAI (한 자세)</summary>
 
 ```
-1boy, solo, old knight commander, grey hair, rusted silver plate armor with a faded royal crest, grey hair, short hair, silver outfit, blue trim, helmet, holding sword, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow
+1boy, solo, old knight commander, grey hair, rusted silver plate armor with a faded royal crest, short hair, silver outfit, blue trim, helmet, holding sword, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow
 
 Negative: lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background
 ```
@@ -781,7 +781,7 @@ Battle sprite of 나린, a mercenary captain: tanned woman in her twenties, long
 <details><summary>NovelAI (한 자세)</summary>
 
 ```
-1girl, solo, tanned woman in her twenties, long black hair blowing in the wind, green headband, longbow, dark brown hair, long hair, dark green outfit, lime green trim, headband, holding bow, quiver, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow
+1girl, solo, tanned woman in her twenties, long black hair blowing in the wind, green headband, longbow, dark green outfit, lime green trim, headband, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow
 
 Negative: lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background
 ```
@@ -798,7 +798,7 @@ Battle sprite of 모로, a mercenary captain: cunning man in his forties, rat-li
 <details><summary>NovelAI (한 자세)</summary>
 
 ```
-1boy, solo, cunning man in his forties, rat-like grin, hood, gold rings, dagger, brown hair, short hair, black outfit, gold trim, hood, holding dagger, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow
+1boy, solo, cunning man in his forties, rat-like grin, hood, gold rings, dagger, brown hair, short hair, black outfit, gold trim, hood, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow
 
 Negative: lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background
 ```
@@ -815,7 +815,7 @@ Battle sprite of 카시안, a mercenary captain: elegant man in his thirties, lo
 <details><summary>NovelAI (한 자세)</summary>
 
 ```
-1boy, solo, elegant man in his thirties, long silver hair, sword glowing with blue magic, grey hair, long hair, dark blue outfit, silver trim, holding staff, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow
+1boy, solo, elegant man in his thirties, long silver hair, sword glowing with blue magic, dark blue outfit, silver trim, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow
 
 Negative: lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background
 ```
@@ -832,7 +832,7 @@ Battle sprite of 엘리노어, a mercenary captain: noble woman knight in her tw
 <details><summary>NovelAI (한 자세)</summary>
 
 ```
-1girl, solo, noble woman knight in her twenties, long golden hair, white and gold plate armor, holy mace, blonde hair, long hair, white outfit, yellow trim, helmet, holding mace, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow
+1girl, solo, noble woman knight in her twenties, long golden hair, white and gold plate armor, holy mace, white outfit, yellow trim, helmet, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow
 
 Negative: lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background
 ```
@@ -849,7 +849,7 @@ Battle sprite of 가르마크, a mercenary captain: huge man in his forties, red
 <details><summary>NovelAI (한 자세)</summary>
 
 ```
-1boy, solo, huge man in his forties, red hair and beard, horned helmet, war axe, battle scars, red hair, short hair, brown outfit, tan trim, helmet, holding sword, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow
+1boy, solo, huge man in his forties, red hair and beard, horned helmet, war axe, battle scars, short hair, brown outfit, tan trim, helmet, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow
 
 Negative: lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background
 ```
@@ -866,7 +866,7 @@ Battle sprite of 테무르, a mercenary captain: nomad man in his thirties, long
 <details><summary>NovelAI (한 자세)</summary>
 
 ```
-1boy, solo, nomad man in his thirties, long black braids, fur-trimmed coat, composite bow, steppe warrior, dark brown hair, long hair, auburn outfit, blonde trim, headband, holding bow, quiver, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow
+1boy, solo, nomad man in his thirties, long black braids, fur-trimmed coat, composite bow, steppe warrior, dark brown hair, long hair, auburn outfit, blonde trim, headband, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow
 
 Negative: lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background
 ```
@@ -883,7 +883,7 @@ Battle sprite of 지크린데, a mercenary captain: battle-hardened woman in her
 <details><summary>NovelAI (한 자세)</summary>
 
 ```
-1girl, solo, battle-hardened woman in her thirties, long blonde hair, dragon-scale armor, greatsword, blonde hair, long hair, crimson outfit, orange trim, helmet, holding sword, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow
+1girl, solo, battle-hardened woman in her thirties, long blonde hair, dragon-scale armor, greatsword, crimson outfit, orange trim, helmet, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow
 
 Negative: lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background
 ```
@@ -900,7 +900,7 @@ Battle sprite of 모르데카이, a mercenary captain: grizzled man in his fifti
 <details><summary>NovelAI (한 자세)</summary>
 
 ```
-1boy, solo, grizzled man in his fifties, grey stubble, dark hood, silver bullets and a holy mace, grey hair, short hair, charcoal outfit, grey trim, hood, holding mace, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow
+1boy, solo, grizzled man in his fifties, grey stubble, dark hood, silver bullets and a holy mace, grey hair, short hair, charcoal outfit, grey trim, hood, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow
 
 Negative: lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background
 ```
@@ -917,7 +917,7 @@ Battle sprite of 리코, a mercenary captain: flamboyant young man, long red hai
 <details><summary>NovelAI (한 자세)</summary>
 
 ```
-1boy, solo, flamboyant young man, long red hair, feathered hat, lute on his back and a rapier, red hair, long hair, magenta outfit, yellow trim, hat, holding dagger, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow
+1boy, solo, flamboyant young man, long red hair, feathered hat, lute on his back and a rapier, magenta outfit, yellow trim, hat, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow
 
 Negative: lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background
 ```
@@ -934,7 +934,7 @@ Battle sprite of 오르가, a mercenary captain: dark-skinned woman in her thirt
 <details><summary>NovelAI (한 자세)</summary>
 
 ```
-1girl, solo, dark-skinned woman in her thirties, long black hair, wolf-fur mantle, a grey wolf beside her, dark brown hair, long hair, brown leather outfit, gold trim, headband, holding bow, quiver, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow
+1girl, solo, dark-skinned woman in her thirties, long black hair, wolf-fur mantle, a grey wolf beside her, brown leather outfit, gold trim, headband, holding bow, quiver, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow
 
 Negative: lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background
 ```
@@ -951,7 +951,7 @@ Battle sprite of 브로크, a mercenary captain: stout bearded man in his fortie
 <details><summary>NovelAI (한 자세)</summary>
 
 ```
-1boy, solo, stout bearded man in his forties, orange beard, glowing blue runes on his hammer and armor, auburn hair, short hair, brown leather outfit, silver trim, helmet, holding mace, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow
+1boy, solo, stout bearded man in his forties, orange beard, glowing blue runes on his hammer and armor, auburn hair, short hair, brown leather outfit, silver trim, helmet, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow
 
 Negative: lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background
 ```
@@ -968,7 +968,7 @@ Battle sprite of 아멜리, a mercenary captain: gentle young woman, long blonde
 <details><summary>NovelAI (한 자세)</summary>
 
 ```
-1girl, solo, gentle young woman, long blonde hair, barefoot pilgrim robes, holy mace and a prayer charm, blonde hair, long hair, grey outfit, blue trim, holding mace, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow
+1girl, solo, gentle young woman, long blonde hair, barefoot pilgrim robes, holy mace and a prayer charm, grey outfit, blue trim, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow
 
 Negative: lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background
 ```
@@ -985,7 +985,7 @@ Battle sprite of 벨라도나, a mercenary captain: pale woman in her thirties, 
 <details><summary>NovelAI (한 자세)</summary>
 
 ```
-1girl, solo, pale woman in her thirties, long dark-blue hair, wide witch hat, green curse flames in her palm, dark blue hair, long hair, charcoal outfit, lime green trim, hat, holding staff, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow
+1girl, solo, pale woman in her thirties, long dark-blue hair, wide witch hat, green curse flames in her palm, charcoal outfit, lime green trim, hat, holding staff, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow
 
 Negative: lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background
 ```
@@ -1002,7 +1002,7 @@ Battle sprite of 카토, a mercenary captain: dark-skinned muscular man, shaved 
 <details><summary>NovelAI (한 자세)</summary>
 
 ```
-1boy, solo, dark-skinned muscular man, shaved head, broken shackles still on his wrists, chain weapon, dark brown hair, short hair, red outfit, grey trim, holding sword, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow
+1boy, solo, dark-skinned muscular man, shaved head, broken shackles still on his wrists, chain weapon, red outfit, grey trim, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow
 
 Negative: lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background
 ```
@@ -1019,7 +1019,7 @@ Battle sprite of 마렌, a mercenary captain: elderly woman in her sixties, shor
 <details><summary>NovelAI (한 자세)</summary>
 
 ```
-1girl, solo, elderly woman in her sixties, short grey hair, navy admiral coat with gold trim, crossbow, grey hair, short hair, navy outfit, yellow trim, hat, holding bow, quiver, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow
+1girl, solo, elderly woman in her sixties, short grey hair, navy admiral coat with gold trim, crossbow, navy outfit, yellow trim, hat, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow
 
 Negative: lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background
 ```
@@ -1036,7 +1036,7 @@ Battle sprite of 세레니엘, a mercenary captain: tall elf woman, long silver 
 <details><summary>NovelAI (한 자세)</summary>
 
 ```
-1girl, solo, tall elf woman, long silver hair, pointed ears, green leaf-patterned cloak, elegant longbow, grey hair, long hair, green outfit, white trim, headband, holding bow, quiver, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow
+1girl, solo, tall elf woman, long silver hair, pointed ears, green leaf-patterned cloak, elegant longbow, green outfit, white trim, headband, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow
 
 Negative: lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background
 ```
@@ -1053,7 +1053,7 @@ Battle sprite of 오토, a mercenary captain: engineer man in his forties, brass
 <details><summary>NovelAI (한 자세)</summary>
 
 ```
-1boy, solo, engineer man in his forties, brass goggles on his helmet, soot-stained, heavy crossbow, brown hair, short hair, brown leather outfit, gold trim, helmet, holding bow, quiver, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow
+1boy, solo, engineer man in his forties, brass goggles on his helmet, soot-stained, heavy crossbow, brown hair, short hair, brown leather outfit, gold trim, helmet, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow
 
 Negative: lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background
 ```
@@ -1070,7 +1070,7 @@ Battle sprite of 발타자르, a mercenary captain: severe man in his fifties, b
 <details><summary>NovelAI (한 자세)</summary>
 
 ```
-1boy, solo, severe man in his fifties, black hair, deep red hooded inquisitor robes, burning brand, dark brown hair, short hair, dark crimson outfit, yellow trim, hood, holding mace, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow
+1boy, solo, severe man in his fifties, black hair, deep red hooded inquisitor robes, burning brand, short hair, dark crimson outfit, yellow trim, hood, holding mace, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow
 
 Negative: lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background
 ```
@@ -1087,7 +1087,7 @@ Battle sprite of 크림슨, a mercenary captain: confident woman in her thirties
 <details><summary>NovelAI (한 자세)</summary>
 
 ```
-1girl, solo, confident woman in her thirties, long crimson hair, tricorn hat, cutlass and hook chain, red hair, long hair, crimson outfit, black trim, hat, holding dagger, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow
+1girl, solo, confident woman in her thirties, long crimson hair, tricorn hat, cutlass and hook chain, crimson outfit, black trim, hat, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow
 
 Negative: lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background
 ```
@@ -1104,7 +1104,7 @@ Battle sprite of 비요른, a mercenary captain: tall man in his thirties, long 
 <details><summary>NovelAI (한 자세)</summary>
 
 ```
-1boy, solo, tall man in his thirties, long blond hair and braided beard, frost-covered armor, axe, blonde hair, long hair, blue outfit, white trim, helmet, holding sword, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow
+1boy, solo, tall man in his thirties, long blond hair and braided beard, frost-covered armor, axe, blue outfit, white trim, helmet, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow
 
 Negative: lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background
 ```
@@ -1121,7 +1121,7 @@ Battle sprite of 에우리아, a mercenary captain: ancient wise woman, very lon
 <details><summary>NovelAI (한 자세)</summary>
 
 ```
-1girl, solo, ancient wise woman, very long white hair, star-embroidered robes, glowing staff, white hair, long hair, navy outfit, white trim, hat, holding staff, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow
+1girl, solo, ancient wise woman, very long white hair, star-embroidered robes, glowing staff, navy outfit, white trim, hat, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow
 
 Negative: lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background
 ```
@@ -1138,7 +1138,7 @@ Battle sprite of 루치아, a mercenary captain: radiant young woman, long golde
 <details><summary>NovelAI (한 자세)</summary>
 
 ```
-1girl, solo, radiant young woman, long golden hair, white robes, soft light around her hands, blonde hair, long hair, white outfit, orange trim, holding mace, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow
+1girl, solo, radiant young woman, long golden hair, white robes, soft light around her hands, white outfit, orange trim, holding mace, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow
 
 Negative: lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background
 ```
@@ -1155,7 +1155,7 @@ Battle sprite of 니클라, a mercenary captain: dangerous elegant woman in her 
 <details><summary>NovelAI (한 자세)</summary>
 
 ```
-1girl, solo, dangerous elegant woman in her thirties, long black hair, dark hood, twin daggers, black hair, long hair, black outfit, tan trim, hood, holding dagger, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow
+1girl, solo, dangerous elegant woman in her thirties, long black hair, dark hood, twin daggers, black outfit, tan trim, hood, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow
 
 Negative: lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background
 ```
@@ -1172,7 +1172,7 @@ Battle sprite of 우르그, a mercenary captain: giant man with giant-blood, lon
 <details><summary>NovelAI (한 자세)</summary>
 
 ```
-1boy, solo, giant man with giant-blood, long brown hair, enormous build, stone-like skin, huge maul, brown hair, long hair, brown outfit, blonde trim, holding mace, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow
+1boy, solo, giant man with giant-blood, long brown hair, enormous build, stone-like skin, huge maul, brown outfit, blonde trim, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow
 
 Negative: lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background
 ```

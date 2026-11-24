@@ -11,7 +11,7 @@
   배경 제거(테두리 색을 키로 한 부드러운 알파 + 색 번짐 제거) → 자르기
   → idle 자세 높이를 기준으로 모든 자세를 같은 배율로 축소 (캐릭터 키 약 64px)
   → 알파 0.45 기준 이진화, 외톨이 점 제거·1px 구멍 메우기
-  → 시트 전체 공통 팔레트(약 40색)로 양자화 → 가장자리 1px 를 어두운 보라(18,16,26) 쪽으로
+  → 가장자리 1px 를 어두운 보라(18,16,26) 쪽으로 → 외곽까지 포함한 시트 전체 공통 팔레트(--colors, 기본 40색)로 한 번 양자화
   → 80x80 칸에 발바닥 가운데를 (40,76)에 맞춰 배치
   → idle 은 sprite-gen breathe --mode pixel 로 4칸 숨쉬기 루프 (없으면 간단한 1px 들썩임)
   → 시트 png + Aseprite json-array(태그 idle/attack/hit) → tools/art/register_sheet.py 로 등록.
@@ -142,9 +142,31 @@ def _fit_bands(bands, want, proj):
     return bands
 
 
-def split_poses(alpha, grid=None, expect=None):
+def _cluster_bands(row_big, want, lo, hi):
+    """한 줄의 큰 덩어리들을 가운데 x 로 정렬해 가장 큰 틈 (want-1)곳에서 나눈다.
+    덩어리의 x 범위가 사슬처럼 겹쳐도(넓게 벌린 자세 넷이 1536px 에 빠듯하게 선 띠) 자세별로 갈린다.
+    띠 경계는 이웃한 두 무리의 오른쪽 끝·왼쪽 끝 가운데 (겹치면 겹친 곳의 가운데)."""
+    cs = sorted(row_big, key=lambda c: c['cx'])
+    k = min(want, len(cs))
+    gaps = [cs[i + 1]['cx'] - cs[i]['cx'] for i in range(len(cs) - 1)]
+    cuts = sorted(int(i) for i in np.argsort(gaps)[::-1][:k - 1]) if k > 1 else []
+    groups, start = [], 0
+    for i in cuts:
+        groups.append(cs[start:i + 1])
+        start = i + 1
+    groups.append(cs[start:])
+    edges = [lo]
+    for g0, g1 in zip(groups, groups[1:]):
+        edges.append((max(c['x1'] for c in g0) + min(c['x0'] for c in g1)) / 2)
+    edges.append(hi)
+    return [[edges[i], edges[i + 1]] for i in range(len(groups))]
+
+
+def split_poses(alpha, grid=None, expect=None, guess=False):
     """alpha(HxW float) → 자세별 마스크 목록 (행 우선 순서).
-    grid=(cols, rows) 이면 그 격자, expect=N 이면 한 줄 띠를 N 개로 맞춘다."""
+    grid=(cols, rows) 이면 그 격자, expect=N 이면 한 줄 띠를 N 개로 맞춘다.
+    guess=True 는 expect 가 그림 비율로 짐작한 값이라는 뜻: 키가 비슷한 큰 덩어리가 3개 이상일 때만 띠로 본다
+    (전신 1명 + 떨어진 불꽃·구슬·늑대 같은 그림을 자세 여럿으로 쪼개지 않게)."""
     H, W = alpha.shape
     f = max(1, int(np.ceil(max(H, W) / 640)))
     h, w = -(-H // f), -(-W // f)
@@ -164,6 +186,13 @@ def split_poses(alpha, grid=None, expect=None):
     big_area = max(c['area'] for c in comps)
     comps = [c for c in comps if c['area'] >= 0.003 * big_area]  # 먼지·점 제거
     big = [c for c in comps if c['area'] >= 0.08 * big_area]
+    if guess and expect and expect > 1:
+        tall = max(c['y1'] - c['y0'] for c in big)
+        alike = [c for c in big if (c['y1'] - c['y0']) >= 0.7 * tall]
+        wide = any((c['x1'] - c['x0']) >= 2.2 * (c['y1'] - c['y0']) for c in alike)  # 자세 여럿이 칼끝 등으로 붙은 한 덩어리
+        if len(alike) < 3 and not wide:
+            log(f'  가로로 긴 그림이지만 키가 비슷한 덩어리가 {len(alike)}개뿐 — 한 자세로 본다 (여러 자세면 --poses 4 / --grid 4x1)')
+            expect = 1
     def slot(v, bands):
         for i, (lo, hi) in enumerate(bands):
             if lo <= v < hi:
@@ -181,7 +210,14 @@ def split_poses(alpha, grid=None, expect=None):
             row_big = [c for c in big if slot(c['cy'], rowb) == r]
             colb = _merge([[c['x0'], c['x1']] for c in row_big])
             want = expect if len(rowb) == 1 else (expect // len(rowb) if expect and expect % len(rowb) == 0 else None)
-            if want and len(colb) not in (1, want) or (want and len(colb) == 1 and len(rowb) > 1 and want > 1):
+            if want and want > 1 and len(colb) != want and (len(row_big) >= 2 or len(rowb) == 1):
+                # 덩어리 가운데 x 로 묶는다 (x 범위가 겹쳐 한 띠로 합쳐진 경우도). 덩어리가 모자라면(서로 붙은 자세) 가장 넓은 띠를 가장 옅은 열에서 더 자른다.
+                log(f'  {r + 1}번째 줄에서 자세 {len(colb)}개를 찾았지만 {want}개를 기대 — 덩어리 {len(row_big)}개를 가운데 위치로 다시 나눈다')
+                colb = _cluster_bands(row_big, want, 0, w)
+                if len(colb) < want:
+                    colb = _fit_bands([[max(lo_, min(c['x0'] for c in row_big)), min(hi_, max(c['x1'] for c in row_big))] if len(colb) == 1 else [lo_, hi_] for lo_, hi_ in colb],
+                                      want, small[int(lo):int(hi)].sum(0))
+            elif want and len(colb) not in (1, want) or (want and len(colb) == 1 and len(rowb) > 1 and want > 1):
                 log(f'  {r + 1}번째 줄에서 자세 {len(colb)}개를 찾았지만 {want}개를 기대 — 띠를 다시 나눈다')
                 colb = _fit_bands(colb, want, small[int(lo):int(hi)].sum(0))
             colbs.append(colb)
@@ -191,15 +227,27 @@ def split_poses(alpha, grid=None, expect=None):
                 log(f'  덩어리 배치 {layout} — 한 자세로 본다 (여러 자세면 --grid 4x1 / 2x2)')
             rowb, colbs = [[0, h]], [[[0, w]]]
 
-    groups = {}
+    # 덩어리 하나가 띠 여럿의 가운데를 덮으면(자세끼리 칼끝·머리띠로 붙은 경우) 띠 경계에서 세로로 자른다.
+    # 그 밖의 덩어리는 가운데 x 가 든 띠에 통째로 들어간다 (옆 칸으로 삐친 칼끝도 제 자세에 남는다).
+    groups, cuts = {}, {}
     for c in comps:
         r = slot(c['cy'], rowb)
-        groups.setdefault((r, slot(c['cx'], colbs[r])), []).append(c['id'])
+        bands = colbs[r]
+        covered = [i for i, (lo_, hi_) in enumerate(bands) if c['x0'] <= (lo_ + hi_) / 2 < c['x1']]
+        if len(bands) > 1 and len(covered) > 1:
+            for i in covered:
+                groups.setdefault((r, i), [])
+                cuts.setdefault((r, i), []).append(c['id'])
+        else:
+            groups.setdefault((r, slot(c['cx'], bands)), []).append(c['id'])
     lab_full = np.repeat(np.repeat(lab, f, 0), f, 1)[:H, :W]
+    xs_full = np.arange(W)[None, :]
     masks = []
     for key in sorted(groups):
-        ids = groups[key]
-        m = np.isin(lab_full, ids)
+        m = np.isin(lab_full, groups[key])
+        if key in cuts:
+            lo_, hi_ = colbs[key[0]][key[1]]
+            m |= np.isin(lab_full, cuts[key]) & (xs_full >= lo_ * f) & (xs_full < hi_ * f)
         masks.append(m)
     log(f'  배치: {"+".join(str(len(c)) for c in colbs)}열 x {len(rowb)}행 → 자세 {len(masks)}개')
     return masks
@@ -274,13 +322,19 @@ def feet_x(mask):
     return (xs[band].min() + xs[band].max() + 1) / 2
 
 
+MAX_SHRINK = 0.85            # 칸에 맞추려고 이보다 더 줄여야 하면 실패 (자세가 잘못 나뉘었거나 여럿이 한 칸에 들어간 것)
+
+
 def place(rgb, mask, label):
-    """80x80 칸에 발 위치를 맞춰 넣는다. 너무 크면 줄인다."""
+    """80x80 칸에 발 위치를 맞춰 넣는다. 조금 크면 줄이고, 15% 넘게 줄여야 하면 None (실패)."""
     h, w = mask.shape
     max_w, max_h = CELL - 2, ANCHOR[1] - 2
     if w > max_w or h > max_h:
         s = min(max_w / w, max_h / h)
         nw, nh = max(1, int(w * s)), max(1, int(h * s))
+        if s < MAX_SHRINK:
+            log(f'  실패: {label} 자세가 칸보다 훨씬 커서({w}x{h}) {nw}x{nh} 로 줄여야 한다 — 자세 나누기가 틀렸을 수 있다 (--grid / --poses 로 지정)')
+            return None
         log(f'  주의: {label} 자세가 칸보다 커서({w}x{h}) {nw}x{nh} 로 줄였다')
         rgb = np.asarray(Image.fromarray(rgb.astype(np.uint8)).resize((nw, nh), Image.Resampling.NEAREST)).astype(np.float32)
         mask = np.asarray(Image.fromarray(mask.astype(np.uint8) * 255).resize((nw, nh), Image.Resampling.NEAREST)) > 127
@@ -487,9 +541,10 @@ def process(path, sid, a, reqs):
     ANCHOR = (CELL // 2, CELL - 4)
     height = a.height or req.get('height') or 64
     expect = a.poses
+    guess = False
     if not grid and not expect and im.width >= 1.3 * im.height:
-        expect = 4  # 가로로 긴 그림 = 요청서의 1x4 띠
-    masks = split_poses(alpha, grid, expect if not grid else None)
+        expect, guess = 4, True  # 가로로 긴 그림 = 요청서의 1x4 띠 (키 비슷한 덩어리가 3개 이상일 때만)
+    masks = split_poses(alpha, grid, expect if not grid else None, guess=guess)
     if not masks:
         log('  실패: 그림을 찾지 못했다')
         return False
@@ -510,6 +565,9 @@ def process(path, sid, a, reqs):
     small = []
     for (c_rgb, c_a), nm in zip(crops, names):
         hh = body_height(c_a) * scale
+        if nm != 'idle' and hh < height * 0.55:
+            log(f'  실패: {nm} 자세 몸 높이 {hh:.0f}px 가 idle({height}px)의 절반 남짓도 안 된다 — 떨어진 조각(불꽃·구슬 등)이 자세로 잘린 듯하다 (--poses 1 / --grid 로 지정)')
+            return False
         if nm != 'idle' and abs(hh - height) > height * 0.3 and nm != 'hit':
             log(f'  주의: {nm} 자세 높이 {hh:.0f}px — 칸마다 캐릭터 크기가 다르게 그려졌을 수 있다')
         nw = max(1, int(round(c_a.shape[1] * scale)))
@@ -524,19 +582,23 @@ def process(path, sid, a, reqs):
         x0, y0, x1, y1 = bb
         small.append((s_rgb[y0:y1, x0:x1], mask[y0:y1, x0:x1]))
 
+    # 외곽선(가장자리 어둡게)을 먼저 입힌 뒤 팔레트를 만들고 한 번만 양자화한다: 외곽 색도 공통 팔레트 안에 든다 (--colors 이하)
+    if not a.no_outline:
+        small = [(outline(r, m), m) for r, m in small]
     pal = build_palette(np.concatenate([r[m] for r, m in small]), a.colors)
     cells = {}
     for (s_rgb, mask), nm in zip(small, names):
         q = snap(s_rgb, pal)
         q[~mask] = 0
-        if not a.no_outline:
-            q = outline(q, mask)
-        cells[nm] = place(q, mask, nm)
+        cell = place(q, mask, nm)
+        if cell is None:
+            return False
+        cells[nm] = cell
         hh = mask.shape[0]
         log(f'  {nm}: {mask.shape[1]}x{hh}px')
 
     work = a.work or tempfile.mkdtemp(prefix='sheet-')
-    tag_name = sid.replace('/', '_')
+    tag_name = re.sub(r'\s+', '-', sid.replace('/', '_'))
     wdir = os.path.join(work, tag_name)
     os.makedirs(wdir, exist_ok=True)
     for nm, c in cells.items():
@@ -577,6 +639,8 @@ def process(path, sid, a, reqs):
         return True
     cmd = [sys.executable, REGISTER, '--id', sid, '--png', png, '--json', js,
            '--anchor', f'{ANCHOR[0]},{ANCHOR[1]}', '--facing', '1']
+    if req.get('file') and req.get('id') == sid:
+        cmd += ['--file', req['file']]  # 요청서의 파일 이름 (괴물 id 에는 한글·빈칸이 있어 그대로 파일 이름으로 쓰지 않는다)
     if a.dry_run:
         cmd.append('--dry-run')
     r = subprocess.run(cmd, capture_output=True, text=True)

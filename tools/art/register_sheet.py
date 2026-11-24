@@ -7,7 +7,12 @@ Aseprite 의 json-array 출력(--list-tags 포함)을 읽어 assets/art/manifest
   python3 tools/art/register_sheet.py --id sheet/captain/blademaster \\
       --png out/baren_sheet.png --json out/baren_sheet.json [--anchor 40,76] [--facing 1]
 
-- png 는 assets/art/sheets/<id 의 / 를 _ 로 바꾼 이름>.png 로 복사된다.
+- png 는 assets/art/sheets/<id 의 / 를 _ 로, 빈칸을 - 로 바꾼 이름>.png 로 복사된다.
+  (--file NAME.png 로 이름을 정할 수 있다. sheets.py 는 요청서의 file 이름 — 예: sheet_monster_desert-bandit.png — 을 넘긴다.)
+- id 의 마지막 부분은 게임 데이터의 이름 그대로다. 괴물 이름에는 빈칸이 있을 수 있다 (예: sheet/monster/사막 도적).
+- 직업 시트(sheet/class/*)는 여러 진영이 함께 쓰므로, 제복·장식에 쓴 열쇠 색을 --tint-outfit / --tint-accent 로 적어 두면
+  전투에서 진영 색으로 바꿔 칠한다. 적지 않으면 제복 색이 있는 병사(세력 병사·외부 용병단)는 코드 생성 도트로 그린다.
+  다시 등록할 때 이 옵션을 빼면 이전 항목의 tint 를 그대로 둔다.
 - anchor: 칸(cell) 안에서 발바닥 가운데 위치. 기본은 80x80 칸 기준 40,76.
 - facing: 그림이 바라보는 방향 (1 = 오른쪽, -1 = 왼쪽).
 - 태그 이름(idle/walk/attack/hit/cast ...)이 그대로 애니메이션 이름이 된다. idle 은 꼭 있어야 한다.
@@ -29,7 +34,9 @@ from PIL import Image
 ROOT = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
 MANIFEST = os.path.join(ROOT, 'assets', 'art', 'manifest.json')
 SHEETS = os.path.join(ROOT, 'assets', 'art', 'sheets')
-ID_RE = re.compile(r'^sheet/(captain|hero|class|monster)/[^/\s]+$')
+ID_RE = re.compile(r'^sheet/(captain|hero|class|monster)/[^/]+$')  # 이름 안의 빈칸은 된다 (앞뒤 빈칸은 안 됨)
+FILE_RE = re.compile(r'^[A-Za-z0-9_.@-]+\.png$')
+HEX_RE = re.compile(r'^#?[0-9A-Fa-f]{6}$')
 
 
 def fail(msg):
@@ -61,11 +68,26 @@ def main():
     ap.add_argument('--json', required=True, help='Aseprite json-array 데이터 (--list-tags)')
     ap.add_argument('--anchor', help='칸 안의 발 위치 X,Y (기본 40,76)')
     ap.add_argument('--facing', type=int, default=1, choices=[1, -1], help='그림이 보는 방향 (1 오른쪽)')
+    ap.add_argument('--file', help='assets/art/sheets/ 에 둘 png 이름 (기본: id 에서 / → _, 빈칸 → -)')
+    ap.add_argument('--tint-outfit', help='직업 시트: 제복 열쇠 색들 (#rrggbb,#rrggbb,...)')
+    ap.add_argument('--tint-accent', help='직업 시트: 장식 열쇠 색들 (#rrggbb,...)')
     ap.add_argument('--dry-run', action='store_true', help='manifest 를 쓰지 않고 결과만 출력')
     a = ap.parse_args()
 
-    if not ID_RE.match(a.id):
-        fail(f'id "{a.id}" 형식이 틀렸다 (예: sheet/captain/blademaster)')
+    if not ID_RE.match(a.id) or a.id != a.id.strip() or a.id.split('/')[-1] != a.id.split('/')[-1].strip():
+        fail(f'id "{a.id}" 형식이 틀렸다 (예: sheet/captain/blademaster, sheet/monster/사막 도적)')
+    if a.file and not FILE_RE.match(a.file):
+        fail(f'--file "{a.file}" 은 영문·숫자·_-.@ 로 된 .png 이름이어야 한다')
+    tint = {}
+    for role, text in (('outfit', a.tint_outfit), ('accent', a.tint_accent)):
+        if not text:
+            continue
+        cols = [c.strip() for c in text.split(',') if c.strip()]
+        if not cols or not all(HEX_RE.match(c) for c in cols):
+            fail(f'--tint-{role} "{text}" 은 #rrggbb 목록이어야 한다')
+        tint[role] = sorted({('#' + c.lstrip('#')).lower() for c in cols})
+    if tint and not a.id.startswith('sheet/class/'):
+        fail('--tint-* 는 직업 시트(sheet/class/*)에만 쓴다')
     with open(a.json, encoding='utf-8') as f:
         data = json.load(f)
     frames = read_frames(data)
@@ -111,9 +133,17 @@ def main():
     if not (0 <= anchor[0] <= cw and 0 <= anchor[1] <= ch):
         fail(f'anchor {anchor} 가 칸 {cw}x{ch} 밖이다')
 
-    rel = f'assets/art/sheets/{a.id.replace("/", "_")}.png'
+    rel = 'assets/art/sheets/' + (a.file or re.sub(r'\s+', '-', a.id.replace('/', '_')) + '.png')
+    manifest = {}
+    if os.path.exists(MANIFEST):
+        with open(MANIFEST, encoding='utf-8') as f:
+            manifest = json.load(f)
+    if not tint:  # 다시 등록할 때 열쇠 색을 주지 않으면 이전 것을 둔다
+        tint = ((manifest.get(a.id) or {}).get('sheet') or {}).get('tint') or {}
     entry = {'file': rel, 'w': W, 'h': H,
              'sheet': {'cell': [cw, ch], 'anchor': anchor, 'facing': a.facing, 'frames': rects, 'anims': anims}}
+    if tint:
+        entry['sheet']['tint'] = tint
     if a.dry_run:
         print(json.dumps({a.id: entry}, ensure_ascii=False, indent=2))
         return 0
@@ -122,10 +152,6 @@ def main():
     dst = os.path.join(ROOT, rel)
     if os.path.abspath(a.png) != os.path.abspath(dst):
         shutil.copyfile(a.png, dst)
-    manifest = {}
-    if os.path.exists(MANIFEST):
-        with open(MANIFEST, encoding='utf-8') as f:
-            manifest = json.load(f)
     before = len(manifest)
     manifest[a.id] = entry
     with open(MANIFEST, 'w', encoding='utf-8') as f:

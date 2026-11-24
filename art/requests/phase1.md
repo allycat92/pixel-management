@@ -251,7 +251,7 @@ young elf man, pointed ears, long blond hair, green ranger cloak, silver longbow
 - 파일: `hero_seraphine.png` · 생성 크기: 1024x1024 · 게임 내 크기: 128x128
 
 ```
-young woman, pale, brown hair, torn white saint robes with a red sash, sorrowful but kind. Class: 파문 성녀 (cleric-type). Colors: skin #f2c9a0, hair #e3c565 (long), outfit main color #f2ecd8, accent color #d6455d. Weapon: mace. Pixel art portrait in a 16-bit fantasy JRPG style. Bust shot (head and shoulders), facing slightly to the left, three-quarter view. Limited palette (about 32 colors), clean dark outline (#1b1420), flat cel shading with light from the top-left, no anti-aliasing, no gradients, no text, no watermark, no frame. Transparent background (if transparency is not possible, use a flat #2a2033 background).
+young woman, pale, blonde hair, torn white saint robes with a red sash, sorrowful but kind. Class: 파문 성녀 (cleric-type). Colors: skin #f2c9a0, hair #e3c565 (long), outfit main color #f2ecd8, accent color #d6455d. Weapon: mace. Pixel art portrait in a 16-bit fantasy JRPG style. Bust shot (head and shoulders), facing slightly to the left, three-quarter view. Limited palette (about 32 colors), clean dark outline (#1b1420), flat cel shading with light from the top-left, no anti-aliasing, no gradients, no text, no watermark, no frame. Transparent background (if transparency is not possible, use a flat #2a2033 background).
 ```
 
 ### 리라 — 가면 쓴 의적 (가면 의적)

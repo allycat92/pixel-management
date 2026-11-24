@@ -43,10 +43,14 @@ python3 tools/art/sheets.py                       # art/inbox/sheet_*.png 전부
 python3 tools/art/sheets.py art/inbox/sheet_hero_kai.png --dry-run --work /tmp/sheets   # 미리보기만
 ```
 - 입력: 1×4 띠(대기·준비·타격·피격), 2×2 격자, 또는 전신 한 장(대기만). 자세 수는 자동으로 찾는다 (`--grid 4x1`로 강제).
-- 칸마다 배경 제거 → 대기 자세 몸 높이를 64px로 맞춘 같은 배율로 축소 → 알파 정리 → 시트 공통 약 40색 → 1px 어두운 가장자리
+- 칸마다 배경 제거 → 대기 자세 몸 높이를 64px로 맞춘 같은 배율로 축소 → 알파 정리 → 1px 어두운 가장자리 → 가장자리까지 포함한 시트 공통 팔레트(`--colors`, 기본 40색)
   → 80×80 칸, 발 (40,76) → 대기는 `sprite-gen breathe --mode pixel` 숨쉬기 4칸 → 시트 png + Aseprite json-array(태그 idle/attack/hit)
   → `tools/art/register_sheet.py`로 `manifest.json`의 `sheet/<kind>/<key>` 항목 등록. `--aseprite OUT`이면 태그 붙은 .aseprite 도 (Aseprite 있을 때만).
 - 작업 폴더의 `preview_x4.png`를 열어 확인한다. 왼쪽을 보고 그려졌으면 `--flip`.
+- 가로로 긴 그림은 키가 비슷한 인물이 셋 이상(또는 붙은 인물들로 아주 넓은 덩어리 하나)일 때만 1×4 띠로 보고, 자세는 인물 가운데 위치로 나눈다 (인물끼리 칼끝이 닿으면 경계에서 자른다). 한 사람 옆에 떨어진 불꽃·구슬·늑대가 있는 그림은 한 자세로 본다.
+- 칸에 맞추려고 15% 넘게 줄여야 하는 자세, 대기 자세 키의 절반 남짓도 안 되는 자세가 나오면 실패로 끝나고 등록하지 않는다 (`--grid` / `--poses`로 지정해 다시).
+- 괴물 id에는 빈칸이 있을 수 있다 (`sheet/monster/사막 도적`). png 이름은 요청서의 파일 이름(`sheet_monster_desert-bandit.png`)을 쓴다.
+- 직업 시트(`sheet/class/*`)는 아군·적군이 함께 쓰므로, 제복·장식에 쓴 색을 `register_sheet.py --tint-outfit '#7a1e2a,#4a101a' --tint-accent '#d9a441'`로 적어 두면 전투에서 진영 색으로 바꿔 칠한다. 적지 않으면 제복 색이 있는 병사는 코드 생성 도트로 그린다.
 - 이름 뒤에 `@`이 붙은 후보(`sheet_x_y@123.png`)는 직접 지정할 때만 처리한다.
 - `process.py`는 `sheet/*` 등 자기가 만들지 않은 manifest 항목을 건드리지 않는다.
 

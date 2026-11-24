@@ -52,7 +52,7 @@ const FIGURE = {
 };
 const HERO_FIGURE = {
   kai: 'young elf man, pointed ears, long blond hair, green ranger cloak, silver longbow',
-  seraphine: 'young woman, pale, brown hair, torn white saint robes with a red sash, sorrowful but kind',
+  seraphine: 'young woman, pale, blonde hair, torn white saint robes with a red sash, sorrowful but kind',
   lyra: 'young woman in a white half-mask, dark violet outfit, hood, quick daggers, mischievous smile',
   grom: 'massive clan warrior man, brown skin, scarred, arena champion belt, greatsword',
   astel: 'young man scholar-mage, glasses, purple robes with gold embroidery, floating spellbook',
@@ -228,10 +228,18 @@ const NAI_CHAR = {
   fixer: '1boy, solo, slicked back black hair, half hood, black leather coat, grey scarf, holding short knife, reverse grip',
   veteran: '1boy, solo, old man, white hair, white beard, scars, battered helmet, olive grey gambeson, chainmail, holding sword',
 };
+// 손으로 쓴 인물 묘사(figure)가 머리·무기를 이미 말하면 게임 데이터에서 만든 태그를 덧붙이지 않는다
+// (예: 'war axe' 뒤에 'holding sword', 'shaved head' 뒤에 'dark brown hair' 가 붙어 NovelAI 가 섞어 그리던 문제)
+const FIG_HAIR_RE = /hair|bald|shaved/i;
+const FIG_HAIR_LEN_RE = /long|short|bald|shaved|ponytail|braid|bun\b/i;
+const FIG_WEAPON_RE = /sword|blade|axe|bow|crossbow|staff|wand|mace|dagger|rapier|cutlass|lance|spear|halberd|maul|hammer|chain|knife|flail|scythe|whip|claw/i;
 function naiFromFigure(figure, look, cls) {
-  const hair = `${colorName(look.hair)} hair${look.longHair ? ', long hair' : ', short hair'}`;
+  const len = look.longHair ? 'long hair' : 'short hair';
+  const hair = !FIG_HAIR_RE.test(figure) ? `${colorName(look.hair)} hair, ${len}`
+    : /hair/i.test(figure) && !FIG_HAIR_LEN_RE.test(figure) ? len : null;
   const parts = [genderTag(figure), 'solo', figure.replace(/\.$/, ''), hair,
-    `${colorName(cls.outfit)} outfit`, `${colorName(cls.accent)} trim`, HEADGEAR_TAG[cls.headgear], WEAPON_TAG[cls.weapon]];
+    `${colorName(cls.outfit)} outfit`, `${colorName(cls.accent)} trim`, HEADGEAR_TAG[cls.headgear],
+    FIG_WEAPON_RE.test(figure) ? null : WEAPON_TAG[cls.weapon]];
   return parts.filter(Boolean).join(', ');
 }
 const nai = (charTags, tail = NAI_TAIL) => ({ prompt: `${charTags}, ${tail}`, negative: NAI_NEG });
