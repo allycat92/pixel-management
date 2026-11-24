@@ -71,7 +71,7 @@ python3 -m http.server 8000
 | `js/company.js` | 직속 용병단과 외부 계약 용병단 |
 | `js/faction.js` | 평판, 세력 관계, 영토, 전쟁, 세계 진행 |
 | `js/contract.js` | 의뢰 생성·파견·판정, 세력 영향, 결전, 이야기, 보스 |
-| `js/captains.js` | 용병대장 영입: 창설 선택, 갈림길, 영입 의뢰 |
+| `js/captains.js` | 용병대장 영입: 창설 선택, 영입 과제, 영입 의뢰 |
 | `js/scene.js` | 상단 길드 홀 애니메이션 |
 | `js/battle.js` | 실시간 집단 전투 (부대 편성, 자율 AI, 시뮬레이션·재생) |
 | `js/map.js` | 세력 영토 지도 |

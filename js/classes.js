@@ -287,7 +287,7 @@ const CAPTAIN_CLASSES = {
     { name: '노병의 관록', power: 0.07, types: { defense: 0.1, warDefense: 0.1 } },
     [SK.melee('노련한 일격', 1.1, 1.0), SK.rally('노병의 호통', { atk: 0.2, def: 0.2, dur: 6 }, 50, 12)], { hp: 1 }),
 
-  // ── 초반 갈림길 (6) ──
+  // ── 초반 영입 과제 대상 (6) ──
   windhunter: cap('바람 사냥꾼', 'archer', '바람을 읽고 사냥감을 쫓는 명사수. 궁수들을 이끄는 데 능하다.', L('#2a4a3a', '#a7d26a', 'band', 'bow'),
     { name: '사냥 신호', power: 0.03, cls: { archer: 0.15 }, party: { success: 0.04, days: -1 } },
     [SK.shot('바람 화살', 'arrow', 1.05, 100, 1.1), SK.shot('질풍 연사', 'arrow', 0.8, 100, 7, { hits: 4 })], { dex: 0.5 }),
@@ -307,7 +307,7 @@ const CAPTAIN_CLASSES = {
     { name: '순례의 맹세', power: 0.03, types: { escort: 0.15 }, party: { death: 0.5 } },
     [SK.heal('순례자의 기도', 1.15, 70, 1.5), SK.melee('맨발의 심판', 1.4, 8, { aoe: 12 })], { str: 0.5 }),
 
-  // ── 중반 갈림길 1 (6) ──
+  // ── 중반 영입 과제 대상 1 (6) ──
   spellblade: cap('마검사', 'mage', '검과 마법을 함께 다루는 이단의 기사. 마법사들의 힘을 한데 모은다.', L('#2a2a6a', '#7fd6e8', 'none', 'staff'),
     { name: '마력 공명', power: 0.04, cls: { mage: 0.15 }, types: { magic: 0.2 } },
     [SK.melee('마력검', 1.2, 1.0, { aoe: 8 }), SK.shot('비검', 'bolt', 1.6, 80, 8, { hits: 2 })], { str: 1 }),
@@ -327,7 +327,7 @@ const CAPTAIN_CLASSES = {
     { name: '숲의 수호대', power: 0.02, cls: { archer: 0.15 }, types: { explore: 0.15 }, party: { success: 0.03 } },
     [SK.shot('은잎 화살', 'arrow', 1.1, 110, 1.1), SK.shot('숲의 분노', 'arrow', 0.9, 110, 8, { hits: 4, stun: 0.3 })], { dex: 0.5 }),
 
-  // ── 중반 갈림길 2 (6) ──
+  // ── 중반 영입 과제 대상 2 (6) ──
   warlord: cap('전쟁군주', 'warrior', '수많은 전쟁을 치른 지휘관. 세력 분쟁과 결전에서 진가를 발휘한다.', L('#5a3a1a', '#d6455d', 'helmet', 'sword'),
     { name: '군세 통솔', power: 0.03, types: { raid: 0.15, siege: 0.15, warDefense: 0.15, battle: 0.15 } },
     [SK.melee('전쟁 도끼', 1.1, 1.0), SK.rally('돌격 나팔', { atk: 0.3, dur: 6 }, 50, 11)], { hp: 0.5 }),
@@ -347,7 +347,7 @@ const CAPTAIN_CLASSES = {
     { name: '겨울의 방벽', power: 0.06, types: { defense: 0.2, warDefense: 0.2 }, cls: { warrior: 0.06 } },
     [SK.melee('서리 도끼', 1.15, 1.05, { stun: 0.15 }), SK.melee('빙결 강타', 1.5, 9, { aoe: 18, stun: 0.8 })], { hp: 1 }),
 
-  // ── 후반 갈림길 (6) ──
+  // ── 후반 영입 과제 대상 (6) ──
   dragonslayer: cap('용살자', 'warrior', '고룡의 비늘을 꿰뚫은 전설의 전사. 재앙 앞에서 물러선 적이 없다.', L('#6a1a14', '#f39c12', 'helmet', 'sword'),
     { name: '용의 목을 벤 자', power: 0.08, types: { hunt: 0.15 }, vsCalamity: 0.25 },
     [SK.melee('용살검', 1.25, 1.0), SK.melee('용의 목 베기', 2.4, 10, { dash: true, exec: 1.0 })], { str: 1.5 }),
