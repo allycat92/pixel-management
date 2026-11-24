@@ -84,3 +84,11 @@
 초상화는 투명 1024×1024, 이벤트는 불투명 1536×864 PNG다. 생성 시트를
 개별 그림으로 분리하고 최근접 보간으로 납품 크기에 맞췄다.
 현재 다시 그릴 후보는 없다.
+
+## 2단계 — 전투 배경과 길드 홀
+
+- 전투 배경 8장 (1536×864): `bg_battle_plains.png` 평원, `bg_battle_forest.png` 숲, `bg_battle_swamp.png` 늪지, `bg_battle_desert.png` 사막, `bg_battle_frost.png` 설원, `bg_battle_mountain.png` 화산 산맥, `bg_battle_holy.png` 성역, `bg_battle_coast.png` 해안.
+- 길드 홀 2장 (1536×576): `bg_guild_day.png`와 `bg_guild_night.png`. 같은 실내 구도에서 창밖 풍경과 조명을 바꿨다.
+
+전투 배경은 원경을 상단에 두고 중앙과 하단을 유닛 배치용 평지로 구성했다.
+모두 인물·괴물 없는 불투명 PNG이며, 장면마다 최대 48색으로 줄인 뒤 최근접 보간으로 확대했다.
