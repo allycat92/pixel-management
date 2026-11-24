@@ -736,9 +736,11 @@ const Battle = (() => {
     return a.to;
   }
 
-  // 괴물 시트: 우두머리(같은 종의 부하보다 큰 scale)는 시트 칸을 1.5배로 키워 그린다 (코드 생성 도트의 5배 대 3배와 같은 구별)
+  // 괴물 시트: 우두머리(같은 종의 부하보다 큰 scale)는 시트 칸을 1.5배로 키워 그린다 (코드 생성 도트의 5배 대 3배와 같은 구별).
+  // 칸 크기(80·96·112)와 상관없이 같은 배율 — 부하는 같은 시트를 1배로 그리므로 우두머리가 늘 1.5배 크다.
+  // (직업·대장 시트는 괴물이 아니라 해당 없음)
   function sheetK(u, sh) {
-    if (!u.mon || !(u.scale > 1) || sh.meta.cell[1] > 80) return 1;
+    if (!u.mon || !(u.scale > 1) || !sh.id.startsWith('sheet/monster/')) return 1;
     const d = (typeof ENEMIES !== 'undefined' && ENEMIES[u.mon]) || {};
     return u.scale > (d.boss ? 3 : d.big ? 2 : 1) ? 1.5 : 1;
   }
@@ -748,9 +750,29 @@ const Battle = (() => {
   const recolorCache = new Map();
   const hexRgb = (h) => { const n = parseInt(String(h).replace('#', '').slice(0, 6), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; };
   const lumOf = (c) => 0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2];
+  // 병사가 입을 제복 색: 세력 병사는 look.tint, 제복 색이 없는 병사(우리 길드의 일반 단원 등)는 소속 용병단 색을 입힌다.
+  // 장식 색은 놋쇠색 — 용병단 색이 이미 금빛·주황이면 묻히지 않게 은색. 용병단 색도 없으면 무난한 회갈색 제복.
+  const NEUTRAL_OUTFIT = '#5f5a52', BRASS = '#d9a441', SILVER = '#c3c7cf';
+  const uniformCache = new Map();
+  function tintOf(u) {
+    const lt = u.look && u.look.tint;
+    if (lt) return lt;
+    const outfit = (u.g && /^#[0-9a-f]{6}$/i.test(u.g.color || '') && u.g.color) || NEUTRAL_OUTFIT;
+    let t = uniformCache.get(outfit);
+    if (!t) {
+      const [r, g, b] = hexRgb(outfit), mx = Math.max(r, g, b), mn = Math.min(r, g, b);
+      let hue = 0;
+      if (mx !== mn) hue = mx === r ? (60 * (g - b) / (mx - mn) + 360) % 360 : mx === g ? 60 * (b - r) / (mx - mn) + 120 : 60 * (r - g) / (mx - mn) + 240;
+      const warm = mx - mn > 50 && hue >= 20 && hue <= 70;
+      t = { outfit, accent: warm ? SILVER : BRASS };
+      uniformCache.set(outfit, t);
+    }
+    return t;
+  }
   function sheetRecolor(sh, u) {
-    const keys = sh.meta.tint, lt = u.look && u.look.tint;
-    if (!keys || !lt || !sh.id.startsWith('sheet/class/')) return null;
+    const keys = sh.meta.tint;
+    if (!keys || !sh.id.startsWith('sheet/class/')) return null;
+    const lt = tintOf(u);
     const ck = `${sh.id}|${lt.outfit || ''}|${lt.accent || ''}`;
     if (recolorCache.has(ck)) return recolorCache.get(ck);
     let out = null;
@@ -878,13 +900,14 @@ const Battle = (() => {
   }
 
   // 시트 인물의 테두리: 어두운 땅(화산·늪 등)에서는 빛 받는 쪽(화면 왼쪽 위)에 밝은 테두리, 밝은 땅에서는 옅은 어두운 외곽선.
-  // 어두운 갑옷의 대장이 어두운 땅에 묻히지 않게 한다.
+  // 어두운 갑옷의 대장이 어두운 땅에 묻히지 않게 한다. 사방 외곽선은 아주 옅게 (2배로 키운 화면에서 스티커처럼 떠 보이지 않게),
+  // 빛 받는 쪽 테두리가 주로 윤곽을 살린다.
   function drawRim(ctx, view, fr, X, Y, flip, tf) {
     if (!fr.sheet) return;
     if (view.groundLum < 95) {
-      ctx.globalAlpha = 0.55;
+      ctx.globalAlpha = 0.5;
       blit(ctx, fr, X, Y, flip, edgeOf(fr, '#ffe8c8', flip ? 'tr' : 'tl'), tf);
-      ctx.globalAlpha = 0.22;
+      ctx.globalAlpha = 0.12;
       blit(ctx, fr, X, Y, flip, edgeOf(fr, '#ffe8c8', 'ring'), tf);
     } else {
       ctx.globalAlpha = 0.3;
@@ -999,6 +1022,7 @@ const Battle = (() => {
         f.tall = u ? stature(view, u).h : 34;
         // 대장 위에 뜨는 숫자·치유 표시는 몸 옆으로 비켜 그린다 (가슴을 덮지 않게)
         if (u && keepVisible(u)) { f.capW = stature(view, u).w; f.capFace = u.face || (u.side === 0 ? 1 : -1); }
+        f.who = u; // 글자의 주인 (다른 대장 몸통을 비킬 때 자기 몸은 빼고 본다)
       }
       if (f.kind === 'skill' && f.type === 'atk') {
         const u = st.units.find((e) => e.alive && (f.look ? e.look === f.look : e.mon === f.mon && Math.abs(e.x - f.x) + Math.abs(e.y - f.y) < 4));
@@ -1132,10 +1156,17 @@ const Battle = (() => {
   }
 
   // 효과 목록 그리기 (빛 번짐 위주)
+  // 아군 대장·특별 용병의 몸통 위에서 터지는 큰 빛·고리 효과는 조금 옅게 (타격감은 남기고 인물은 가리지 않게)
+  const CAP_DIM = 0.6;
+  function capDim(view, x, y) {
+    return (view.capBodies || []).some((b) => x > b.x0 - 4 && x < b.x1 + 4 && y > b.y0 - 4 && y < b.y1 + 4) ? CAP_DIM : 1;
+  }
+
   function drawVfx(ctx, view, now) {
     view.vfx.forEach((v) => {
       if (v.t < 0) return;
       const k = v.t / v.max;
+      const dim = v.type === 'bolt' ? capDim(view, v.x1, v.y1) : v.x != null ? capDim(view, v.x, v.y) : 1;
       if (v.type === 'ghost') {
         ctx.globalCompositeOperation = 'lighter';
         ctx.globalAlpha = Math.max(0, v.a * (1 - k));
@@ -1149,7 +1180,7 @@ const Battle = (() => {
       } else if (v.type === 'whirl') {
         // 회전 베기: 시전자 둘레를 도는 궤적 세 줄
         ctx.globalCompositeOperation = 'lighter';
-        ctx.globalAlpha = Math.max(0, 1 - k);
+        ctx.globalAlpha = Math.max(0, 1 - k) * dim;
         ctx.strokeStyle = v.color;
         for (let i = 0; i < 3; i++) {
           ctx.lineWidth = 4 - i;
@@ -1175,11 +1206,12 @@ const Battle = (() => {
         ctx.beginPath(); ctx.ellipse(v.x, v.y, r, r * 0.38, 0, 0, Math.PI * 2); ctx.stroke();
       } else if (v.type === 'xslash') {
         ctx.globalCompositeOperation = 'lighter';
-        ctx.globalAlpha = Math.max(0, 1 - k);
+        ctx.globalAlpha = Math.max(0, 1 - k) * (dim < 1 ? 0.75 : 1);
         const L = 22 * Math.min(1, k * 4);
         ctx.strokeStyle = '#ff4a6a'; ctx.lineWidth = 4;
         ctx.beginPath(); ctx.moveTo(v.x - L, v.y - L); ctx.lineTo(v.x + L, v.y + L); ctx.moveTo(v.x + L, v.y - L); ctx.lineTo(v.x - L, v.y + L); ctx.stroke();
         ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.5; ctx.stroke();
+        ctx.globalAlpha = Math.max(0, 1 - k) * dim;
         ctx.drawImage(glow('#ff4a6a', 26), v.x - 26, v.y - 26);
       } else if (v.type === 'fall') {
         // 하늘에서 떨어지는 화살
@@ -1201,10 +1233,11 @@ const Battle = (() => {
         ctx.lineTo(v.x1, v.y1);
         ctx.strokeStyle = '#7fd6ff'; ctx.lineWidth = v.w + 4; ctx.globalAlpha *= 0.5; ctx.stroke();
         ctx.globalAlpha /= 0.5; ctx.strokeStyle = '#ffffff'; ctx.lineWidth = v.w; ctx.stroke();
+        ctx.globalAlpha *= dim;
         ctx.drawImage(glow('#7fd6ff', 16), v.x1 - 16, v.y1 - 16);
       } else if (v.type === 'swirl') {
         ctx.globalCompositeOperation = 'lighter';
-        ctx.globalAlpha = Math.max(0, 1 - k);
+        ctx.globalAlpha = Math.max(0, 1 - k) * dim;
         for (let i = 0; i < 10; i++) {
           const a = k * 10 + i * 0.63, rr = v.r * (1 - k * 0.6) * (0.4 + (i % 3) * 0.3);
           px(ctx, Math.round(v.x + Math.cos(a) * rr) - 2, Math.round(v.y + Math.sin(a) * rr * 0.6) - 2, 4, 4, v.color);
@@ -1214,7 +1247,7 @@ const Battle = (() => {
         // 치유의 빛기둥
         ctx.globalCompositeOperation = 'lighter';
         const a = k < 0.2 ? k / 0.2 : 1 - (k - 0.2) / 0.8;
-        ctx.globalAlpha = Math.max(0, a) * 0.8;
+        ctx.globalAlpha = Math.max(0, a) * 0.8 * (dim < 1 ? 0.8 : 1);
         const g = ctx.createLinearGradient(0, v.y - 90, 0, v.y);
         g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, v.color);
         ctx.fillStyle = g; ctx.fillRect(Math.round(v.x - v.w / 2), Math.round(v.y - 90), v.w, 90);
@@ -1222,7 +1255,7 @@ const Battle = (() => {
         if (Math.random() < 0.3) spawn(view, 1, v.x + rnd(-v.w, v.w), v.y, { ang: -Math.PI / 2, spread: 0.2, sp: [40, 80], life: [0.3, 0.6], color: '#e8ffe8', size: 2 });
       } else if (v.type === 'burst') {
         ctx.globalCompositeOperation = 'lighter';
-        ctx.globalAlpha = Math.max(0, 1 - k);
+        ctx.globalAlpha = Math.max(0, 1 - k) * dim;
         ctx.strokeStyle = v.color; ctx.lineWidth = 3;
         const r = v.r * (0.2 + k);
         ctx.beginPath(); ctx.ellipse(v.x, v.y, r, r * 0.4, 0, 0, Math.PI * 2); ctx.stroke();
@@ -1383,8 +1416,9 @@ const Battle = (() => {
       blit(ctx, fr, X, Y, flip, null, tf);
       drawRim(ctx, view, fr, X, Y, flip, tf);
       // 맞은 순간 하얗게 번쩍 (흰 실루엣을 짧게 덧그린다: 연타를 맞아도 계속 하얗지 않게 처음 0.08초만)
+      //  (아군 대장·특별 용병은 조금 옅게: 얼굴·갑옷이 하얗게 날아가지 않게)
       if (u.flash > 0.1) {
-        ctx.globalAlpha = 0.25 + 0.45 * Math.min(1, (u.flash - 0.1) / 0.08);
+        ctx.globalAlpha = (0.25 + 0.45 * Math.min(1, (u.flash - 0.1) / 0.08)) * (keepVisible(u) ? 0.7 : 1);
         blit(ctx, fr, X, Y, flip, tinted(fr, '#ffffff'), tf);
         ctx.globalAlpha = 1;
       }
@@ -1408,6 +1442,7 @@ const Battle = (() => {
       }
       if (u.g.routed && Math.floor(now / 250) % 2) text(ctx, '!', X, top - 2, 14, '#ffffff');
     }
+    view.capBodies = drawn.filter((d) => keepVisible(d.u)).map((d) => ({ u: d.u, x0: d.x0, x1: d.x1, y0: d.y0, y1: d.y1 }));
     // 그래도 앞쪽 인물에 몸이 꽤 가려진 아군 대장·특별 용병: 윤곽선과 옅은 몸을 그 위에 덧그려 자리를 알린다
     drawn.forEach((d, i) => {
       if (!keepVisible(d.u)) return;
@@ -1467,11 +1502,17 @@ const Battle = (() => {
     view.slashes.forEach((s) => {
       if (s.t < 0) return;
       if (s.boom) {
-        const k = s.t / 0.5;
-        ctx.globalAlpha = Math.max(0, 1 - k);
+        const k = s.t / 0.5, dim = capDim(view, s.x, s.y);
+        ctx.globalAlpha = Math.max(0, 1 - k) * dim;
         const r = Math.round(s.r * (0.5 + k * 1.2) + 10);
         ctx.drawImage(glow(s.color, r), s.x - r, s.y - r);
-        if (k < 0.3) { const w = Math.round(r * 0.8); ctx.drawImage(glow('#ffffff', w), s.x - w, s.y - w); }
+        // 흰 섬광 핵: 대장 몸 위라면 더 옅게 (색 번짐·고리로 타격은 충분히 읽힌다)
+        if (k < 0.3) {
+          const w = Math.round(r * 0.8), a = ctx.globalAlpha;
+          ctx.globalAlpha = a * (dim < 1 ? 0.55 : 1);
+          ctx.drawImage(glow('#ffffff', w), s.x - w, s.y - w);
+          ctx.globalAlpha = a;
+        }
         ctx.strokeStyle = s.color; ctx.lineWidth = 2;
         ctx.beginPath(); ctx.ellipse(s.x, s.y + 10, r * 1.1, r * 0.45, 0, 0, Math.PI * 2); ctx.stroke();
       } else if (s.dash) {
@@ -1517,7 +1558,10 @@ const Battle = (() => {
     const bodies = drawn.filter((d) => keepVisible(d.u)).map((d) => ({ u: d.u, x0: d.x0 - 2, x1: d.x1 + 2, y0: d.y0 + 2, y1: d.y1 - 4 }));
     const onBody = (u, x, y, w, h) => bodies.some((b) => b.u !== u && x < b.x1 && x + w > b.x0 && y < b.y1 && y + h > b.y0);
     const tags = [];
-    const tagHit = (x, y, w) => tags.some((t) => x < t.x + t.w && x + w > t.x && y < t.y + 15 && y + 15 > t.y);
+    const bars = []; // 칸 체력바 자리 (다른 유닛의 이름표가 덮지 않게)
+    // loose: 일반 단원의 체력바는 무시하고 이름표·대장 체력바만 본다 (빈자리가 없을 때 두 번째로 찾는 기준)
+    const tagHit = (u, x, y, w, loose) => tags.some((t) => x < t.x + t.w && x + w > t.x && y < t.y + 15 && y + 15 > t.y) ||
+      bars.some((b) => b.u !== u && (!loose || keepVisible(b.u)) && x < b.x + b.w && x + w > b.x && y < b.y + b.h && y + 14 > b.y);
     // 대장 몸통을 피하는 가로 비킴 (없으면 null)
     const dodge = (u, x, y, w, h, max) => {
       for (let d = 0; d <= max; d += 4) {
@@ -1526,13 +1570,25 @@ const Battle = (() => {
       }
       return null;
     };
+    // 이름표는 자기 유닛 머리 위에 붙어 있어야 한다: 제자리 → 한 칸 살짝 위 → 옆으로 조금씩 (체력바처럼).
+    // 빈자리가 없으면 다른 단원의 체력바는 덮어도 되는 것으로 보고 한 번 더 찾는다. 그래도 대장 몸통·이름표와 겹치면
+    // 일반 단원의 이름표는 그동안 감춘다 (대장 이름표는 제자리에 그대로 그린다).
+    const TAG_UP = 8, TAG_SIDE = 20;
     const tagOf = (u, X, top) => {
       const name = u.named || '';
-      const tw = Math.ceil(ctx.measureText(name).width) + 8;
-      let y = top - 24;
-      for (let k = 0; k < 4 && (tagHit(X - tw / 2, y, tw) || (!keepVisible(u) && onBody(u, X - tw / 2, y, tw, 14))); k++) y -= 15;
-      if (!keepVisible(u) && onBody(u, X - tw / 2, y, tw, 14)) return null;
-      const t = { x: X - tw / 2, y, w: tw, name, X, unique: u.unique };
+      const tw = Math.ceil(ctx.measureText(name).width) + 8, key = keepVisible(u), y0 = top - 24;
+      const free = (dx, dy, loose) => !tagHit(u, X + dx - tw / 2, y0 + dy, tw, loose) && (key || !onBody(u, X + dx - tw / 2, y0 + dy, tw, 14));
+      let at = null;
+      for (const loose of [false, true]) {
+        for (let d = 0; d <= TAG_SIDE && !at; d += 4) {
+          for (const [dx, dy] of d ? [[d, 0], [-d, 0], [d, -TAG_UP], [-d, -TAG_UP]] : [[0, 0], [0, -TAG_UP]]) {
+            if (free(dx, dy, loose)) { at = [dx, dy]; break; }
+          }
+        }
+        if (at) break;
+      }
+      if (!at) { if (!key) return null; at = [0, 0]; }
+      const t = { u, x: X + at[0] - tw / 2, y: y0 + at[1], w: tw, name, X: X + at[0], unique: u.unique };
       tags.push(t);
       return t;
     };
@@ -1542,7 +1598,9 @@ const Battle = (() => {
       ctx.fillStyle = '#ffffff'; ctx.fillText(t.name, t.X, t.y + 11);
     };
     const geo = (u) => ({ X: Math.round(u.x * Z), top: Math.round(u.y * Z - stature(view, u).h) - 2, color: u.side === 0 ? '#7ee07e' : '#ff6a6a' });
-    // 대장 이름표 자리를 먼저 잡아 둔다 (다른 이름표가 그 자리를 피한다)
+    const barW = (u) => (u.boss ? 60 : 32);
+    // 대장 체력바·이름표 자리를 먼저 잡아 둔다 (다른 이름표가 그 자리를 피한다)
+    live.forEach((u) => { if (keepVisible(u)) { const { X, top } = geo(u); bars.push({ u, x: X - barW(u) / 2 - 1, y: top - 9, w: barW(u) + 2, h: 6 }); } });
     const keyTags = live.filter((u) => keepVisible(u) && u.side === 0 && (u.unique || u.named)).map((u) => { const g = geo(u); return tagOf(u, g.X, g.top); });
     // 1) 일반 병사의 작은 체력바
     live.forEach((u) => {
@@ -1553,25 +1611,45 @@ const Battle = (() => {
       px(ctx, X + d - 12, top - 5, 24, 4, '#140e18');
       px(ctx, X + d - 11, top - 4, Math.max(0, Math.round(22 * (u.hp / u.maxHp))), 2, color);
     });
-    // 2) 적 부대장·우두머리·이름 있는 병사 (대장이 아닌 쪽)
+    // 2) 적 부대장·우두머리·이름 있는 병사 (대장이 아닌 쪽): 체력바 자리를 모두 잡은 뒤 이름표를 놓는다
+    const mid = [];
     live.forEach((u) => {
       if (keepVisible(u) || !(u.captain || u.named || u.boss)) return;
       const { X, top, color } = geo(u);
-      const w = u.boss ? 60 : 32;
+      const w = barW(u);
       const d = dodge(u, X - w / 2, top - 8, w, 6, 24);
       if (d == null) return;
-      segBar(ctx, X + d - w / 2, top - 8, w, u.hp / u.maxHp, color, u.boss ? 10 : 5);
-      if (u.side === 0 && u.named) { const t = tagOf(u, X + d, top); if (t) drawTag(t); }
+      bars.push({ u, x: X + d - w / 2 - 1, y: top - 9, w: w + 2, h: 6 });
+      mid.push({ u, X: X + d, top, color, w });
     });
+    mid.forEach((m) => segBar(ctx, m.X - m.w / 2, m.top - 8, m.w, m.u.hp / m.u.maxHp, m.color, m.u.boss ? 10 : 5));
+    mid.forEach((m) => { if (m.u.side === 0 && m.u.named) { const t = tagOf(m.u, m.X, m.top); if (t) drawTag(t); } });
     // 3) 아군 대장·특별 용병: 맨 위에
     live.forEach((u) => {
       if (!keepVisible(u)) return;
       const { X, top, color } = geo(u);
-      const w = u.boss ? 60 : 32;
+      const w = barW(u);
       segBar(ctx, X - w / 2, top - 8, w, u.hp / u.maxHp, color, u.boss ? 10 : 5);
     });
     keyTags.forEach((t) => { if (t) drawTag(t); });
 
+    // 글자(피해 숫자·스킬 이름)가 다른 아군 대장·특별 용병의 몸통이나 이름표에 얹히면 옆이나 위로 비킨다.
+    // 비킨 거리는 f 에 기억해 두고, 그 자리가 다시 막힐 때만 새로 찾는다 (글자가 흔들리지 않게).
+    const marks = bodies.concat(tags.map((t) => ({ u: t.u, x0: t.x, x1: t.x + t.w, y0: t.y, y1: t.y + 14 })));
+    const bodyAt = (who, x, y, w, h) => marks.find((b) => b.u !== who && x < b.x1 && x + w > b.x0 && y < b.y1 && y + h > b.y0);
+    const avoid = (f, who, x, y, w, h) => {
+      if (f.ax != null && !bodyAt(who, x + f.ax, y + f.ay, w, h)) return;
+      let ax = 0, ay = 0;
+      for (let i = 0; i < 3; i++) {
+        const b = bodyAt(who, x + ax, y + ay, w, h);
+        if (!b) break;
+        const side = x + ax + w / 2 < (b.x0 + b.x1) / 2 ? b.x0 - (x + ax + w) - 2 : b.x1 - (x + ax) + 2;
+        const up = b.y0 - (y + ay + h) - 2;
+        if (Math.abs(side) <= Math.abs(up)) ax += side; else ay += up;
+      }
+      f.ax = ax; f.ay = ay;
+    };
+    const textW = (str, size) => { ctx.font = `bold ${size}px Galmuri11, monospace`; return Math.ceil(ctx.measureText(str).width) + 4; };
     // 피해 숫자·스킬 이름·치유
     st.fx.forEach((f) => {
       const X = f.x * Z;
@@ -1586,9 +1664,10 @@ const Battle = (() => {
           if (f.capW) { f.jx = -f.capFace * (f.capW * 0.5 + rnd(6, 14)); f.jy = rnd(-14, -4); }
         }
         const up = Math.min(1, f.t * 5);
-        const y = Y - 6 - up * 10 - f.t * 14 + f.jy;
+        const y = Y - 6 - up * 10 - f.t * 14 + f.jy, size = f.crit ? 20 : 15;
+        if (marks.length) { const w = textW(f.text, size); avoid(f, f.who, X + f.jx - w / 2, y - size + 2, w, size); }
         ctx.globalAlpha = f.t > 0.5 ? Math.max(0, 1 - (f.t - 0.5) * 5) : 1;
-        text(ctx, f.text, X + f.jx, y, f.crit ? 20 : 15, f.ally ? '#ff7a96' : f.crit ? '#ffd84a' : '#ffffff');
+        text(ctx, f.text, X + f.jx + (f.ax || 0), y + (f.ay || 0), size, f.ally ? '#ff7a96' : f.crit ? '#ffd84a' : '#ffffff');
         ctx.globalAlpha = 1;
       } else if (f.kind === 'heal' && f.named) {
         ctx.globalAlpha = Math.max(0, 1 - f.t * 1.4);
@@ -1596,8 +1675,9 @@ const Battle = (() => {
         ctx.globalAlpha = 1;
       } else if (f.kind === 'label') {
         const y = Math.round(Y - f.t * 16);
+        if (marks.length) { const w = textW(f.text, 14); avoid(f, f.who, X - w / 2, y - 12, w, 15); }
         ctx.globalAlpha = f.t > 0.9 ? Math.max(0, 1 - (f.t - 0.9) * 3.3) : 1;
-        text(ctx, f.text, X, y, 14, f.side === 0 ? '#ffe066' : '#ffb0b0');
+        text(ctx, f.text, X + (f.ax || 0), y + (f.ay || 0), 14, f.side === 0 ? '#ffe066' : '#ffb0b0');
         ctx.globalAlpha = 1;
       }
     });

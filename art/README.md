@@ -77,6 +77,7 @@ python3 tools/art/sheets.py art/inbox/sheet_captain_lancer.png --scale 0.1654 --
 - 칸에 맞추려고 15% 넘게 줄여야 하는 자세, 대기 자세 키의 절반 남짓도 안 되는 자세가 나오면 실패로 끝나고 등록하지 않는다 (`--grid` / `--poses`로 지정해 다시).
 - 괴물 id에는 빈칸이 있을 수 있다 (`sheet/monster/사막 도적`). png 이름은 요청서의 파일 이름(`sheet_monster_desert-bandit.png`)을 쓴다.
 - 직업 시트(`sheet/class/*`)는 아군·적군이 함께 쓰므로, 제복·장식에 쓴 열쇠 색을 `register_sheet.py --tint-outfit/--tint-accent`로 적어 두면 전투에서 진영 색으로 바꿔 칠한다. 적지 않으면 제복 색이 있는 병사는 코드 생성 도트로 그린다.
+  제복 색(`look.tint`)이 없는 병사(우리 길드의 일반 단원)는 소속 용병단 색을 제복에, 놋쇠색(용병단 색이 금빛·주황이면 은색)을 장식에 입힌다. 용병단 색도 없으면 회갈색 `#5f5a52`.
   일반 병과의 열쇠 색은 요청서(`phase3.json`의 `tint`: 제복 `#263459 #394b78 #52679c #7489be`, 장식 `#3f7a6c #5ea590 #96d1bb`)에 있고, `sheets.py`가 원본 해상도에서 가까운 색(거리 34)을 열쇠 색으로 되돌려 축소 뒤에도 남기고 `--tint-*`를 자동으로 넘긴다. `preview_tint_x4.png` = 시험 색으로 바꿔 칠한 미리보기.
 - 요청서 항목에 `scale`·`cell`·`layout`(2x2)이 있으면 `sheets.py`가 기본값으로 쓴다 (일반 병과·1차 몬스터는 대장과 같은 0.1654 배율). 명령줄 옵션이 우선.
 - 이름 뒤에 `@`이 붙은 후보(`sheet_x_y@123.png`)는 직접 지정할 때만 처리한다.
