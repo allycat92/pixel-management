@@ -45,6 +45,10 @@ Run `$SG <command> --help` before use; messages are partly Korean.
 (<= 1024x1024 area, <= 28 steps, 1 sample, `--max` 2 images per run), prompts from `art/requests/phase3.json`.
 sprite-gen's own generation commands stay forbidden.
 
+NovelAI output is a **design draft only** (owner decision: final game art always goes through GPT). Never feed a NovelAI
+image into this pipeline as game art: `novelai.py` writes `art/concepts/<id>/drafts/` (or a scratch dir), never
+`art/inbox/`, and `tools/art/sheets.py` refuses NovelAI images (`--allow-draft` = test only, always `--dry-run`).
+
 ## Do NOT run without the user's explicit request
 
 - Any generation command (`gen`, `pixel-draw`, `grok`, `video`, `reroll`, ...): they call paid or

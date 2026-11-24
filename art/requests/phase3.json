@@ -466,16 +466,17 @@
         "accent": "#d9a441",
         "note": "not painted: the engine recolours the key colours to these (own guild) or to the faction / company colours"
       },
-      "prompt": "Battle sprite of a generic 전사 (warrior) used by every nameless mercenary and faction soldier of this class. Design, weapon, per-pose notes and the KEY COLOURS: art/requests/phase3/class_warrior/README.md. The uniform (tabard / robe / hood / cape) is painted ONLY with the outfit keys #263459 #394b78 #52679c #7489be and its trim ONLY with the accent keys #3f7a6c #5ea590 #96d1bb, flat, and those seven colours appear nowhere else (the game recolours them to each faction's colours). Match the approved style anchor art/inbox/sheet_captain_blademaster.png on the art-inbox branch (proportions, rendering, outline, palette, lighting, scale). FORMAT: one PNG, 1536x1024 (landscape), the SAME character four times in ONE row, left to right: (1) idle, (2) attack wind-up, (3) attack strike, (4) hit reaction. Match guide_strip.png of the package EXACTLY: same poses, limb lengths, proportions, size and position of each figure; the lowest pixel of every figure (the soles) on y=870 (85% of the height); head = 110 px for every character (standing height would be 440 px, but the guide idle pose is crouched, so idle top-of-head to sole is about 400 px; headgear and weapons are extra); at least 32 px of empty magenta between figures and from the border. Deliver the 1x4 row only (no 2x2 grid, no single pose). STYLE: 4 heads tall (head = 1/4 of the standing height, NOT chibi), front three-quarter view facing RIGHT, light from the upper left, high-quality HD pixel art, muted hue-shifted palette (shadows toward purple/blue, highlights toward warm yellow), flat cel shading with 2-3 tones, dark desaturated NON-black outline used selectively, soft rim light, readable at 1x (~64 px tall) on a dark battlefield. The concept draft is a DESIGN reference only (costume, colours, hair, marks, weapon) - never copy its proportions, rendering, outline, saturation or lighting. BACKGROUND: perfectly flat solid magenta #FF00FF (preferred; transparent PNG also accepted), no gradient, floor, cast shadow or scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines, projectiles).",
+      "prompt": "Battle sprite of a generic 전사 (warrior) used by every nameless mercenary and faction soldier of this class. Design, weapon, per-pose notes and the KEY COLOURS: art/requests/phase3/class_warrior/README.md. The uniform (tabard / robe / hood / cape) is painted ONLY with the outfit keys #263459 #394b78 #52679c #7489be and its trim ONLY with the accent keys #3f7a6c #5ea590 #96d1bb, flat, and those seven colours appear nowhere else (the game recolours them to each faction's colours). One sprite stands for many different people, so the face is covered or in shadow (helm visor / hood and mask / low hat brim and high collar / cowl and veil / deep hood, as the README says) in all four poses. Match the approved style anchor art/inbox/sheet_captain_blademaster.png on the art-inbox branch (proportions, rendering, outline, palette, lighting, scale). FORMAT: one PNG, 1536x1024 (landscape), the SAME character four times in ONE row, left to right: (1) idle, (2) attack wind-up, (3) attack strike, (4) hit reaction. Match guide_strip.png of the package EXACTLY: same poses, limb lengths, proportions, size and position of each figure; the lowest pixel of every figure (the soles) on y=870 (85% of the height); head = 110 px for every character (standing height would be 440 px, but the guide idle pose is crouched, so idle top-of-head to sole is about 400 px; headgear and weapons are extra); at least 32 px of empty magenta between figures and from the border. Deliver the 1x4 row only (no 2x2 grid, no single pose). STYLE: 4 heads tall (head = 1/4 of the standing height, NOT chibi), front three-quarter view facing RIGHT, light from the upper left, high-quality HD pixel art, muted hue-shifted palette (shadows toward purple/blue, highlights toward warm yellow), flat cel shading with 2-3 tones, dark desaturated NON-black outline used selectively, soft rim light, readable at 1x (~64 px tall) on a dark battlefield. The concept draft is a DESIGN reference only (costume, colours, hair, marks, weapon) - never copy its proportions, rendering, outline, saturation or lighting. BACKGROUND: perfectly flat solid magenta #FF00FF (preferred; transparent PNG also accepted), no gradient, floor, cast shadow or scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines, projectiles).",
       "nai": {
-        "prompt": "1boy, solo, full body, four heads tall, young mercenary soldier, generic face, short brown hair, open-faced steel helmet, chainmail, plain slate blue tabard, pale teal trim, leather belt, brown gloves, dark trousers, brown boots, holding sword, round wooden shield, wide stance, bent knees, fighting stance, three-quarter view, facing right, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
-        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, multiple views, cropped, blurry, background scenery, ground shadow, extra arms, two heads, multiple heads, conjoined, extra head",
+        "prompt": "1boy, solo, full body, four heads tall, young mercenary soldier, face hidden, closed great helm, visor down, eye slit, chainmail, plain slate blue tabard, pale teal trim, leather belt, brown gloves, dark trousers, brown boots, holding sword, round wooden shield, wide stance, bent knees, fighting stance, three-quarter view, facing right, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, multiple views, cropped, blurry, background scenery, ground shadow, extra arms, two heads, multiple heads, conjoined, extra head, visible face details, detailed face, smile",
         "seed": 21001,
         "size": [
           832,
           1216
         ],
-        "source": "draft job (not run yet): scratchpad nai/picks/jobs_classes.json; seed = first sample, samples use seed + i*37"
+        "use": "design draft only (never game art: the final sheet is drawn by GPT; novelai.py writes art/concepts/<id>/drafts/, sheets.py refuses NovelAI images)",
+        "source": "design-draft job: scratchpad nai/picks/jobs_classes.json; seed = first sample, samples use seed + i*37"
       }
     },
     {
@@ -521,16 +522,17 @@
         "accent": "#a7d26a",
         "note": "not painted: the engine recolours the key colours to these (own guild) or to the faction / company colours"
       },
-      "prompt": "Battle sprite of a generic 궁수 (archer) used by every nameless mercenary and faction soldier of this class. Design, weapon, per-pose notes and the KEY COLOURS: art/requests/phase3/class_archer/README.md. The uniform (tabard / robe / hood / cape) is painted ONLY with the outfit keys #263459 #394b78 #52679c #7489be and its trim ONLY with the accent keys #3f7a6c #5ea590 #96d1bb, flat, and those seven colours appear nowhere else (the game recolours them to each faction's colours). Match the approved style anchor art/inbox/sheet_captain_blademaster.png on the art-inbox branch (proportions, rendering, outline, palette, lighting, scale). FORMAT: one PNG, 1536x1024 (landscape), the SAME character four times in ONE row, left to right: (1) idle, (2) attack wind-up, (3) attack strike, (4) hit reaction. Match guide_strip.png of the package EXACTLY: same poses, limb lengths, proportions, size and position of each figure; the lowest pixel of every figure (the soles) on y=870 (85% of the height); head = 110 px for every character (standing height would be 440 px, but the guide idle pose is crouched, so idle top-of-head to sole is about 400 px; headgear and weapons are extra); at least 32 px of empty magenta between figures and from the border. Deliver the 1x4 row only (no 2x2 grid, no single pose). STYLE: 4 heads tall (head = 1/4 of the standing height, NOT chibi), front three-quarter view facing RIGHT, light from the upper left, high-quality HD pixel art, muted hue-shifted palette (shadows toward purple/blue, highlights toward warm yellow), flat cel shading with 2-3 tones, dark desaturated NON-black outline used selectively, soft rim light, readable at 1x (~64 px tall) on a dark battlefield. The concept draft is a DESIGN reference only (costume, colours, hair, marks, weapon) - never copy its proportions, rendering, outline, saturation or lighting. BACKGROUND: perfectly flat solid magenta #FF00FF (preferred; transparent PNG also accepted), no gradient, floor, cast shadow or scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines, projectiles).",
+      "prompt": "Battle sprite of a generic 궁수 (archer) used by every nameless mercenary and faction soldier of this class. Design, weapon, per-pose notes and the KEY COLOURS: art/requests/phase3/class_archer/README.md. The uniform (tabard / robe / hood / cape) is painted ONLY with the outfit keys #263459 #394b78 #52679c #7489be and its trim ONLY with the accent keys #3f7a6c #5ea590 #96d1bb, flat, and those seven colours appear nowhere else (the game recolours them to each faction's colours). One sprite stands for many different people, so the face is covered or in shadow (helm visor / hood and mask / low hat brim and high collar / cowl and veil / deep hood, as the README says) in all four poses. Match the approved style anchor art/inbox/sheet_captain_blademaster.png on the art-inbox branch (proportions, rendering, outline, palette, lighting, scale). FORMAT: one PNG, 1536x1024 (landscape), the SAME character four times in ONE row, left to right: (1) idle, (2) attack wind-up, (3) attack strike, (4) hit reaction. Match guide_strip.png of the package EXACTLY: same poses, limb lengths, proportions, size and position of each figure; the lowest pixel of every figure (the soles) on y=870 (85% of the height); head = 110 px for every character (standing height would be 440 px, but the guide idle pose is crouched, so idle top-of-head to sole is about 400 px; headgear and weapons are extra); at least 32 px of empty magenta between figures and from the border. Deliver the 1x4 row only (no 2x2 grid, no single pose). STYLE: 4 heads tall (head = 1/4 of the standing height, NOT chibi), front three-quarter view facing RIGHT, light from the upper left, high-quality HD pixel art, muted hue-shifted palette (shadows toward purple/blue, highlights toward warm yellow), flat cel shading with 2-3 tones, dark desaturated NON-black outline used selectively, soft rim light, readable at 1x (~64 px tall) on a dark battlefield. The concept draft is a DESIGN reference only (costume, colours, hair, marks, weapon) - never copy its proportions, rendering, outline, saturation or lighting. BACKGROUND: perfectly flat solid magenta #FF00FF (preferred; transparent PNG also accepted), no gradient, floor, cast shadow or scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines, projectiles).",
       "nai": {
-        "prompt": "1girl, solo, full body, four heads tall, young mercenary archer, generic face, short dark brown hair, pale teal headband, plain slate blue hooded tunic, brown leather vest, leather bracers, quiver on back, dark trousers, brown boots, holding bow, short bow, wide stance, bent knees, ready stance, three-quarter view, facing right, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
-        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, multiple views, cropped, blurry, background scenery, ground shadow, extra arms, two heads, multiple heads, conjoined, extra head",
+        "prompt": "1girl, solo, full body, four heads tall, young mercenary archer, face hidden, hood up, slate blue cloth mask covering lower face, shadowed eyes, plain slate blue hooded tunic, brown leather vest, leather bracers, quiver on back, dark trousers, brown boots, holding bow, short bow, wide stance, bent knees, ready stance, three-quarter view, facing right, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, multiple views, cropped, blurry, background scenery, ground shadow, extra arms, two heads, multiple heads, conjoined, extra head, visible face details, detailed face, smile",
         "seed": 22001,
         "size": [
           832,
           1216
         ],
-        "source": "draft job (not run yet): scratchpad nai/picks/jobs_classes.json; seed = first sample, samples use seed + i*37"
+        "use": "design draft only (never game art: the final sheet is drawn by GPT; novelai.py writes art/concepts/<id>/drafts/, sheets.py refuses NovelAI images)",
+        "source": "design-draft job: scratchpad nai/picks/jobs_classes.json; seed = first sample, samples use seed + i*37"
       }
     },
     {
@@ -576,16 +578,17 @@
         "accent": "#f2d24b",
         "note": "not painted: the engine recolours the key colours to these (own guild) or to the faction / company colours"
       },
-      "prompt": "Battle sprite of a generic 마법사 (mage) used by every nameless mercenary and faction soldier of this class. Design, weapon, per-pose notes and the KEY COLOURS: art/requests/phase3/class_mage/README.md. The uniform (tabard / robe / hood / cape) is painted ONLY with the outfit keys #263459 #394b78 #52679c #7489be and its trim ONLY with the accent keys #3f7a6c #5ea590 #96d1bb, flat, and those seven colours appear nowhere else (the game recolours them to each faction's colours). Match the approved style anchor art/inbox/sheet_captain_blademaster.png on the art-inbox branch (proportions, rendering, outline, palette, lighting, scale). FORMAT: one PNG, 1536x1024 (landscape), the SAME character four times in ONE row, left to right: (1) idle, (2) attack wind-up, (3) attack strike, (4) hit reaction. Match guide_strip.png of the package EXACTLY: same poses, limb lengths, proportions, size and position of each figure; the lowest pixel of every figure (the soles) on y=870 (85% of the height); head = 110 px for every character (standing height would be 440 px, but the guide idle pose is crouched, so idle top-of-head to sole is about 400 px; headgear and weapons are extra); at least 32 px of empty magenta between figures and from the border. Deliver the 1x4 row only (no 2x2 grid, no single pose). STYLE: 4 heads tall (head = 1/4 of the standing height, NOT chibi), front three-quarter view facing RIGHT, light from the upper left, high-quality HD pixel art, muted hue-shifted palette (shadows toward purple/blue, highlights toward warm yellow), flat cel shading with 2-3 tones, dark desaturated NON-black outline used selectively, soft rim light, readable at 1x (~64 px tall) on a dark battlefield. The concept draft is a DESIGN reference only (costume, colours, hair, marks, weapon) - never copy its proportions, rendering, outline, saturation or lighting. BACKGROUND: perfectly flat solid magenta #FF00FF (preferred; transparent PNG also accepted), no gradient, floor, cast shadow or scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines, projectiles).",
+      "prompt": "Battle sprite of a generic 마법사 (mage) used by every nameless mercenary and faction soldier of this class. Design, weapon, per-pose notes and the KEY COLOURS: art/requests/phase3/class_mage/README.md. The uniform (tabard / robe / hood / cape) is painted ONLY with the outfit keys #263459 #394b78 #52679c #7489be and its trim ONLY with the accent keys #3f7a6c #5ea590 #96d1bb, flat, and those seven colours appear nowhere else (the game recolours them to each faction's colours). One sprite stands for many different people, so the face is covered or in shadow (helm visor / hood and mask / low hat brim and high collar / cowl and veil / deep hood, as the README says) in all four poses. Match the approved style anchor art/inbox/sheet_captain_blademaster.png on the art-inbox branch (proportions, rendering, outline, palette, lighting, scale). FORMAT: one PNG, 1536x1024 (landscape), the SAME character four times in ONE row, left to right: (1) idle, (2) attack wind-up, (3) attack strike, (4) hit reaction. Match guide_strip.png of the package EXACTLY: same poses, limb lengths, proportions, size and position of each figure; the lowest pixel of every figure (the soles) on y=870 (85% of the height); head = 110 px for every character (standing height would be 440 px, but the guide idle pose is crouched, so idle top-of-head to sole is about 400 px; headgear and weapons are extra); at least 32 px of empty magenta between figures and from the border. Deliver the 1x4 row only (no 2x2 grid, no single pose). STYLE: 4 heads tall (head = 1/4 of the standing height, NOT chibi), front three-quarter view facing RIGHT, light from the upper left, high-quality HD pixel art, muted hue-shifted palette (shadows toward purple/blue, highlights toward warm yellow), flat cel shading with 2-3 tones, dark desaturated NON-black outline used selectively, soft rim light, readable at 1x (~64 px tall) on a dark battlefield. The concept draft is a DESIGN reference only (costume, colours, hair, marks, weapon) - never copy its proportions, rendering, outline, saturation or lighting. BACKGROUND: perfectly flat solid magenta #FF00FF (preferred; transparent PNG also accepted), no gradient, floor, cast shadow or scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines, projectiles).",
       "nai": {
-        "prompt": "1boy, solo, full body, four heads tall, young battle mage, generic face, short brown hair, wide-brimmed pointed hat, plain slate blue robe, pale teal trim, pale teal sash, belt pouches, brown boots, holding wooden staff, small amber crystal, open hand raised, wide stance, bent knees, three-quarter view, facing right, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
-        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, multiple views, cropped, blurry, background scenery, ground shadow, extra arms, two heads, multiple heads, conjoined, extra head",
+        "prompt": "1boy, solo, full body, four heads tall, young battle mage, face hidden in shadow, wide-brimmed pointed hat pulled low, high collar covering mouth, plain slate blue robe, pale teal trim, pale teal sash, belt pouches, brown boots, holding wooden staff, small amber crystal, open hand raised, wide stance, bent knees, three-quarter view, facing right, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, multiple views, cropped, blurry, background scenery, ground shadow, extra arms, two heads, multiple heads, conjoined, extra head, visible face details, detailed face, smile",
         "seed": 24001,
         "size": [
           832,
           1216
         ],
-        "source": "draft job (not run yet): scratchpad nai/picks/jobs_classes.json; seed = first sample, samples use seed + i*37"
+        "use": "design draft only (never game art: the final sheet is drawn by GPT; novelai.py writes art/concepts/<id>/drafts/, sheets.py refuses NovelAI images)",
+        "source": "design-draft job: scratchpad nai/picks/jobs_classes.json; seed = first sample, samples use seed + i*37"
       }
     },
     {
@@ -631,16 +634,17 @@
         "accent": "#d9a441",
         "note": "not painted: the engine recolours the key colours to these (own guild) or to the faction / company colours"
       },
-      "prompt": "Battle sprite of a generic 성직자 (cleric) used by every nameless mercenary and faction soldier of this class. Design, weapon, per-pose notes and the KEY COLOURS: art/requests/phase3/class_cleric/README.md. The uniform (tabard / robe / hood / cape) is painted ONLY with the outfit keys #263459 #394b78 #52679c #7489be and its trim ONLY with the accent keys #3f7a6c #5ea590 #96d1bb, flat, and those seven colours appear nowhere else (the game recolours them to each faction's colours). Match the approved style anchor art/inbox/sheet_captain_blademaster.png on the art-inbox branch (proportions, rendering, outline, palette, lighting, scale). FORMAT: one PNG, 1536x1024 (landscape), the SAME character four times in ONE row, left to right: (1) idle, (2) attack wind-up, (3) attack strike, (4) hit reaction. Match guide_strip.png of the package EXACTLY: same poses, limb lengths, proportions, size and position of each figure; the lowest pixel of every figure (the soles) on y=870 (85% of the height); head = 110 px for every character (standing height would be 440 px, but the guide idle pose is crouched, so idle top-of-head to sole is about 400 px; headgear and weapons are extra); at least 32 px of empty magenta between figures and from the border. Deliver the 1x4 row only (no 2x2 grid, no single pose). STYLE: 4 heads tall (head = 1/4 of the standing height, NOT chibi), front three-quarter view facing RIGHT, light from the upper left, high-quality HD pixel art, muted hue-shifted palette (shadows toward purple/blue, highlights toward warm yellow), flat cel shading with 2-3 tones, dark desaturated NON-black outline used selectively, soft rim light, readable at 1x (~64 px tall) on a dark battlefield. The concept draft is a DESIGN reference only (costume, colours, hair, marks, weapon) - never copy its proportions, rendering, outline, saturation or lighting. BACKGROUND: perfectly flat solid magenta #FF00FF (preferred; transparent PNG also accepted), no gradient, floor, cast shadow or scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines, projectiles).",
+      "prompt": "Battle sprite of a generic 성직자 (cleric) used by every nameless mercenary and faction soldier of this class. Design, weapon, per-pose notes and the KEY COLOURS: art/requests/phase3/class_cleric/README.md. The uniform (tabard / robe / hood / cape) is painted ONLY with the outfit keys #263459 #394b78 #52679c #7489be and its trim ONLY with the accent keys #3f7a6c #5ea590 #96d1bb, flat, and those seven colours appear nowhere else (the game recolours them to each faction's colours). One sprite stands for many different people, so the face is covered or in shadow (helm visor / hood and mask / low hat brim and high collar / cowl and veil / deep hood, as the README says) in all four poses. Match the approved style anchor art/inbox/sheet_captain_blademaster.png on the art-inbox branch (proportions, rendering, outline, palette, lighting, scale). FORMAT: one PNG, 1536x1024 (landscape), the SAME character four times in ONE row, left to right: (1) idle, (2) attack wind-up, (3) attack strike, (4) hit reaction. Match guide_strip.png of the package EXACTLY: same poses, limb lengths, proportions, size and position of each figure; the lowest pixel of every figure (the soles) on y=870 (85% of the height); head = 110 px for every character (standing height would be 440 px, but the guide idle pose is crouched, so idle top-of-head to sole is about 400 px; headgear and weapons are extra); at least 32 px of empty magenta between figures and from the border. Deliver the 1x4 row only (no 2x2 grid, no single pose). STYLE: 4 heads tall (head = 1/4 of the standing height, NOT chibi), front three-quarter view facing RIGHT, light from the upper left, high-quality HD pixel art, muted hue-shifted palette (shadows toward purple/blue, highlights toward warm yellow), flat cel shading with 2-3 tones, dark desaturated NON-black outline used selectively, soft rim light, readable at 1x (~64 px tall) on a dark battlefield. The concept draft is a DESIGN reference only (costume, colours, hair, marks, weapon) - never copy its proportions, rendering, outline, saturation or lighting. BACKGROUND: perfectly flat solid magenta #FF00FF (preferred; transparent PNG also accepted), no gradient, floor, cast shadow or scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines, projectiles).",
       "nai": {
-        "prompt": "1girl, solo, full body, four heads tall, young war priest, generic face, short brown hair, plain slate blue tabard over chainmail, pale teal trim, round sun disc emblem, leather belt, small book on belt, dark trousers, brown boots, holding mace, open hand raised, wide stance, bent knees, three-quarter view, facing right, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
-        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, multiple views, cropped, blurry, background scenery, ground shadow, extra arms, two heads, multiple heads, conjoined, extra head",
+        "prompt": "1girl, solo, full body, four heads tall, young war priest, face shadowed, deep cowl, veil, plain slate blue tabard over chainmail, pale teal trim, round sun disc emblem, leather belt, small book on belt, dark trousers, brown boots, holding mace, open hand raised, wide stance, bent knees, three-quarter view, facing right, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, multiple views, cropped, blurry, background scenery, ground shadow, extra arms, two heads, multiple heads, conjoined, extra head, visible face details, detailed face, smile",
         "seed": 23001,
         "size": [
           832,
           1216
         ],
-        "source": "draft job (not run yet): scratchpad nai/picks/jobs_classes.json; seed = first sample, samples use seed + i*37"
+        "use": "design draft only (never game art: the final sheet is drawn by GPT; novelai.py writes art/concepts/<id>/drafts/, sheets.py refuses NovelAI images)",
+        "source": "design-draft job: scratchpad nai/picks/jobs_classes.json; seed = first sample, samples use seed + i*37"
       }
     },
     {
@@ -686,16 +690,17 @@
         "accent": "#8f2d4a",
         "note": "not painted: the engine recolours the key colours to these (own guild) or to the faction / company colours"
       },
-      "prompt": "Battle sprite of a generic 도적 (rogue) used by every nameless mercenary and faction soldier of this class. Design, weapon, per-pose notes and the KEY COLOURS: art/requests/phase3/class_rogue/README.md. The uniform (tabard / robe / hood / cape) is painted ONLY with the outfit keys #263459 #394b78 #52679c #7489be and its trim ONLY with the accent keys #3f7a6c #5ea590 #96d1bb, flat, and those seven colours appear nowhere else (the game recolours them to each faction's colours). Match the approved style anchor art/inbox/sheet_captain_blademaster.png on the art-inbox branch (proportions, rendering, outline, palette, lighting, scale). FORMAT: one PNG, 1536x1024 (landscape), the SAME character four times in ONE row, left to right: (1) idle, (2) attack wind-up, (3) attack strike, (4) hit reaction. Match guide_strip.png of the package EXACTLY: same poses, limb lengths, proportions, size and position of each figure; the lowest pixel of every figure (the soles) on y=870 (85% of the height); head = 110 px for every character (standing height would be 440 px, but the guide idle pose is crouched, so idle top-of-head to sole is about 400 px; headgear and weapons are extra); at least 32 px of empty magenta between figures and from the border. Deliver the 1x4 row only (no 2x2 grid, no single pose). STYLE: 4 heads tall (head = 1/4 of the standing height, NOT chibi), front three-quarter view facing RIGHT, light from the upper left, high-quality HD pixel art, muted hue-shifted palette (shadows toward purple/blue, highlights toward warm yellow), flat cel shading with 2-3 tones, dark desaturated NON-black outline used selectively, soft rim light, readable at 1x (~64 px tall) on a dark battlefield. The concept draft is a DESIGN reference only (costume, colours, hair, marks, weapon) - never copy its proportions, rendering, outline, saturation or lighting. BACKGROUND: perfectly flat solid magenta #FF00FF (preferred; transparent PNG also accepted), no gradient, floor, cast shadow or scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines, projectiles).",
+      "prompt": "Battle sprite of a generic 도적 (rogue) used by every nameless mercenary and faction soldier of this class. Design, weapon, per-pose notes and the KEY COLOURS: art/requests/phase3/class_rogue/README.md. The uniform (tabard / robe / hood / cape) is painted ONLY with the outfit keys #263459 #394b78 #52679c #7489be and its trim ONLY with the accent keys #3f7a6c #5ea590 #96d1bb, flat, and those seven colours appear nowhere else (the game recolours them to each faction's colours). One sprite stands for many different people, so the face is covered or in shadow (helm visor / hood and mask / low hat brim and high collar / cowl and veil / deep hood, as the README says) in all four poses. Match the approved style anchor art/inbox/sheet_captain_blademaster.png on the art-inbox branch (proportions, rendering, outline, palette, lighting, scale). FORMAT: one PNG, 1536x1024 (landscape), the SAME character four times in ONE row, left to right: (1) idle, (2) attack wind-up, (3) attack strike, (4) hit reaction. Match guide_strip.png of the package EXACTLY: same poses, limb lengths, proportions, size and position of each figure; the lowest pixel of every figure (the soles) on y=870 (85% of the height); head = 110 px for every character (standing height would be 440 px, but the guide idle pose is crouched, so idle top-of-head to sole is about 400 px; headgear and weapons are extra); at least 32 px of empty magenta between figures and from the border. Deliver the 1x4 row only (no 2x2 grid, no single pose). STYLE: 4 heads tall (head = 1/4 of the standing height, NOT chibi), front three-quarter view facing RIGHT, light from the upper left, high-quality HD pixel art, muted hue-shifted palette (shadows toward purple/blue, highlights toward warm yellow), flat cel shading with 2-3 tones, dark desaturated NON-black outline used selectively, soft rim light, readable at 1x (~64 px tall) on a dark battlefield. The concept draft is a DESIGN reference only (costume, colours, hair, marks, weapon) - never copy its proportions, rendering, outline, saturation or lighting. BACKGROUND: perfectly flat solid magenta #FF00FF (preferred; transparent PNG also accepted), no gradient, floor, cast shadow or scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines, projectiles).",
       "nai": {
-        "prompt": "1boy, solo, full body, four heads tall, young rogue, generic face, deep hood, plain slate blue hood and short cape, pale teal scarf over mouth, dark brown leather armor, many straps, dark trousers, black boots, holding dagger, reverse grip, single dagger, crouching, wide stance, bent knees, three-quarter view, facing right, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
-        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, multiple views, cropped, blurry, background scenery, ground shadow, extra arms, two heads, multiple heads, conjoined, extra head",
+        "prompt": "1boy, solo, full body, four heads tall, young rogue, face hidden, deep hood, shadowed face, plain slate blue hood and short cape, pale teal scarf over mouth, dark brown leather armor, many straps, dark trousers, black boots, holding dagger, reverse grip, single dagger, crouching, wide stance, bent knees, three-quarter view, facing right, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, multiple views, cropped, blurry, background scenery, ground shadow, extra arms, two heads, multiple heads, conjoined, extra head, visible face details, detailed face, smile",
         "seed": 25001,
         "size": [
           832,
           1216
         ],
-        "source": "draft job (not run yet): scratchpad nai/picks/jobs_classes.json; seed = first sample, samples use seed + i*37"
+        "use": "design draft only (never game art: the final sheet is drawn by GPT; novelai.py writes art/concepts/<id>/drafts/, sheets.py refuses NovelAI images)",
+        "source": "design-draft job: scratchpad nai/picks/jobs_classes.json; seed = first sample, samples use seed + i*37"
       }
     },
     {
@@ -872,7 +877,8 @@
           832,
           1216
         ],
-        "source": "draft job (not run yet): scratchpad nai/picks/jobs_monsters.json; seed = first sample, samples use seed + i*37"
+        "use": "design draft only (never game art: the final sheet is drawn by GPT; novelai.py writes art/concepts/<id>/drafts/, sheets.py refuses NovelAI images)",
+        "source": "design-draft job: scratchpad nai/picks/jobs_monsters.json; seed = first sample, samples use seed + i*37"
       }
     },
     {
@@ -910,7 +916,8 @@
           1216,
           832
         ],
-        "source": "draft job (not run yet): scratchpad nai/picks/jobs_monsters.json; seed = first sample, samples use seed + i*37"
+        "use": "design draft only (never game art: the final sheet is drawn by GPT; novelai.py writes art/concepts/<id>/drafts/, sheets.py refuses NovelAI images)",
+        "source": "design-draft job: scratchpad nai/picks/jobs_monsters.json; seed = first sample, samples use seed + i*37"
       }
     },
     {
@@ -954,7 +961,8 @@
           832,
           1216
         ],
-        "source": "draft job (not run yet): scratchpad nai/picks/jobs_monsters.json; seed = first sample, samples use seed + i*37"
+        "use": "design draft only (never game art: the final sheet is drawn by GPT; novelai.py writes art/concepts/<id>/drafts/, sheets.py refuses NovelAI images)",
+        "source": "design-draft job: scratchpad nai/picks/jobs_monsters.json; seed = first sample, samples use seed + i*37"
       }
     },
     {
@@ -994,7 +1002,8 @@
           1216,
           832
         ],
-        "source": "draft job (not run yet): scratchpad nai/picks/jobs_monsters.json; seed = first sample, samples use seed + i*37"
+        "use": "design draft only (never game art: the final sheet is drawn by GPT; novelai.py writes art/concepts/<id>/drafts/, sheets.py refuses NovelAI images)",
+        "source": "design-draft job: scratchpad nai/picks/jobs_monsters.json; seed = first sample, samples use seed + i*37"
       }
     },
     {
@@ -1038,7 +1047,8 @@
           832,
           1216
         ],
-        "source": "draft job (not run yet): scratchpad nai/picks/jobs_monsters.json; seed = first sample, samples use seed + i*37"
+        "use": "design draft only (never game art: the final sheet is drawn by GPT; novelai.py writes art/concepts/<id>/drafts/, sheets.py refuses NovelAI images)",
+        "source": "design-draft job: scratchpad nai/picks/jobs_monsters.json; seed = first sample, samples use seed + i*37"
       }
     },
     {
@@ -1078,7 +1088,8 @@
           1216,
           832
         ],
-        "source": "draft job (not run yet): scratchpad nai/picks/jobs_monsters.json; seed = first sample, samples use seed + i*37"
+        "use": "design draft only (never game art: the final sheet is drawn by GPT; novelai.py writes art/concepts/<id>/drafts/, sheets.py refuses NovelAI images)",
+        "source": "design-draft job: scratchpad nai/picks/jobs_monsters.json; seed = first sample, samples use seed + i*37"
       }
     },
     {
@@ -1117,7 +1128,8 @@
           1216,
           832
         ],
-        "source": "draft job (not run yet): scratchpad nai/picks/jobs_monsters.json; seed = first sample, samples use seed + i*37"
+        "use": "design draft only (never game art: the final sheet is drawn by GPT; novelai.py writes art/concepts/<id>/drafts/, sheets.py refuses NovelAI images)",
+        "source": "design-draft job: scratchpad nai/picks/jobs_monsters.json; seed = first sample, samples use seed + i*37"
       }
     },
     {
@@ -1156,7 +1168,8 @@
           832,
           1216
         ],
-        "source": "draft job (not run yet): scratchpad nai/picks/jobs_monsters.json; seed = first sample, samples use seed + i*37"
+        "use": "design draft only (never game art: the final sheet is drawn by GPT; novelai.py writes art/concepts/<id>/drafts/, sheets.py refuses NovelAI images)",
+        "source": "design-draft job: scratchpad nai/picks/jobs_monsters.json; seed = first sample, samples use seed + i*37"
       }
     },
     {

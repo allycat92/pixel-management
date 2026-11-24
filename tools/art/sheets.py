@@ -25,6 +25,9 @@
   옵션: --id ID  --grid CxR  --flip  --height 64 | --scale 0.1654  --cell 96  --colors 40  --work DIR
         --dry-run (manifest 를 건드리지 않음)  --no-register  --aseprite OUT.aseprite  --no-tint
   요청서 항목의 scale · cell · height · layout(2x2) · tint 를 기본값으로 쓴다 (명령줄 옵션이 우선).
+NovelAI 그림은 거부한다 (주인 결정: NovelAI 는 디자인 초안 전용, 게임 그림은 언제나 GPT 를 거친다):
+  PNG 메타데이터의 NovelAI 표시, art/concepts/·art/requests/·drafts/ 안의 파일, nai_*.png 이름.
+  --allow-draft = 파이프라인 시험용, 언제나 --dry-run 이라 manifest 에 등록할 수 없다.
 필요: Pillow + NumPy (sprite-gen venv 가 있으면 숨쉬기 루프에 쓴다)
 """
 import argparse
@@ -59,6 +62,36 @@ TINT_TEST = {'outfit': '#b03a2e', 'accent': '#e0b040'}   # preview_tint_x4.png �
 
 def log(*a):
     print(*a, flush=True)
+
+
+# ───────── NovelAI 초안 막기 ─────────
+# 주인 결정: NovelAI 는 디자인 초안 전용, 게임 그림은 언제나 GPT 를 거친다. NovelAI 그림은 시트로 등록하지 않는다.
+DRAFT_DIRS = [os.path.join(ROOT, 'art', 'concepts'), os.path.join(ROOT, 'art', 'requests')]
+
+
+def novelai_draft_reason(path):
+    """NovelAI 초안으로 보이면 그 이유, 아니면 None.
+    - PNG 메타데이터에 NovelAI 흔적 (NovelAI 가 넣는 Software: NovelAI / Source: NovelAI Diffusion ..., 프롬프트 json 의 nai-diffusion)
+    - 초안 자리: art/concepts/ (고른 초안·drafts/), art/requests/ (꾸러미의 concept.png), 경로에 drafts 폴더
+    - 이름: nai_*.png (tools/art/novelai.py 가 만드는 이름)"""
+    real = os.path.realpath(path)
+    for d in DRAFT_DIRS:
+        d = os.path.realpath(d)
+        if real.startswith(d + os.sep):
+            return f'초안 폴더 {os.path.relpath(d, ROOT)}/ 안의 파일'
+    parts = real.split(os.sep)
+    if 'drafts' in parts[:-1]:
+        return 'drafts/ 폴더 안의 파일'
+    if os.path.basename(real).lower().startswith('nai_'):
+        return '이름이 nai_ (novelai.py 초안)'
+    try:
+        with Image.open(path) as im:
+            meta = ' '.join(str(v) for v in im.info.values() if isinstance(v, (str, bytes)))
+    except OSError:
+        return None
+    if 'novelai' in meta.lower() or 'nai-diffusion' in meta.lower():
+        return 'PNG 메타데이터에 NovelAI 생성 표시'
+    return None
 
 
 # ───────── 배경 제거 ─────────
@@ -782,7 +815,11 @@ def main():
     ap.add_argument('--no-register', action='store_true', help='register_sheet.py 를 부르지 않는다')
     ap.add_argument('--aseprite', metavar='PATH', help='태그가 붙은 .aseprite 도 저장 (Aseprite 가 있을 때만)')
     ap.add_argument('--aseprite-bin', help='Aseprite 실행 파일 경로 (기본: $ASEPRITE, PATH)')
+    ap.add_argument('--allow-draft', action='store_true',
+                    help='시험용: NovelAI 초안도 처리한다. 언제나 --dry-run (manifest 등록 불가) — 게임 그림은 GPT 를 거친다')
     a = ap.parse_args()
+    if a.allow_draft:
+        a.dry_run = True   # 초안은 미리보기까지만. 등록 경로는 없다.
 
     if not os.path.exists(REGISTER) and not a.no_register:
         sys.exit('tools/art/register_sheet.py 가 없다 (--no-register 로 시트만 만들 수 있다)')
@@ -797,6 +834,14 @@ def main():
     reqs = request_map()
     ok = bad = 0
     for p in inputs:
+        why = novelai_draft_reason(p)
+        if why:
+            if not a.allow_draft:
+                log(f'{p}: NovelAI 디자인 초안이라 거부 ({why}). NovelAI 는 디자인 초안 전용이고 게임 그림은 GPT 를 거친다 '
+                    '(art/requests/gpt_handoff_notes.md). 파이프라인 시험만이라면 --allow-draft (항상 --dry-run).')
+                bad += 1
+                continue
+            log(f'{p}: NovelAI 초안 ({why}) — --allow-draft 시험 처리, manifest 는 바꾸지 않는다')
         sid = a.id or id_for(p, reqs)
         if not sid:
             log(f'{p}: id 를 알 수 없다 (요청서에 없는 파일 이름) — --id 로 지정할 것')

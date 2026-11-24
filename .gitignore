@@ -1,2 +1,4 @@
 .claude/worktrees/
 __pycache__/
+# NovelAI raw design-draft candidates (tools/art/novelai.py); only the owner's picks are committed as concept_NN.png
+art/concepts/*/drafts/

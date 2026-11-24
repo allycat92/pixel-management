@@ -9,7 +9,7 @@
 ```
 TASK: draw the battle-sprite strip of the GENERIC rogue class sprite (도적). This ONE sheet is shared by every nameless mercenary and faction soldier of this class, friend and foe, and the game recolours its uniform per faction (see KEY COLOURS). Save it as art/inbox/sheet_class_rogue.png on the art-inbox branch (a new file there; do not rename). In a chat without repository access, return the PNG in the chat instead.
 
-CHARACTER: ONE short dagger in the near hand (screen-left arm = the character's right), REVERSE grip (blade leaving the little-finger side, running back along the forearm), exactly as the guide draws it; generic young adult face with a neutral expression and no scars, marks or distinctive features (this one face stands for hundreds of soldiers); deep HOOD shading the upper face (the eyes still readable) and a short SHOULDER CAPE; a SCARF over the mouth; dark-brown leather armour with straps; dark trousers, dark-brown boots; lean, agile build.
+CHARACTER: ONE short dagger in the near hand (screen-left arm = the character's right), REVERSE grip (blade leaving the little-finger side, running back along the forearm), exactly as the guide draws it; the FACE is covered or in shadow (see the headgear below), because this one sprite stands for hundreds of different soldiers; whatever little of the face shows is generic, with no scars, marks or distinctive features; deep HOOD pulled low so the face is in shadow (at most two small eye glints) and a short SHOULDER CAPE; a SCARF over the mouth and nose; dark-brown leather armour with straps; dark trousers, dark-brown boots; lean, agile build.
 
 KEY COLOURS (the most important rule of this sheet): ONE sheet is shared by every faction and company, and the game recolours the uniform at runtime by replacing these EXACT colours with the faction colours, keeping their light/dark steps.
   - OUTFIT keys = the hood and the shoulder cape, darkest to lightest: #263459 (deep shadow, folds), #394b78 (shadow), #52679c (base), #7489be (lit side)
@@ -18,9 +18,10 @@ KEY COLOURS (the most important rule of this sheet): ONE sheet is shared by ever
   - these seven colours appear NOWHERE else (not on metal, skin, hair, leather, eyes, outline or background), and nothing else on the figure is blue, slate, teal or mint: steel is NEUTRAL grey, leather and wood are warm browns, shadows on the other parts are warm or neutral, never blue (this overrides the general "shadows toward purple/blue" style rule for this sheet)
   - outline the uniform with the normal dark outline (not a key colour); after export, check with a colour picker that the uniform pixels are exactly these hex values
 
-COLOURS of everything else (keep close, muted): skin #e0ac7e; leather armour, straps, boots warm dark brown #4a3a2e (NOT black, NOT blue-grey); dagger NEUTRAL steel grey.
+COLOURS of everything else (keep close, muted): skin (hands only; the face is in shadow) #e0ac7e; leather armour, straps, boots warm dark brown #4a3a2e (NOT black, NOT blue-grey); dagger NEUTRAL steel grey.
 
 FIX (do not reproduce the draft here):
+  - the face stays covered / shadowed the SAME way in ALL FOUR poses: the visor, hood, mask, brim or veil never slips, opens or falls back, not even in the hit pose; the shadowed face is a warm or neutral dark (e.g. #3a2e2a), never blue and never a key colour
   - exactly ONE dagger, reverse grip, in the near hand; the other hand is always empty
   - the dark leather stays WARM brown (never blue-grey), so it never comes close to the uniform keys; add a warm rim light on the upper-left edges so it reads on the dark battlefield
 
@@ -28,7 +29,7 @@ POSES (the guide mannequin fixes pose, proportions, size and position; its colou
   1. idle: low ready stance, dagger hand low in front, free hand up as a guard
   2. attack wind-up: weight on the back leg; dagger hand raised high above the head (about to stab down), free hand forward
   3. attack strike: lunge; dagger arm fully extended forward, free hand pulled back
-  4. hit reaction: torso thrown back, weight on the rear leg, wincing; dagger arm flung back, free hand up
+  4. hit reaction: torso thrown back, weight on the rear leg, head jerked back, hood and scarf still in place; dagger arm flung back, free hand up
 
 REFERENCES (folder art/requests/phase3/class_rogue/ on branch claude/dot-fantasy-management-game-saupju: https://github.com/allycat92/pixel-management/tree/claude/dot-fantasy-management-game-saupju/art/requests/phase3/class_rogue ; in a chat they are the attached images):
   - art/inbox/sheet_captain_blademaster.png on the art-inbox branch (in a chat: the attached approved Baren sheet) = the APPROVED STYLE ANCHOR. Match its proportions, rendering, outline, palette treatment, lighting and character scale exactly
@@ -71,11 +72,12 @@ SELF-CHECK before saving (redraw if any fails):
 
 - 순서: 일반 병과 **5번째** (메시지 D, 대장 9명 다음) — 승인된 바렌 그림(`art-inbox` 브랜치의 `art/inbox/sheet_captain_blademaster.png`)의 화풍에 맞춘다.
 - **초안 대기**: 주인이 NovelAI 초안(`jobs_classes.json`)을 고르면 `art/concepts/class_rogue/`에 두고 `handoff.py`의 `CHARS['class_rogue']['concepts']`에 `{'concept.png': 'class_rogue/concept_NN.png'}`를 넣어 다시 실행한다. 그 전에는 그림 쪽에 보내지 않는다.
+- **얼굴 가림** (주인 요청): 이 그림 한 장을 서로 다른 여러 사람이 같이 쓰므로 얼굴이 가려지는 복장 — 도적은 깊은 후드 + 스카프, 얼굴은 그늘. 네 자세 모두 같은 만큼 가린다(피격 때도 벗겨지지 않음). 가려진 얼굴 그늘은 따뜻하거나 중성인 어두운 색(파랑·열쇠 색 금지). 상급·최상급 직업은 어울릴 때만, 억지로 하지 않는다.
 - **열쇠 색** (전투에서 진영 색으로 바뀐다): 제복 `#263459` `#394b78` `#52679c` `#7489be`, 장식 `#3f7a6c` `#5ea590` `#96d1bb` — 이 7색은 그 자리에만, 평평하게. 다른 곳에는 파랑·청회색·청록을 쓰지 않는다.
 - 결과 파일: `art/inbox/sheet_class_rogue.png` (id `sheet/class/rogue`)
 - 무기: posekit `none` 마네킹 → ONE short dagger in the near hand (screen-left arm = the character's right), REVERSE grip (blade leaving the little-finger side, running back along the forearm), exactly as the guide draws it
 - 자세(가이드 프레임): ① 대기 `key_idle` ② 공격 준비 `key_windup` ③ 공격 타격 `key_strike` ④ 피격 `key_hit` (`key_*` = handoff.py 의 KEY_POSES: 준비는 체중 뒤로, 타격은 내딛는 런지, 피격은 상체가 뒤로 젖혀짐)
-- 초안에서 가져올 것: 무난한 젊은 얼굴(깊은 후드 그늘, 눈은 보이게), 후드 + 짧은 어깨 망토, 입을 가린 스카프, 끈 많은 짙은 갈색 가죽 갑옷, 역수 단검 하나.
+- 초안에서 가져올 것: 깊게 눌러쓴 후드(얼굴은 그늘, 눈빛 두 점까지만) + 짧은 어깨 망토, 입·코를 가린 스카프, 끈 많은 짙은 갈색 가죽 갑옷, 역수 단검 하나.
 - 고칠 것: 후드·어깨 망토 = 제복 열쇠 색, 스카프·가는 허리 천 = 장식 열쇠 색. 가죽은 따뜻한 짙은 갈색(청회색 금지) + 왼쪽 위 따뜻한 림 라이트. 진과 같은 틀.
 - 초안에서 가져오지 말 것: 비율(등신), 칠하는 방식, 외곽선 굵기, 채도, 조명, 디테일 양 — 모두 4등신·앵커 화풍으로 통일.
 - 가이드 띠: 머리 하나 = 110 px (모든 캐릭터 같음). 선 키라면 440 px 이지만 대기 자세가 웅크려서 정수리~발바닥 약 401 px(높이의 39%). 모자·투구·깃털·무기는 따로. 발바닥(맨 아래 픽셀) y=870.
