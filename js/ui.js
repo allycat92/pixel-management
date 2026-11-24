@@ -68,12 +68,29 @@ const UI = (() => {
   }
 
   function skillLine(m) {
-    const base = CLASS_SKILLS[m.cls];
-    const adv = m.adv && ADV_CLASSES[m.adv];
+    if (Game.isCaptain(m)) {
+      const lead = Game.leadOf(m), k = Game.leadScale(m);
+      return el('div', { class: 'skill-line small' },
+        el('span', { class: 'skill lead', title: lead.desc + (k > 1 ? ' (×1.5)' : ` — Lv.${CAPTAIN_AWAKEN}에 효과 ×1.5`), text: `지휘: ${lead.name}${k > 1 ? ' ✦' : ''}` }),
+        m.awakened ? el('span', { class: 'skill awake', title: '각성: 전투력 +15%', text: '각성' }) : null);
+    }
     return el('div', { class: 'skill-line small' },
-      el('span', { class: 'skill', title: base.desc, text: base.name }),
-      adv ? el('span', { class: 'skill adv', title: adv.desc, text: adv.skill }) : null,
+      Game.classChain(m).map((c, i) => el('span', { class: `skill ${i ? 'adv' : ''} ${i === 2 ? 'master' : ''}`, title: c.desc, text: c.skill })),
       m.awakened ? el('span', { class: 'skill awake', title: '각성: 전투력 +15%', text: '각성' }) : null);
+  }
+
+  function roleBadge(m) {
+    if (Game.isCaptain(m)) return el('span', { class: 'role-badge captain', title: '용병대장: 고유 직업, 높은 성장률, 레벨 상한 40', text: '♛ 대장' });
+    return el('span', { class: 'role-badge unit', title: '용병 대원: 직업과 전직으로 역할을 정한다', text: `${UNIT_TIERS[Game.classTier(m)].name} 대원` });
+  }
+
+  function leadBox(m) {
+    if (!Game.isCaptain(m)) return null;
+    const cc = CAPTAIN_CLASSES[m.cap], k = Game.leadScale(m);
+    return el('div', { class: 'lead-box small' },
+      el('div', { class: 'muted', text: cc.desc }),
+      el('div', {}, el('b', { text: `「${cc.lead.name}」 ` }), cc.lead.desc,
+        el('span', { class: k > 1 ? 'good' : 'muted', text: k > 1 ? ' — 무르익은 지휘 (×1.5)' : ` — Lv.${CAPTAIN_AWAKEN}부터 ×1.5` })));
   }
 
   function condTags(m) {
@@ -113,26 +130,30 @@ const UI = (() => {
   // 단원 카드 (모집소 지원자, 단원 상세 창)
   function mercCard(m, opts = {}) {
     const co = m.companyId != null && Game.company(m.companyId);
-    return el('div', { class: `card merc-card ${m.status} ${m.hero ? 'hero' : ''}` },
+    const statMax = Math.max(40, Math.round(m.level * 4.2)), hpMax = Math.max(90, m.level * 12);
+    return el('div', { class: `card merc-card ${m.status} ${m.hero ? 'hero' : ''} ${Game.isCaptain(m) ? 'captain' : ''}` },
       el('div', { class: 'card-head' },
         el('div', { class: 'portrait-wrap' }, portrait(m.look)),
         el('div', { class: 'card-title' },
           el('div', { class: 'name' }, m.name, el('span', { class: 'lv', text: ` Lv.${m.level}` })),
-          el('div', { class: 'sub' }, el('span', { class: `cls cls-${m.cls} ${m.adv ? 'adv' : ''}`, text: Game.className(m) }), ' ',
-            el('span', { class: `trait ${TRAITS[m.trait].unique ? 'unique' : ''}`, title: TRAITS[m.trait].desc, text: TRAITS[m.trait].name })),
+          el('div', { class: 'sub' }, roleBadge(m), ' ', el('span', { class: `cls cls-${m.cls} ${m.adv || m.cap ? 'adv' : ''}`, text: Game.className(m) }), ' ',
+            m.trait !== 'none' ? el('span', { class: `trait ${TRAITS[m.trait].unique ? 'unique' : ''}`, title: TRAITS[m.trait].desc, text: TRAITS[m.trait].name }) : null),
           opts.recruit ? null : el('div', { class: 'row-inline small' }, statusLabel(m), co ? el('span', { class: 'muted', text: co.name }) : el('span', { class: 'muted', text: '예비 인원' })))),
       heroLine(m),
       m.elite ? el('div', { class: 'hero-line' }, factionFlag(m.elite, 1), el('span', { class: 'hero-title', text: ` ${m.title}` })) : null,
       skillLine(m),
+      leadBox(m),
       opts.recruit ? null : conditionLine(m),
       el('div', { class: 'stats' },
-        statBar('힘', m.str, Game.equipBonus(m, 'str'), 40, 'f-str'),
-        statBar('민첩', m.dex, Game.equipBonus(m, 'dex'), 40, 'f-dex'),
-        statBar('지력', m.int, Game.equipBonus(m, 'int'), 40, 'f-int'),
-        statBar('체력', m.maxHp, Game.equipBonus(m, 'maxHp'), 90, 'f-hp')),
+        statBar('힘', m.str, Game.equipBonus(m, 'str'), statMax, 'f-str'),
+        statBar('민첩', m.dex, Game.equipBonus(m, 'dex'), statMax, 'f-dex'),
+        statBar('지력', m.int, Game.equipBonus(m, 'int'), statMax, 'f-int'),
+        statBar('체력', m.maxHp, Game.equipBonus(m, 'maxHp'), hpMax, 'f-hp')),
       opts.recruit ? null : el('div', { class: 'exp' },
         el('div', { class: 'bar thin' }, el('div', { class: 'bar-fill f-exp', style: `width:${(m.exp / Game.expToNext(m)) * 100}%` })),
-        el('span', { text: `EXP ${m.exp}/${Game.expToNext(m)}` })),
+        el('span', { class: Game.atCap(m) ? 'warn' : '', text: Game.atCap(m)
+          ? (Game.isCaptain(m) ? `최고 레벨 ${Game.levelCap(m)}` : `레벨 상한 ${Game.levelCap(m)} — ${Game.classTier(m) < 2 ? '전직해야 성장합니다' : '최고 단계'}`)
+          : `EXP ${m.exp}/${Game.expToNext(m)} · 상한 Lv.${Game.levelCap(m)}` })),
       opts.recruit ? null : equipRow(m),
       opts.recruit ? null : relationLine(m),
       el('div', { class: 'card-foot' },
@@ -151,7 +172,8 @@ const UI = (() => {
         itemIcon('herb', 0), ` 약초 (${s.herbs})`));
     }
     if (m.status !== 'quest') {
-      if (Game.canPromote(m)) actions.push(el('button', { class: 'btn small primary', text: '전직', onclick: () => openPromote(m.id) }));
+      if (Game.canPromote(m) || Game.canMaster(m)) actions.push(el('button', { class: 'btn small primary', text: Game.canMaster(m) ? '최상급 전직' : '전직', onclick: () => openPromote(m.id) }));
+      else if (!Game.isCaptain(m)) actions.push(el('button', { class: 'btn small', text: '직업 계통', onclick: () => openPromote(m.id) }));
       actions.push(el('button', { class: 'btn small', text: '장비', onclick: () => openEquip(m.id) }));
       actions.push(el('button', { class: 'btn small', text: '이동', onclick: () => openTransfer(m.id) }));
       actions.push(el('button', { class: 'btn small danger', text: '해고',
@@ -165,14 +187,15 @@ const UI = (() => {
   function openTransfer(mercId) {
     const m = Game.state.mercs.find((x) => x.id === mercId);
     if (!m) return;
-    const size = Game.companySize();
     const rows = Game.ownCompanies().map((c) => {
-      const n = Game.members(c).length;
       const here = m.companyId === c.id;
+      const why = Game.slotProblem(m, c);
+      const cap = Game.captainOf(c);
       return el('div', { class: 'row' }, companyFlag(c),
-        el('div', { class: 'grow' }, el('div', { text: c.name }), el('div', { class: 'small muted', text: `${n}/${size}명 · 결속도 ${c.cohesion}${c.missionId ? ' · 출격 중' : ''}` })),
-        el('button', { class: 'btn small', disabled: here || c.missionId || n >= size ? 'disabled' : null,
-          onclick: () => { Game.assign(m.id, c.id); closeModal(); } }, here ? '현재 소속' : '배속'));
+        el('div', { class: 'grow' }, el('div', { text: c.name }),
+          el('div', { class: `small ${why && !here ? 'bad' : 'muted'}`, text: why && !here ? why : `대장 ${cap ? cap.name : '없음'} · 대원 ${Game.unitsOf(c).length}/${Game.unitSlots()} · 결속도 ${c.cohesion}${c.missionId ? ' · 출격 중' : ''}` })),
+        el('button', { class: 'btn small', disabled: here || c.missionId || why ? 'disabled' : null,
+          onclick: () => { Game.assign(m.id, c.id); closeModal(); } }, here ? '현재 소속' : Game.isCaptain(m) ? '지휘 맡기기' : '배속'));
     });
     rows.push(el('div', { class: 'row' }, el('div', { class: 'grow', text: '예비 인원 (출격하지 않음)' }),
       el('button', { class: 'btn small', disabled: m.companyId == null ? 'disabled' : null, onclick: () => { Game.assign(m.id, null); closeModal(); } }, '빼기')));
@@ -183,23 +206,55 @@ const UI = (() => {
       el('div', { class: 'modal-actions' }, el('button', { class: 'btn', text: '취소', onclick: closeModal }))));
   }
 
+  // 직업 계통도와 전직: 기본 → 상급(Lv.10) → 최상급(Lv.20)
   function openPromote(mercId) {
     const s = Game.state;
     const m = s.mercs.find((x) => x.id === mercId);
-    if (!m) return;
+    if (!m || Game.isCaptain(m)) return;
     const statName = { str: '힘', dex: '민첩', int: '지력', maxHp: '체력' };
-    const choices = PROMOTIONS[m.cls].map((p) => el('div', { class: 'promo-card' },
-      el('div', { class: 'portrait-wrap' }, Sprites.clone(Sprites.merc({ ...m.look, adv: p.key }, 4, 0), 'promo-portrait')),
-      el('div', { class: 'name', text: p.name }),
-      el('div', { class: 'skill adv', text: `스킬: ${p.skill}` }),
-      el('div', { class: 'small', text: p.desc }),
-      el('div', { class: 'small good', text: `즉시 ${Object.entries(p.bonus).map(([k, v]) => `${statName[k]}+${v}`).join(' ')}` }),
-      el('button', { class: 'btn primary small', disabled: s.gold < PROMOTE_COST ? 'disabled' : null,
-        onclick: () => { Game.promote(m.id, p.key); openMerc(m.id); } }, icon('coin'), ` ${PROMOTE_COST} 전직`)));
+    const bonusTxt = (b) => Object.entries(b).map(([k, v]) => `${statName[k]}+${v}`).join(' ');
+    const card = (look, name, skill, desc, bonus, foot, current) => el('div', { class: `promo-card ${current ? 'current' : ''}` },
+      el('div', { class: 'portrait-wrap' }, Sprites.clone(Sprites.merc(look, 4, 0), 'promo-portrait')),
+      el('div', { class: 'name', text: name }),
+      el('div', { class: 'skill adv', text: `스킬: ${skill}` }),
+      el('div', { class: 'small', text: desc }),
+      bonus ? el('div', { class: 'small good', text: `즉시 ${bonusTxt(bonus)}` }) : null,
+      foot);
+    const baseLook = { ...m.look, adv: undefined, master: undefined };
+    // 계통도: 기본 직업 → 두 갈래 상급 → 각각의 최상급
+    const tree = el('div', { class: 'class-tree' },
+      el('div', { class: 'tree-col' }, el('div', { class: 'tree-title', text: `기본 (상한 Lv.${UNIT_TIERS[0].cap})` }),
+        card(baseLook, CLASSES[m.cls].name, CLASS_SKILLS[m.cls].name, CLASS_SKILLS[m.cls].desc, null, null, true)),
+      el('div', { class: 'tree-col' }, el('div', { class: 'tree-title', text: `상급 · Lv.${PROMOTE_LEVEL} · ${PROMOTE_COST}금화 (상한 Lv.${UNIT_TIERS[1].cap})` }),
+        PROMOTIONS[m.cls].map((p) => {
+          const can = Game.canPromote(m);
+          const locked = m.adv && m.adv !== p.key;
+          const foot = m.adv === p.key ? el('div', { class: 'small good', text: '현재 직업 계통' })
+            : locked ? el('div', { class: 'small muted', text: '다른 갈래를 골랐습니다' })
+            : el('button', { class: 'btn primary small', disabled: !can || s.gold < PROMOTE_COST ? 'disabled' : null,
+              title: can ? '' : `Lv.${PROMOTE_LEVEL}부터 전직할 수 있습니다`, onclick: () => { Game.promote(m.id, p.key); openPromote(m.id); } },
+            icon('coin'), ` ${PROMOTE_COST} 전직`);
+          const c = card({ ...baseLook, adv: p.key }, p.name, p.skill, p.desc, p.bonus, foot, m.adv === p.key);
+          if (locked) c.classList.add('locked');
+          return c;
+        })),
+      el('div', { class: 'tree-col' }, el('div', { class: 'tree-title', text: `최상급 · Lv.${MASTER_LEVEL} · ${MASTER_COST}금화 (상한 Lv.${UNIT_TIERS[2].cap})` }),
+        PROMOTIONS[m.cls].map((p) => {
+          const mc = MASTERS[p.key];
+          const mine = m.adv === p.key;
+          const foot = m.master === mc.key ? el('div', { class: 'small good', text: '현재 직업' })
+            : !mine ? el('div', { class: 'small muted', text: `${p.name}에서 이어짐` })
+            : el('button', { class: 'btn primary small', disabled: !Game.canMaster(m) || s.gold < MASTER_COST ? 'disabled' : null,
+              title: Game.canMaster(m) ? '' : `Lv.${MASTER_LEVEL}부터 전직할 수 있습니다`, onclick: () => { Game.promoteMaster(m.id); openPromote(m.id); } },
+            icon('coin'), ` ${MASTER_COST} 전직`);
+          const c = card({ ...baseLook, adv: p.key, master: mc.key }, mc.name, mc.skill, mc.desc, mc.bonus, foot, m.master === mc.key);
+          if (m.adv && !mine) c.classList.add('locked');
+          return c;
+        })));
     openModal(el('div', {},
-      el('h2', {}, mini(m.look), ` ${m.name}의 전직`),
-      el('p', { class: 'muted small', text: `전직은 되돌릴 수 없습니다. 기존 스킬 「${CLASS_SKILLS[m.cls].name}」은 유지됩니다.` }),
-      el('div', { class: 'promo-choices' }, choices),
+      el('h2', {}, mini(m.look), ` ${m.name}의 직업 계통 — 현재 ${Game.className(m)} Lv.${m.level}`),
+      el('p', { class: 'muted small', text: '대원은 개인 능력치에 편차가 없습니다. 같은 직업·레벨이면 능력치가 같고, 어떤 직업으로 키우느냐가 곧 그 대원의 역할입니다. 레벨 상한에 닿으면 전직해야 더 성장하며, 전직해도 앞 단계의 스킬은 유지됩니다. 전직은 되돌릴 수 없습니다.' }),
+      tree,
       el('div', { class: 'modal-actions' }, el('button', { class: 'btn', text: '뒤로', onclick: () => openMerc(m.id) }))));
   }
 
@@ -535,7 +590,7 @@ const UI = (() => {
 
   return {
     init, render, toast, tabs, setTab,
-    h: { el, icon, itemIcon, portrait, mini, bonusText, signed, companyFlag, factionFlag, factionTag, soldierLook, condTags, statusLabel, mercCard },
+    h: { el, icon, itemIcon, portrait, mini, bonusText, signed, companyFlag, factionFlag, factionTag, soldierLook, condTags, statusLabel, mercCard, roleBadge },
     openModal, closeModal, confirmBox, openMerc,
   };
 })();

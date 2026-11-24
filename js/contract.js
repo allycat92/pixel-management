@@ -234,8 +234,8 @@ Object.assign(Game, {
   },
 
   ownCompanyPower(c, ms, type) {
-    const base = ms.reduce((sum, m) => sum + this.power(m, type, ms), 0);
-    return Math.round(base * this.cohesionMul(c) * this.leaderMul(c));
+    const base = ms.reduce((sum, m) => sum + this.power(m, type, ms) * this.memberLeadMul(c, m, ms), 0);
+    return Math.round(base * this.cohesionMul(c) * this.leaderMul(c, type, ms));
   },
 
   unitsPower(contract, units) {
@@ -432,7 +432,7 @@ Object.assign(Game, {
       o.c.cohesion = clamp(o.c.cohesion + (won ? 5 : 2) - lostHere * 20, 0, 100);
       report.companies.push({
         name: o.c.name, color: o.c.color, own: true,
-        members: o.ms.map((m) => ({ id: m.id, name: m.name, look: m.look, cls: m.cls, level: m.level, leader: m.id === o.c.leaderId })),
+        members: o.ms.map((m) => ({ id: m.id, name: m.name, look: m.look, cls: m.cls, level: m.level, leader: this.isCaptain(m) })),
       });
     });
     ext.forEach((e) => {
@@ -556,13 +556,10 @@ Object.assign(Game, {
   // ───────── 특별 용병 ─────────
   makeHero(key) {
     const h = HEROES[key];
-    const m = this.makeMerc(h.cls, h.level);
-    const g = CLASSES[h.cls].growth;
+    // 특별 용병은 이야기와 고유 직업을 가진 용병대장이다
+    const m = this.makeCaptain(h.cap, h.level);
     m.name = h.name; m.hero = key; m.trait = h.trait; m.title = h.title;
-    m.look = { cls: h.cls, ...h.look };
-    if (h.adv) this.applyPromotion(m, h.adv);
-    const main = Object.keys(g).filter((k) => k !== 'hp').sort((a, b) => g[b] - g[a])[0];
-    m[main] += 3; m.maxHp += 4;
+    m.look = { cls: m.cls, cap: h.cap, ...h.look };
     return m;
   },
 

@@ -108,7 +108,7 @@ const HERB_PRICE = 35;
 // choice: 완료 후 선택지. effects = { standing: {세력: 변화}, relations: {'a|b': 변화}, peace: 'a|b', gold }
 const HEROES = {
   kai: {
-    name: '카이', cls: 'archer', title: '숲을 떠난 엘프 정찰병', unlock: 1, level: 3, trait: 'hawkeye', faction: 'elves',
+    name: '카이', cap: 'silverscout', cls: 'archer', title: '숲을 떠난 엘프 정찰병', unlock: 1, level: 3, trait: 'hawkeye', faction: 'elves',
     look: { skin: '#f5d6b8', hair: '#e3c565', longHair: true },
     intro: [
       [null, '뾰족한 귀의 궁수가 창가 자리에서 화살깃을 다듬고 있습니다.'],
@@ -146,7 +146,7 @@ const HEROES = {
     ],
   },
   seraphine: {
-    name: '세라핀', cls: 'cleric', title: '파문당한 성녀', unlock: 2, level: 4, trait: 'saint', faction: null,
+    name: '세라핀', cap: 'exsaint', cls: 'cleric', title: '파문당한 성녀', unlock: 2, level: 4, trait: 'saint', faction: null,
     look: { skin: '#f2c9a0', hair: '#e3c565', longHair: true },
     intro: [
       [null, '주점 구석, 낡은 수녀복 차림의 여인이 조용히 다가옵니다.'],
@@ -184,7 +184,7 @@ const HEROES = {
     ],
   },
   lyra: {
-    name: '리라', cls: 'rogue', title: '가면 쓴 의적', unlock: 3, level: 5, trait: 'shadow', faction: 'north',
+    name: '리라', cap: 'outlaw', cls: 'rogue', title: '가면 쓴 의적', unlock: 3, level: 5, trait: 'shadow', faction: 'north',
     look: { skin: '#f5d6b8', hair: '#8c2f2f', longHair: true },
     intro: [
       [null, '주머니가 가벼워진 느낌… 돌아보니 붉은 머리 소녀가 금화를 흔들고 있습니다.'],
@@ -222,7 +222,7 @@ const HEROES = {
     ],
   },
   grom: {
-    name: '그롬', cls: 'warrior', title: '피의 투기장 챔피언', unlock: 3, level: 5, trait: 'berserker', faction: 'clans',
+    name: '그롬', cap: 'pitchampion', cls: 'warrior', title: '피의 투기장 챔피언', unlock: 3, level: 5, trait: 'berserker', faction: 'clans',
     look: { skin: '#8fae6a', hair: '#2b1d14', longHair: false },
     intro: [
       [null, '덩치 큰 혼혈 오크가 테이블을 쾅 내리칩니다.'],
@@ -260,7 +260,7 @@ const HEROES = {
     ],
   },
   astel: {
-    name: '아스텔', cls: 'mage', title: '마탑의 마지막 제자', unlock: 4, level: 6, trait: 'arcane', faction: null,
+    name: '아스텔', cap: 'towerheir', cls: 'mage', title: '마탑의 마지막 제자', unlock: 4, level: 6, trait: 'arcane', faction: null,
     look: { skin: '#f2c9a0', hair: '#c9c2b8', longHair: true },
     intro: [
       [null, '책 더미를 짊어진 은발의 청년이 주점에 들어섭니다.'],
@@ -298,7 +298,7 @@ const HEROES = {
     ],
   },
   marisol: {
-    name: '마리솔', cls: 'archer', title: '닻을 잃은 해적 선장', unlock: 4, level: 9, trait: 'captain', faction: null,
+    name: '마리솔', cap: 'corsair', cls: 'archer', title: '닻을 잃은 해적 선장', unlock: 4, level: 9, trait: 'captain', faction: null,
     look: { skin: '#c68a5c', hair: '#2b1d14', longHair: true },
     intro: [
       [null, '짠내 나는 외투를 걸친 여인이 주점 문을 발로 차고 들어옵니다.'],
@@ -330,7 +330,7 @@ const HEROES = {
     ],
   },
   oswin: {
-    name: '오스윈', cls: 'warrior', adv: 'paladin', title: '몰락한 기사단장', unlock: 5, level: 10, trait: 'commander', faction: 'crown',
+    name: '오스윈', cap: 'fallencommander', cls: 'warrior', title: '몰락한 기사단장', unlock: 5, level: 10, trait: 'commander', faction: 'crown',
     look: { skin: '#e0ac7e', hair: '#c9c2b8', longHair: false },
     intro: [
       [null, '녹슨 갑옷의 노기사가 정중하게 고개를 숙입니다.'],

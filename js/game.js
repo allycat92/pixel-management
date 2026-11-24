@@ -2,8 +2,8 @@
 // 용병단은 company.js, 세력·영토는 faction.js, 의뢰는 contract.js 에서 Game 에 기능을 더한다.
 'use strict';
 
-const SAVE_KEY = 'pixel-guild-save-v3';
-const SAVE_VERSION = 3;
+const SAVE_KEY = 'pixel-guild-save-v4';
+const SAVE_VERSION = 4;
 
 const rand = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
 const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
@@ -37,12 +37,14 @@ const Game = {
     };
     const s = this.state;
     this.initWorld();
-    // 시작 용병단: 단원 3명
-    const [a, b, c] = ['warrior', 'archer', 'cleric'].map((cls) => { const m = this.makeMerc(cls, 1); s.mercs.push(m); return m; });
-    a.trait = 'brave';
+    // 시작 용병단: 용병대장 1명 + 대원 3명
+    const cap = this.makeCaptain(pick(CAPTAIN_KEYS), 2);
+    cap.trait = 'brave';
+    s.mercs.push(cap);
+    const units = ['warrior', 'archer', 'cleric'].map((cls) => { const m = this.makeUnit(cls, 1); s.mercs.push(m); return m; });
     const co = this.createCompany(true);
-    [a, b, c].forEach((m) => { m.companyId = co.id; });
-    co.leaderId = a.id;
+    [cap, ...units].forEach((m) => { m.companyId = co.id; });
+    co.leaderId = cap.id;
     co.cohesion = 30;
     this.refreshRecruits();
     this.refreshMarket();
@@ -97,57 +99,124 @@ const Game = {
     this.emit();
   },
 
-  // ───────── 용병 ─────────
-  makeMerc(cls, level) {
-    const c = CLASSES[cls];
+  // ───────── 용병: 대장과 대원 ─────────
+  uniqueMercName() {
     const usedNames = new Set(this.state ? [...this.state.mercs, ...this.state.recruits].map((m) => m.name) : []);
     Object.values(HEROES).forEach((h) => usedNames.add(h.name));
     let name = pick(NAMES), tries = 0;
     while (usedNames.has(name) && tries++ < 40) name = pick(NAMES);
-    const m = {
+    return name;
+  },
+  baseMerc(role, cls, stats) {
+    return {
       id: this.state ? this.state.nextId++ : 0,
-      name, cls, level: 1, exp: 0,
-      str: c.base.str + rand(-1, 2), dex: c.base.dex + rand(-1, 2), int: c.base.int + rand(-1, 2),
-      maxHp: c.base.hp + rand(-2, 4),
-      trait: pick(TRAIT_POOL),
+      name: this.uniqueMercName(), role, cls, level: 1, exp: 0,
+      str: stats.str, dex: stats.dex, int: stats.int, maxHp: stats.hp,
+      trait: 'none', grow: { str: 0, dex: 0, int: 0, hp: 0 },
       status: 'idle', injury: 0, missionId: null, quests: 0, bond: 0, companyId: null,
       fatigue: 0, morale: rand(60, 75), rel: {}, lastQuest: this.state ? this.state.day : 1,
       equip: { weapon: null, armor: null, trinket: null },
       look: { cls, skin: pick(SKIN_TONES), hair: pick(HAIR_COLORS), longHair: Math.random() < 0.4 },
     };
+  },
+  // 용병 유닛: 같은 직업·레벨이면 능력치가 같다
+  makeUnit(cls, level = 1) {
+    const m = this.baseMerc('unit', cls, CLASSES[cls].base);
     for (let i = 1; i < level; i++) this.levelUp(m, true);
     return m;
   },
+  makeMerc(cls, level) { return this.makeUnit(cls, level); },
+  // 용병대장: 고유 직업, 높은 성장성
+  makeCaptain(cap, level = 1) {
+    const cc = CAPTAIN_CLASSES[cap];
+    const m = this.baseMerc('captain', cc.style, cc.base);
+    m.cap = cap;
+    m.trait = pick(TRAIT_POOL);
+    m.look.cap = cap;
+    for (let i = 1; i < level; i++) this.levelUp(m, true);
+    return m;
+  },
+  isCaptain(m) { return m && m.role === 'captain'; },
 
   expToNext(m) { return m.level * 60 + m.level * m.level * 6; },
+  levelCap(m) {
+    if (this.isCaptain(m)) return CAPTAIN_CAP;
+    return UNIT_TIERS[this.classTier(m)].cap;
+  },
+  classTier(m) { return m.master ? 2 : m.adv ? 1 : 0; },
+  atCap(m) { return m.level >= this.levelCap(m); },
+  growthOf(m) {
+    if (this.isCaptain(m)) return { ...CAPTAIN_CLASSES[m.cap].growth };
+    const g = { ...CLASSES[m.cls].growth };
+    [m.adv && ADV_CLASSES[m.adv], m.master && MASTER_CLASSES[m.master]].filter(Boolean)
+      .forEach((c) => Object.entries(c.growth).forEach(([k, v]) => { g[k] = (g[k] || 0) + v; }));
+    return g;
+  },
 
   levelUp(m, silent) {
-    const g = { ...CLASSES[m.cls].growth };
-    const adv = m.adv && ADV_CLASSES[m.adv];
-    if (adv) Object.entries(adv.growth).forEach(([k, v]) => { g[k] = (g[k] || 0) + v; });
-    const roll = (v) => Math.floor(v) + (Math.random() < v % 1 ? 1 : 0);
+    const g = this.growthOf(m);
     m.level++;
-    m.str += roll(g.str); m.dex += roll(g.dex); m.int += roll(g.int);
-    m.maxHp += roll(g.hp) + rand(0, 2);
+    m.grow = m.grow || { str: 0, dex: 0, int: 0, hp: 0 };
+    ['str', 'dex', 'int', 'hp'].forEach((k) => {
+      const key = k === 'hp' ? 'maxHp' : k;
+      let gain;
+      if (this.isCaptain(m)) {
+        // 대장: 성장률이 보장되고, 운이 좋으면 더 오른다
+        gain = Math.floor(g[k]) + (Math.random() < g[k] % 1 ? 1 : 0) + (Math.random() < 0.15 ? 1 : 0);
+      } else {
+        // 대원: 직업 성장률대로 정확히 오른다
+        m.grow[k] += g[k] || 0;
+        gain = Math.floor(m.grow[k]);
+        m.grow[k] -= gain;
+      }
+      m[key] += gain;
+    });
     if (!silent) {
       this.changeMorale(m, 5);
-      this.log(`${m.name}이(가) 레벨 ${m.level}이 되었습니다!${this.canPromote(m) ? ' 전직할 수 있습니다!' : ''}`, 'good');
+      const note = this.canPromote(m) ? ' 전직할 수 있습니다!' : this.canMaster(m) ? ' 최상급 직업으로 전직할 수 있습니다!'
+        : this.isCaptain(m) && m.level === CAPTAIN_AWAKEN ? ` 지휘가 무르익었습니다! (「${CAPTAIN_CLASSES[m.cap].lead.name}」 효과 ×1.5)` : '';
+      this.log(`${m.name}이(가) 레벨 ${m.level}이 되었습니다!${note}`, 'good');
     }
   },
 
-  // ───────── 전직 ─────────
-  className(m) { return m.adv ? ADV_CLASSES[m.adv].name : CLASSES[m.cls].name; },
-  canPromote(m) { return !m.adv && m.level >= PROMOTE_LEVEL; },
+  // ───────── 직업 / 전직 ─────────
+  className(m) {
+    if (this.isCaptain(m)) return CAPTAIN_CLASSES[m.cap].name;
+    return m.master ? MASTER_CLASSES[m.master].name : m.adv ? ADV_CLASSES[m.adv].name : CLASSES[m.cls].name;
+  },
+  // 대원이 가진 직업 계통 (기본 → 상급 → 최상급), 각각 스킬과 효과를 지닌다
+  classChain(m) {
+    if (this.isCaptain(m)) return [];
+    return [
+      { key: m.cls, name: CLASSES[m.cls].name, skill: CLASS_SKILLS[m.cls].name, desc: CLASS_SKILLS[m.cls].desc, fx: CLASS_SKILLS[m.cls].fx },
+      m.adv && { key: m.adv, ...ADV_CLASSES[m.adv] },
+      m.master && { key: m.master, ...MASTER_CLASSES[m.master] },
+    ].filter(Boolean);
+  },
+  canPromote(m) { return !this.isCaptain(m) && !m.adv && m.level >= PROMOTE_LEVEL; },
+  canMaster(m) { return !this.isCaptain(m) && m.adv && !m.master && m.level >= MASTER_LEVEL; },
   promote(mercId, key) {
     const s = this.state;
     const m = s.mercs.find((x) => x.id === mercId);
-    const opt = m && PROMOTIONS[m.cls].find((p) => p.key === key);
+    const opt = m && !this.isCaptain(m) && PROMOTIONS[m.cls].find((p) => p.key === key);
     if (!m || !opt || !this.canPromote(m) || m.status === 'quest') return;
     if (s.gold < PROMOTE_COST) return this.toast('금화가 부족합니다.');
     s.gold -= PROMOTE_COST;
     this.applyPromotion(m, key);
     this.changeMorale(m, 10);
-    this.log(`${m.name}이(가) ${opt.name}(으)로 전직했습니다! 스킬 「${opt.skill}」 습득. (-${PROMOTE_COST} 금화)`, 'good');
+    this.log(`${m.name}이(가) ${opt.name}(으)로 전직했습니다! 스킬 「${opt.skill}」 습득, 레벨 상한 ${this.levelCap(m)}. (-${PROMOTE_COST} 금화)`, 'good');
+    this.emit();
+  },
+  promoteMaster(mercId) {
+    const s = this.state;
+    const m = s.mercs.find((x) => x.id === mercId);
+    if (!m || !this.canMaster(m) || m.status === 'quest') return;
+    if (s.gold < MASTER_COST) return this.toast('금화가 부족합니다.');
+    s.gold -= MASTER_COST;
+    const mc = MASTERS[m.adv];
+    this.applyMaster(m);
+    this.changeMorale(m, 15);
+    this.log(`${m.name}이(가) 최상급 직업 ${mc.name}에 올랐습니다! 스킬 「${mc.skill}」 습득, 레벨 상한 ${this.levelCap(m)}. (-${MASTER_COST} 금화)`, 'good');
     this.emit();
   },
   applyPromotion(m, key) {
@@ -156,6 +225,16 @@ const Game = {
     m.look = { ...m.look, adv: key };
     Object.entries(opt.bonus).forEach(([k, v]) => { m[k] += v; });
   },
+  applyMaster(m) {
+    const mc = MASTERS[m.adv];
+    m.master = mc.key;
+    m.look = { ...m.look, master: mc.key };
+    Object.entries(mc.bonus).forEach(([k, v]) => { m[k] += v; });
+  },
+
+  // 대장의 지휘: 레벨 20부터 1.5배
+  leadOf(m) { return this.isCaptain(m) ? CAPTAIN_CLASSES[m.cap].lead : null; },
+  leadScale(m) { return m.level >= CAPTAIN_AWAKEN ? 1.5 : 1; },
 
   // ───────── 컨디션: 피로 / 사기 / 관계 ─────────
   changeMorale(m, d) { m.morale = clamp(Math.round((m.morale ?? 65) + d), 0, 100); },
@@ -203,6 +282,7 @@ const Game = {
     m.exp += amount;
     let leveled = false;
     while (m.exp >= this.expToNext(m)) {
+      if (this.atCap(m)) { m.exp = this.expToNext(m) - 1; break; } // 레벨 상한: 전직해야 더 자란다
       m.exp -= this.expToNext(m);
       this.levelUp(m);
       leveled = true;
@@ -218,12 +298,31 @@ const Game = {
   eff(m, stat) { return m[stat] + this.equipBonus(m, stat); },
 
   wage(m) {
-    let w = (12 + m.level * 10 + m.level * m.level * 0.5) * (this.perk && this.state && this.perk('crown') ? 0.9 : 1);
+    const L = m.level;
+    let w = (this.isCaptain(m) ? 20 + L * 14 + L * L * 0.7 : 8 + L * 7 + L * L * 0.35) * (this.perk && this.state && this.perk('crown') ? 0.9 : 1);
     if (m.trait === 'greedy') w *= 1.3;
     if (m.trait === 'diligent') w *= 0.8;
     return Math.round(w);
   },
-  hireCost(m) { return this.wage(m) * (m.hero || m.elite ? 4 : 3); },
+  hireCost(m) { return this.wage(m) * (m.hero || m.elite || this.isCaptain(m) ? 4 : m.level > 1 ? 3 : 2); },
+  // 대원 모집: 직업을 골라 신병(Lv.1) 또는 숙련병으로 뽑는다
+  veteranLevel() {
+    return clamp(2 + this.state.facilities.tavern + Math.floor(this.rankIndex() * 1.2) + (this.perk('north') ? 2 : 0), 2, UNIT_TIERS[0].cap);
+  },
+  unitHireCost(cls, veteran) { return this.hireCost({ role: 'unit', cls, level: veteran ? this.veteranLevel() : 1, trait: 'none' }); },
+  hireUnit(cls, veteran) {
+    const s = this.state;
+    if (!CLASSES[cls]) return;
+    if (s.mercs.length >= this.capacity()) return this.toast('숙소가 가득 찼습니다. 숙소를 증축하세요.');
+    const cost = this.unitHireCost(cls, veteran);
+    if (s.gold < cost) return this.toast('금화가 부족합니다.');
+    s.gold -= cost;
+    const m = this.makeUnit(cls, veteran ? this.veteranLevel() : 1);
+    s.mercs.push(m);
+    this.log(`${veteran ? '숙련' : '신병'} ${CLASSES[cls].name} ${m.name}(Lv.${m.level})을(를) 모집했습니다. 예비 인원으로 대기합니다. (-${cost} 금화)`);
+    this.emit();
+    return m;
+  },
 
   // party를 넘기면 전우/불화/지휘 효과까지 반영
   power(m, type, party) {
@@ -238,14 +337,14 @@ const Game = {
     if (m.trait === 'northknight') p *= 1.05;
     if (m.trait === 'warcry') p *= 1.15;
     if (m.awakened) p *= 1.15;
-    // 직업 스킬 / 상급 직업 스킬
-    if (m.cls === 'mage' && type === 'magic') p *= 1.2;
-    const t = type;
-    if (m.adv === 'swordmaster' && (t === 'hunt' || t === 'defense')) p *= 1.3;
-    if (m.adv === 'ranger' && (t === 'explore' || t === 'escort')) p *= 1.25;
-    if (m.adv === 'elementalist' && (t === 'hunt' || t === 'magic')) p *= 1.3;
-    if (m.adv === 'battlepriest') p *= 1.2;
-    if (m.adv === 'assassin' && t === 'hunt') p *= 1.3;
+    // 직업 계통 스킬
+    let bonus = 0;
+    this.classChain(m).forEach((c) => {
+      const self = c.fx && c.fx.self;
+      if (!self) return;
+      bonus += (self.all || 0) + ((type && self.types && self.types[type]) || 0);
+    });
+    p *= 1 + bonus;
     // 컨디션
     p *= this.moraleState(m).mul * this.fatigueState(m).mul;
     if (party) {
@@ -262,10 +361,32 @@ const Game = {
   partyMods(party) {
     const has = (f) => party.some(f);
     const mods = { success: 0, injury: 1, death: 1, gold: 1, great: 1, greatGold: 1, days: 0, noDisaster: false, healHalf: false, loot: 0, noMoraleLoss: false };
-    if (has((m) => m.cls === 'warrior')) mods.injury *= 0.85;
-    if (has((m) => m.cls === 'archer')) mods.success += 0.04;
-    if (has((m) => m.cls === 'cleric')) { mods.injury *= 0.5; mods.death *= 0.35; }
-    mods.gold += party.filter((m) => m.cls === 'rogue').length * 0.12;
+    // 직업 계통 효과 (같은 직업은 한 번만)
+    const applied = new Set();
+    const applyFx = (fx, scale = 1) => {
+      if (!fx) return;
+      if (fx.success) mods.success += fx.success * scale;
+      if (fx.injury != null) mods.injury *= 1 - (1 - fx.injury) * scale;
+      if (fx.death != null) mods.death *= Math.max(0, 1 - (1 - fx.death) * scale);
+      if (fx.gold) mods.gold += fx.gold * scale;
+      if (fx.great) mods.great *= 1 + (fx.great - 1) * scale;
+      if (fx.greatGold) mods.greatGold += fx.greatGold * scale;
+      if (fx.days) mods.days += fx.days;
+      if (fx.noDisaster) mods.noDisaster = true;
+      if (fx.healHalf) mods.healHalf = true;
+      if (fx.noMoraleLoss) mods.noMoraleLoss = true;
+      if (fx.loot) mods.loot = Math.max(mods.loot, fx.loot);
+    };
+    party.forEach((m) => {
+      this.classChain(m).forEach((c) => {
+        if (applied.has(c.key) || !c.fx || !c.fx.party) return;
+        applied.add(c.key);
+        applyFx(c.fx.party);
+      });
+      const lead = this.leadOf(m);
+      if (lead && lead.party) applyFx(lead.party, this.leadScale(m));
+    });
+    mods.days = Math.max(-2, mods.days);
     if (has((m) => m.trait === 'lucky')) mods.success += 0.05;
     if (has((m) => m.trait === 'hawkeye')) mods.success += 0.08;
     if (has((m) => m.trait === 'saint')) { mods.death = 0; mods.injury *= 0.7; }
@@ -275,13 +396,6 @@ const Game = {
     if (has((m) => m.trait === 'broker')) mods.gold += 0.1;
     if (has((m) => m.trait === 'blessed')) mods.death *= 0.5;
     if (has((m) => m.trait === 'sylvan')) mods.success += 0.05;
-    if (has((m) => m.adv === 'paladin')) { mods.injury *= 0.7; mods.death *= 0.5; }
-    if (has((m) => m.adv === 'ranger')) mods.days -= 1;
-    if (has((m) => m.adv === 'sniper')) mods.great *= 2;
-    if (has((m) => m.adv === 'warder')) { mods.noDisaster = true; mods.injury *= 0.8; }
-    if (has((m) => m.adv === 'highpriest')) { mods.death = 0; mods.healHalf = true; }
-    if (has((m) => m.adv === 'assassin')) mods.greatGold += 0.3;
-    if (has((m) => m.adv === 'thief')) { mods.gold += 0.25; mods.loot = 0.25; }
     return mods;
   },
 
@@ -299,8 +413,10 @@ const Game = {
     if (m.hero) {
       s.heroes[m.hero].hired = true;
       this.log(`특별 용병 「${m.title}」 ${m.name}이(가) 길드에 합류했습니다! 용병단에 배속해 함께 의뢰를 완수하세요. (-${cost} 금화)`, 'good');
+    } else if (this.isCaptain(m)) {
+      this.log(`용병대장 ${m.name}(${this.className(m)})을(를) 영입했습니다. 용병단을 맡기세요. (-${cost} 금화)`, 'good');
     } else {
-      this.log(`${CLASSES[m.cls].name} ${m.name}을(를) 고용했습니다. 예비 인원으로 대기합니다. (-${cost} 금화)`);
+      this.log(`${this.className(m)} ${m.name}을(를) 고용했습니다. 예비 인원으로 대기합니다. (-${cost} 금화)`);
     }
     this.emit();
   },
@@ -333,21 +449,24 @@ const Game = {
     this.emit();
   },
 
+  // 모집소의 개인 지원자는 용병대장 후보다 (대원은 직업을 골라 따로 모집)
   refreshRecruits(paid) {
     const s = this.state;
     if (paid) {
-      if (s.gold < 30) return this.toast('금화가 부족합니다.');
-      s.gold -= 30;
+      if (s.gold < 40) return this.toast('금화가 부족합니다.');
+      s.gold -= 40;
     }
-    const lvBonus = s.facilities.tavern;
-    const maxLv = 1 + lvBonus + Math.floor(this.rankIndex() * 1.2) + (this.perk('north') ? 2 : 0);
-    const count = 3 + lvBonus;
-    const heroes = s.recruits.filter((r) => r.hero || r.elite);
-    s.recruits = heroes;
-    for (let i = 0; i < count; i++) {
-      s.recruits.push(this.makeMerc(pick(Object.keys(CLASSES)), rand(Math.max(1, maxLv - 2), maxLv)));
+    const maxLv = 1 + s.facilities.tavern + Math.floor(this.rankIndex() * 1.4) + (this.perk('north') ? 2 : 0);
+    const count = 2 + Math.floor(s.facilities.tavern / 2);
+    s.recruits = s.recruits.filter((r) => r.hero || r.elite);
+    // 고유 직업: 이미 길드에 있는 대장의 직업은 나오지 않는다
+    const taken = new Set([...s.mercs, ...s.recruits].filter((m) => m.cap).map((m) => m.cap));
+    const pool = CAPTAIN_KEYS.filter((k) => !taken.has(k));
+    for (let i = 0; i < count && pool.length; i++) {
+      const cap = pool.splice(Math.floor(Math.random() * pool.length), 1)[0];
+      s.recruits.push(this.makeCaptain(cap, rand(Math.max(1, maxLv - 2), maxLv)));
     }
-    if (paid) { this.log('모집소에 새로운 지원자들이 찾아왔습니다. (-30 금화)'); this.emit(); }
+    if (paid) { this.log('모집소에 새로운 용병대장 후보들이 찾아왔습니다. (-40 금화)'); this.emit(); }
   },
 
   // ───────── 장비 / 상점 ─────────

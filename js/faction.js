@@ -121,12 +121,18 @@ Object.assign(Game, {
   makeElite(f) {
     const sd = FACTIONS[f].soldier;
     const cls = pick(sd.classes);
-    const level = clamp(Math.round(this.rankIndex() * 1.6) + rand(3, 5) + (ELITE_LEVEL_BONUS[f] || 0), 3, 22);
-    const m = this.makeMerc(cls, level);
+    const level = clamp(Math.round(this.rankIndex() * 1.6) + rand(3, 5) + (ELITE_LEVEL_BONUS[f] || 0), 3, 26);
+    // 세력 정예는 이미 수련을 마친 대원: 레벨에 맞는 상급·최상급 직업을 갖고 온다
+    const m = this.makeUnit(cls, Math.min(level, UNIT_TIERS[0].cap));
+    if (level > UNIT_TIERS[0].cap) {
+      this.applyPromotion(m, pick(PROMOTIONS[cls]).key);
+      while (m.level < Math.min(level, UNIT_TIERS[1].cap)) this.levelUp(m, true);
+      if (level > UNIT_TIERS[1].cap) { this.applyMaster(m); while (m.level < level) this.levelUp(m, true); }
+    }
     m.trait = FACTION_TRAITS[f];
     m.elite = f;
     m.title = `${FACTIONS[f].short} 정예`;
-    m.look = { cls, skin: pick(sd.skins), hair: pick(sd.hairs), longHair: Math.random() < 0.3, tint: { outfit: FACTIONS[f].color, accent: FACTIONS[f].accent } };
+    m.look = { ...m.look, cls, skin: pick(sd.skins), hair: pick(sd.hairs), longHair: Math.random() < 0.3, tint: { outfit: FACTIONS[f].color, accent: FACTIONS[f].accent } };
     m.str += 2; m.dex += 2; m.int += 2; m.maxHp += 6;
     return m;
   },

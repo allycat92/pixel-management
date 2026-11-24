@@ -10,7 +10,19 @@ Object.assign(Game, {
   reserve() { return this.state.mercs.filter((m) => m.companyId == null); },
   companyBusy(c) { return !!c.missionId; },
   maxCompanies() { return 1 + this.state.facilities.barracks; },
-  companySize() { const l = this.state.facilities.barracks; return 4 + (l >= 2 ? 1 : 0) + (l >= 4 ? 1 : 0); },
+  // 용병단 = 용병대장 1 + 대원 (병영 단계에 따라 4~8명)
+  unitSlots() { return 4 + this.state.facilities.barracks; },
+  companySize() { return 1 + this.unitSlots(); },
+  captainOf(c) { return this.members(c).find((m) => this.isCaptain(m)) || null; },
+  unitsOf(c) { return this.members(c).filter((m) => !this.isCaptain(m)); },
+  // 이 단원이 이 용병단에 들어갈 자리가 있는가 (없으면 이유)
+  slotProblem(m, c) {
+    if (this.isCaptain(m)) {
+      const cap = this.captainOf(c);
+      return cap && cap.id !== m.id ? `이미 용병대장 ${cap.name}이(가) 이끌고 있습니다.` : null;
+    }
+    return this.unitsOf(c).filter((x) => x.id !== m.id).length >= this.unitSlots() ? `대원 정원이 가득 찼습니다. (최대 ${this.unitSlots()}명)` : null;
+  },
   companyCost() { return 80 + this.ownCompanies().length * 120; },
 
   uniqueCompanyName() {
@@ -58,14 +70,15 @@ Object.assign(Game, {
     if (companyId != null) {
       const c = this.company(companyId);
       if (!c || !c.own || c.missionId) return;
-      if (this.members(c).length >= this.companySize()) return this.toast(`정원이 가득 찼습니다. (최대 ${this.companySize()}명)`);
+      const why = this.slotProblem(m, c);
+      if (why) return this.toast(why);
     }
     this.leaveCompany(m, 8);
     m.companyId = companyId;
     if (companyId != null) {
       const c = this.company(companyId);
       if (c.wins + c.losses > 0) c.cohesion = Math.max(0, c.cohesion - 6); // 손발을 맞춰 온 용병단에 새 얼굴이 들어오면 흔들린다
-      if (c.leaderId == null) c.leaderId = m.id;
+      if (this.isCaptain(m)) c.leaderId = m.id; // 용병대장이 단장을 맡는다
     }
     this.emit();
   },
@@ -76,20 +89,25 @@ Object.assign(Game, {
     if (!c) return;
     c.cohesion = Math.max(0, c.cohesion - cohesionLoss);
     m.companyId = null;
-    if (c.leaderId === m.id) {
-      const next = this.members(c).sort((a, b) => b.level - a.level)[0];
-      c.leaderId = next ? next.id : null;
-    }
+    if (c.leaderId === m.id) c.leaderId = null; // 대원은 단장을 대신할 수 없다
   },
 
-  setLeader(companyId, mercId) {
-    const c = this.company(companyId);
-    if (c && this.state.mercs.some((m) => m.id === mercId && m.companyId === companyId)) { c.leaderId = mercId; this.emit(); }
-  },
-
-  leader(c) { return this.state.mercs.find((m) => m.id === c.leaderId) || null; },
+  leader(c) { return this.state.mercs.find((m) => m.id === c.leaderId && m.companyId === c.id) || null; },
   cohesionMul(c) { return 0.9 + c.cohesion * 0.002; },
-  leaderMul(c) { const l = this.leader(c); return l ? 1 + Math.min(l.level, 15) * 0.01 : 0.95; },
+  // 대장의 지휘: 함께 출격한 대장이 없으면 -15%
+  leaderMul(c, type, ms) {
+    const l = this.leader(c);
+    if (!l || (ms && !ms.includes(l))) return 0.85;
+    const lead = this.leadOf(l), k = this.leadScale(l);
+    return 1 + Math.min(l.level, CAPTAIN_CAP) * 0.004 + ((lead.power || 0) + ((type && lead.types && lead.types[type]) || 0)) * k;
+  },
+  // 대장의 직업별 지휘 보너스 (해당 기본 직업 대원에게)
+  memberLeadMul(c, m, ms) {
+    const l = this.leader(c);
+    if (!l || l === m || (ms && !ms.includes(l))) return 1;
+    const lead = this.leadOf(l);
+    return 1 + ((lead.cls && lead.cls[m.cls]) || 0) * this.leadScale(l);
+  },
 
   // 파견 가능한 단원(부상자 제외)
   availableMembers(c) { return this.members(c).filter((m) => m.status === 'idle'); },
@@ -102,13 +120,14 @@ Object.assign(Game, {
     const size = rand(4, 6);
     const disposition = pick(['gold', 'gold', 'honor', 'faction', 'faction']);
     const sympathy = disposition === 'faction' ? pick(FACTION_KEYS) : null;
-    const cls = pick(Object.keys(CLASSES));
+    const cap = pick(CAPTAIN_KEYS);
+    const cls = CAPTAIN_CLASSES[cap].style;
     const base = (12 + level * 9) * size;
     const share = disposition === 'gold' ? rand(35, 40) : disposition === 'honor' ? rand(22, 28) : rand(20, 30);
     const name = this.uniqueCompanyName();
     return {
       id: s.nextId++, own: false, name, color: pick(COMPANY_COLORS),
-      captain: { name: pick(NAMES), cls, look: { cls, skin: pick(SKIN_TONES), hair: pick(HAIR_COLORS), longHair: Math.random() < 0.3 } },
+      captain: { name: pick(NAMES), cls, cap, look: { cls, cap, skin: pick(SKIN_TONES), hair: pick(HAIR_COLORS), longHair: Math.random() < 0.3 } },
       level, size, maxSize: size, specialty: pick(COMPANY_SPECIALTIES), disposition, sympathy,
       loyalty: rand(50, 65), share, signFee: Math.round(base * 1.4), upkeep: Math.round(base * 0.55),
       contractEnd: 0, wins: 0, losses: 0, missionId: null,

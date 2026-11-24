@@ -104,7 +104,7 @@ const Battle = (() => {
     (report.companies || []).forEach((c) => {
       if (c.own && c.members) {
         const ms = [...c.members].sort((a, b) => (b.leader ? 1 : 0) - (a.leader ? 1 : 0) || b.level - a.level);
-        const units = ms.map((m) => ({ look: m.look, cls: m.cls, str: 0.85 + m.level * 0.035, named: m.name, doomed: deadIds.has(m.id) }));
+        const units = ms.map((m) => ({ look: m.look, cls: m.cls, str: (0.85 + m.level * 0.035) * (m.leader ? 1.15 : 1), named: m.name, doomed: deadIds.has(m.id) }));
         // 대원이 셋이 안 되면 수습 용병이 머릿수를 채운다
         looksFor(c.color, Math.max(0, 4 - units.length)).forEach((lk) => units.push({ look: lk, cls: lk.cls, str: 0.7, recruit: true }));
         groups.push({ side: 0, name: c.name, color: c.color, player: true, units: units.slice(0, 9) });

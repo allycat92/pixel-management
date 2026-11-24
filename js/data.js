@@ -131,10 +131,10 @@ const QUEST_TYPES = {
 
 const FACILITIES = {
   dorm:      { name: '숙소', max: 5, baseCost: 120, desc: (l) => `길드 소속 단원 최대 ${6 + l * 3}명` },
-  barracks:  { name: '병영', max: 4, baseCost: 220, desc: (l) => `직속 용병단 최대 ${1 + l}개, 정원 ${4 + (l >= 2 ? 1 : 0) + (l >= 4 ? 1 : 0)}명` },
+  barracks:  { name: '병영', max: 4, baseCost: 220, desc: (l) => `직속 용병단 최대 ${1 + l}개, 용병단당 대장 1 + 대원 ${4 + l}명` },
   training:  { name: '훈련장', max: 5, baseCost: 150, desc: (l) => l ? `대기 단원 매일 경험치 +${l * 5}` : '아직 없음 (대기 단원 성장 불가)' },
   infirmary: { name: '의무실', max: 5, baseCost: 130, desc: (l) => `부상 회복 속도 ${100 + l * 50}%` },
-  tavern:    { name: '모집소', max: 5, baseCost: 140, desc: (l) => `지원자 ${3 + l}명, 지원자 최고 레벨 +${l}, 용병단 시장 ${2 + Math.floor(l / 2)}곳` },
+  tavern:    { name: '모집소', max: 5, baseCost: 140, desc: (l) => `용병대장 지원자 ${2 + Math.floor(l / 2)}명, 숙련병 레벨 +${l}, 용병단 시장 ${2 + Math.floor(l / 2)}곳` },
   board:     { name: '정보망', max: 5, baseCost: 160, desc: (l) => `게시 의뢰 최대 ${4 + l}개, 보상 +${l * 8}%` },
   forge:     { name: '대장간', max: 5, baseCost: 200, desc: (l) => l ? `상점 물품 최대 등급 +${l >= 3 ? 1 : 0}, 진열 ${4 + l}개, 가격 -${l * 4}%` : '상점 진열 4개' },
 };
@@ -205,50 +205,182 @@ const RANDOM_EVENTS = [
   },
 ];
 
-// ───────── 직업 스킬 / 전직 ─────────
+// ───────── 용병 유닛: 직업 계통 (기본 → 상급 → 최상급) ─────────
+// 용병 유닛은 개인 능력치에 편차가 없다. 같은 직업·같은 레벨이면 능력치가 같고,
+// 어떤 직업으로 전직시키느냐(와 장비)로 용병단 안에서의 역할을 정한다.
+// fx: self.all(본인 전투력 +), self.types(의뢰 유형별 본인 전투력 +),
+//     party: success(+), injury(×), death(×), gold(+), great(×), greatGold(+), days(+), noDisaster, healHalf, loot, noMoraleLoss
 const CLASS_SKILLS = {
-  warrior: { name: '방패막이', desc: '파티 부상 확률 -15%' },
-  archer:  { name: '정찰', desc: '파티 성공률 +4%' },
-  mage:    { name: '마력 해석', desc: '마법 조사에서 본인 전투력 +20%' },
-  cleric:  { name: '치유', desc: '파티 부상 확률 -50%, 사망 위험 -65%' },
-  rogue:   { name: '약탈', desc: '보상 금화 +12%' },
+  warrior: { name: '방패막이', desc: '파티 부상 확률 -15%', fx: { party: { injury: 0.85 } } },
+  archer:  { name: '정찰', desc: '파티 성공률 +4%', fx: { party: { success: 0.04 } } },
+  mage:    { name: '마력 해석', desc: '마법 조사에서 본인 전투력 +20%', fx: { self: { types: { magic: 0.2 } } } },
+  cleric:  { name: '치유', desc: '파티 부상 확률 -50%, 사망 위험 -65%', fx: { party: { injury: 0.5, death: 0.35 } } },
+  rogue:   { name: '약탈', desc: '보상 금화 +12%', fx: { party: { gold: 0.12 } } },
 };
 
-const PROMOTE_LEVEL = 8;
-const PROMOTE_COST = 350;
+// 단계별 레벨 상한: 상한에 닿으면 전직해야 더 성장한다
+const UNIT_TIERS = [
+  { name: '기본', cap: 10 },
+  { name: '상급', cap: 20, at: 10, cost: 350 },
+  { name: '최상급', cap: 30, at: 20, cost: 900 },
+];
+const PROMOTE_LEVEL = UNIT_TIERS[1].at;
+const PROMOTE_COST = UNIT_TIERS[1].cost;
+const MASTER_LEVEL = UNIT_TIERS[2].at;
+const MASTER_COST = UNIT_TIERS[2].cost;
 
-// 직업마다 두 갈래 상급 직업. bonus: 전직 즉시 능력치, growth: 레벨업 성장 추가
+// 직업마다 두 갈래 상급 직업, 그 끝에 최상급 직업 하나씩.
+// bonus: 전직 즉시 능력치, growth: 레벨업 성장 추가
 const PROMOTIONS = {
   warrior: [
     { key: 'paladin', name: '성기사', skill: '수호의 맹세', desc: '파티 부상 확률 -30%, 사망 위험 -50%',
-      bonus: { maxHp: 20, str: 2, int: 3 }, growth: { hp: 2, int: 0.6 }, outfit: '#c9ced6', accent: '#d9a441' },
+      bonus: { maxHp: 20, str: 2, int: 3 }, growth: { hp: 2, int: 0.6 }, outfit: '#c9ced6', accent: '#d9a441',
+      fx: { party: { injury: 0.7, death: 0.5 } } },
     { key: 'swordmaster', name: '검성', skill: '일섬', desc: '토벌·방어 의뢰에서 본인 전투력 +30%',
-      bonus: { str: 6, dex: 3 }, growth: { str: 0.8, dex: 0.5 }, outfit: '#5a2430', accent: '#e8e4d8' },
+      bonus: { str: 6, dex: 3 }, growth: { str: 0.8, dex: 0.5 }, outfit: '#5a2430', accent: '#e8e4d8',
+      fx: { self: { types: { hunt: 0.3, defense: 0.3 } } } },
   ],
   archer: [
     { key: 'ranger', name: '레인저', skill: '길잡이', desc: '탐사·호위에서 본인 전투력 +25%, 파티 이동 -1일',
-      bonus: { dex: 4, maxHp: 8 }, growth: { dex: 0.5, hp: 1 }, outfit: '#2f5a2a', accent: '#d9a441' },
+      bonus: { dex: 4, maxHp: 8 }, growth: { dex: 0.5, hp: 1 }, outfit: '#2f5a2a', accent: '#d9a441',
+      fx: { self: { types: { explore: 0.25, escort: 0.25 } }, party: { days: -1 } } },
     { key: 'sniper', name: '저격수', skill: '급소 사격', desc: '파티 대성공 확률 2배',
-      bonus: { dex: 7 }, growth: { dex: 0.8 }, outfit: '#4a4a5a', accent: '#d6455d' },
+      bonus: { dex: 7 }, growth: { dex: 0.8 }, outfit: '#4a4a5a', accent: '#d6455d',
+      fx: { party: { great: 2 } } },
   ],
   mage: [
     { key: 'elementalist', name: '원소술사', skill: '원소 폭풍', desc: '토벌·마법 조사에서 본인 전투력 +30%',
-      bonus: { int: 7 }, growth: { int: 0.8 }, outfit: '#9c3b2e', accent: '#f39c12' },
+      bonus: { int: 7 }, growth: { int: 0.8 }, outfit: '#9c3b2e', accent: '#f39c12',
+      fx: { self: { types: { hunt: 0.3, magic: 0.3 } } } },
     { key: 'warder', name: '결계술사', skill: '방어 결계', desc: '파티의 대실패를 실패로 막고, 부상 확률 -20%',
-      bonus: { int: 4, maxHp: 10 }, growth: { int: 0.4, hp: 1.5 }, outfit: '#2e6b7a', accent: '#7fd6e8' },
+      bonus: { int: 4, maxHp: 10 }, growth: { int: 0.4, hp: 1.5 }, outfit: '#2e6b7a', accent: '#7fd6e8',
+      fx: { party: { noDisaster: true, injury: 0.8 } } },
   ],
   cleric: [
     { key: 'highpriest', name: '대사제', skill: '부활의 기도', desc: '파티 사망 위험 없음, 귀환 시 부상 기간 절반',
-      bonus: { int: 5, maxHp: 8 }, growth: { int: 0.6, hp: 1 }, outfit: '#f2ecd8', accent: '#7fd6e8' },
+      bonus: { int: 5, maxHp: 8 }, growth: { int: 0.6, hp: 1 }, outfit: '#f2ecd8', accent: '#7fd6e8',
+      fx: { party: { death: 0, healHalf: true } } },
     { key: 'battlepriest', name: '전투사제', skill: '신성 강타', desc: '본인 전투력 +20% (치유 효과는 유지)',
-      bonus: { str: 5, maxHp: 10 }, growth: { str: 0.9, hp: 1 }, outfit: '#a88a4a', accent: '#f2ecd8' },
+      bonus: { str: 5, maxHp: 10 }, growth: { str: 0.9, hp: 1 }, outfit: '#a88a4a', accent: '#f2ecd8',
+      fx: { self: { all: 0.2 } } },
   ],
   rogue: [
     { key: 'assassin', name: '암살자', skill: '암살', desc: '토벌에서 본인 전투력 +30%, 대성공 시 보상 +30%',
-      bonus: { dex: 5, str: 3 }, growth: { dex: 0.6, str: 0.4 }, outfit: '#1f1a28', accent: '#d6455d' },
+      bonus: { dex: 5, str: 3 }, growth: { dex: 0.6, str: 0.4 }, outfit: '#1f1a28', accent: '#d6455d',
+      fx: { self: { types: { hunt: 0.3 } }, party: { greatGold: 0.3 } } },
     { key: 'thief', name: '대도', skill: '보물 사냥', desc: '보상 금화 +25%, 성공 시 25% 확률로 장비 획득',
-      bonus: { dex: 4, int: 3 }, growth: { dex: 0.5, int: 0.4 }, outfit: '#5a4a2a', accent: '#f2c94c' },
+      bonus: { dex: 4, int: 3 }, growth: { dex: 0.5, int: 0.4 }, outfit: '#5a4a2a', accent: '#f2c94c',
+      fx: { party: { gold: 0.25, loot: 0.25 } } },
   ],
 };
 const ADV_CLASSES = {};
 Object.entries(PROMOTIONS).forEach(([cls, list]) => list.forEach((p) => { ADV_CLASSES[p.key] = { ...p, base: cls }; }));
+
+// 최상급 직업: 상급 직업 하나에 하나씩 (Lv.20)
+const MASTERS = {
+  paladin: { key: 'guardian', name: '수호기사', skill: '불굴의 성벽', desc: '파티 부상 확률 -40%, 사망 위험 -60%, 방어·호위·방어전에서 본인 전투력 +30%',
+    bonus: { maxHp: 30, str: 4, int: 3 }, growth: { hp: 2.5, str: 0.4 }, outfit: '#e8eef2', accent: '#f2c94c',
+    fx: { party: { injury: 0.6, death: 0.4 }, self: { types: { defense: 0.3, escort: 0.3, warDefense: 0.3 } } } },
+  swordmaster: { key: 'swordsaint', name: '검신', skill: '천검', desc: '모든 의뢰에서 본인 전투력 +35%',
+    bonus: { str: 9, dex: 5 }, growth: { str: 1.0, dex: 0.5 }, outfit: '#2a0e18', accent: '#f2c94c',
+    fx: { self: { all: 0.35 } } },
+  ranger: { key: 'pathfinder', name: '대륙 순찰자', skill: '질풍 행군', desc: '탐사·호위·구출에서 본인 전투력 +35%, 파티 이동 -1일',
+    bonus: { dex: 6, maxHp: 14 }, growth: { dex: 0.7, hp: 1.5 }, outfit: '#1f4a2a', accent: '#e8e4d8',
+    fx: { self: { types: { explore: 0.35, escort: 0.35, rescue: 0.35 } }, party: { days: -1 } } },
+  sniper: { key: 'skyarcher', name: '천궁', skill: '천리안', desc: '파티 대성공 확률 ×1.5, 성공률 +5%',
+    bonus: { dex: 10 }, growth: { dex: 1.0 }, outfit: '#2a2a3a', accent: '#f2c94c',
+    fx: { party: { great: 1.5, success: 0.05 } } },
+  elementalist: { key: 'archmage', name: '대마도사', skill: '메테오', desc: '토벌·마법 조사·공성·결전에서 본인 전투력 +40%',
+    bonus: { int: 10, maxHp: 6 }, growth: { int: 1.0 }, outfit: '#5a1414', accent: '#f2c94c',
+    fx: { self: { types: { hunt: 0.4, magic: 0.4, siege: 0.4, battle: 0.4 } } } },
+  warder: { key: 'sealmaster', name: '봉인술사', skill: '절대 결계', desc: '대실패 방지, 파티 부상 확률 -35%, 사망 위험 -40%',
+    bonus: { int: 6, maxHp: 16 }, growth: { int: 0.6, hp: 2 }, outfit: '#14404a', accent: '#a7e8f4',
+    fx: { party: { noDisaster: true, injury: 0.65, death: 0.6 } } },
+  highpriest: { key: 'saint', name: '성자', skill: '기적', desc: '파티 사망 위험 없음, 부상 기간 절반, 부상 확률 -25%',
+    bonus: { int: 7, maxHp: 14 }, growth: { int: 0.8, hp: 1.5 }, outfit: '#ffffff', accent: '#f2c94c',
+    fx: { party: { death: 0, healHalf: true, injury: 0.75 } } },
+  battlepriest: { key: 'inquisitor', name: '심판관', skill: '심판의 철퇴', desc: '본인 전투력 +30%, 방첩에서 추가 +30%',
+    bonus: { str: 7, maxHp: 16 }, growth: { str: 1.0, hp: 1.5 }, outfit: '#6a4a1a', accent: '#ffffff',
+    fx: { self: { all: 0.3, types: { counterspy: 0.3 } } } },
+  assassin: { key: 'nightblade', name: '무영', skill: '그림자 처형', desc: '토벌·습격·공작에서 본인 전투력 +40%',
+    bonus: { dex: 8, str: 5 }, growth: { dex: 0.8, str: 0.5 }, outfit: '#0e0a14', accent: '#8f2d4a',
+    fx: { self: { types: { hunt: 0.4, raid: 0.4, sabotage: 0.4 } } } },
+  thief: { key: 'phantom', name: '괴도', skill: '황금 손', desc: '보상 금화 +35%, 성공 시 40% 확률로 장비 획득',
+    bonus: { dex: 6, int: 5 }, growth: { dex: 0.6, int: 0.5 }, outfit: '#3a2a4a', accent: '#f2c94c',
+    fx: { party: { gold: 0.35, loot: 0.4 } } },
+};
+const MASTER_CLASSES = {};
+Object.entries(MASTERS).forEach(([adv, m]) => { MASTER_CLASSES[m.key] = { ...m, from: adv, base: ADV_CLASSES[adv].base }; });
+
+// ───────── 용병대장: 고유 직업 ─────────
+// 대장마다 하나뿐인 고유 직업을 갖고 등장한다. 성장률이 높고 레벨 상한이 높으며,
+// 지휘 스킬(lead)로 자기 용병단 전체를 끌어올린다.
+// style: 전투에서의 싸움 방식(기본 직업), lead: power(용병단 전투력 +), types(의뢰 유형별 +),
+//        cls(해당 기본 직업 대원 전투력 +), party(파티 효과)
+const CAPTAIN_CAP = 40;
+const CAPTAIN_AWAKEN = 20; // 이 레벨부터 지휘 효과 1.5배
+const CAPTAIN_CLASSES = {
+  blademaster: { name: '검귀', style: 'warrior', desc: '전장을 베어 가르는 검의 귀신. 앞장서서 대원들의 투지를 끌어올린다.',
+    base: { str: 12, dex: 7, int: 3, hp: 44 }, growth: { str: 3.6, dex: 1.8, int: 0.5, hp: 9 },
+    outfit: '#3a1018', accent: '#e8e4d8', headgear: 'band', weapon: 'sword',
+    lead: { name: '선봉의 검', desc: '용병단 전투력 +6%, 전사 계열 대원 +12%', power: 0.06, cls: { warrior: 0.12 } } },
+  warlord: { name: '전쟁군주', style: 'warrior', desc: '수많은 전쟁을 치른 지휘관. 세력 분쟁과 결전에서 진가를 발휘한다.',
+    base: { str: 11, dex: 5, int: 5, hp: 48 }, growth: { str: 3.2, dex: 1.2, int: 1.2, hp: 10 },
+    outfit: '#5a3a1a', accent: '#d6455d', headgear: 'helmet', weapon: 'sword',
+    lead: { name: '군세 통솔', desc: '습격·공성·방어전·결전에서 용병단 전투력 +15%', power: 0.03, types: { raid: 0.15, siege: 0.15, warDefense: 0.15, battle: 0.15 } } },
+  ironwall: { name: '철벽 수호자', style: 'warrior', desc: '한 번도 진형을 무너뜨린 적 없는 방패. 대원들을 살려서 돌아온다.',
+    base: { str: 10, dex: 4, int: 4, hp: 56 }, growth: { str: 2.8, dex: 1.0, int: 1.0, hp: 12 },
+    outfit: '#4a5a6a', accent: '#d9a441', headgear: 'helmet', weapon: 'mace',
+    lead: { name: '방진', desc: '파티 부상 확률 -35%, 사망 위험 -50%, 방어·호위 +12%', power: 0.03, types: { defense: 0.12, escort: 0.12, warDefense: 0.12 }, party: { injury: 0.65, death: 0.5 } } },
+  windhunter: { name: '바람 사냥꾼', style: 'archer', desc: '바람을 읽고 사냥감을 쫓는 명사수. 궁수들을 이끄는 데 능하다.',
+    base: { str: 6, dex: 12, int: 5, hp: 34 }, growth: { str: 1.6, dex: 3.6, int: 1.0, hp: 7 },
+    outfit: '#2a4a3a', accent: '#a7d26a', headgear: 'band', weapon: 'bow',
+    lead: { name: '사냥 신호', desc: '궁수 계열 대원 +15%, 파티 성공률 +4%, 이동 -1일', power: 0.03, cls: { archer: 0.15 }, party: { success: 0.04, days: -1 } } },
+  spellblade: { name: '마검사', style: 'mage', desc: '검과 마법을 함께 다루는 이단의 기사. 마법사들의 힘을 한데 모은다.',
+    base: { str: 8, dex: 6, int: 11, hp: 36 }, growth: { str: 1.8, dex: 1.2, int: 3.6, hp: 7 },
+    outfit: '#2a2a6a', accent: '#7fd6e8', headgear: 'none', weapon: 'staff',
+    lead: { name: '마력 공명', desc: '마법사 계열 대원 +15%, 마법 조사 +20%', power: 0.04, cls: { mage: 0.15 }, types: { magic: 0.2 } } },
+  saintknight: { name: '성광 기사', style: 'cleric', desc: '빛의 맹세를 지키는 기사. 그가 있는 한 아무도 버려지지 않는다.',
+    base: { str: 8, dex: 4, int: 9, hp: 46 }, growth: { str: 2.0, dex: 1.0, int: 2.8, hp: 10 },
+    outfit: '#e8e4d8', accent: '#f2c94c', headgear: 'helmet', weapon: 'mace',
+    lead: { name: '빛의 가호', desc: '파티 사망 위험 -70%, 부상 확률 -25%, 성직자 계열 대원 +10%', power: 0.03, cls: { cleric: 0.1 }, party: { death: 0.3, injury: 0.75 } } },
+  shadowlord: { name: '그림자 두목', style: 'rogue', desc: '뒷골목을 주름잡던 두목. 돈 냄새를 맡고, 어둠 속 일을 처리한다.',
+    base: { str: 7, dex: 12, int: 6, hp: 32 }, growth: { str: 1.6, dex: 3.6, int: 1.4, hp: 6 },
+    outfit: '#1a1420', accent: '#d9a441', headgear: 'hood', weapon: 'dagger',
+    lead: { name: '밤의 계약', desc: '보상 금화 +18%, 공작·구출·방첩 +20%, 도적 계열 대원 +12%', power: 0.03, cls: { rogue: 0.12 }, types: { sabotage: 0.2, rescue: 0.2, counterspy: 0.2 }, party: { gold: 0.18 } } },
+  tactician: { name: '전술가', style: 'mage', desc: '판을 읽는 눈을 가진 지휘관. 개인의 무용보다 용병단 전체를 움직인다.',
+    base: { str: 5, dex: 7, int: 12, hp: 34 }, growth: { str: 1.2, dex: 1.6, int: 3.6, hp: 7 },
+    outfit: '#3a3a4a', accent: '#f2c94c', headgear: 'hat', weapon: 'staff',
+    lead: { name: '전술 지휘', desc: '용병단 전투력 +10%, 파티 성공률 +5%, 대성공 확률 ×1.4', power: 0.1, party: { success: 0.05, great: 1.4 } } },
+
+  // 특별 용병(이야기가 있는 대장) 전용 고유 직업
+  silverscout: { hero: true, name: '은빛 순찰자', style: 'archer', desc: '숲을 떠난 엘프 정찰병만의 궁술.',
+    base: { str: 6, dex: 13, int: 6, hp: 34 }, growth: { str: 1.6, dex: 3.8, int: 1.2, hp: 7 },
+    outfit: '#2f6a4a', accent: '#e8e4d8', headgear: 'band', weapon: 'bow',
+    lead: { name: '숲의 눈', desc: '토벌·탐사·호위 +15%, 궁수 계열 대원 +10%', power: 0.04, cls: { archer: 0.1 }, types: { hunt: 0.15, explore: 0.15, escort: 0.15 } } },
+  exsaint: { hero: true, name: '파문 성녀', style: 'cleric', desc: '교단이 버린 성녀. 그 기도는 여전히 사람을 살린다.',
+    base: { str: 5, dex: 5, int: 13, hp: 40 }, growth: { str: 1.0, dex: 1.2, int: 3.8, hp: 9 },
+    outfit: '#f2ecd8', accent: '#d6455d', headgear: 'none', weapon: 'mace',
+    lead: { name: '들판의 미사', desc: '용병단 전투력 +6%, 부상 확률 -40%', power: 0.06, party: { injury: 0.6 } } },
+  outlaw: { hero: true, name: '가면 의적', style: 'rogue', desc: '북부 귀족의 금고를 털어 백성에게 나누던 의적.',
+    base: { str: 7, dex: 13, int: 7, hp: 32 }, growth: { str: 1.6, dex: 3.8, int: 1.6, hp: 6 },
+    outfit: '#2a1a3a', accent: '#e8e4d8', headgear: 'hood', weapon: 'dagger',
+    lead: { name: '의적의 신호', desc: '보상 금화 +15%, 구출·공작 +25%', power: 0.04, types: { rescue: 0.25, sabotage: 0.25 }, party: { gold: 0.15 } } },
+  pitchampion: { hero: true, name: '투기장 패왕', style: 'warrior', desc: '피의 투기장에서 살아남은 단 한 명.',
+    base: { str: 14, dex: 6, int: 2, hp: 50 }, growth: { str: 4.0, dex: 1.4, int: 0.3, hp: 11 },
+    outfit: '#7a2418', accent: '#f2c94c', headgear: 'none', weapon: 'sword',
+    lead: { name: '투기장의 함성', desc: '용병단 전투력 +10%, 전사 계열 대원 +10%', power: 0.1, cls: { warrior: 0.1 } } },
+  towerheir: { hero: true, name: '마탑 계승자', style: 'mage', desc: '무너진 마탑의 마지막 제자. 금지된 지식을 이어받았다.',
+    base: { str: 3, dex: 6, int: 15, hp: 30 }, growth: { str: 0.6, dex: 1.2, int: 4.2, hp: 6 },
+    outfit: '#3a1a5a', accent: '#f2d24b', headgear: 'hat', weapon: 'staff',
+    lead: { name: '마탑의 강의', desc: '마법사 계열 대원 +20%, 마법 조사 +25%', power: 0.04, cls: { mage: 0.2 }, types: { magic: 0.25 } } },
+  corsair: { hero: true, name: '해적 선장', style: 'archer', desc: '닻을 잃었지만 선원을 다루는 법은 잊지 않았다.',
+    base: { str: 8, dex: 11, int: 6, hp: 38 }, growth: { str: 2.0, dex: 3.2, int: 1.2, hp: 8 },
+    outfit: '#1a2a4a', accent: '#d6455d', headgear: 'hat', weapon: 'bow',
+    lead: { name: '갑판의 호령', desc: '호위 +20%, 보상 금화 +10%, 이동 -1일', power: 0.05, types: { escort: 0.2 }, party: { gold: 0.1, days: -1 } } },
+  fallencommander: { hero: true, name: '몰락 기사단장', style: 'warrior', desc: '왕국 기사단을 이끌던 사람. 지휘하는 법을 몸이 기억한다.',
+    base: { str: 12, dex: 5, int: 7, hp: 54 }, growth: { str: 3.2, dex: 1.0, int: 1.6, hp: 11 },
+    outfit: '#c9ced6', accent: '#3d5a9c', headgear: 'helmet', weapon: 'sword',
+    lead: { name: '기사단 전법', desc: '용병단 전투력 +8%, 방어·방어전·결전 +20%', power: 0.08, types: { defense: 0.2, warDefense: 0.2, battle: 0.2 } } },
+};
+const CAPTAIN_KEYS = Object.keys(CAPTAIN_CLASSES).filter((k) => !CAPTAIN_CLASSES[k].hero);

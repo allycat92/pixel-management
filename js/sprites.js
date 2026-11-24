@@ -103,13 +103,21 @@ const Sprites = (() => {
   // 용병 외형 → 픽셀 배열(색상 문자열)
   function mercPixels(look) {
     const adv = look.adv && ADV_CLASSES[look.adv];
-    let cls = adv ? { ...CLASSES[look.cls], outfit: adv.outfit, accent: adv.accent } : CLASSES[look.cls];
+    const master = look.master && MASTER_CLASSES[look.master];
+    const cap = look.cap && CAPTAIN_CLASSES[look.cap];
+    let cls = CLASSES[look.cls] || CLASSES.warrior;
+    if (adv) cls = { ...cls, outfit: adv.outfit, accent: adv.accent };
+    if (master) cls = { ...cls, outfit: master.outfit, accent: master.accent };
+    if (cap) cls = { ...cls, outfit: cap.outfit, accent: cap.accent, headgear: cap.headgear, weapon: cap.weapon }; // 대장 고유 복장
     if (look.tint) cls = { ...cls, outfit: look.tint.outfit, accent: look.tint.accent }; // 세력 병사 제복
     const px = BODY.map((r) => r.split(''));
+    // 용병대장: 망토, 최상급 직업: 어깨 장식
+    if (cap) [[11, 3], [12, 3], [13, 3], [12, 2], [13, 2], [11, 12], [12, 12], [13, 12], [12, 13], [13, 13]].forEach(([y, x]) => { if (px[y][x] === '.') px[y][x] = 'C'; });
+    if (master) { px[8][3] = 'A'; px[8][12] = 'A'; }
     applyHeadgear(px, cls.headgear, cls);
     const pal = {
       O: OUTLINE, H: look.hair, S: look.skin, E: '#1b1420',
-      B: cls.outfit, A: cls.accent, L: shade(cls.outfit, -45), F: '#3a2a20',
+      B: cls.outfit, A: cls.accent, L: shade(cls.outfit, -45), F: '#3a2a20', C: shade(cls.accent, -60),
     };
     // 긴 머리
     if (look.longHair && cls.headgear !== 'hood' && cls.headgear !== 'helmet') {
@@ -136,7 +144,7 @@ const Sprites = (() => {
   }
 
   function merc(look, scale = 1, frame = 0, flip = false) {
-    const key = `${look.cls}|${look.adv || ''}|${look.tint ? look.tint.outfit : ''}|${look.skin}|${look.hair}|${look.longHair}|${scale}|${frame}|${flip}`;
+    const key = `${look.cls}|${look.adv || ''}|${look.master || ''}|${look.cap || ''}|${look.tint ? look.tint.outfit : ''}|${look.skin}|${look.hair}|${look.longHair}|${scale}|${frame}|${flip}`;
     if (cache.has(key)) return cache.get(key);
     const c = canvas(16 * scale, 17 * scale);
     const ctx = c.getContext('2d');

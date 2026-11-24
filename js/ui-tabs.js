@@ -7,42 +7,44 @@
 
   // ───────── 용병단 ─────────
   function memberRow(m, c) {
-    const isLeader = c && c.leaderId === m.id;
-    return el('div', { class: `mrow ${m.status}`, onclick: () => UI.openMerc(m.id) },
+    const cap = Game.isCaptain(m);
+    return el('div', { class: `mrow ${m.status} ${cap ? 'captain-row' : ''}`, onclick: () => UI.openMerc(m.id) },
       mini(m.look),
       el('div', { class: 'grow' },
-        el('div', { class: 'mname' }, isLeader ? el('span', { class: 'crown', title: '단장', text: '♛' }) : null, m.name,
+        el('div', { class: 'mname' }, cap ? el('span', { class: 'crown', title: '용병대장', text: '♛' }) : null, m.name,
           el('span', { class: 'lv', text: ` Lv.${m.level}` }), m.hero ? el('span', { class: 'hero-mark', text: ' ★' }) : null),
-        el('div', { class: 'small muted' }, `${Game.className(m)} · ${TRAITS[m.trait].name}`)),
+        el('div', { class: 'small muted' }, cap
+          ? `${Game.className(m)} · 지휘 「${Game.leadOf(m).name}」${m.trait !== 'none' ? ` · ${TRAITS[m.trait].name}` : ''}`
+          : `${Game.className(m)} (${UNIT_TIERS[Game.classTier(m)].name})${m.trait !== 'none' ? ` · ${TRAITS[m.trait].name}` : ''}`)),
       el('div', { class: 'mtags' },
         m.status === 'injured' ? el('span', { class: 'tag tag-injured', text: `부상 ${Math.ceil(m.injury)}일` }) : null,
         m.status === 'quest' ? el('span', { class: 'tag tag-quest', text: '출격' }) : null,
-        Game.canPromote(m) && m.status !== 'quest' ? el('span', { class: 'tag tag-promo', text: '전직 가능' }) : null,
+        (Game.canPromote(m) || Game.canMaster(m)) && m.status !== 'quest' ? el('span', { class: 'tag tag-promo', text: Game.canMaster(m) ? '최상급 전직 가능' : '전직 가능' })
+          : !cap && Game.atCap(m) && Game.classTier(m) < 2 ? el('span', { class: 'tag tag-promo', text: '상한 도달' }) : null,
         ...condTags(m)));
   }
 
   function ownCompanyPanel(c) {
     const s = Game.state;
-    const ms = Game.members(c);
-    const mi = c.missionId && s.missions.find((x) => x.id === c.missionId);
-    const pw = ms.reduce((a, m) => a + Game.power(m, null, ms), 0);
     const leader = Game.leader(c);
+    const units = Game.unitsOf(c);
+    const ms = leader ? [leader, ...units] : units;
+    const mi = c.missionId && s.missions.find((x) => x.id === c.missionId);
     return el('div', { class: 'company-panel', style: `--cc:${c.color}` },
       el('div', { class: 'company-head' },
         companyFlag(c, 3),
         el('div', { class: 'grow' },
           el('div', { class: 'cname', text: c.name }),
-          el('div', { class: 'small muted', text: `단장 ${leader ? leader.name : '없음'} · ${ms.length}/${Game.companySize()}명 · 전적 ${c.wins}승 ${c.losses}패 · 기본 전투력 ${Math.round(pw * Game.cohesionMul(c) * Game.leaderMul(c))}` }),
+          el('div', { class: `small ${leader ? 'muted' : 'bad'}`, text: `${leader ? `대장 ${leader.name}(${Game.className(leader)})` : '대장 없음 (전투력 -15%)'} · 대원 ${units.length}/${Game.unitSlots()} · 전적 ${c.wins}승 ${c.losses}패 · 기본 전투력 ${ms.length ? Game.ownCompanyPower(c, ms, null) : 0}` }),
+          leader ? el('div', { class: 'small lead-line', title: Game.leadOf(leader).desc }, '지휘 ', el('b', { text: `「${Game.leadOf(leader).name}」` }), ` ${Game.leadOf(leader).desc}${Game.leadScale(leader) > 1 ? ' (×1.5)' : ''}`) : null,
           el('div', { class: 'cohesion' }, el('span', { class: 'small muted', text: '결속도' }),
             el('div', { class: 'bar thin' }, el('div', { class: 'bar-fill f-cohesion', style: `width:${c.cohesion}%` })),
             el('span', { class: 'small', text: c.cohesion }))),
         el('div', { class: 'company-status' },
           mi ? el('span', { class: 'tag tag-quest', text: `출격 중 · ${mi.returnDay - s.day}일 후 귀환` }) : el('span', { class: 'tag tag-idle', text: '대기' }),
           mi ? el('div', { class: 'small muted', text: mi.contract.title }) : null)),
-      el('div', { class: 'members' }, ms.length ? ms.map((m) => memberRow(m, c)) : el('div', { class: 'muted small pad', text: '단원이 없습니다. 예비 인원을 배속하세요.' })),
+      el('div', { class: 'members' }, ms.length ? ms.map((m) => memberRow(m, c)) : el('div', { class: 'muted small pad', text: '단원이 없습니다. 예비 인원 중 용병대장 1명과 대원을 배속하세요.' })),
       el('div', { class: 'company-foot' },
-        el('select', { class: 'input small', disabled: c.missionId ? 'disabled' : null, onchange: (e) => Game.setLeader(c.id, Number(e.target.value)) },
-          ms.map((m) => el('option', { value: m.id, selected: m.id === c.leaderId ? 'selected' : null }, `단장: ${m.name}`))),
         el('button', { class: 'btn small', text: '이름 변경', onclick: () => renameCompany(c) }),
         el('button', { class: 'btn small danger', text: '해산', disabled: c.missionId ? 'disabled' : null,
           onclick: () => UI.confirmBox(`「${c.name}」을(를) 해산할까요? 단원들은 예비 인원이 됩니다.`, () => Game.disbandCompany(c.id)) })));
@@ -66,7 +68,7 @@
         el('div', { class: 'portrait-wrap' }, Sprites.clone(Sprites.merc(c.captain.look, 3, 0), 'portrait')),
         el('div', { class: 'grow' },
           el('div', { class: 'cname' }, companyFlag(c, 1), ` ${c.name}`),
-          el('div', { class: 'small muted', text: `단장 ${c.captain.name} · Lv.${c.level} · ${c.size}/${c.maxSize}명 · 기본 전투력 ${Game.extPower(c, null)}` }),
+          el('div', { class: 'small muted', text: `단장 ${c.captain.name}${c.captain.cap ? `(${CAPTAIN_CLASSES[c.captain.cap].name})` : ""} · Lv.${c.level} · ${c.size}/${c.maxSize}명 · 기본 전투력 ${Game.extPower(c, null)}` }),
           el('div', { class: 'small' },
             el('span', { class: 'chip', text: `특기: ${QUEST_TYPES[c.specialty].name}` }), ' ',
             el('span', { class: 'chip', title: DISPOSITIONS[c.disposition].desc, text: `성향: ${DISPOSITIONS[c.disposition].name}` }), ' ',
@@ -118,9 +120,9 @@
   };
 
   function quickAssign(m) {
-    const open = Game.ownCompanies().filter((c) => !c.missionId && Game.members(c).length < Game.companySize());
+    const open = Game.ownCompanies().filter((c) => !c.missionId && !Game.slotProblem(m, c));
     if (open.length === 1) Game.assign(m.id, open[0].id);
-    else if (!open.length) UI.toast('빈 자리가 있는 대기 중인 용병단이 없습니다.');
+    else if (!open.length) UI.toast(Game.isCaptain(m) ? '대장 자리가 빈 용병단이 없습니다. 용병단을 새로 창설하세요.' : '대원 자리가 빈 대기 중인 용병단이 없습니다.');
     else UI.openMerc(m.id);
   }
 
@@ -272,7 +274,7 @@
           el('div', { class: 'chips' }, Game.availableMembers(co).map((m) => el('span', {
             class: `mchip ${set.has(m.id) ? 'on' : ''} ${m.fatigue >= 80 ? 'tired' : ''}`,
             onclick: () => { if (set.has(m.id)) set.delete(m.id); else set.add(m.id); refresh(); },
-          }, mini(m.look), `${m.name}${m.fatigue >= 50 ? ` (${Game.fatigueState(m).label})` : ''}`))));
+          }, mini(m.look), `${Game.isCaptain(m) ? '♛' : ''}${m.name}${m.fatigue >= 50 ? ` (${Game.fatigueState(m).label})` : ''}`))));
       }));
 
       const us = units();
@@ -481,27 +483,52 @@
   // ───────── 모집소 ─────────
   T.recruit = (root) => {
     const s = Game.state;
+    // 용병대장 후보 (고유 직업)
     root.append(el('div', { class: 'panel-head' },
-      el('h2', { text: '모집소 — 개인 지원자' }),
+      el('h2', { text: '모집소 — 용병대장 후보' }),
       el('div', { class: 'row-inline' },
-        el('span', { class: 'muted small', text: `고용한 단원은 예비 인원이 됩니다 · 길드 정원 ${s.mercs.length}/${Game.capacity()}` }),
-        el('button', { class: 'btn small', text: '지원자 새로 부르기 (30)', onclick: () => Game.refreshRecruits(true) }))));
+        el('span', { class: 'muted small', text: `대장은 고유 직업을 갖고 등장하며 높은 성장률(상한 Lv.${CAPTAIN_CAP})과 지휘 스킬로 용병단 하나를 이끕니다 · 길드 정원 ${s.mercs.length}/${Game.capacity()}` }),
+        el('button', { class: 'btn small', text: '후보 새로 부르기 (40)', onclick: () => Game.refreshRecruits(true) }))));
     const grid = el('div', { class: 'grid' });
     s.recruits.forEach((m) => {
       const cost = Game.hireCost(m);
-      const btn = el('button', { class: 'btn primary small', disabled: s.gold < cost ? 'disabled' : null, onclick: () => Game.hire(m.id) }, icon('coin'), ` ${cost} 고용`);
+      const btn = el('button', { class: 'btn primary small', disabled: s.gold < cost ? 'disabled' : null, onclick: () => Game.hire(m.id) }, icon('coin'), ` ${cost} ${Game.isCaptain(m) ? '영입' : '고용'}`);
       const card = mercCard(m, { recruit: true, actions: [btn] });
       const h = m.hero && HEROES[m.hero];
       const desc = m.elite
-        ? el('p', { class: 'small desc hero-desc' }, factionFlag(m.elite, 1), ` ${FACTIONS[m.elite].name} 정예 · ${TRAITS[m.trait].name}: ${TRAITS[m.trait].desc} · 평판이 0 아래로 떨어지면 소환됨`)
+        ? el('p', { class: 'small desc hero-desc' }, factionFlag(m.elite, 1), ` ${FACTIONS[m.elite].name} 정예 대원 · ${TRAITS[m.trait].name}: ${TRAITS[m.trait].desc} · 평판이 0 아래로 떨어지면 소환됨`)
         : h
-        ? el('p', { class: 'small desc hero-desc' }, `특별 용병 · ${TRAITS[m.trait].name}: ${TRAITS[m.trait].desc}`, h.faction ? el('span', { class: 'muted' }, ` · 연고: ${FACTIONS[h.faction].name}`) : null)
-        : el('p', { class: 'muted small desc', text: CLASSES[m.cls].desc });
-      card.insertBefore(desc, card.querySelector('.stats'));
+        ? el('p', { class: 'small desc hero-desc' }, `특별 용병대장 · ${TRAITS[m.trait].name}: ${TRAITS[m.trait].desc}`, h.faction ? el('span', { class: 'muted' }, ` · 연고: ${FACTIONS[h.faction].name}`) : null)
+        : null;
+      if (desc) card.insertBefore(desc, card.querySelector('.stats'));
       grid.append(card);
     });
-    if (!s.recruits.length) root.append(el('p', { class: 'empty', text: '오늘은 지원자가 없습니다.' }));
+    if (!s.recruits.length) root.append(el('p', { class: 'empty', text: '지금은 찾아온 용병대장 후보가 없습니다.' }));
     root.append(grid);
+
+    // 대원 모집: 직업을 골라 뽑는다
+    const vl = Game.veteranLevel();
+    root.append(el('div', { class: 'panel-head mt' },
+      el('h2', { text: '모집소 — 대원 모집' }),
+      el('span', { class: 'muted small', text: `대원은 능력치 편차가 없는 범용 용병입니다. 직업을 골라 뽑고, 전직으로 역할을 정하세요. 숙련병 레벨은 모집소 단계와 길드 등급에 따라 오릅니다 (현재 Lv.${vl}).` })));
+    root.append(el('div', { class: 'unit-grid' }, Object.entries(CLASSES).map(([cls, C]) => {
+      const lv1 = { ...C.base, maxHp: C.base.hp };
+      const costN = Game.unitHireCost(cls, false), costV = Game.unitHireCost(cls, true);
+      const full = s.mercs.length >= Game.capacity();
+      return el('div', { class: 'card unit-card' },
+        el('div', { class: 'card-head' },
+          el('div', { class: 'portrait-wrap' }, UI.h.portrait({ cls, skin: '#f2c9a0', hair: '#5a3720' })),
+          el('div', { class: 'card-title' },
+            el('div', { class: 'name', text: C.name }),
+            el('div', { class: 'small muted', text: `힘 ${lv1.str} · 민첩 ${lv1.dex} · 지력 ${lv1.int} · 체력 ${lv1.maxHp}` }))),
+        el('p', { class: 'small', text: C.desc }),
+        el('div', { class: 'small' }, el('span', { class: 'skill', title: CLASS_SKILLS[cls].desc, text: CLASS_SKILLS[cls].name }), ` ${CLASS_SKILLS[cls].desc}`),
+        el('div', { class: 'small muted', text: `전직: ${PROMOTIONS[cls].map((p) => `${p.name} → ${MASTERS[p.key].name}`).join(' / ')}` }),
+        el('div', { class: 'card-foot' },
+          el('button', { class: 'btn small', disabled: full || s.gold < costN ? 'disabled' : null, onclick: () => Game.hireUnit(cls, false) }, icon('coin'), ` ${costN} 신병 Lv.1`),
+          el('button', { class: 'btn primary small', disabled: full || s.gold < costV ? 'disabled' : null, onclick: () => Game.hireUnit(cls, true) }, icon('coin'), ` ${costV} 숙련병 Lv.${vl}`)));
+    })));
+
     root.append(el('div', { class: 'panel-head mt' },
       el('h2', { text: '용병단 시장' }),
       el('span', { class: 'muted small', text: '2주마다 새 용병단이 찾아옵니다. 외부 용병단은 보상 몫을 떼어 가고, 성향에 따라 의뢰를 거부하기도 합니다.' })));
