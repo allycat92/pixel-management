@@ -127,7 +127,7 @@ Object.assign(Game, {
     if (level > UNIT_TIERS[0].cap) {
       this.applyPromotion(m, pick(PROMOTIONS[cls]).key);
       while (m.level < Math.min(level, UNIT_TIERS[1].cap)) this.levelUp(m, true);
-      if (level > UNIT_TIERS[1].cap) { this.applyMaster(m); while (m.level < level) this.levelUp(m, true); }
+      if (level > UNIT_TIERS[1].cap) { this.applyMaster(m, pick(MASTERS[m.adv]).key); while (m.level < level) this.levelUp(m, true); }
     }
     m.trait = FACTION_TRAITS[f];
     m.elite = f;

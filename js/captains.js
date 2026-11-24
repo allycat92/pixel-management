@@ -7,15 +7,15 @@ Object.assign(Game, {
     const s = this.state;
     s.captains = {};
     STARTER_CAPTAINS.forEach((k) => { s.captains[k] = { status: 'candidate', ch: 0, phase: 'start' }; });
-    CAPTAIN_PHASES.forEach((ph) => ph.pair.forEach((k) => { s.captains[k] = { status: 'locked', ch: 0, phase: ph.key }; }));
+    CAPTAIN_PHASES.forEach((ph) => ph.list.forEach((k) => { s.captains[k] = { status: 'locked', ch: 0, phase: ph.key }; }));
     s.phases = {};
     CAPTAIN_PHASES.forEach((ph) => { s.phases[ph.key] = 'locked'; });
     s.pendingReports.unshift({ special: 'starter' });
   },
 
   captainState(key) { return this.state.captains[key]; },
-  captainPhase(key) { return CAPTAIN_PHASES.find((ph) => ph.pair.includes(key)); },
-  rivalOf(key) { const ph = this.captainPhase(key); return ph ? ph.pair.find((k) => k !== key) : null; },
+  captainPhase(key) { return CAPTAIN_PHASES.find((ph) => ph.list.includes(key)); },
+  rivalsOf(key) { const ph = this.captainPhase(key); return ph ? ph.list.filter((k) => k !== key) : []; },
   needsStarter() { return STARTER_CAPTAINS.some((k) => this.state.captains[k].status === 'candidate'); },
 
   // 실제 용병대장 단원 만들기 (이름·외형·성격이 정해져 있다)
@@ -36,8 +36,7 @@ Object.assign(Game, {
     s.mercs.push(m);
     const co = this.ownCompanies()[0];
     if (co) { m.companyId = co.id; co.leaderId = m.id; }
-    const lost = STARTER_CAPTAINS.filter((k) => k !== key).map((k) => CAPTAINS[k].name).join('·');
-    this.log(`${CAPTAINS[key].title} ${m.name}이(가) 첫 용병대장이 되었습니다. ${lost}은(는) 다른 길을 찾아 떠났습니다.`, 'good');
+    this.log(`${CAPTAINS[key].title} ${m.name}이(가) 첫 용병대장이 되었습니다. 다른 후보 ${STARTER_CAPTAINS.length - 1}명은 각자의 길을 찾아 떠났습니다.`, 'good');
     this.emit();
   },
 
@@ -50,16 +49,16 @@ Object.assign(Game, {
     return { ok, text: req.text };
   },
 
-  // 갈림길에서 한 명을 택한다: 상대는 영입 불가
+  // 갈림길에서 한 명을 택한다: 나머지는 영입 불가
   pursueCaptain(key) {
     const s = this.state;
     const ph = this.captainPhase(key);
     if (!ph || s.phases[ph.key] !== 'open' || s.captains[key].status !== 'offered') return;
-    const rival = this.rivalOf(key);
     s.phases[ph.key] = 'chosen';
     s.captains[key].status = 'pursuing';
-    s.captains[rival].status = 'lost';
-    this.log(`${CAPTAINS[key].title} ${CAPTAINS[key].name}의 길을 택했습니다. ${CAPTAINS[rival].name}은(는) 길드를 떠났습니다. 영입 의뢰를 완수하면 합류합니다.`, 'event');
+    this.rivalsOf(key).forEach((k) => { s.captains[k].status = 'lost'; });
+    this.log(`${CAPTAINS[key].title} ${CAPTAINS[key].name}의 길을 택했습니다. 나머지 ${ph.list.length - 1}명은 길드를 떠났습니다. 영입 의뢰를 완수하면 합류합니다.`, 'event');
+    s.pendingReports.push({ special: 'dialog', captain: key, title: `${CAPTAINS[key].title} ${CAPTAINS[key].name}`, lines: CAPTAINS[key].intro, foot: '영입 의뢰가 의뢰 목록에 올라옵니다.' });
     this.checkCaptains();
     this.emit();
   },
@@ -71,12 +70,12 @@ Object.assign(Game, {
     CAPTAIN_PHASES.forEach((ph) => {
       if (s.phases[ph.key] !== 'locked' || r < ph.rank) return;
       s.phases[ph.key] = 'open';
-      ph.pair.forEach((k) => { s.captains[k].status = 'offered'; });
-      const [a, b] = ph.pair.map((k) => CAPTAINS[k]);
-      this.log(`갈림길(${ph.name}): ${a.title} ${a.name}와(과) ${b.title} ${b.name}이(가) 길드를 찾아왔습니다. 한 사람만 택할 수 있습니다. (모집소)`, 'event');
-      s.pendingReports.push({ special: 'dialog', captain: ph.pair[0], title: `갈림길 — ${a.title} ${a.name}`, lines: a.intro, foot: '' });
-      s.pendingReports.push({ special: 'dialog', captain: ph.pair[1], title: `갈림길 — ${b.title} ${b.name}`, lines: b.intro,
-        foot: `두 사람 중 한 명만 택할 수 있습니다. 택하지 않은 쪽은 다시 오지 않습니다. 모집소에서 결정하세요.` });
+      ph.list.forEach((k) => { s.captains[k].status = 'offered'; });
+      this.log(`갈림길(${ph.name}): 용병대장 후보 ${ph.list.length}명이 길드를 찾아왔습니다. 한 사람만 택할 수 있습니다. (모집소)`, 'event');
+      s.pendingReports.push({ special: 'dialog', captain: ph.list[0], title: `갈림길 — ${ph.name}`,
+        lines: [[null, `명성을 듣고 용병대장 후보 ${ph.list.length}명이 길드를 찾아왔습니다: ${ph.list.map((k) => `${CAPTAINS[k].title} ${CAPTAINS[k].name}`).join(', ')}.`],
+          [null, '저마다 사연이 있고, 함께하려면 그 사연을 풀어 주어야 합니다. 하지만 길드가 품을 수 있는 대장은 이번에 한 명뿐입니다.']],
+        foot: `모집소에서 한 명을 택하세요. 택하지 않은 ${ph.list.length - 1}명은 다시 오지 않습니다.` });
     });
     // 택한 대장의 영입 의뢰를 올린다
     Object.entries(s.captains).forEach(([key, cs]) => {

@@ -12,16 +12,35 @@ const Battle = (() => {
   const END_HOLD = 2.2;              // 결판 후 화면 유지(초)
   const ATK_SCALE = 0.55;            // 전투가 너무 빨리 끝나지 않게
 
-  // 직업별 기본 능력치 (강도 1 기준)
+  // 직업(싸움 방식)별 기본 능력치 (강도 1 기준). 공격 방식·사거리·재사용은 스킬이 정한다.
   const CLASS_STATS = {
-    warrior: { hp: 130, atk: 13, range: 11, speed: 24, cd: 1.0 },
-    rogue:   { hp: 90,  atk: 15, range: 11, speed: 34, cd: 0.75 },
-    archer:  { hp: 75,  atk: 11, range: 95, speed: 26, cd: 1.25, shot: 'arrow' },
-    mage:    { hp: 65,  atk: 16, range: 85, speed: 22, cd: 1.9, shot: 'fire', splash: 14 },
-    cleric:  { hp: 90,  atk: 7,  range: 70, speed: 24, cd: 1.6, shot: 'holy', heal: 16 },
+    warrior: { hp: 130, atk: 13, speed: 24 },
+    rogue:   { hp: 90,  atk: 15, speed: 34 },
+    archer:  { hp: 75,  atk: 11, speed: 26 },
+    mage:    { hp: 65,  atk: 14, speed: 22 },
+    cleric:  { hp: 90,  atk: 9,  speed: 24 },
   };
-  const MONSTER_STATS = { hp: 110, atk: 12, range: 11, speed: 27, cd: 1.0 };
-  const RANGED_TPL = { ghost: 'curse', drake: 'fire' };
+  const MONSTER_STATS = { hp: 110, atk: 12, speed: 27 };
+  const RANGED_TPL = { ghost: 'curse', drake: 'fire', demon: 'curse' };
+  const HEAL_POWER = 16;
+
+  // 범용 부대장(외부 용병단 단장, 세력 부대장)이 쓰는 특기
+  const GENERIC_SPECIAL = {
+    warrior: SK.melee('돌격', 1.5, 9, { dash: true, stun: 0.4 }),
+    archer: SK.shot('일제 사격', 'arrow', 0.8, 95, 8, { hits: 3 }),
+    mage: SK.shot('화염 폭발', 'fire', 1.4, 85, 9, { aoe: 20 }),
+    cleric: SK.heal('집단 치유', 0.9, 60, 10, { aoe: 35 }),
+    rogue: SK.melee('급소 찌르기', 1.8, 8, { exec: 0.6, dash: true }),
+  };
+  // 괴물 스킬
+  function monsterSkills(ud) {
+    const tpl = ENEMIES[ud.mon] && ENEMIES[ud.mon].tpl;
+    const basic = RANGED_TPL[tpl] && !ud.boss ? SK.shot('공격', RANGED_TPL[tpl], 1, 70, 1.4) : SK.melee('공격', 1, 1.0, { range: ud.bigMon ? 16 : 11 });
+    if (ud.boss) return [basic, (tpl === 'drake' || tpl === 'demon') ? SK.shot('파멸의 숨결', tpl === 'demon' ? 'curse' : 'fire', 1.6, 70, 7, { aoe: 26, stun: 0.6 })
+      : SK.melee('대지 분쇄', 1.8, 7, { aoe: 24, stun: 0.6, range: 18 })];
+    if (ud.bigMon) return [basic, SK.melee('포효', 1.1, 9, { aoe: 20, stun: 0.4, range: 16 })];
+    return [basic];
+  }
 
   const BG = {
     plains: { sky: ['#6fa0e8', '#9cc4f0'], ground: '#6fa84a', dark: '#4a7a30', deco: 'grass' },
@@ -104,7 +123,7 @@ const Battle = (() => {
     (report.companies || []).forEach((c) => {
       if (c.own && c.members) {
         const ms = [...c.members].sort((a, b) => (b.leader ? 1 : 0) - (a.leader ? 1 : 0) || b.level - a.level);
-        const units = ms.map((m) => ({ look: m.look, cls: m.cls, str: (0.85 + m.level * 0.035) * (m.leader ? 1.15 : 1), named: m.name, doomed: deadIds.has(m.id) }));
+        const units = ms.map((m) => ({ look: m.look, cls: m.cls, str: (0.85 + m.level * 0.035) * (m.leader ? 1.15 : 1), named: m.name, doomed: deadIds.has(m.id), sk: m.sk, unique: m.unique }));
         // 대원이 셋이 안 되면 수습 용병이 머릿수를 채운다
         looksFor(c.color, Math.max(0, 4 - units.length)).forEach((lk) => units.push({ look: lk, cls: lk.cls, str: 0.7, recruit: true }));
         groups.push({ side: 0, name: c.name, color: c.color, player: true, units: units.slice(0, 9) });
@@ -188,31 +207,39 @@ const Battle = (() => {
         const cy = TOP + 6 + ((BOTTOM - TOP - 12) * (rowIdx + 0.5)) / inCol;
         const cx = side === 0 ? 66 - col * 38 : W - 66 + col * 38;
         g.units = groups[g.id].units.map((ud, k) => {
-          const base = ud.mon ? { ...MONSTER_STATS } : { ...(CLASS_STATS[ud.cls] || CLASS_STATS.warrior) };
-          if (ud.mon) {
-            const tpl = ENEMIES[ud.mon] && ENEMIES[ud.mon].tpl;
-            if (RANGED_TPL[tpl] && !ud.boss) Object.assign(base, { range: 70, cd: 1.4, shot: RANGED_TPL[tpl] });
-            if (ud.bigMon) { base.hp *= ud.boss ? 7 : 2.6; base.atk *= ud.boss ? 2.4 : 1.6; base.range = Math.max(base.range, 16); base.speed *= 0.85; }
-          }
           const captain = k === 0;
+          const base = ud.mon ? { ...MONSTER_STATS } : { ...(CLASS_STATS[ud.cls] || CLASS_STATS.warrior) };
+          if (ud.mon && ud.bigMon) { base.hp *= ud.boss ? 7 : 2.6; base.atk *= ud.boss ? 2.4 : 1.6; base.speed *= 0.85; }
+          // 스킬: 직속 단원은 자기 스킬, 그 밖에는 직업 기본기 (+ 부대장은 범용 특기)
+          let skills = ud.sk;
+          if (!skills) {
+            if (ud.mon) skills = monsterSkills(ud);
+            else {
+              const basic = (CLASS_SKILLS[ud.cls] || CLASS_SKILLS.warrior).b;
+              skills = captain ? [basic, GENERIC_SPECIAL[ud.cls] || GENERIC_SPECIAL.warrior] : [basic];
+            }
+          }
           let str = ud.str * (side === 1 ? bias : 1);
           if (captain) str *= 1.15;
           if (ud.doomed) str *= 0.6;
-          const hp = base.hp * str * (captain && !ud.mon ? 1.6 : 1);
+          const hp = base.hp * str * (captain && !ud.mon ? 1.6 : 1) * (ud.unique ? 1.15 : 1);
           // 대형: 대장이 가운데, 대원은 3열로 앞뒤에 선다
           const fwd = side === 0 ? 1 : -1;
-          const col = captain ? 0 : Math.floor((k - 1) / 3);
+          const fcol = captain ? 0 : Math.floor((k - 1) / 3);
           const row = captain ? 1 : (k - 1) % 3;
-          const ox = captain ? -fwd * 4 : fwd * (8 - col * 12);
+          const ox = captain ? -fwd * 4 : fwd * (8 - fcol * 12);
           const oy = (row - 1) * 10;
           const unit = {
             g, side, captain, ...ud,
             x: cx + ox + (r() - 0.5) * 4, y: clamp(cy + oy + (r() - 0.5) * 4, TOP, BOTTOM),
-            hp, maxHp: hp, atk: base.atk * str * ATK_SCALE, range: base.range, speed: base.speed * (0.9 + r() * 0.2),
-            cd: r() * base.cd, cdMax: base.cd, shot: base.shot, splash: base.splash, heal: base.heal ? base.heal * str * ATK_SCALE : 0,
+            hp, maxHp: hp, atk: base.atk * str * ATK_SCALE, healPow: HEAL_POWER * str * ATK_SCALE, speed: base.speed * (0.9 + r() * 0.2),
+            skills: skills.map((sk, i) => ({ ...sk, left: i === 0 ? r() * sk.cd : sk.cd * (0.3 + r() * 0.5) })),
+            buffs: [], stunUntil: 0,
             alive: true, fled: false, target: null, retarget: r() * 0.5, face: side === 0 ? 1 : -1,
             moving: false, lunge: 0, flash: 0, downAt: 0, walk: r() * 10,
           };
+          unit.healer = unit.skills[0].tgt === 'hurt';
+          unit.reach = unit.skills[0].range;
           units.push(unit);
           return unit;
         });
@@ -224,9 +251,21 @@ const Battle = (() => {
 
   const groupAlive = (g) => g.units.filter((u) => u.alive && !u.fled);
   const sideActive = (st, side) => st.groups.some((g) => g.side === side && !g.routed && groupAlive(g).length);
+  const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+  const sizeOf = (u) => (u.scale > 1 ? u.scale * 4 : 0);
+  const buffSum = (u, k, t) => u.buffs.reduce((a, b) => a + (b.until > t ? (b[k] || 0) : 0), 0);
+  const atkMul = (u, t) => {
+    const cap = u.g.captain;
+    const aura = cap.alive && cap !== u && Math.hypot(cap.x - u.x, cap.y - u.y) < 60 ? 1.1 : 1; // 대장 곁의 대원은 힘이 난다
+    return (1 + buffSum(u, 'atk', t)) * aura;
+  };
+  const defMul = (u, t) => 1 - Math.min(0.6, buffSum(u, 'def', t));
 
-  function hit(st, u, target, dmg, crit) {
-    if (!target.alive) return;
+  function addBuff(st, u, b) { if (b) u.buffs.push({ atk: b.atk || 0, def: b.def || 0, until: st.t + b.dur }); }
+
+  function damage(st, target, dmg, crit) {
+    if (!target.alive) return 0;
+    dmg *= defMul(target, st.t);
     target.hp -= dmg;
     target.flash = 0.18;
     st.fx.push({ kind: 'pop', x: target.x, y: target.y - 18, text: String(Math.round(dmg)), crit, ally: target.side === 0, t: 0 });
@@ -236,6 +275,93 @@ const Battle = (() => {
       target.downAt = st.t;
       if (target.captain) st.events.push({ t: st.t, text: `${target.g.name}의 대장이 쓰러졌다!`, side: target.side });
     }
+    return dmg;
+  }
+
+  // 공격 스킬 한 번이 대상에 닿았을 때
+  function strike(st, u, t, sk) {
+    if (!t.alive) return;
+    const crit = st.r() < 0.1;
+    const base = u.atk * atkMul(u, st.t) * sk.dmg * (0.85 + st.r() * 0.3) * (crit ? 1.7 : 1);
+    const victims = sk.aoe ? st.units.filter((e) => e.alive && !e.fled && e.side !== u.side && dist(e, t) <= sk.aoe + sizeOf(e)) : [t];
+    if (!victims.includes(t)) victims.push(t);
+    let dealt = 0;
+    victims.forEach((e) => {
+      let d = base * (e === t ? 1 : 0.7);
+      if (sk.exec && e.hp / e.maxHp < 0.35) d *= 1 + sk.exec;
+      dealt += damage(st, e, d, crit && e === t);
+      if (sk.stun && e.alive) e.stunUntil = Math.max(e.stunUntil, st.t + sk.stun * (e.boss ? 0.3 : e.bigMon ? 0.6 : 1));
+    });
+    if (sk.aoe) st.fx.push({ kind: 'boom', x: t.x, y: t.y - 8, r: sk.aoe, t: 0, color: sk.shot === 'curse' ? '#9b6ad6' : sk.shot === 'bolt' ? '#7fd6e8' : '#f39c12' });
+    if (sk.drain && u.alive) u.hp = Math.min(u.maxHp, u.hp + dealt * sk.drain);
+    if (sk.selfBuff) addBuff(st, u, sk.selfBuff);
+  }
+
+  function mend(st, u, t, sk) {
+    const list = sk.aoe ? st.units.filter((a) => a.alive && !a.fled && a.side === u.side && dist(a, t) <= sk.aoe) : [t];
+    list.forEach((a) => {
+      if (!a.alive) return;
+      a.hp = Math.min(a.maxHp, a.hp + u.healPow * sk.heal * (0.9 + st.r() * 0.2));
+      st.fx.push({ kind: 'heal', x: a.x, y: a.y - 14, t: 0 });
+      if (sk.buff) addBuff(st, a, sk.buff);
+    });
+    if (sk.aoe) st.fx.push({ kind: 'ring', x: t.x, y: t.y - 6, r: sk.aoe, t: 0, color: '#7ed37e' });
+  }
+
+  // 스킬을 쓸 대상 찾기 (없으면 null)
+  function pickTarget(st, u, sk, live) {
+    if (sk.tgt === 'self') return live.some((e) => e.side !== u.side && !e.g.routed && dist(e, u) < 70) ? u : null;
+    if (sk.tgt === 'hurt') {
+      let best = null, worst = sk === u.skills[0] ? 0.9 : 0.7;
+      for (const a of live) {
+        if (a.side !== u.side) continue;
+        const ratio = a.hp / a.maxHp;
+        if (ratio < worst && dist(a, u) <= sk.range) { worst = ratio; best = a; }
+      }
+      return best;
+    }
+    const reach = (sk.dash ? Math.max(sk.range, 60) : sk.range);
+    let best = null, bd = Infinity;
+    for (const e of live) {
+      if (e.side === u.side || e.g.routed) continue;
+      const d = dist(e, u) - sizeOf(e);
+      if (d <= reach && d < bd) { bd = d; best = e; }
+    }
+    return best;
+  }
+
+  function useSkill(st, u, sk, t, live) {
+    sk.left = sk.cd * (0.9 + st.r() * 0.2);
+    if (sk !== u.skills[0] && (u.named || u.captain || u.boss)) st.fx.push({ kind: 'label', x: u.x, y: u.y - 26, text: sk.name, t: 0, side: u.side });
+    if (sk.tgt === 'self') {
+      st.units.filter((a) => a.alive && !a.fled && a.side === u.side && dist(a, u) <= sk.aoe).forEach((a) => addBuff(st, a, sk.buff));
+      st.fx.push({ kind: 'ring', x: u.x, y: u.y - 6, r: sk.aoe, t: 0, color: sk.buff.def ? '#7fd6e8' : '#ef6a6a' });
+      return;
+    }
+    if (sk.tgt === 'hurt') {
+      if (sk.shot && !sk.aoe) st.shots.push({ kind: 'holy', from: u, to: t, x: u.x, y: u.y - 9, sk, speed: 170, heal: true });
+      else mend(st, u, t, sk);
+      return;
+    }
+    // 공격: 여러 대상이면 가까운 순으로
+    let targets = [t];
+    if (sk.hits > 1) {
+      targets = live.filter((e) => e.side !== u.side && !e.g.routed && dist(e, u) - sizeOf(e) <= Math.max(sk.range, 30) + 20)
+        .sort((a, b) => dist(a, u) - dist(b, u)).slice(0, sk.hits);
+      if (!targets.length) targets = [t];
+    }
+    if (sk.dash) {
+      // 돌진: 대상 곁으로 뛰어든다
+      const d = dist(u, t) || 1;
+      const stop = 8 + sizeOf(t);
+      if (d > stop) { u.x = t.x - ((t.x - u.x) / d) * stop; u.y = t.y - ((t.y - u.y) / d) * stop; }
+      st.fx.push({ kind: 'dash', x: u.x, y: u.y - 6, t: 0 });
+    }
+    u.face = t.x >= u.x ? 1 : -1;
+    targets.forEach((e) => {
+      if (sk.shot) st.shots.push({ kind: sk.shot, from: u, to: e, x: u.x, y: u.y - 9, sk, speed: 170 });
+      else { u.lunge = 0.15; strike(st, u, e, sk); }
+    });
   }
 
   function step(st) {
@@ -261,7 +387,8 @@ const Battle = (() => {
     });
     const live = units.filter((u) => u.alive && !u.fled);
     for (const u of live) {
-      u.cd -= DT; u.flash = Math.max(0, u.flash - DT); u.lunge = Math.max(0, u.lunge - DT);
+      u.flash = Math.max(0, u.flash - DT); u.lunge = Math.max(0, u.lunge - DT);
+      u.skills.forEach((sk) => { sk.left -= DT; });
       u.moving = false;
       if (u.g.routed) {
         // 자기 진영 쪽 가장자리로 도주
@@ -270,10 +397,31 @@ const Battle = (() => {
         if (u.x < -12 || u.x > W + 12) u.fled = true;
         continue;
       }
-      if (st.over) continue;
+      if (st.over || u.stunUntil > st.t) continue;
+      // 특기: 준비되면 먼저 쓴다
+      const special = u.skills[1];
+      if (special && special.left <= 0) {
+        const t = pickTarget(st, u, special, live);
+        if (t) { useSkill(st, u, special, t, live); continue; }
+      }
+      const basic = u.skills[0];
+      // 치유형: 다친 아군이 있으면 치유, 없으면 전열 뒤를 따라간다
+      if (u.healer) {
+        const t = pickTarget(st, u, basic, live);
+        if (t && basic.left <= 0) { useSkill(st, u, basic, t, live); continue; }
+        if (!t) {
+          let foe = null, fd = Infinity;
+          for (const e of live) { if (e.side !== u.side && !e.g.routed) { const d = dist(e, u); if (d < fd) { fd = d; foe = e; } } }
+          if (foe && fd > basic.range * 0.9) {
+            const dx = foe.x - u.x, dy = foe.y - u.y, d = Math.hypot(dx, dy) || 1;
+            u.x += (dx / d) * u.speed * DT; u.y += (dy / d) * u.speed * DT; u.moving = true; u.face = dx >= 0 ? 1 : -1;
+          }
+        }
+        continue;
+      }
       // 목표 재선정: 가까운 적, 같은 높이(전열)를 조금 더 선호
       u.retarget -= DT;
-      if (!u.target || !u.target.alive || u.target.fled || u.target.side === u.side || u.retarget <= 0) {
+      if (!u.target || !u.target.alive || u.target.fled || u.target.side === u.side || u.target.g.routed || u.retarget <= 0) {
         u.retarget = 0.4 + r() * 0.3;
         let best = null, bd = Infinity;
         for (const e of live) {
@@ -283,29 +431,14 @@ const Battle = (() => {
         }
         u.target = best;
       }
-      // 성직자: 다친 아군 치유 우선
-      if (u.heal && u.cd <= 0) {
-        let hurt = null, worst = 0.75;
-        for (const a of live) {
-          if (a.side !== u.side || a === u) continue;
-          const ratio = a.hp / a.maxHp;
-          if (ratio < worst && Math.hypot(a.x - u.x, a.y - u.y) < u.range) { worst = ratio; hurt = a; }
-        }
-        if (hurt) {
-          hurt.hp = Math.min(hurt.maxHp, hurt.hp + u.heal);
-          u.cd = u.cdMax;
-          st.fx.push({ kind: 'heal', x: hurt.x, y: hurt.y - 14, t: 0 });
-          continue;
-        }
-      }
       const tg = u.target;
       if (!tg) continue;
-      const dx = tg.x - u.x, dy = tg.y - u.y, dist = Math.hypot(dx, dy) || 1;
+      const dx = tg.x - u.x, dy = tg.y - u.y, d = Math.hypot(dx, dy) || 1;
       u.face = dx >= 0 ? 1 : -1;
-      const reach = u.range + (tg.scale > 1 ? tg.scale * 4 : 0);
-      if (dist > reach) {
+      const reach = basic.range + sizeOf(tg);
+      if (d > reach) {
         // 대장 근처로 모이려는 힘을 약간 섞는다 (부대 대형 유지)
-        let mx = dx / dist, my = dy / dist;
+        let mx = dx / d, my = dy / d;
         const cap = u.g.captain;
         if (!u.captain && cap.alive) {
           const cx = cap.x - u.x, cy = cap.y - u.y, cd = Math.hypot(cx, cy);
@@ -314,25 +447,12 @@ const Battle = (() => {
         const ml = Math.hypot(mx, my) || 1;
         u.x += (mx / ml) * u.speed * DT; u.y += (my / ml) * u.speed * DT;
         u.moving = true;
-      } else if (u.shot && dist < reach * 0.45) {
+      } else if (basic.shot && d < reach * 0.45) {
         // 원거리 유닛은 너무 붙으면 물러난다
-        u.x -= (dx / dist) * u.speed * 0.6 * DT; u.y -= (dy / dist) * u.speed * 0.3 * DT;
+        u.x -= (dx / d) * u.speed * 0.6 * DT; u.y -= (dy / d) * u.speed * 0.3 * DT;
         u.moving = true;
       }
-      if (dist <= reach && u.cd <= 0) {
-        u.cd = u.cdMax * (0.9 + r() * 0.2);
-        // 대장 곁의 대원은 힘이 난다
-        const cap = u.g.captain;
-        const aura = cap.alive && cap !== u && Math.hypot(cap.x - u.x, cap.y - u.y) < 60 ? 1.15 : 1;
-        const crit = r() < 0.1;
-        const dmg = u.atk * aura * (0.8 + r() * 0.4) * (crit ? 1.8 : 1);
-        if (u.shot) {
-          st.shots.push({ kind: u.shot, from: u, to: tg, x: u.x, y: u.y - 9, dmg, crit, splash: u.splash, speed: 170 });
-        } else {
-          u.lunge = 0.15;
-          hit(st, u, tg, dmg, crit);
-        }
-      }
+      if (d <= reach && basic.left <= 0) useSkill(st, u, basic, tg, live);
     }
     // 겹침 방지
     for (let i = 0; i < live.length; i++) {
@@ -342,12 +462,12 @@ const Battle = (() => {
         const b = live[j];
         if (!b.alive) continue;
         const ddx = b.x - a.x, ddy = b.y - a.y;
-        const min = 7 + (a.scale > 1 ? a.scale * 3 : 0) + (b.scale > 1 ? b.scale * 3 : 0);
+        const min = 7 + sizeOf(a) * 0.75 + sizeOf(b) * 0.75;
         if (Math.abs(ddx) > min || Math.abs(ddy) > min) continue;
-        const d = Math.hypot(ddx, ddy) || 0.01;
-        if (d >= min) continue;
-        const push = (min - d) * 0.5;
-        const nx = ddx / d, ny = ddy / d;
+        const dd = Math.hypot(ddx, ddy) || 0.01;
+        if (dd >= min) continue;
+        const push = (min - dd) * 0.5;
+        const nx = ddx / dd, ny = ddy / dd;
         a.x -= nx * push; a.y -= ny * push * 0.8;
         b.x += nx * push; b.y += ny * push * 0.8;
       }
@@ -357,20 +477,14 @@ const Battle = (() => {
     for (let i = st.shots.length - 1; i >= 0; i--) {
       const s = st.shots[i];
       const tx = s.to.x, ty = s.to.y - 9;
-      const d = Math.hypot(tx - s.x, ty - s.y);
+      const dd = Math.hypot(tx - s.x, ty - s.y);
       const stepLen = s.speed * DT;
-      if (d <= stepLen) {
-        if (s.to.alive) hit(st, s.from, s.to, s.dmg, s.crit);
-        if (s.splash) {
-          for (const e of live) {
-            if (e === s.to || e.side === s.from.side || !e.alive) continue;
-            if (Math.hypot(e.x - s.to.x, e.y - s.to.y) < s.splash) hit(st, s.from, e, s.dmg * 0.45, false);
-          }
-          st.fx.push({ kind: 'boom', x: tx, y: ty, t: 0 });
-        }
+      if (dd <= stepLen) {
+        if (s.heal) mend(st, s.from, s.to, s.sk);
+        else strike(st, s.from, s.to, s.sk);
         st.shots.splice(i, 1);
       } else {
-        s.x += ((tx - s.x) / d) * stepLen; s.y += ((ty - s.y) / d) * stepLen;
+        s.x += ((tx - s.x) / dd) * stepLen; s.y += ((ty - s.y) / dd) * stepLen;
       }
     }
     // 결판
@@ -379,7 +493,7 @@ const Battle = (() => {
       if (!a || !b || st.t >= MAX_TIME) {
         st.over = true; st.endT = st.t;
         if (a && b) {
-          const hpOf = (side) => units.filter((u) => u.side === side && u.alive && !u.fled).reduce((s, u) => s + u.hp, 0);
+          const hpOf = (side) => units.filter((u) => u.side === side && u.alive && !u.fled).reduce((sum, u) => sum + u.hp, 0);
           st.winner = hpOf(0) >= hpOf(1) ? 0 : 1;
         } else st.winner = a ? 0 : 1;
         st.groups.forEach((g) => { if (g.side !== st.winner) g.routed = true; });
@@ -411,7 +525,7 @@ const Battle = (() => {
       const res = simulate(groups, bias, s);
       const ok = res.won === want
         && (outcome !== 'great' || res.loss <= 0.25)
-        && (outcome !== 'success' || res.loss > 0.05 || i > 8)
+        && (outcome !== 'success' || res.loss > 0.05 || i > 4)
         && (outcome !== 'disaster' || res.loss >= 0.5);
       if (ok) return { bias, seed: s, res };
       if (!best || res.won === want) best = { bias, seed: s, res };
@@ -468,6 +582,10 @@ const Battle = (() => {
         px(ctx, bx - 1, by - 1, bw + 2, 3, '#1b1420');
         px(ctx, bx, by, Math.max(0, Math.round(bw * (u.hp / u.maxHp))), 1, u.side === 0 ? '#7ed37e' : '#ef6a6a');
       }
+      // 기절·강화 표시
+      if (u.stunUntil > st.t) { const k = Math.floor(now / 120) % 3; px(ctx, Math.round(u.x) - 4 + k * 3, y - 6, 2, 2, '#f2c94c'); }
+      if (buffSum(u, 'atk', st.t) > 0) px(ctx, Math.round(u.x) + 5, y + 2, 2, 2, '#ef6a6a');
+      if (buffSum(u, 'def', st.t) > 0) px(ctx, Math.round(u.x) - 7, y + 2, 2, 2, '#7fd6e8');
       // 패주 표시
       if (u.g.routed && Math.floor(now / 250) % 2) px(ctx, Math.round(u.x) - 1, y - 7, 2, 4, '#ffffff');
     }
@@ -477,6 +595,8 @@ const Battle = (() => {
       if (s.kind === 'arrow') { px(ctx, s.x - 3, s.y, 6, 1, '#e8e4d8'); px(ctx, dir > 0 ? s.x + 2 : s.x - 3, s.y - 1, 1, 3, '#d6dde4'); }
       else if (s.kind === 'fire') { px(ctx, s.x - 2, s.y - 2, 4, 4, '#f39c12'); px(ctx, s.x - 1, s.y - 1, 2, 2, '#f2c94c'); px(ctx, s.x - 2 - dir * 3, s.y, 3, 1, '#e74c3c'); }
       else if (s.kind === 'curse') { px(ctx, s.x - 2, s.y - 2, 4, 4, '#9b6ad6'); px(ctx, s.x - 1, s.y - 1, 2, 2, '#d0b0f0'); }
+      else if (s.kind === 'bolt') { px(ctx, s.x - 3, s.y - 1, 6, 2, '#7fd6e8'); px(ctx, s.x - 1, s.y - 1, 2, 2, '#ffffff'); }
+      else if (s.kind === 'dagger') { px(ctx, s.x - 2, s.y, 4, 1, '#d6dde4'); px(ctx, s.x - dir * 2, s.y - 1, 1, 3, '#8a5a2b'); }
       else { px(ctx, s.x, s.y - 2, 1, 5, '#fff4b0'); px(ctx, s.x - 2, s.y, 5, 1, '#fff4b0'); }
     });
     // 효과
@@ -492,11 +612,25 @@ const Battle = (() => {
         const y = Math.round(f.y - f.t * 12);
         px(ctx, f.x - 1, y - 3, 2, 6, '#7ed37e'); px(ctx, f.x - 3, y - 1, 6, 2, '#7ed37e');
       } else if (f.kind === 'boom') {
-        const k = Math.round(2 + f.t * 16);
+        const k = Math.round(Math.min(f.r || 12, 2 + f.t * 40));
         ctx.globalAlpha = Math.max(0, 1 - f.t * 2.5);
-        px(ctx, f.x - k, f.y - k / 2, k * 2, k, '#f39c12');
+        px(ctx, f.x - k, f.y - k / 2, k * 2, k, f.color || '#f39c12');
         px(ctx, f.x - k / 2, f.y - k / 4, k, k / 2, '#f2c94c');
         ctx.globalAlpha = 1;
+      } else if (f.kind === 'ring') {
+        const k = Math.round(f.r * Math.min(1, 0.3 + f.t * 3));
+        ctx.globalAlpha = Math.max(0, 1 - f.t * 1.6);
+        ctx.strokeStyle = f.color; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.ellipse(f.x, f.y + 6, k, k * 0.45, 0, 0, Math.PI * 2); ctx.stroke();
+        ctx.globalAlpha = 1;
+      } else if (f.kind === 'dash') {
+        ctx.globalAlpha = Math.max(0, 1 - f.t * 4);
+        px(ctx, f.x - 8, f.y, 16, 1, '#ffffff');
+        ctx.globalAlpha = 1;
+      } else if (f.kind === 'label') {
+        const y = Math.round(f.y - f.t * 10);
+        ctx.fillStyle = '#1b1420'; ctx.fillText(f.text, f.x + 1, y + 1);
+        ctx.fillStyle = f.side === 0 ? '#f2c94c' : '#ef9a9a'; ctx.fillText(f.text, f.x, y);
       }
     });
     if (label) {
@@ -587,7 +721,7 @@ const Battle = (() => {
         acc -= DT;
         step(st);
         st.fx.forEach((f) => { f.t += DT; });
-        st.fx = st.fx.filter((f) => f.t < 0.7);
+        st.fx = st.fx.filter((f) => f.t < (f.kind === 'label' ? 1.2 : 0.7));
       }
       const ended = st.over && st.t - st.endT > 0.6;
       draw(ctx, bg, st, now, ended ? { text: labelText, good: won } : null);

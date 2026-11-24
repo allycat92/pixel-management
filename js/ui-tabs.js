@@ -499,7 +499,8 @@
           el('div', { class: 'sub' }, el('span', { class: 'role-badge captain', text: '♛ 대장' }), ' ', el('span', { class: 'cls adv', text: CC.name })),
           el('div', { class: `small cap-status ${cs.status}`, text: statusText }))),
       el('div', { class: 'small muted', text: CC.desc }),
-      el('div', { class: 'small lead-line' }, el('b', { text: `「${CC.lead.name}」 ` }), CC.lead.desc),
+      UI.h.skillList({ actives: CC.acts.map((b) => ({ name: b.name, battle: describeBattle(b) })), passive: { name: CC.lead.name, desc: `지휘: ${CC.lead.desc}`, lead: true } }, { compact: true }),
+      cs.status === 'offered' && C.intro ? el('div', { class: 'small pitch', text: `“${C.intro[0][1]}”` }) : null,
       C.require && cs.status !== 'joined' && cs.status !== 'lost'
         ? el('div', { class: `small ${req.ok ? 'good' : 'bad'}`, text: `영입 조건: ${req.text} ${req.ok ? '✔' : '✘ (충족해야 영입 의뢰가 올라옵니다)'}` }) : null,
       cs.status === 'pursuing' && C.chapters[cs.ch] ? el('div', { class: 'small warn', text: `다음: 「${C.chapters[cs.ch].title}」 — ${PROVINCES[C.chapters[cs.ch].province].name}` }) : null,
@@ -512,18 +513,22 @@
     const box = el('div', { class: 'cap-roster' });
     const starter = STARTER_CAPTAINS.find((k) => s.captains[k].status === 'joined');
     box.append(el('div', { class: 'cap-phase done' },
-      el('div', { class: 'cap-phase-head' }, el('b', { text: '창설' }), el('span', { class: 'small muted', text: ' 첫 용병대장 (셋 중 하나)' })),
-      el('div', { class: 'cap-pair' }, STARTER_CAPTAINS.map((k) => captainCard(k)))));
+      el('div', { class: 'cap-phase-head' }, el('b', { text: '창설' }), el('span', { class: 'small muted', text: ` 첫 용병대장 (${STARTER_CAPTAINS.length}명 중 하나)` })),
+      el('div', { class: 'cap-pair' }, STARTER_CAPTAINS.filter((k) => s.captains[k].status !== 'lost').map((k) => captainCard(k))),
+      el('div', { class: 'small muted', text: `떠난 후보: ${STARTER_CAPTAINS.filter((k) => s.captains[k].status === 'lost').map((k) => `${CAPTAINS[k].name}(${CAPTAIN_CLASSES[k].name})`).join(', ')}` })));
     CAPTAIN_PHASES.forEach((ph) => {
       const st = s.phases[ph.key];
       const head = el('div', { class: 'cap-phase-head' }, el('b', { text: `${ph.name} 갈림길` }),
-        el('span', { class: 'small muted', text: st === 'locked' ? ` 길드 등급 ${RANKS[ph.rank].name} 달성 시 (현재 ${RANKS[r].name})` : st === 'open' ? ' 둘 중 한 명만 택할 수 있습니다' : ' 결정됨' }));
-      const cards = ph.pair.map((k) => {
+        el('span', { class: 'small muted', text: st === 'locked' ? ` 길드 등급 ${RANKS[ph.rank].name} 달성 시 (현재 ${RANKS[r].name})` : st === 'open' ? ` ${ph.list.length}명 중 한 명만 택할 수 있습니다` : ' 결정됨' }));
+      const cards = ph.list.map((k) => {
         const act = st === 'open' ? el('button', { class: 'btn primary small', onclick: () => UI.confirmBox(
-          `${CAPTAINS[k].name}의 길을 택할까요? ${CAPTAINS[Game.rivalOf(k)].name}은(는) 길드를 떠나 다시 오지 않습니다.`, () => Game.pursueCaptain(k)) }, `${CAPTAINS[k].name}의 길을 택한다`) : null;
+          `${CAPTAINS[k].name}의 길을 택할까요? 나머지 ${ph.list.length - 1}명(${Game.rivalsOf(k).map((x) => CAPTAINS[x].name).join(', ')})은 길드를 떠나 다시 오지 않습니다.`, () => Game.pursueCaptain(k)) }, `${CAPTAINS[k].name}의 길을 택한다`) : null;
         return captainCard(k, act);
       });
-      box.append(el('div', { class: `cap-phase ${st}` }, head, el('div', { class: 'cap-pair' }, cards)));
+      // 결정된 갈림길은 택한 대장만 크게 보여 준다
+      const shown = st === 'chosen' ? ph.list.filter((k) => s.captains[k].status !== 'lost') : ph.list;
+      const lostNote = st === 'chosen' ? el('div', { class: 'small muted', text: `떠난 후보: ${ph.list.filter((k) => s.captains[k].status === 'lost').map((k) => `${CAPTAINS[k].name}(${CAPTAIN_CLASSES[k].name})`).join(', ')}` }) : null;
+      box.append(el('div', { class: `cap-phase ${st}` }, head, el('div', { class: 'cap-pair' }, shown.map((k) => cards[ph.list.indexOf(k)])), lostNote));
     });
     return box;
   }
@@ -573,8 +578,8 @@
             el('div', { class: 'name', text: C.name }),
             el('div', { class: 'small muted', text: `힘 ${lv1.str} · 민첩 ${lv1.dex} · 지력 ${lv1.int} · 체력 ${lv1.maxHp}` }))),
         el('p', { class: 'small', text: C.desc }),
-        el('div', { class: 'small' }, el('span', { class: 'skill', title: CLASS_SKILLS[cls].desc, text: CLASS_SKILLS[cls].name }), ` ${CLASS_SKILLS[cls].desc}`),
-        el('div', { class: 'small muted', text: `전직: ${PROMOTIONS[cls].map((p) => `${p.name} → ${MASTERS[p.key].name}`).join(' / ')}` }),
+        UI.h.skillList({ actives: [{ name: CLASS_SKILLS[cls].name, battle: describeBattle(CLASS_SKILLS[cls].b), mission: describeFx(CLASS_SKILLS[cls].fx) }] }, { compact: true }),
+        el('div', { class: 'small muted', text: `승급: ${PROMOTIONS[cls].map((p) => `${p.name} → ${MASTERS[p.key].map((x) => x.name).join('/')}`).join(' · ')}` }),
         el('div', { class: 'card-foot' },
           el('button', { class: 'btn small', disabled: full || s.gold < costN ? 'disabled' : null, onclick: () => Game.hireUnit(cls, false) }, icon('coin'), ` ${costN} 신병 Lv.1`),
           el('button', { class: 'btn primary small', disabled: full || s.gold < costV ? 'disabled' : null, onclick: () => Game.hireUnit(cls, true) }, icon('coin'), ` ${costV} 숙련병 Lv.${vl}`)));

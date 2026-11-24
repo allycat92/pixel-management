@@ -365,16 +365,16 @@ const HEROES = {
 
 // ───────── 용병대장: 영입 서사 ─────────
 // 용병대장은 이름과 사연을 가진 단 한 명뿐인 인물이다.
-// - 시작할 때 후보 셋 중 하나를 고른다. 고르지 않은 둘은 다시 만날 수 없다.
-// - 이후 길드 등급에 따라 네 번의 '갈림길'이 열린다. 갈림길마다 두 대장 중 한 명만 택할 수 있고,
-//   택한 대장의 영입 의뢰(2장)를 완수해야 합류한다. 택하지 않은 쪽은 영영 떠난다.
+// - 시작할 때 후보 아홉 중 하나를 고른다. 고르지 않은 여덟은 다시 만날 수 없다.
+// - 이후 길드 등급에 따라 네 번의 '갈림길'이 열린다. 갈림길마다 여섯 대장 중 한 명만 택할 수 있고,
+//   택한 대장의 영입 의뢰(2장)를 완수해야 합류한다. 택하지 않은 다섯은 영영 떠난다.
 // - 그래서 한 판에서 얻을 수 있는 대장은 최대 5명 (창설 1 + 초반 1 + 중반 2 + 후반 1).
-const STARTER_CAPTAINS = ['blademaster', 'ironwall', 'tactician'];
+const STARTER_CAPTAINS = ['blademaster', 'ironwall', 'tactician', 'lancer', 'huntress', 'hedgemage', 'fieldmedic', 'fixer', 'veteran'];
 const CAPTAIN_PHASES = [
-  { key: 'early', name: '초반', rank: 1, level: 5, pair: ['windhunter', 'shadowlord'] },
-  { key: 'mid1', name: '중반', rank: 3, level: 9, pair: ['spellblade', 'saintknight'] },
-  { key: 'mid2', name: '중반', rank: 4, level: 12, pair: ['warlord', 'khan'] },
-  { key: 'late', name: '후반', rank: 5, level: 16, pair: ['dragonslayer', 'demonhunter'] },
+  { key: 'early', name: '초반', rank: 1, level: 5, list: ['windhunter', 'shadowlord', 'bard', 'beastmaster', 'runesmith', 'pilgrim'] },
+  { key: 'mid1', name: '중반', rank: 3, level: 9, list: ['spellblade', 'saintknight', 'hexer', 'liberator', 'admiral', 'elfwarden'] },
+  { key: 'mid2', name: '중반', rank: 4, level: 12, list: ['warlord', 'khan', 'siegemaster', 'inquisitorlord', 'pirateking', 'frostjarl'] },
+  { key: 'late', name: '후반', rank: 5, level: 16, list: ['dragonslayer', 'demonhunter', 'archmagus', 'lightbearer', 'shadowqueen', 'titan'] },
 ];
 
 const CAPTAINS = {
@@ -390,6 +390,31 @@ const CAPTAINS = {
   tactician: {
     name: '이사벨', title: '퇴역 참모', trait: 'genius', look: { skin: '#f5d6b8', hair: '#3a3f6b', longHair: true },
     pitch: [['이사벨', '싸움은 칼을 뽑기 전에 이미 끝나 있어요. 저와 함께라면 지는 싸움은 하지 않을 겁니다.']],
+  },
+
+  lancer: {
+    name: '로드릭', title: '말을 잃은 기사', trait: 'brave', look: { skin: '#f2c9a0', hair: '#5a3720', longHair: false },
+    pitch: [['로드릭', '말도 영지도 빚쟁이에게 넘어갔지만, 창끝은 아직 내 것이오. 돌격할 길만 열어 주시오.']],
+  },
+  huntress: {
+    name: '키아라', title: '숲의 덫꾼', trait: 'lucky', look: { skin: '#e0ac7e', hair: '#a8642a', longHair: true },
+    pitch: [['키아라', '짐승이든 사람이든, 덫에 걸리면 똑같이 울어. 사냥감 몰이는 나한테 맡겨.']],
+  },
+  hedgemage: {
+    name: '펠릭스', title: '시골 마법사', trait: 'diligent', look: { skin: '#f5d6b8', hair: '#e3c565', longHair: false },
+    pitch: [['펠릭스', '마탑 졸업장은 없지만, 우리 마을 늑대들은 제 불꽃을 무서워하죠. 써 보시면 압니다.']],
+  },
+  fieldmedic: {
+    name: '마그다', title: '종군 의무관', trait: 'sturdy', look: { skin: '#c68a5c', hair: '#2b1d14', longHair: true },
+    pitch: [['마그다', '전쟁에서 사람을 제일 많이 살린 건 칼이 아니라 붕대였어. 내 대원은 내가 데리고 돌아간다.']],
+  },
+  fixer: {
+    name: '진', title: '뒷골목 해결사', trait: 'greedy', look: { skin: '#e0ac7e', hair: '#2b1d14', longHair: false },
+    pitch: [['진', '깔끔하게, 조용하게, 확실하게. 값만 맞으면 어떤 일이든 해결해 드리죠.']],
+  },
+  veteran: {
+    name: '하랄드', title: '백발의 노병', trait: 'sturdy', look: { skin: '#f2c9a0', hair: '#c9c2b8', longHair: false },
+    pitch: [['하랄드', '서른 번 전쟁에 나가 서른 번 살아 돌아왔지. 애송이들 살려 보내는 법은 내가 안다.']],
   },
 
   // ── 초반 갈림길 ──
@@ -489,5 +514,196 @@ const CAPTAINS = {
         before: [['모르데카이', '문이 보낸 죽음의 기사가 서리 협곡을 넘는다. 여기서 막지 못하면 북부가 무덤이 된다.']], after: [['모르데카이', '막았다. 다음에 문이 열리면, 우리가 먼저 들어간다.']] },
     ],
     join: [['모르데카이', '퇴마의 인장은 이제 네 용병단의 것이다. 마귀가 오면 나를 불러라.']],
+  },
+  // ── 초반 갈림길 (추가) ──
+  bard: {
+    name: '리코', title: '노래하는 검', trait: 'lucky', look: { skin: '#f2c9a0', hair: '#8c2f2f', longHair: true },
+    intro: [['리코', '내 노래는 공짜, 내 검은 비싸지. 그런데 요즘 왕도 극장에 협박장이 날아들어서 말이야.'], ['리코', '극장을 지켜 주면 내 노래와 검을 몽땅 네 용병단에 걸겠어.']],
+    chapters: [
+      { province: 'royal', type: 'defense', enemy: '산적', title: '극장의 밤',
+        before: [['리코', '공연 날 밤에 놈들이 쳐들어온대. 막이 내릴 때까지 버텨 줘.']], after: [['리코', '앵콜까지 무사히! 이제 협박장을 보낸 놈을 찾자.']] },
+      { province: 'wheat', type: 'hunt', enemy: '고블린', title: '협박꾼의 정체',
+        before: [['리코', '협박꾼이 고블린 떼를 부리는 산적이었어. 밀밭 소굴로 가자.']], after: [['리코', '이 이야기, 노래로 만들어야겠어.']] },
+    ],
+    join: [['리코', '은빛 늑대의 노래는 이제 내가 부른다. 행군할 때 박자는 맡겨 둬.']],
+  },
+  beastmaster: {
+    name: '오르가', title: '늑대 무리의 어미', trait: 'brave', look: { skin: '#8d5a3b', hair: '#2b1d14', longHair: true },
+    intro: [['오르가', '내 늑대들이 국경령 덫에 걸려 죽어 가고 있다. 덫을 놓은 건 밀렵꾼들이지.'], ['오르가', '내 새끼들을 구해 준다면, 무리째로 네 사냥에 따라가겠다.']],
+    chapters: [
+      { province: 'border', type: 'explore', enemy: '들늑대', title: '덫이 깔린 숲길',
+        before: [['오르가', '덫을 피해 늑대들을 찾아야 한다. 겁에 질린 녀석들이 사람을 물 수도 있어.']], after: [['오르가', '몇 마리는 구했다. 밀렵꾼 소굴이 남았어.']] },
+      { province: 'silverwood', type: 'hunt', enemy: '거대 거미', title: '밀렵꾼의 소굴',
+        before: [['오르가', '밀렵꾼들이 거미굴 옆에 숨어 있다. 둘 다 쓸어버리자.']], after: [['오르가', '무리는 무사하다. 이제 네가 우리 무리의 일부다.']] },
+    ],
+    join: [['오르가', '나와 내 늑대들은 이제 네 용병단과 함께 달린다. 사냥감은 놓치지 않아.']],
+  },
+  runesmith: {
+    name: '브로크', title: '룬 새기는 대장장이', trait: 'diligent', look: { skin: '#e0ac7e', hair: '#a8642a', longHair: false },
+    intro: [['브로크', '내 대장간 룬석을 도적들이 훔쳐 갔다. 그게 없으면 망치질을 할 수가 없어.'], ['브로크', '되찾아 주면 내 망치를 들고 네 용병단에 들어가지. 장비 손질은 덤이다.']],
+    chapters: [
+      { province: 'border', type: 'escort', enemy: '산적', title: '룬석 운반로',
+        before: [['브로크', '새 룬석을 광산에서 실어 와야 한다. 놈들이 또 노릴 거야.']], after: [['브로크', '한 덩이는 지켰다. 훔쳐 간 것도 되찾아야지.']] },
+      { province: 'port', type: 'hunt', enemy: '리자드맨', title: '항구의 장물 창고',
+        before: [['브로크', '훔친 룬석이 세렌 항구 창고에 있다더군. 도마뱀 놈들이 지킨다.']], after: [['브로크', '다 찾았다. 이 은혜는 망치로 갚겠다.']] },
+    ],
+    join: [['브로크', '오늘부터 네 용병단 장비는 내가 손본다. 그리고 앞줄도 내가 선다.']],
+  },
+  pilgrim: {
+    name: '아멜리', title: '맨발의 순례자', trait: 'diligent', look: { skin: '#f5d6b8', hair: '#e3c565', longHair: true },
+    require: { standing: { church: 0 }, text: '성광 교단 평판 0 이상' },
+    intro: [['아멜리', '순례길에 도적이 들끓어 아무도 길을 나서지 못해요.'], ['아멜리', '순례자들을 지켜 주신다면, 이 발로 당신의 용병단과 함께 걷겠습니다.']],
+    chapters: [
+      { province: 'wheat', type: 'escort', enemy: '산적', title: '밀밭 순례길',
+        before: [['아멜리', '순례단이 밀밭을 지나요. 앞뒤를 지켜 주세요.']], after: [['아멜리', '모두 무사합니다. 다음은 숲길이에요.']] },
+      { province: 'silverwood', type: 'escort', enemy: '들늑대', title: '숲의 성소',
+        before: [['아멜리', '숲속 옛 성소까지가 순례의 끝이에요. 늑대가 많아요.']], after: [['아멜리', '순례는 끝났습니다. 이제 당신과 함께 걷겠어요.']] },
+    ],
+    join: [['아멜리', '길 위의 사람들을 지키는 것, 그게 제 맹세입니다. 당신의 대원들도요.']],
+  },
+
+  // ── 중반 갈림길 1 (추가) ──
+  hexer: {
+    name: '벨라도나', title: '저주 거래상', trait: 'greedy', look: { skin: '#f5d6b8', hair: '#3a3f6b', longHair: true },
+    intro: [['벨라도나', '저주를 팔다 보면 원한도 사지. 경쟁 마녀가 늪에서 내 고객들을 저주하고 있어.'], ['벨라도나', '그 마녀의 표식을 부숴 주면, 내 저주는 앞으로 네 적에게만 걸어 주지.']],
+    chapters: [
+      { province: 'mist', type: 'magic', title: '늪에 박힌 저주 표식',
+        before: [['벨라도나', '표식이 늪 곳곳에 박혀 있어. 건드리면 괴물이 깨어난다.']], after: [['벨라도나', '표식은 부쉈어. 이제 주인을 만나러 가자.']] },
+      { province: 'redsand', type: 'magic', title: '황야의 저주 시장',
+        before: [['벨라도나', '그 마녀는 붉은 모래 황야의 저주 시장에 숨었어.']], after: [['벨라도나', '거래 끝. 이제 내 저주는 네 편이야.']] },
+    ],
+    join: [['벨라도나', '좋은 거래였어. 앞으로 네 적의 불운은 전부 내 작품일 거야.']],
+  },
+  liberator: {
+    name: '카토', title: '쇠사슬을 끊은 자', trait: 'brave', look: { skin: '#8d5a3b', hair: '#2b1d14', longHair: false },
+    require: { standing: { clans: 0 }, text: '붉은 모래 부족 연합 평판 0 이상' },
+    intro: [['카토', '노예 상인들이 아직도 황야에서 사람을 사고판다. 나도 그 쇠사슬에 묶여 있었지.'], ['카토', '갇힌 자들을 풀어 준다면, 이 주먹을 네 용병단을 위해 쓰겠다.']],
+    chapters: [
+      { province: 'oasis', type: 'escort', enemy: '사막 도적', title: '탈출한 노예들',
+        before: [['카토', '도망친 사람들이 오아시스로 향하고 있다. 추격대를 막아야 한다.']], after: [['카토', '모두 살았다. 이제 노예 시장을 부술 차례다.']] },
+      { province: 'redsand', type: 'hunt', enemy: '전갈 거인', title: '노예 시장 붕괴',
+        before: [['카토', '노예 상인들이 전갈 거인을 경비로 쓴다. 놈부터 쓰러뜨린다.']], after: [['카토', '쇠사슬은 끊어졌다. 이제 내가 갚을 차례다.']] },
+    ],
+    join: [['카토', '나는 자유롭게 싸운다. 그리고 그 싸움을 네 용병단에 건다.']],
+  },
+  admiral: {
+    name: '마렌', title: '퇴역 제독', trait: 'genius', look: { skin: '#f2c9a0', hair: '#c9c2b8', longHair: false },
+    require: { standing: { cities: 15 }, text: '자유 도시 연맹 평판 15 이상' },
+    intro: [['마렌', '자유 도시 의회가 나를 퇴역시켰지만, 바다는 아직 날 부르고 있소.'], ['마렌', '연안을 어지럽히는 놈들을 함께 정리해 준다면, 남은 함대 전술을 그대에게 넘기겠소.']],
+    chapters: [
+      { province: 'port', type: 'defense', enemy: '리자드맨', title: '세렌 부두 방어',
+        before: [['마렌', '도마뱀 해적들이 부두를 노리고 있소. 상륙 지점을 막아야 하오.']], after: [['마렌', '부두는 지켰소. 놈들의 기지가 오아시스 쪽에 있소.']] },
+      { province: 'oasis', type: 'explore', enemy: '하피', title: '해적 기지 정찰',
+        before: [['마렌', '하피가 지키는 해안 절벽 뒤에 기지가 있소. 정찰을 부탁하오.']], after: [['마렌', '기지 위치를 의회에 넘겼소. 이제 그대의 제독이 되겠소.']] },
+    ],
+    join: [['마렌', '함대는 없어도 전술은 남았소. 그대의 용병단을 함대처럼 움직여 보이겠소.']],
+  },
+  elfwarden: {
+    name: '세레니엘', title: '숲의 수호대장', trait: 'diligent', look: { skin: '#f5d6b8', hair: '#c9c2b8', longHair: true },
+    require: { standing: { elves: 20 }, text: '은빛 숲 엘프 평판 20 이상' },
+    intro: [['세레니엘', '장로회는 인간을 믿지 않아요. 하지만 당신들이 숲을 위해 싸운 것을 봤습니다.'], ['세레니엘', '고대 숲 깊은 곳의 위협을 함께 걷어 낸다면, 순찰대를 이끌고 당신 곁에 서겠어요.']],
+    chapters: [
+      { province: 'silverwood', type: 'defense', enemy: '거대 거미', title: '순찰로 사수',
+        before: [['세레니엘', '거미 떼가 순찰로를 끊었어요. 길을 되찾아야 해요.']], after: [['세레니엘', '길은 열렸어요. 근원은 더 깊은 숲에 있어요.']] },
+      { province: 'deepwood', type: 'hunt', enemy: '숲 트롤', title: '고대 숲의 트롤',
+        before: [['세레니엘', '트롤들이 고대 숲의 신성한 나무를 베고 있어요.']], after: [['세레니엘', '숲이 당신을 기억할 거예요. 저도요.']] },
+    ],
+    join: [['세레니엘', '은빛 숲 순찰대는 오늘부터 당신의 용병단과 함께합니다.']],
+  },
+
+  // ── 중반 갈림길 2 (추가) ──
+  siegemaster: {
+    name: '오토', title: '성벽 파괴자', trait: 'genius', look: { skin: '#e0ac7e', hair: '#5a3720', longHair: false },
+    require: { standing: { crown: 10, cities: 10 }, any: true, text: '왕국 또는 자유 도시 평판 10 이상' },
+    intro: [['오토', '내가 설계한 투석기를 시험할 상대가 필요하오. 마침 발렌 외곽에 오크 요새가 있지.'], ['오토', '시험을 도와준다면 내 공성 기술을 전부 그대의 용병단에 바치겠소.']],
+    chapters: [
+      { province: 'valen', type: 'hunt', enemy: '오크', title: '오크 요새 시험 포격',
+        before: [['오토', '투석기를 지켜 주시오. 오크들이 성벽 밖으로 몰려나올 것이오.']], after: [['오토', '명중률 팔 할! 하지만 더 단단한 성벽이 필요하오.']] },
+      { province: 'frost', type: 'defense', enemy: '서리 트롤', title: '얼어붙은 성벽',
+        before: [['오토', '서리 협곡의 얼음 성벽이야말로 최고의 시험대요. 트롤들이 막아서겠지만.']], after: [['오토', '완벽하오. 이제 어떤 성벽이든 무너뜨릴 수 있소.']] },
+    ],
+    join: [['오토', '공성 기술자 오토, 그대의 용병단에 합류하오. 성문이 보이면 불러 주시오.']],
+  },
+  inquisitorlord: {
+    name: '발타자르', title: '심문관장', trait: 'diligent', look: { skin: '#f2c9a0', hair: '#2b1d14', longHair: false },
+    require: { standing: { church: 25 }, text: '성광 교단 평판 25 이상' },
+    intro: [['발타자르', '대성당령에 첩자가 숨어 있다. 교단은 용병에게 이 일을 맡기는 것을 수치로 여기지.'], ['발타자르', '그러나 나는 결과만 본다. 첩자를 찾아내면, 심문소의 힘을 그대에게 빌려주겠다.']],
+    chapters: [
+      { province: 'sanctum', type: 'defense', enemy: '망령', title: '심문소의 망령',
+        before: [['발타자르', '첩자가 심문소 지하의 망령을 풀어 놓았다. 증거를 지켜라.']], after: [['발타자르', '증거는 지켰다. 첩자는 늪으로 달아났다.']] },
+      { province: 'mist', type: 'hunt', enemy: '리자드맨', title: '늪으로 달아난 첩자',
+        before: [['발타자르', '첩자가 리자드맨 부락에 숨었다. 놓치지 마라.']], after: [['발타자르', '자백을 받았다. 그대는 신뢰할 만하다.']] },
+    ],
+    join: [['발타자르', '심문관장 발타자르, 그대의 용병단에 서겠다. 배신자는 내가 가려낸다.']],
+  },
+  pirateking: {
+    name: '크림슨', title: '붉은 돛의 해적왕', trait: 'greedy', look: { skin: '#c68a5c', hair: '#8c2f2f', longHair: true },
+    intro: [['크림슨', '내 보물섬 지도를 하피 놈들이 물고 갔다. 해적왕 체면이 말이 아니지.'], ['크림슨', '지도를 되찾아 주면, 내 선원들과 금고 열쇠를 네 용병단에 맡기지.']],
+    chapters: [
+      { province: 'oasis', type: 'hunt', enemy: '하피', title: '하피 둥지의 지도',
+        before: [['크림슨', '하피 둥지가 해안 절벽에 있다. 지도 조각을 전부 찾아야 해.']], after: [['크림슨', '반쪽은 찾았다. 나머지는 사막 도적 손에 있어.']] },
+      { province: 'redsand', type: 'escort', enemy: '사막 도적', title: '보물섬으로 가는 길',
+        before: [['크림슨', '도적들한테서 지도를 되찾고, 보물 운반을 지켜 줘.']], after: [['크림슨', '보물은 네 몫도 있다. 해적왕은 의리가 있지.']] },
+    ],
+    join: [['크림슨', '붉은 돛은 이제 네 깃발 옆에서 펄럭인다. 약탈할 곳만 알려 줘.']],
+  },
+  frostjarl: {
+    name: '비요른', title: '서리 협곡의 영주', trait: 'sturdy', look: { skin: '#f5d6b8', hair: '#e3c565', longHair: true },
+    require: { standing: { north: 20 }, text: '북부 귀족 연합 평판 20 이상' },
+    intro: [['비요른', '협곡의 겨울이 길어지고, 설인들이 마을로 내려온다. 내 영지 사람들이 얼어 죽고 있다.'], ['비요른', '겨울을 함께 버텨 준다면, 서리 영주의 도끼를 네 용병단에 걸겠다.']],
+    chapters: [
+      { province: 'frost', type: 'hunt', enemy: '설인', title: '설인 사냥',
+        before: [['비요른', '설인들이 곡물 창고를 노린다. 겨울 식량을 지켜야 한다.']], after: [['비요른', '창고는 지켰다. 하지만 놈들을 몰아낸 건 더 큰 놈이다.']] },
+      { province: 'frost', type: 'defense', enemy: '서리 트롤', title: '긴 겨울의 끝',
+        before: [['비요른', '서리 트롤 무리가 영지로 내려온다. 여기서 끝낸다.']], after: [['비요른', '봄이 오겠군. 북부는 은혜를 잊지 않는다.']] },
+    ],
+    join: [['비요른', '서리 영주 비요른, 네 용병단의 방벽이 되겠다. 겨울처럼 무너지지 않는.']],
+  },
+
+  // ── 후반 갈림길 (추가) ──
+  archmagus: {
+    name: '에우리아', title: '마지막 대현자', trait: 'genius', look: { skin: '#f5d6b8', hair: '#ffffff', longHair: true },
+    intro: [['에우리아', '마탑이 무너진 뒤로 대현자는 나 하나 남았어요. 그리고 재앙의 기척을 느끼는 것도 나뿐이죠.'], ['에우리아', '고대의 봉인 서고를 지켜 준다면, 내 모든 지식을 당신의 용병단에 쓰겠어요.']],
+    chapters: [
+      { province: 'deepwood', type: 'magic', enemy: '리치의 망령', title: '봉인 서고의 리치',
+        before: [['에우리아', '리치가 서고의 금서를 노려요. 책 한 권이라도 넘어가면 안 돼요.']], after: [['에우리아', '서고는 지켰어요. 마지막 금서는 용의 산맥에 있어요.']] },
+      { province: 'dragon', type: 'explore', enemy: '가고일', title: '산맥의 마지막 금서',
+        before: [['에우리아', '가고일들이 지키는 고대 도서관이에요. 조심해서 들어가요.']], after: [['에우리아', '이제 별을 떨어뜨리는 주문을 쓸 수 있어요. 재앙에게요.']] },
+    ],
+    join: [['에우리아', '마지막 대현자 에우리아, 당신의 용병단과 함께 재앙에 맞서겠어요.']],
+  },
+  lightbearer: {
+    name: '루치아', title: '빛을 든 사도', trait: 'lucky', look: { skin: '#f2c9a0', hair: '#e3c565', longHair: true },
+    intro: [['루치아', '예언에 따르면 어둠이 오기 전에 빛을 든 자가 용병들과 함께 선다고 해요. 그게 저래요.'], ['루치아', '어둠에 잠식된 땅을 함께 정화해 주세요. 그러면 예언대로 당신 곁에 서겠어요.']],
+    chapters: [
+      { province: 'mist', type: 'defense', enemy: '망령', title: '어둠에 잠긴 수도원',
+        before: [['루치아', '늪 수도원이 망령들에게 잠식됐어요. 빛을 되찾아야 해요.']], after: [['루치아', '수도원에 다시 빛이 들어요. 하지만 어둠은 북쪽에도 있어요.']] },
+      { province: 'frost', type: 'magic', enemy: '해골 병사', title: '협곡의 검은 제단',
+        before: [['루치아', '협곡에 검은 제단이 세워졌어요. 해골 병사들이 지키고 있어요.']], after: [['루치아', '예언은 이루어졌어요. 이제 당신의 빛이 될게요.']] },
+    ],
+    join: [['루치아', '빛의 사도 루치아, 당신의 대원들 곁에서 새벽을 가져오겠어요.']],
+  },
+  shadowqueen: {
+    name: '니클라', title: '그림자 길드의 여왕', trait: 'greedy', look: { skin: '#e0ac7e', hair: '#1b1420', longHair: true },
+    intro: [['니클라', '그림자 길드 안에 반역자가 생겼어. 여왕으로서 체면이 안 서지.'], ['니클라', '반역자를 처리해 주면, 대륙 모든 그림자가 네 용병단을 위해 움직일 거야.']],
+    chapters: [
+      { province: 'port', type: 'defense', enemy: '산적', title: '여왕의 은신처',
+        before: [['니클라', '반역자들이 내 은신처를 덮친대. 손님 대접을 해 줘.']], after: [['니클라', '훌륭해. 이제 반역자 두목 차례야.']] },
+      { province: 'oasis', type: 'hunt', enemy: '사막 도적', title: '반역자의 최후',
+        before: [['니클라', '두목은 사막 도적들 사이에 숨었어. 조용히 끝내.']], after: [['니클라', '그림자는 이제 네 편이야. 여왕의 약속이지.']] },
+    ],
+    join: [['니클라', '밤의 여왕 니클라, 네 용병단에 그림자를 드리우지. 적들은 잠들지 못할 거야.']],
+  },
+  titan: {
+    name: '우르그', title: '거인의 피', trait: 'brave', look: { skin: '#c68a5c', hair: '#5a3720', longHair: true },
+    require: { standing: { clans: 10 }, text: '붉은 모래 부족 연합 평판 10 이상' },
+    intro: [['우르그', '거인의 피를 이은 부족은 이제 나 하나다. 용의 산맥에 조상의 무덤이 있지.'], ['우르그', '무덤을 지키는 것을 도와주면, 거인의 힘을 네 용병단에 빌려주겠다.']],
+    chapters: [
+      { province: 'redsand', type: 'hunt', enemy: '전갈 거인', title: '조상의 길',
+        before: [['우르그', '무덤으로 가는 길목을 전갈 거인이 막았다. 힘으로 연다.']], after: [['우르그', '길은 열렸다. 무덤은 와이번 소굴 옆이다.']] },
+      { province: 'dragon', type: 'defense', enemy: '와이번', title: '거인의 무덤',
+        before: [['우르그', '와이번들이 조상의 뼈를 노린다. 무덤을 지킨다.']], after: [['우르그', '조상들이 편히 잠든다. 이제 네 전쟁을 돕겠다.']] },
+    ],
+    join: [['우르그', '거인의 피 우르그, 네 용병단의 맨 앞에 선다. 전열은 내가 부순다.']],
   },
 };

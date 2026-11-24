@@ -191,19 +191,46 @@ const Game = {
     if (m.hcls) return HERO_CLASSES[m.hcls].name;
     return m.master ? MASTER_CLASSES[m.master].name : m.adv ? ADV_CLASSES[m.adv].name : CLASSES[m.cls].name;
   },
-  // 대원이 가진 직업 계통 (기본 → 상급 → 최상급), 각각 스킬과 효과를 지닌다
+  // 대원의 현재 직업 (기본/상급/최상급): 액티브 스킬 하나와 의뢰 효과(fx)
+  currentClass(m) {
+    if (m.master) return { key: m.master, ...MASTER_CLASSES[m.master] };
+    if (m.adv) return { key: m.adv, ...ADV_CLASSES[m.adv] };
+    const C = CLASS_SKILLS[m.cls];
+    return { key: m.cls, name: CLASSES[m.cls].name, skill: C.name, b: C.b, fx: C.fx };
+  },
+  // 의뢰 판정에 쓰는 스킬 효과 목록
+  //  범용 대원: 현재 직업의 액티브 스킬 효과 하나
+  //  특별 용병: 고유 패시브 (장을 마칠 때마다 25%씩 강해진다)
+  //  대장: 없음 (지휘는 용병단 단위로 따로 계산)
   classChain(m) {
     if (this.isCaptain(m)) return [];
     if (m.hcls) {
-      // 고유 스킬은 장을 마칠 때마다 25%씩 강해진다
       const H = HERO_CLASSES[m.hcls];
-      return [{ key: `hero:${m.hcls}`, name: H.name, skill: H.skill, desc: H.desc, fx: H.fx, scale: 1 + this.heroCh(m) * 0.25 }];
+      return [{ key: `hero:${m.hcls}`, name: H.name, skill: H.skill, fx: H.fx, scale: 1 + this.heroCh(m) * 0.25 }];
     }
-    return [
-      { key: m.cls, name: CLASSES[m.cls].name, skill: CLASS_SKILLS[m.cls].name, desc: CLASS_SKILLS[m.cls].desc, fx: CLASS_SKILLS[m.cls].fx },
-      m.adv && { key: m.adv, ...ADV_CLASSES[m.adv] },
-      m.master && { key: m.master, ...MASTER_CLASSES[m.master] },
-    ].filter(Boolean);
+    const c = this.currentClass(m);
+    return [{ key: c.key, name: c.name, skill: c.skill, fx: c.fx }];
+  },
+  // 화면에 보여줄 스킬: 액티브(전투 + 의뢰 효과)와 패시브
+  skillsOf(m) {
+    if (this.isCaptain(m)) {
+      const C = CAPTAIN_CLASSES[m.cap], k = this.leadScale(m);
+      return { actives: C.acts.map((b) => ({ name: b.name, battle: describeBattle(b) })),
+        passive: { name: C.lead.name, desc: `지휘: ${C.lead.desc}${k > 1 ? ' (×1.5)' : ` — Lv.${CAPTAIN_AWAKEN}부터 ×1.5`}`, lead: true } };
+    }
+    if (m.hcls) {
+      const H = HERO_CLASSES[m.hcls], sc = 1 + this.heroCh(m) * 0.25;
+      return { actives: H.acts.map((b) => ({ name: b.name, battle: describeBattle(b) })),
+        passive: { name: H.skill, desc: `${describeFx(H.fx)}${sc > 1 ? ` (효과 ×${sc})` : ''}` } };
+    }
+    const c = this.currentClass(m);
+    return { actives: [{ name: c.skill, battle: describeBattle(c.b), mission: describeFx(c.fx) }], passive: null };
+  },
+  // 전투에서 쓰는 액티브 스킬 [기본기, 특기?]
+  battleSkillsOf(m) {
+    if (this.isCaptain(m)) return CAPTAIN_CLASSES[m.cap].acts;
+    if (m.hcls) return HERO_CLASSES[m.hcls].acts;
+    return [this.currentClass(m).b];
   },
   canPromote(m) { return !this.isCaptain(m) && !m.hcls && !m.adv && m.level >= PROMOTE_LEVEL; },
   canMaster(m) { return !this.isCaptain(m) && !m.hcls && m.adv && !m.master && m.level >= MASTER_LEVEL; },
@@ -216,19 +243,19 @@ const Game = {
     s.gold -= PROMOTE_COST;
     this.applyPromotion(m, key);
     this.changeMorale(m, 10);
-    this.log(`${m.name}이(가) ${opt.name}(으)로 전직했습니다! 스킬 「${opt.skill}」 습득, 레벨 상한 ${this.levelCap(m)}. (-${PROMOTE_COST} 금화)`, 'good');
+    this.log(`${m.name}이(가) ${opt.name}(으)로 승급했습니다! 스킬 「${opt.skill}」, 레벨 상한 ${this.levelCap(m)}. (-${PROMOTE_COST} 금화)`, 'good');
     this.emit();
   },
-  promoteMaster(mercId) {
+  promoteMaster(mercId, key) {
     const s = this.state;
     const m = s.mercs.find((x) => x.id === mercId);
-    if (!m || !this.canMaster(m) || m.status === 'quest') return;
+    const mc = m && m.adv && MASTERS[m.adv].find((x) => x.key === key);
+    if (!m || !mc || !this.canMaster(m) || m.status === 'quest') return;
     if (s.gold < MASTER_COST) return this.toast('금화가 부족합니다.');
     s.gold -= MASTER_COST;
-    const mc = MASTERS[m.adv];
-    this.applyMaster(m);
+    this.applyMaster(m, key);
     this.changeMorale(m, 15);
-    this.log(`${m.name}이(가) 최상급 직업 ${mc.name}에 올랐습니다! 스킬 「${mc.skill}」 습득, 레벨 상한 ${this.levelCap(m)}. (-${MASTER_COST} 금화)`, 'good');
+    this.log(`${m.name}이(가) 최상급 직업 ${mc.name}에 올랐습니다! 스킬 「${mc.skill}」, 레벨 상한 ${this.levelCap(m)}. (-${MASTER_COST} 금화)`, 'good');
     this.emit();
   },
   applyPromotion(m, key) {
@@ -237,10 +264,10 @@ const Game = {
     m.look = { ...m.look, adv: key };
     Object.entries(opt.bonus).forEach(([k, v]) => { m[k] += v; });
   },
-  applyMaster(m) {
-    const mc = MASTERS[m.adv];
-    m.master = mc.key;
-    m.look = { ...m.look, master: mc.key };
+  applyMaster(m, key) {
+    const mc = MASTER_CLASSES[key];
+    m.master = key;
+    m.look = { ...m.look, master: key };
     Object.entries(mc.bonus).forEach(([k, v]) => { m[k] += v; });
   },
 
