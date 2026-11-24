@@ -1,0 +1,1080 @@
+{
+  "version": 1,
+  "phase": 3,
+  "inbox": "art/inbox/",
+  "items": [
+    {
+      "kind": "sheet",
+      "size": "1536x1024",
+      "out": "80x80 cells, body ~64px",
+      "id": "sheet/captain/blademaster",
+      "file": "sheet_captain_blademaster.png",
+      "priority": 1,
+      "group": "창설 후보 대장",
+      "name": "바렌 — 떠돌이 검귀 (검귀)",
+      "ref": "art/inbox/captain_blademaster.png",
+      "prompt": "Battle sprite of 바렌, a mercenary captain: lean man in his thirties, a thin scar across one cheek, headband, calm killer eyes. Class: 검귀 (warrior). Colors: skin #e0ac7e, hair #2b1d14, outfit main color #3a1018, accent color #e8e4d8. Weapon: sword. Keep the face, hair and outfit of the reference portrait. FORMAT: one PNG, 1536x1024 (landscape). The SAME character drawn FOUR times in ONE horizontal row, evenly spaced, left to right: (1) idle battle-ready stance, (2) attack wind-up (weapon drawn back / spell gathering), (3) attack strike at full extension, (4) hit reaction (recoiling backwards, wincing). Every copy: full body head to toe, SAME size and SAME scale, all four pairs of feet standing on ONE common horizontal baseline at about 85% of the image height, each figure about 55% of the image height, generous empty space around each figure; figures and weapons never touch or overlap each other or the image border. All four face RIGHT in a front three-quarter view. STYLE: high-quality HD pixel art for a modern 2D fantasy tactics game; chibi-leaning 3-heads-tall proportions (big head, compact body), wide dynamic stance with bent knees, readable silhouette, muted hue-shifted palette (shadows shift toward purple/blue, highlights toward warm yellow), dark desaturated (NOT pure black) outline used selectively, soft rim light on one side, flat cel shading with 2-3 tones, crisp pixel clusters, no anti-aliasing blur. BACKGROUND: perfectly flat solid magenta #FF00FF everywhere (chroma key), no gradient, no floor, no cast shadow, no scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines).",
+      "nai": {
+        "prompt": "1boy, solo, young swordsman, messy dark brown hair, white headband, long headband tails, scar on cheek, dark crimson half cape, dark navy tunic, leather belt, cross strap, dark trousers, brown boots, holding katana with both hands, sword held diagonally, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
+      }
+    },
+    {
+      "kind": "sheet",
+      "size": "1536x1024",
+      "out": "80x80 cells, body ~64px",
+      "id": "sheet/captain/ironwall",
+      "file": "sheet_captain_ironwall.png",
+      "priority": 1,
+      "group": "창설 후보 대장",
+      "name": "브리긴다 — 철벽의 여단장 (철벽 수호자)",
+      "ref": "art/inbox/captain_ironwall.png",
+      "prompt": "Battle sprite of 브리긴다, a mercenary captain: broad-shouldered woman in her forties, braided auburn hair, carries a huge tower shield. Class: 철벽 수호자 (warrior). Colors: skin #f2c9a0, hair #a8642a (long), outfit main color #4a5a6a, accent color #d9a441. Weapon: mace. Keep the face, hair and outfit of the reference portrait. FORMAT: one PNG, 1536x1024 (landscape). The SAME character drawn FOUR times in ONE horizontal row, evenly spaced, left to right: (1) idle battle-ready stance, (2) attack wind-up (weapon drawn back / spell gathering), (3) attack strike at full extension, (4) hit reaction (recoiling backwards, wincing). Every copy: full body head to toe, SAME size and SAME scale, all four pairs of feet standing on ONE common horizontal baseline at about 85% of the image height, each figure about 55% of the image height, generous empty space around each figure; figures and weapons never touch or overlap each other or the image border. All four face RIGHT in a front three-quarter view. STYLE: high-quality HD pixel art for a modern 2D fantasy tactics game; chibi-leaning 3-heads-tall proportions (big head, compact body), wide dynamic stance with bent knees, readable silhouette, muted hue-shifted palette (shadows shift toward purple/blue, highlights toward warm yellow), dark desaturated (NOT pure black) outline used selectively, soft rim light on one side, flat cel shading with 2-3 tones, crisp pixel clusters, no anti-aliasing blur. BACKGROUND: perfectly flat solid magenta #FF00FF everywhere (chroma key), no gradient, no floor, no cast shadow, no scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines).",
+      "nai": {
+        "prompt": "1girl, solo, mature female, broad shoulders, auburn hair, long braid, steel helmet, slate grey plate armor, gold trim, huge tower shield, holding mace, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
+      }
+    },
+    {
+      "kind": "sheet",
+      "size": "1536x1024",
+      "out": "80x80 cells, body ~64px",
+      "id": "sheet/captain/tactician",
+      "file": "sheet_captain_tactician.png",
+      "priority": 1,
+      "group": "창설 후보 대장",
+      "name": "이사벨 — 퇴역 참모 (전술가)",
+      "ref": "art/inbox/captain_tactician.png",
+      "prompt": "Battle sprite of 이사벨, a mercenary captain: sharp-eyed woman in her thirties, long dark-blue hair, officer hat, holds a baton-like staff. Class: 전술가 (mage). Colors: skin #f5d6b8, hair #3a3f6b (long), outfit main color #3a3a4a, accent color #f2c94c. Weapon: staff. Keep the face, hair and outfit of the reference portrait. FORMAT: one PNG, 1536x1024 (landscape). The SAME character drawn FOUR times in ONE horizontal row, evenly spaced, left to right: (1) idle battle-ready stance, (2) attack wind-up (weapon drawn back / spell gathering), (3) attack strike at full extension, (4) hit reaction (recoiling backwards, wincing). Every copy: full body head to toe, SAME size and SAME scale, all four pairs of feet standing on ONE common horizontal baseline at about 85% of the image height, each figure about 55% of the image height, generous empty space around each figure; figures and weapons never touch or overlap each other or the image border. All four face RIGHT in a front three-quarter view. STYLE: high-quality HD pixel art for a modern 2D fantasy tactics game; chibi-leaning 3-heads-tall proportions (big head, compact body), wide dynamic stance with bent knees, readable silhouette, muted hue-shifted palette (shadows shift toward purple/blue, highlights toward warm yellow), dark desaturated (NOT pure black) outline used selectively, soft rim light on one side, flat cel shading with 2-3 tones, crisp pixel clusters, no anti-aliasing blur. BACKGROUND: perfectly flat solid magenta #FF00FF everywhere (chroma key), no gradient, no floor, no cast shadow, no scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines).",
+      "nai": {
+        "prompt": "1girl, solo, mature female, long dark blue hair, sharp eyes, officer hat, dark grey military coat, gold epaulettes, gold buttons, holding baton, short staff, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
+      }
+    },
+    {
+      "kind": "sheet",
+      "size": "1536x1024",
+      "out": "80x80 cells, body ~64px",
+      "id": "sheet/captain/lancer",
+      "file": "sheet_captain_lancer.png",
+      "priority": 1,
+      "group": "창설 후보 대장",
+      "name": "로드릭 — 말을 잃은 기사 (창기병)",
+      "ref": "art/inbox/captain_lancer.png",
+      "prompt": "Battle sprite of 로드릭, a mercenary captain: weathered man in his late thirties, dented knight helmet under his arm or on, long lance. Class: 창기병 (warrior). Colors: skin #f2c9a0, hair #5a3720, outfit main color #3d5a9c, accent color #e8e4d8. Weapon: sword. Keep the face, hair and outfit of the reference portrait. FORMAT: one PNG, 1536x1024 (landscape). The SAME character drawn FOUR times in ONE horizontal row, evenly spaced, left to right: (1) idle battle-ready stance, (2) attack wind-up (weapon drawn back / spell gathering), (3) attack strike at full extension, (4) hit reaction (recoiling backwards, wincing). Every copy: full body head to toe, SAME size and SAME scale, all four pairs of feet standing on ONE common horizontal baseline at about 85% of the image height, each figure about 55% of the image height, generous empty space around each figure; figures and weapons never touch or overlap each other or the image border. All four face RIGHT in a front three-quarter view. STYLE: high-quality HD pixel art for a modern 2D fantasy tactics game; chibi-leaning 3-heads-tall proportions (big head, compact body), wide dynamic stance with bent knees, readable silhouette, muted hue-shifted palette (shadows shift toward purple/blue, highlights toward warm yellow), dark desaturated (NOT pure black) outline used selectively, soft rim light on one side, flat cel shading with 2-3 tones, crisp pixel clusters, no anti-aliasing blur. BACKGROUND: perfectly flat solid magenta #FF00FF everywhere (chroma key), no gradient, no floor, no cast shadow, no scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines).",
+      "nai": {
+        "prompt": "1boy, solo, mature male, brown hair, stubble, dented knight helmet, blue surcoat, chainmail, white trim, holding lance, long lance pointed forward, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
+      }
+    },
+    {
+      "kind": "sheet",
+      "size": "1536x1024",
+      "out": "80x80 cells, body ~64px",
+      "id": "sheet/captain/huntress",
+      "file": "sheet_captain_huntress.png",
+      "priority": 1,
+      "group": "창설 후보 대장",
+      "name": "키아라 — 숲의 덫꾼 (덫사냥꾼)",
+      "ref": "art/inbox/captain_huntress.png",
+      "prompt": "Battle sprite of 키아라, a mercenary captain: wiry woman in her twenties, freckles, ponytail, snare ropes on her belt, short bow. Class: 덫사냥꾼 (archer). Colors: skin #e0ac7e, hair #a8642a (long), outfit main color #4a5a2a, accent color #c58f1e. Weapon: bow. Keep the face, hair and outfit of the reference portrait. FORMAT: one PNG, 1536x1024 (landscape). The SAME character drawn FOUR times in ONE horizontal row, evenly spaced, left to right: (1) idle battle-ready stance, (2) attack wind-up (weapon drawn back / spell gathering), (3) attack strike at full extension, (4) hit reaction (recoiling backwards, wincing). Every copy: full body head to toe, SAME size and SAME scale, all four pairs of feet standing on ONE common horizontal baseline at about 85% of the image height, each figure about 55% of the image height, generous empty space around each figure; figures and weapons never touch or overlap each other or the image border. All four face RIGHT in a front three-quarter view. STYLE: high-quality HD pixel art for a modern 2D fantasy tactics game; chibi-leaning 3-heads-tall proportions (big head, compact body), wide dynamic stance with bent knees, readable silhouette, muted hue-shifted palette (shadows shift toward purple/blue, highlights toward warm yellow), dark desaturated (NOT pure black) outline used selectively, soft rim light on one side, flat cel shading with 2-3 tones, crisp pixel clusters, no anti-aliasing blur. BACKGROUND: perfectly flat solid magenta #FF00FF everywhere (chroma key), no gradient, no floor, no cast shadow, no scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines).",
+      "nai": {
+        "prompt": "1girl, solo, auburn hair, ponytail, freckles, olive green hunter outfit, leather vest, rope coil on belt, headband, holding short bow, quiver, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
+      }
+    },
+    {
+      "kind": "sheet",
+      "size": "1536x1024",
+      "out": "80x80 cells, body ~64px",
+      "id": "sheet/captain/hedgemage",
+      "file": "sheet_captain_hedgemage.png",
+      "priority": 1,
+      "group": "창설 후보 대장",
+      "name": "펠릭스 — 시골 마법사 (떠돌이 마법사)",
+      "ref": "art/inbox/captain_hedgemage.png",
+      "prompt": "Battle sprite of 펠릭스, a mercenary captain: young man in his twenties, messy blond hair, patched wizard hat, holds a crooked staff with a small flame. Class: 떠돌이 마법사 (mage). Colors: skin #f5d6b8, hair #e3c565, outfit main color #5a4a7a, accent color #e8c86a. Weapon: staff. Keep the face, hair and outfit of the reference portrait. FORMAT: one PNG, 1536x1024 (landscape). The SAME character drawn FOUR times in ONE horizontal row, evenly spaced, left to right: (1) idle battle-ready stance, (2) attack wind-up (weapon drawn back / spell gathering), (3) attack strike at full extension, (4) hit reaction (recoiling backwards, wincing). Every copy: full body head to toe, SAME size and SAME scale, all four pairs of feet standing on ONE common horizontal baseline at about 85% of the image height, each figure about 55% of the image height, generous empty space around each figure; figures and weapons never touch or overlap each other or the image border. All four face RIGHT in a front three-quarter view. STYLE: high-quality HD pixel art for a modern 2D fantasy tactics game; chibi-leaning 3-heads-tall proportions (big head, compact body), wide dynamic stance with bent knees, readable silhouette, muted hue-shifted palette (shadows shift toward purple/blue, highlights toward warm yellow), dark desaturated (NOT pure black) outline used selectively, soft rim light on one side, flat cel shading with 2-3 tones, crisp pixel clusters, no anti-aliasing blur. BACKGROUND: perfectly flat solid magenta #FF00FF everywhere (chroma key), no gradient, no floor, no cast shadow, no scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines).",
+      "nai": {
+        "prompt": "1boy, solo, young male, messy blonde hair, patched wizard hat, purple robe, gold trim, holding crooked wooden staff, small flame on staff tip, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
+      }
+    },
+    {
+      "kind": "sheet",
+      "size": "1536x1024",
+      "out": "80x80 cells, body ~64px",
+      "id": "sheet/captain/fieldmedic",
+      "file": "sheet_captain_fieldmedic.png",
+      "priority": 1,
+      "group": "창설 후보 대장",
+      "name": "마그다 — 종군 의무관 (야전 의무관)",
+      "ref": "art/inbox/captain_fieldmedic.png",
+      "prompt": "Battle sprite of 마그다, a mercenary captain: stern woman in her forties, dark hair tied back, bandage roll and satchel, red-cross-like armband. Class: 야전 의무관 (cleric). Colors: skin #c68a5c, hair #2b1d14 (long), outfit main color #e8e4d8, accent color #9c3b2e. Weapon: mace. Keep the face, hair and outfit of the reference portrait. FORMAT: one PNG, 1536x1024 (landscape). The SAME character drawn FOUR times in ONE horizontal row, evenly spaced, left to right: (1) idle battle-ready stance, (2) attack wind-up (weapon drawn back / spell gathering), (3) attack strike at full extension, (4) hit reaction (recoiling backwards, wincing). Every copy: full body head to toe, SAME size and SAME scale, all four pairs of feet standing on ONE common horizontal baseline at about 85% of the image height, each figure about 55% of the image height, generous empty space around each figure; figures and weapons never touch or overlap each other or the image border. All four face RIGHT in a front three-quarter view. STYLE: high-quality HD pixel art for a modern 2D fantasy tactics game; chibi-leaning 3-heads-tall proportions (big head, compact body), wide dynamic stance with bent knees, readable silhouette, muted hue-shifted palette (shadows shift toward purple/blue, highlights toward warm yellow), dark desaturated (NOT pure black) outline used selectively, soft rim light on one side, flat cel shading with 2-3 tones, crisp pixel clusters, no anti-aliasing blur. BACKGROUND: perfectly flat solid magenta #FF00FF everywhere (chroma key), no gradient, no floor, no cast shadow, no scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines).",
+      "nai": {
+        "prompt": "1girl, solo, mature female, dark skin, black hair, hair tied back, white field coat, red armband, satchel, bandages, holding mace, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
+      }
+    },
+    {
+      "kind": "sheet",
+      "size": "1536x1024",
+      "out": "80x80 cells, body ~64px",
+      "id": "sheet/captain/fixer",
+      "file": "sheet_captain_fixer.png",
+      "priority": 1,
+      "group": "창설 후보 대장",
+      "name": "진 — 뒷골목 해결사 (해결사)",
+      "ref": "art/inbox/captain_fixer.png",
+      "prompt": "Battle sprite of 진, a mercenary captain: slick man in his thirties, slicked-back black hair, half-hood, twirls a short knife. Class: 해결사 (rogue). Colors: skin #e0ac7e, hair #2b1d14, outfit main color #2a2a2a, accent color #c9c2b8. Weapon: dagger. Keep the face, hair and outfit of the reference portrait. FORMAT: one PNG, 1536x1024 (landscape). The SAME character drawn FOUR times in ONE horizontal row, evenly spaced, left to right: (1) idle battle-ready stance, (2) attack wind-up (weapon drawn back / spell gathering), (3) attack strike at full extension, (4) hit reaction (recoiling backwards, wincing). Every copy: full body head to toe, SAME size and SAME scale, all four pairs of feet standing on ONE common horizontal baseline at about 85% of the image height, each figure about 55% of the image height, generous empty space around each figure; figures and weapons never touch or overlap each other or the image border. All four face RIGHT in a front three-quarter view. STYLE: high-quality HD pixel art for a modern 2D fantasy tactics game; chibi-leaning 3-heads-tall proportions (big head, compact body), wide dynamic stance with bent knees, readable silhouette, muted hue-shifted palette (shadows shift toward purple/blue, highlights toward warm yellow), dark desaturated (NOT pure black) outline used selectively, soft rim light on one side, flat cel shading with 2-3 tones, crisp pixel clusters, no anti-aliasing blur. BACKGROUND: perfectly flat solid magenta #FF00FF everywhere (chroma key), no gradient, no floor, no cast shadow, no scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines).",
+      "nai": {
+        "prompt": "1boy, solo, slicked back black hair, half hood, black leather coat, grey scarf, holding short knife, reverse grip, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
+      }
+    },
+    {
+      "kind": "sheet",
+      "size": "1536x1024",
+      "out": "80x80 cells, body ~64px",
+      "id": "sheet/captain/veteran",
+      "file": "sheet_captain_veteran.png",
+      "priority": 1,
+      "group": "창설 후보 대장",
+      "name": "하랄드 — 백발의 노병 (노병)",
+      "ref": "art/inbox/captain_veteran.png",
+      "prompt": "Battle sprite of 하랄드, a mercenary captain: old man in his sixties, white hair and beard, battered helmet, many old scars, kind but tough. Class: 노병 (warrior). Colors: skin #f2c9a0, hair #c9c2b8, outfit main color #5a5a4a, accent color #c9c2b8. Weapon: sword. Keep the face, hair and outfit of the reference portrait. FORMAT: one PNG, 1536x1024 (landscape). The SAME character drawn FOUR times in ONE horizontal row, evenly spaced, left to right: (1) idle battle-ready stance, (2) attack wind-up (weapon drawn back / spell gathering), (3) attack strike at full extension, (4) hit reaction (recoiling backwards, wincing). Every copy: full body head to toe, SAME size and SAME scale, all four pairs of feet standing on ONE common horizontal baseline at about 85% of the image height, each figure about 55% of the image height, generous empty space around each figure; figures and weapons never touch or overlap each other or the image border. All four face RIGHT in a front three-quarter view. STYLE: high-quality HD pixel art for a modern 2D fantasy tactics game; chibi-leaning 3-heads-tall proportions (big head, compact body), wide dynamic stance with bent knees, readable silhouette, muted hue-shifted palette (shadows shift toward purple/blue, highlights toward warm yellow), dark desaturated (NOT pure black) outline used selectively, soft rim light on one side, flat cel shading with 2-3 tones, crisp pixel clusters, no anti-aliasing blur. BACKGROUND: perfectly flat solid magenta #FF00FF everywhere (chroma key), no gradient, no floor, no cast shadow, no scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines).",
+      "nai": {
+        "prompt": "1boy, solo, old man, white hair, white beard, scars, battered helmet, olive grey gambeson, chainmail, holding sword, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
+      }
+    },
+    {
+      "kind": "sheet",
+      "size": "1536x1024",
+      "out": "80x80 cells, body ~64px",
+      "id": "sheet/class/warrior",
+      "file": "sheet_class_warrior.png",
+      "priority": 2,
+      "group": "일반 병과",
+      "name": "일반 병과 — 전사",
+      "prompt": "Battle sprite of a generic young mercenary soldier, open-face helmet hiding most of the hair, padded armor with a breastplate, round wooden shield on the back, one-handed sword. Main outfit color #9c3b2e, accent #d9a441. FORMAT: one PNG, 1536x1024 (landscape). The SAME character drawn FOUR times in ONE horizontal row, evenly spaced, left to right: (1) idle battle-ready stance, (2) attack wind-up (weapon drawn back / spell gathering), (3) attack strike at full extension, (4) hit reaction (recoiling backwards, wincing). Every copy: full body head to toe, SAME size and SAME scale, all four pairs of feet standing on ONE common horizontal baseline at about 85% of the image height, each figure about 55% of the image height, generous empty space around each figure; figures and weapons never touch or overlap each other or the image border. All four face RIGHT in a front three-quarter view. STYLE: high-quality HD pixel art for a modern 2D fantasy tactics game; chibi-leaning 3-heads-tall proportions (big head, compact body), wide dynamic stance with bent knees, readable silhouette, muted hue-shifted palette (shadows shift toward purple/blue, highlights toward warm yellow), dark desaturated (NOT pure black) outline used selectively, soft rim light on one side, flat cel shading with 2-3 tones, crisp pixel clusters, no anti-aliasing blur. BACKGROUND: perfectly flat solid magenta #FF00FF everywhere (chroma key), no gradient, no floor, no cast shadow, no scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines).",
+      "nai": {
+        "prompt": "1boy, solo, young mercenary soldier, open-face helmet hiding most of the hair, padded armor with a breastplate, round wooden shield on the back, one-handed sword, red outfit, gold trim, holding sword, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
+      }
+    },
+    {
+      "kind": "sheet",
+      "size": "1536x1024",
+      "out": "80x80 cells, body ~64px",
+      "id": "sheet/class/archer",
+      "file": "sheet_class_archer.png",
+      "priority": 2,
+      "group": "일반 병과",
+      "name": "일반 병과 — 궁수",
+      "prompt": "Battle sprite of a generic young mercenary archer, cloth headband, light leather armor, quiver on the back, short bow. Main outfit color #3f7a3a, accent #a7d26a. FORMAT: one PNG, 1536x1024 (landscape). The SAME character drawn FOUR times in ONE horizontal row, evenly spaced, left to right: (1) idle battle-ready stance, (2) attack wind-up (weapon drawn back / spell gathering), (3) attack strike at full extension, (4) hit reaction (recoiling backwards, wincing). Every copy: full body head to toe, SAME size and SAME scale, all four pairs of feet standing on ONE common horizontal baseline at about 85% of the image height, each figure about 55% of the image height, generous empty space around each figure; figures and weapons never touch or overlap each other or the image border. All four face RIGHT in a front three-quarter view. STYLE: high-quality HD pixel art for a modern 2D fantasy tactics game; chibi-leaning 3-heads-tall proportions (big head, compact body), wide dynamic stance with bent knees, readable silhouette, muted hue-shifted palette (shadows shift toward purple/blue, highlights toward warm yellow), dark desaturated (NOT pure black) outline used selectively, soft rim light on one side, flat cel shading with 2-3 tones, crisp pixel clusters, no anti-aliasing blur. BACKGROUND: perfectly flat solid magenta #FF00FF everywhere (chroma key), no gradient, no floor, no cast shadow, no scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines).",
+      "nai": {
+        "prompt": "1boy, solo, young mercenary archer, cloth headband, light leather armor, quiver on the back, short bow, green outfit, lime green trim, holding bow, quiver, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
+      }
+    },
+    {
+      "kind": "sheet",
+      "size": "1536x1024",
+      "out": "80x80 cells, body ~64px",
+      "id": "sheet/class/mage",
+      "file": "sheet_class_mage.png",
+      "priority": 2,
+      "group": "일반 병과",
+      "name": "일반 병과 — 마법사",
+      "prompt": "Battle sprite of a generic young battle mage, wide-brimmed pointed hat hiding the hair, long robe with a belt and pouches, wooden staff with a crystal. Main outfit color #3d4a9c, accent #f2d24b. FORMAT: one PNG, 1536x1024 (landscape). The SAME character drawn FOUR times in ONE horizontal row, evenly spaced, left to right: (1) idle battle-ready stance, (2) attack wind-up (weapon drawn back / spell gathering), (3) attack strike at full extension, (4) hit reaction (recoiling backwards, wincing). Every copy: full body head to toe, SAME size and SAME scale, all four pairs of feet standing on ONE common horizontal baseline at about 85% of the image height, each figure about 55% of the image height, generous empty space around each figure; figures and weapons never touch or overlap each other or the image border. All four face RIGHT in a front three-quarter view. STYLE: high-quality HD pixel art for a modern 2D fantasy tactics game; chibi-leaning 3-heads-tall proportions (big head, compact body), wide dynamic stance with bent knees, readable silhouette, muted hue-shifted palette (shadows shift toward purple/blue, highlights toward warm yellow), dark desaturated (NOT pure black) outline used selectively, soft rim light on one side, flat cel shading with 2-3 tones, crisp pixel clusters, no anti-aliasing blur. BACKGROUND: perfectly flat solid magenta #FF00FF everywhere (chroma key), no gradient, no floor, no cast shadow, no scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines).",
+      "nai": {
+        "prompt": "1boy, solo, young battle mage, wide-brimmed pointed hat hiding the hair, long robe with a belt and pouches, wooden staff with a crystal, blue outfit, yellow trim, holding staff, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
+      }
+    },
+    {
+      "kind": "sheet",
+      "size": "1536x1024",
+      "out": "80x80 cells, body ~64px",
+      "id": "sheet/class/cleric",
+      "file": "sheet_class_cleric.png",
+      "priority": 2,
+      "group": "일반 병과",
+      "name": "일반 병과 — 성직자",
+      "prompt": "Battle sprite of a generic young war priest, short hair, simple white tabard with a gold sun emblem over chainmail, holy mace and a small book on the belt. Main outfit color #e8e4d8, accent #d9a441. FORMAT: one PNG, 1536x1024 (landscape). The SAME character drawn FOUR times in ONE horizontal row, evenly spaced, left to right: (1) idle battle-ready stance, (2) attack wind-up (weapon drawn back / spell gathering), (3) attack strike at full extension, (4) hit reaction (recoiling backwards, wincing). Every copy: full body head to toe, SAME size and SAME scale, all four pairs of feet standing on ONE common horizontal baseline at about 85% of the image height, each figure about 55% of the image height, generous empty space around each figure; figures and weapons never touch or overlap each other or the image border. All four face RIGHT in a front three-quarter view. STYLE: high-quality HD pixel art for a modern 2D fantasy tactics game; chibi-leaning 3-heads-tall proportions (big head, compact body), wide dynamic stance with bent knees, readable silhouette, muted hue-shifted palette (shadows shift toward purple/blue, highlights toward warm yellow), dark desaturated (NOT pure black) outline used selectively, soft rim light on one side, flat cel shading with 2-3 tones, crisp pixel clusters, no anti-aliasing blur. BACKGROUND: perfectly flat solid magenta #FF00FF everywhere (chroma key), no gradient, no floor, no cast shadow, no scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines).",
+      "nai": {
+        "prompt": "1boy, solo, young war priest, short hair, simple white tabard with a gold sun emblem over chainmail, holy mace and a small book on the belt, white outfit, gold trim, holding mace, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
+      }
+    },
+    {
+      "kind": "sheet",
+      "size": "1536x1024",
+      "out": "80x80 cells, body ~64px",
+      "id": "sheet/class/rogue",
+      "file": "sheet_class_rogue.png",
+      "priority": 2,
+      "group": "일반 병과",
+      "name": "일반 병과 — 도적",
+      "prompt": "Battle sprite of a generic young rogue, deep hood shading the face, dark leather armor with many straps, scarf over the mouth, two daggers. Main outfit color #3b3346, accent #8f2d4a. FORMAT: one PNG, 1536x1024 (landscape). The SAME character drawn FOUR times in ONE horizontal row, evenly spaced, left to right: (1) idle battle-ready stance, (2) attack wind-up (weapon drawn back / spell gathering), (3) attack strike at full extension, (4) hit reaction (recoiling backwards, wincing). Every copy: full body head to toe, SAME size and SAME scale, all four pairs of feet standing on ONE common horizontal baseline at about 85% of the image height, each figure about 55% of the image height, generous empty space around each figure; figures and weapons never touch or overlap each other or the image border. All four face RIGHT in a front three-quarter view. STYLE: high-quality HD pixel art for a modern 2D fantasy tactics game; chibi-leaning 3-heads-tall proportions (big head, compact body), wide dynamic stance with bent knees, readable silhouette, muted hue-shifted palette (shadows shift toward purple/blue, highlights toward warm yellow), dark desaturated (NOT pure black) outline used selectively, soft rim light on one side, flat cel shading with 2-3 tones, crisp pixel clusters, no anti-aliasing blur. BACKGROUND: perfectly flat solid magenta #FF00FF everywhere (chroma key), no gradient, no floor, no cast shadow, no scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines).",
+      "nai": {
+        "prompt": "1boy, solo, young rogue, deep hood shading the face, dark leather armor with many straps, scarf over the mouth, two daggers, dark grey outfit, magenta trim, holding dagger, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
+      }
+    },
+    {
+      "kind": "sheet",
+      "size": "1536x1024",
+      "out": "80x80 cells, body ~64px",
+      "id": "sheet/hero/kai",
+      "file": "sheet_hero_kai.png",
+      "priority": 3,
+      "group": "특별 용병",
+      "name": "카이 — 숲을 떠난 엘프 정찰병 (은빛 순찰자)",
+      "ref": "art/inbox/hero_kai.png",
+      "prompt": "Battle sprite of 카이: young elf man, pointed ears, long blond hair, green ranger cloak, silver longbow. Class: 은빛 순찰자 (archer). Colors: skin #f5d6b8, hair #e3c565 (long), outfit main color #2f6a4a, accent color #e8e4d8. Weapon: bow. Keep the face, hair and outfit of the reference portrait. FORMAT: one PNG, 1536x1024 (landscape). The SAME character drawn FOUR times in ONE horizontal row, evenly spaced, left to right: (1) idle battle-ready stance, (2) attack wind-up (weapon drawn back / spell gathering), (3) attack strike at full extension, (4) hit reaction (recoiling backwards, wincing). Every copy: full body head to toe, SAME size and SAME scale, all four pairs of feet standing on ONE common horizontal baseline at about 85% of the image height, each figure about 55% of the image height, generous empty space around each figure; figures and weapons never touch or overlap each other or the image border. All four face RIGHT in a front three-quarter view. STYLE: high-quality HD pixel art for a modern 2D fantasy tactics game; chibi-leaning 3-heads-tall proportions (big head, compact body), wide dynamic stance with bent knees, readable silhouette, muted hue-shifted palette (shadows shift toward purple/blue, highlights toward warm yellow), dark desaturated (NOT pure black) outline used selectively, soft rim light on one side, flat cel shading with 2-3 tones, crisp pixel clusters, no anti-aliasing blur. BACKGROUND: perfectly flat solid magenta #FF00FF everywhere (chroma key), no gradient, no floor, no cast shadow, no scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines).",
+      "nai": {
+        "prompt": "1boy, solo, young elf man, pointed ears, long blond hair, green ranger cloak, silver longbow, blonde hair, long hair, green outfit, white trim, headband, holding bow, quiver, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
+      }
+    },
+    {
+      "kind": "sheet",
+      "size": "1536x1024",
+      "out": "80x80 cells, body ~64px",
+      "id": "sheet/hero/seraphine",
+      "file": "sheet_hero_seraphine.png",
+      "priority": 3,
+      "group": "특별 용병",
+      "name": "세라핀 — 파문당한 성녀 (파문 성녀)",
+      "ref": "art/inbox/hero_seraphine.png",
+      "prompt": "Battle sprite of 세라핀: young woman, pale, brown hair, torn white saint robes with a red sash, sorrowful but kind. Class: 파문 성녀 (cleric). Colors: skin #f2c9a0, hair #e3c565 (long), outfit main color #f2ecd8, accent color #d6455d. Weapon: mace. Keep the face, hair and outfit of the reference portrait. FORMAT: one PNG, 1536x1024 (landscape). The SAME character drawn FOUR times in ONE horizontal row, evenly spaced, left to right: (1) idle battle-ready stance, (2) attack wind-up (weapon drawn back / spell gathering), (3) attack strike at full extension, (4) hit reaction (recoiling backwards, wincing). Every copy: full body head to toe, SAME size and SAME scale, all four pairs of feet standing on ONE common horizontal baseline at about 85% of the image height, each figure about 55% of the image height, generous empty space around each figure; figures and weapons never touch or overlap each other or the image border. All four face RIGHT in a front three-quarter view. STYLE: high-quality HD pixel art for a modern 2D fantasy tactics game; chibi-leaning 3-heads-tall proportions (big head, compact body), wide dynamic stance with bent knees, readable silhouette, muted hue-shifted palette (shadows shift toward purple/blue, highlights toward warm yellow), dark desaturated (NOT pure black) outline used selectively, soft rim light on one side, flat cel shading with 2-3 tones, crisp pixel clusters, no anti-aliasing blur. BACKGROUND: perfectly flat solid magenta #FF00FF everywhere (chroma key), no gradient, no floor, no cast shadow, no scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines).",
+      "nai": {
+        "prompt": "1girl, solo, young woman, pale, brown hair, torn white saint robes with a red sash, sorrowful but kind, blonde hair, long hair, white outfit, tan trim, holding mace, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
+      }
+    },
+    {
+      "kind": "sheet",
+      "size": "1536x1024",
+      "out": "80x80 cells, body ~64px",
+      "id": "sheet/hero/lyra",
+      "file": "sheet_hero_lyra.png",
+      "priority": 3,
+      "group": "특별 용병",
+      "name": "리라 — 가면 쓴 의적 (가면 의적)",
+      "ref": "art/inbox/hero_lyra.png",
+      "prompt": "Battle sprite of 리라: young woman in a white half-mask, dark violet outfit, hood, quick daggers, mischievous smile. Class: 가면 의적 (rogue). Colors: skin #f5d6b8, hair #8c2f2f (long), outfit main color #2a1a3a, accent color #e8e4d8. Weapon: dagger. Keep the face, hair and outfit of the reference portrait. FORMAT: one PNG, 1536x1024 (landscape). The SAME character drawn FOUR times in ONE horizontal row, evenly spaced, left to right: (1) idle battle-ready stance, (2) attack wind-up (weapon drawn back / spell gathering), (3) attack strike at full extension, (4) hit reaction (recoiling backwards, wincing). Every copy: full body head to toe, SAME size and SAME scale, all four pairs of feet standing on ONE common horizontal baseline at about 85% of the image height, each figure about 55% of the image height, generous empty space around each figure; figures and weapons never touch or overlap each other or the image border. All four face RIGHT in a front three-quarter view. STYLE: high-quality HD pixel art for a modern 2D fantasy tactics game; chibi-leaning 3-heads-tall proportions (big head, compact body), wide dynamic stance with bent knees, readable silhouette, muted hue-shifted palette (shadows shift toward purple/blue, highlights toward warm yellow), dark desaturated (NOT pure black) outline used selectively, soft rim light on one side, flat cel shading with 2-3 tones, crisp pixel clusters, no anti-aliasing blur. BACKGROUND: perfectly flat solid magenta #FF00FF everywhere (chroma key), no gradient, no floor, no cast shadow, no scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines).",
+      "nai": {
+        "prompt": "1girl, solo, young woman in a white half-mask, dark violet outfit, hood, quick daggers, mischievous smile, red hair, long hair, charcoal outfit, white trim, hood, holding dagger, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
+      }
+    },
+    {
+      "kind": "sheet",
+      "size": "1536x1024",
+      "out": "80x80 cells, body ~64px",
+      "id": "sheet/hero/grom",
+      "file": "sheet_hero_grom.png",
+      "priority": 3,
+      "group": "특별 용병",
+      "name": "그롬 — 피의 투기장 챔피언 (투기장 패왕)",
+      "ref": "art/inbox/hero_grom.png",
+      "prompt": "Battle sprite of 그롬: massive clan warrior man, brown skin, scarred, arena champion belt, greatsword. Class: 투기장 패왕 (warrior). Colors: skin #8fae6a, hair #2b1d14, outfit main color #7a2418, accent color #f2c94c. Weapon: sword. Keep the face, hair and outfit of the reference portrait. FORMAT: one PNG, 1536x1024 (landscape). The SAME character drawn FOUR times in ONE horizontal row, evenly spaced, left to right: (1) idle battle-ready stance, (2) attack wind-up (weapon drawn back / spell gathering), (3) attack strike at full extension, (4) hit reaction (recoiling backwards, wincing). Every copy: full body head to toe, SAME size and SAME scale, all four pairs of feet standing on ONE common horizontal baseline at about 85% of the image height, each figure about 55% of the image height, generous empty space around each figure; figures and weapons never touch or overlap each other or the image border. All four face RIGHT in a front three-quarter view. STYLE: high-quality HD pixel art for a modern 2D fantasy tactics game; chibi-leaning 3-heads-tall proportions (big head, compact body), wide dynamic stance with bent knees, readable silhouette, muted hue-shifted palette (shadows shift toward purple/blue, highlights toward warm yellow), dark desaturated (NOT pure black) outline used selectively, soft rim light on one side, flat cel shading with 2-3 tones, crisp pixel clusters, no anti-aliasing blur. BACKGROUND: perfectly flat solid magenta #FF00FF everywhere (chroma key), no gradient, no floor, no cast shadow, no scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines).",
+      "nai": {
+        "prompt": "1boy, solo, massive clan warrior man, brown skin, scarred, arena champion belt, greatsword, dark brown hair, short hair, crimson outfit, yellow trim, holding sword, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
+      }
+    },
+    {
+      "kind": "sheet",
+      "size": "1536x1024",
+      "out": "80x80 cells, body ~64px",
+      "id": "sheet/hero/astel",
+      "file": "sheet_hero_astel.png",
+      "priority": 3,
+      "group": "특별 용병",
+      "name": "아스텔 — 마탑의 마지막 제자 (마탑 계승자)",
+      "ref": "art/inbox/hero_astel.png",
+      "prompt": "Battle sprite of 아스텔: young man scholar-mage, glasses, purple robes with gold embroidery, floating spellbook. Class: 마탑 계승자 (mage). Colors: skin #f2c9a0, hair #c9c2b8 (long), outfit main color #3a1a5a, accent color #f2d24b. Weapon: staff. Keep the face, hair and outfit of the reference portrait. FORMAT: one PNG, 1536x1024 (landscape). The SAME character drawn FOUR times in ONE horizontal row, evenly spaced, left to right: (1) idle battle-ready stance, (2) attack wind-up (weapon drawn back / spell gathering), (3) attack strike at full extension, (4) hit reaction (recoiling backwards, wincing). Every copy: full body head to toe, SAME size and SAME scale, all four pairs of feet standing on ONE common horizontal baseline at about 85% of the image height, each figure about 55% of the image height, generous empty space around each figure; figures and weapons never touch or overlap each other or the image border. All four face RIGHT in a front three-quarter view. STYLE: high-quality HD pixel art for a modern 2D fantasy tactics game; chibi-leaning 3-heads-tall proportions (big head, compact body), wide dynamic stance with bent knees, readable silhouette, muted hue-shifted palette (shadows shift toward purple/blue, highlights toward warm yellow), dark desaturated (NOT pure black) outline used selectively, soft rim light on one side, flat cel shading with 2-3 tones, crisp pixel clusters, no anti-aliasing blur. BACKGROUND: perfectly flat solid magenta #FF00FF everywhere (chroma key), no gradient, no floor, no cast shadow, no scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines).",
+      "nai": {
+        "prompt": "1boy, solo, young man scholar-mage, glasses, purple robes with gold embroidery, floating spellbook, grey hair, long hair, dark purple outfit, yellow trim, hat, holding staff, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
+      }
+    },
+    {
+      "kind": "sheet",
+      "size": "1536x1024",
+      "out": "80x80 cells, body ~64px",
+      "id": "sheet/hero/marisol",
+      "file": "sheet_hero_marisol.png",
+      "priority": 3,
+      "group": "특별 용병",
+      "name": "마리솔 — 닻을 잃은 해적 선장 (해적 선장)",
+      "ref": "art/inbox/hero_marisol.png",
+      "prompt": "Battle sprite of 마리솔: woman pirate captain in her thirties, tricorn hat, navy coat, flintlock pistol and bow. Class: 해적 선장 (archer). Colors: skin #c68a5c, hair #2b1d14 (long), outfit main color #1a2a4a, accent color #d6455d. Weapon: bow. Keep the face, hair and outfit of the reference portrait. FORMAT: one PNG, 1536x1024 (landscape). The SAME character drawn FOUR times in ONE horizontal row, evenly spaced, left to right: (1) idle battle-ready stance, (2) attack wind-up (weapon drawn back / spell gathering), (3) attack strike at full extension, (4) hit reaction (recoiling backwards, wincing). Every copy: full body head to toe, SAME size and SAME scale, all four pairs of feet standing on ONE common horizontal baseline at about 85% of the image height, each figure about 55% of the image height, generous empty space around each figure; figures and weapons never touch or overlap each other or the image border. All four face RIGHT in a front three-quarter view. STYLE: high-quality HD pixel art for a modern 2D fantasy tactics game; chibi-leaning 3-heads-tall proportions (big head, compact body), wide dynamic stance with bent knees, readable silhouette, muted hue-shifted palette (shadows shift toward purple/blue, highlights toward warm yellow), dark desaturated (NOT pure black) outline used selectively, soft rim light on one side, flat cel shading with 2-3 tones, crisp pixel clusters, no anti-aliasing blur. BACKGROUND: perfectly flat solid magenta #FF00FF everywhere (chroma key), no gradient, no floor, no cast shadow, no scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines).",
+      "nai": {
+        "prompt": "1girl, solo, woman pirate captain in her thirties, tricorn hat, navy coat, flintlock pistol and bow, dark brown hair, long hair, navy outfit, tan trim, hat, holding bow, quiver, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
+      }
+    },
+    {
+      "kind": "sheet",
+      "size": "1536x1024",
+      "out": "80x80 cells, body ~64px",
+      "id": "sheet/hero/oswin",
+      "file": "sheet_hero_oswin.png",
+      "priority": 3,
+      "group": "특별 용병",
+      "name": "오스윈 — 몰락한 기사단장 (몰락 기사단장)",
+      "ref": "art/inbox/hero_oswin.png",
+      "prompt": "Battle sprite of 오스윈: old knight commander, grey hair, rusted silver plate armor with a faded royal crest. Class: 몰락 기사단장 (warrior). Colors: skin #e0ac7e, hair #c9c2b8, outfit main color #c9ced6, accent color #3d5a9c. Weapon: sword. Keep the face, hair and outfit of the reference portrait. FORMAT: one PNG, 1536x1024 (landscape). The SAME character drawn FOUR times in ONE horizontal row, evenly spaced, left to right: (1) idle battle-ready stance, (2) attack wind-up (weapon drawn back / spell gathering), (3) attack strike at full extension, (4) hit reaction (recoiling backwards, wincing). Every copy: full body head to toe, SAME size and SAME scale, all four pairs of feet standing on ONE common horizontal baseline at about 85% of the image height, each figure about 55% of the image height, generous empty space around each figure; figures and weapons never touch or overlap each other or the image border. All four face RIGHT in a front three-quarter view. STYLE: high-quality HD pixel art for a modern 2D fantasy tactics game; chibi-leaning 3-heads-tall proportions (big head, compact body), wide dynamic stance with bent knees, readable silhouette, muted hue-shifted palette (shadows shift toward purple/blue, highlights toward warm yellow), dark desaturated (NOT pure black) outline used selectively, soft rim light on one side, flat cel shading with 2-3 tones, crisp pixel clusters, no anti-aliasing blur. BACKGROUND: perfectly flat solid magenta #FF00FF everywhere (chroma key), no gradient, no floor, no cast shadow, no scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines).",
+      "nai": {
+        "prompt": "1boy, solo, old knight commander, grey hair, rusted silver plate armor with a faded royal crest, grey hair, short hair, silver outfit, blue trim, helmet, holding sword, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
+      }
+    },
+    {
+      "kind": "sheet",
+      "size": "1536x1024",
+      "out": "80x80 cells, body ~44px",
+      "id": "sheet/monster/고블린",
+      "file": "sheet_monster_goblin.png",
+      "priority": 4,
+      "group": "지역 몬스터",
+      "name": "몬스터 — 고블린",
+      "height": 44,
+      "prompt": "Battle sprite of a monster: small green goblin raider with big ears, crude leather armor, rusty short sword. Main color #6fa84a, dark #4a7a30, accent #7a5236, eyes #f2c94c. FORMAT: one PNG, 1536x1024 (landscape). The SAME character drawn FOUR times in ONE horizontal row, evenly spaced, left to right: (1) idle battle-ready stance, (2) attack wind-up (weapon drawn back / spell gathering), (3) attack strike at full extension, (4) hit reaction (recoiling backwards, wincing). Every copy: full body head to toe, SAME size and SAME scale, all four pairs of feet standing on ONE common horizontal baseline at about 85% of the image height, each figure about 55% of the image height, generous empty space around each figure; figures and weapons never touch or overlap each other or the image border. All four face RIGHT in a front three-quarter view. STYLE: high-quality HD pixel art for a modern 2D fantasy tactics game; chibi-leaning 3-heads-tall proportions (big head, compact body), wide dynamic stance with bent knees, readable silhouette, muted hue-shifted palette (shadows shift toward purple/blue, highlights toward warm yellow), dark desaturated (NOT pure black) outline used selectively, soft rim light on one side, flat cel shading with 2-3 tones, crisp pixel clusters, no anti-aliasing blur. BACKGROUND: perfectly flat solid magenta #FF00FF everywhere (chroma key), no gradient, no floor, no cast shadow, no scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines).",
+      "nai": {
+        "prompt": "no humans, solo, monster, small green goblin raider with big ears, crude leather armor, rusty short sword, full body, three-quarter view, facing right, battle stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
+      }
+    },
+    {
+      "kind": "sheet",
+      "size": "1536x1024",
+      "out": "80x80 cells, body ~60px",
+      "id": "sheet/monster/산적",
+      "file": "sheet_monster_bandit.png",
+      "priority": 4,
+      "group": "지역 몬스터",
+      "name": "몬스터 — 산적",
+      "height": 60,
+      "prompt": "Battle sprite of a monster: human bandit, red bandana, patched leather jerkin, short axe. Main color #e0ac7e, dark #a8764e, accent #8f2d3a, eyes #1b1420. FORMAT: one PNG, 1536x1024 (landscape). The SAME character drawn FOUR times in ONE horizontal row, evenly spaced, left to right: (1) idle battle-ready stance, (2) attack wind-up (weapon drawn back / spell gathering), (3) attack strike at full extension, (4) hit reaction (recoiling backwards, wincing). Every copy: full body head to toe, SAME size and SAME scale, all four pairs of feet standing on ONE common horizontal baseline at about 85% of the image height, each figure about 55% of the image height, generous empty space around each figure; figures and weapons never touch or overlap each other or the image border. All four face RIGHT in a front three-quarter view. STYLE: high-quality HD pixel art for a modern 2D fantasy tactics game; chibi-leaning 3-heads-tall proportions (big head, compact body), wide dynamic stance with bent knees, readable silhouette, muted hue-shifted palette (shadows shift toward purple/blue, highlights toward warm yellow), dark desaturated (NOT pure black) outline used selectively, soft rim light on one side, flat cel shading with 2-3 tones, crisp pixel clusters, no anti-aliasing blur. BACKGROUND: perfectly flat solid magenta #FF00FF everywhere (chroma key), no gradient, no floor, no cast shadow, no scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines).",
+      "nai": {
+        "prompt": "no humans, solo, monster, human bandit, red bandana, patched leather jerkin, short axe, full body, three-quarter view, facing right, battle stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
+      }
+    },
+    {
+      "kind": "sheet",
+      "size": "1536x1024",
+      "out": "80x80 cells, body ~60px",
+      "id": "sheet/monster/사막 도적",
+      "file": "sheet_monster_desert-bandit.png",
+      "priority": 4,
+      "group": "지역 몬스터",
+      "name": "몬스터 — 사막 도적",
+      "height": 60,
+      "prompt": "Battle sprite of a monster: desert raider, sand-colored head wrap and veil, curved scimitar. Main color #c68a5c, dark #8d5a3b, accent #e8d5a3, eyes #1b1420. FORMAT: one PNG, 1536x1024 (landscape). The SAME character drawn FOUR times in ONE horizontal row, evenly spaced, left to right: (1) idle battle-ready stance, (2) attack wind-up (weapon drawn back / spell gathering), (3) attack strike at full extension, (4) hit reaction (recoiling backwards, wincing). Every copy: full body head to toe, SAME size and SAME scale, all four pairs of feet standing on ONE common horizontal baseline at about 85% of the image height, each figure about 55% of the image height, generous empty space around each figure; figures and weapons never touch or overlap each other or the image border. All four face RIGHT in a front three-quarter view. STYLE: high-quality HD pixel art for a modern 2D fantasy tactics game; chibi-leaning 3-heads-tall proportions (big head, compact body), wide dynamic stance with bent knees, readable silhouette, muted hue-shifted palette (shadows shift toward purple/blue, highlights toward warm yellow), dark desaturated (NOT pure black) outline used selectively, soft rim light on one side, flat cel shading with 2-3 tones, crisp pixel clusters, no anti-aliasing blur. BACKGROUND: perfectly flat solid magenta #FF00FF everywhere (chroma key), no gradient, no floor, no cast shadow, no scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines).",
+      "nai": {
+        "prompt": "no humans, solo, monster, desert raider, sand-colored head wrap and veil, curved scimitar, full body, three-quarter view, facing right, battle stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
+      }
+    },
+    {
+      "kind": "sheet",
+      "size": "1536x1024",
+      "out": "80x80 cells, body ~60px",
+      "id": "sheet/monster/해골 병사",
+      "file": "sheet_monster_skeleton.png",
+      "priority": 4,
+      "group": "지역 몬스터",
+      "name": "몬스터 — 해골 병사",
+      "height": 60,
+      "prompt": "Battle sprite of a monster: skeleton soldier, cracked bones, rusty helmet and round shield, notched sword, glowing red eye sockets. Main color #e8e4d8, dark #a8a49a, accent #5c606a, eyes #d6455d. FORMAT: one PNG, 1536x1024 (landscape). The SAME character drawn FOUR times in ONE horizontal row, evenly spaced, left to right: (1) idle battle-ready stance, (2) attack wind-up (weapon drawn back / spell gathering), (3) attack strike at full extension, (4) hit reaction (recoiling backwards, wincing). Every copy: full body head to toe, SAME size and SAME scale, all four pairs of feet standing on ONE common horizontal baseline at about 85% of the image height, each figure about 55% of the image height, generous empty space around each figure; figures and weapons never touch or overlap each other or the image border. All four face RIGHT in a front three-quarter view. STYLE: high-quality HD pixel art for a modern 2D fantasy tactics game; chibi-leaning 3-heads-tall proportions (big head, compact body), wide dynamic stance with bent knees, readable silhouette, muted hue-shifted palette (shadows shift toward purple/blue, highlights toward warm yellow), dark desaturated (NOT pure black) outline used selectively, soft rim light on one side, flat cel shading with 2-3 tones, crisp pixel clusters, no anti-aliasing blur. BACKGROUND: perfectly flat solid magenta #FF00FF everywhere (chroma key), no gradient, no floor, no cast shadow, no scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines).",
+      "nai": {
+        "prompt": "no humans, solo, monster, skeleton soldier, cracked bones, rusty helmet and round shield, notched sword, glowing red eye sockets, full body, three-quarter view, facing right, battle stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
+      }
+    },
+    {
+      "kind": "sheet",
+      "size": "1536x1024",
+      "out": "80x80 cells, body ~40px",
+      "id": "sheet/monster/들늑대",
+      "file": "sheet_monster_wolf.png",
+      "priority": 4,
+      "group": "지역 몬스터",
+      "name": "몬스터 — 들늑대",
+      "height": 40,
+      "prompt": "Battle sprite of a monster: grey wild wolf, four legs, snarling, walking to the right. Main color #8a8f99, dark #5c606a, eyes #f2c94c. FORMAT: one PNG, 1536x1024 (landscape). The SAME character drawn FOUR times in ONE horizontal row, evenly spaced, left to right: (1) idle battle-ready stance, (2) attack wind-up (weapon drawn back / spell gathering), (3) attack strike at full extension, (4) hit reaction (recoiling backwards, wincing). Every copy: full body head to toe, SAME size and SAME scale, all four pairs of feet standing on ONE common horizontal baseline at about 85% of the image height, each figure about 55% of the image height, generous empty space around each figure; figures and weapons never touch or overlap each other or the image border. All four face RIGHT in a front three-quarter view. STYLE: high-quality HD pixel art for a modern 2D fantasy tactics game; chibi-leaning 3-heads-tall proportions (big head, compact body), wide dynamic stance with bent knees, readable silhouette, muted hue-shifted palette (shadows shift toward purple/blue, highlights toward warm yellow), dark desaturated (NOT pure black) outline used selectively, soft rim light on one side, flat cel shading with 2-3 tones, crisp pixel clusters, no anti-aliasing blur. BACKGROUND: perfectly flat solid magenta #FF00FF everywhere (chroma key), no gradient, no floor, no cast shadow, no scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines).",
+      "nai": {
+        "prompt": "no humans, solo, monster, grey wild wolf, four legs, snarling, walking to the right, full body, three-quarter view, facing right, battle stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
+      }
+    },
+    {
+      "kind": "sheet",
+      "size": "1536x1024",
+      "out": "80x80 cells, body ~40px",
+      "id": "sheet/monster/거대 거미",
+      "file": "sheet_monster_giant-spider.png",
+      "priority": 4,
+      "group": "지역 몬스터",
+      "name": "몬스터 — 거대 거미",
+      "height": 40,
+      "prompt": "Battle sprite of a monster: giant dark purple spider, eight legs, red eyes. Main color #3b3346, dark #241b29, eyes #d6455d. FORMAT: one PNG, 1536x1024 (landscape). The SAME character drawn FOUR times in ONE horizontal row, evenly spaced, left to right: (1) idle battle-ready stance, (2) attack wind-up (weapon drawn back / spell gathering), (3) attack strike at full extension, (4) hit reaction (recoiling backwards, wincing). Every copy: full body head to toe, SAME size and SAME scale, all four pairs of feet standing on ONE common horizontal baseline at about 85% of the image height, each figure about 55% of the image height, generous empty space around each figure; figures and weapons never touch or overlap each other or the image border. All four face RIGHT in a front three-quarter view. STYLE: high-quality HD pixel art for a modern 2D fantasy tactics game; chibi-leaning 3-heads-tall proportions (big head, compact body), wide dynamic stance with bent knees, readable silhouette, muted hue-shifted palette (shadows shift toward purple/blue, highlights toward warm yellow), dark desaturated (NOT pure black) outline used selectively, soft rim light on one side, flat cel shading with 2-3 tones, crisp pixel clusters, no anti-aliasing blur. BACKGROUND: perfectly flat solid magenta #FF00FF everywhere (chroma key), no gradient, no floor, no cast shadow, no scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines).",
+      "nai": {
+        "prompt": "no humans, solo, monster, giant dark purple spider, eight legs, red eyes, full body, three-quarter view, facing right, battle stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
+      }
+    },
+    {
+      "kind": "sheet",
+      "size": "1536x1024",
+      "out": "80x80 cells, body ~66px",
+      "id": "sheet/monster/오크",
+      "file": "sheet_monster_orc.png",
+      "priority": 4,
+      "group": "지역 몬스터",
+      "name": "몬스터 — 오크",
+      "height": 66,
+      "prompt": "Battle sprite of a monster: muscular green orc warrior, iron pauldron, big cleaver. Main color #5f8a3a, dark #456a28, accent #5c606a, eyes #d6455d. FORMAT: one PNG, 1536x1024 (landscape). The SAME character drawn FOUR times in ONE horizontal row, evenly spaced, left to right: (1) idle battle-ready stance, (2) attack wind-up (weapon drawn back / spell gathering), (3) attack strike at full extension, (4) hit reaction (recoiling backwards, wincing). Every copy: full body head to toe, SAME size and SAME scale, all four pairs of feet standing on ONE common horizontal baseline at about 85% of the image height, each figure about 55% of the image height, generous empty space around each figure; figures and weapons never touch or overlap each other or the image border. All four face RIGHT in a front three-quarter view. STYLE: high-quality HD pixel art for a modern 2D fantasy tactics game; chibi-leaning 3-heads-tall proportions (big head, compact body), wide dynamic stance with bent knees, readable silhouette, muted hue-shifted palette (shadows shift toward purple/blue, highlights toward warm yellow), dark desaturated (NOT pure black) outline used selectively, soft rim light on one side, flat cel shading with 2-3 tones, crisp pixel clusters, no anti-aliasing blur. BACKGROUND: perfectly flat solid magenta #FF00FF everywhere (chroma key), no gradient, no floor, no cast shadow, no scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines).",
+      "nai": {
+        "prompt": "no humans, solo, monster, muscular green orc warrior, iron pauldron, big cleaver, full body, three-quarter view, facing right, battle stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
+      }
+    },
+    {
+      "kind": "sheet",
+      "size": "1536x1024",
+      "out": "80x80 cells, body ~30px",
+      "id": "sheet/monster/늪 슬라임",
+      "file": "sheet_monster_slime.png",
+      "priority": 4,
+      "group": "지역 몬스터",
+      "name": "몬스터 — 늪 슬라임",
+      "height": 30,
+      "prompt": "Battle sprite of a monster: green translucent slime blob with a simple face. Main color #6fbf6f, dark #3f8a3f, eyes #1b1420. FORMAT: one PNG, 1536x1024 (landscape). The SAME character drawn FOUR times in ONE horizontal row, evenly spaced, left to right: (1) idle battle-ready stance, (2) attack wind-up (weapon drawn back / spell gathering), (3) attack strike at full extension, (4) hit reaction (recoiling backwards, wincing). Every copy: full body head to toe, SAME size and SAME scale, all four pairs of feet standing on ONE common horizontal baseline at about 85% of the image height, each figure about 55% of the image height, generous empty space around each figure; figures and weapons never touch or overlap each other or the image border. All four face RIGHT in a front three-quarter view. STYLE: high-quality HD pixel art for a modern 2D fantasy tactics game; chibi-leaning 3-heads-tall proportions (big head, compact body), wide dynamic stance with bent knees, readable silhouette, muted hue-shifted palette (shadows shift toward purple/blue, highlights toward warm yellow), dark desaturated (NOT pure black) outline used selectively, soft rim light on one side, flat cel shading with 2-3 tones, crisp pixel clusters, no anti-aliasing blur. BACKGROUND: perfectly flat solid magenta #FF00FF everywhere (chroma key), no gradient, no floor, no cast shadow, no scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines).",
+      "nai": {
+        "prompt": "no humans, solo, monster, green translucent slime blob with a simple face, full body, three-quarter view, facing right, battle stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
+      }
+    },
+    {
+      "kind": "sheet",
+      "size": "1536x1024",
+      "out": "80x80 cells, body ~56px",
+      "id": "sheet/monster/망령",
+      "file": "sheet_monster_wraith.png",
+      "priority": 4,
+      "group": "지역 몬스터",
+      "name": "몬스터 — 망령",
+      "height": 56,
+      "prompt": "Battle sprite of a monster: pale blue floating ghost in tattered robes, glowing cyan eyes, no legs. Main color #b8c8e8, dark #7a8ab0, eyes #6ff0f0. FORMAT: one PNG, 1536x1024 (landscape). The SAME character drawn FOUR times in ONE horizontal row, evenly spaced, left to right: (1) idle battle-ready stance, (2) attack wind-up (weapon drawn back / spell gathering), (3) attack strike at full extension, (4) hit reaction (recoiling backwards, wincing). Every copy: full body head to toe, SAME size and SAME scale, all four pairs of feet standing on ONE common horizontal baseline at about 85% of the image height, each figure about 55% of the image height, generous empty space around each figure; figures and weapons never touch or overlap each other or the image border. All four face RIGHT in a front three-quarter view. STYLE: high-quality HD pixel art for a modern 2D fantasy tactics game; chibi-leaning 3-heads-tall proportions (big head, compact body), wide dynamic stance with bent knees, readable silhouette, muted hue-shifted palette (shadows shift toward purple/blue, highlights toward warm yellow), dark desaturated (NOT pure black) outline used selectively, soft rim light on one side, flat cel shading with 2-3 tones, crisp pixel clusters, no anti-aliasing blur. BACKGROUND: perfectly flat solid magenta #FF00FF everywhere (chroma key), no gradient, no floor, no cast shadow, no scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines).",
+      "nai": {
+        "prompt": "no humans, solo, monster, pale blue floating ghost in tattered robes, glowing cyan eyes, no legs, full body, three-quarter view, facing right, battle stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
+      }
+    },
+    {
+      "kind": "sheet",
+      "size": "1536x1024",
+      "out": "80x80 cells, body ~62px",
+      "id": "sheet/monster/리자드맨",
+      "file": "sheet_monster_lizardman.png",
+      "priority": 4,
+      "group": "지역 몬스터",
+      "name": "몬스터 — 리자드맨",
+      "height": 62,
+      "prompt": "Battle sprite of a monster: teal-green lizardman warrior, scaly tail, spear and hide shield. Main color #4f9a7a, dark #2f6a50, accent #8a6a3a, eyes #f2c94c. FORMAT: one PNG, 1536x1024 (landscape). The SAME character drawn FOUR times in ONE horizontal row, evenly spaced, left to right: (1) idle battle-ready stance, (2) attack wind-up (weapon drawn back / spell gathering), (3) attack strike at full extension, (4) hit reaction (recoiling backwards, wincing). Every copy: full body head to toe, SAME size and SAME scale, all four pairs of feet standing on ONE common horizontal baseline at about 85% of the image height, each figure about 55% of the image height, generous empty space around each figure; figures and weapons never touch or overlap each other or the image border. All four face RIGHT in a front three-quarter view. STYLE: high-quality HD pixel art for a modern 2D fantasy tactics game; chibi-leaning 3-heads-tall proportions (big head, compact body), wide dynamic stance with bent knees, readable silhouette, muted hue-shifted palette (shadows shift toward purple/blue, highlights toward warm yellow), dark desaturated (NOT pure black) outline used selectively, soft rim light on one side, flat cel shading with 2-3 tones, crisp pixel clusters, no anti-aliasing blur. BACKGROUND: perfectly flat solid magenta #FF00FF everywhere (chroma key), no gradient, no floor, no cast shadow, no scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines).",
+      "nai": {
+        "prompt": "no humans, solo, monster, teal-green lizardman warrior, scaly tail, spear and hide shield, full body, three-quarter view, facing right, battle stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
+      }
+    },
+    {
+      "kind": "sheet",
+      "size": "1536x1024",
+      "out": "80x80 cells, body ~56px",
+      "id": "sheet/monster/하피",
+      "file": "sheet_monster_harpy.png",
+      "priority": 4,
+      "group": "지역 몬스터",
+      "name": "몬스터 — 하피",
+      "height": 56,
+      "prompt": "Battle sprite of a monster: harpy, woman with feathered purple wings for arms and bird talons. Main color #e0ac7e, dark #a8764e, accent #8a6aa8, eyes #d6455d. FORMAT: one PNG, 1536x1024 (landscape). The SAME character drawn FOUR times in ONE horizontal row, evenly spaced, left to right: (1) idle battle-ready stance, (2) attack wind-up (weapon drawn back / spell gathering), (3) attack strike at full extension, (4) hit reaction (recoiling backwards, wincing). Every copy: full body head to toe, SAME size and SAME scale, all four pairs of feet standing on ONE common horizontal baseline at about 85% of the image height, each figure about 55% of the image height, generous empty space around each figure; figures and weapons never touch or overlap each other or the image border. All four face RIGHT in a front three-quarter view. STYLE: high-quality HD pixel art for a modern 2D fantasy tactics game; chibi-leaning 3-heads-tall proportions (big head, compact body), wide dynamic stance with bent knees, readable silhouette, muted hue-shifted palette (shadows shift toward purple/blue, highlights toward warm yellow), dark desaturated (NOT pure black) outline used selectively, soft rim light on one side, flat cel shading with 2-3 tones, crisp pixel clusters, no anti-aliasing blur. BACKGROUND: perfectly flat solid magenta #FF00FF everywhere (chroma key), no gradient, no floor, no cast shadow, no scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines).",
+      "nai": {
+        "prompt": "no humans, solo, monster, harpy, woman with feathered purple wings for arms and bird talons, full body, three-quarter view, facing right, battle stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
+      }
+    },
+    {
+      "kind": "sheet",
+      "size": "1536x1024",
+      "out": "80x80 cells, body ~56px",
+      "id": "sheet/monster/가고일",
+      "file": "sheet_monster_gargoyle.png",
+      "priority": 4,
+      "group": "지역 몬스터",
+      "name": "몬스터 — 가고일",
+      "height": 56,
+      "prompt": "Battle sprite of a monster: grey stone gargoyle with bat wings and horns, crouching. Main color #6b737c, dark #44494f, accent #5c606a, eyes #d6455d. FORMAT: one PNG, 1536x1024 (landscape). The SAME character drawn FOUR times in ONE horizontal row, evenly spaced, left to right: (1) idle battle-ready stance, (2) attack wind-up (weapon drawn back / spell gathering), (3) attack strike at full extension, (4) hit reaction (recoiling backwards, wincing). Every copy: full body head to toe, SAME size and SAME scale, all four pairs of feet standing on ONE common horizontal baseline at about 85% of the image height, each figure about 55% of the image height, generous empty space around each figure; figures and weapons never touch or overlap each other or the image border. All four face RIGHT in a front three-quarter view. STYLE: high-quality HD pixel art for a modern 2D fantasy tactics game; chibi-leaning 3-heads-tall proportions (big head, compact body), wide dynamic stance with bent knees, readable silhouette, muted hue-shifted palette (shadows shift toward purple/blue, highlights toward warm yellow), dark desaturated (NOT pure black) outline used selectively, soft rim light on one side, flat cel shading with 2-3 tones, crisp pixel clusters, no anti-aliasing blur. BACKGROUND: perfectly flat solid magenta #FF00FF everywhere (chroma key), no gradient, no floor, no cast shadow, no scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines).",
+      "nai": {
+        "prompt": "no humans, solo, monster, grey stone gargoyle with bat wings and horns, crouching, full body, three-quarter view, facing right, battle stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
+      }
+    },
+    {
+      "kind": "sheet",
+      "size": "1536x1024",
+      "out": "80x80 cells, body ~40px",
+      "id": "sheet/monster/미믹",
+      "file": "sheet_monster_mimic.png",
+      "priority": 4,
+      "group": "지역 몬스터",
+      "name": "몬스터 — 미믹",
+      "height": 40,
+      "prompt": "Battle sprite of a monster: mimic treasure chest monster with teeth and a long tongue, gold trim. Main color #8a5a2b, dark #5a3a1a, accent #d9a441, eyes #f2c94c. FORMAT: one PNG, 1536x1024 (landscape). The SAME character drawn FOUR times in ONE horizontal row, evenly spaced, left to right: (1) idle battle-ready stance, (2) attack wind-up (weapon drawn back / spell gathering), (3) attack strike at full extension, (4) hit reaction (recoiling backwards, wincing). Every copy: full body head to toe, SAME size and SAME scale, all four pairs of feet standing on ONE common horizontal baseline at about 85% of the image height, each figure about 55% of the image height, generous empty space around each figure; figures and weapons never touch or overlap each other or the image border. All four face RIGHT in a front three-quarter view. STYLE: high-quality HD pixel art for a modern 2D fantasy tactics game; chibi-leaning 3-heads-tall proportions (big head, compact body), wide dynamic stance with bent knees, readable silhouette, muted hue-shifted palette (shadows shift toward purple/blue, highlights toward warm yellow), dark desaturated (NOT pure black) outline used selectively, soft rim light on one side, flat cel shading with 2-3 tones, crisp pixel clusters, no anti-aliasing blur. BACKGROUND: perfectly flat solid magenta #FF00FF everywhere (chroma key), no gradient, no floor, no cast shadow, no scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines).",
+      "nai": {
+        "prompt": "no humans, solo, monster, mimic treasure chest monster with teeth and a long tongue, gold trim, full body, three-quarter view, facing right, battle stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
+      }
+    },
+    {
+      "kind": "sheet",
+      "size": "1536x1024",
+      "out": "80x80 cells, body ~68px",
+      "id": "sheet/monster/마족 전사",
+      "file": "sheet_monster_demon-warrior.png",
+      "priority": 4,
+      "group": "지역 몬스터",
+      "name": "몬스터 — 마족 전사",
+      "height": 68,
+      "prompt": "Battle sprite of a monster: red-skinned demon warrior with horns, black armor, flaming eyes, jagged sword. Main color #8a2430, dark #5a1420, accent #3a2a2a, eyes #f2c94c. FORMAT: one PNG, 1536x1024 (landscape). The SAME character drawn FOUR times in ONE horizontal row, evenly spaced, left to right: (1) idle battle-ready stance, (2) attack wind-up (weapon drawn back / spell gathering), (3) attack strike at full extension, (4) hit reaction (recoiling backwards, wincing). Every copy: full body head to toe, SAME size and SAME scale, all four pairs of feet standing on ONE common horizontal baseline at about 85% of the image height, each figure about 55% of the image height, generous empty space around each figure; figures and weapons never touch or overlap each other or the image border. All four face RIGHT in a front three-quarter view. STYLE: high-quality HD pixel art for a modern 2D fantasy tactics game; chibi-leaning 3-heads-tall proportions (big head, compact body), wide dynamic stance with bent knees, readable silhouette, muted hue-shifted palette (shadows shift toward purple/blue, highlights toward warm yellow), dark desaturated (NOT pure black) outline used selectively, soft rim light on one side, flat cel shading with 2-3 tones, crisp pixel clusters, no anti-aliasing blur. BACKGROUND: perfectly flat solid magenta #FF00FF everywhere (chroma key), no gradient, no floor, no cast shadow, no scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines).",
+      "nai": {
+        "prompt": "no humans, solo, monster, red-skinned demon warrior with horns, black armor, flaming eyes, jagged sword, full body, three-quarter view, facing right, battle stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
+      }
+    },
+    {
+      "kind": "sheet",
+      "size": "1536x1024",
+      "out": "80x80 cells, body ~44px",
+      "id": "sheet/monster/지옥견",
+      "file": "sheet_monster_hellhound.png",
+      "priority": 4,
+      "group": "지역 몬스터",
+      "name": "몬스터 — 지옥견",
+      "height": 44,
+      "prompt": "Battle sprite of a monster: black-red hellhound, four legs, burning orange eyes and a mane of fire. Main color #7a2418, dark #4a140c, eyes #f39c12. FORMAT: one PNG, 1536x1024 (landscape). The SAME character drawn FOUR times in ONE horizontal row, evenly spaced, left to right: (1) idle battle-ready stance, (2) attack wind-up (weapon drawn back / spell gathering), (3) attack strike at full extension, (4) hit reaction (recoiling backwards, wincing). Every copy: full body head to toe, SAME size and SAME scale, all four pairs of feet standing on ONE common horizontal baseline at about 85% of the image height, each figure about 55% of the image height, generous empty space around each figure; figures and weapons never touch or overlap each other or the image border. All four face RIGHT in a front three-quarter view. STYLE: high-quality HD pixel art for a modern 2D fantasy tactics game; chibi-leaning 3-heads-tall proportions (big head, compact body), wide dynamic stance with bent knees, readable silhouette, muted hue-shifted palette (shadows shift toward purple/blue, highlights toward warm yellow), dark desaturated (NOT pure black) outline used selectively, soft rim light on one side, flat cel shading with 2-3 tones, crisp pixel clusters, no anti-aliasing blur. BACKGROUND: perfectly flat solid magenta #FF00FF everywhere (chroma key), no gradient, no floor, no cast shadow, no scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines).",
+      "nai": {
+        "prompt": "no humans, solo, monster, black-red hellhound, four legs, burning orange eyes and a mane of fire, full body, three-quarter view, facing right, battle stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
+      }
+    },
+    {
+      "kind": "sheet",
+      "size": "1536x1024",
+      "out": "80x80 cells, body ~70px",
+      "id": "sheet/monster/데스 나이트",
+      "file": "sheet_monster_death-knight.png",
+      "priority": 4,
+      "group": "지역 몬스터",
+      "name": "몬스터 — 데스 나이트",
+      "height": 70,
+      "prompt": "Battle sprite of a monster: undead death knight in dark iron plate, purple tattered cape, teal ghost flames in the visor. Main color #4a4a5a, dark #2a2a36, accent #6b2a6b, eyes #7ed3c8. FORMAT: one PNG, 1536x1024 (landscape). The SAME character drawn FOUR times in ONE horizontal row, evenly spaced, left to right: (1) idle battle-ready stance, (2) attack wind-up (weapon drawn back / spell gathering), (3) attack strike at full extension, (4) hit reaction (recoiling backwards, wincing). Every copy: full body head to toe, SAME size and SAME scale, all four pairs of feet standing on ONE common horizontal baseline at about 85% of the image height, each figure about 55% of the image height, generous empty space around each figure; figures and weapons never touch or overlap each other or the image border. All four face RIGHT in a front three-quarter view. STYLE: high-quality HD pixel art for a modern 2D fantasy tactics game; chibi-leaning 3-heads-tall proportions (big head, compact body), wide dynamic stance with bent knees, readable silhouette, muted hue-shifted palette (shadows shift toward purple/blue, highlights toward warm yellow), dark desaturated (NOT pure black) outline used selectively, soft rim light on one side, flat cel shading with 2-3 tones, crisp pixel clusters, no anti-aliasing blur. BACKGROUND: perfectly flat solid magenta #FF00FF everywhere (chroma key), no gradient, no floor, no cast shadow, no scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines).",
+      "nai": {
+        "prompt": "no humans, solo, monster, undead death knight in dark iron plate, purple tattered cape, teal ghost flames in the visor, full body, three-quarter view, facing right, battle stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
+      }
+    },
+    {
+      "kind": "sheet",
+      "size": "1536x1024",
+      "out": "112x112 cells, body ~92px",
+      "id": "sheet/monster/숲 트롤",
+      "file": "sheet_monster_forest-troll.png",
+      "priority": 4,
+      "group": "지역 몬스터",
+      "name": "몬스터 — 숲 트롤",
+      "height": 92,
+      "cell": 112,
+      "prompt": "Battle sprite of a monster: huge mossy green forest troll, long arms, tree-branch club. Main color #5a7a5a, dark #3e5a3e, accent #6b4226, eyes #f2c94c. A large monster: draw it bigger and heavier than a human (it is shown about 1.5x human height). FORMAT: one PNG, 1536x1024 (landscape). The SAME character drawn FOUR times in ONE horizontal row, evenly spaced, left to right: (1) idle battle-ready stance, (2) attack wind-up (weapon drawn back / spell gathering), (3) attack strike at full extension, (4) hit reaction (recoiling backwards, wincing). Every copy: full body head to toe, SAME size and SAME scale, all four pairs of feet standing on ONE common horizontal baseline at about 85% of the image height, each figure about 55% of the image height, generous empty space around each figure; figures and weapons never touch or overlap each other or the image border. All four face RIGHT in a front three-quarter view. STYLE: high-quality HD pixel art for a modern 2D fantasy tactics game; chibi-leaning 3-heads-tall proportions (big head, compact body), wide dynamic stance with bent knees, readable silhouette, muted hue-shifted palette (shadows shift toward purple/blue, highlights toward warm yellow), dark desaturated (NOT pure black) outline used selectively, soft rim light on one side, flat cel shading with 2-3 tones, crisp pixel clusters, no anti-aliasing blur. BACKGROUND: perfectly flat solid magenta #FF00FF everywhere (chroma key), no gradient, no floor, no cast shadow, no scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines).",
+      "nai": {
+        "prompt": "no humans, solo, monster, huge mossy green forest troll, long arms, tree-branch club, full body, three-quarter view, facing right, battle stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
+      }
+    },
+    {
+      "kind": "sheet",
+      "size": "1536x1024",
+      "out": "112x112 cells, body ~92px",
+      "id": "sheet/monster/서리 트롤",
+      "file": "sheet_monster_frost-troll.png",
+      "priority": 4,
+      "group": "지역 몬스터",
+      "name": "몬스터 — 서리 트롤",
+      "height": 92,
+      "cell": 112,
+      "prompt": "Battle sprite of a monster: huge pale blue frost troll with icicles, ice club. Main color #9fc4dc, dark #6f94ac, accent #3a4a6b, eyes #3d4a9c. A large monster: draw it bigger and heavier than a human (it is shown about 1.5x human height). FORMAT: one PNG, 1536x1024 (landscape). The SAME character drawn FOUR times in ONE horizontal row, evenly spaced, left to right: (1) idle battle-ready stance, (2) attack wind-up (weapon drawn back / spell gathering), (3) attack strike at full extension, (4) hit reaction (recoiling backwards, wincing). Every copy: full body head to toe, SAME size and SAME scale, all four pairs of feet standing on ONE common horizontal baseline at about 85% of the image height, each figure about 55% of the image height, generous empty space around each figure; figures and weapons never touch or overlap each other or the image border. All four face RIGHT in a front three-quarter view. STYLE: high-quality HD pixel art for a modern 2D fantasy tactics game; chibi-leaning 3-heads-tall proportions (big head, compact body), wide dynamic stance with bent knees, readable silhouette, muted hue-shifted palette (shadows shift toward purple/blue, highlights toward warm yellow), dark desaturated (NOT pure black) outline used selectively, soft rim light on one side, flat cel shading with 2-3 tones, crisp pixel clusters, no anti-aliasing blur. BACKGROUND: perfectly flat solid magenta #FF00FF everywhere (chroma key), no gradient, no floor, no cast shadow, no scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines).",
+      "nai": {
+        "prompt": "no humans, solo, monster, huge pale blue frost troll with icicles, ice club, full body, three-quarter view, facing right, battle stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
+      }
+    },
+    {
+      "kind": "sheet",
+      "size": "1536x1024",
+      "out": "112x112 cells, body ~92px",
+      "id": "sheet/monster/설인",
+      "file": "sheet_monster_yeti.png",
+      "priority": 4,
+      "group": "지역 몬스터",
+      "name": "몬스터 — 설인",
+      "height": 92,
+      "cell": 112,
+      "prompt": "Battle sprite of a monster: huge white-furred yeti, blue face, big fists. Main color #e8eef2, dark #b0bcc8, accent #8a9aa8, eyes #3d4a9c. A large monster: draw it bigger and heavier than a human (it is shown about 1.5x human height). FORMAT: one PNG, 1536x1024 (landscape). The SAME character drawn FOUR times in ONE horizontal row, evenly spaced, left to right: (1) idle battle-ready stance, (2) attack wind-up (weapon drawn back / spell gathering), (3) attack strike at full extension, (4) hit reaction (recoiling backwards, wincing). Every copy: full body head to toe, SAME size and SAME scale, all four pairs of feet standing on ONE common horizontal baseline at about 85% of the image height, each figure about 55% of the image height, generous empty space around each figure; figures and weapons never touch or overlap each other or the image border. All four face RIGHT in a front three-quarter view. STYLE: high-quality HD pixel art for a modern 2D fantasy tactics game; chibi-leaning 3-heads-tall proportions (big head, compact body), wide dynamic stance with bent knees, readable silhouette, muted hue-shifted palette (shadows shift toward purple/blue, highlights toward warm yellow), dark desaturated (NOT pure black) outline used selectively, soft rim light on one side, flat cel shading with 2-3 tones, crisp pixel clusters, no anti-aliasing blur. BACKGROUND: perfectly flat solid magenta #FF00FF everywhere (chroma key), no gradient, no floor, no cast shadow, no scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines).",
+      "nai": {
+        "prompt": "no humans, solo, monster, huge white-furred yeti, blue face, big fists, full body, three-quarter view, facing right, battle stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
+      }
+    },
+    {
+      "kind": "sheet",
+      "size": "1536x1024",
+      "out": "112x112 cells, body ~72px",
+      "id": "sheet/monster/전갈 거인",
+      "file": "sheet_monster_giant-scorpion.png",
+      "priority": 4,
+      "group": "지역 몬스터",
+      "name": "몬스터 — 전갈 거인",
+      "height": 72,
+      "cell": 112,
+      "prompt": "Battle sprite of a monster: giant golden desert scorpion, raised stinger tail, big pincers. Main color #c58f1e, dark #8a6210, eyes #1b1420. A large monster: draw it bigger and heavier than a human (it is shown about 1.5x human height). FORMAT: one PNG, 1536x1024 (landscape). The SAME character drawn FOUR times in ONE horizontal row, evenly spaced, left to right: (1) idle battle-ready stance, (2) attack wind-up (weapon drawn back / spell gathering), (3) attack strike at full extension, (4) hit reaction (recoiling backwards, wincing). Every copy: full body head to toe, SAME size and SAME scale, all four pairs of feet standing on ONE common horizontal baseline at about 85% of the image height, each figure about 55% of the image height, generous empty space around each figure; figures and weapons never touch or overlap each other or the image border. All four face RIGHT in a front three-quarter view. STYLE: high-quality HD pixel art for a modern 2D fantasy tactics game; chibi-leaning 3-heads-tall proportions (big head, compact body), wide dynamic stance with bent knees, readable silhouette, muted hue-shifted palette (shadows shift toward purple/blue, highlights toward warm yellow), dark desaturated (NOT pure black) outline used selectively, soft rim light on one side, flat cel shading with 2-3 tones, crisp pixel clusters, no anti-aliasing blur. BACKGROUND: perfectly flat solid magenta #FF00FF everywhere (chroma key), no gradient, no floor, no cast shadow, no scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines).",
+      "nai": {
+        "prompt": "no humans, solo, monster, giant golden desert scorpion, raised stinger tail, big pincers, full body, three-quarter view, facing right, battle stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
+      }
+    },
+    {
+      "kind": "sheet",
+      "size": "1536x1024",
+      "out": "112x112 cells, body ~84px",
+      "id": "sheet/monster/와이번",
+      "file": "sheet_monster_wyvern.png",
+      "priority": 4,
+      "group": "지역 몬스터",
+      "name": "몬스터 — 와이번",
+      "height": 84,
+      "cell": 112,
+      "prompt": "Battle sprite of a monster: red wyvern dragon, two legs, wings half spread, long tail. Main color #9c3b2e, dark #6b2418, accent #c25a3a, eyes #f2c94c. A large monster: draw it bigger and heavier than a human (it is shown about 1.5x human height). FORMAT: one PNG, 1536x1024 (landscape). The SAME character drawn FOUR times in ONE horizontal row, evenly spaced, left to right: (1) idle battle-ready stance, (2) attack wind-up (weapon drawn back / spell gathering), (3) attack strike at full extension, (4) hit reaction (recoiling backwards, wincing). Every copy: full body head to toe, SAME size and SAME scale, all four pairs of feet standing on ONE common horizontal baseline at about 85% of the image height, each figure about 55% of the image height, generous empty space around each figure; figures and weapons never touch or overlap each other or the image border. All four face RIGHT in a front three-quarter view. STYLE: high-quality HD pixel art for a modern 2D fantasy tactics game; chibi-leaning 3-heads-tall proportions (big head, compact body), wide dynamic stance with bent knees, readable silhouette, muted hue-shifted palette (shadows shift toward purple/blue, highlights toward warm yellow), dark desaturated (NOT pure black) outline used selectively, soft rim light on one side, flat cel shading with 2-3 tones, crisp pixel clusters, no anti-aliasing blur. BACKGROUND: perfectly flat solid magenta #FF00FF everywhere (chroma key), no gradient, no floor, no cast shadow, no scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines).",
+      "nai": {
+        "prompt": "no humans, solo, monster, red wyvern dragon, two legs, wings half spread, long tail, full body, three-quarter view, facing right, battle stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
+      }
+    },
+    {
+      "kind": "sheet",
+      "size": "1536x1024",
+      "out": "112x112 cells, body ~88px",
+      "id": "sheet/monster/리치의 망령",
+      "file": "sheet_monster_lich-wraith.png",
+      "priority": 4,
+      "group": "지역 몬스터",
+      "name": "몬스터 — 리치의 망령",
+      "height": 88,
+      "cell": 112,
+      "prompt": "Battle sprite of a monster: large purple lich ghost in a crown and robes, green soul fire in its hands. Main color #9b6ad6, dark #6b3d9c, eyes #7ed37e. A large monster: draw it bigger and heavier than a human (it is shown about 1.5x human height). FORMAT: one PNG, 1536x1024 (landscape). The SAME character drawn FOUR times in ONE horizontal row, evenly spaced, left to right: (1) idle battle-ready stance, (2) attack wind-up (weapon drawn back / spell gathering), (3) attack strike at full extension, (4) hit reaction (recoiling backwards, wincing). Every copy: full body head to toe, SAME size and SAME scale, all four pairs of feet standing on ONE common horizontal baseline at about 85% of the image height, each figure about 55% of the image height, generous empty space around each figure; figures and weapons never touch or overlap each other or the image border. All four face RIGHT in a front three-quarter view. STYLE: high-quality HD pixel art for a modern 2D fantasy tactics game; chibi-leaning 3-heads-tall proportions (big head, compact body), wide dynamic stance with bent knees, readable silhouette, muted hue-shifted palette (shadows shift toward purple/blue, highlights toward warm yellow), dark desaturated (NOT pure black) outline used selectively, soft rim light on one side, flat cel shading with 2-3 tones, crisp pixel clusters, no anti-aliasing blur. BACKGROUND: perfectly flat solid magenta #FF00FF everywhere (chroma key), no gradient, no floor, no cast shadow, no scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines).",
+      "nai": {
+        "prompt": "no humans, solo, monster, large purple lich ghost in a crown and robes, green soul fire in its hands, full body, three-quarter view, facing right, battle stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
+      }
+    },
+    {
+      "kind": "sheet",
+      "size": "1536x1024",
+      "out": "80x80 cells, body ~64px",
+      "id": "sheet/captain/windhunter",
+      "file": "sheet_captain_windhunter.png",
+      "priority": 5,
+      "group": "나머지 대장",
+      "name": "나린 — 바람을 쫓는 사냥꾼 (바람 사냥꾼)",
+      "ref": "art/inbox/captain_windhunter.png",
+      "prompt": "Battle sprite of 나린, a mercenary captain: tanned woman in her twenties, long black hair blowing in the wind, green headband, longbow. Class: 바람 사냥꾼 (archer). Colors: skin #c68a5c, hair #2b1d14 (long), outfit main color #2a4a3a, accent color #a7d26a. Weapon: bow. Keep the face, hair and outfit of the reference portrait. FORMAT: one PNG, 1536x1024 (landscape). The SAME character drawn FOUR times in ONE horizontal row, evenly spaced, left to right: (1) idle battle-ready stance, (2) attack wind-up (weapon drawn back / spell gathering), (3) attack strike at full extension, (4) hit reaction (recoiling backwards, wincing). Every copy: full body head to toe, SAME size and SAME scale, all four pairs of feet standing on ONE common horizontal baseline at about 85% of the image height, each figure about 55% of the image height, generous empty space around each figure; figures and weapons never touch or overlap each other or the image border. All four face RIGHT in a front three-quarter view. STYLE: high-quality HD pixel art for a modern 2D fantasy tactics game; chibi-leaning 3-heads-tall proportions (big head, compact body), wide dynamic stance with bent knees, readable silhouette, muted hue-shifted palette (shadows shift toward purple/blue, highlights toward warm yellow), dark desaturated (NOT pure black) outline used selectively, soft rim light on one side, flat cel shading with 2-3 tones, crisp pixel clusters, no anti-aliasing blur. BACKGROUND: perfectly flat solid magenta #FF00FF everywhere (chroma key), no gradient, no floor, no cast shadow, no scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines).",
+      "nai": {
+        "prompt": "1girl, solo, tanned woman in her twenties, long black hair blowing in the wind, green headband, longbow, dark brown hair, long hair, dark green outfit, lime green trim, headband, holding bow, quiver, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
+      }
+    },
+    {
+      "kind": "sheet",
+      "size": "1536x1024",
+      "out": "80x80 cells, body ~64px",
+      "id": "sheet/captain/shadowlord",
+      "file": "sheet_captain_shadowlord.png",
+      "priority": 5,
+      "group": "나머지 대장",
+      "name": "모로 — 항구의 쥐왕 (그림자 두목)",
+      "ref": "art/inbox/captain_shadowlord.png",
+      "prompt": "Battle sprite of 모로, a mercenary captain: cunning man in his forties, rat-like grin, hood, gold rings, dagger. Class: 그림자 두목 (rogue). Colors: skin #e0ac7e, hair #5a3720, outfit main color #1a1420, accent color #d9a441. Weapon: dagger. Keep the face, hair and outfit of the reference portrait. FORMAT: one PNG, 1536x1024 (landscape). The SAME character drawn FOUR times in ONE horizontal row, evenly spaced, left to right: (1) idle battle-ready stance, (2) attack wind-up (weapon drawn back / spell gathering), (3) attack strike at full extension, (4) hit reaction (recoiling backwards, wincing). Every copy: full body head to toe, SAME size and SAME scale, all four pairs of feet standing on ONE common horizontal baseline at about 85% of the image height, each figure about 55% of the image height, generous empty space around each figure; figures and weapons never touch or overlap each other or the image border. All four face RIGHT in a front three-quarter view. STYLE: high-quality HD pixel art for a modern 2D fantasy tactics game; chibi-leaning 3-heads-tall proportions (big head, compact body), wide dynamic stance with bent knees, readable silhouette, muted hue-shifted palette (shadows shift toward purple/blue, highlights toward warm yellow), dark desaturated (NOT pure black) outline used selectively, soft rim light on one side, flat cel shading with 2-3 tones, crisp pixel clusters, no anti-aliasing blur. BACKGROUND: perfectly flat solid magenta #FF00FF everywhere (chroma key), no gradient, no floor, no cast shadow, no scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines).",
+      "nai": {
+        "prompt": "1boy, solo, cunning man in his forties, rat-like grin, hood, gold rings, dagger, brown hair, short hair, black outfit, gold trim, hood, holding dagger, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
+      }
+    },
+    {
+      "kind": "sheet",
+      "size": "1536x1024",
+      "out": "80x80 cells, body ~64px",
+      "id": "sheet/captain/spellblade",
+      "file": "sheet_captain_spellblade.png",
+      "priority": 5,
+      "group": "나머지 대장",
+      "name": "카시안 — 파문당한 마검사 (마검사)",
+      "ref": "art/inbox/captain_spellblade.png",
+      "prompt": "Battle sprite of 카시안, a mercenary captain: elegant man in his thirties, long silver hair, sword glowing with blue magic. Class: 마검사 (mage). Colors: skin #f5d6b8, hair #c9c2b8 (long), outfit main color #2a2a6a, accent color #7fd6e8. Weapon: staff. Keep the face, hair and outfit of the reference portrait. FORMAT: one PNG, 1536x1024 (landscape). The SAME character drawn FOUR times in ONE horizontal row, evenly spaced, left to right: (1) idle battle-ready stance, (2) attack wind-up (weapon drawn back / spell gathering), (3) attack strike at full extension, (4) hit reaction (recoiling backwards, wincing). Every copy: full body head to toe, SAME size and SAME scale, all four pairs of feet standing on ONE common horizontal baseline at about 85% of the image height, each figure about 55% of the image height, generous empty space around each figure; figures and weapons never touch or overlap each other or the image border. All four face RIGHT in a front three-quarter view. STYLE: high-quality HD pixel art for a modern 2D fantasy tactics game; chibi-leaning 3-heads-tall proportions (big head, compact body), wide dynamic stance with bent knees, readable silhouette, muted hue-shifted palette (shadows shift toward purple/blue, highlights toward warm yellow), dark desaturated (NOT pure black) outline used selectively, soft rim light on one side, flat cel shading with 2-3 tones, crisp pixel clusters, no anti-aliasing blur. BACKGROUND: perfectly flat solid magenta #FF00FF everywhere (chroma key), no gradient, no floor, no cast shadow, no scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines).",
+      "nai": {
+        "prompt": "1boy, solo, elegant man in his thirties, long silver hair, sword glowing with blue magic, grey hair, long hair, dark blue outfit, silver trim, holding staff, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
+      }
+    },
+    {
+      "kind": "sheet",
+      "size": "1536x1024",
+      "out": "80x80 cells, body ~64px",
+      "id": "sheet/captain/saintknight",
+      "file": "sheet_captain_saintknight.png",
+      "priority": 5,
+      "group": "나머지 대장",
+      "name": "엘리노어 — 성광의 기사 (성광 기사)",
+      "ref": "art/inbox/captain_saintknight.png",
+      "prompt": "Battle sprite of 엘리노어, a mercenary captain: noble woman knight in her twenties, long golden hair, white and gold plate armor, holy mace. Class: 성광 기사 (cleric). Colors: skin #f2c9a0, hair #e3c565 (long), outfit main color #e8e4d8, accent color #f2c94c. Weapon: mace. Keep the face, hair and outfit of the reference portrait. FORMAT: one PNG, 1536x1024 (landscape). The SAME character drawn FOUR times in ONE horizontal row, evenly spaced, left to right: (1) idle battle-ready stance, (2) attack wind-up (weapon drawn back / spell gathering), (3) attack strike at full extension, (4) hit reaction (recoiling backwards, wincing). Every copy: full body head to toe, SAME size and SAME scale, all four pairs of feet standing on ONE common horizontal baseline at about 85% of the image height, each figure about 55% of the image height, generous empty space around each figure; figures and weapons never touch or overlap each other or the image border. All four face RIGHT in a front three-quarter view. STYLE: high-quality HD pixel art for a modern 2D fantasy tactics game; chibi-leaning 3-heads-tall proportions (big head, compact body), wide dynamic stance with bent knees, readable silhouette, muted hue-shifted palette (shadows shift toward purple/blue, highlights toward warm yellow), dark desaturated (NOT pure black) outline used selectively, soft rim light on one side, flat cel shading with 2-3 tones, crisp pixel clusters, no anti-aliasing blur. BACKGROUND: perfectly flat solid magenta #FF00FF everywhere (chroma key), no gradient, no floor, no cast shadow, no scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines).",
+      "nai": {
+        "prompt": "1girl, solo, noble woman knight in her twenties, long golden hair, white and gold plate armor, holy mace, blonde hair, long hair, white outfit, yellow trim, helmet, holding mace, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
+      }
+    },
+    {
+      "kind": "sheet",
+      "size": "1536x1024",
+      "out": "80x80 cells, body ~64px",
+      "id": "sheet/captain/warlord",
+      "file": "sheet_captain_warlord.png",
+      "priority": 5,
+      "group": "나머지 대장",
+      "name": "가르마크 — 백전의 전쟁군주 (전쟁군주)",
+      "ref": "art/inbox/captain_warlord.png",
+      "prompt": "Battle sprite of 가르마크, a mercenary captain: huge man in his forties, red hair and beard, horned helmet, war axe, battle scars. Class: 전쟁군주 (warrior). Colors: skin #c68a5c, hair #8c2f2f, outfit main color #5a3a1a, accent color #d6455d. Weapon: sword. Keep the face, hair and outfit of the reference portrait. FORMAT: one PNG, 1536x1024 (landscape). The SAME character drawn FOUR times in ONE horizontal row, evenly spaced, left to right: (1) idle battle-ready stance, (2) attack wind-up (weapon drawn back / spell gathering), (3) attack strike at full extension, (4) hit reaction (recoiling backwards, wincing). Every copy: full body head to toe, SAME size and SAME scale, all four pairs of feet standing on ONE common horizontal baseline at about 85% of the image height, each figure about 55% of the image height, generous empty space around each figure; figures and weapons never touch or overlap each other or the image border. All four face RIGHT in a front three-quarter view. STYLE: high-quality HD pixel art for a modern 2D fantasy tactics game; chibi-leaning 3-heads-tall proportions (big head, compact body), wide dynamic stance with bent knees, readable silhouette, muted hue-shifted palette (shadows shift toward purple/blue, highlights toward warm yellow), dark desaturated (NOT pure black) outline used selectively, soft rim light on one side, flat cel shading with 2-3 tones, crisp pixel clusters, no anti-aliasing blur. BACKGROUND: perfectly flat solid magenta #FF00FF everywhere (chroma key), no gradient, no floor, no cast shadow, no scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines).",
+      "nai": {
+        "prompt": "1boy, solo, huge man in his forties, red hair and beard, horned helmet, war axe, battle scars, red hair, short hair, brown outfit, tan trim, helmet, holding sword, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
+      }
+    },
+    {
+      "kind": "sheet",
+      "size": "1536x1024",
+      "out": "80x80 cells, body ~64px",
+      "id": "sheet/captain/khan",
+      "file": "sheet_captain_khan.png",
+      "priority": 5,
+      "group": "나머지 대장",
+      "name": "테무르 — 초원의 칸 (초원의 칸)",
+      "ref": "art/inbox/captain_khan.png",
+      "prompt": "Battle sprite of 테무르, a mercenary captain: nomad man in his thirties, long black braids, fur-trimmed coat, composite bow, steppe warrior. Class: 초원의 칸 (archer). Colors: skin #8d5a3b, hair #2b1d14 (long), outfit main color #8a5a2a, accent color #e8c86a. Weapon: bow. Keep the face, hair and outfit of the reference portrait. FORMAT: one PNG, 1536x1024 (landscape). The SAME character drawn FOUR times in ONE horizontal row, evenly spaced, left to right: (1) idle battle-ready stance, (2) attack wind-up (weapon drawn back / spell gathering), (3) attack strike at full extension, (4) hit reaction (recoiling backwards, wincing). Every copy: full body head to toe, SAME size and SAME scale, all four pairs of feet standing on ONE common horizontal baseline at about 85% of the image height, each figure about 55% of the image height, generous empty space around each figure; figures and weapons never touch or overlap each other or the image border. All four face RIGHT in a front three-quarter view. STYLE: high-quality HD pixel art for a modern 2D fantasy tactics game; chibi-leaning 3-heads-tall proportions (big head, compact body), wide dynamic stance with bent knees, readable silhouette, muted hue-shifted palette (shadows shift toward purple/blue, highlights toward warm yellow), dark desaturated (NOT pure black) outline used selectively, soft rim light on one side, flat cel shading with 2-3 tones, crisp pixel clusters, no anti-aliasing blur. BACKGROUND: perfectly flat solid magenta #FF00FF everywhere (chroma key), no gradient, no floor, no cast shadow, no scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines).",
+      "nai": {
+        "prompt": "1boy, solo, nomad man in his thirties, long black braids, fur-trimmed coat, composite bow, steppe warrior, dark brown hair, long hair, auburn outfit, blonde trim, headband, holding bow, quiver, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
+      }
+    },
+    {
+      "kind": "sheet",
+      "size": "1536x1024",
+      "out": "80x80 cells, body ~64px",
+      "id": "sheet/captain/dragonslayer",
+      "file": "sheet_captain_dragonslayer.png",
+      "priority": 5,
+      "group": "나머지 대장",
+      "name": "지크린데 — 용살자 (용살자)",
+      "ref": "art/inbox/captain_dragonslayer.png",
+      "prompt": "Battle sprite of 지크린데, a mercenary captain: battle-hardened woman in her thirties, long blonde hair, dragon-scale armor, greatsword. Class: 용살자 (warrior). Colors: skin #f2c9a0, hair #e3c565 (long), outfit main color #6a1a14, accent color #f39c12. Weapon: sword. Keep the face, hair and outfit of the reference portrait. FORMAT: one PNG, 1536x1024 (landscape). The SAME character drawn FOUR times in ONE horizontal row, evenly spaced, left to right: (1) idle battle-ready stance, (2) attack wind-up (weapon drawn back / spell gathering), (3) attack strike at full extension, (4) hit reaction (recoiling backwards, wincing). Every copy: full body head to toe, SAME size and SAME scale, all four pairs of feet standing on ONE common horizontal baseline at about 85% of the image height, each figure about 55% of the image height, generous empty space around each figure; figures and weapons never touch or overlap each other or the image border. All four face RIGHT in a front three-quarter view. STYLE: high-quality HD pixel art for a modern 2D fantasy tactics game; chibi-leaning 3-heads-tall proportions (big head, compact body), wide dynamic stance with bent knees, readable silhouette, muted hue-shifted palette (shadows shift toward purple/blue, highlights toward warm yellow), dark desaturated (NOT pure black) outline used selectively, soft rim light on one side, flat cel shading with 2-3 tones, crisp pixel clusters, no anti-aliasing blur. BACKGROUND: perfectly flat solid magenta #FF00FF everywhere (chroma key), no gradient, no floor, no cast shadow, no scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines).",
+      "nai": {
+        "prompt": "1girl, solo, battle-hardened woman in her thirties, long blonde hair, dragon-scale armor, greatsword, blonde hair, long hair, crimson outfit, orange trim, helmet, holding sword, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
+      }
+    },
+    {
+      "kind": "sheet",
+      "size": "1536x1024",
+      "out": "80x80 cells, body ~64px",
+      "id": "sheet/captain/demonhunter",
+      "file": "sheet_captain_demonhunter.png",
+      "priority": 5,
+      "group": "나머지 대장",
+      "name": "모르데카이 — 마귀 사냥꾼 (마귀 사냥꾼)",
+      "ref": "art/inbox/captain_demonhunter.png",
+      "prompt": "Battle sprite of 모르데카이, a mercenary captain: grizzled man in his fifties, grey stubble, dark hood, silver bullets and a holy mace. Class: 마귀 사냥꾼 (cleric). Colors: skin #e0ac7e, hair #c9c2b8, outfit main color #2a2a3a, accent color #c9c2b8. Weapon: mace. Keep the face, hair and outfit of the reference portrait. FORMAT: one PNG, 1536x1024 (landscape). The SAME character drawn FOUR times in ONE horizontal row, evenly spaced, left to right: (1) idle battle-ready stance, (2) attack wind-up (weapon drawn back / spell gathering), (3) attack strike at full extension, (4) hit reaction (recoiling backwards, wincing). Every copy: full body head to toe, SAME size and SAME scale, all four pairs of feet standing on ONE common horizontal baseline at about 85% of the image height, each figure about 55% of the image height, generous empty space around each figure; figures and weapons never touch or overlap each other or the image border. All four face RIGHT in a front three-quarter view. STYLE: high-quality HD pixel art for a modern 2D fantasy tactics game; chibi-leaning 3-heads-tall proportions (big head, compact body), wide dynamic stance with bent knees, readable silhouette, muted hue-shifted palette (shadows shift toward purple/blue, highlights toward warm yellow), dark desaturated (NOT pure black) outline used selectively, soft rim light on one side, flat cel shading with 2-3 tones, crisp pixel clusters, no anti-aliasing blur. BACKGROUND: perfectly flat solid magenta #FF00FF everywhere (chroma key), no gradient, no floor, no cast shadow, no scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines).",
+      "nai": {
+        "prompt": "1boy, solo, grizzled man in his fifties, grey stubble, dark hood, silver bullets and a holy mace, grey hair, short hair, charcoal outfit, grey trim, hood, holding mace, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
+      }
+    },
+    {
+      "kind": "sheet",
+      "size": "1536x1024",
+      "out": "80x80 cells, body ~64px",
+      "id": "sheet/captain/bard",
+      "file": "sheet_captain_bard.png",
+      "priority": 5,
+      "group": "나머지 대장",
+      "name": "리코 — 노래하는 검 (음유 검객)",
+      "ref": "art/inbox/captain_bard.png",
+      "prompt": "Battle sprite of 리코, a mercenary captain: flamboyant young man, long red hair, feathered hat, lute on his back and a rapier. Class: 음유 검객 (rogue). Colors: skin #f2c9a0, hair #8c2f2f (long), outfit main color #7a2a5a, accent color #f2c94c. Weapon: dagger. Keep the face, hair and outfit of the reference portrait. FORMAT: one PNG, 1536x1024 (landscape). The SAME character drawn FOUR times in ONE horizontal row, evenly spaced, left to right: (1) idle battle-ready stance, (2) attack wind-up (weapon drawn back / spell gathering), (3) attack strike at full extension, (4) hit reaction (recoiling backwards, wincing). Every copy: full body head to toe, SAME size and SAME scale, all four pairs of feet standing on ONE common horizontal baseline at about 85% of the image height, each figure about 55% of the image height, generous empty space around each figure; figures and weapons never touch or overlap each other or the image border. All four face RIGHT in a front three-quarter view. STYLE: high-quality HD pixel art for a modern 2D fantasy tactics game; chibi-leaning 3-heads-tall proportions (big head, compact body), wide dynamic stance with bent knees, readable silhouette, muted hue-shifted palette (shadows shift toward purple/blue, highlights toward warm yellow), dark desaturated (NOT pure black) outline used selectively, soft rim light on one side, flat cel shading with 2-3 tones, crisp pixel clusters, no anti-aliasing blur. BACKGROUND: perfectly flat solid magenta #FF00FF everywhere (chroma key), no gradient, no floor, no cast shadow, no scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines).",
+      "nai": {
+        "prompt": "1boy, solo, flamboyant young man, long red hair, feathered hat, lute on his back and a rapier, red hair, long hair, magenta outfit, yellow trim, hat, holding dagger, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
+      }
+    },
+    {
+      "kind": "sheet",
+      "size": "1536x1024",
+      "out": "80x80 cells, body ~64px",
+      "id": "sheet/captain/beastmaster",
+      "file": "sheet_captain_beastmaster.png",
+      "priority": 5,
+      "group": "나머지 대장",
+      "name": "오르가 — 늑대 무리의 어미 (야수 조련사)",
+      "ref": "art/inbox/captain_beastmaster.png",
+      "prompt": "Battle sprite of 오르가, a mercenary captain: dark-skinned woman in her thirties, long black hair, wolf-fur mantle, a grey wolf beside her. Class: 야수 조련사 (archer). Colors: skin #8d5a3b, hair #2b1d14 (long), outfit main color #5a4a3a, accent color #d9a441. Weapon: bow. Keep the face, hair and outfit of the reference portrait. FORMAT: one PNG, 1536x1024 (landscape). The SAME character drawn FOUR times in ONE horizontal row, evenly spaced, left to right: (1) idle battle-ready stance, (2) attack wind-up (weapon drawn back / spell gathering), (3) attack strike at full extension, (4) hit reaction (recoiling backwards, wincing). Every copy: full body head to toe, SAME size and SAME scale, all four pairs of feet standing on ONE common horizontal baseline at about 85% of the image height, each figure about 55% of the image height, generous empty space around each figure; figures and weapons never touch or overlap each other or the image border. All four face RIGHT in a front three-quarter view. STYLE: high-quality HD pixel art for a modern 2D fantasy tactics game; chibi-leaning 3-heads-tall proportions (big head, compact body), wide dynamic stance with bent knees, readable silhouette, muted hue-shifted palette (shadows shift toward purple/blue, highlights toward warm yellow), dark desaturated (NOT pure black) outline used selectively, soft rim light on one side, flat cel shading with 2-3 tones, crisp pixel clusters, no anti-aliasing blur. BACKGROUND: perfectly flat solid magenta #FF00FF everywhere (chroma key), no gradient, no floor, no cast shadow, no scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines).",
+      "nai": {
+        "prompt": "1girl, solo, dark-skinned woman in her thirties, long black hair, wolf-fur mantle, a grey wolf beside her, dark brown hair, long hair, brown leather outfit, gold trim, headband, holding bow, quiver, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
+      }
+    },
+    {
+      "kind": "sheet",
+      "size": "1536x1024",
+      "out": "80x80 cells, body ~64px",
+      "id": "sheet/captain/runesmith",
+      "file": "sheet_captain_runesmith.png",
+      "priority": 5,
+      "group": "나머지 대장",
+      "name": "브로크 — 룬 새기는 대장장이 (룬 대장장이)",
+      "ref": "art/inbox/captain_runesmith.png",
+      "prompt": "Battle sprite of 브로크, a mercenary captain: stout bearded man in his forties, orange beard, glowing blue runes on his hammer and armor. Class: 룬 대장장이 (warrior). Colors: skin #e0ac7e, hair #a8642a, outfit main color #6a4a2a, accent color #7fd6e8. Weapon: mace. Keep the face, hair and outfit of the reference portrait. FORMAT: one PNG, 1536x1024 (landscape). The SAME character drawn FOUR times in ONE horizontal row, evenly spaced, left to right: (1) idle battle-ready stance, (2) attack wind-up (weapon drawn back / spell gathering), (3) attack strike at full extension, (4) hit reaction (recoiling backwards, wincing). Every copy: full body head to toe, SAME size and SAME scale, all four pairs of feet standing on ONE common horizontal baseline at about 85% of the image height, each figure about 55% of the image height, generous empty space around each figure; figures and weapons never touch or overlap each other or the image border. All four face RIGHT in a front three-quarter view. STYLE: high-quality HD pixel art for a modern 2D fantasy tactics game; chibi-leaning 3-heads-tall proportions (big head, compact body), wide dynamic stance with bent knees, readable silhouette, muted hue-shifted palette (shadows shift toward purple/blue, highlights toward warm yellow), dark desaturated (NOT pure black) outline used selectively, soft rim light on one side, flat cel shading with 2-3 tones, crisp pixel clusters, no anti-aliasing blur. BACKGROUND: perfectly flat solid magenta #FF00FF everywhere (chroma key), no gradient, no floor, no cast shadow, no scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines).",
+      "nai": {
+        "prompt": "1boy, solo, stout bearded man in his forties, orange beard, glowing blue runes on his hammer and armor, auburn hair, short hair, brown leather outfit, silver trim, helmet, holding mace, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
+      }
+    },
+    {
+      "kind": "sheet",
+      "size": "1536x1024",
+      "out": "80x80 cells, body ~64px",
+      "id": "sheet/captain/pilgrim",
+      "file": "sheet_captain_pilgrim.png",
+      "priority": 5,
+      "group": "나머지 대장",
+      "name": "아멜리 — 맨발의 순례자 (순례 기사)",
+      "ref": "art/inbox/captain_pilgrim.png",
+      "prompt": "Battle sprite of 아멜리, a mercenary captain: gentle young woman, long blonde hair, barefoot pilgrim robes, holy mace and a prayer charm. Class: 순례 기사 (cleric). Colors: skin #f5d6b8, hair #e3c565 (long), outfit main color #c8b89a, accent color #3d5a9c. Weapon: mace. Keep the face, hair and outfit of the reference portrait. FORMAT: one PNG, 1536x1024 (landscape). The SAME character drawn FOUR times in ONE horizontal row, evenly spaced, left to right: (1) idle battle-ready stance, (2) attack wind-up (weapon drawn back / spell gathering), (3) attack strike at full extension, (4) hit reaction (recoiling backwards, wincing). Every copy: full body head to toe, SAME size and SAME scale, all four pairs of feet standing on ONE common horizontal baseline at about 85% of the image height, each figure about 55% of the image height, generous empty space around each figure; figures and weapons never touch or overlap each other or the image border. All four face RIGHT in a front three-quarter view. STYLE: high-quality HD pixel art for a modern 2D fantasy tactics game; chibi-leaning 3-heads-tall proportions (big head, compact body), wide dynamic stance with bent knees, readable silhouette, muted hue-shifted palette (shadows shift toward purple/blue, highlights toward warm yellow), dark desaturated (NOT pure black) outline used selectively, soft rim light on one side, flat cel shading with 2-3 tones, crisp pixel clusters, no anti-aliasing blur. BACKGROUND: perfectly flat solid magenta #FF00FF everywhere (chroma key), no gradient, no floor, no cast shadow, no scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines).",
+      "nai": {
+        "prompt": "1girl, solo, gentle young woman, long blonde hair, barefoot pilgrim robes, holy mace and a prayer charm, blonde hair, long hair, grey outfit, blue trim, holding mace, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
+      }
+    },
+    {
+      "kind": "sheet",
+      "size": "1536x1024",
+      "out": "80x80 cells, body ~64px",
+      "id": "sheet/captain/hexer",
+      "file": "sheet_captain_hexer.png",
+      "priority": 5,
+      "group": "나머지 대장",
+      "name": "벨라도나 — 저주 거래상 (저주술사)",
+      "ref": "art/inbox/captain_hexer.png",
+      "prompt": "Battle sprite of 벨라도나, a mercenary captain: pale woman in her thirties, long dark-blue hair, wide witch hat, green curse flames in her palm. Class: 저주술사 (mage). Colors: skin #f5d6b8, hair #3a3f6b (long), outfit main color #3a1a3a, accent color #7ed37e. Weapon: staff. Keep the face, hair and outfit of the reference portrait. FORMAT: one PNG, 1536x1024 (landscape). The SAME character drawn FOUR times in ONE horizontal row, evenly spaced, left to right: (1) idle battle-ready stance, (2) attack wind-up (weapon drawn back / spell gathering), (3) attack strike at full extension, (4) hit reaction (recoiling backwards, wincing). Every copy: full body head to toe, SAME size and SAME scale, all four pairs of feet standing on ONE common horizontal baseline at about 85% of the image height, each figure about 55% of the image height, generous empty space around each figure; figures and weapons never touch or overlap each other or the image border. All four face RIGHT in a front three-quarter view. STYLE: high-quality HD pixel art for a modern 2D fantasy tactics game; chibi-leaning 3-heads-tall proportions (big head, compact body), wide dynamic stance with bent knees, readable silhouette, muted hue-shifted palette (shadows shift toward purple/blue, highlights toward warm yellow), dark desaturated (NOT pure black) outline used selectively, soft rim light on one side, flat cel shading with 2-3 tones, crisp pixel clusters, no anti-aliasing blur. BACKGROUND: perfectly flat solid magenta #FF00FF everywhere (chroma key), no gradient, no floor, no cast shadow, no scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines).",
+      "nai": {
+        "prompt": "1girl, solo, pale woman in her thirties, long dark-blue hair, wide witch hat, green curse flames in her palm, dark blue hair, long hair, charcoal outfit, lime green trim, hat, holding staff, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
+      }
+    },
+    {
+      "kind": "sheet",
+      "size": "1536x1024",
+      "out": "80x80 cells, body ~64px",
+      "id": "sheet/captain/liberator",
+      "file": "sheet_captain_liberator.png",
+      "priority": 5,
+      "group": "나머지 대장",
+      "name": "카토 — 쇠사슬을 끊은 자 (해방 검투사)",
+      "ref": "art/inbox/captain_liberator.png",
+      "prompt": "Battle sprite of 카토, a mercenary captain: dark-skinned muscular man, shaved head, broken shackles still on his wrists, chain weapon. Class: 해방 검투사 (warrior). Colors: skin #8d5a3b, hair #2b1d14, outfit main color #7a4a2a, accent color #c9c2b8. Weapon: sword. Keep the face, hair and outfit of the reference portrait. FORMAT: one PNG, 1536x1024 (landscape). The SAME character drawn FOUR times in ONE horizontal row, evenly spaced, left to right: (1) idle battle-ready stance, (2) attack wind-up (weapon drawn back / spell gathering), (3) attack strike at full extension, (4) hit reaction (recoiling backwards, wincing). Every copy: full body head to toe, SAME size and SAME scale, all four pairs of feet standing on ONE common horizontal baseline at about 85% of the image height, each figure about 55% of the image height, generous empty space around each figure; figures and weapons never touch or overlap each other or the image border. All four face RIGHT in a front three-quarter view. STYLE: high-quality HD pixel art for a modern 2D fantasy tactics game; chibi-leaning 3-heads-tall proportions (big head, compact body), wide dynamic stance with bent knees, readable silhouette, muted hue-shifted palette (shadows shift toward purple/blue, highlights toward warm yellow), dark desaturated (NOT pure black) outline used selectively, soft rim light on one side, flat cel shading with 2-3 tones, crisp pixel clusters, no anti-aliasing blur. BACKGROUND: perfectly flat solid magenta #FF00FF everywhere (chroma key), no gradient, no floor, no cast shadow, no scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines).",
+      "nai": {
+        "prompt": "1boy, solo, dark-skinned muscular man, shaved head, broken shackles still on his wrists, chain weapon, dark brown hair, short hair, red outfit, grey trim, holding sword, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
+      }
+    },
+    {
+      "kind": "sheet",
+      "size": "1536x1024",
+      "out": "80x80 cells, body ~64px",
+      "id": "sheet/captain/admiral",
+      "file": "sheet_captain_admiral.png",
+      "priority": 5,
+      "group": "나머지 대장",
+      "name": "마렌 — 퇴역 제독 (퇴역 제독)",
+      "ref": "art/inbox/captain_admiral.png",
+      "prompt": "Battle sprite of 마렌, a mercenary captain: elderly woman in her sixties, short grey hair, navy admiral coat with gold trim, crossbow. Class: 퇴역 제독 (archer). Colors: skin #f2c9a0, hair #c9c2b8, outfit main color #1a2a5a, accent color #f2c94c. Weapon: bow. Keep the face, hair and outfit of the reference portrait. FORMAT: one PNG, 1536x1024 (landscape). The SAME character drawn FOUR times in ONE horizontal row, evenly spaced, left to right: (1) idle battle-ready stance, (2) attack wind-up (weapon drawn back / spell gathering), (3) attack strike at full extension, (4) hit reaction (recoiling backwards, wincing). Every copy: full body head to toe, SAME size and SAME scale, all four pairs of feet standing on ONE common horizontal baseline at about 85% of the image height, each figure about 55% of the image height, generous empty space around each figure; figures and weapons never touch or overlap each other or the image border. All four face RIGHT in a front three-quarter view. STYLE: high-quality HD pixel art for a modern 2D fantasy tactics game; chibi-leaning 3-heads-tall proportions (big head, compact body), wide dynamic stance with bent knees, readable silhouette, muted hue-shifted palette (shadows shift toward purple/blue, highlights toward warm yellow), dark desaturated (NOT pure black) outline used selectively, soft rim light on one side, flat cel shading with 2-3 tones, crisp pixel clusters, no anti-aliasing blur. BACKGROUND: perfectly flat solid magenta #FF00FF everywhere (chroma key), no gradient, no floor, no cast shadow, no scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines).",
+      "nai": {
+        "prompt": "1girl, solo, elderly woman in her sixties, short grey hair, navy admiral coat with gold trim, crossbow, grey hair, short hair, navy outfit, yellow trim, hat, holding bow, quiver, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
+      }
+    },
+    {
+      "kind": "sheet",
+      "size": "1536x1024",
+      "out": "80x80 cells, body ~64px",
+      "id": "sheet/captain/elfwarden",
+      "file": "sheet_captain_elfwarden.png",
+      "priority": 5,
+      "group": "나머지 대장",
+      "name": "세레니엘 — 숲의 수호대장 (엘프 숲지기)",
+      "ref": "art/inbox/captain_elfwarden.png",
+      "prompt": "Battle sprite of 세레니엘, a mercenary captain: tall elf woman, long silver hair, pointed ears, green leaf-patterned cloak, elegant longbow. Class: 엘프 숲지기 (archer). Colors: skin #f5d6b8, hair #c9c2b8 (long), outfit main color #2f6a3a, accent color #e8e4d8. Weapon: bow. Keep the face, hair and outfit of the reference portrait. FORMAT: one PNG, 1536x1024 (landscape). The SAME character drawn FOUR times in ONE horizontal row, evenly spaced, left to right: (1) idle battle-ready stance, (2) attack wind-up (weapon drawn back / spell gathering), (3) attack strike at full extension, (4) hit reaction (recoiling backwards, wincing). Every copy: full body head to toe, SAME size and SAME scale, all four pairs of feet standing on ONE common horizontal baseline at about 85% of the image height, each figure about 55% of the image height, generous empty space around each figure; figures and weapons never touch or overlap each other or the image border. All four face RIGHT in a front three-quarter view. STYLE: high-quality HD pixel art for a modern 2D fantasy tactics game; chibi-leaning 3-heads-tall proportions (big head, compact body), wide dynamic stance with bent knees, readable silhouette, muted hue-shifted palette (shadows shift toward purple/blue, highlights toward warm yellow), dark desaturated (NOT pure black) outline used selectively, soft rim light on one side, flat cel shading with 2-3 tones, crisp pixel clusters, no anti-aliasing blur. BACKGROUND: perfectly flat solid magenta #FF00FF everywhere (chroma key), no gradient, no floor, no cast shadow, no scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines).",
+      "nai": {
+        "prompt": "1girl, solo, tall elf woman, long silver hair, pointed ears, green leaf-patterned cloak, elegant longbow, grey hair, long hair, green outfit, white trim, headband, holding bow, quiver, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
+      }
+    },
+    {
+      "kind": "sheet",
+      "size": "1536x1024",
+      "out": "80x80 cells, body ~64px",
+      "id": "sheet/captain/siegemaster",
+      "file": "sheet_captain_siegemaster.png",
+      "priority": 5,
+      "group": "나머지 대장",
+      "name": "오토 — 성벽 파괴자 (공성 기술자)",
+      "ref": "art/inbox/captain_siegemaster.png",
+      "prompt": "Battle sprite of 오토, a mercenary captain: engineer man in his forties, brass goggles on his helmet, soot-stained, heavy crossbow. Class: 공성 기술자 (archer). Colors: skin #e0ac7e, hair #5a3720, outfit main color #5a4a3a, accent color #d9a441. Weapon: bow. Keep the face, hair and outfit of the reference portrait. FORMAT: one PNG, 1536x1024 (landscape). The SAME character drawn FOUR times in ONE horizontal row, evenly spaced, left to right: (1) idle battle-ready stance, (2) attack wind-up (weapon drawn back / spell gathering), (3) attack strike at full extension, (4) hit reaction (recoiling backwards, wincing). Every copy: full body head to toe, SAME size and SAME scale, all four pairs of feet standing on ONE common horizontal baseline at about 85% of the image height, each figure about 55% of the image height, generous empty space around each figure; figures and weapons never touch or overlap each other or the image border. All four face RIGHT in a front three-quarter view. STYLE: high-quality HD pixel art for a modern 2D fantasy tactics game; chibi-leaning 3-heads-tall proportions (big head, compact body), wide dynamic stance with bent knees, readable silhouette, muted hue-shifted palette (shadows shift toward purple/blue, highlights toward warm yellow), dark desaturated (NOT pure black) outline used selectively, soft rim light on one side, flat cel shading with 2-3 tones, crisp pixel clusters, no anti-aliasing blur. BACKGROUND: perfectly flat solid magenta #FF00FF everywhere (chroma key), no gradient, no floor, no cast shadow, no scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines).",
+      "nai": {
+        "prompt": "1boy, solo, engineer man in his forties, brass goggles on his helmet, soot-stained, heavy crossbow, brown hair, short hair, brown leather outfit, gold trim, helmet, holding bow, quiver, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
+      }
+    },
+    {
+      "kind": "sheet",
+      "size": "1536x1024",
+      "out": "80x80 cells, body ~64px",
+      "id": "sheet/captain/inquisitorlord",
+      "file": "sheet_captain_inquisitorlord.png",
+      "priority": 5,
+      "group": "나머지 대장",
+      "name": "발타자르 — 심문관장 (대심문관)",
+      "ref": "art/inbox/captain_inquisitorlord.png",
+      "prompt": "Battle sprite of 발타자르, a mercenary captain: severe man in his fifties, black hair, deep red hooded inquisitor robes, burning brand. Class: 대심문관 (cleric). Colors: skin #f2c9a0, hair #2b1d14, outfit main color #4a1a1a, accent color #f2c94c. Weapon: mace. Keep the face, hair and outfit of the reference portrait. FORMAT: one PNG, 1536x1024 (landscape). The SAME character drawn FOUR times in ONE horizontal row, evenly spaced, left to right: (1) idle battle-ready stance, (2) attack wind-up (weapon drawn back / spell gathering), (3) attack strike at full extension, (4) hit reaction (recoiling backwards, wincing). Every copy: full body head to toe, SAME size and SAME scale, all four pairs of feet standing on ONE common horizontal baseline at about 85% of the image height, each figure about 55% of the image height, generous empty space around each figure; figures and weapons never touch or overlap each other or the image border. All four face RIGHT in a front three-quarter view. STYLE: high-quality HD pixel art for a modern 2D fantasy tactics game; chibi-leaning 3-heads-tall proportions (big head, compact body), wide dynamic stance with bent knees, readable silhouette, muted hue-shifted palette (shadows shift toward purple/blue, highlights toward warm yellow), dark desaturated (NOT pure black) outline used selectively, soft rim light on one side, flat cel shading with 2-3 tones, crisp pixel clusters, no anti-aliasing blur. BACKGROUND: perfectly flat solid magenta #FF00FF everywhere (chroma key), no gradient, no floor, no cast shadow, no scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines).",
+      "nai": {
+        "prompt": "1boy, solo, severe man in his fifties, black hair, deep red hooded inquisitor robes, burning brand, dark brown hair, short hair, dark crimson outfit, yellow trim, hood, holding mace, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
+      }
+    },
+    {
+      "kind": "sheet",
+      "size": "1536x1024",
+      "out": "80x80 cells, body ~64px",
+      "id": "sheet/captain/pirateking",
+      "file": "sheet_captain_pirateking.png",
+      "priority": 5,
+      "group": "나머지 대장",
+      "name": "크림슨 — 붉은 돛의 해적왕 (해적왕)",
+      "ref": "art/inbox/captain_pirateking.png",
+      "prompt": "Battle sprite of 크림슨, a mercenary captain: confident woman in her thirties, long crimson hair, tricorn hat, cutlass and hook chain. Class: 해적왕 (rogue). Colors: skin #c68a5c, hair #8c2f2f (long), outfit main color #7a1a1a, accent color #1b1420. Weapon: dagger. Keep the face, hair and outfit of the reference portrait. FORMAT: one PNG, 1536x1024 (landscape). The SAME character drawn FOUR times in ONE horizontal row, evenly spaced, left to right: (1) idle battle-ready stance, (2) attack wind-up (weapon drawn back / spell gathering), (3) attack strike at full extension, (4) hit reaction (recoiling backwards, wincing). Every copy: full body head to toe, SAME size and SAME scale, all four pairs of feet standing on ONE common horizontal baseline at about 85% of the image height, each figure about 55% of the image height, generous empty space around each figure; figures and weapons never touch or overlap each other or the image border. All four face RIGHT in a front three-quarter view. STYLE: high-quality HD pixel art for a modern 2D fantasy tactics game; chibi-leaning 3-heads-tall proportions (big head, compact body), wide dynamic stance with bent knees, readable silhouette, muted hue-shifted palette (shadows shift toward purple/blue, highlights toward warm yellow), dark desaturated (NOT pure black) outline used selectively, soft rim light on one side, flat cel shading with 2-3 tones, crisp pixel clusters, no anti-aliasing blur. BACKGROUND: perfectly flat solid magenta #FF00FF everywhere (chroma key), no gradient, no floor, no cast shadow, no scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines).",
+      "nai": {
+        "prompt": "1girl, solo, confident woman in her thirties, long crimson hair, tricorn hat, cutlass and hook chain, red hair, long hair, crimson outfit, black trim, hat, holding dagger, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
+      }
+    },
+    {
+      "kind": "sheet",
+      "size": "1536x1024",
+      "out": "80x80 cells, body ~64px",
+      "id": "sheet/captain/frostjarl",
+      "file": "sheet_captain_frostjarl.png",
+      "priority": 5,
+      "group": "나머지 대장",
+      "name": "비요른 — 서리 협곡의 영주 (서리 영주)",
+      "ref": "art/inbox/captain_frostjarl.png",
+      "prompt": "Battle sprite of 비요른, a mercenary captain: tall man in his thirties, long blond hair and braided beard, frost-covered armor, axe. Class: 서리 영주 (warrior). Colors: skin #f5d6b8, hair #e3c565 (long), outfit main color #4a6a8a, accent color #e8eef2. Weapon: sword. Keep the face, hair and outfit of the reference portrait. FORMAT: one PNG, 1536x1024 (landscape). The SAME character drawn FOUR times in ONE horizontal row, evenly spaced, left to right: (1) idle battle-ready stance, (2) attack wind-up (weapon drawn back / spell gathering), (3) attack strike at full extension, (4) hit reaction (recoiling backwards, wincing). Every copy: full body head to toe, SAME size and SAME scale, all four pairs of feet standing on ONE common horizontal baseline at about 85% of the image height, each figure about 55% of the image height, generous empty space around each figure; figures and weapons never touch or overlap each other or the image border. All four face RIGHT in a front three-quarter view. STYLE: high-quality HD pixel art for a modern 2D fantasy tactics game; chibi-leaning 3-heads-tall proportions (big head, compact body), wide dynamic stance with bent knees, readable silhouette, muted hue-shifted palette (shadows shift toward purple/blue, highlights toward warm yellow), dark desaturated (NOT pure black) outline used selectively, soft rim light on one side, flat cel shading with 2-3 tones, crisp pixel clusters, no anti-aliasing blur. BACKGROUND: perfectly flat solid magenta #FF00FF everywhere (chroma key), no gradient, no floor, no cast shadow, no scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines).",
+      "nai": {
+        "prompt": "1boy, solo, tall man in his thirties, long blond hair and braided beard, frost-covered armor, axe, blonde hair, long hair, blue outfit, white trim, helmet, holding sword, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
+      }
+    },
+    {
+      "kind": "sheet",
+      "size": "1536x1024",
+      "out": "80x80 cells, body ~64px",
+      "id": "sheet/captain/archmagus",
+      "file": "sheet_captain_archmagus.png",
+      "priority": 5,
+      "group": "나머지 대장",
+      "name": "에우리아 — 마지막 대현자 (대현자)",
+      "ref": "art/inbox/captain_archmagus.png",
+      "prompt": "Battle sprite of 에우리아, a mercenary captain: ancient wise woman, very long white hair, star-embroidered robes, glowing staff. Class: 대현자 (mage). Colors: skin #f5d6b8, hair #ffffff (long), outfit main color #1a1a4a, accent color #f2f2ff. Weapon: staff. Keep the face, hair and outfit of the reference portrait. FORMAT: one PNG, 1536x1024 (landscape). The SAME character drawn FOUR times in ONE horizontal row, evenly spaced, left to right: (1) idle battle-ready stance, (2) attack wind-up (weapon drawn back / spell gathering), (3) attack strike at full extension, (4) hit reaction (recoiling backwards, wincing). Every copy: full body head to toe, SAME size and SAME scale, all four pairs of feet standing on ONE common horizontal baseline at about 85% of the image height, each figure about 55% of the image height, generous empty space around each figure; figures and weapons never touch or overlap each other or the image border. All four face RIGHT in a front three-quarter view. STYLE: high-quality HD pixel art for a modern 2D fantasy tactics game; chibi-leaning 3-heads-tall proportions (big head, compact body), wide dynamic stance with bent knees, readable silhouette, muted hue-shifted palette (shadows shift toward purple/blue, highlights toward warm yellow), dark desaturated (NOT pure black) outline used selectively, soft rim light on one side, flat cel shading with 2-3 tones, crisp pixel clusters, no anti-aliasing blur. BACKGROUND: perfectly flat solid magenta #FF00FF everywhere (chroma key), no gradient, no floor, no cast shadow, no scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines).",
+      "nai": {
+        "prompt": "1girl, solo, ancient wise woman, very long white hair, star-embroidered robes, glowing staff, white hair, long hair, navy outfit, white trim, hat, holding staff, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
+      }
+    },
+    {
+      "kind": "sheet",
+      "size": "1536x1024",
+      "out": "80x80 cells, body ~64px",
+      "id": "sheet/captain/lightbearer",
+      "file": "sheet_captain_lightbearer.png",
+      "priority": 5,
+      "group": "나머지 대장",
+      "name": "루치아 — 빛을 든 사도 (빛의 사도)",
+      "ref": "art/inbox/captain_lightbearer.png",
+      "prompt": "Battle sprite of 루치아, a mercenary captain: radiant young woman, long golden hair, white robes, soft light around her hands. Class: 빛의 사도 (cleric). Colors: skin #f2c9a0, hair #e3c565 (long), outfit main color #f2ecd8, accent color #f39c12. Weapon: mace. Keep the face, hair and outfit of the reference portrait. FORMAT: one PNG, 1536x1024 (landscape). The SAME character drawn FOUR times in ONE horizontal row, evenly spaced, left to right: (1) idle battle-ready stance, (2) attack wind-up (weapon drawn back / spell gathering), (3) attack strike at full extension, (4) hit reaction (recoiling backwards, wincing). Every copy: full body head to toe, SAME size and SAME scale, all four pairs of feet standing on ONE common horizontal baseline at about 85% of the image height, each figure about 55% of the image height, generous empty space around each figure; figures and weapons never touch or overlap each other or the image border. All four face RIGHT in a front three-quarter view. STYLE: high-quality HD pixel art for a modern 2D fantasy tactics game; chibi-leaning 3-heads-tall proportions (big head, compact body), wide dynamic stance with bent knees, readable silhouette, muted hue-shifted palette (shadows shift toward purple/blue, highlights toward warm yellow), dark desaturated (NOT pure black) outline used selectively, soft rim light on one side, flat cel shading with 2-3 tones, crisp pixel clusters, no anti-aliasing blur. BACKGROUND: perfectly flat solid magenta #FF00FF everywhere (chroma key), no gradient, no floor, no cast shadow, no scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines).",
+      "nai": {
+        "prompt": "1girl, solo, radiant young woman, long golden hair, white robes, soft light around her hands, blonde hair, long hair, white outfit, orange trim, holding mace, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
+      }
+    },
+    {
+      "kind": "sheet",
+      "size": "1536x1024",
+      "out": "80x80 cells, body ~64px",
+      "id": "sheet/captain/shadowqueen",
+      "file": "sheet_captain_shadowqueen.png",
+      "priority": 5,
+      "group": "나머지 대장",
+      "name": "니클라 — 그림자 길드의 여왕 (밤의 여왕)",
+      "ref": "art/inbox/captain_shadowqueen.png",
+      "prompt": "Battle sprite of 니클라, a mercenary captain: dangerous elegant woman in her thirties, long black hair, dark hood, twin daggers. Class: 밤의 여왕 (rogue). Colors: skin #e0ac7e, hair #1b1420 (long), outfit main color #1a0a2a, accent color #d6455d. Weapon: dagger. Keep the face, hair and outfit of the reference portrait. FORMAT: one PNG, 1536x1024 (landscape). The SAME character drawn FOUR times in ONE horizontal row, evenly spaced, left to right: (1) idle battle-ready stance, (2) attack wind-up (weapon drawn back / spell gathering), (3) attack strike at full extension, (4) hit reaction (recoiling backwards, wincing). Every copy: full body head to toe, SAME size and SAME scale, all four pairs of feet standing on ONE common horizontal baseline at about 85% of the image height, each figure about 55% of the image height, generous empty space around each figure; figures and weapons never touch or overlap each other or the image border. All four face RIGHT in a front three-quarter view. STYLE: high-quality HD pixel art for a modern 2D fantasy tactics game; chibi-leaning 3-heads-tall proportions (big head, compact body), wide dynamic stance with bent knees, readable silhouette, muted hue-shifted palette (shadows shift toward purple/blue, highlights toward warm yellow), dark desaturated (NOT pure black) outline used selectively, soft rim light on one side, flat cel shading with 2-3 tones, crisp pixel clusters, no anti-aliasing blur. BACKGROUND: perfectly flat solid magenta #FF00FF everywhere (chroma key), no gradient, no floor, no cast shadow, no scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines).",
+      "nai": {
+        "prompt": "1girl, solo, dangerous elegant woman in her thirties, long black hair, dark hood, twin daggers, black hair, long hair, black outfit, tan trim, hood, holding dagger, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
+      }
+    },
+    {
+      "kind": "sheet",
+      "size": "1536x1024",
+      "out": "80x80 cells, body ~64px",
+      "id": "sheet/captain/titan",
+      "file": "sheet_captain_titan.png",
+      "priority": 5,
+      "group": "나머지 대장",
+      "name": "우르그 — 거인의 피 (거인의 피)",
+      "ref": "art/inbox/captain_titan.png",
+      "prompt": "Battle sprite of 우르그, a mercenary captain: giant man with giant-blood, long brown hair, enormous build, stone-like skin, huge maul. Class: 거인의 피 (warrior). Colors: skin #c68a5c, hair #5a3720 (long), outfit main color #5a3a2a, accent color #e8c86a. Weapon: mace. Keep the face, hair and outfit of the reference portrait. FORMAT: one PNG, 1536x1024 (landscape). The SAME character drawn FOUR times in ONE horizontal row, evenly spaced, left to right: (1) idle battle-ready stance, (2) attack wind-up (weapon drawn back / spell gathering), (3) attack strike at full extension, (4) hit reaction (recoiling backwards, wincing). Every copy: full body head to toe, SAME size and SAME scale, all four pairs of feet standing on ONE common horizontal baseline at about 85% of the image height, each figure about 55% of the image height, generous empty space around each figure; figures and weapons never touch or overlap each other or the image border. All four face RIGHT in a front three-quarter view. STYLE: high-quality HD pixel art for a modern 2D fantasy tactics game; chibi-leaning 3-heads-tall proportions (big head, compact body), wide dynamic stance with bent knees, readable silhouette, muted hue-shifted palette (shadows shift toward purple/blue, highlights toward warm yellow), dark desaturated (NOT pure black) outline used selectively, soft rim light on one side, flat cel shading with 2-3 tones, crisp pixel clusters, no anti-aliasing blur. BACKGROUND: perfectly flat solid magenta #FF00FF everywhere (chroma key), no gradient, no floor, no cast shadow, no scenery. NO text, labels, numbers, frames, grid lines, watermark, and NO effects outside the body (no slash trails, sparks, dust, glow, motion lines).",
+      "nai": {
+        "prompt": "1boy, solo, giant man with giant-blood, long brown hair, enormous build, stone-like skin, huge maul, brown hair, long hair, brown outfit, blonde trim, holding mace, chibi, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+        "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
+      }
+    }
+  ]
+}
