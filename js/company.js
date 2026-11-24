@@ -95,11 +95,12 @@ Object.assign(Game, {
   leader(c) { return this.state.mercs.find((m) => m.id === c.leaderId && m.companyId === c.id) || null; },
   cohesionMul(c) { return 0.9 + c.cohesion * 0.002; },
   // 대장의 지휘: 함께 출격한 대장이 없으면 -15%
-  leaderMul(c, type, ms) {
+  leaderMul(c, type, ms, contract) {
     const l = this.leader(c);
     if (!l || (ms && !ms.includes(l))) return 0.85;
     const lead = this.leadOf(l), k = this.leadScale(l);
-    return 1 + Math.min(l.level, CAPTAIN_CAP) * 0.004 + ((lead.power || 0) + ((type && lead.types && lead.types[type]) || 0)) * k;
+    const vsCal = lead.vsCalamity && contract && (this.isCalamity(contract.target) || contract.boss || contract.final) ? lead.vsCalamity : 0;
+    return 1 + Math.min(l.level, CAPTAIN_CAP) * 0.004 + ((lead.power || 0) + ((type && lead.types && lead.types[type]) || 0) + vsCal) * k;
   },
   // 대장의 직업별 지휘 보너스 (해당 기본 직업 대원에게)
   memberLeadMul(c, m, ms) {
@@ -120,14 +121,13 @@ Object.assign(Game, {
     const size = rand(4, 6);
     const disposition = pick(['gold', 'gold', 'honor', 'faction', 'faction']);
     const sympathy = disposition === 'faction' ? pick(FACTION_KEYS) : null;
-    const cap = pick(CAPTAIN_KEYS);
-    const cls = CAPTAIN_CLASSES[cap].style;
+    const cls = pick(Object.keys(CLASSES));
     const base = (12 + level * 9) * size;
     const share = disposition === 'gold' ? rand(35, 40) : disposition === 'honor' ? rand(22, 28) : rand(20, 30);
     const name = this.uniqueCompanyName();
     return {
       id: s.nextId++, own: false, name, color: pick(COMPANY_COLORS),
-      captain: { name: pick(NAMES), cls, cap, look: { cls, cap, skin: pick(SKIN_TONES), hair: pick(HAIR_COLORS), longHair: Math.random() < 0.3 } },
+      captain: { name: pick(NAMES), cls, look: { cls, skin: pick(SKIN_TONES), hair: pick(HAIR_COLORS), longHair: Math.random() < 0.3 } },
       level, size, maxSize: size, specialty: pick(COMPANY_SPECIALTIES), disposition, sympathy,
       loyalty: rand(50, 65), share, signFee: Math.round(base * 1.4), upkeep: Math.round(base * 0.55),
       contractEnd: 0, wins: 0, losses: 0, missionId: null,

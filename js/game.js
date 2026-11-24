@@ -37,15 +37,12 @@ const Game = {
     };
     const s = this.state;
     this.initWorld();
-    // 시작 용병단: 용병대장 1명 + 대원 3명
-    const cap = this.makeCaptain(pick(CAPTAIN_KEYS), 2);
-    cap.trait = 'brave';
-    s.mercs.push(cap);
+    // 시작 용병단: 대원 3명. 첫 용병대장은 후보 셋 중에서 고른다.
     const units = ['warrior', 'archer', 'cleric'].map((cls) => { const m = this.makeUnit(cls, 1); s.mercs.push(m); return m; });
     const co = this.createCompany(true);
-    [cap, ...units].forEach((m) => { m.companyId = co.id; });
-    co.leaderId = cap.id;
+    units.forEach((m) => { m.companyId = co.id; });
     co.cohesion = 30;
+    this.initCaptains();
     this.refreshRecruits();
     this.refreshMarket();
     this.refreshShop();
@@ -103,6 +100,7 @@ const Game = {
   uniqueMercName() {
     const usedNames = new Set(this.state ? [...this.state.mercs, ...this.state.recruits].map((m) => m.name) : []);
     Object.values(HEROES).forEach((h) => usedNames.add(h.name));
+    Object.values(CAPTAINS).forEach((c) => usedNames.add(c.name));
     let name = pick(NAMES), tries = 0;
     while (usedNames.has(name) && tries++ < 40) name = pick(NAMES);
     return name;
@@ -139,14 +137,22 @@ const Game = {
   isCaptain(m) { return m && m.role === 'captain'; },
 
   expToNext(m) { return m.level * 60 + m.level * m.level * 6; },
+  heroCh(m) { const hs = m.hero && this.state && this.state.heroes[m.hero]; return hs ? Math.min(hs.ch, 3) : 0; },
   levelCap(m) {
     if (this.isCaptain(m)) return CAPTAIN_CAP;
+    if (m.hcls) return HERO_CAPS[this.heroCh(m)];
     return UNIT_TIERS[this.classTier(m)].cap;
   },
   classTier(m) { return m.master ? 2 : m.adv ? 1 : 0; },
   atCap(m) { return m.level >= this.levelCap(m); },
   growthOf(m) {
     if (this.isCaptain(m)) return { ...CAPTAIN_CLASSES[m.cap].growth };
+    if (m.hcls) {
+      // 특별 용병: 이야기를 진행할수록 성장률이 대장 수준으로 오른다
+      const k = HERO_GROWTH[this.heroCh(m)], g = {};
+      Object.entries(HERO_CLASSES[m.hcls].growth).forEach(([key, v]) => { g[key] = v * k; });
+      return g;
+    }
     const g = { ...CLASSES[m.cls].growth };
     [m.adv && ADV_CLASSES[m.adv], m.master && MASTER_CLASSES[m.master]].filter(Boolean)
       .forEach((c) => Object.entries(c.growth).forEach(([k, v]) => { g[k] = (g[k] || 0) + v; }));
@@ -182,19 +188,25 @@ const Game = {
   // ───────── 직업 / 전직 ─────────
   className(m) {
     if (this.isCaptain(m)) return CAPTAIN_CLASSES[m.cap].name;
+    if (m.hcls) return HERO_CLASSES[m.hcls].name;
     return m.master ? MASTER_CLASSES[m.master].name : m.adv ? ADV_CLASSES[m.adv].name : CLASSES[m.cls].name;
   },
   // 대원이 가진 직업 계통 (기본 → 상급 → 최상급), 각각 스킬과 효과를 지닌다
   classChain(m) {
     if (this.isCaptain(m)) return [];
+    if (m.hcls) {
+      // 고유 스킬은 장을 마칠 때마다 25%씩 강해진다
+      const H = HERO_CLASSES[m.hcls];
+      return [{ key: `hero:${m.hcls}`, name: H.name, skill: H.skill, desc: H.desc, fx: H.fx, scale: 1 + this.heroCh(m) * 0.25 }];
+    }
     return [
       { key: m.cls, name: CLASSES[m.cls].name, skill: CLASS_SKILLS[m.cls].name, desc: CLASS_SKILLS[m.cls].desc, fx: CLASS_SKILLS[m.cls].fx },
       m.adv && { key: m.adv, ...ADV_CLASSES[m.adv] },
       m.master && { key: m.master, ...MASTER_CLASSES[m.master] },
     ].filter(Boolean);
   },
-  canPromote(m) { return !this.isCaptain(m) && !m.adv && m.level >= PROMOTE_LEVEL; },
-  canMaster(m) { return !this.isCaptain(m) && m.adv && !m.master && m.level >= MASTER_LEVEL; },
+  canPromote(m) { return !this.isCaptain(m) && !m.hcls && !m.adv && m.level >= PROMOTE_LEVEL; },
+  canMaster(m) { return !this.isCaptain(m) && !m.hcls && m.adv && !m.master && m.level >= MASTER_LEVEL; },
   promote(mercId, key) {
     const s = this.state;
     const m = s.mercs.find((x) => x.id === mercId);
@@ -299,12 +311,12 @@ const Game = {
 
   wage(m) {
     const L = m.level;
-    let w = (this.isCaptain(m) ? 20 + L * 14 + L * L * 0.7 : 8 + L * 7 + L * L * 0.35) * (this.perk && this.state && this.perk('crown') ? 0.9 : 1);
+    let w = (this.isCaptain(m) ? 20 + L * 12 + L * L * 0.45 : 8 + L * 7 + L * L * 0.3) * (this.perk && this.state && this.perk('crown') ? 0.9 : 1);
     if (m.trait === 'greedy') w *= 1.3;
     if (m.trait === 'diligent') w *= 0.8;
     return Math.round(w);
   },
-  hireCost(m) { return this.wage(m) * (m.hero || m.elite || this.isCaptain(m) ? 4 : m.level > 1 ? 3 : 2); },
+  hireCost(m) { return this.wage(m) * (m.hero || m.elite ? 4 : m.level > 1 ? 3 : 2); },
   // 대원 모집: 직업을 골라 신병(Lv.1) 또는 숙련병으로 뽑는다
   veteranLevel() {
     return clamp(2 + this.state.facilities.tavern + Math.floor(this.rankIndex() * 1.2) + (this.perk('north') ? 2 : 0), 2, UNIT_TIERS[0].cap);
@@ -342,7 +354,7 @@ const Game = {
     this.classChain(m).forEach((c) => {
       const self = c.fx && c.fx.self;
       if (!self) return;
-      bonus += (self.all || 0) + ((type && self.types && self.types[type]) || 0);
+      bonus += ((self.all || 0) + ((type && self.types && self.types[type]) || 0)) * (c.scale || 1);
     });
     p *= 1 + bonus;
     // 컨디션
@@ -381,7 +393,7 @@ const Game = {
       this.classChain(m).forEach((c) => {
         if (applied.has(c.key) || !c.fx || !c.fx.party) return;
         applied.add(c.key);
-        applyFx(c.fx.party);
+        applyFx(c.fx.party, c.scale || 1);
       });
       const lead = this.leadOf(m);
       if (lead && lead.party) applyFx(lead.party, this.leadScale(m));
@@ -412,7 +424,10 @@ const Game = {
     s.mercs.push(m);
     if (m.hero) {
       s.heroes[m.hero].hired = true;
-      this.log(`특별 용병 「${m.title}」 ${m.name}이(가) 길드에 합류했습니다! 용병단에 배속해 함께 의뢰를 완수하세요. (-${cost} 금화)`, 'good');
+      this.log(`특별 용병 「${m.title}」 ${m.name}이(가) 길드에 합류했습니다! 함께 의뢰를 완수하면 이야기가 이어집니다. (-${cost} 금화)`, 'good');
+      // 특별 용병의 서사는 영입한 순간부터 시작된다
+      s.pendingReports.push({ special: 'dialog', hero: m.hero, title: `${m.title} ${m.name}`, lines: HEROES[m.hero].intro,
+        foot: `이야기를 진행할수록 레벨 상한(${HERO_CAPS.join('→')})과 성장률, 고유 스킬이 강해집니다.` });
     } else if (this.isCaptain(m)) {
       this.log(`용병대장 ${m.name}(${this.className(m)})을(를) 영입했습니다. 용병단을 맡기세요. (-${cost} 금화)`, 'good');
     } else {
@@ -427,6 +442,7 @@ const Game = {
     this.returnEquipment(m);
     this.leaveCompany(m, 10);
     s.mercs = s.mercs.filter((x) => x.id !== m.id);
+    if (this.isCaptain(m) && s.captains && s.captains[m.cap]) s.captains[m.cap].status = 'lost';
     if (m.hero && !s.heroes[m.hero].dead) {
       s.heroes[m.hero].hired = false;
       m.status = 'idle'; m.injury = 0; m.morale = 55; m.companyId = null;
@@ -449,24 +465,10 @@ const Game = {
     this.emit();
   },
 
-  // 모집소의 개인 지원자는 용병대장 후보다 (대원은 직업을 골라 따로 모집)
-  refreshRecruits(paid) {
+  // 모집소의 개인 지원자: 특별 용병과 세력 정예만 남는다 (대장은 서사로, 대원은 직업을 골라 모집)
+  refreshRecruits() {
     const s = this.state;
-    if (paid) {
-      if (s.gold < 40) return this.toast('금화가 부족합니다.');
-      s.gold -= 40;
-    }
-    const maxLv = 1 + s.facilities.tavern + Math.floor(this.rankIndex() * 1.4) + (this.perk('north') ? 2 : 0);
-    const count = 2 + Math.floor(s.facilities.tavern / 2);
     s.recruits = s.recruits.filter((r) => r.hero || r.elite);
-    // 고유 직업: 이미 길드에 있는 대장의 직업은 나오지 않는다
-    const taken = new Set([...s.mercs, ...s.recruits].filter((m) => m.cap).map((m) => m.cap));
-    const pool = CAPTAIN_KEYS.filter((k) => !taken.has(k));
-    for (let i = 0; i < count && pool.length; i++) {
-      const cap = pool.splice(Math.floor(Math.random() * pool.length), 1)[0];
-      s.recruits.push(this.makeCaptain(cap, rand(Math.max(1, maxLv - 2), maxLv)));
-    }
-    if (paid) { this.log('모집소에 새로운 용병대장 후보들이 찾아왔습니다. (-40 금화)'); this.emit(); }
   },
 
   // ───────── 장비 / 상점 ─────────
@@ -624,6 +626,7 @@ const Game = {
       if (RANKS[newRank].name === 'S' && !s.won) { s.won = true; s.pendingReports.push({ special: 'win' }); }
     }
     this.checkHeroes();
+    this.checkCaptains();
     this.checkBosses();
 
     // 파산 판정
@@ -656,7 +659,7 @@ const Game = {
         owed -= c.upkeep;
         this.releaseCompany(c.id, '유지비를 받지 못해 계약을 파기했습니다!', 'bad');
       });
-      const sorted = s.mercs.filter((m) => m.status !== 'quest').sort((a, b) => this.wage(b) - this.wage(a));
+      const sorted = s.mercs.filter((m) => m.status !== 'quest' && !this.isCaptain(m)).sort((a, b) => this.wage(b) - this.wage(a)); // 대장은 길드를 떠나지 않는다
       while (s.gold < owed && sorted.length) {
         const m = sorted.shift();
         owed -= this.wage(m);
@@ -666,7 +669,7 @@ const Game = {
       this.log(`주간 정산: 금화 ${owed} 지급.${s.gold < 0 ? ' 길드가 빚을 지고 있습니다!' : ''}`, s.gold < 0 ? 'bad' : '');
     }
     // 사기가 바닥난 단원은 떠날 수 있다
-    s.mercs.filter((m) => m.status !== 'quest' && m.morale <= 15).forEach((m) => {
+    s.mercs.filter((m) => m.status !== 'quest' && m.morale <= 15 && !this.isCaptain(m)).forEach((m) => {
       if (Math.random() < 0.4) this.removeMerc(m, '불만이 쌓여 짐을 싸서 떠났습니다!', 'bad');
     });
     this.weeklyCompanies();

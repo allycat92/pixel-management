@@ -233,14 +233,14 @@ Object.assign(Game, {
     return { own, ext, allMembers: own.flatMap((o) => o.ms) };
   },
 
-  ownCompanyPower(c, ms, type) {
+  ownCompanyPower(c, ms, type, contract) {
     const base = ms.reduce((sum, m) => sum + this.power(m, type, ms) * this.memberLeadMul(c, m, ms), 0);
-    return Math.round(base * this.cohesionMul(c) * this.leaderMul(c, type, ms));
+    return Math.round(base * this.cohesionMul(c) * this.leaderMul(c, type, ms, contract));
   },
 
   unitsPower(contract, units) {
     const { own, ext } = this.unitParts(units);
-    return own.reduce((s, o) => s + this.ownCompanyPower(o.c, o.ms, contract.type), 0)
+    return own.reduce((s, o) => s + this.ownCompanyPower(o.c, o.ms, contract.type, contract), 0)
       + ext.reduce((s, c) => s + this.extPower(c, contract.type), 0);
   },
   unitsHeadcount(units) {
@@ -381,6 +381,7 @@ Object.assign(Game, {
       m.missionId = null; m.status = 'idle'; m.quests++;
       if (won && m.hero) m.bond += HEROES[m.hero].faction && this.standing(HEROES[m.hero].faction) >= 45 ? 2 : 1;
       let deathChance = (outcome === 'disaster' ? 0.3 : 0) * mods.death;
+      if (this.isCaptain(m)) deathChance = 0; // 용병대장은 쓰러져도 죽지 않는다 (대신 크게 다친다)
       if (m.trait === 'sturdy') deathChance *= 0.6;
       if (Math.random() < deathChance) {
         r.dead = true;
@@ -395,6 +396,7 @@ Object.assign(Game, {
       r.levelUp = this.gainExp(m, r.exp);
       let inj = injuryBase * mods.injury;
       if (m.trait === 'sturdy' || m.trait === 'coward' || m.trait === 'northknight') inj *= 0.5;
+      if (this.isCaptain(m) && outcome === 'disaster') inj = 1;
       if (m.fatigue >= 80) inj *= 1.5;
       const dm = { great: 6, success: 2, fail: -6, disaster: -12 }[outcome];
       if (dm > 0 || !mods.noMoraleLoss) this.changeMorale(m, dm);
@@ -449,6 +451,10 @@ Object.assign(Game, {
     s.pendingReports.push(report);
 
     if (c.final && !won && s.calamity) s.contracts.unshift({ ...c, id: s.nextId++ });
+    if (c.capStory) {
+      if (won) this.completeCaptainChapter(c.capStory);
+      else s.contracts.unshift({ ...c, id: s.nextId++ });
+    }
     if (c.boss) {
       if (won) this.defeatBoss(c.boss);
       else s.contracts.unshift({ ...c, id: s.nextId++ });
@@ -557,9 +563,14 @@ Object.assign(Game, {
   makeHero(key) {
     const h = HEROES[key];
     // 특별 용병은 이야기와 고유 직업을 가진 용병대장이다
-    const m = this.makeCaptain(h.cap, h.level);
-    m.name = h.name; m.hero = key; m.trait = h.trait; m.title = h.title;
-    m.look = { cls: m.cls, cap: h.cap, ...h.look };
+    // 특별 용병은 고유 직업을 가진 대원이다. 이야기가 성장의 열쇠.
+    const H = HERO_CLASSES[h.hcls];
+    const m = this.baseMerc('unit', H.style, H.base);
+    m.hero = key; m.hcls = h.hcls;
+    if (!this.state.heroes[key]) this.state.heroes[key] = { appeared: true, hired: false, ch: 0, dead: false };
+    for (let i = 1; i < h.level; i++) this.levelUp(m, true);
+    m.name = h.name; m.trait = h.trait; m.title = h.title;
+    m.look = { cls: H.style, hcls: h.hcls, ...h.look };
     return m;
   },
 
@@ -571,8 +582,7 @@ Object.assign(Game, {
       if (!hs.appeared && r >= h.unlock && (!h.faction || this.standing(h.faction) > -30)) {
         hs.appeared = true;
         s.recruits.unshift(this.makeHero(key));
-        this.log(`모집소에 특별한 손님이 찾아왔습니다: 「${h.title}」 ${h.name}`, 'event');
-        s.pendingReports.push({ special: 'dialog', hero: key, title: `${h.title} ${h.name}`, lines: h.intro, foot: '모집소에서 고용할 수 있습니다.' });
+        this.log(`모집소에 특별한 손님이 찾아왔습니다: 「${h.title}」 ${h.name} (${HERO_CLASSES[h.hcls].name}). 영입하면 그의 이야기가 시작됩니다.`, 'event');
       }
     });
     s.mercs.filter((m) => m.hero).forEach((m) => {

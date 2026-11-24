@@ -108,7 +108,7 @@ const HERB_PRICE = 35;
 // choice: 완료 후 선택지. effects = { standing: {세력: 변화}, relations: {'a|b': 변화}, peace: 'a|b', gold }
 const HEROES = {
   kai: {
-    name: '카이', cap: 'silverscout', cls: 'archer', title: '숲을 떠난 엘프 정찰병', unlock: 1, level: 3, trait: 'hawkeye', faction: 'elves',
+    name: '카이', hcls: 'silverscout', cls: 'archer', title: '숲을 떠난 엘프 정찰병', unlock: 1, level: 3, trait: 'hawkeye', faction: 'elves',
     look: { skin: '#f5d6b8', hair: '#e3c565', longHair: true },
     intro: [
       [null, '뾰족한 귀의 궁수가 창가 자리에서 화살깃을 다듬고 있습니다.'],
@@ -146,7 +146,7 @@ const HEROES = {
     ],
   },
   seraphine: {
-    name: '세라핀', cap: 'exsaint', cls: 'cleric', title: '파문당한 성녀', unlock: 2, level: 4, trait: 'saint', faction: null,
+    name: '세라핀', hcls: 'exsaint', cls: 'cleric', title: '파문당한 성녀', unlock: 2, level: 4, trait: 'saint', faction: null,
     look: { skin: '#f2c9a0', hair: '#e3c565', longHair: true },
     intro: [
       [null, '주점 구석, 낡은 수녀복 차림의 여인이 조용히 다가옵니다.'],
@@ -184,7 +184,7 @@ const HEROES = {
     ],
   },
   lyra: {
-    name: '리라', cap: 'outlaw', cls: 'rogue', title: '가면 쓴 의적', unlock: 3, level: 5, trait: 'shadow', faction: 'north',
+    name: '리라', hcls: 'outlaw', cls: 'rogue', title: '가면 쓴 의적', unlock: 3, level: 5, trait: 'shadow', faction: 'north',
     look: { skin: '#f5d6b8', hair: '#8c2f2f', longHair: true },
     intro: [
       [null, '주머니가 가벼워진 느낌… 돌아보니 붉은 머리 소녀가 금화를 흔들고 있습니다.'],
@@ -222,7 +222,7 @@ const HEROES = {
     ],
   },
   grom: {
-    name: '그롬', cap: 'pitchampion', cls: 'warrior', title: '피의 투기장 챔피언', unlock: 3, level: 5, trait: 'berserker', faction: 'clans',
+    name: '그롬', hcls: 'pitchampion', cls: 'warrior', title: '피의 투기장 챔피언', unlock: 3, level: 5, trait: 'berserker', faction: 'clans',
     look: { skin: '#8fae6a', hair: '#2b1d14', longHair: false },
     intro: [
       [null, '덩치 큰 혼혈 오크가 테이블을 쾅 내리칩니다.'],
@@ -260,7 +260,7 @@ const HEROES = {
     ],
   },
   astel: {
-    name: '아스텔', cap: 'towerheir', cls: 'mage', title: '마탑의 마지막 제자', unlock: 4, level: 6, trait: 'arcane', faction: null,
+    name: '아스텔', hcls: 'towerheir', cls: 'mage', title: '마탑의 마지막 제자', unlock: 4, level: 6, trait: 'arcane', faction: null,
     look: { skin: '#f2c9a0', hair: '#c9c2b8', longHair: true },
     intro: [
       [null, '책 더미를 짊어진 은발의 청년이 주점에 들어섭니다.'],
@@ -298,7 +298,7 @@ const HEROES = {
     ],
   },
   marisol: {
-    name: '마리솔', cap: 'corsair', cls: 'archer', title: '닻을 잃은 해적 선장', unlock: 4, level: 9, trait: 'captain', faction: null,
+    name: '마리솔', hcls: 'corsair', cls: 'archer', title: '닻을 잃은 해적 선장', unlock: 4, level: 9, trait: 'captain', faction: null,
     look: { skin: '#c68a5c', hair: '#2b1d14', longHair: true },
     intro: [
       [null, '짠내 나는 외투를 걸친 여인이 주점 문을 발로 차고 들어옵니다.'],
@@ -330,7 +330,7 @@ const HEROES = {
     ],
   },
   oswin: {
-    name: '오스윈', cap: 'fallencommander', cls: 'warrior', title: '몰락한 기사단장', unlock: 5, level: 10, trait: 'commander', faction: 'crown',
+    name: '오스윈', hcls: 'fallencommander', cls: 'warrior', title: '몰락한 기사단장', unlock: 5, level: 10, trait: 'commander', faction: 'crown',
     look: { skin: '#e0ac7e', hair: '#c9c2b8', longHair: false },
     intro: [
       [null, '녹슨 갑옷의 노기사가 정중하게 고개를 숙입니다.'],
@@ -360,5 +360,134 @@ const HEROES = {
         reward: { stats: { str: 4, hp: 20 }, rep: 120, newTitle: '은빛 늑대의 기사단장' },
       },
     ],
+  },
+};
+
+// ───────── 용병대장: 영입 서사 ─────────
+// 용병대장은 이름과 사연을 가진 단 한 명뿐인 인물이다.
+// - 시작할 때 후보 셋 중 하나를 고른다. 고르지 않은 둘은 다시 만날 수 없다.
+// - 이후 길드 등급에 따라 네 번의 '갈림길'이 열린다. 갈림길마다 두 대장 중 한 명만 택할 수 있고,
+//   택한 대장의 영입 의뢰(2장)를 완수해야 합류한다. 택하지 않은 쪽은 영영 떠난다.
+// - 그래서 한 판에서 얻을 수 있는 대장은 최대 5명 (창설 1 + 초반 1 + 중반 2 + 후반 1).
+const STARTER_CAPTAINS = ['blademaster', 'ironwall', 'tactician'];
+const CAPTAIN_PHASES = [
+  { key: 'early', name: '초반', rank: 1, level: 5, pair: ['windhunter', 'shadowlord'] },
+  { key: 'mid1', name: '중반', rank: 3, level: 9, pair: ['spellblade', 'saintknight'] },
+  { key: 'mid2', name: '중반', rank: 4, level: 12, pair: ['warlord', 'khan'] },
+  { key: 'late', name: '후반', rank: 5, level: 16, pair: ['dragonslayer', 'demonhunter'] },
+];
+
+const CAPTAINS = {
+  // ── 창설 후보 ──
+  blademaster: {
+    name: '바렌', title: '떠돌이 검귀', trait: 'brave', look: { skin: '#e0ac7e', hair: '#2b1d14', longHair: false },
+    pitch: [['바렌', '검 한 자루면 충분하다. 앞은 내가 연다. 너는 뒤에서 판을 짜라.']],
+  },
+  ironwall: {
+    name: '브리긴다', title: '철벽의 여단장', trait: 'sturdy', look: { skin: '#f2c9a0', hair: '#a8642a', longHair: true },
+    pitch: [['브리긴다', '내 방패 뒤에 선 녀석은 아무도 죽지 않았다. 앞으로도 그럴 거다.']],
+  },
+  tactician: {
+    name: '이사벨', title: '퇴역 참모', trait: 'genius', look: { skin: '#f5d6b8', hair: '#3a3f6b', longHair: true },
+    pitch: [['이사벨', '싸움은 칼을 뽑기 전에 이미 끝나 있어요. 저와 함께라면 지는 싸움은 하지 않을 겁니다.']],
+  },
+
+  // ── 초반 갈림길 ──
+  windhunter: {
+    name: '나린', title: '바람을 쫓는 사냥꾼', trait: 'lucky', look: { skin: '#c68a5c', hair: '#2b1d14', longHair: true },
+    intro: [['나린', '밀밭에 늑대왕이 돌아왔어. 녀석을 잡을 때까진 어느 깃발 아래에도 서지 않을 거야.'], ['나린', '도와준다면… 그다음엔 네 깃발 아래서 활을 당겨 주지.']],
+    chapters: [
+      { province: 'wheat', type: 'hunt', enemy: '들늑대', title: '늑대왕의 흔적',
+        before: [['나린', '발자국이 밀밭을 가로질러 숲으로 이어져. 무리부터 흩어 놓자.']], after: [['나린', '무리는 흩어졌어. 이제 녀석 혼자야.']] },
+      { province: 'silverwood', type: 'hunt', enemy: '숲 트롤', title: '숲 끝의 사냥',
+        before: [['나린', '늑대왕이 트롤 굴로 숨었어. 둘 다 한꺼번에 끝내자.']], after: [['나린', '끝났다. 약속은 약속이지.']] },
+    ],
+    join: [['나린', '사냥꾼은 빚을 지고 살지 않아. 오늘부터 네 용병단의 바람이 되어 주지.']],
+  },
+  shadowlord: {
+    name: '모로', title: '항구의 쥐왕', trait: 'greedy', look: { skin: '#e0ac7e', hair: '#5a3720', longHair: false },
+    intro: [['모로', '세렌 뒷골목에서 나를 모르면 간첩이지. 요즘 내 구역에 눈치 없는 산적들이 들어왔어.'], ['모로', '청소 좀 해 주면, 내 사람들째로 길드에 붙어 주마. 계산은 확실하게.']],
+    chapters: [
+      { province: 'port', type: 'escort', enemy: '산적', title: '밀수선 호위',
+        before: [['모로', '오늘 밤 배가 들어온다. 화물이 뭔지는 묻지 마.']], after: [['모로', '깔끔했어. 이제 놈들 소굴이다.']] },
+      { province: 'royal', type: 'defense', enemy: '산적', title: '빈민가 소탕',
+        before: [['모로', '산적 두목이 왕도 빈민가에 숨었다. 내 구역 사람들 다치지 않게 끝내.']], after: [['모로', '훌륭해. 돈 냄새가 나는 길드군.']] },
+    ],
+    join: [['모로', '거래 성립. 내 정보와 내 칼, 이제 네 거다. 몫만 잘 챙겨 줘.']],
+  },
+
+  // ── 중반 갈림길 1 ──
+  spellblade: {
+    name: '카시안', title: '파문당한 마검사', trait: 'genius', look: { skin: '#f5d6b8', hair: '#c9c2b8', longHair: true },
+    intro: [['카시안', '검에 마법을 싣는다는 이유로 기사단에서 쫓겨났지. 그 덕에 이제야 제대로 된 연구를 하고 있어.'], ['카시안', '늪과 고대 숲에서 마력이 미쳐 날뛰고 있다. 같이 가 주면 내 검을 빌려 주지.']],
+    chapters: [
+      { province: 'mist', type: 'magic', title: '늪지 마력 폭주',
+        before: [['카시안', '늪의 마력이 뒤틀려 괴물이 쏟아진다. 근원을 찾아야 해.']], after: [['카시안', '근원은 늪이 아니었어. 더 깊은 곳이다.']] },
+      { province: 'deepwood', type: 'magic', title: '고대 숲의 봉인석',
+        before: [['카시안', '고대 숲 봉인석에 금이 갔다. 다시 묶지 못하면 숲 전체가 미친다.']], after: [['카시안', '봉인은 버텼다. …나 혼자였다면 못 했겠지.']] },
+    ],
+    join: [['카시안', '좋아, 이번엔 내가 빚을 졌군. 마검사 카시안, 네 용병단의 칼끝이 되겠다.']],
+  },
+  saintknight: {
+    name: '엘리노어', title: '성광의 기사', trait: 'diligent', look: { skin: '#f2c9a0', hair: '#e3c565', longHair: true },
+    require: { standing: { church: 15 }, text: '성광 교단 평판 15 이상' },
+    intro: [['엘리노어', '교단은 용병을 믿지 않아요. 하지만 저는 당신들이 지켜 낸 사람들을 봤습니다.'], ['엘리노어', '대성당령의 망자들을 잠재우는 일을 함께해 주세요. 교단이 허락한다면, 제 검은 당신 것입니다.']],
+    chapters: [
+      { province: 'sanctum', type: 'defense', enemy: '망령', title: '성당 묘지의 밤',
+        before: [['엘리노어', '묘지의 망령들이 순례자를 해칩니다. 오늘 밤 지켜야 해요.']], after: [['엘리노어', '순례자들은 무사합니다. 다음은 늪이에요.']] },
+      { province: 'mist', type: 'escort', enemy: '해골 병사', title: '늪을 건너는 순례',
+        before: [['엘리노어', '늪 수도원까지 순례단을 호위합니다. 해골 병사들이 길을 막고 있어요.']], after: [['엘리노어', '순례는 끝났습니다. 이제 제 맹세를 지킬 차례군요.']] },
+    ],
+    join: [['엘리노어', '빛의 이름으로 맹세합니다. 당신의 용병단에서 누구도 버려지지 않게 하겠습니다.']],
+  },
+
+  // ── 중반 갈림길 2 ──
+  warlord: {
+    name: '가르마크', title: '백전의 전쟁군주', trait: 'brave', look: { skin: '#c68a5c', hair: '#8c2f2f', longHair: false },
+    require: { standing: { crown: 20, north: 20 }, any: true, text: '왕국 또는 북부 평판 20 이상' },
+    intro: [['가르마크', '왕국과 북부, 어느 쪽 전쟁이든 나가 봤다. 이제는 누구 편도 아닌 전쟁을 하고 싶군.'], ['가르마크', '북부 변경을 휩쓰는 오크 군단을 함께 꺾는다면, 내 군세를 네 깃발 아래 두지.']],
+    chapters: [
+      { province: 'valen', type: 'hunt', enemy: '오크', title: '변경의 오크 군단',
+        before: [['가르마크', '오크들이 발렌 마을들을 불태우고 있다. 정면으로 부순다.']], after: [['가르마크', '잔당이 협곡으로 달아났다. 끝까지 쫓는다.']] },
+      { province: 'frost', type: 'defense', enemy: '서리 트롤', title: '협곡 요새 사수',
+        before: [['가르마크', '놈들이 서리 트롤을 끌고 요새로 온다. 사흘만 버티면 이긴다.']], after: [['가르마크', '버텼다. 좋은 전쟁이었어.']] },
+    ],
+    join: [['가르마크', '전쟁군주 가르마크, 오늘부터 네 길드의 군세다. 큰 판에 불러라.']],
+  },
+  khan: {
+    name: '테무르', title: '초원의 칸', trait: 'lucky', look: { skin: '#8d5a3b', hair: '#2b1d14', longHair: true },
+    require: { standing: { clans: 10 }, text: '붉은 모래 부족 연합 평판 10 이상' },
+    intro: [['테무르', '부족 연합은 내 말을 들으려 하지 않는다. 사막의 교역로가 끊기면 다 굶는데도.'], ['테무르', '교역로를 다시 열어 주면, 부족들도 나도 너를 형제라 부를 거다.']],
+    chapters: [
+      { province: 'oasis', type: 'escort', enemy: '사막 도적', title: '끊긴 교역로',
+        before: [['테무르', '대상단을 오아시스까지 지킨다. 도적 떼가 모래 언덕 뒤에 숨어 있어.']], after: [['테무르', '길은 열렸다. 하지만 도적들이 기대는 괴물이 있다.']] },
+      { province: 'redsand', type: 'hunt', enemy: '전갈 거인', title: '모래 아래의 거인',
+        before: [['테무르', '도적들이 전갈 거인을 길들였다더군. 놈만 쓰러뜨리면 황야가 조용해진다.']], after: [['테무르', '황야가 숨을 쉰다. 칸은 약속을 지킨다.']] },
+    ],
+    join: [['테무르', '오늘부터 너는 초원의 형제다. 내 기병들이 네 용병단과 함께 달린다.']],
+  },
+
+  // ── 후반 갈림길 ──
+  dragonslayer: {
+    name: '지크린데', title: '용살자', trait: 'brave', look: { skin: '#f2c9a0', hair: '#e3c565', longHair: true },
+    intro: [['지크린데', '용의 등뼈에서 다시 날개 소리가 들린다. 고룡이 깨어나기 전에 새끼들부터 베어야 해.'], ['지크린데', '나와 함께 산을 오른다면, 남은 생은 네 용병단에서 용을 베며 보내겠다.']],
+    chapters: [
+      { province: 'dragon', type: 'hunt', enemy: '와이번', title: '등뼈 산맥의 날개',
+        before: [['지크린데', '와이번 둥지가 산맥 남쪽 절벽에 있다. 알까지 전부 부순다.']], after: [['지크린데', '둥지는 끝났다. 하지만 더 큰 것이 깨어나려 하고 있어.']] },
+      { province: 'dragon', type: 'explore', enemy: '가고일', title: '고룡의 잠자리',
+        before: [['지크린데', '고룡이 잠든 동굴을 확인해야 한다. 돌의 파수꾼들이 지키고 있지.']], after: [['지크린데', '봤다. 놈은 아직 잔다. 깨어나면… 그땐 함께 베자.']] },
+    ],
+    join: [['지크린데', '용살자 지크린데, 네 용병단의 칼이 된다. 재앙이 오면 맨 앞에 세워라.']],
+  },
+  demonhunter: {
+    name: '모르데카이', title: '마귀 사냥꾼', trait: 'sturdy', look: { skin: '#e0ac7e', hair: '#c9c2b8', longHair: false },
+    intro: [['모르데카이', '안개 늪 아래 문이 숨을 쉰다. 교단은 아직 모르는 척하고 있지.'], ['모르데카이', '문틈으로 새어 나온 것들을 같이 사냥한다면, 내 인장을 네 용병단에 걸어 주마.']],
+    chapters: [
+      { province: 'mist', type: 'magic', enemy: '리치의 망령', title: '문틈의 리치',
+        before: [['모르데카이', '리치 하나가 문틈에서 망자를 부르고 있다. 의식이 끝나기 전에 끊는다.']], after: [['모르데카이', '의식은 끊었다. 그런데 문 너머에서 무언가 대답했어.']] },
+      { province: 'frost', type: 'defense', enemy: '데스 나이트', title: '협곡의 죽음 기사',
+        before: [['모르데카이', '문이 보낸 죽음의 기사가 서리 협곡을 넘는다. 여기서 막지 못하면 북부가 무덤이 된다.']], after: [['모르데카이', '막았다. 다음에 문이 열리면, 우리가 먼저 들어간다.']] },
+    ],
+    join: [['모르데카이', '퇴마의 인장은 이제 네 용병단의 것이다. 마귀가 오면 나를 불러라.']],
   },
 };

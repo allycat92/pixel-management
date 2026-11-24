@@ -134,7 +134,7 @@ const FACILITIES = {
   barracks:  { name: '병영', max: 4, baseCost: 220, desc: (l) => `직속 용병단 최대 ${1 + l}개, 용병단당 대장 1 + 대원 ${4 + l}명` },
   training:  { name: '훈련장', max: 5, baseCost: 150, desc: (l) => l ? `대기 단원 매일 경험치 +${l * 5}` : '아직 없음 (대기 단원 성장 불가)' },
   infirmary: { name: '의무실', max: 5, baseCost: 130, desc: (l) => `부상 회복 속도 ${100 + l * 50}%` },
-  tavern:    { name: '모집소', max: 5, baseCost: 140, desc: (l) => `용병대장 지원자 ${2 + Math.floor(l / 2)}명, 숙련병 레벨 +${l}, 용병단 시장 ${2 + Math.floor(l / 2)}곳` },
+  tavern:    { name: '모집소', max: 5, baseCost: 140, desc: (l) => `숙련병 레벨 +${l}, 용병단 시장 ${2 + Math.floor(l / 2)}곳` },
   board:     { name: '정보망', max: 5, baseCost: 160, desc: (l) => `게시 의뢰 최대 ${4 + l}개, 보상 +${l * 8}%` },
   forge:     { name: '대장간', max: 5, baseCost: 200, desc: (l) => l ? `상점 물품 최대 등급 +${l >= 3 ? 1 : 0}, 진열 ${4 + l}개, 가격 -${l * 4}%` : '상점 진열 4개' },
 };
@@ -353,34 +353,54 @@ const CAPTAIN_CLASSES = {
     outfit: '#3a3a4a', accent: '#f2c94c', headgear: 'hat', weapon: 'staff',
     lead: { name: '전술 지휘', desc: '용병단 전투력 +10%, 파티 성공률 +5%, 대성공 확률 ×1.4', power: 0.1, party: { success: 0.05, great: 1.4 } } },
 
-  // 특별 용병(이야기가 있는 대장) 전용 고유 직업
-  silverscout: { hero: true, name: '은빛 순찰자', style: 'archer', desc: '숲을 떠난 엘프 정찰병만의 궁술.',
+  // 중·후반 영입 대장
+  khan: { name: '초원의 칸', style: 'archer', desc: '말 위에서 태어난 유목 군주. 빠르게 치고 빠지는 전쟁을 안다.',
+    base: { str: 9, dex: 11, int: 4, hp: 42 }, growth: { str: 2.4, dex: 3.2, int: 0.8, hp: 9 },
+    outfit: '#8a5a2a', accent: '#e8c86a', headgear: 'band', weapon: 'bow',
+    lead: { name: '기마 돌격', desc: '습격·결전 +15%, 궁수·전사 계열 대원 +8%, 이동 -1일', power: 0.04, types: { raid: 0.15, battle: 0.15 }, cls: { archer: 0.08, warrior: 0.08 }, party: { days: -1 } } },
+  dragonslayer: { name: '용살자', style: 'warrior', desc: '고룡의 비늘을 꿰뚫은 전설의 전사. 재앙 앞에서 물러선 적이 없다.',
+    base: { str: 15, dex: 7, int: 4, hp: 60 }, growth: { str: 4.0, dex: 1.6, int: 0.8, hp: 12 },
+    outfit: '#6a1a14', accent: '#f39c12', headgear: 'helmet', weapon: 'sword',
+    lead: { name: '용의 목을 벤 자', desc: '용병단 전투력 +8%, 토벌 +15%, 재앙 세력·재앙급 괴물 상대 +25%', power: 0.08, types: { hunt: 0.15 }, vsCalamity: 0.25 } },
+  demonhunter: { name: '마귀 사냥꾼', style: 'cleric', desc: '마계의 문 너머까지 다녀왔다는 퇴마사. 죽음의 냄새를 맡는다.',
+    base: { str: 10, dex: 9, int: 12, hp: 50 }, growth: { str: 2.4, dex: 2.0, int: 3.4, hp: 10 },
+    outfit: '#2a2a3a', accent: '#c9c2b8', headgear: 'hood', weapon: 'mace',
+    lead: { name: '퇴마의 인장', desc: '용병단 전투력 +6%, 사망 위험 -60%, 방첩 +20%, 재앙 세력·재앙급 괴물 상대 +20%', power: 0.06, types: { counterspy: 0.2 }, vsCalamity: 0.2, party: { death: 0.4 } } },
+};
+
+// ───────── 특별 용병: 고유 직업을 가진 대원 ─────────
+// 대원처럼 아무 용병단에나 들어가지만 전직 대신 '이야기'로 성장한다.
+// 장(章)을 마칠수록 레벨 상한·성장률·고유 스킬이 강해져, 끝까지 가면 대장 못지않다.
+const HERO_CAPS = [15, 22, 30, 40];           // 완료한 장 수별 레벨 상한
+const HERO_GROWTH = [0.62, 0.75, 0.88, 1.0];  // 완료한 장 수별 성장률 배율
+const HERO_CLASSES = {
+  silverscout: { name: '은빛 순찰자', style: 'archer', skill: '숲의 눈', desc: '토벌·탐사·호위에서 본인 전투력 +20%, 파티 성공률 +4%',
     base: { str: 6, dex: 13, int: 6, hp: 34 }, growth: { str: 1.6, dex: 3.8, int: 1.2, hp: 7 },
     outfit: '#2f6a4a', accent: '#e8e4d8', headgear: 'band', weapon: 'bow',
-    lead: { name: '숲의 눈', desc: '토벌·탐사·호위 +15%, 궁수 계열 대원 +10%', power: 0.04, cls: { archer: 0.1 }, types: { hunt: 0.15, explore: 0.15, escort: 0.15 } } },
-  exsaint: { hero: true, name: '파문 성녀', style: 'cleric', desc: '교단이 버린 성녀. 그 기도는 여전히 사람을 살린다.',
+    fx: { self: { types: { hunt: 0.2, explore: 0.2, escort: 0.2 } }, party: { success: 0.04 } } },
+  exsaint: { name: '파문 성녀', style: 'cleric', skill: '들판의 미사', desc: '파티 부상 확률 -40%, 사망 위험 -50%',
     base: { str: 5, dex: 5, int: 13, hp: 40 }, growth: { str: 1.0, dex: 1.2, int: 3.8, hp: 9 },
     outfit: '#f2ecd8', accent: '#d6455d', headgear: 'none', weapon: 'mace',
-    lead: { name: '들판의 미사', desc: '용병단 전투력 +6%, 부상 확률 -40%', power: 0.06, party: { injury: 0.6 } } },
-  outlaw: { hero: true, name: '가면 의적', style: 'rogue', desc: '북부 귀족의 금고를 털어 백성에게 나누던 의적.',
+    fx: { party: { injury: 0.6, death: 0.5 } } },
+  outlaw: { name: '가면 의적', style: 'rogue', skill: '의적의 신호', desc: '보상 금화 +15%, 구출·공작에서 본인 전투력 +25%',
     base: { str: 7, dex: 13, int: 7, hp: 32 }, growth: { str: 1.6, dex: 3.8, int: 1.6, hp: 6 },
     outfit: '#2a1a3a', accent: '#e8e4d8', headgear: 'hood', weapon: 'dagger',
-    lead: { name: '의적의 신호', desc: '보상 금화 +15%, 구출·공작 +25%', power: 0.04, types: { rescue: 0.25, sabotage: 0.25 }, party: { gold: 0.15 } } },
-  pitchampion: { hero: true, name: '투기장 패왕', style: 'warrior', desc: '피의 투기장에서 살아남은 단 한 명.',
+    fx: { self: { types: { rescue: 0.25, sabotage: 0.25 } }, party: { gold: 0.15 } } },
+  pitchampion: { name: '투기장 패왕', style: 'warrior', skill: '투기장의 함성', desc: '모든 의뢰에서 본인 전투력 +15%',
     base: { str: 14, dex: 6, int: 2, hp: 50 }, growth: { str: 4.0, dex: 1.4, int: 0.3, hp: 11 },
     outfit: '#7a2418', accent: '#f2c94c', headgear: 'none', weapon: 'sword',
-    lead: { name: '투기장의 함성', desc: '용병단 전투력 +10%, 전사 계열 대원 +10%', power: 0.1, cls: { warrior: 0.1 } } },
-  towerheir: { hero: true, name: '마탑 계승자', style: 'mage', desc: '무너진 마탑의 마지막 제자. 금지된 지식을 이어받았다.',
+    fx: { self: { all: 0.15 } } },
+  towerheir: { name: '마탑 계승자', style: 'mage', skill: '금지된 강의', desc: '마법 조사에서 본인 전투력 +30%, 토벌 +15%',
     base: { str: 3, dex: 6, int: 15, hp: 30 }, growth: { str: 0.6, dex: 1.2, int: 4.2, hp: 6 },
     outfit: '#3a1a5a', accent: '#f2d24b', headgear: 'hat', weapon: 'staff',
-    lead: { name: '마탑의 강의', desc: '마법사 계열 대원 +20%, 마법 조사 +25%', power: 0.04, cls: { mage: 0.2 }, types: { magic: 0.25 } } },
-  corsair: { hero: true, name: '해적 선장', style: 'archer', desc: '닻을 잃었지만 선원을 다루는 법은 잊지 않았다.',
+    fx: { self: { types: { magic: 0.3, hunt: 0.15 } } } },
+  corsair: { name: '해적 선장', style: 'archer', skill: '갑판의 호령', desc: '호위에서 본인 전투력 +20%, 보상 금화 +10%, 이동 -1일',
     base: { str: 8, dex: 11, int: 6, hp: 38 }, growth: { str: 2.0, dex: 3.2, int: 1.2, hp: 8 },
     outfit: '#1a2a4a', accent: '#d6455d', headgear: 'hat', weapon: 'bow',
-    lead: { name: '갑판의 호령', desc: '호위 +20%, 보상 금화 +10%, 이동 -1일', power: 0.05, types: { escort: 0.2 }, party: { gold: 0.1, days: -1 } } },
-  fallencommander: { hero: true, name: '몰락 기사단장', style: 'warrior', desc: '왕국 기사단을 이끌던 사람. 지휘하는 법을 몸이 기억한다.',
+    fx: { self: { types: { escort: 0.2 } }, party: { gold: 0.1, days: -1 } } },
+  fallencommander: { name: '몰락 기사단장', style: 'warrior', skill: '기사단 전법', desc: '방어·방어전·결전에서 본인 전투력 +25%, 파티 부상 확률 -20%',
     base: { str: 12, dex: 5, int: 7, hp: 54 }, growth: { str: 3.2, dex: 1.0, int: 1.6, hp: 11 },
     outfit: '#c9ced6', accent: '#3d5a9c', headgear: 'helmet', weapon: 'sword',
-    lead: { name: '기사단 전법', desc: '용병단 전투력 +8%, 방어·방어전·결전 +20%', power: 0.08, types: { defense: 0.2, warDefense: 0.2, battle: 0.2 } } },
+    fx: { self: { types: { defense: 0.25, warDefense: 0.25, battle: 0.25 } }, party: { injury: 0.8 } } },
 };
-const CAPTAIN_KEYS = Object.keys(CAPTAIN_CLASSES).filter((k) => !CAPTAIN_CLASSES[k].hero);
+const CAPTAIN_KEYS = Object.keys(CAPTAIN_CLASSES);

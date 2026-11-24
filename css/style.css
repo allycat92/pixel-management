@@ -518,3 +518,26 @@ h3 { font-size: 14px; margin: 8px 0; }
 @media (max-width: 760px) {
   .class-tree { grid-template-columns: 1fr; }
 }
+
+/* ───────── 용병대장 영입 ───────── */
+.role-badge.hero { color: #1b1420; background: #d0b0f0; border-color: #6b3d9c; }
+.cap-roster { display: flex; flex-direction: column; gap: 10px; }
+.cap-phase { border: 2px solid var(--line); padding: 8px; background: var(--panel-2); }
+.cap-phase.open { border-color: var(--gold); }
+.cap-phase.locked { opacity: .7; }
+.cap-phase-head { margin-bottom: 6px; }
+.cap-pair { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 8px; }
+.cap-card { display: flex; flex-direction: column; gap: 4px; }
+.cap-card .card-foot { margin-top: auto; }
+.cap-card.st-lost { opacity: .4; filter: grayscale(1); }
+.cap-card.st-locked .portrait-wrap { filter: brightness(.35); }
+.cap-card.st-joined { border-color: var(--gold); }
+.cap-card.st-pursuing { border-color: #7fd6e8; }
+.cap-status.joined { color: var(--good); } .cap-status.lost { color: var(--bad); }
+.cap-status.pursuing, .cap-status.offered { color: var(--gold); }
+.starter-choices { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.starter-card .btn { margin-top: auto; }
+.starter-card .pitch { font-style: italic; color: var(--gold); }
+.modal-body:has(.starter-choices) { max-width: 900px; }
+@media (max-width: 760px) { .starter-choices { grid-template-columns: 1fr; } }
+.story-banner.captain-banner { background: #3a2a10; color: var(--gold); }

@@ -62,9 +62,11 @@ const UI = (() => {
     if (!m.hero) return null;
     const hs = Game.state.heroes[m.hero];
     const next = HEROES[m.hero].chapters[hs ? hs.ch : 0];
+    const ch = Game.heroCh(m);
     return el('div', { class: 'hero-line' },
       el('span', { class: 'hero-title', text: `★ ${m.title}` }),
-      next ? el('span', { class: 'muted small', text: ` 인연 ${m.bond}/${next.bond}` }) : el('span', { class: 'good small', text: ' 이야기 완결' }));
+      next ? el('span', { class: 'muted small', text: ` 인연 ${m.bond}/${next.bond}` }) : el('span', { class: 'good small', text: ' 이야기 완결' }),
+      el('div', { class: 'small muted', text: `이야기 ${ch}/3장 · 레벨 상한 ${HERO_CAPS[ch]} · 성장률 ×${HERO_GROWTH[ch]} · 고유 스킬 ×${1 + ch * 0.25}${ch < 3 ? ` (다음 장: 상한 ${HERO_CAPS[ch + 1]})` : ''}` }));
   }
 
   function skillLine(m) {
@@ -81,6 +83,7 @@ const UI = (() => {
 
   function roleBadge(m) {
     if (Game.isCaptain(m)) return el('span', { class: 'role-badge captain', title: '용병대장: 고유 직업, 높은 성장률, 레벨 상한 40', text: '♛ 대장' });
+    if (m.hcls) return el('span', { class: 'role-badge hero', title: '특별 용병: 고유 직업을 가진 대원. 이야기를 진행할수록 강해진다', text: '★ 특별 대원' });
     return el('span', { class: 'role-badge unit', title: '용병 대원: 직업과 전직으로 역할을 정한다', text: `${UNIT_TIERS[Game.classTier(m)].name} 대원` });
   }
 
@@ -152,7 +155,8 @@ const UI = (() => {
       opts.recruit ? null : el('div', { class: 'exp' },
         el('div', { class: 'bar thin' }, el('div', { class: 'bar-fill f-exp', style: `width:${(m.exp / Game.expToNext(m)) * 100}%` })),
         el('span', { class: Game.atCap(m) ? 'warn' : '', text: Game.atCap(m)
-          ? (Game.isCaptain(m) ? `최고 레벨 ${Game.levelCap(m)}` : `레벨 상한 ${Game.levelCap(m)} — ${Game.classTier(m) < 2 ? '전직해야 성장합니다' : '최고 단계'}`)
+          ? (Game.isCaptain(m) ? `최고 레벨 ${Game.levelCap(m)}` : m.hcls ? `레벨 상한 ${Game.levelCap(m)} — ${Game.heroCh(m) < 3 ? '이야기를 진행해야 성장합니다' : '최고 단계'}`
+            : `레벨 상한 ${Game.levelCap(m)} — ${Game.classTier(m) < 2 ? '전직해야 성장합니다' : '최고 단계'}`)
           : `EXP ${m.exp}/${Game.expToNext(m)} · 상한 Lv.${Game.levelCap(m)}` })),
       opts.recruit ? null : equipRow(m),
       opts.recruit ? null : relationLine(m),
@@ -173,11 +177,12 @@ const UI = (() => {
     }
     if (m.status !== 'quest') {
       if (Game.canPromote(m) || Game.canMaster(m)) actions.push(el('button', { class: 'btn small primary', text: Game.canMaster(m) ? '최상급 전직' : '전직', onclick: () => openPromote(m.id) }));
-      else if (!Game.isCaptain(m)) actions.push(el('button', { class: 'btn small', text: '직업 계통', onclick: () => openPromote(m.id) }));
+      else if (!Game.isCaptain(m) && !m.hcls) actions.push(el('button', { class: 'btn small', text: '직업 계통', onclick: () => openPromote(m.id) }));
       actions.push(el('button', { class: 'btn small', text: '장비', onclick: () => openEquip(m.id) }));
       actions.push(el('button', { class: 'btn small', text: '이동', onclick: () => openTransfer(m.id) }));
       actions.push(el('button', { class: 'btn small danger', text: '해고',
-        onclick: () => confirmBox(`${m.name}을(를) 해고할까요? 장착한 장비는 창고로 돌아옵니다.`, () => Game.dismiss(m.id)) }));
+        onclick: () => confirmBox(Game.isCaptain(m) ? `용병대장 ${m.name}을(를) 내보낼까요? 대장은 단 한 명뿐인 인물이라 다시는 영입할 수 없습니다.`
+          : `${m.name}을(를) 해고할까요? 장착한 장비는 창고로 돌아옵니다.`, () => Game.dismiss(m.id)) }));
     }
     openModal(el('div', {}, mercCard(m, { actions }),
       el('div', { class: 'modal-actions' }, el('button', { class: 'btn primary', text: '닫기', onclick: closeModal }))));
@@ -210,7 +215,7 @@ const UI = (() => {
   function openPromote(mercId) {
     const s = Game.state;
     const m = s.mercs.find((x) => x.id === mercId);
-    if (!m || Game.isCaptain(m)) return;
+    if (!m || Game.isCaptain(m) || m.hcls) return;
     const statName = { str: '힘', dex: '민첩', int: '지력', maxHp: '체력' };
     const bonusTxt = (b) => Object.entries(b).map(([k, v]) => `${statName[k]}+${v}`).join(' ');
     const card = (look, name, skill, desc, bonus, foot, current) => el('div', { class: `promo-card ${current ? 'current' : ''}` },
@@ -300,6 +305,7 @@ const UI = (() => {
     if (modalOpen || !s.pendingReports.length) return;
     const r = s.pendingReports.shift();
     Game.save();
+    if (r.special === 'starter') return openStarterChoice();
     if (r.special === 'dialog' || r.special === 'notice') return openDialog(r);
     if (r.special) return openModal(specialReport(r), true);
     if (s.settings.battle) openModal(Battle.play(r, () => openModal(missionReport(r), true)), true);
@@ -352,10 +358,33 @@ const UI = (() => {
   }
 
   // 대화 (한 줄씩 타자기 효과), 마지막에 선택지가 있으면 고르게 한다
+  // 첫 용병대장 선택: 셋 중 하나, 나머지 둘은 영영 떠난다
+  function openStarterChoice() {
+    if (!Game.needsStarter()) return closeModal();
+    const cards = STARTER_CAPTAINS.map((k) => {
+      const C = CAPTAINS[k], CC = CAPTAIN_CLASSES[k];
+      return el('div', { class: 'promo-card starter-card' },
+        el('div', { class: 'portrait-wrap' }, Sprites.clone(Sprites.merc({ cls: CC.style, cap: k, ...C.look }, 5, 0), 'big-portrait')),
+        el('div', { class: 'name', text: C.name }),
+        el('div', { class: 'small muted', text: C.title }),
+        el('div', { class: 'skill adv', text: CC.name }),
+        el('div', { class: 'small', text: CC.desc }),
+        el('div', { class: 'small lead-line' }, el('b', { text: `「${CC.lead.name}」 ` }), CC.lead.desc),
+        el('div', { class: 'small muted', text: `힘 ${CC.base.str} · 민첩 ${CC.base.dex} · 지력 ${CC.base.int} · 체력 ${CC.base.hp}` }),
+        el('div', { class: 'small pitch', text: `“${C.pitch[0][1]}”` }),
+        el('button', { class: 'btn primary', onclick: () => { Game.chooseStarter(k); closeModal(); showReports(); } }, `${C.name}와(과) 시작한다`));
+    });
+    openModal(el('div', {},
+      el('h2', { text: '첫 용병대장을 고르세요' }),
+      el('p', { class: 'muted small', text: '용병단을 이끌 대장입니다. 대장은 고유 직업과 지휘 스킬을 가진 단 한 명뿐인 인물이며, 선택받지 못한 두 사람은 다시 만날 수 없습니다. 이후 대장은 길드 등급이 오를 때 찾아오는 갈림길에서 한 명씩만 얻을 수 있습니다.' }),
+      el('div', { class: 'starter-choices' }, cards)), true);
+  }
+
   function openDialog(r) {
     const h = r.hero && HEROES[r.hero];
     const portraitImg = h
-      ? Sprites.clone(Sprites.merc({ cls: h.cls, ...h.look, adv: h.adv }, 5, 0), 'big-portrait')
+      ? Sprites.clone(Sprites.merc({ cls: HERO_CLASSES[h.hcls].style, hcls: h.hcls, ...h.look }, 5, 0), 'big-portrait')
+      : r.captain ? Sprites.clone(Sprites.merc({ cls: CAPTAIN_CLASSES[r.captain].style, cap: r.captain, ...CAPTAINS[r.captain].look }, 5, 0), 'big-portrait')
       : Sprites.clone(Sprites.monster(r.enemy, 5, 0), 'big-portrait');
     let lines = r.lines.slice();
     let line = 0, timer = null, typing = false, choiceDone = !r.choice;

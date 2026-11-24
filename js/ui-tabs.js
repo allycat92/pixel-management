@@ -15,12 +15,12 @@
           el('span', { class: 'lv', text: ` Lv.${m.level}` }), m.hero ? el('span', { class: 'hero-mark', text: ' ★' }) : null),
         el('div', { class: 'small muted' }, cap
           ? `${Game.className(m)} · 지휘 「${Game.leadOf(m).name}」${m.trait !== 'none' ? ` · ${TRAITS[m.trait].name}` : ''}`
-          : `${Game.className(m)} (${UNIT_TIERS[Game.classTier(m)].name})${m.trait !== 'none' ? ` · ${TRAITS[m.trait].name}` : ''}`)),
+          : `${Game.className(m)} (${m.hcls ? `특별 · 이야기 ${Game.heroCh(m)}장` : UNIT_TIERS[Game.classTier(m)].name})${m.trait !== 'none' ? ` · ${TRAITS[m.trait].name}` : ''}`)),
       el('div', { class: 'mtags' },
         m.status === 'injured' ? el('span', { class: 'tag tag-injured', text: `부상 ${Math.ceil(m.injury)}일` }) : null,
         m.status === 'quest' ? el('span', { class: 'tag tag-quest', text: '출격' }) : null,
         (Game.canPromote(m) || Game.canMaster(m)) && m.status !== 'quest' ? el('span', { class: 'tag tag-promo', text: Game.canMaster(m) ? '최상급 전직 가능' : '전직 가능' })
-          : !cap && Game.atCap(m) && Game.classTier(m) < 2 ? el('span', { class: 'tag tag-promo', text: '상한 도달' }) : null,
+          : !cap && Game.atCap(m) && (m.hcls ? Game.heroCh(m) < 3 : Game.classTier(m) < 2) ? el('span', { class: 'tag tag-promo', text: m.hcls ? '상한 — 이야기 필요' : '상한 도달' }) : null,
         ...condTags(m)));
   }
 
@@ -152,6 +152,7 @@
     const banner = c.final ? el('div', { class: 'story-banner final-banner' }, `☠ 최종 결전 · 용병단 ${c.campaign.slots}개 투입 · ${FACTIONS[c.target].name}`)
       : c.campaign ? el('div', { class: 'story-banner campaign-banner' }, `⚔ 대규모 결전 · 용병단 ${c.campaign.slots}개 투입 · ${c.campaign.side === 'attack' ? '공격측' : '방어측'}`)
       : story ? el('div', { class: 'story-banner' }, `★ ${story.name}의 이야기 ${c.story.ch + 1}장`)
+      : c.capStory ? el('div', { class: 'story-banner captain-banner' }, `♛ 대장 영입 · ${CAPTAINS[c.capStory.key].name} ${c.capStory.ch + 1}/${CAPTAINS[c.capStory.key].chapters.length}장`)
         : c.boss ? el('div', { class: 'story-banner boss-banner' }, `☠ 재앙 · ${BOSSES[c.boss].name}`) : null;
     return el('div', { class: `card quest-card cat-${c.cat} ${story ? 'story' : ''} ${c.boss ? 'boss' : ''} ${c.campaign ? 'campaign' : ''} ${c.final ? 'final' : ''}` },
       banner,
@@ -171,7 +172,7 @@
         el('div', {}, icon('star'), ` 명성 +${c.rep}`),
         el('div', { text: `권장 전투력 ${Game.effectiveReq(c)}` }),
         el('div', { text: `권장 ${c.size}명 · ${c.days}일` }),
-        el('div', { class: 'muted', text: story || c.boss ? '마감 없음' : `마감까지 ${c.expires - s.day}일` })),
+        el('div', { class: 'muted', text: story || c.boss || c.capStory ? '마감 없음' : `마감까지 ${c.expires - s.day}일` })),
       effectPreview(c),
       el('div', { class: 'card-foot' },
         el('span', { class: 'muted small', text: story ? `${story.name} 필수` : weightHint(c.type) }),
@@ -190,9 +191,9 @@
       el('h2', { text: '의뢰' }),
       el('span', { class: 'muted small', text: '금화는 전쟁 의뢰에서 나옵니다. 괴물·치안 의뢰는 보수가 적은 대신 명성과 경험을 쌓기 좋습니다.' })));
     const groups = [
-      ['특별', s.contracts.filter((c) => c.campaign || c.story || c.boss)],
-      ['세력 분쟁', s.contracts.filter((c) => !c.campaign && !c.story && !c.boss && c.cat !== 'monster')],
-      ['괴물·치안', s.contracts.filter((c) => !c.campaign && !c.story && !c.boss && c.cat === 'monster')],
+      ['특별', s.contracts.filter((c) => c.campaign || c.story || c.boss || c.capStory)],
+      ['세력 분쟁', s.contracts.filter((c) => !c.campaign && !c.story && !c.boss && !c.capStory && c.cat !== 'monster')],
+      ['괴물·치안', s.contracts.filter((c) => !c.campaign && !c.story && !c.boss && !c.capStory && c.cat === 'monster')],
     ];
     if (!s.contracts.length) root.append(el('p', { class: 'empty', text: '지금은 의뢰가 없습니다. 내일 다시 확인하세요.' }));
     groups.forEach(([name, list]) => {
@@ -481,29 +482,79 @@
   };
 
   // ───────── 모집소 ─────────
+  // 용병대장 한 명의 카드 (영입 현황판용)
+  function captainCard(key, actions) {
+    const s = Game.state, C = CAPTAINS[key], CC = CAPTAIN_CLASSES[key], cs = s.captains[key];
+    const req = Game.captainRequirement(key);
+    const statusText = {
+      candidate: '창설 후보', locked: '아직 오지 않음', offered: '갈림길 — 선택 대기', pursuing: `영입 의뢰 진행 중 (${cs.ch}/${(C.chapters || []).length}장)`,
+      joined: '합류', lost: '영입 불가',
+    }[cs.status];
+    const lookOf = { cls: CC.style, cap: key, ...C.look };
+    return el('div', { class: `card cap-card st-${cs.status}` },
+      el('div', { class: 'card-head' },
+        el('div', { class: 'portrait-wrap' }, UI.h.portrait(lookOf)),
+        el('div', { class: 'card-title' },
+          el('div', { class: 'name' }, C.name, el('span', { class: 'muted small', text: ` ${C.title}` })),
+          el('div', { class: 'sub' }, el('span', { class: 'role-badge captain', text: '♛ 대장' }), ' ', el('span', { class: 'cls adv', text: CC.name })),
+          el('div', { class: `small cap-status ${cs.status}`, text: statusText }))),
+      el('div', { class: 'small muted', text: CC.desc }),
+      el('div', { class: 'small lead-line' }, el('b', { text: `「${CC.lead.name}」 ` }), CC.lead.desc),
+      C.require && cs.status !== 'joined' && cs.status !== 'lost'
+        ? el('div', { class: `small ${req.ok ? 'good' : 'bad'}`, text: `영입 조건: ${req.text} ${req.ok ? '✔' : '✘ (충족해야 영입 의뢰가 올라옵니다)'}` }) : null,
+      cs.status === 'pursuing' && C.chapters[cs.ch] ? el('div', { class: 'small warn', text: `다음: 「${C.chapters[cs.ch].title}」 — ${PROVINCES[C.chapters[cs.ch].province].name}` }) : null,
+      actions ? el('div', { class: 'card-foot' }, actions) : null);
+  }
+
+  // 용병대장 영입 현황: 창설 → 초반 → 중반 → 중반 → 후반
+  function captainRoster() {
+    const s = Game.state, r = Game.rankIndex();
+    const box = el('div', { class: 'cap-roster' });
+    const starter = STARTER_CAPTAINS.find((k) => s.captains[k].status === 'joined');
+    box.append(el('div', { class: 'cap-phase done' },
+      el('div', { class: 'cap-phase-head' }, el('b', { text: '창설' }), el('span', { class: 'small muted', text: ' 첫 용병대장 (셋 중 하나)' })),
+      el('div', { class: 'cap-pair' }, STARTER_CAPTAINS.map((k) => captainCard(k)))));
+    CAPTAIN_PHASES.forEach((ph) => {
+      const st = s.phases[ph.key];
+      const head = el('div', { class: 'cap-phase-head' }, el('b', { text: `${ph.name} 갈림길` }),
+        el('span', { class: 'small muted', text: st === 'locked' ? ` 길드 등급 ${RANKS[ph.rank].name} 달성 시 (현재 ${RANKS[r].name})` : st === 'open' ? ' 둘 중 한 명만 택할 수 있습니다' : ' 결정됨' }));
+      const cards = ph.pair.map((k) => {
+        const act = st === 'open' ? el('button', { class: 'btn primary small', onclick: () => UI.confirmBox(
+          `${CAPTAINS[k].name}의 길을 택할까요? ${CAPTAINS[Game.rivalOf(k)].name}은(는) 길드를 떠나 다시 오지 않습니다.`, () => Game.pursueCaptain(k)) }, `${CAPTAINS[k].name}의 길을 택한다`) : null;
+        return captainCard(k, act);
+      });
+      box.append(el('div', { class: `cap-phase ${st}` }, head, el('div', { class: 'cap-pair' }, cards)));
+    });
+    return box;
+  }
+
   T.recruit = (root) => {
     const s = Game.state;
-    // 용병대장 후보 (고유 직업)
+    const joined = Object.values(s.captains || {}).filter((c) => c.status === 'joined').length;
     root.append(el('div', { class: 'panel-head' },
-      el('h2', { text: '모집소 — 용병대장 후보' }),
-      el('div', { class: 'row-inline' },
-        el('span', { class: 'muted small', text: `대장은 고유 직업을 갖고 등장하며 높은 성장률(상한 Lv.${CAPTAIN_CAP})과 지휘 스킬로 용병단 하나를 이끕니다 · 길드 정원 ${s.mercs.length}/${Game.capacity()}` }),
-        el('button', { class: 'btn small', text: '후보 새로 부르기 (40)', onclick: () => Game.refreshRecruits(true) }))));
+      el('h2', { text: `용병대장 (${joined}/${1 + CAPTAIN_PHASES.length})` }),
+      el('span', { class: 'muted small', text: '대장은 고유 직업·높은 성장률·지휘 스킬을 지닌 단 한 명뿐인 인물입니다. 갈림길마다 한 명만 택할 수 있고, 택한 대장의 영입 의뢰를 완수해야 합류합니다.' })));
+    root.append(captainRoster());
+
+    // 특별 용병과 세력 정예
+    root.append(el('div', { class: 'panel-head mt' },
+      el('h2', { text: '모집소 — 특별 용병 · 세력 정예' }),
+      el('span', { class: 'muted small', text: `특별 용병은 고유 직업을 가진 대원입니다. 영입하면 이야기가 시작되고, 장을 마칠수록 대장 못지않게 강해집니다 · 길드 정원 ${s.mercs.length}/${Game.capacity()}` })));
     const grid = el('div', { class: 'grid' });
     s.recruits.forEach((m) => {
       const cost = Game.hireCost(m);
-      const btn = el('button', { class: 'btn primary small', disabled: s.gold < cost ? 'disabled' : null, onclick: () => Game.hire(m.id) }, icon('coin'), ` ${cost} ${Game.isCaptain(m) ? '영입' : '고용'}`);
+      const btn = el('button', { class: 'btn primary small', disabled: s.gold < cost ? 'disabled' : null, onclick: () => Game.hire(m.id) }, icon('coin'), ` ${cost} 영입`);
       const card = mercCard(m, { recruit: true, actions: [btn] });
       const h = m.hero && HEROES[m.hero];
       const desc = m.elite
         ? el('p', { class: 'small desc hero-desc' }, factionFlag(m.elite, 1), ` ${FACTIONS[m.elite].name} 정예 대원 · ${TRAITS[m.trait].name}: ${TRAITS[m.trait].desc} · 평판이 0 아래로 떨어지면 소환됨`)
         : h
-        ? el('p', { class: 'small desc hero-desc' }, `특별 용병대장 · ${TRAITS[m.trait].name}: ${TRAITS[m.trait].desc}`, h.faction ? el('span', { class: 'muted' }, ` · 연고: ${FACTIONS[h.faction].name}`) : null)
+        ? el('p', { class: 'small desc hero-desc' }, `특별 용병 · ${TRAITS[m.trait].name}: ${TRAITS[m.trait].desc}`, h.faction ? el('span', { class: 'muted' }, ` · 연고: ${FACTIONS[h.faction].name}`) : null)
         : null;
       if (desc) card.insertBefore(desc, card.querySelector('.stats'));
       grid.append(card);
     });
-    if (!s.recruits.length) root.append(el('p', { class: 'empty', text: '지금은 찾아온 용병대장 후보가 없습니다.' }));
+    if (!s.recruits.length) root.append(el('p', { class: 'empty', text: '지금은 찾아온 특별 용병이 없습니다. 길드 등급이 오르면 사연 있는 용병들이 찾아옵니다.' }));
     root.append(grid);
 
     // 대원 모집: 직업을 골라 뽑는다

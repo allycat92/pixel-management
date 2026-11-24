@@ -105,15 +105,17 @@ const Sprites = (() => {
     const adv = look.adv && ADV_CLASSES[look.adv];
     const master = look.master && MASTER_CLASSES[look.master];
     const cap = look.cap && CAPTAIN_CLASSES[look.cap];
+    const hc = look.hcls && HERO_CLASSES[look.hcls];
     let cls = CLASSES[look.cls] || CLASSES.warrior;
     if (adv) cls = { ...cls, outfit: adv.outfit, accent: adv.accent };
     if (master) cls = { ...cls, outfit: master.outfit, accent: master.accent };
     if (cap) cls = { ...cls, outfit: cap.outfit, accent: cap.accent, headgear: cap.headgear, weapon: cap.weapon }; // 대장 고유 복장
+    if (hc) cls = { ...cls, outfit: hc.outfit, accent: hc.accent, headgear: hc.headgear, weapon: hc.weapon }; // 특별 용병 고유 복장
     if (look.tint) cls = { ...cls, outfit: look.tint.outfit, accent: look.tint.accent }; // 세력 병사 제복
     const px = BODY.map((r) => r.split(''));
     // 용병대장: 망토, 최상급 직업: 어깨 장식
     if (cap) [[11, 3], [12, 3], [13, 3], [12, 2], [13, 2], [11, 12], [12, 12], [13, 12], [12, 13], [13, 13]].forEach(([y, x]) => { if (px[y][x] === '.') px[y][x] = 'C'; });
-    if (master) { px[8][3] = 'A'; px[8][12] = 'A'; }
+    if (master || hc) { px[8][3] = 'A'; px[8][12] = 'A'; }
     applyHeadgear(px, cls.headgear, cls);
     const pal = {
       O: OUTLINE, H: look.hair, S: look.skin, E: '#1b1420',
@@ -144,7 +146,7 @@ const Sprites = (() => {
   }
 
   function merc(look, scale = 1, frame = 0, flip = false) {
-    const key = `${look.cls}|${look.adv || ''}|${look.master || ''}|${look.cap || ''}|${look.tint ? look.tint.outfit : ''}|${look.skin}|${look.hair}|${look.longHair}|${scale}|${frame}|${flip}`;
+    const key = `${look.cls}|${look.adv || ''}|${look.master || ''}|${look.cap || ''}|${look.hcls || ''}|${look.tint ? look.tint.outfit : ''}|${look.skin}|${look.hair}|${look.longHair}|${scale}|${frame}|${flip}`;
     if (cache.has(key)) return cache.get(key);
     const c = canvas(16 * scale, 17 * scale);
     const ctx = c.getContext('2d');
