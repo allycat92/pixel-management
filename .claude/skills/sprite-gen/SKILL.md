@@ -55,7 +55,7 @@ sprite-gen's own generation commands stay forbidden.
 
 ## Game conventions
 
-- Battle characters: 80x80 cell, body ~64px, feet at (40,76), 3-head chibi, front 3/4 view facing right,
+- Battle characters: 80x80 cell, body ~64px, feet at (40,76), 4 heads tall (not chibi; see art/STYLE.md / art/requests/gpt_handoff_notes.md), front 3/4 view facing right,
   muted hue-shifted palette, dark non-black selective outline, rim light. See `art/STYLE.md` (전투 캐릭터).
   Older procedural reference (48x56): `tools/pixelart/`.
 - Final assets go under `assets/art/` and are registered in `assets/art/manifest.json`.

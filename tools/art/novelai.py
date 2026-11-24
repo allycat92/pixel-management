@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""NovelAI 이미지 생성 → art/inbox/ (사용자가 요청했을 때만 쓴다).
+"""NovelAI 이미지 생성 (사용자가 요청했을 때만 쓴다). 전투 캐릭터는 **디자인 초안 전용**이다.
 
-캐릭터 한 명당 한 장(전신 한 자세, 단색 마젠타 배경)을 만든다. 결과는 tools/art/sheets.py 가
-idle 숨쉬기 시트로 바꾼다 (공격·피격은 엔진의 돌진·번쩍임·VFX 가 대신한다).
+캐릭터 한 명당 한 장(전신 한 자세, 단색 마젠타 배경)을 만든다. 초안은 art/concepts/<id>/ 에 두고
+sheets.py 로 등록하지 않는다 (게임 그림은 GPT 가 그린 띠 한 장; art/requests/gpt_handoff_notes.md).
 
-  # 요청서(art/requests/phase3.json)의 nai 프롬프트로
-  python3 tools/art/novelai.py --only sheet/captain/ironwall
+  # 요청서(art/requests/phase3.json)의 nai 프롬프트·시드·크기로 (--seed/--width/--height 를 주면 그것이 우선)
+  python3 tools/art/novelai.py --only sheet/captain/ironwall --outdir art/concepts/captain_ironwall
   # 직접 만든 프롬프트 파일로 ({"prompt", "negative", "out", "seed"?} 하나 또는 목록)
   python3 tools/art/novelai.py --prompt-file my_prompt.json
   # 보내지 않고 파라미터만 확인
@@ -74,7 +74,7 @@ def jobs_from_args(a):
             if not out:
                 raise SystemExit('prompt-file 항목에 out 이 없다')
             jobs.append({'label': out, 'prompt': j['prompt'], 'negative': j.get('negative') or j.get('neg', ''),
-                         'out': out, 'seed': j.get('seed')})
+                         'out': out, 'seed': j.get('seed'), 'size': j.get('size')})
     if a.only:
         with open(a.requests, encoding='utf-8') as f:
             items = {it['id']: it for it in json.load(f)['items']}
@@ -85,7 +85,7 @@ def jobs_from_args(a):
             if 'nai' not in it:
                 raise SystemExit(f'{sid} 에 nai 프롬프트가 없다')
             jobs.append({'label': sid, 'prompt': it['nai']['prompt'], 'negative': it['nai']['negative'],
-                         'out': it['file'], 'seed': None})
+                         'out': it['file'], 'seed': it['nai'].get('seed'), 'size': it['nai'].get('size')})
     return jobs
 
 
@@ -95,8 +95,8 @@ def main():
     ap.add_argument('--requests', default=REQS, help='요청서 json (기본 art/requests/phase3.json)')
     ap.add_argument('--prompt-file', help='{"prompt","negative","out","seed"} 하나 또는 목록인 json')
     ap.add_argument('--seed', type=int, help='시드 (기본: 무작위, 출력에 찍힌다)')
-    ap.add_argument('--width', type=int, default=DEFAULTS['width'])
-    ap.add_argument('--height', type=int, default=DEFAULTS['height'])
+    ap.add_argument('--width', type=int, help=f'기본: 요청서의 nai.size, 없으면 {DEFAULTS["width"]}')
+    ap.add_argument('--height', type=int, help=f'기본: 요청서의 nai.size, 없으면 {DEFAULTS["height"]}')
     ap.add_argument('--steps', type=int, default=DEFAULTS['steps'])
     ap.add_argument('--scale', type=float, default=DEFAULTS['scale'], help='프롬프트 강도 (CFG)')
     ap.add_argument('--model', default=DEFAULTS['model'])
@@ -108,25 +108,32 @@ def main():
     ap.add_argument('--dry-run', action='store_true', help='보내지 않고 파라미터만 출력')
     a = ap.parse_args()
 
-    p = {k: getattr(a, k) for k in DEFAULTS}
-    if p['width'] % 64 or p['height'] % 64:
-        raise SystemExit('width/height 는 64 의 배수여야 한다')
-    paid = []
-    if p['width'] * p['height'] > FREE_AREA:
-        paid.append(f'넓이 {p["width"]}x{p["height"]} > 1024x1024')
-    if p['steps'] > FREE_STEPS:
-        paid.append(f'steps {p["steps"]} > {FREE_STEPS}')
-    if paid and not a.allow_paid:
-        raise SystemExit('무료 범위를 넘는다: ' + ', '.join(paid) + ' (정말 쓰려면 --allow-paid)')
+    def params(j):
+        """this job's parameters: --width/--height > the request's nai.size > DEFAULTS."""
+        p = {k: getattr(a, k) for k in DEFAULTS}
+        size = j.get('size') or (DEFAULTS['width'], DEFAULTS['height'])
+        p['width'] = a.width if a.width is not None else int(size[0])
+        p['height'] = a.height if a.height is not None else int(size[1])
+        if p['width'] % 64 or p['height'] % 64:
+            raise SystemExit('width/height 는 64 의 배수여야 한다')
+        paid = []
+        if p['width'] * p['height'] > FREE_AREA:
+            paid.append(f'넓이 {p["width"]}x{p["height"]} > 1024x1024')
+        if p['steps'] > FREE_STEPS:
+            paid.append(f'steps {p["steps"]} > {FREE_STEPS}')
+        if paid and not a.allow_paid:
+            raise SystemExit(f'[{j["label"]}] 무료 범위를 넘는다: ' + ', '.join(paid) + ' (정말 쓰려면 --allow-paid)')
+        return p, paid
 
     jobs = jobs_from_args(a)
     if not jobs:
         raise SystemExit('--only 또는 --prompt-file 이 필요하다')
     if len(jobs) > a.max:
         raise SystemExit(f'{len(jobs)}장 요청 > --max {a.max} (대량 생성은 사용자가 원할 때만, --max 로 늘린다)')
+    plans = [params(j) for j in jobs]   # 보내기 전에 전부 검사
 
     os.makedirs(a.outdir, exist_ok=True)
-    for j in jobs:
+    for j, (p, paid) in zip(jobs, plans):
         seed = a.seed if a.seed is not None else (j['seed'] if j['seed'] is not None else random.randrange(1, 2 ** 32 - 1))
         out = os.path.join(a.outdir, os.path.basename(j['out']))
         if os.path.exists(out) and not a.force:

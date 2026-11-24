@@ -26,22 +26,26 @@ Known inconsistencies in the current drafts (`art/requests/phase3/<id>/concept.p
   (Baren hit pose) and comic-style lineart.
 - Saturation/brightness differ: hedgemage's bright yellow trim, fieldmedic's near-white coat,
   fixer's near-black outfit that vanishes on the dark battlefield.
-- Draft-specific defects to fix, not reproduce: fieldmedic has a small white cross on the
-  armband (should be a plain dark-red armband); fixer holds two daggers (should be one,
-  reverse grip); tactician is too tall for the 4-head spec.
+- Draft-specific defects to fix, not reproduce: fieldmedic has a white cross on the red apron
+  bib / chest (remove it: no cross or symbol anywhere; her armband stays a plain dark-red band);
+  fixer holds two daggers (should be one, reverse grip); tactician is too tall for the 4-head spec;
+  the mounted lancer draft's horse head looks doubled (draw exactly one).
 - The three Baren action drafts (windup/strike/hit) drift in coat length and art style even with
   the same seed — frame-to-frame consistency must come from the pose guides + one style anchor,
   not from the drafts.
 
 ## How GPT must unify the style
 
-1. **Style anchor first.** Produce Baren (`captain_blademaster`) first, following `art/STYLE.md`
-   and the target screenshots. Stop for owner approval. After approval that image is the
+1. **Style anchor first.** Produce Baren (`captain_blademaster`) first, following his package
+   README, `art/STYLE.md` and the target screenshots (not in the repo — the owner attaches them).
+   Stop for owner approval. After approval that image is the
    **style anchor**: every other character is drawn to match the anchor's proportions,
    rendering, outline, palette treatment and lighting — not its own draft's.
 2. **One spec for everyone:** 4 heads tall, front three-quarter view facing right, light from
    the upper left, muted hue-shifted palette, dark non-black selective outlines, same character
-   scale, feet on the common baseline of the guide.
+   scale. Head = 110 px; standing height would be 440 px, but the guide idle pose is crouched, so
+   idle top-of-head to sole is about 400 px (headgear and weapons are extra and not counted).
+   Soles (lowest pixel) on y=870. Only the 1x4 row is asked for (no 2x2 grid, no single pose).
 3. **Poses come from posekit guides only:** match the guide's pose, limb lengths and proportions
    exactly; the draft only says what the character wears and carries.
 4. **Readability on the dark battlefield:** very dark or very bright outfits get a rim light /
@@ -58,13 +62,18 @@ Known inconsistencies in the current drafts (`art/requests/phase3/<id>/concept.p
 | `concept.png` | the owner's chosen NovelAI draft — DESIGN ONLY (Baren also `concept_pixel.png` = #8, how simple the shapes must stay) |
 | `portrait.png` | the approved portrait — face and hair only |
 | `guide_1_idle.png` .. `guide_4_hit.png` | posekit 4-head mannequin, 832x1216, one per key pose |
-| `guide_strip.png` | the four guides laid out EXACTLY as the deliverable: 1536x1024, flat #FF00FF, feet on y=870 (85%), 110 px per head for every character (idle ≈ 400 px ≈ 39%), figures never touching |
-| `README.md` | Korean summary for the owner + the English prompt block for GPT (keep / fix / do-not-copy / poses / deliverable / self-check) |
+| `guide_strip.png` | the four guides laid out EXACTLY as the deliverable: 1536x1024, flat #FF00FF, soles on y=870 (85%), 110 px per head for every character (idle ≈ 400 px ≈ 39%), >= 32 px of magenta between figures (in any direction) and from the border |
+| `README.md` | the English prompt block for GPT first (character / colours / fix / poses, then references and the common rules), then a Korean summary for the owner and the file list to attach in a chat |
 
 - The old "figure about 55% of the height" could not fit four wide stances with weapons in 1536 px;
   the guide strip (≈40%) is the size reference now. The pipeline normalises the idle height to 64 px anyway.
 - Weapons use the generic posekit mannequin with the closest weapon (per-class / per-character pose kits are deferred);
-  the README says what the placeholder becomes (tower shield, mace, cane, dagger ...).
+  the README says what the placeholder becomes (tower shield, mace, cane, lance ...). Fixer's guide draws its one reverse-grip dagger.
+- Key poses: idle is the posekit frame; wind-up / strike / hit mostly come from `KEY_POSES` in `handoff.py`
+  (wind-up = weight back and more upright, strike = step-in lunge with the arms extended, hit = torso thrown back,
+  weight on the rear leg, weapon dropped), so the four poses also differ in the legs and still read at 64 px.
+- Branches: every reference is read from `claude/dot-fantasy-management-game-saupju` (it must be pushed first);
+  results go ONLY to the `art-inbox` branch (its own older `art/STYLE.md` and requests are not the rules).
 - Order: Baren (anchor, wait for approval) → ironwall, tactician, lancer, huntress, hedgemage, fieldmedic, fixer, veteran
   → optional lancer mounted sheet (`sheet_captain_lancer_mounted.png`, 2x2 grid, wider cell, not used by the game yet;
   the horse must have exactly one head) → later groups (classes, heroes, monsters, other captains) after the nine.
