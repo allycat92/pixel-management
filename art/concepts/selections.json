@@ -25,5 +25,26 @@
   "sampler": "k_euler_ancestral",
   "prompt": "1boy, solo, full body, four heads tall, young swordsman, messy dark brown hair, white headband, long headband tails, scar on cheek, dark crimson half cape, dark navy tunic, leather belt, cross strap, dark trousers, brown boots, holding katana with both hands, sword held diagonally, wide stance, bent knees, fighting stance, three-quarter view, facing right, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
   "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, multiple views, cropped, blurry, background scenery, ground shadow, extra arms, two heads, multiple heads, conjoined, extra head"
+ },
+ "captain_ironwall": {
+  "job": "02_ironwall",
+  "picks": [
+   {
+    "n": 8,
+    "file": "concept_08.png",
+    "role": "design reference (owner: just right)",
+    "seed": 5260
+   }
+  ],
+  "model": "nai-diffusion-4-5-full",
+  "size": [
+   832,
+   1216
+  ],
+  "steps": 28,
+  "scale": 5.5,
+  "sampler": "k_euler_ancestral",
+  "prompt": "1girl, solo, full body, four heads tall, adult female brigade commander, long auburn hair, braided hair, steel helmet, scar across nose, slate grey plate armor, gold trim, leather belt, gray tabard, dark trousers, brown boots, large tower shield, holding mace, shield raised forward, wide stance, bent knees, defensive stance, three-quarter view, facing right, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
+  "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, multiple views, cropped, blurry, background scenery, ground shadow, extra arms, two heads, multiple heads, conjoined, extra head"
  }
 }
