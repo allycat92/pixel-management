@@ -242,7 +242,9 @@ const Battle = (() => {
     (report.companies || []).forEach((c) => {
       if (groups.length >= MAX_GROUPS) return;
       if (c.own && c.members) {
-        const ms = [...c.members].sort((a, b) => (b.leader ? 1 : 0) - (a.leader ? 1 : 0) || b.level - a.level);
+        // 대장 → 이번에 쓰러진 단원 → 레벨 순. 옛 저장의 큰 용병단(5~9명)도 전사자는 반드시 전장에 나온다.
+        const ms = [...c.members].sort((a, b) => (b.leader ? 1 : 0) - (a.leader ? 1 : 0)
+          || (deadIds.has(b.id) ? 1 : 0) - (deadIds.has(a.id) ? 1 : 0) || b.level - a.level);
         const units = ms.slice(0, GROUP_MAX).map((m) => ({ look: m.look, cls: m.cls, str: (0.85 + m.level * 0.035) * (m.leader ? 1.15 : 1), named: m.name, doomed: deadIds.has(m.id), sk: m.sk, unique: m.unique, art: m.art, capKey: m.capKey || (m.look && m.look.cap) || null, heroKey: m.heroKey || null }));
         // 출격 인원이 셋이 안 되면 수습 용병이 머릿수를 채운다
         looksFor(c.color, Math.max(0, GROUP_MIN - units.length)).forEach((lk) => units.push({ look: lk, cls: lk.cls, str: 0.7, recruit: true }));
@@ -256,13 +258,16 @@ const Battle = (() => {
     });
     if (!groups.length) {
       // 옛 보고서 호환: 단원 목록만 있는 경우
-      const units = (report.members || []).slice(0, GROUP_MAX).map((m) => ({ look: m.look, cls: m.cls, str: 1, named: m.name, doomed: m.dead }));
+      const units = [...(report.members || [])].sort((a, b) => (b.dead ? 1 : 0) - (a.dead ? 1 : 0)).slice(0, GROUP_MAX).map((m) => ({ look: m.look, cls: m.cls, str: 1, named: m.name, doomed: m.dead }));
       looksFor('#3d5a9c', Math.max(0, GROUP_MIN - units.length)).forEach((lk) => units.push({ look: lk, cls: lk.cls, str: 0.7, recruit: true }));
       groups.push({ side: 0, name: '길드 용병단', color: '#3d5a9c', player: true, units });
     }
 
-    const enemyN = enemyGroupsFor(q);
-    const allyFill = Math.max(0, Math.min(MAX_GROUPS, enemyN) - groups.length);
+    // 배신할 외부 용병단은 전투 중에 적 진영으로 넘어가므로 적 부대 수에 미리 셈한다 (넘어간 뒤에도 양쪽 최대 3부대)
+    const groupsN = Math.min(MAX_GROUPS, enemyGroupsFor(q));
+    const traitors = groups.filter((g) => g.betray).length;
+    const enemyN = Math.max(1, groupsN - traitors);
+    const allyFill = Math.max(0, groupsN - groups.length);
 
     // 아군 지원 부대: 의뢰주 세력의 병사들 (진영 부대 수를 적과 맞춘다)
     const issuer = q.issuer;
@@ -270,8 +275,9 @@ const Battle = (() => {
     for (let i = 0; i < allyFill; i++) {
       const f = ally || 'locals';
       const n = rInt(r, GROUP_MIN, GROUP_MAX);
+      const base = rInt(r, 0, 99); // 부대마다 한 번: 세력의 병과 순서대로 섞인다 (사제만 넷인 부대가 없게)
       const units = Array.from({ length: n }, (_, k) => {
-        const lk = UI.h.soldierLook(f, rInt(r, 0, 99) + k);
+        const lk = UI.h.soldierLook(f, base + k);
         return { look: lk, cls: lk.cls, str: ally ? 0.85 : 0.65 };
       });
       groups.push({ side: 0, name: ally ? `${FACTIONS[f].short} ${FACTIONS[f].unitName}` : '마을 자경단', color: FACTIONS[f].color, units });
@@ -299,8 +305,9 @@ const Battle = (() => {
       const f = q.target || q.issuer;
       for (let i = 0; i < enemyN; i++) {
         const n = Math.min(GROUP_MAX, rInt(r, GROUP_MIN, GROUP_MAX) + extra);
+        const base = rInt(r, 0, 99);
         const units = Array.from({ length: n }, (_, k) => {
-          const lk = UI.h.soldierLook(f, rInt(r, 0, 99) + k);
+          const lk = UI.h.soldierLook(f, base + k);
           return { look: lk, cls: lk.cls, str: 1 };
         });
         groups.push({ side: 1, name: `${FACTIONS[f].short} ${FACTIONS[f].unitName} ${i + 1}대`, color: FACTIONS[f].color, units });
@@ -653,23 +660,28 @@ const Battle = (() => {
   }
 
   // 판정 결과와 맞는 전투를 찾는다: 적의 강도를 조정하며 시뮬레이션
+  // 시간 제한까지 버틴 전투(전멸·궤주 없이 남은 체력으로 승패가 갈림)는 화면에서 줄이 멈춘 채 오래 끌다 갑자기 끝나므로 받지 않는다
+  const SLOW_T = 60;                 // 이보다 오래 걸린 전투는 '늘어진' 것으로 보고 다른 시드·강도를 찾는다
   function findBattle(groups, outcome, seed) {
     const want = outcome === 'great' || outcome === 'success';
     let bias = want ? (outcome === 'great' ? 0.7 : 0.95) : outcome === 'fail' ? 1.15 : 1.35;
     let lo = 0.1, hi = 6;
     let best = null;
+    // 대안 순위: 승패가 맞는 것 > 늘어지지 않은 것 (같으면 나중 것)
+    const rank = (res) => (res.won === want ? 2 : 0) + (res.t < SLOW_T ? 1 : 0);
     for (let i = 0; i < 16; i++) {
       const s = seed + i * 101;
       const res = simulate(groups, bias, s);
-      const ok = res.won === want
+      const slow = res.t >= SLOW_T;
+      const ok = res.won === want && !slow
         && (outcome !== 'great' || res.loss <= 0.25)
         && (outcome !== 'success' || res.loss > 0.05 || i > 4)
         && (outcome !== 'disaster' || res.loss >= 0.5);
       if (ok) return { bias, seed: s, res };
-      if (!best || res.won === want) best = { bias, seed: s, res };
-      // 아군이 이겨야 하는데 졌거나, 대성공인데 피해가 크면 적을 약하게
-      const weaker = want ? (!res.won || (outcome === 'great' && res.loss > 0.25)) : false;
-      const stronger = !want ? (res.won || (outcome === 'disaster' && res.loss < 0.5)) : (outcome === 'success' && res.loss <= 0.05);
+      if (!best || rank(res) >= rank(best.res)) best = { bias, seed: s, res };
+      // 아군이 이겨야 하는데 졌거나, 대성공인데 피해가 크거나, 늘어졌으면 적을 약하게 (져야 하면 반대로)
+      const weaker = want ? (!res.won || (outcome === 'great' && res.loss > 0.25) || slow) : false;
+      const stronger = !want ? (res.won || (outcome === 'disaster' && res.loss < 0.5) || slow) : (outcome === 'success' && res.loss <= 0.05);
       if (weaker) hi = bias; else if (stronger) lo = bias;
       bias = Math.sqrt(lo * hi);
     }
@@ -723,6 +735,55 @@ const Battle = (() => {
     return a.to;
   }
 
+  // 괴물 시트: 우두머리(같은 종의 부하보다 큰 scale)는 시트 칸을 1.5배로 키워 그린다 (코드 생성 도트의 5배 대 3배와 같은 구별)
+  function sheetK(u, sh) {
+    if (!u.mon || !(u.scale > 1) || sh.meta.cell[1] > 80) return 1;
+    const d = (typeof ENEMIES !== 'undefined' && ENEMIES[u.mon]) || {};
+    return u.scale > (d.boss ? 3 : d.big ? 2 : 1) ? 1.5 : 1;
+  }
+
+  // 직업 시트(sheet/class/*)를 진영 색으로 바꿔 칠한 사본. 시트의 열쇠 색(meta.tint.outfit/accent)을
+  // look.tint 색으로 옮기되, 열쇠 색끼리의 밝기 차이(명암 단계)는 그대로 둔다. (시트·색 조합마다 한 번만 만든다)
+  const recolorCache = new Map();
+  const hexRgb = (h) => { const n = parseInt(String(h).replace('#', '').slice(0, 6), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; };
+  const lumOf = (c) => 0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2];
+  function sheetRecolor(sh, u) {
+    const keys = sh.meta.tint, lt = u.look && u.look.tint;
+    if (!keys || !lt || !sh.id.startsWith('sheet/class/')) return null;
+    const ck = `${sh.id}|${lt.outfit || ''}|${lt.accent || ''}`;
+    if (recolorCache.has(ck)) return recolorCache.get(ck);
+    let out = null;
+    try {
+      const W0 = sh.img.naturalWidth || sh.img.width, H0 = sh.img.naturalHeight || sh.img.height;
+      const c = document.createElement('canvas');
+      c.width = W0; c.height = H0;
+      const x = c.getContext('2d');
+      x.drawImage(sh.img, 0, 0);
+      const id = x.getImageData(0, 0, W0, H0), d = id.data;
+      const map = new Map();
+      ['outfit', 'accent'].forEach((role) => {
+        const list = (keys[role] || []).map(hexRgb);
+        if (!list.length || !lt[role]) return;
+        const target = hexRgb(lt[role]);
+        const mean = list.reduce((a, k) => a + lumOf(k), 0) / list.length || 1;
+        list.forEach((k) => {
+          const f = lumOf(k) / mean;
+          map.set((k[0] << 16) | (k[1] << 8) | k[2], target.map((v) => Math.max(0, Math.min(255, Math.round(v * f)))));
+        });
+      });
+      for (let i = 0; i < d.length; i += 4) {
+        if (!d[i + 3]) continue;
+        const to = map.get((d[i] << 16) | (d[i + 1] << 8) | d[i + 2]);
+        if (to) { d[i] = to[0]; d[i + 1] = to[1]; d[i + 2] = to[2]; }
+      }
+      x.putImageData(id, 0, 0);
+      out = { img: c, key: ck };
+    } catch (e) { out = null; /* 픽셀을 읽을 수 없으면 원본 그대로 */ }
+    if (recolorCache.size > 64) recolorCache.clear();
+    recolorCache.set(ck, out);
+    return out;
+  }
+
   // 지금 그릴 칸
   function pose(view, u, force) {
     const r = rsOf(view, u), c = view.clock;
@@ -737,7 +798,9 @@ const Battle = (() => {
       else if (u.moving) i = frameAt(Art.anim(m, 'walk'), (c + r.phase) * 1000, false);
       else i = frameAt(Art.anim(m, 'idle'), (c + r.phase) * 1000, false);
       const f = m.frames[i] || m.frames[0];
-      return { img: sh.img, sx: f[0], sy: f[1], sw: m.cell[0], sh: m.cell[1], ax: m.anchor[0], ay: m.anchor[1], face: m.facing, key: `${sh.id}#${i}`, sheet: sh };
+      const rc = sheetRecolor(sh, u);
+      return { img: rc ? rc.img : sh.img, sx: f[0], sy: f[1], sw: m.cell[0], sh: m.cell[1], ax: m.anchor[0], ay: m.anchor[1], face: m.facing,
+        key: `${rc ? rc.key : sh.id}#${i}`, sheet: sh, k: sheetK(u, sh) };
     }
     const walking = (u.moving && u.alive) || force === 'walk';
     const t = (c + r.phase) * 1000;
@@ -754,13 +817,15 @@ const Battle = (() => {
   }
 
   // 한 칸 그리기: (X, Y) 가 발 위치, flip 이면 좌우 반전
+  // fr.k: 그리는 배율 (괴물 우두머리 시트 1.5 등, 기본 1)
   function blit(ctx, fr, X, Y, flip, img) {
     const src = img || fr.img, sx = img ? 0 : fr.sx, sy = img ? 0 : fr.sy;
-    if (!flip) { ctx.drawImage(src, sx, sy, fr.sw, fr.sh, Math.round(X - fr.ax), Math.round(Y - fr.ay), fr.sw, fr.sh); return; }
+    const k = fr.k || 1, dw = Math.round(fr.sw * k), dh = Math.round(fr.sh * k), ax = Math.round(fr.ax * k), ay = Math.round(fr.ay * k);
+    if (!flip) { ctx.drawImage(src, sx, sy, fr.sw, fr.sh, Math.round(X) - ax, Math.round(Y) - ay, dw, dh); return; }
     ctx.save();
     ctx.translate(Math.round(X), 0);
     ctx.scale(-1, 1);
-    ctx.drawImage(src, sx, sy, fr.sw, fr.sh, -fr.ax, Math.round(Y - fr.ay), fr.sw, fr.sh);
+    ctx.drawImage(src, sx, sy, fr.sw, fr.sh, -ax, Math.round(Y) - ay, dw, dh);
     ctx.restore();
   }
 
@@ -810,17 +875,18 @@ const Battle = (() => {
     const sh = useArt() && Art.sheetFor(u);
     const key = sh ? sh.id : 'proc';
     if (r.statKey === key && r.stat) return r.stat;
-    let fr;
+    let fr, k = 1;
     if (sh) {
       const m = sh.meta, i = Art.anim(m, 'idle').from, f = m.frames[i] || m.frames[0];
       fr = { img: sh.img, sx: f[0], sy: f[1], sw: m.cell[0], sh: m.cell[1], ax: m.anchor[0], ay: m.anchor[1], key: `${sh.id}#${i}` };
+      k = sheetK(u, sh);
     } else {
       const s = u.mon ? monScale(u) : SPR;
       const img = u.mon ? Sprites.monster(u.mon, s, 0, false) : Sprites.merc(u.look, SPR, 0, false);
       fr = { img, sx: 0, sy: 0, sw: img.width, sh: img.height, ax: u.mon ? Math.round(img.width / 2) : 8 * SPR, ay: u.mon ? 16 * s : 15 * SPR, key: keyOfCanvas(img) };
     }
     const b = opaqueBox(fr);
-    r.stat = { h: Math.max(12, fr.ay - b.top), w: Math.max(10, b.right - b.left), cx: (b.left + b.right) / 2 - fr.ax };
+    r.stat = { h: Math.max(12, (fr.ay - b.top) * k), w: Math.max(10, (b.right - b.left) * k), cx: ((b.left + b.right) / 2 - fr.ax) * k };
     r.statKey = key;
     return r.stat;
   }
@@ -1210,7 +1276,8 @@ const Battle = (() => {
         const k = Math.max(0, Math.min(1, (dt - 0.35) / 1.4));
         if (k < 1) {
           ctx.save();
-          ctx.beginPath(); ctx.rect(X - fr.sw, Y - fr.sh - 40, fr.sw * 2, fr.sh + 42); ctx.clip();
+          const fk = fr.k || 1;
+          ctx.beginPath(); ctx.rect(X - fr.sw * fk, Y - fr.sh * fk - 40, fr.sw * fk * 2, fr.sh * fk + 42); ctx.clip();
           ctx.globalAlpha = dt < 0.35 ? (Math.floor(dt * 14) % 2 ? 0.35 : 0.95) : 0.85 * (1 - k);
           blit(ctx, fr, X, Y + Math.round(k * S.h * 0.5), flip);
           ctx.restore();

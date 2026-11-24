@@ -102,7 +102,10 @@ Object.assign(Game, {
     return {
       id: s.nextId++, type: opts.type, cat: t.cat, war, title, level, size, days, req, province: p, issuer, target, enemy,
       reward: Math.round((40 + level * 30 + level * level * 3) * (0.85 + Math.random() * 0.3) * (1 + days * 0.12) * mul),
-      rep: Math.round((4 + level * 3 + (size >= 4 ? 2 : 0)) * (t.cat === 'monster' ? 1 : 1.2)),
+      // 큰 의뢰 명성 보너스: 옛 기준(4명 이상)을 줄어든 권장 인원에 맞춰 3명 이상으로 — 이야기·보스·분쟁 의뢰는 예전처럼 받는다.
+      // 외교 의뢰는 인원을 줄이지 않았으므로 예전처럼 없고, 괴물 의뢰(옛 2~4명 중 1/3만 받던 것)는 뺀다:
+      // 3~4인 편제로 이미 등급이 빨리 오르므로(봇 S등급 79일 → 73일), 괴물 의뢰에 다시 주면 68일로 더 빨라진다.
+      rep: Math.round((4 + level * 3 + (size >= 3 && t.cat !== 'diplomacy' && t.cat !== 'monster' ? 2 : 0)) * (t.cat === 'monster' ? 1 : 1.2)),
       expires: s.day + rand(3, 6),
     };
   },
@@ -442,7 +445,13 @@ Object.assign(Game, {
       if (won) o.c.wins++; else o.c.losses++;
       const lostHere = dead.filter((r) => r.company === o.c.id).length;
       o.c.cohesion = clamp(o.c.cohesion + (won ? 5 : 2) - lostHere * 20, 0, 100);
-      this.trimCompany(o.c); // 옛 저장에서 출격 중이던 큰 용병단은 귀환 후 정원에 맞춘다
+      // 옛 저장에서 출격 중이던 큰 용병단은 귀환 후 정원에 맞춘다
+      const moved = this.trimCompany(o.c);
+      if (moved.length) {
+        const note = `편제 개편: 「${o.c.name}」의 ${moved.map((m) => m.name).join(', ')}이(가) 예비 인원으로 옮겨졌습니다.`;
+        report.notes.push(note);
+        this.log(note, 'event');
+      }
       report.companies.push({
         name: o.c.name, color: o.c.color, own: true,
         members: o.ms.map((m) => ({ id: m.id, name: m.name, look: m.look, cls: m.cls, level: m.level, leader: this.isCaptain(m), unique: this.isCaptain(m) || !!m.hcls, sk: this.battleSkillsOf(m),

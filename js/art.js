@@ -55,6 +55,7 @@ const Art = (() => {
 
   // ───────── 스프라이트 시트 ─────────
   // manifest 의 sheet 항목: { cell:[w,h], anchor:[x,y], facing, frames:[[x,y]...], anims:{ idle:{from,to,ms[]}, ... } }
+  //   tint (직업 시트만, 선택): { outfit:['#rrggbb'...], accent:[...] } — 제복·장식에 쓴 열쇠 색. 전투에서 진영 색으로 바꿔 칠한다.
   // 불러오기가 끝난 시트만 { img, meta } 로 돌려준다 (없으면 null → 코드 생성 도트로 대신)
   const sheetCache = {};
   function sheet(id) {
@@ -93,10 +94,12 @@ const Art = (() => {
     if (u.heroKey) { const s = sheet(idOf.sheet.hero(u.heroKey)); if (s) return s; }
     const lk = u.look || {};
     if (lk.cap) { const s = sheet(idOf.sheet.captain(lk.cap)); if (s) return s; }
+    // 직업 시트는 여러 진영이 함께 쓴다. 세력·용병단 제복 색(look.tint)이 있는 병사는 시트에 바꿔 칠할 열쇠 색(sheet.tint)이
+    // 있을 때만 쓴다 — 없으면 아군·적군이 같은 그림이 되어 구별이 안 되므로 색을 입히는 코드 생성 도트로 대신한다.
     for (const k of [lk.master, lk.adv, u.cls, lk.cls]) {
       if (!k) continue;
       const s = sheet(idOf.sheet.class(k));
-      if (s) return s;
+      if (s && (!lk.tint || s.meta.tint)) return s;
     }
     return null;
   }

@@ -140,12 +140,23 @@ Object.assign(Game, {
     if (moved.length) {
       this.log(`용병단 편제 개편: 용병단은 대장 1명과 대원 ${this.unitSlots()}명까지입니다. ${moved.map((m) => m.name).join(', ')}이(가) 예비 인원으로 옮겨졌습니다.`, 'event');
     }
-    [...this.extCompanies(), ...(s.market || [])].forEach((c) => {
-      if (c.maxSize <= EXT_SIZE[1] && c.size <= EXT_SIZE[1]) return;
-      c.maxSize = Math.min(c.maxSize || c.size, EXT_SIZE[1]);
-      c.size = Math.min(c.size, c.maxSize);
-      Object.assign(c, this.extFees(c.level, c.maxSize));
-    });
+    const away = this.ownCompanies().filter((c) => c.missionId && this.unitsOf(c).length > this.unitSlots());
+    if (away.length) {
+      this.log(`용병단 편제 개편: 출격 중인 ${away.map((c) => `「${c.name}」`).join(', ')}은(는) 귀환하면 정원을 넘는 대원을 예비 인원으로 옮깁니다.`, 'event');
+    }
+    // 외부 용병단(계약 중·시장): 4명까지 줄이고 계약금·유지비를 한 번만 다시 매긴다.
+    // 단원 한 명의 몫이 EXT_MEMBER_MUL 배가 되었으니, 값도 (새 인원 × 배율 / 옛 인원) 비율로 고친다.
+    if (!s.squadRule) {
+      [...this.extCompanies(), ...(s.market || [])].forEach((c) => {
+        const oldMax = Math.max(1, c.maxSize || c.size || 1);
+        c.maxSize = Math.min(oldMax, EXT_SIZE[1]);
+        c.size = Math.min(c.size, c.maxSize);
+        const k = (c.maxSize * EXT_MEMBER_MUL) / oldMax;
+        c.signFee = Math.round(c.signFee * k);
+        c.upkeep = Math.round(c.upkeep * k);
+      });
+      s.squadRule = 1;
+    }
     // 이미 게시된 의뢰의 권장 인원도 새 규칙에 맞춘다
     [...(s.contracts || []), ...(s.missions || []).map((mi) => mi.contract)].forEach((q) => {
       const cap = q.final ? FINAL_SIZE : q.campaign ? this.campaignSize(q.campaign.slots) : SQUAD_MAX;

@@ -16,7 +16,7 @@ const script = makeScript(['battle.js'], PRELUDE);
 const OUTS = ['great', 'success', 'fail', 'disaster'];
 const want = (o) => o === 'great' || o === 'success';
 
-const stats = { reports: 0, trials: 0, mismatch: 0, soft: 0, ms: 0, maxMs: 0, groups: {}, sizes: {}, perOutcome: {}, units: 0, maxUnits: 0 };
+const stats = { reports: 0, trials: 0, mismatch: 0, soft: 0, slow: 0, timeout: 0, ms: 0, maxMs: 0, groups: {}, sizes: {}, perOutcome: {}, units: 0, maxUnits: 0 };
 const mismatches = [];
 let seed = seed0;
 while (stats.reports < N && seed < seed0 + 50) {
@@ -43,6 +43,8 @@ while (stats.reports < N && seed < seed0 + 50) {
         stats.trials++; stats.ms += ms; stats.maxMs = Math.max(stats.maxMs, ms);
         const po = stats.perOutcome[outcome] = stats.perOutcome[outcome] || { n: 0, miss: 0, soft: 0, ms: 0, t: 0 };
         po.n++; po.ms += ms; po.t += f.res.t;
+        if (f.res.t >= 60) stats.slow++;
+        if (f.res.t >= 90 - 0.05) stats.timeout++;
         if (f.res.won !== want(outcome)) {
           stats.mismatch++; po.miss++;
           if (mismatches.length < 10) mismatches.push(`${outcome} ${rep.quest.type} ★${rep.quest.level} groups ${sides.join('v')} bias ${f.bias.toFixed(2)} loss ${f.res.loss.toFixed(2)}`);
@@ -54,6 +56,7 @@ while (stats.reports < N && seed < seed0 + 50) {
 console.log(`reports ${stats.reports} × 4 outcomes = ${stats.trials} findBattle calls (game seeds ${seed0}..${seed - 1})`);
 console.log(`win/lose mismatches: ${stats.mismatch}`);
 console.log(`soft misses (great with >25% loss / disaster with <50% loss): ${stats.soft}`);
+console.log(`slow battles (>=60 s): ${stats.slow}, time-limit (90 s) battles: ${stats.timeout}`);
 console.log(`findBattle avg ${(stats.ms / stats.trials).toFixed(1)} ms, max ${stats.maxMs.toFixed(0)} ms`);
 console.log(`units on field avg ${(stats.units / stats.trials).toFixed(1)}, max ${stats.maxUnits}`);
 Object.entries(stats.perOutcome).forEach(([o, v]) => console.log(`  ${o.padEnd(8)} n=${v.n} miss=${v.miss} soft=${v.soft} avg ${(v.ms / v.n).toFixed(1)} ms, battle ${(v.t / v.n).toFixed(1)} s`));

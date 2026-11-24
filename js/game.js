@@ -24,6 +24,7 @@ const Game = {
   newGame() {
     this.state = {
       version: SAVE_VERSION,
+      squadRule: 1, // 3~4인 용병단 규칙으로 만든 저장 (normalizeCompanies 참고)
       guildName: '은빛 늑대 길드',
       day: 1, gold: 450, rep: 0, nextId: 1,
       mercs: [], recruits: [], companies: [], market: [],
