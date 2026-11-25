@@ -1,8 +1,19 @@
 # 니클라 — 그림자 길드의 여왕 (밤의 여왕) · `sheet/captain/shadowqueen`
 
-## THIS ROUND
+## THIS ROUND (overrides anything below that disagrees)
 
-(none - the twin-sword sheet was accepted on 2026-11-26: `aa0687e` + strike pose `0cc6046`. The text below is the original request.)
+```
+KIND: fix (pose 1 only). BASE: art/inbox/sheet_captain_shadowqueen.png @ 0cc6046 on art-inbox (accepted). Poses 2, 3 and 4 stay exactly
+as they are, pixel for pixel.
+FIX pose 1 (idle) only - owner, 2026-11-26: "why raise one sword in idle? With one blade hidden behind the body and held down it would
+look natural." Our request asked for the raised blade; that was our mistake.
+  - keep the same low, ready stance, face, hood, hair, cloak, size (idle ~420 px) and feet (soles on y=870);
+  - BOTH blades DOWN: near hand low at her side, its blade angled down and slightly forward, tip near the front knee, on the background;
+  - far arm hangs down behind her: the far blade is mostly hidden behind her body and cloak - only its lower part and tip show behind
+    the rear leg (here, and only here, a blade may be partly behind the body);
+  - relaxed but dangerous: shoulders loose, weight slightly forward - she can spring into the X wind-up of pose 2.
+DELIVER: art/inbox/sheet_captain_shadowqueen.png (overwrite, all four poses). NOTES "## sheet/captain/shadowqueen - 니클라 대기 자세".
+```
 
 도트 납품 대기열(`art/requests/dot_queue.md`) 항목. 규칙은 `art/requests/gpt_handoff_notes.md`가 우선이다.
 
@@ -15,7 +26,7 @@
 
 - 납품 파일: art-inbox 브랜치 `art/inbox/sheet_captain_shadowqueen.png` + `art/inbox/NOTES.md`의 「sheet/captain/shadowqueen - 니클라」 절.
 - 화풍 기준(앵커): art-inbox 의 `art/inbox/sheet_captain_blademaster.png`.
-- 요점: 니클라: 진홍 테 짙은 자주빛 후드·망토, 금 문장 걸쇠, 긴 청흑색 웨이브 머리, 루비 귀걸이·펜던트, 금 버클 가죽 띠. 무기: 초상화에서 등에 멘 쌍검(곧은 강철 날 약 머리 2개 길이, 붉은 손잡이, 금 코등이·둥근 금 자루끝)을 양손에 하나씩 든다(주인 결정 11-26). 동작: 대기 = 낮은 암살자 자세에 두 날이 앞으로 열린 V / 준비 = 두 팔을 어깨 뒤로 교차해 X 자로 크게 감는다 / 타격 = X 를 풀며 낮게 돌진하는 가위 베기 / 피격 = 뒤로 젖히며 두 날이 양옆으로.
+- 요점: 니클라: 진홍 테 짙은 자주빛 후드·망토, 금 문장 걸쇠, 긴 청흑색 웨이브 머리, 루비 귀걸이·펜던트, 금 버클 가죽 띠. 무기: 초상화에서 등에 멘 쌍검(곧은 강철 날 약 머리 2개 길이, 붉은 손잡이, 금 코등이·둥근 금 자루끝)을 양손에 하나씩 든다(주인 결정 11-26). 동작: 대기 = 두 칼을 모두 아래로 — 가까운 칼은 옆에 낮게, 먼 칼은 몸 뒤에 반쯤 가려짐 / 준비 = 두 팔을 어깨 뒤로 교차해 X 자로 크게 감는다 / 타격 = X 를 풀며 낮게 돌진하는 가위 베기 / 피격 = 뒤로 젖히며 두 날이 양옆으로.
 - 게임 칸: 96px — 어떤 자세도(든 무기·모자 포함) y=340 위로 올라가지 않게 (자세 높이 530px 이하).
 - 생성: `python3 tools/art/portrait_pkgs.py captain tools/art/specs/captains_batch2.json shadowqueen` (고칠 때는 spec JSON 을 고치고 다시 실행).
 
@@ -27,10 +38,10 @@ art/inbox/sheet_captain_shadowqueen.png on the art-inbox branch.
 
 CHARACTER: Nikla, queen of the shadow guilds, elegant dangerous woman in her thirties, lithe build, long wavy blue-black hair, tan skin, dark-red eyes, faint scar on the cheek, knowing smile, deep plum-black hood and cloak with crimson trim and a gold emblem clasp, ruby earring and pendant, dark corset with gold-buckled leather belts, dark boots, long dagger with a red-wrapped grip and gold guard. Class: 밤의 여왕 (rogue). Colours: skin #e0ac7e, hair #1b1420 (long, blue-black), outfit #1a0a2a (deep plum, painted dark charcoal-violet), accent #d6455d (crimson trim), gold fittings.
 Take the face, hair and outfit design from portrait_800.jpg (design only; not its painting style). If it does not load, do NOT draw from the text - report it under BLOCKED in NOTES.
-NOTES: TWIN SHORT SWORDS, one in EACH hand (the pair she carries on her back in the portrait: straight steel blades about 2 heads (~220 px) long, red-wrapped grips, gold crossguards and round gold pommels) - owner decision 2026-11-26: she fights with both blades; nothing stays on her back / each blade is bright neutral steel (~#d8dde3, no blue or violet tint), 1 px dark outline, and on the magenta background outside the body in every pose (Lyra lesson); the two blades never overlap each other's silhouette / dark outfit vanishes on dark ground: paint it dark charcoal-violet (not black), cool rim light on the upper-left edges, slightly lighter outline / crimson trim stays red (highlights toward orange-red, never pink); plum lit side stays dark violet (magenta rule) / hood up in every pose with the face visible; no shadow smoke, afterimages or trails (the engine draws the shadow flurry of her 4-hit dash '그림자 난무').
+NOTES: TWIN SHORT SWORDS, one in EACH hand (the pair she carries on her back in the portrait: straight steel blades about 2 heads (~220 px) long, red-wrapped grips, gold crossguards and round gold pommels) - owner decision 2026-11-26: she fights with both blades; nothing stays on her back / each blade is bright neutral steel (~#d8dde3, no blue or violet tint), 1 px dark outline; in wind-up, strike and hit both blades are on the magenta background outside the body and never overlap each other; in idle the far blade may be partly hidden behind her body / dark outfit vanishes on dark ground: paint it dark charcoal-violet (not black), cool rim light on the upper-left edges, slightly lighter outline / crimson trim stays red (highlights toward orange-red, never pink); plum lit side stays dark violet (magenta rule) / hood up in every pose with the face visible; no shadow smoke, afterimages or trails (the engine draws the shadow flurry of her 4-hit dash '그림자 난무').
 
 POSES (match guide_strip.png exactly — pose, limb lengths, proportions, position and size; the mannequin weapon is a placeholder for the real weapon):
-1 idle: low assassin crouch, weight forward; near blade held low and forward in a reverse grip, far blade raised by the far shoulder pointing forward - the two blades form an open V in front of her, both on the background.
+1 idle: relaxed low assassin stance, BOTH blades held DOWN: near blade low at her side, tip angled down and slightly forward beside the front knee; far arm hangs down so the far blade is mostly hidden behind her body and cloak, only its lower part and tip showing behind the rear leg (owner 2026-11-26: raising one blade in idle looked odd).
 2 wind-up: body coiled and turned away, both arms drawn back and CROSSED behind the near shoulder so the two blades make an X above and behind her (at least 32 px clear of the hood); this long, clear anticipation is her signature.
 3 strike: the X released - dashing low lunge, both arms swept forward and apart in a scissor slash, near blade extended ahead at chest height, far blade sweeping low ahead of the front knee; cloak trailing.
 4 hit: torso thrown back, weight on the rear leg, head jerked back wincing, hood still up, both blades flung out to the sides (still in hand, on the background).
