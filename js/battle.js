@@ -1080,13 +1080,174 @@ const Battle = (() => {
 
   // 공격 동작 시작 (같은 순간 여러 번 불려도 한 번만)
   function triggerAttack(view, u, kind) {
-    const r = rsOf(view, u);
-    if (view.clock - r.atkAt < 0.12) return;
-    r.atkAt = view.clock;
+    const r = rsOf(view, u), c = view.clock;
+    if (c - (r.trigAt == null ? -9 : r.trigAt) < 0.12) return;
+    r.trigAt = c;
     r.atkAnim = kind || 'attack';
+    r.atkMelee = false;
     const sh = useArt() && Art.sheetFor(u);
     // 시트의 동작 길이를 휘두르는 시간(0.28~0.5초)에 맞춰 늘이거나 줄인다
-    r.atkDur = sh ? Math.max(0.28, Math.min(0.5, Art.anim(sh.meta, r.atkAnim).total / 1000)) : 0.3;
+    const a = sh && Art.anim(sh.meta, r.atkAnim);
+    r.atkDur = a ? Math.max(0.28, Math.min(0.5, a.total / 1000)) : 0.3;
+    // 준비 자세를 이미 보여 줬으면(windAt) 타격 칸부터 시작한다 → 맞는 순간(피해·불꽃·멈춤)과 휘두르는 그림이 겹친다.
+    // 미리 보여 주지 못한 공격(특기 등)은 전처럼 준비 칸부터.
+    const wShare = a && a.ms && a.ms.length > 1 ? a.ms[0] / a.total : 0.35;
+    const pre = c - (r.windAt == null ? -9 : r.windAt) < 0.3;
+    r.atkAt = pre ? c - wShare * r.atkDur : c;
+    r.strikeAt = pre ? c : c + wShare * r.atkDur;
+    r.windAt = -9;
+  }
+
+  // ── 걸음 (연출 전용: 전투 계산과 무관) ──
+  // 값은 키(S.h)에 대한 비율: sl 한 걸음 거리 · A 발이 앞뒤로 가는 폭 · lift 든 발 높이 · bob 몸 오르내림 · lean 가는 쪽 기울기
+  const GAITS = {
+    march:  { sl: 0.34, A: 0.12, lift: 0.08, bob: 0.03, lean: 0.05 },    // 행군
+    charge: { sl: 0.42, A: 0.13, lift: 0.10, bob: 0.045, lean: 0.10 },   // 적이 가까울 때 달려들기 (근접)
+    run:    { sl: 0.45, A: 0.13, lift: 0.11, bob: 0.06, lean: 0.13 },    // 도주
+    back:   { sl: 0.25, A: 0.07, lift: 0.05, bob: 0.015, lean: -0.03 },  // 적을 보며 뒷걸음
+    reseat: { sl: 0.22, A: 0.05, lift: 0.04, bob: 0.012, lean: 0 },      // 맞붙은 채 자리 고치기
+  };
+  const HOVER_MON = { '망령': 1, '하피': 1, '리치의 망령': 1 };          // 떠 있는 몸: 발을 디디지 않는다
+  const QUAD_TPL = { beast: 1, bug: 1 };                                // 네발·다족: 앞뒤 반으로, 작게
+  function gaitType(u, fr) {
+    const w = fr.sheet && fr.sheet.meta.walk;
+    if (w && w.gait) return w.gait;
+    if (!u.mon) return 'biped';
+    if (HOVER_MON[u.mon]) return 'hover';
+    const e = ENEMIES[u.mon];
+    return e && QUAD_TPL[e.tpl] ? 'quad' : 'biped';
+  }
+  function gaitKind(st, u, r) {
+    if (u.g.routed) return 'run';
+    if (r.fwd < 0) return 'back';
+    if (u.skills && isMelee(u)) {
+      let fd = Infinity;
+      for (const e of st.units) if (e.alive && !e.fled && e.side !== u.side) { const d = dist(e, u); if (d < fd) fd = d; }
+      if (fd <= (u.reach || 11) * 1.3 + 6) return 'reseat';
+      if (fd < 70) return 'charge';
+    }
+    return 'march';
+  }
+  // 유닛이 화면에서 실제로 움직인 만큼 걸음을 나아가게 하고(시계가 아니라 거리), 걷는 정도(gait 0..1)를 부드럽게 올리고 내린다.
+  // 한두 틱짜리 자리 밀림은 걸음으로 치지 않는다(세 틱 이상 이어져야 걷기 시작) — 난전에서 걸음이 깜빡이지 않게.
+  function gaitUpdate(view, st, u, r, H, face) {
+    const c = view.clock, bx = u.x * Z, by = u.y * Z;
+    const dtc = r.gC == null ? 0 : Math.max(0, Math.min(0.1, c - r.gC));
+    r.gC = c; r.sh = H;
+    if (r.gx == null) { r.gx = bx; r.gy = by; r.gait = 0; r.wp = r.phase; r.run = 0; r.moveC = -9; r.dirX = face; r.fwd = 1; r.kind = 'march'; r.gp = { ...GAITS.march }; }
+    const dx = bx - r.gx, dy = by - r.gy, d = Math.hypot(dx, dy);
+    if (d > 0.05) {
+      r.run = c - r.moveC < 0.09 ? r.run + 1 : 1;
+      r.moveC = c; r.gx = bx; r.gy = by;
+      if (Math.abs(dx) > 0.3) r.dirX = dx > 0 ? 1 : -1;
+      r.fwd = (Math.abs(dx) > Math.abs(dy) * 0.5 && dx * face < 0) ? -1 : 1;   // 보는 쪽과 반대로 가면 뒷걸음 (걸음이 거꾸로 돈다)
+      r.kind = gaitKind(st, u, r);
+      let sl = Math.max(5, r.gp.sl * H);
+      if (u.slowUntil > st.t) sl *= 0.7;                       // 거미줄: 잰걸음
+      if (view.speedK > 2) sl *= view.speedK / 2;              // 4배속: 걸음 수는 2배속 수준까지만
+      const dd = Math.min(d, 14) * r.fwd;                      // 돌진처럼 한 틱에 멀리 간 것은 한 걸음 남짓까지만
+      r.wp += dd / sl;
+      r.walkDist = (r.walkDist || 0) + dd;
+    }
+    const want = u.alive && r.run >= 3 && c - r.moveC < 0.11;
+    r.gait = want ? Math.min(1, r.gait + dtc / 0.10) : Math.max(0, r.gait - dtc / 0.16);
+    const T = GAITS[r.kind] || GAITS.march, a = Math.min(1, dtc / 0.15);
+    for (const k in T) r.gp[k] += (T[k] - r.gp[k]) * a;
+  }
+  // 옷자락·방패가 다리 사이를 덮은 시트는 다리를 덜 벌린다 (가르는 선이 옷을 찢어 보이지 않게): 0.25..1
+  const swingCache = new Map();
+  function swingKOf(fr, cut) {
+    const w = fr.sheet && fr.sheet.meta.walk;
+    if (w && w.swing != null) return w.swing;
+    const key = (fr.sheet ? fr.sheet.id : fr.key) + '|' + cut;
+    let v = swingCache.get(key);
+    if (v != null) return v;
+    v = 1;
+    try {
+      const h = Math.max(1, Math.min(fr.sh, fr.ay) - cut), x0 = Math.max(0, fr.ax - 1);
+      const cv = document.createElement('canvas'); cv.width = 3; cv.height = h;
+      const x = cv.getContext('2d');
+      x.drawImage(fr.img, fr.sx + x0, fr.sy + cut, 3, h, 0, 0, 3, h);
+      const d = x.getImageData(0, 0, 3, h).data;
+      let full = 0;
+      for (let y = 0; y < h; y++) if (d[y * 12 + 3] > 40 && d[y * 12 + 7] > 40 && d[y * 12 + 11] > 40) full++;
+      v = Math.max(0.25, Math.min(1, (1 - full / h) / 0.5));
+    } catch (e) { /* 읽을 수 없으면 그대로 */ }
+    swingCache.set(key, v);
+    return v;
+  }
+  // 그려진 자세에서 두 발이 벌어진 폭(그림 px): 발바닥 위 5줄의 불투명 범위. 걸음의 다리 폭을 여기에 맞춘다.
+  const stanceCache = new Map();
+  function stanceOf(fr) {
+    const key = fr.sheet ? fr.sheet.id : fr.key;
+    let v = stanceCache.get(key);
+    if (v != null) return v;
+    v = fr.sw * 0.4;
+    try {
+      const y0 = Math.max(0, Math.min(fr.sh, fr.ay) - 5);
+      const cv = document.createElement('canvas'); cv.width = fr.sw; cv.height = 5;
+      const x = cv.getContext('2d');
+      x.drawImage(fr.img, fr.sx, fr.sy + y0, fr.sw, 5, 0, 0, fr.sw, 5);
+      const d = x.getImageData(0, 0, fr.sw, 5).data;
+      let l = fr.sw, ri = -1;
+      for (let i = 0; i < fr.sw * 5; i++) if (d[i * 4 + 3] > 40) { const xx = i % fr.sw; if (xx < l) l = xx; if (xx > ri) ri = xx; }
+      if (ri > l) v = ri - l + 1;
+    } catch (e) { /* 읽을 수 없으면 어림값 */ }
+    stanceCache.set(key, v);
+    return v;
+  }
+  // 걷는 유닛의 그리기 변형 (blit 의 tf). 이족: 엉덩이 아래를 앞발·뒷발로 나눠, 디딘 발은 뒤로 밀리고 든 발은 앞으로 나간다.
+  function walkTf(view, st, u, r, fr, S, X, Y) {
+    const gt = gaitType(u, fr), g = r.gait || 0;
+    if (gt === 'hover') {
+      if (!fr.sheet) return null;
+      const ic = view.idleClock != null ? view.idleClock : view.clock;
+      return { bob: Math.round(1.5 + 1.5 * Math.sin((ic + r.phase) * 2 * Math.PI / 1.1)), lean: -(r.dirX || 1) * 0.08 * g };
+    }
+    if (!fr.walkFx) return null;
+    const P = r.gp, H = S.h, fk = fr.k || 1, quad = gt === 'quad', spider = u.mon === '거대 거미';
+    const cut = Math.round(fr.ay - (S.h / fk) * (u.mon ? 0.4 : 0.42));
+    // 발이 앞뒤로 가는 폭: 걸음 종류의 값에서, 옷자락이 덮은 만큼 줄이고, 두 발이 그려진 벌림의 40% 안쪽으로는 모이지 않게
+    const A = Math.min((quad ? 0.05 : P.A * swingKOf(fr, cut)) * H, stanceOf(fr) * fk * 0.15) * g;
+    const liftMax = Math.max(quad ? 1 : 2, (quad ? 0.06 : P.lift) * H) * g;
+    const p = ((r.wp % 2) + 2) % 2;
+    // 발 하나의 한 바퀴: 0..1 디딘 채 뒤로(+A → -A), 1..2 들어서 앞으로(-A → +A)
+    const foot = (ph) => ph < 1 ? [(1 - 2 * ph) * A, 0] : [-Math.cos((ph - 1) * Math.PI) * A, Math.sin((ph - 1) * Math.PI) * liftMax];
+    const [oF, lF] = foot(p), [oB, lB] = foot((p + 1) % 2);
+    // 그려진 자세가 이미 가장 벌린 자세다: 앞발은 뒤로만(-2A..0), 뒷발은 앞으로만(0..+2A) 움직여 벌림이 그림보다 커지지 않게
+    const sF = (oF - A) / fk, sB = (oB + A) / fk, fwdRight = (fr.face || 1) > 0;
+    const bob = spider ? 0 : Math.round((1 - Math.cos(2 * Math.PI * p)) / 2 * P.bob * H * g);
+    // 발이 땅에 닿는 순간: 달릴 때와 큰 괴물만 먼지 (행군까지 내면 바닥이 먼지로 덮인다)
+    const stepI = Math.floor(r.wp);
+    if (r.stepI != null && stepI !== r.stepI && g > 0.6 && (r.kind === 'run' || r.kind === 'charge' || u.bigMon || u.boss)) {
+      spawn(view, u.bigMon || u.boss ? 4 : 2, X - (r.dirX || 1) * 5, Y - 1, { sp: [6, 20], life: [0.18, 0.32], color: '#a89a80', size: 2, add: false, rise: -8 });
+    }
+    r.stepI = stepI;
+    return { bob, lean: -(r.dirX || 1) * P.lean * g,
+      legs: { cut, right: Math.round(fwdRight ? lF : lB), left: Math.round(fwdRight ? lB : lF),
+        swR: fwdRight ? sF : -sB, swL: fwdRight ? sB : -sF } };
+  }
+  // 공격할 때 몸이 앞뒤로 움직이는 정도(px): 준비 때 살짝 뒤로, 타격 칸이 뜨는 순간 앞으로 뻗고 천천히 돌아온다
+  function lungeOf(view, u, r, fr) {
+    const c = view.clock;
+    let o = 0;
+    if (r.atkMelee && r.strikeAt != null) {
+      const t = c - r.strikeAt, K = 10 * Math.min(1.5, fr.k || 1);
+      if (t >= 0 && t < 0.26) o = (t < 0.04 ? t / 0.04 : t < 0.11 ? 1 : 1 - (t - 0.11) / 0.15) * K;
+      else if (t < 0 && c >= r.atkAt) o = -3 * Math.min(1, (c - r.atkAt) / 0.1);
+    }
+    if (!o && r.windAt != null && c - r.windAt < 0.1) o = -3 * Math.min(1, (c - (r.windStart || c)) / 0.12);
+    return o;
+  }
+  // 곧 기본 공격이 나갈 것 같은가 (연출용 짐작: 틀리면 준비 자세를 풀고 만다 — 속임 동작처럼 보인다)
+  function aboutToStrike(st, u, r) {
+    const b = u.skills && u.skills[0];
+    if (!b || !u.alive || u.healer || u.g.routed || u.stunUntil > st.t) return false;
+    // 걸어가는 중에는 짐작하지 않는다 — 단, 맞붙은 채 자리를 고치는 잔걸음(reseat)은 싸우는 중이므로 예외
+    if (!(b.left > 0 && b.left <= 0.2) || ((r.gait || 0) > 0.3 && r.kind !== 'reseat')) return false;
+    const reach = b.shot ? b.range : (u.reach || b.range) * 1.5 + 6;
+    for (const e of st.units) if (e.alive && !e.fled && e.side !== u.side && dist(e, u) <= reach + (b.shot ? 0 : sizeOf(e))) return true;
+    return false;
   }
 
   // 애니메이션 안의 몇 번째 칸인가 (ms: 애니 시작부터 흐른 시간)
@@ -1201,12 +1362,17 @@ const Battle = (() => {
       else if (!u.alive) i = Art.anim(m, 'hit').to;
       else if (c - r.atkAt < r.atkDur) { const a = Art.anim(m, r.atkAnim); i = frameAt(a, ((c - r.atkAt) / r.atkDur) * a.total, true); }
       else if (c - r.hitAt < 0.22) { const a = Art.anim(m, 'hit'); i = frameAt(a, ((c - r.hitAt) / 0.22) * a.total, true); }
-      else if (u.moving && m.anims.walk) {
-        // 걷기 동작이 있는 시트: 프레임을 걸은 거리에 묶는다 (n 프레임 = 두 걸음, 한 걸음 = 칸 높이의 약 20%)
-        const a = Art.anim(m, 'walk'), n = a.to - a.from + 1, sl = m.walkStride || m.cell[1] * 0.2;
-        i = a.from + Math.floor(((r.walkDist || 0) / sl + r.phase) * n / 2) % n;
-      } else if (u.moving) { i = frameAt(Art.anim(m, 'idle'), (c + r.phase) * 1000, false); walkFx = true; }
-      else i = frameAt(Art.anim(m, 'idle'), (c + r.phase) * 1000, false);
+      else if (c - (r.windAt == null ? -9 : r.windAt) < 0.1) i = Art.anim(m, 'attack').from;   // 곧 칠 것이 보일 때: 준비 자세 먼저 (연출만)
+      else if (r.gait > 0.05 && m.anims.walk) {
+        // 걷기 동작이 있는 시트: 프레임을 걸은 거리에 묶는다 (n 프레임 = 두 걸음, 한 걸음 = 요청서의 walkStride, 없으면 키의 약 28.5%)
+        const a = Art.anim(m, 'walk'), n = a.to - a.from + 1, sl = m.walkStride || (r.sh || m.cell[1] * 0.7) * 0.285;
+        const q = ((r.walkDist || 0) / sl + r.phase) * n / 2;
+        i = a.from + ((Math.floor(q) % n) + n) % n;
+      } else {
+        // 숨쉬기는 실제 시간으로 (배속에 헐떡이지 않게). 걷는 중이면 그릴 때 걸음(다리·몸 움직임)을 덧붙인다
+        i = frameAt(Art.anim(m, 'idle'), ((view.idleClock != null ? view.idleClock : c) + r.phase) * 1000, false);
+        walkFx = r.gait > 0.05;
+      }
       const f = m.frames[i] || m.frames[0];
       const rc = sheetRecolor(sh, u);
       return { img: rc ? rc.img : sh.img, sx: f[0], sy: f[1], sw: m.cell[0], sh: m.cell[1], ax: m.anchor[0], ay: m.anchor[1], face: m.facing,
@@ -1243,8 +1409,15 @@ const Battle = (() => {
       // 몸(위쪽)은 bob 만큼 떠 있으므로, 땅에 붙은 다리와의 틈은 엉덩이 줄 한 줄을 늘여 메운다.
       const cut = Math.max(1, Math.min(fr.sh - 1, L.cut)), fx = Math.max(1, Math.min(fr.sw - 1, fr.ax));
       const bob = tf.bob || 0, ck = Math.round(cut * k), fk = Math.round(fx * k);
-      ctx.drawImage(src, sx, sy + cut, fx, fr.sh - cut, -ax, -ay + ck + bob - (L.left || 0), fk, dh - ck);              // 왼쪽 다리
-      ctx.drawImage(src, sx + fx, sy + cut, fr.sw - fx, fr.sh - cut, -ax + fk, -ay + ck + bob - (L.right || 0), dw - fk, dh - ck); // 오른쪽 다리
+      // 다리 한쪽: lift 만큼 들고, sw(그림 px)만큼 발끝이 앞뒤로 가게 엉덩이 줄을 축으로 기울인다 (엉덩이 줄은 제자리)
+      const leg = (ssx, sww, dx, dww, lift, sw) => {
+        const y0 = -ay + ck + bob - (lift || 0), lh = dh - ck;
+        if (!sw) { ctx.drawImage(src, ssx, sy + cut, sww, fr.sh - cut, dx, y0, dww, lh); return; }
+        ctx.save(); ctx.translate(0, y0); ctx.transform(1, 0, (sw * k) / Math.max(1, Math.round((fr.ay - cut) * k)), 1, 0, 0);
+        ctx.drawImage(src, ssx, sy + cut, sww, fr.sh - cut, dx, 0, dww, lh); ctx.restore();
+      };
+      leg(sx, fx, -ax, fk, L.left, L.swL);                          // 왼쪽 다리
+      leg(sx + fx, fr.sw - fx, -ax + fk, dw - fk, L.right, L.swR);  // 오른쪽 다리
       if (bob > 0) ctx.drawImage(src, sx, sy + cut - 1, fr.sw, 1, -ax, -ay + ck - 1, dw, bob + 1);                      // 엉덩이 틈 메우기
       ctx.drawImage(src, sx, sy, fr.sw, cut, -ax, -ay, dw, ck);                                                          // 몸
       ctx.restore();
@@ -1482,13 +1655,17 @@ const Battle = (() => {
         if (u) triggerAttack(view, u, f.shot && f.shot !== 'arrow' && f.shot !== 'dagger' ? 'cast' : 'attack');
       } else if (f.kind === 'cast') {
         const u = nearestUnit(st, f.x, f.y, (e) => e.alive);
-        if (u) triggerAttack(view, u, 'cast');
+        // 근접 특기(돌격·급소 찌르기 등)는 시전 동작이 아니라 뒤따르는 공격 동작을 쓴다
+        const atk = u && st.fx.find((g) => !g.seen && g.kind === 'skill' && g.type === 'atk' && (g.look ? g.look === u.look : g.mon === u.mon));
+        if (u && !(atk && (!atk.shot || atk.shot === 'arrow' || atk.shot === 'dagger'))) triggerAttack(view, u, 'cast');
       }
       const X = f.x * Z + edxOf(view, f.who);
       // 몸통 높이: 타격·폭발은 그림 키의 절반쯤
       const Y = f.foot != null && (f.kind === 'hit' || f.kind === 'boom') ? f.foot - Math.round(f.tall * 0.5) : f.y * Z;
       if (f.kind === 'hit') {
         hitSpark(view, X, Y, f.dir || 1, f.foot != null ? f.foot : Y + 14, f.big, f.melee ? WARM_RAMP : rampOf(f.color));
+        // 맞은 쪽이 살짝 밀렸다 돌아온다 (큰 괴물·보스는 꿈쩍하지 않는다)
+        if (f.who && f.who.alive && !f.who.boss && !f.who.bigMon) { const rr = rsOf(view, f.who); rr.kickAt = view.clock; rr.kickDir = f.dir < 0 ? -1 : 1; rr.kickPx = f.big ? 5 : 3; }
         if (f.melee) view.slashes.push({ x: X, y: Y, foot: f.foot != null ? f.foot : Y + 12, dir: f.dir, t: 0, big: f.big, style: f.style, color: f.special ? '#9fd8ff' : '#ffffff' });
         if (f.big) { view.shake = Math.max(view.shake, f.special ? 5 : 3); view.stop = Math.max(view.stop, f.special ? 0.09 : 0.05); }
       } else if (f.kind === 'boom') {
@@ -1821,14 +1998,22 @@ const Battle = (() => {
     for (const u of sorted) {
       const r = rsOf(view, u);
       // 연출 상태 갱신: 근접 공격(앞으로 내딛기)·피격 번쩍임이 새로 시작됐는지
-      if (u.lunge > r.prevLunge + 0.01) triggerAttack(view, u, 'attack');
+      if (u.lunge > r.prevLunge + 0.01) { triggerAttack(view, u, 'attack'); r.atkMelee = true; }
       if (u.flash > r.prevFlash + 0.01) r.hitAt = view.clock;
       r.prevLunge = u.lunge; r.prevFlash = u.flash;
-      const fr = pose(view, u);
       const S = stature(view, u);
       const face = u.face || (u.side === 0 ? 1 : -1);
+      gaitUpdate(view, st, u, r, S.h, face);
+      if (view.clock - r.atkAt > r.atkDur && aboutToStrike(st, u, r)) {
+        if (view.clock - (r.windAt == null ? -9 : r.windAt) > 0.25) r.windStart = view.clock;
+        r.windAt = view.clock;
+      }
+      const fr = pose(view, u);
       const flip = face !== fr.face;
-      const X = Math.round(screenX(view, u, fr, flip, u.lunge > 0 ? face * 8 : 0)), Y = Math.round(u.y * Z);
+      // 몸의 앞뒤 움직임: 공격(준비 때 뒤로·타격 때 앞으로) + 맞았을 때 밀림
+      const kt = r.kickAt != null ? view.clock - r.kickAt : 9;
+      const push = face * lungeOf(view, u, r, fr) + (kt >= 0 && kt < 0.18 ? r.kickDir * r.kickPx * (1 - kt / 0.18) : 0);
+      const X = Math.round(screenX(view, u, fr, flip, push)), Y = Math.round(u.y * Z);
       if (!u.alive) {
         // 쓰러짐: 잠깐 깜빡인 뒤 땅으로 가라앉으며 사라진다
         const dt = st.t - u.downAt;
@@ -1859,22 +2044,8 @@ const Battle = (() => {
         ctx.drawImage(glow(gc, gr), X - gr, Y - Math.round(S.h * 0.45) - gr);
         ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
       }
-      // 걷기 동작이 없는 시트: 두 걸음마다 1~2px 들썩이고, 발이 닿는 순간 살짝 눌리며, 가는 쪽으로 조금 기운다
-      // (연출 시계 기준이라 타격 멈춤 동안은 함께 멈춘다)
-      let tf = null;
-      // 걸은 거리(화면 px): 걸음 박자를 시계가 아니라 거리에 묶는다 — 발이 땅에서 미끄러져 보이지 않게
-      if (r.wx != null && u.moving) r.walkDist = (r.walkDist || 0) + Math.hypot(X - r.wx, Y - r.wy);
-      r.wx = X; r.wy = Y;
-      if (fr.walkFx) {
-        // 걷기 뼈대(guide/walk_base)의 박자: 한 걸음 = 키의 약 30% 이동, 지나가는 순간 몸 +1.4%, 든 발 +5%
-        const sl = Math.max(6, S.h * 0.3), p = ((r.walkDist || 0) / sl + r.phase) % 2;
-        const kk = p % 1, arc = Math.sin(kk * Math.PI), land = kk < 0.12 || kk > 0.92;
-        const lift = Math.round(arc * Math.max(1, S.h * 0.05)), frontRight = (fr.face || 1) > 0;
-        const fk = fr.k || 1, front = p < 1;                       // 이번 걸음에 드는 발: 앞발 → 뒷발 차례로
-        tf = { bob: Math.round(arc * Math.max(1, S.h * 0.014)), lean: -face * 0.04, sx: land ? 1.02 : 1, sy: land ? 0.98 : 1,
-          legs: { cut: Math.round(fr.ay - (S.h / fk) * (u.mon ? 0.4 : 0.42)),
-            right: (front === frontRight) ? lift : 0, left: (front === frontRight) ? 0 : lift } };
-      }
+      // 걷기 동작이 없는 시트의 걸음 (walkTf): 걸은 거리에 맞춰 다리를 앞뒤로 움직이고, 몸이 오르내리며, 가는 쪽으로 기운다
+      const tf = walkTf(view, st, u, r, fr, S, X, Y);
       blit(ctx, fr, X, Y, flip, null, tf);
       drawRim(ctx, view, fr, X, Y, flip, tf);
       // 맞은 순간 하얗게 번쩍 (흰 실루엣을 짧게 덧그린다: 연타를 맞아도 계속 하얗지 않게 처음 0.08초만)
@@ -2338,7 +2509,8 @@ const Battle = (() => {
       // 큰 타격 순간에는 잠깐 멈춘다 (타격감)
       // 연출 시계(view.clock)도 함께 멈춘다 → 동작 애니메이션이 그 순간에 얼어붙는다
       if (view.stop > 0) view.stop = Math.max(0, view.stop - dt);
-      else { acc += dt * speeds[speedIdx] * 1.3; view.clock += dt * Math.min(2, speeds[speedIdx]) * 1.3; }
+      else { acc += dt * speeds[speedIdx] * 1.3; view.clock += dt * Math.min(2, speeds[speedIdx]) * 1.3; view.idleClock = (view.idleClock || 0) + dt; }
+      view.speedK = speeds[speedIdx];
       while (acc >= DT) {
         acc -= DT;
         step(st);
