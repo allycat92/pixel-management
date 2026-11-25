@@ -118,7 +118,7 @@ python3 tools/art/receive.py <stem> --work <스크래치 폴더>   # 한 파일 
    가져오기도 그 해시로 한다. `NOTES.md` 는 `--list` 가 보여 준 새 절(납품 메모·제안·막힘)을 **모두** 처리했거나 대기열에 옮겨 적은 뒤에만 가져온다
    (PNG 한 장만 보고 NOTES 를 통째로 가져오면 같은 파일에 있던 다른 제안이 목록에서 사라진다 — GPT 제안 `9e3939e`).
 5. 대기열 「지금 차례」를 고치고, 사람형 대장 DOT_READY 가 5개 아래면 다음 QUEUED 를 올린다. 커밋·푸시, 주인에게 미리보기와 함께 짧게 보고.
-- `dot_queue.md` 에 DOT_READY·NEEDS_FIX·DELIVERED 가 하나라도 있으면 감시(60초 폴링, 30분마다 다시 켬)와 한 시간 정기 점검을 켜 둔다.
+- `dot_queue.md` 에 DOT_READY·NEEDS_FIX·DELIVERED 가 하나라도 있으면 감시(`tools/art/watch_inbox.sh` — 60초 폴링, 30분마다 다시 켬)와 한 시간 정기 점검을 켜 둔다.
   감시가 꺼져 있던 것을 발견하면 다시 켜기 전에 `--list` 부터 돌린다.
 `receive.py` 가 한 번에 한다: art-inbox 에서 PNG·원본 꺼내기 → 이전 판을 바탕으로 찾기 → `check_delivery.py`(배치·칸·점 색은 `phase3.json` 에서,
 바탕과의 윤곽·색 차이, 원본==PNG, 레이어 이름, 숨긴 `original_ref` == 바탕) → `sheets.py --dry-run`(등록된 시트와 같은 배율·칸) →

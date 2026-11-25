@@ -141,6 +141,23 @@ def sheet_args(stem):
     return ['--scale', '0.1654', '--cell', '96'], it
 
 
+def notes_spots(stem, item):
+    """spot colours the artist declared in the newest NOTES section of this file (`SPOT: #rrggbb` / `- 점 색: #rrggbb`)
+    that the request does not carry yet. Without this a declared eye colour is checked by nobody until requests.js is edited."""
+    import re
+    text = git('show', 'origin/art-inbox:art/inbox/NOTES.md') or ''
+    keys = [k for k in (item.get('id'), stem, stem + '.png') if k]
+    found = []
+    for sec in re.split(r'(?m)^## ', text)[1:]:
+        if any(k in sec.split('\n', 1)[0] or k in sec for k in keys):
+            found = re.findall(r'(?im)^\s*(?:-\s*)?(?:SPOT|점 색)\s*:\s*(.+)$', sec) or found
+    cols = []
+    for line in found:
+        cols += [c.lower() for c in re.findall(r'#[0-9a-fA-F]{6}', line)]
+    known = {str(c).lower() for c in (item.get('spots') or [])}
+    return [c for c in dict.fromkeys(cols) if c not in known]
+
+
 def dry_run(png, work, extra):
     r = subprocess.run([sys.executable, os.path.join(ROOT, 'tools', 'art', 'sheets.py'), png, '--dry-run', '--work', work, *extra],
                        capture_output=True)
@@ -241,6 +258,14 @@ def main():
     # touch-ups keep the source under aseprite/, guides beside the PNG
     has_ase = show('origin/art-inbox', f'art/inbox/{rel}.aseprite', ase) or show('origin/art-inbox', f'art/inbox/aseprite/{stem}.aseprite', ase)
     cmd = [sys.executable, os.path.join(ROOT, 'tools', 'art', 'check_delivery.py'), new]
+    extra, item = sheet_args(stem)
+    spots = [] if (sub.startswith('guides') or stem.startswith('check_')) else notes_spots(stem, item)
+    if spots:
+        both = ','.join([str(c) for c in (item.get('spots') or [])] + spots)
+        cmd += ['--spot', both]
+        extra = extra + ['--spot', both]
+        print(f'- spot colour(s) from NOTES, not in the request yet: {" ".join(spots)} - used for this check; '
+              'add them to MON_SPOTS in tools/art/requests.js before registering')
     if base:
         cmd += ['--base', base]
     if has_ase:
@@ -253,7 +278,6 @@ def main():
         print(f'- work folder: {work}')
         print('- after judging: git checkout origin/art-inbox -- <the delivered paths> art/inbox/NOTES.md')
         return r.returncode
-    extra, _ = sheet_args(stem)
     sheet, previews, notes = dry_run(new, os.path.join(work, 'sheet_new'), extra)
     print('- convert (dry run' + (', ' + ' '.join(extra) if extra else ', phase3.json settings') + '):')
     for n in notes:
