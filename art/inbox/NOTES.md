@@ -378,3 +378,33 @@ CHECK: RESULT: PASS
 REFERENCES LOADED: portrait_800.jpg, guide_strip.png, guide_1_idle.png, guide_2_windup.png, guide_3_strike.png, guide_4_hit.png, Baren style anchor PNG, art/STYLE.md, latest handoff notes → ok.
 DEVIATIONS: (a) 대기·피격 자세의 활이 다리와 겹치지 않도록 팔을 더 뻗고 활을 세웠습니다. 두 자세의 높이는 유지하고 좌우 폭만 약 5% 줄였습니다. (b) 초상에서 보이지 않는 하체·장화는 녹색/갈색으로 보완. (c) none.
 RISKS AT GAME SIZE: 활 자체는 배경과 분리되지만 가는 시위와 장전된 화살은 어두운 전장에서 흐려질 수 있습니다. 관자놀이의 잎 장식과 머리띠 보석은 축소 시 합쳐 보일 수 있습니다. 96px 칸·0.1654 변환 통과, 로컬 유휴 루프는 기본 대체 동작으로 확인.
+
+## sheet/captain/warlord - 3단계 — 가르마크
+CHECK: RESULT: PASS
+REFERENCES LOADED: portrait_800.jpg, guide_strip.png, guide_1_idle.png, guide_2_windup.png, guide_3_strike.png, guide_4_hit.png, Baren style anchor PNG, art/STYLE.md, latest handoff notes → ok.
+DEVIATIONS: (a) 가이드의 칼 대신 같은 양날 전쟁 도끼를 네 컷에 유지했습니다. 피격에서 자루는 한 손에 남고 도끼날은 뒤쪽으로 떨어지며, 공격 컷의 하체는 가이드보다 조금 낮게 굽혔습니다. (b) 초상에서 보이지 않는 하체·장화는 갈색으로 보완. 초상의 등 뒤 대검은 확정 사항에 따라 제외. (c) none.
+RISKS AT GAME SIZE: 피격 때 도끼자루는 망토 바로 옆을 지나서 어두운 전장에서 일부가 약하게 보일 수 있습니다. 도끼날은 네 컷 모두 배경 위에 있습니다. 96px 칸·0.1654 변환 통과, 로컬 유휴 루프는 기본 대체 동작으로 확인.
+
+## sheet/captain/khan - 3단계 — 테무르
+CHECK: RESULT: PASS
+REFERENCES LOADED: portrait_800.jpg, guide_strip.png, guide_1_idle.png, guide_2_windup.png, guide_3_strike.png, guide_4_hit.png, Baren style anchor PNG, art/STYLE.md, latest handoff notes → ok.
+DEVIATIONS: (a) 대기·피격 시 활 끝이 종아리와 겹치지 않도록 가이드보다 활을 조금 더 세웠습니다. (b) 초상에 나오지 않는 아래쪽 델 자락과 장화는 갈색/금색으로 보완. (c) none.
+RISKS AT GAME SIZE: 진한 바닥에서는 시위가 점선처럼 약하게 남을 수 있고, 피격 시 활 끝과 앞 장화 사이 간격이 좁습니다. 가는 금속 고리·수염 디테일은 원본보다 단순하게 읽힙니다. 96px 칸·0.1654 변환 통과, 로컬 유휴 루프는 기본 대체 동작으로 확인.
+
+## 제안 - 직업별 달리기 그림 전에 엔진 연결을 한 장으로 확인
+
+주인께서 일반 병과 달리기·돌격 그림을 승인하시는 경우에만, 다섯 병과를 열기 전에 **임시 태그 시트 한 장**으로 일반 전투 화면에서 달리기·돌격이 걷기와 구분되는지 먼저 보는 건 어떨까요? 현 `js/battle.js:1371–1379`는 움직이는 시트에 `anims.walk`만 고릅니다. `tools/art/register_sheet.py`는 Aseprite 태그는 보존하지만 변환 시 `walkStride`는 보존하지 않습니다. 가이드의 한 걸음 23.7 게임 px가 빠지면 프레임 전환이 다른 거리에서 일어나 발이 미끄러질 수 있습니다.
+
+임시 그림이라도 걷기·달리기·돌격 선택과 등록 후 보폭 수치가 남는 것까지 확인되면, 이후 전사/방패병 중 하나만 엔진 걸음과 나란히 비교할 수 있습니다. 코드만 읽어본 상태로 실제 태그 시트는 재생해 보지 않았습니다. 범위와 우선순위는 클로드 판단에 맡깁니다.
+
+## sheet/captain/siegemaster - 3단계 — 오토
+CHECK: RESULT: PASS
+REFERENCES LOADED: portrait_800.jpg, guide_strip.png, guide_1_idle.png, guide_2_windup.png, guide_3_strike.png, guide_4_hit.png, Baren style anchor PNG, art/STYLE.md, latest handoff notes → ok.
+DEVIATIONS: (a) 마네킹 활은 무거운 쇠뇌로 교체. 대기·피격 컷에서는 가이드보다 팔을 앞으로 내밀어 개머리판과 쇠뇌 앞부분을 의상·다리에서 분리했습니다. 이 두 컷은 배치 폭에 맞춰 좌우를 조금 줄였습니다. (b) 초상에 없는 코트 하단과 장화는 갈색 가죽으로 보완. (c) none.
+RISKS AT GAME SIZE: 조준 시 개머리판은 어깨에 붙으며, 가는 시위와 대기/준비에 꽂힌 볼트가 어두운 바닥에서 흐려질 수 있습니다. 스패너는 안쪽에 가려지는 프레임에서 가는 밝은 선으로 남습니다. 96px 칸·0.1654 변환 통과, 로컬 유휴 루프는 기본 대체 동작으로 확인.
+
+## 제안 - 수령 검수와 메모 확인을 같은 커밋에 고정
+
+수령 스크립트가 메모만 있는 제안을 `NOTES.md` 차이로 발견하는데, 개별 PNG를 검수한 뒤에는 `NOTES.md` 전체를 복사하도록 안내합니다 (`tools/art/receive.py:38–58, 240`). 지금도 미검수 PNG 외에 별도 달리기 제안이 같은 파일에 함께 들어 있어, 먼저 PNG 한 장만 처리하면 그 제안이 다음 목록에서 빠질 수 있습니다. 실제 누락이 있었다는 뜻은 아닙니다.
+
+검수를 시작할 때 받은 커밋 SHA를 고정해 PNG·메모·수령 확인에 모두 사용하고, 그 커밋에서 새로 생긴 메모 절을 전부 처리하거나 별도 대기 목록에 남긴 뒤에만 메모 전체를 수령 처리하는 건 어떨까요? 구현 여부와 순서는 클로드 판단에 맡깁니다.

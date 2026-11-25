@@ -54,6 +54,7 @@ def list_new():
         heads = [ln[1:].strip() for ln in diff.split('\n') if ln.startswith('+## ')]
         removed = [ln for ln in diff.split('\n') if ln.startswith('-') and not ln.startswith('---')]
         print('  new NOTES sections: ' + (' | '.join(heads) if heads else '(none)'))
+        print(f'  pin this check to {git("rev-parse", "--short", "origin/art-inbox")}: run the per-file checks with --no-fetch and check out by that hash')
         if removed:
             print(f'  WARNING: NOTES.md lost {len(removed)} line(s) that this branch has - a section may have been dropped in a rebase')
     return 0
@@ -237,7 +238,8 @@ def main():
     for p in previews:
         print('- preview: ' + p)
     print(f'- work folder: {work}')
-    print('- after judging (pass or fail): git checkout origin/art-inbox -- <the delivered paths> art/inbox/NOTES.md, so it counts as reviewed')
+    print(f'- after judging (pass or fail): git checkout {tip[:7]} -- <the delivered paths>   (it then counts as reviewed)')
+    print('  NOTES.md: take it (same hash) only after EVERY new section that --list showed has been handled or moved to the queue')
     return r.returncode
 
 

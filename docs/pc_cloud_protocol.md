@@ -113,7 +113,10 @@ python3 tools/art/receive.py <stem> --work <스크래치 폴더>   # 한 파일 
    세는 것(다리·눈·무기 종류)은 게임 크기에서 직접 센다. 시안이 기준인 항목은 시안과 나란히 보지 않고는 통과시키지 않는다.
 3. 통과: `python3 tools/art/sheets.py art/inbox/<stem>.png` (배율·칸·배치·점 색은 `phase3.json` 에서 — 플래그 없이) → 대기열 ACCEPTED → feedback.md 기록.
    결함: 대기열 NEEDS_FIX + 그 줄 메모(GPT 는 꾸러미 README 의 THIS ROUND 로, PC 는 `바탕:` 해시와 함께) → feedback.md 기록.
-4. 통과든 결함이든 `git checkout origin/art-inbox -- <납품 경로들> art/inbox/NOTES.md` 로 이 브랜치에 가져온다 (이것이 "봤다"는 표시다 — 따로 상태 파일이 없다).
+4. 통과든 결함이든 `git checkout <그 해시> -- <납품 경로들>` 로 이 브랜치에 가져온다 (이것이 "봤다"는 표시다 — 따로 상태 파일이 없다).
+   **한 번의 점검은 한 커밋에 고정한다**: `--list` 가 보여 준 art-inbox 끝 커밋의 해시를 적어 두고, 그 뒤의 `receive.py` 는 `--no-fetch` 로,
+   가져오기도 그 해시로 한다. `NOTES.md` 는 `--list` 가 보여 준 새 절(납품 메모·제안·막힘)을 **모두** 처리했거나 대기열에 옮겨 적은 뒤에만 가져온다
+   (PNG 한 장만 보고 NOTES 를 통째로 가져오면 같은 파일에 있던 다른 제안이 목록에서 사라진다 — GPT 제안 `9e3939e`).
 5. 대기열 「지금 차례」를 고치고, 사람형 대장 DOT_READY 가 5개 아래면 다음 QUEUED 를 올린다. 커밋·푸시, 주인에게 미리보기와 함께 짧게 보고.
 - `dot_queue.md` 에 DOT_READY·NEEDS_FIX·DELIVERED 가 하나라도 있으면 감시(60초 폴링, 30분마다 다시 켬)와 한 시간 정기 점검을 켜 둔다.
   감시가 꺼져 있던 것을 발견하면 다시 켜기 전에 `--list` 부터 돌린다.
