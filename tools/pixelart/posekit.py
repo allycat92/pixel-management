@@ -279,8 +279,9 @@ def solve(pose, B, weapon):
     sw = pose.get('sw', 1.0)
     J['SN'] = L(-0.40 * sw, T - 0.05)
     J['SF'] = L(0.34 * sw, T - 0.07)
-    J['HN'] = L(-0.17, 0.0)
-    J['HF'] = L(0.17, 0.0)
+    hw = pose.get('hipw', 0.17)   # half spacing of the hip joints; a side-on walk uses 0.05 so the legs do not cross into an X
+    J['HN'] = L(-hw, 0.0)
+    J['HF'] = L(hw, 0.0)
     J['neck0'] = L(0.04, T)
     hup = rot(up, pose.get('tilt', 0.0))
     ho = pose.get('head_off', (0.0, 0.0))
