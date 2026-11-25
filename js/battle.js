@@ -1201,7 +1201,11 @@ const Battle = (() => {
       else if (!u.alive) i = Art.anim(m, 'hit').to;
       else if (c - r.atkAt < r.atkDur) { const a = Art.anim(m, r.atkAnim); i = frameAt(a, ((c - r.atkAt) / r.atkDur) * a.total, true); }
       else if (c - r.hitAt < 0.22) { const a = Art.anim(m, 'hit'); i = frameAt(a, ((c - r.hitAt) / 0.22) * a.total, true); }
-      else if (u.moving) { i = frameAt(Art.anim(m, 'walk'), (c + r.phase) * 1000, false); walkFx = !m.anims.walk; }
+      else if (u.moving && m.anims.walk) {
+        // 걷기 동작이 있는 시트: 프레임을 걸은 거리에 묶는다 (n 프레임 = 두 걸음, 한 걸음 = 칸 높이의 약 20%)
+        const a = Art.anim(m, 'walk'), n = a.to - a.from + 1, sl = m.walkStride || m.cell[1] * 0.2;
+        i = a.from + Math.floor(((r.walkDist || 0) / sl + r.phase) * n / 2) % n;
+      } else if (u.moving) { i = frameAt(Art.anim(m, 'idle'), (c + r.phase) * 1000, false); walkFx = true; }
       else i = frameAt(Art.anim(m, 'idle'), (c + r.phase) * 1000, false);
       const f = m.frames[i] || m.frames[0];
       const rc = sheetRecolor(sh, u);
@@ -1233,7 +1237,16 @@ const Battle = (() => {
       ctx.translate(Math.round(X), Math.round(Y) - (tf.bob || 0));
       if (tf.lean) ctx.transform(1, 0, tf.lean, 1, 0, 0);
       ctx.scale((flip ? -1 : 1) * (tf.sx || 1), tf.sy || 1);
-      ctx.drawImage(src, sx, sy, fr.sw, fr.sh, -ax, -ay, dw, dh);
+      const L = tf.legs;
+      if (!L) { ctx.drawImage(src, sx, sy, fr.sw, fr.sh, -ax, -ay, dw, dh); ctx.restore(); return; }
+      // 걸음(걷기 동작이 없는 시트): 엉덩이 줄(L.cut) 아래를 발 사이(앵커 x)에서 좌우로 나눠 한쪽 발만 들어 올린다.
+      // 몸(위쪽)은 bob 만큼 떠 있으므로, 땅에 붙은 다리와의 틈은 엉덩이 줄 한 줄을 늘여 메운다.
+      const cut = Math.max(1, Math.min(fr.sh - 1, L.cut)), fx = Math.max(1, Math.min(fr.sw - 1, fr.ax));
+      const bob = tf.bob || 0, ck = Math.round(cut * k), fk = Math.round(fx * k);
+      ctx.drawImage(src, sx, sy + cut, fx, fr.sh - cut, -ax, -ay + ck + bob - (L.left || 0), fk, dh - ck);              // 왼쪽 다리
+      ctx.drawImage(src, sx + fx, sy + cut, fr.sw - fx, fr.sh - cut, -ax + fk, -ay + ck + bob - (L.right || 0), dw - fk, dh - ck); // 오른쪽 다리
+      if (bob > 0) ctx.drawImage(src, sx, sy + cut - 1, fr.sw, 1, -ax, -ay + ck - 1, dw, bob + 1);                      // 엉덩이 틈 메우기
+      ctx.drawImage(src, sx, sy, fr.sw, cut, -ax, -ay, dw, ck);                                                          // 몸
       ctx.restore();
       return;
     }
@@ -1849,10 +1862,18 @@ const Battle = (() => {
       // 걷기 동작이 없는 시트: 두 걸음마다 1~2px 들썩이고, 발이 닿는 순간 살짝 눌리며, 가는 쪽으로 조금 기운다
       // (연출 시계 기준이라 타격 멈춤 동안은 함께 멈춘다)
       let tf = null;
+      // 걸은 거리(화면 px): 걸음 박자를 시계가 아니라 거리에 묶는다 — 발이 땅에서 미끄러져 보이지 않게
+      if (r.wx != null && u.moving) r.walkDist = (r.walkDist || 0) + Math.hypot(X - r.wx, Y - r.wy);
+      r.wx = X; r.wy = Y;
       if (fr.walkFx) {
-        const step = (((view.clock + r.phase) / 0.27) % 1 + 1) % 1;
-        const land = step < 0.14 || step > 0.9;
-        tf = { bob: Math.round(Math.sin(step * Math.PI) * 2), lean: -face * 0.05, sx: land ? 1.03 : 1, sy: land ? 0.97 : 1 };
+        // 걷기 뼈대(guide/walk_base)의 박자: 한 걸음 = 키의 약 30% 이동, 지나가는 순간 몸 +1.4%, 든 발 +5%
+        const sl = Math.max(6, S.h * 0.3), p = ((r.walkDist || 0) / sl + r.phase) % 2;
+        const kk = p % 1, arc = Math.sin(kk * Math.PI), land = kk < 0.12 || kk > 0.92;
+        const lift = Math.round(arc * Math.max(1, S.h * 0.05)), frontRight = (fr.face || 1) > 0;
+        const fk = fr.k || 1, front = p < 1;                       // 이번 걸음에 드는 발: 앞발 → 뒷발 차례로
+        tf = { bob: Math.round(arc * Math.max(1, S.h * 0.014)), lean: -face * 0.04, sx: land ? 1.02 : 1, sy: land ? 0.98 : 1,
+          legs: { cut: Math.round(fr.ay - (S.h / fk) * (u.mon ? 0.4 : 0.42)),
+            right: (front === frontRight) ? lift : 0, left: (front === frontRight) ? 0 : lift } };
       }
       blit(ctx, fr, X, Y, flip, null, tf);
       drawRim(ctx, view, fr, X, Y, flip, tf);
