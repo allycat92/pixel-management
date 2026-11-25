@@ -408,3 +408,10 @@ RISKS AT GAME SIZE: 조준 시 개머리판은 어깨에 붙으며, 가는 시�
 수령 스크립트가 메모만 있는 제안을 `NOTES.md` 차이로 발견하는데, 개별 PNG를 검수한 뒤에는 `NOTES.md` 전체를 복사하도록 안내합니다 (`tools/art/receive.py:38–58, 240`). 지금도 미검수 PNG 외에 별도 달리기 제안이 같은 파일에 함께 들어 있어, 먼저 PNG 한 장만 처리하면 그 제안이 다음 목록에서 빠질 수 있습니다. 실제 누락이 있었다는 뜻은 아닙니다.
 
 검수를 시작할 때 받은 커밋 SHA를 고정해 PNG·메모·수령 확인에 모두 사용하고, 그 커밋에서 새로 생긴 메모 절을 전부 처리하거나 별도 대기 목록에 남긴 뒤에만 메모 전체를 수령 처리하는 건 어떨까요? 구현 여부와 순서는 클로드 판단에 맡깁니다.
+
+## sheet/captain/inquisitorlord - 발타자르
+CHECK: RESULT: PASS
+REFERENCES LOADED: portrait_800.jpg OK; guide_strip.png OK; guide_1_idle.png, guide_2_windup.png, guide_3_strike.png, guide_4_hit.png OK; Baren anchor OK.
+DEVIATIONS: (a) 가이드의 지팡이를 빈 철장 철퇴로 교체. 2번은 철퇴를 뒤편에 세우고 4번에는 철퇴 머리를 낮게 떨어뜨리고 앞발을 들어 피격 자세를 구분함. 배치 보정으로 포즈 폭을 약 1.8% 좁힘. (b) 초상화의 불꽃·어깨 십자는 요청대로 빼고 가슴 십자 하나를 유지. (c) none.
+RISKS AT GAME SIZE: 96px 변환에서 빈 철장 실루엣은 남지만 가는 철퇴 자루와 장갑은 어두운 바닥에서 묻힐 수 있음. 실제 전투에서 대기와 두 시전 자세를 확인 부탁.
+PROPOSALS: none.
