@@ -90,7 +90,8 @@ GPT 는 `art/requests/GPT_STANDING.md`, PC 는 `tools/aseprite-mcp/pc/CLAUDE.md`
 - 읽기: 이 브랜치(`claude/dot-fantasy-management-game-saupju`). 쓰기: `art-inbox` 브랜치의 `art/inbox/`만. 파일 이름은 표의 이름 그대로.
 - **지시가 있는 곳은 두 군데뿐**: 이 표의 그 줄(메모·요청서 칸)과 꾸러미 README(맨 위 THIS ROUND 가 우선). 늘 지키는 규칙은
   `gpt_handoff_notes.md`「Rules changed」(GPT) · `pc_notes.md`(PC). `feedback.md` 는 Claude 의 검토 기록이라 그림 쪽이 읽을 필요가 없다.
-- **역할 나눔**: GPT = 새로 그리기·다시 그리기·교차 검수(글) / PC(Aseprite) = 받은 그림 손질 + 자세 뼈대. 상태 칸에 **`담당: PC(Aseprite)`** 가 붙은 항목만 PC 가 한다.
+- **역할 나눔**: GPT = 새로 그리기·다시 그리기·교차 검수(글) / PC(Aseprite) = 받은 그림 손질 + 자세 뼈대(**마네킹 시퀀스 제작 포함 — 주인 결정 11-26**: "기획 작업 부담이 세게 걸릴 때가 많으니 마네킹 시퀀스도 PC 하청으로") / 클라우드 = 프레임 설계표·요청서·검사·등록. 상태 칸에 **`담당: PC(Aseprite)`** 가 붙은 항목만 PC 가 한다.
+- **스프라이트 시트 방식 (주인 결정 11-26)**: 장면 4장(대기·준비·타격·피격) 구조를 버리고 동작마다 프레임을 설계한 시트로 간다. 동작 종류는 늘리지 않고(대기·달리기·공격·피격, 시전이 공격인 캐릭터는 시전) 프레임 수를 늘린다. 캐릭터마다 다른 동작. 설계 중 — 계획이 나오면 시운전(일반 병과 하나 + 니클라)부터.
 - 납품 메모: `art/inbox/NOTES.md` 에 항목별 절 (GPT: `GPT_STANDING.md` 의 양식 / PC: `pc_notes.md` 맨 아래).
 - Claude Code 가 art-inbox 를 감시해 수령·검토한다 (`tools/art/receive.py --list`, 절차는 `docs/pc_cloud_protocol.md` 7절). 본 납품은 통과든 반려든 이 브랜치의 `art/inbox/` 로 가져온다.
 
