@@ -9,7 +9,7 @@
 ```
 KIND: fix (full sheet). BASE: art/inbox/check_giant-spider_idle.png @ 555007c on art-inbox - your idle check PASSED on silhouette:
 keep exactly that body, leg layout and foot positions in all four poses. LOAD concept_800.jpg (the owner's draft).
-MUST SURVIVE (Claude's reading of why the owner rejected the last redraw - being confirmed with the owner): ground-level side view; legs arching higher than the back; big hairy abdomen;
+MUST SURVIVE (confirmed by the owner 2026-11-26 on redraw 2): ground-level side view; legs arching higher than the back; big hairy abdomen;
 bristly silhouette; glossy red eye cluster; near-black purple mass.
 TWO FIXES in all four poses:
   1. EYES: dark purple now, 0 red pixels at game size. Make them GLOSSY BRIGHT RED #d6455d with one white glint each: two big eyes
