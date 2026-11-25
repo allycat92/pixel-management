@@ -428,3 +428,10 @@ PROPOSALS: none.
 - 참고: 없음
 - 검사: `check_delivery.py --aseprite --export` a·b 둘 다 RESULT: PASS (25색, 키와 최소 거리 206.1, 네 자세 최하단 y=870, .aseprite export == PNG)
 - 지침 판: 2026-11-26a
+
+## sheet/captain/pirateking - 크림슨
+CHECK: RESULT: PASS
+REFERENCES LOADED: portrait_800.jpg OK; guide_strip.png OK; guide_1_idle.png, guide_2_windup.png, guide_3_strike.png, guide_4_hit.png OK; Baren anchor OK.
+DEVIATIONS: (a) 가이드 방패 대신 빈손, 1번 칼날을 코트 밖으로 올려 분리. 3번 빈손은 균형을 위해 뒤로 뻗고 4번은 앞발을 들었음. 초기 배치 폭 약 2% 보정, 1번 실루엣 높이는 약 366px. (b) 고리 장식은 어깨 대신 허리 사슬에 붙임. (c) none.
+RISKS AT GAME SIZE: 96px 변환에서 타격 칸 +1px 이동, 피격은 무게중심으로 발 맞춤. 실제 전투에서 발 위치 변화와 준비 자세에서 칼 손잡이와 모자 깃털의 경계를 확인 부탁. 모자 해골과 얼굴 흉터는 축소 시 흐려질 수 있음.
+PROPOSALS: none.
