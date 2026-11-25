@@ -372,3 +372,9 @@ CHECK: RESULT: PASS
 REFERENCES LOADED: portrait_800.jpg, guide_strip.png, guide_1_idle.png, guide_2_windup.png, guide_3_strike.png, guide_4_hit.png, Baren style anchor PNG, art/STYLE.md, latest handoff notes → ok.
 DEVIATIONS: (a) 마네킹의 활을 석궁으로 교체. 대기 자세의 석궁을 몸 바깥에서 조금 더 세워 들고, 발뒤꿈치 간격은 가이드와 약간 다릅니다. (b) 초상에 나오지 않는 하체·장화는 같은 남색/갈색으로 보완. (c) none.
 RISKS AT GAME SIZE: 준비 자세의 볼트·시위는 가늘어 어두운 배경에서 흐려질 수 있습니다. 조준과 사격 자세는 석궁 각도 차이로 구분되며, 조준 시 개머리판이 어깨와 맞닿습니다. 96px 칸·0.1654 변환은 통과했고, 로컬 유휴 루프는 기본 대체 동작으로 확인했습니다.
+
+## sheet/captain/elfwarden - 3단계 — 세레니엘
+CHECK: RESULT: PASS
+REFERENCES LOADED: portrait_800.jpg, guide_strip.png, guide_1_idle.png, guide_2_windup.png, guide_3_strike.png, guide_4_hit.png, Baren style anchor PNG, art/STYLE.md, latest handoff notes → ok.
+DEVIATIONS: (a) 대기·피격 자세의 활이 다리와 겹치지 않도록 팔을 더 뻗고 활을 세웠습니다. 두 자세의 높이는 유지하고 좌우 폭만 약 5% 줄였습니다. (b) 초상에서 보이지 않는 하체·장화는 녹색/갈색으로 보완. (c) none.
+RISKS AT GAME SIZE: 활 자체는 배경과 분리되지만 가는 시위와 장전된 화살은 어두운 전장에서 흐려질 수 있습니다. 관자놀이의 잎 장식과 머리띠 보석은 축소 시 합쳐 보일 수 있습니다. 96px 칸·0.1654 변환 통과, 로컬 유휴 루프는 기본 대체 동작으로 확인.
