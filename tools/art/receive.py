@@ -61,7 +61,9 @@ def list_new():
 
 
 def review_sheet(sheet, stem, work):
-    """review.png + per-floor share of sprite pixels that nearly match the floor's brightness."""
+    """review.png + per floor: the share of the silhouette's EDGE pixels (and of all pixels) that nearly match the floor's
+    brightness. The edge is what keeps a sprite readable: a pale interior inside a dark outline is fine (all 44 sheets registered
+    on 2026-11-26 measured 0-0.4% on the edge for sand and snow, while their interiors went up to 24%)."""
     im = Image.open(sheet).convert('RGBA')
     cell = im.size[0] // 4
     frames = [im.crop(((i % 4) * cell, (i // 4) * cell, (i % 4 + 1) * cell, (i // 4 + 1) * cell)) for i in (0, 4, 5, 6)]
@@ -85,14 +87,25 @@ def review_sheet(sheet, stem, work):
         out.paste(ref, (0, 0))
     lum = lambda c: 0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2]  # noqa: E731
     shares = []
-    px = [p for f in frames for p in getattr(f, 'get_flattened_data', f.getdata)() if p[3] > 0]
+    px, edge = [], []
+    for f in frames:
+        w, h = f.size
+        d = list(getattr(f, 'get_flattened_data', f.getdata)())
+        for y in range(h):
+            for x in range(w):
+                p = d[y * w + x]
+                if p[3] > 0:
+                    px.append(p)
+                    if x in (0, w - 1) or y in (0, h - 1) or not (d[y * w + x - 1][3] and d[y * w + x + 1][3] and d[(y - 1) * w + x][3] and d[(y + 1) * w + x][3]):
+                        edge.append(p)
     for r, (name, col) in enumerate(FLOORS):
         for i, f in enumerate(frames):
             bg = Image.new('RGBA', f.size, col + (255,))
             bg.alpha_composite(f)
             out.paste(bg.convert('RGB').resize((cell * z, cell * z), Image.NEAREST), (rw + i * cell * z, r * cell * z))
         near = sum(1 for p in px if abs(lum(p) - lum(col)) <= 25) / max(1, len(px))
-        shares.append((name, near))
+        near_edge = sum(1 for p in edge if abs(lum(p) - lum(col)) <= 25) / max(1, len(edge))
+        shares.append((name, near_edge, near))
     path = os.path.join(work, 'review.png')
     out.save(path)
     return path, shares
@@ -265,10 +278,11 @@ def main():
                 print(f'- game sheet size changed: {y.size} -> {x.size}')
     if sheet:
         rp, shares = review_sheet(sheet, stem, work)
-        print('- sprite pixels within +-25 luminance of the floor: ' + ', '.join(f'{n} {100 * v:.1f}%' for n, v in shares)
-              + ('   ← pale sprite: check the bright floors in review.png (the wraith was 3.0% on snow before its fix)'
-                 if max(v for n, v in shares if n != 'dark') > 0.03 else '')
-              + '  (dark: outlines and shadows always match a dark floor - judge by eye; the engine adds a rim)')
+        print('- silhouette edge within +-25 luminance of the floor (all pixels in brackets): '
+              + ', '.join(f'{n} {100 * e:.1f}% ({100 * v:.0f}%)' for n, e, v in shares)
+              + ('   ← the OUTLINE melts into a bright floor: look at review.png'
+                 if max(e for n, e, v in shares if n != 'dark') > 0.08 else '')
+              + '  (dark: outlines always match a dark floor - judge by eye; the engine adds a rim)')
         print('- review sheet (design reference | game size x3 on dark / sand / snow): ' + rp)
     for p in previews:
         print('- preview: ' + p)

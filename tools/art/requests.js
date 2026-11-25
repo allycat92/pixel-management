@@ -486,7 +486,7 @@ Object.entries(D.CAPTAINS).forEach(([key, C]) => {
 // 여기 적어 두면 sheets.py · check_delivery.py · receive.py 가 플래그 없이 같은 결과를 낸다.
 // 그림이 가이드보다 작게 그려진 시트의 변환 배율 (원본이 6배 크므로 다시 그리지 않고 변환에서 맞춘다; 몸 크기를 다른 대장과 같게).
 //   pirateking: 대기 실루엣 363px(모자 포함) — 다른 대장 400~435px 보다 12~15% 작게 그려졌다 (art-inbox 9124b86)
-const DRAWN_SMALL = { pirateking: 0.185 };
+const DRAWN_SMALL = { pirateking: 0.185, frostjarl: 0.18 };   // frostjarl: 대기 370px (b476149)
 const CELL_112 = new Set(['lancer', 'pilgrim', 'titan', 'pirateking']);   // 든 무기·덩치가 96칸(자세 높이 90px)을 넘는 대장
 phase3.forEach((it) => {
   const m = /^sheet\/(captain|hero)\/([a-z_]+)$/.exec(it.id);
