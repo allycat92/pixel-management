@@ -56,6 +56,9 @@ POSES = {1: ['idle'], 2: ['idle', 'strike'], 3: ['idle', 'strike', 'hit'], 4: ['
 DUR = {'idle': 240, 'windup': 150, 'strike': 260, 'hit': 220}
 FILE_RE = re.compile(r'^sheet_(captain|hero|class|monster)_([A-Za-z0-9-]+?)(?:@[A-Za-z0-9-]+)?\.png$')
 KEY_TOL = 34.0               # 열쇠 색으로 볼 RGB 거리 (열쇠 색끼리는 43 이상, 다른 재질과는 그보다 멀게 고른다: art/requests/phase3_gpt.md 메시지 D)
+KEY_SPECK_R = 0.33           # 열쇠 색 점 지우기: 몸통으로 볼 최소 두께의 절반 (게임 px) — clean_key_specks
+KEY_SPECK_REACH = 0.66       # 몸통에서 이만큼(게임 px) 안의 가는 열쇠 선은 남긴다
+LONE_KEY_N8 = 1              # 게임 해상도: 8 이웃 중 열쇠 픽셀이 이 수 이하인 열쇠 픽셀은 뺀다 (외톨이·두 점짜리 부스러기)
 KEY_MIN_SHARE = 0.04         # 대기 자세에서 제복 열쇠 색이 이 비율보다 적으면 경고 (열쇠 색으로 칠하지 않은 그림)
 TINT_TEST = {'outfit': '#b03a2e', 'accent': '#e0b040'}   # preview_tint_x4.png 의 시험 색
 
@@ -362,6 +365,8 @@ def feet_x(mask):
     return (xs[band].min() + xs[band].max() + 1) / 2
 
 
+WIDE_BREATHE = 1.3           # 대기 자세 너비가 키의 이 배 이상이면 네발짐승 숨쉬기 (breathe)
+WIDE_BREATHE_DEPTH = 0.04    # 그때 몸이 오르내리는 폭 (몸 높이의 비율, 41px 늑대 → 약 1.5px)
 MAX_SHRINK = 0.85            # 칸에 맞추려고 이보다 더 줄여야 하면 실패 (자세가 잘못 나뉘었거나 여럿이 한 칸에 들어간 것)
 
 
@@ -434,6 +439,68 @@ def key_label(rgb, a, keys):
     return lab
 
 
+def _sq_shift_reduce(m, r, op):
+    p = np.pad(m, r)
+    out = np.ones_like(m) if op is np.logical_and else np.zeros_like(m)
+    for dy in range(-r, r + 1):
+        for dx in range(-r, r + 1):
+            out = op(out, p[r + dy:r + dy + m.shape[0], r + dx:r + dx + m.shape[1]])
+    return out
+
+
+def clean_key_specks(lab, scale):
+    """원본 해상도: 열쇠 색 중 덩어리에 붙지 않은 점·그물(사슬 갑옷 고리에 섞인 푸른 점 등)을 열쇠 색에서 뺀다.
+    열쇠 픽셀(역할 무관)을 (2r+1) 정사각형으로 열어(침식 후 팽창) 남는 '몸통'을 찾고, 몸통에서 reach px 안의 열쇠 픽셀만 남긴다
+    (제복 가장자리·장식 띠처럼 몸통에 붙은 가는 선은 남는다). r·reach 는 게임 픽셀 1/3·2/3 에 해당하는 원본 px.
+    빠진 픽셀은 fill_from_neighbours 로 둘레의 열쇠 색이 아닌 색(사슬 갑옷의 회색 등)을 받는다 (전투에서 진영 색으로 바뀌지 않는다).
+    → (새 번호, 뺀 픽셀 마스크)"""
+    if lab is None:
+        return lab, None
+    m = lab >= 0
+    r = max(1, int(round(KEY_SPECK_R / scale)))
+    reach = max(1, int(round(KEY_SPECK_REACH / scale)))
+    core = _sq_shift_reduce(_sq_shift_reduce(m, r, np.logical_and), r, np.logical_or) & m
+    keep = _sq_shift_reduce(core, reach, np.logical_or) & m
+    drop = m & ~keep
+    out = lab.copy()
+    out[drop] = -1
+    return out, drop
+
+
+def fill_from_neighbours(rgb, fill, ok, iters=12):
+    """fill 픽셀의 색을 둘레(8 이웃) ok 픽셀 색의 평균으로 바꾼다. 안쪽 픽셀은 바깥부터 차례로 (iters 번까지; 남으면 원래 색)."""
+    rgb = rgb.copy()
+    fill, ok = fill.copy(), ok & ~fill
+    H, W = fill.shape
+    for _ in range(iters):
+        if not fill.any():
+            break
+        p = np.pad(rgb * ok[..., None], ((1, 1), (1, 1), (0, 0)))
+        q = np.pad(ok, 1).astype(np.float32)
+        acc = np.zeros_like(rgb)
+        cnt = np.zeros(fill.shape, np.float32)
+        for dy in (-1, 0, 1):
+            for dx in (-1, 0, 1):
+                if dy or dx:
+                    acc += p[1 + dy:1 + dy + H, 1 + dx:1 + dx + W]
+                    cnt += q[1 + dy:1 + dy + H, 1 + dx:1 + dx + W]
+        now = fill & (cnt > 0)
+        rgb[now] = acc[now] / cnt[now][:, None]
+        ok |= now
+        fill &= ~now
+    return rgb
+
+
+def drop_lone_keys(klab):
+    """게임 해상도: 8 이웃 중 열쇠 픽셀이 LONE_KEY_N8 개 이하인 외톨이·두 점짜리 열쇠 부스러기를 뺀다 (진영 색 점 하나가 튀지 않게)."""
+    m = klab >= 0
+    n8, _ = neighbours(m)
+    lone = m & (n8 <= LONE_KEY_N8)
+    out = klab.copy()
+    out[lone] = -1
+    return out, lone
+
+
 def key_resize(lab, a, nk, nw, nh):
     """열쇠 색 번호를 BOX 축소: 알파 가중으로 절반 이상이 열쇠 색이면 가장 많은 열쇠 색, 아니면 -1."""
     def rs(ch):
@@ -460,16 +527,42 @@ def apply_keys(rgb, mask, klab, keys, roles):
     return out
 
 
+TONE = {'outfit': dict(floor=50, knee=130, slope=0.5), 'accent': dict(floor=64, knee=100, slope=0.4)}
+TONE_HI, TONE_MAX, TONE_CHROMA = 170.0, 240.0, 150.0
+LUM_W = np.array([0.299, 0.587, 0.114], np.float32)
+
+
+def tone_ramp(keys, target, role):
+    """js/battle.js toneRamp 와 같은 규칙: 진영 색의 밝기를 역할별 기준(무릎 위는 완만하게, 아주 어두우면 바닥까지)으로 누르고
+    열쇠 색끼리의 밝기 비를 곱한다. TONE_HI 위의 밝은 단계는 TONE_MAX 로 부드럽게 누르고, 255 를 넘는 채널은 자르지 않고
+    같은 밝기의 회색 쪽으로 채도를 줄인다 (채도 한도 TONE_CHROMA)."""
+    t = TONE.get(role, TONE['outfit'])
+    lt = float(target @ LUM_W)
+    base = t['knee'] + (lt - t['knee']) * t['slope'] if lt > t['knee'] else max(lt, t['floor'])
+    mean = float(np.mean([k @ LUM_W for k in keys])) or 1.0
+    out = []
+    for k in keys:
+        want = base * float(k @ LUM_W) / mean
+        if want > TONE_HI:
+            want = TONE_MAX - (TONE_MAX - TONE_HI) * float(np.exp(-(want - TONE_HI) / (TONE_MAX - TONE_HI)))
+        c = target * want / lt if lt > 1 else np.full(3, want, np.float32)
+        mx, mn = float(c.max()), float(c.min())
+        f = TONE_CHROMA / (mx - mn) if mx - mn > TONE_CHROMA else 1.0
+        if mx > 255:
+            f = min(f, (255 - want) / max(1e-6, mx - want))
+        if f < 1:
+            c = want + (c - want) * max(0.0, f)
+        out.append(np.clip(np.round(c), 0, 255).astype(np.uint8))
+    return out
+
+
 def recolor_preview(sheet, keys, roles, test=TINT_TEST):
-    """js/battle.js sheetRecolor 와 같은 규칙: 열쇠 색 → 시험 색 x (열쇠 밝기 / 같은 역할 열쇠 평균 밝기)."""
+    """js/battle.js sheetRecolor 와 같은 규칙 (tone_ramp): 열쇠 색 → 시험 색의 명암 단계."""
     out = sheet.copy()
-    w = np.array([0.299, 0.587, 0.114], np.float32)
     for role in set(roles):
         idx = [i for i in range(len(roles)) if roles[i] == role]
-        mean = float(np.mean([keys[i] @ w for i in idx])) or 1.0
-        tgt = hex_rgb(test[role])
-        for i in idx:
-            to = np.clip(np.round(tgt * float(keys[i] @ w) / mean), 0, 255).astype(np.uint8)
+        ramp = tone_ramp([keys[i] for i in idx], hex_rgb(test[role]), role)
+        for i, to in zip(idx, ramp):
             m = (out[..., 3] > 0) & np.all(out[..., :3] == keys[i].astype(np.uint8), -1)
             out[m, :3] = to
     return out
@@ -501,7 +594,16 @@ def breathe(cell, work, n=4):
         Image.fromarray(cell).save(os.path.join(src, f'idle_{i}.png'))
     sg = sprite_gen_bin()
     if sg:
-        r = subprocess.run([sg, 'breathe', src, dst, '--mode', 'pixel'], capture_output=True, text=True)
+        cmd = [sg, 'breathe', src, dst, '--mode', 'pixel']
+        ys, xs = np.nonzero(cell[..., 3])
+        fw, fh = xs.max() - xs.min() + 1, ys.max() - ys.min() + 1
+        if fw >= WIDE_BREATHE * fh:
+            # 가로로 긴 네발짐승(늑대 등): sprite-gen 은 사람처럼 '머리 아래 몸통'을 찾다가 아래쪽 다리 부근을 머리로 잡아
+            # 다리만 1px 남짓 움직인다 (네 칸이 거의 같다). 몸 윗부분부터 등 전체가 오르내리게 강체 경계를 위쪽에 둔다.
+            rigid = max(1, int(round(fh * 0.1)))
+            cmd += ['--rigid-row', str(rigid), '--depth', str(WIDE_BREATHE_DEPTH)]
+            log(f'  숨쉬기: 가로로 긴 몸({fw}x{fh}) — 등 전체가 오르내리게 (--rigid-row {rigid} --depth {WIDE_BREATHE_DEPTH})')
+        r = subprocess.run(cmd, capture_output=True, text=True)
         if r.returncode == 0:
             return [np.asarray(Image.open(os.path.join(dst, f'idle_{i}.png')).convert('RGBA')) for i in range(n)]
         log('  주의: sprite-gen breathe 실패 — 간단한 들썩임으로 대신한다:', (r.stderr or r.stdout).strip()[-300:])
@@ -684,6 +786,10 @@ def process(path, sid, a, reqs):
     else:
         scale = height / body
         log(f'  배율 {scale:.4f} (idle 몸 높이 {body}px → {height}px, 칸 {CELL}x{CELL}; 머리 위로 솟은 가는 무기 끝은 빼고 잰다)')
+    # 자세별 배율 보정 (요청서 pose_scale / --pose-scale): GPT 가 2x2 격자의 칸을 상자 크기에 맞추려고 한 자세만 몸까지 크게 그린 경우
+    pose_scale = dict(req.get('pose_scale') or {})
+    if a.pose_scale:
+        pose_scale = {k.strip(): float(v) for k, v in (kv.split('=') for kv in a.pose_scale.split(','))}
     small = []
     for (c_rgb, c_a), klab, nm in zip(crops, klabs, names):
         hh = body_height(c_a) * scale
@@ -692,13 +798,30 @@ def process(path, sid, a, reqs):
             return False
         if nm != 'idle' and abs(hh - height) > height * 0.3 and nm != 'hit':
             log(f'  주의: {nm} 자세 높이 {hh:.0f}px — 칸마다 캐릭터 크기가 다르게 그려졌을 수 있다')
-        nw = max(1, int(round(c_a.shape[1] * scale)))
-        nh = max(1, int(round(c_a.shape[0] * scale)))
+        ps = pose_scale.get(nm, 1.0)
+        if ps != 1.0:
+            log(f'  {nm}: 자세 배율 x{ps:g} (그림이 이 자세만 크게 그려졌다 — {"--pose-scale" if a.pose_scale else "요청서 pose_scale"})')
+        nw = max(1, int(round(c_a.shape[1] * scale * ps)))
+        nh = max(1, int(round(c_a.shape[0] * scale * ps)))
+        speck = lone = 0
+        if klab is not None and not a.keep_key_specks:
+            klab, drop = clean_key_specks(klab, scale)
+            speck = int(drop.sum())
+            if speck:
+                # 뺀 점은 둘레의 열쇠 색이 아닌 색으로 (축소 전에: 사슬 갑옷의 푸른 점 → 회색 고리)
+                c_rgb = fill_from_neighbours(c_rgb, drop, (c_a >= 0.5) & (klab < 0))
         s_rgb, s_a = box_resize(c_rgb, c_a, nw, nh)
         mask = s_a > a.alpha
         s_rgb, mask = cleanup(s_rgb, mask)
         s_k = key_resize(klab, c_a, len(keys), nw, nh) if klab is not None else np.full(mask.shape, -1)
         s_k[~mask] = -1
+        if klab is not None and not a.keep_key_specks:
+            s_k, lone_m = drop_lone_keys(s_k)
+            lone = int(lone_m.sum())
+            if lone:
+                s_rgb = fill_from_neighbours(s_rgb, lone_m, mask & (s_k < 0))
+        if speck or lone:
+            log(f'  {nm}: 열쇠 색 점 지움 — 원본 {speck}px (덩어리에서 떨어진 점·그물), 게임 해상도 외톨이 {lone}px → 둘레 색으로')
         bb = bbox(mask.astype(np.float32), 0.5)
         if bb is None:
             log(f'  실패: {nm} 자세가 축소 후 비었다')
@@ -810,6 +933,10 @@ def main():
     ap.add_argument('--alpha', type=float, default=0.45, help='축소 후 알파 기준 (기본 0.45)')
     ap.add_argument('--no-outline', action='store_true', help='가장자리 어둡게 하기를 끈다')
     ap.add_argument('--no-tint', action='store_true', help='요청서의 열쇠 색(tint)을 쓰지 않는다 (직업 시트를 바꿔 칠하지 않는 그림으로)')
+    ap.add_argument('--pose-scale', help='자세별 배율 보정, 예: windup=0.9,strike=0.88 (기본: 요청서의 pose_scale). '
+                    'idle 과 같은 배율로 그려지지 않은 자세(몸·머리까지 커진 공격 자세)를 idle 크기에 맞춘다')
+    ap.add_argument('--keep-key-specks', action='store_true',
+                    help='열쇠 색 점 지우기(clean_key_specks · drop_lone_keys)를 끈다 — 비교용')
     ap.add_argument('--work', help='중간 결과·미리보기를 둘 폴더 (기본: 임시 폴더)')
     ap.add_argument('--dry-run', action='store_true', help='시트는 만들되 manifest 는 바꾸지 않는다')
     ap.add_argument('--no-register', action='store_true', help='register_sheet.py 를 부르지 않는다')

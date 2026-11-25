@@ -53,7 +53,7 @@ STYLE (same as every character):
 
 DELIVERABLE:
   - ONE PNG, 1536x1024 (landscape), a 2x2 grid of four equal 768x512 quadrants, one pose per quadrant: top-left idle, top-right wind-up, bottom-left strike, bottom-right hit (as guide_layout.png); never a 1x4 row or a single pose
-  - the lowest pixel of each pose (feet, paws, talons or tail tip) on y = 461 of its quadrant (y = 461 in the top row, y = 973 in the bottom row); each pose about the size of its box, all four at the same scale
+  - the lowest pixel of each pose (feet, paws, talons or tail tip) on y = 461 of its quadrant (y = 461 in the top row, y = 973 in the bottom row); ALL FOUR AT THE SAME SCALE: the head, body, claws and tail keep their idle size in every pose; a bigger box only leaves room for spread wings, reaching limbs or a rearing/lunging pose - never enlarge the creature to fill its box
   - at least 32 px of empty magenta between the creature and its quadrant's edges; nothing crosses into another quadrant
   - background: perfectly flat solid magenta #FF00FF everywhere (preferred; a transparent PNG is also accepted) - no gradient, floor, cast shadow or scenery
   - NO figure pixel may be magenta-like: every colour of the figure must stay clearly away from the background key #FF00FF, RGB distance sqrt((255-R)^2 + G^2 + (255-B)^2) >= 150 (no hot pink, magenta or bright violet; purples stay dark blue-purple such as #5a4a7a). If you reduce the palette, reduce the FIGURE colours only and never merge a figure colour into the background colour

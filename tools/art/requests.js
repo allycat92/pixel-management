@@ -417,6 +417,11 @@ const MONSTER_BATCH1 = [
   ['거대 거미', 7, '2x2', 112, 37001, [1216, 832], 'no humans, solo, full body, monster, giant spider, eight legs, dark purple carapace, hairy legs, red eyes, fangs, crouching, front legs raised'],
   ['망령', 8, '1x4', 96, 38001, [832, 1216], 'no humans, solo, full body, monster, wraith, ghost, floating, pale blue tattered robes, hood, skeletal hands, claws, glowing cyan eyes, no legs, wispy tail'],
 ];
+// 자세별 배율 보정 (sheets.py pose_scale): GPT 가 2x2 격자의 큰 자세 상자(공격 준비 520x420·타격 560x340 대 대기 380x330)를 채우려고
+// 날개·팔다리만이 아니라 머리·몸까지 키워 그린 자세. 같은 그림의 고정된 부분(꼬리 끝 삽 모양, 머리·뿔)으로 잰 대기와의 크기 비의 역수.
+const MON_POSE_SCALE = {
+  '가고일': { windup: 0.9, strike: 0.88 },   // 꼬리 끝 1.05·1.14배, 머리·뿔 1.15~1.3배 (첫 납품 art/inbox/sheet_monster_gargoyle.png)
+};
 const MON_HUMANOID = new Set(['해골 병사', '사막 도적', '산적']);   // 사람 골격: 대장과 같은 posekit 가이드 띠
 const MON_KEY = Object.fromEntries(MONSTERS.map(([enemy, key]) => [enemy, key]));
 const MON_PKG = (key) => `art/requests/phase3/monster_${key}`;
@@ -428,7 +433,7 @@ MONSTER_BATCH1.forEach(([enemy, order, layout, cell, seed, size, tags, negExtra]
   const pick = pickOf(`monster_${key}`);
   phase3.push(sheetItem({
     id: `sheet/monster/${enemy}`, file: `sheet_monster_${key}.png`, priority: 4, group: '지역 몬스터 1차', order, after: 'the 9 starter captains (priority 1)', style_anchor: ANCHOR_REF,
-    name: `몬스터 — ${enemy}`, layout, cell, scale: GPT_SCALE, humanoid: human,
+    name: `몬스터 — ${enemy}`, layout, cell, scale: GPT_SCALE, ...(MON_POSE_SCALE[enemy] ? { pose_scale: MON_POSE_SCALE[enemy] } : {}), humanoid: human,
     package: MON_PKG(key), readme: `${MON_PKG(key)}/README.md`,
     concept: pick ? `${MON_PKG(key)}/concept.png` : `${MON_PKG(key)}/concept.png (pending: the owner picks a NovelAI draft first)`,
     ...(pick ? { concept_source: `art/concepts/monster_${key}/${pick.file}` } : {}),

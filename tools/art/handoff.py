@@ -1429,12 +1429,16 @@ def readme_creature(cid, C, it, slots, sinfo):
         spec = ['ONE PNG, 1536x1024 (landscape), a 2x2 grid of four equal 768x512 quadrants, one pose per quadrant: top-left idle, '
                 'top-right wind-up, bottom-left strike, bottom-right hit (as guide_layout.png); never a 1x4 row or a single pose',
                 f'the lowest pixel of each pose (feet, paws, talons or tail tip) on y = {QBASE} of its quadrant (y = {QBASE} in the top row, '
-                f'y = {SH_ // 2 + QBASE} in the bottom row); each pose about the size of its box, all four at the same scale',
+                f'y = {SH_ // 2 + QBASE} in the bottom row); ALL FOUR AT THE SAME SCALE: the head, body, claws and tail keep their idle size in '
+                f'every pose; a bigger box only leaves room for spread wings, reaching limbs or a rearing/lunging pose - never enlarge the creature '
+                f'to fill its box',
                 f'at least {GAP} px of empty magenta between the creature and its quadrant\'s edges; nothing crosses into another quadrant']
     else:
         spec = ['ONE PNG, 1536x1024 (landscape), the same creature 4 times in ONE row, left to right: idle, wind-up, strike, hit, each centred '
                 'on its slot of guide_layout.png; never a 2x2 grid or a single pose',
-                f'the lowest pixel of every pose on y = {BASELINE}; each pose about the size of its box, all four at the same scale',
+                f'the lowest pixel of every pose on y = {BASELINE}; ALL FOUR AT THE SAME SCALE: the head, body, claws and tail keep their idle size '
+                f'in every pose; a bigger box only leaves room for spread wings, reaching limbs or a rearing/lunging pose - never enlarge the '
+                f'creature to fill its box',
                 f'at least {GAP} px of empty magenta between poses and from the border']
     spec += ['background: perfectly flat solid magenta #FF00FF everywhere (preferred; a transparent PNG is also accepted) - no gradient, floor, '
              'cast shadow or scenery', MAGENTA_EN,

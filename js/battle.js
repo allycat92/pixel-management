@@ -746,7 +746,7 @@ const Battle = (() => {
   }
 
   // 직업 시트(sheet/class/*)를 진영 색으로 바꿔 칠한 사본. 시트의 열쇠 색(meta.tint.outfit/accent)을
-  // look.tint 색으로 옮기되, 열쇠 색끼리의 밝기 차이(명암 단계)는 그대로 둔다. (시트·색 조합마다 한 번만 만든다)
+  // look.tint 색으로 옮기되, 열쇠 색끼리의 밝기 비(명암 단계)는 그대로 둔다 (toneRamp). (시트·색 조합마다 한 번만 만든다)
   const recolorCache = new Map();
   const hexRgb = (h) => { const n = parseInt(String(h).replace('#', '').slice(0, 6), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; };
   const lumOf = (c) => 0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2];
@@ -769,6 +769,30 @@ const Battle = (() => {
     }
     return t;
   }
+  // 열쇠 색 단계(명암) → 진영 색 단계. 진영 색의 밝기를 역할별 기준 밝기로 누르고(무릎 knee 위는 slope 만큼만 밝아진다, 아주 어두운 색은
+  // floor 까지 올린다) 그 밝기에 열쇠 색끼리의 밝기 비(명암 대비)를 곱한다. 밝은 단계는 TONE_HI 위에서 TONE_MAX 로 부드럽게 눌러
+  // (순서·간격은 남기고) 255 를 넘는 채널은 자르지 않고 같은 밝기의 회색 쪽으로 채도를 줄여 넣는다 — 예전처럼 곱한 뒤 자르면 밝은 두 단계가
+  // 같은 노랑으로 뭉개졌다 (금빛 용병단 #c58f1e, 자유도시 장식 #f2c94c). 채도도 TONE_CHROMA 까지.
+  // 장식(accent)은 얼굴 가리개(궁수 복면·도적 두건)에도 쓰이므로 무릎을 더 낮게: 밝은 장식 색이 얼굴을 노란 덩어리로 만들지 않게.
+  // tools/art/sheets.py tone_ramp 와 같은 규칙.
+  const TONE = { outfit: { floor: 50, knee: 130, slope: 0.5 }, accent: { floor: 64, knee: 100, slope: 0.4 } };
+  const TONE_HI = 170, TONE_MAX = 240, TONE_CHROMA = 150;
+  function toneRamp(list, target, role) {
+    const t = TONE[role] || TONE.outfit;
+    const lt = lumOf(target);
+    const base = lt > t.knee ? t.knee + (lt - t.knee) * t.slope : Math.max(lt, t.floor);
+    const mean = list.reduce((a, k) => a + lumOf(k), 0) / list.length || 1;
+    return list.map((k) => {
+      let want = base * lumOf(k) / mean;
+      if (want > TONE_HI) want = TONE_MAX - (TONE_MAX - TONE_HI) * Math.exp(-(want - TONE_HI) / (TONE_MAX - TONE_HI));
+      let c = lt > 1 ? target.map((v) => v * want / lt) : [want, want, want];
+      const mx = Math.max(...c), mn = Math.min(...c);
+      let f = mx - mn > TONE_CHROMA ? TONE_CHROMA / (mx - mn) : 1;          // 채도 한도
+      if (mx > 255) f = Math.min(f, (255 - want) / Math.max(1e-6, mx - want)); // 색 영역 안으로 (밝기 유지)
+      if (f < 1) c = c.map((v) => want + (v - want) * Math.max(0, f));
+      return c.map((v) => Math.max(0, Math.min(255, Math.round(v))));
+    });
+  }
   function sheetRecolor(sh, u) {
     const keys = sh.meta.tint;
     if (!keys || !sh.id.startsWith('sheet/class/')) return null;
@@ -787,12 +811,8 @@ const Battle = (() => {
       ['outfit', 'accent'].forEach((role) => {
         const list = (keys[role] || []).map(hexRgb);
         if (!list.length || !lt[role]) return;
-        const target = hexRgb(lt[role]);
-        const mean = list.reduce((a, k) => a + lumOf(k), 0) / list.length || 1;
-        list.forEach((k) => {
-          const f = lumOf(k) / mean;
-          map.set((k[0] << 16) | (k[1] << 8) | k[2], target.map((v) => Math.max(0, Math.min(255, Math.round(v * f)))));
-        });
+        const ramp = toneRamp(list, hexRgb(lt[role]), role);
+        list.forEach((k, j) => map.set((k[0] << 16) | (k[1] << 8) | k[2], ramp[j]));
       });
       for (let i = 0; i < d.length; i += 4) {
         if (!d[i + 3]) continue;
@@ -902,21 +922,30 @@ const Battle = (() => {
   // 시트 인물의 테두리: 어두운 땅(화산·늪 등)에서는 빛 받는 쪽(화면 왼쪽 위)에 밝은 테두리, 밝은 땅에서는 옅은 어두운 외곽선.
   // 어두운 갑옷의 대장이 어두운 땅에 묻히지 않게 한다. 사방 외곽선은 아주 옅게 (2배로 키운 화면에서 스티커처럼 떠 보이지 않게),
   // 빛 받는 쪽 테두리가 주로 윤곽을 살린다.
+  // 인물과 땅의 밝기 차이가 RIM_LOW 보다 작으면(회색·짙은 보라 제복이 어두운 화산 땅에, 모래색 도적이 사막에) 그만큼 테두리를 진하게:
+  // low 0(차이 충분) ~ 1(같은 밝기). 인물 밝기 = 지금 칸(바꿔 칠한 제복 포함)의 불투명 픽셀 평균 (opaqueBox 가 칸마다 한 번 잰다).
+  const RIM_LOW = 32;
+  function rimLow(view, fr) {
+    const lum = opaqueBox(fr).lum;
+    if (lum == null) return 0;
+    return Math.max(0, Math.min(1, (RIM_LOW - Math.abs(lum - view.groundLum)) / RIM_LOW));
+  }
   function drawRim(ctx, view, fr, X, Y, flip, tf) {
     if (!fr.sheet) return;
+    const low = rimLow(view, fr);
     if (view.groundLum < 95) {
-      ctx.globalAlpha = 0.5;
+      ctx.globalAlpha = 0.5 + 0.35 * low;
       blit(ctx, fr, X, Y, flip, edgeOf(fr, '#ffe8c8', flip ? 'tr' : 'tl'), tf);
-      ctx.globalAlpha = 0.12;
+      ctx.globalAlpha = 0.12 + 0.2 * low;
       blit(ctx, fr, X, Y, flip, edgeOf(fr, '#ffe8c8', 'ring'), tf);
     } else {
-      ctx.globalAlpha = 0.3;
+      ctx.globalAlpha = 0.3 + 0.3 * low;
       blit(ctx, fr, X, Y, flip, edgeOf(fr, '#120a16', 'ring'), tf);
     }
     ctx.globalAlpha = 1;
   }
 
-  // 그림이 실제로 차지하는 영역 (투명 여백 제외)
+  // 그림이 실제로 차지하는 영역 (투명 여백 제외)과 평균 밝기
   const boxCache = new Map();
   function opaqueBox(fr) {
     let b = boxCache.get(fr.key);
@@ -928,12 +957,14 @@ const Battle = (() => {
       const x = c.getContext('2d');
       x.drawImage(fr.img, fr.sx, fr.sy, fr.sw, fr.sh, 0, 0, fr.sw, fr.sh);
       const d = x.getImageData(0, 0, fr.sw, fr.sh).data;
-      let t = fr.sh, bo = -1, l = fr.sw, ri = -1;
+      let t = fr.sh, bo = -1, l = fr.sw, ri = -1, ls = 0, n = 0;
       for (let y = 0; y < fr.sh; y++) for (let xx = 0; xx < fr.sw; xx++) {
-        if (d[(y * fr.sw + xx) * 4 + 3] < 40) continue;
+        const i = (y * fr.sw + xx) * 4;
+        if (d[i + 3] < 40) continue;
         if (y < t) t = y; if (y > bo) bo = y; if (xx < l) l = xx; if (xx > ri) ri = xx;
+        ls += 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]; n++;
       }
-      if (bo >= 0) b = { top: t, bottom: bo + 1, left: l, right: ri + 1 };
+      if (bo >= 0) b = { top: t, bottom: bo + 1, left: l, right: ri + 1, lum: ls / n };  // lum: 불투명 픽셀 평균 밝기 (drawRim)
     } catch (e) { /* 읽을 수 없는 그림이면 칸 전체로 */ }
     boxCache.set(fr.key, b);
     return b;

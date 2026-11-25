@@ -51,7 +51,7 @@ STYLE (same as every character):
 
 DELIVERABLE:
   - ONE PNG, 1536x1024 (landscape), the same creature 4 times in ONE row, left to right: idle, wind-up, strike, hit, each centred on its slot of guide_layout.png; never a 2x2 grid or a single pose
-  - the lowest pixel of every pose on y = 870; each pose about the size of its box, all four at the same scale
+  - the lowest pixel of every pose on y = 870; ALL FOUR AT THE SAME SCALE: the head, body, claws and tail keep their idle size in every pose; a bigger box only leaves room for spread wings, reaching limbs or a rearing/lunging pose - never enlarge the creature to fill its box
   - at least 32 px of empty magenta between poses and from the border
   - background: perfectly flat solid magenta #FF00FF everywhere (preferred; a transparent PNG is also accepted) - no gradient, floor, cast shadow or scenery
   - NO figure pixel may be magenta-like: every colour of the figure must stay clearly away from the background key #FF00FF, RGB distance sqrt((255-R)^2 + G^2 + (255-B)^2) >= 150 (no hot pink, magenta or bright violet; purples stay dark blue-purple such as #5a4a7a). If you reduce the palette, reduce the FIGURE colours only and never merge a figure colour into the background colour

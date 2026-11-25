@@ -1076,6 +1076,10 @@
       "layout": "2x2",
       "cell": 112,
       "scale": 0.1654,
+      "pose_scale": {
+        "windup": 0.9,
+        "strike": 0.88
+      },
       "humanoid": false,
       "package": "art/requests/phase3/monster_gargoyle",
       "readme": "art/requests/phase3/monster_gargoyle/README.md",
