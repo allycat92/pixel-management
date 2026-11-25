@@ -366,3 +366,9 @@ PC 납품 `604e56c`의 비교 이미지와 GIF 네 프레임을 확인했다. GI
 ## 막힘 - sheet/captain/liberator
 
 카토 초안의 대기 컷에서 장검 날이 의상과 겹쳐 축소하면 날이 읽히지 않습니다. 해당 컷도 이미지 편집 도구가 처리하지 못해 납품하지 않았습니다. 장검 날이 바깥으로 분리된 대기 컷이 필요합니다. 한손 장검·방패 없음·양 손목의 끊어진 족쇄 조건은 유지합니다.
+
+## sheet/captain/admiral - 3단계 — 마렌
+CHECK: RESULT: PASS
+REFERENCES LOADED: portrait_800.jpg, guide_strip.png, guide_1_idle.png, guide_2_windup.png, guide_3_strike.png, guide_4_hit.png, Baren style anchor PNG, art/STYLE.md, latest handoff notes → ok.
+DEVIATIONS: (a) 마네킹의 활을 석궁으로 교체. 대기 자세의 석궁을 몸 바깥에서 조금 더 세워 들고, 발뒤꿈치 간격은 가이드와 약간 다릅니다. (b) 초상에 나오지 않는 하체·장화는 같은 남색/갈색으로 보완. (c) none.
+RISKS AT GAME SIZE: 준비 자세의 볼트·시위는 가늘어 어두운 배경에서 흐려질 수 있습니다. 조준과 사격 자세는 석궁 각도 차이로 구분되며, 조준 시 개머리판이 어깨와 맞닿습니다. 96px 칸·0.1654 변환은 통과했고, 로컬 유휴 루프는 기본 대체 동작으로 확인했습니다.
