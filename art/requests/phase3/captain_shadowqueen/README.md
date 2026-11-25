@@ -1,19 +1,8 @@
 # 니클라 — 그림자 길드의 여왕 (밤의 여왕) · `sheet/captain/shadowqueen`
 
-## THIS ROUND (overrides anything below that disagrees)
+## THIS ROUND
 
-```
-KIND: fix (pose 1 only). BASE: art/inbox/sheet_captain_shadowqueen.png @ 0cc6046 on art-inbox (accepted). Poses 2, 3 and 4 stay exactly
-as they are, pixel for pixel.
-FIX pose 1 (idle) only - owner, 2026-11-26: "why raise one sword in idle? With one blade hidden behind the body and held down it would
-look natural." Our request asked for the raised blade; that was our mistake.
-  - keep the same low, ready stance, face, hood, hair, cloak, size (idle ~420 px) and feet (soles on y=870);
-  - BOTH blades DOWN: near hand low at her side, its blade angled down and slightly forward, tip near the front knee, on the background;
-  - far arm hangs down behind her: the far blade is mostly hidden behind her body and cloak - only its lower part and tip show behind
-    the rear leg (here, and only here, a blade may be partly behind the body);
-  - relaxed but dangerous: shoulders loose, weight slightly forward - she can spring into the X wind-up of pose 2.
-DELIVER: art/inbox/sheet_captain_shadowqueen.png (overwrite, all four poses). NOTES "## sheet/captain/shadowqueen - 니클라 대기 자세".
-```
+(none - accepted 2026-11-26: twin swords `aa0687e`, strike `0cc6046`, idle with both blades down `e4df48d`. The text below is the original request.)
 
 도트 납품 대기열(`art/requests/dot_queue.md`) 항목. 규칙은 `art/requests/gpt_handoff_notes.md`가 우선이다.
 
