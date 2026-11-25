@@ -124,7 +124,7 @@ Known inconsistencies in the current drafts (`art/requests/phase3/<id>/concept.p
   the horse must have exactly one head) → Felix recolour (message C, wait for the owner's approval) → the five generic
   classes (message D) and the first eight monsters (message E): the owner's NovelAI design picks are in, every package has
   its `concept.png` and draft notes → later groups (promoted classes, heroes, the other monsters and bosses, the other captains).
-- The copy-paste messages for the image agent are in `art/requests/phase3_gpt.md`.
+- The image agent works from `art/requests/GPT_STANDING.md` + `dot_queue.md` section "지금 차례" (the old copy-paste messages A-I are in `art/requests/archive/phase3_gpt_log.md`).
 
 ## Magenta rule (every sheet)
 
@@ -177,7 +177,7 @@ EXACT colours (`js/battle.js` `sheetRecolor`: key -> faction colour x key lumina
 ## First monster batch (`monster_<key>`, message E)
 
 The eight most frequent non-boss monsters (counted from `Battle.plan` over simulated contracts; evidence in
-`phase3_gpt.md`): skeleton soldier, wild wolf, desert bandit, harpy, bandit, gargoyle, giant spider, wraith.
+`archive/phase3_gpt_log.md`): skeleton soldier, wild wolf, desert bandit, harpy, bandit, gargoyle, giant spider, wraith.
 
 - Same pixel scale as the humans (guide head 110 px) - monsters are never drawn bigger to fill the frame.
 - Humanoids (skeleton, desert bandit, bandit) use the posekit guide strip like the captains.
@@ -188,7 +188,7 @@ The eight most frequent non-boss monsters (counted from `Battle.plan` over simul
 - Ranged monsters (harpy, gargoyle, wraith) get a cast / shriek pose; the engine draws the projectile.
 
 First delivery (owner review): Felix recolour, the five classes and seven monsters were accepted and registered; the giant
-spider is redrawn (legs not countable as eight), and the accepted sheets get small re-exports (message F in `phase3_gpt.md`):
+spider is redrawn (legs not countable as eight), and the accepted sheets get small re-exports (message F in `archive/phase3_gpt_log.md`):
 archer / rogue face cloth to outfit keys, skeleton materials, wolf and gargoyle eye / mouth colours, desert bandit and harpy
 outline and dark value accents on sand. Breathing in idle is added by the pipeline (`sprite-gen breathe`), not drawn by GPT.
 

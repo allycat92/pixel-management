@@ -20,7 +20,7 @@
   `--outdir` and refuses `art/inbox/`, `assets/`, `art/requests/`; `sheets.py` refuses NovelAI images
   (`--allow-draft` is a test flag that always implies `--dry-run`).
 - GPT handoff (battle sprites): `python3 tools/art/handoff.py` builds `art/requests/phase3/<id>/` (concept, posekit guides,
-  `guide_strip.png` layout, README with the GPT prompt); rules in `art/requests/gpt_handoff_notes.md`, messages in `art/requests/phase3_gpt.md`.
+  `guide_strip.png` layout, README with the GPT prompt); rules in `art/requests/gpt_handoff_notes.md`; GPT works from `art/requests/GPT_STANDING.md` + `dot_queue.md` 「지금 차례」 (old per-item messages: `art/requests/archive/phase3_gpt_log.md`).
 - Procedural pixel characters: `tools/pixelart/` (`python3 tools/pixelart/baren.py OUT_DIR`).
 - Aseprite: never commit Aseprite binaries (EULA forbids redistribution). Build notes only.
 - PC Aseprite session: the owner's Windows PC runs official Aseprite + aseprite-mcp (pinned, reviewed commit; setup and the

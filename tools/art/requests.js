@@ -312,7 +312,7 @@ D.STARTER_CAPTAINS.forEach((key, i) => {
 //    열쇠 색과 정확히 같은 픽셀만, 대상 색 x (열쇠 밝기 / 같은 역할 열쇠 평균 밝기)로. 그래서 제복은 아래 열쇠 색으로만,
 //    평평하게(디더링·그라데이션 없이) 칠하고, 열쇠 색은 다른 곳에 쓰지 않는다. sheets.py 가 가까운 색(거리 34 안)을
 //    열쇠 색으로 되돌리고 register_sheet.py --tint-* 로 manifest 에 적는다. 꾸러미: art/requests/phase3/class_<key>/ (handoff.py).
-// 열쇠 색 (art/requests/phase3_gpt.md 메시지 D 와 같아야 한다):
+// 열쇠 색 (art/requests/archive/phase3_gpt_log.md 메시지 D 와 같아야 한다):
 //   제복 = 차분한 청회색 4단(어둠 → 밝음), 장식 = 옅은 청록 3단. 서로 43 이상, 금속(중성 회색)·가죽·피부와는 더 멀다.
 const CLASS_KEYS = {
   outfit: ['#263459', '#394b78', '#52679c', '#7489be'],
@@ -403,7 +403,7 @@ const MONSTERS = [
   ['리치의 망령', 'lich-wraith', 'large purple lich ghost in a crown and robes, green soul fire in its hands', 88, 112],
 ];
 // 4-1) 1차 몬스터 8종: 전투에 가장 자주 나오는 보통 몬스터 (보스·재앙 수장 제외). 근거: tools/sim/bot.js 12판 x 365일의
-//      의뢰 보고서 8315건을 Battle.plan 으로 펼쳐 센 몬스터 수 (art/requests/phase3_gpt.md 메시지 E). 상위 7종 + 늪지를 덮는 망령
+//      의뢰 보고서 8315건을 Battle.plan 으로 펼쳐 센 몬스터 수 (art/requests/archive/phase3_gpt_log.md 메시지 E). 상위 7종 + 늪지를 덮는 망령
 //      (8위 고블린 3746 < 해골 병사 … 거대 거미 5343, 망령은 전체 2646이지만 첫 90일에는 699 > 고블린 504). 고블린은 다음 묶음 맨 앞.
 //      사람형(해골 병사·사막 도적·산적)은 대장과 같은 posekit 가이드 띠, 나머지는 크기 상자 가이드(handoff.py). 모두 대장과 같은 배율.
 //      [이름, 순서, 배치, 칸, NovelAI 초안 시드, 초안 크기, 초안 태그(사람형이면 four heads tall), 머리 둘 금지(한 머리 생물), 덧붙일 부정어]
@@ -528,7 +528,7 @@ const md3 = [
   '- **모두 4등신** (머리 = 선 키의 1/4). 예전의 "3등신 치비" 규칙은 폐기.',
   '- 창설 후보 9명은 캐릭터마다 꾸러미 `art/requests/phase3/captain_<key>/` (concept.png · portrait.png · guide_1..4 · guide_strip.png · README.md)를 쓴다.',
   '  꾸러미는 `python3 tools/art/handoff.py`로 다시 만든다.',
-  '- 그림 쪽에 붙여 넣을 메시지: **`art/requests/phase3_gpt.md`** (메시지 A = 바렌만, B = 승인 후 나머지, C = 펠릭스 색 고치기, D = 일반 병과, E = 1차 몬스터).',
+  '- 그림 쪽이 일하는 법: **`art/requests/GPT_STANDING.md`** + `dot_queue.md` 「지금 차례」 (항목별 메시지는 끝났다 — 옛 메시지 A~I 는 `art/requests/archive/phase3_gpt_log.md`).',
   '',
   '## NovelAI로 만들 때 (코드 쪽, 사용자가 원할 때만)',
   '',

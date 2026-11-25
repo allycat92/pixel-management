@@ -30,7 +30,7 @@
 - **모두 4등신** (머리 = 선 키의 1/4). 예전의 "3등신 치비" 규칙은 폐기.
 - 창설 후보 9명은 캐릭터마다 꾸러미 `art/requests/phase3/captain_<key>/` (concept.png · portrait.png · guide_1..4 · guide_strip.png · README.md)를 쓴다.
   꾸러미는 `python3 tools/art/handoff.py`로 다시 만든다.
-- 그림 쪽에 붙여 넣을 메시지: **`art/requests/phase3_gpt.md`** (메시지 A = 바렌만, B = 승인 후 나머지, C = 펠릭스 색 고치기, D = 일반 병과, E = 1차 몬스터).
+- 그림 쪽이 일하는 법: **`art/requests/GPT_STANDING.md`** + `dot_queue.md` 「지금 차례」 (항목별 메시지는 끝났다 — 옛 메시지 A~I 는 `art/requests/archive/phase3_gpt_log.md`).
 
 ## NovelAI로 만들 때 (코드 쪽, 사용자가 원할 때만)
 

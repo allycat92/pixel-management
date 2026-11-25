@@ -56,7 +56,7 @@ OUTLINE = np.array([18, 16, 26], dtype=np.float32)
 POSES = {1: ['idle'], 2: ['idle', 'strike'], 3: ['idle', 'strike', 'hit'], 4: ['idle', 'windup', 'strike', 'hit']}
 DUR = {'idle': 240, 'windup': 150, 'strike': 260, 'hit': 220}
 FILE_RE = re.compile(r'^sheet_(captain|hero|class|monster)_([A-Za-z0-9-]+?)(?:@[A-Za-z0-9-]+)?\.png$')
-KEY_TOL = 34.0               # 열쇠 색으로 볼 RGB 거리 (열쇠 색끼리는 43 이상, 다른 재질과는 그보다 멀게 고른다: art/requests/phase3_gpt.md 메시지 D)
+KEY_TOL = 34.0               # 열쇠 색으로 볼 RGB 거리 (열쇠 색끼리는 43 이상, 다른 재질과는 그보다 멀게 고른다: art/requests/archive/phase3_gpt_log.md 메시지 D)
 SPOT_TOL = 40.0              # 점 색(눈 등)으로 볼 RGB 거리 — spot_layer
 SPOT_MIN = 0.3               # 게임 px 하나에서 점 색이 이만큼 덮으면 그 px 를 점 색으로
 SPOT_BLOB_MIN = 0.08         # 게임 해상도에서 이어진 점 색 덩어리의 덮인 넓이 합이 이보다 작으면 티끌로 보고 버린다 (원본 ~3px)

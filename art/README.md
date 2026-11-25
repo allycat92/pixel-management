@@ -57,7 +57,7 @@
 - 순서: 바렌(앵커) → 주인 승인 → 나머지 창설 후보 8명 → (선택) 로드릭 기마 → 펠릭스 색 고치기(메시지 C) → 펠릭스 승인 → 일반 병과 5(메시지 D)·1차 몬스터 8(메시지 E) → 납품 검토: 승인 13장 등록, 거대 거미 다시 그리기 + 일곱 장 손보기(메시지 F) → 그 뒤 특별 용병·나머지 몬스터·보스·나머지 대장·상급 직업.
 - **마젠타 규칙**: 그림의 모든 색은 배경 키 `#FF00FF`와 RGB 거리 150 이상 (펠릭스 첫 납품은 로브 밝은 면이 `#FF00FF`라 구멍이 뚫렸다).
 - 일반 병과(`class_<key>/`)·몬스터(`monster_<key>/`) 꾸러미도 `handoff.py`가 만든다. 사람이 아닌 몬스터는 posekit 대신 `guide_layout.png`(배치·크기 상자)와 `guide_scale.png`(같은 배율의 사람과 비교).
-- 주인이 그림 쪽에 붙여 넣을 메시지 A(바렌만) / B(승인 후 나머지): **`art/requests/phase3_gpt.md`**.
+- 그림 쪽(GPT)이 일하는 법: **`art/requests/GPT_STANDING.md`**(한 번 붙여 넣는 상시 지침) + `art/requests/dot_queue.md` 「지금 차례」. 옛 항목별 메시지 A~I 는 `art/requests/archive/phase3_gpt_log.md`.
 - 꾸러미 다시 만들기: `node tools/art/requests.js && python3 tools/art/handoff.py` (같은 입력 → 같은 파일).
   새 캐릭터는 `handoff.py`의 `CHARS`에 무기(posekit)·프레임·초안·고칠 점을 더한다. 직업·캐릭터별 posekit 자세 세트는 미뤘다 (일반 마네킹 + 가장 가까운 무기).
 

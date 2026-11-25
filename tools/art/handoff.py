@@ -927,19 +927,26 @@ CREATURES = {
 HEIGHT_EN = (f'head = {HEAD_PX} px for every character. Standing height would be {int(HEADS) * HEAD_PX} px ({int(HEADS)} heads), but the guide '
              'idle pose is crouched, so the measured idle top-of-head to sole is about {idle_px} px. Headgear (hats, helmets, plumes) '
              'and weapons are extra and not counted')
+# rules that every prompt states the same way (gpt_handoff_notes.md "Rules changed"): one definition, used by the character,
+# class and creature prompts and their self-checks, so a rule change cannot leave an old sentence in one generator
+RULE_MAGENTA_EN = 'every figure colour at RGB distance >= 170 from #FF00FF (hard minimum 150)'
+RULE_CRISP_EN = 'crisp pixel art: about 40 colours, hard pixel edges, no anti-aliased blending into the background'
+RULE_PROP_EN = 'in every pose keep the weapon / key prop outside the body silhouette, over the background, with a 1 px dark outline'
+RULE_SIZE_EN = ('the body keeps the guide size in every pose - when a wide pose does not fit, change the weapon angle or the stance, '
+                'never shrink the figure')
 STYLE_EN = [
     'high-quality HD pixel art for a modern 2D fantasy tactics game (crisp pixel clusters, no blur, no painterly rendering)',
     f'{int(HEADS)} heads tall (top of the hair to the chin = 1 head), exactly the proportions and limb lengths of the guide; NOT chibi, NOT realistic',
     'front three-quarter view, facing RIGHT; light from the upper left',
     'muted, desaturated, hue-shifted palette (shadows toward purple/blue, highlights toward warm yellow), flat cel shading with 2-3 tones',
-    'dark, desaturated, NON-black outline used selectively (no thick uniform black lineart), soft rim light on one side',
+    'dark, desaturated, NON-black outline around the whole silhouette (no thick uniform black lineart); ' + RULE_CRISP_EN,
     'readable at 1x game size (the idle figure becomes ~64 px tall on a dark battlefield): big clear shapes, strong silhouette, few tiny details',
 ]
 # the background key: sheets.py removes every colour near #FF00FF, so a figure colour there punches holes (Felix, 1st delivery)
 MAGENTA_EN = ('NO figure pixel may be magenta-like: every colour of the figure must stay clearly away from the background key #FF00FF, '
-              'RGB distance sqrt((255-R)^2 + G^2 + (255-B)^2) >= 150 (no hot pink, magenta or bright violet; purples stay dark blue-purple such as '
+              'RGB distance sqrt((255-R)^2 + G^2 + (255-B)^2) >= 170, hard minimum 150 (no hot pink, magenta or bright violet; purples stay dark blue-purple such as '
               '#5a4a7a). If you reduce the palette, reduce the FIGURE colours only and never merge a figure colour into the background colour')
-MAGENTA_CHECK_EN = 'no figure pixel is #FF00FF or magenta-like (every figure colour at RGB distance >= 150 from #FF00FF)'
+MAGENTA_CHECK_EN = 'no figure pixel is #FF00FF or magenta-like (' + RULE_MAGENTA_EN + ')'
 SPEC_EN = [
     'ONE PNG, 1536x1024 (landscape), the SAME character drawn 4 times in ONE row (1x4, never a 2x2 grid or a single pose), left to right: idle, wind-up, strike, hit',
     'each figure exactly where guide_strip.png has it: same size, same scale, same position, same limb lengths',
@@ -948,6 +955,8 @@ SPEC_EN = [
     'neighbour\'s column as in the guide, but never closer than that)',
     'background: perfectly flat solid magenta #FF00FF everywhere (preferred; a transparent PNG is also accepted) - no gradient, floor, cast shadow or scenery',
     MAGENTA_EN,
+    RULE_PROP_EN,
+    RULE_SIZE_EN,
     'NO text, labels, numbers, frames, grid lines, watermark; NO effects outside the body (no slash trails, sparks, dust, glow, motion lines, projectiles)',
 ]
 DONT_COPY_EN = ('from the concept draft take ONLY the design (costume pieces, colours, hair, face marks, headgear, weapon/shield type, '
@@ -961,6 +970,7 @@ CHECK_EN = [
     'every FIX applied',
     f'no text, floor, shadow, effects or projectiles; >= {GAP} px of magenta between figures and from the border',
     MAGENTA_CHECK_EN,
+    RULE_PROP_EN,
     'reads clearly when shrunk to 64 px tall on a dark background',
 ]
 KEYS_CHECK_EN = ('the uniform ({outfit}) uses ONLY the four outfit keys and the trim ({accent}) ONLY the three accent keys, exact hex, flat; '
@@ -1494,7 +1504,7 @@ def readme_creature(cid, C, it, slots, sinfo):
                 f'creature to fill its box',
                 f'at least {GAP} px of empty magenta between poses and from the border']
     spec += ['background: perfectly flat solid magenta #FF00FF everywhere (preferred; a transparent PNG is also accepted) - no gradient, floor, '
-             'cast shadow or scenery', MAGENTA_EN,
+             'cast shadow or scenery', MAGENTA_EN, RULE_SIZE_EN,
              'NO text, labels, numbers, guide lines or boxes, watermark; NO effects outside the body (no trails, sparks, dust, glow, motion lines, projectiles)']
     P.append('DELIVERABLE:\n' + '\n'.join(f'  - {x}' for x in spec))
     hb = C['boxes']['idle']
