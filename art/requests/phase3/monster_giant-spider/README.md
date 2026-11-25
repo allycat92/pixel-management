@@ -9,33 +9,33 @@
 ```
 TASK: draw the battle-sprite strip of a giant spider (거대 거미), a common monster. Save it as art/inbox/sheet_monster_giant-spider.png on the art-inbox branch (a new file there; do not rename). In a chat without repository access, return the PNG in the chat instead.
 
-BRIEF: a low, wide eight-legged spider in side three-quarter view; the body about knee-to-chest height of a human. Size: SMALL in the data but WIDE: about 520 x 220 px in idle (legs spread). Attack: melee: lunging bite with the fangs. Appears in: forest battles (the elf woods).
+BRIEF: a big hairy eight-legged spider seen from the side at ground level: legs arching high, body hanging low between them; the body about knee-to-chest height of a human. Size: SMALL in the data but WIDE: about 540 x 260 px in idle (legs spread). Attack: melee: a lunging BITE - the body lunges on planted legs and the fangs snap; the feet do not walk. Appears in: forest battles (the elf woods).
 
-DESIGN: dark purple carapace with a lighter purple sheen on the top edges; hairy, segmented legs; a cluster of red eyes; two big fangs.
+DESIGN: near-black purple, hairy abdomen and legs with a cool rim light; legs arching high above the body; a cluster of glossy red eyes; two pale fangs.
 
-COLOURS (keep close, muted): carapace dark purple #3b3346, darker #241b29, sheen #5a4a66; eyes red #d6455d.
+COLOURS (keep close, muted): body and legs purple-black #241b29, dark purple #3b3346, rim/sheen #6a5a80 (cool); eyes red #d6455d with a white glint; fangs pale bone #d8d0c0.
 
-FROM concept.png (the owner's pick, NovelAI draft #3; design only) TAKE: the big round abdomen behind a smaller head, the cluster of glossy red eyes (two big, several small) on the front of the head, short pedipalps at the mouth, long jointed legs in a wide arch, the low crouch.
+FROM concept.png (the owner's pick, NovelAI draft #3; design only) TAKE: the LOW, GROUND-LEVEL side view (camera at the spider's height, NOT from above); the huge round hairy abdomen behind a smaller head; the long legs ARCHING HIGH above the body - every knee higher than the carapace, so the body hangs low between them; the cluster of glossy red eyes (two big, several small) on the front of the head; short pedipalps and fangs at the mouth; the dense dark hair that makes the silhouette bristly; the menacing near-black purple mass.
 
 FIX (do not reproduce the draft here):
   - a common monster seen in large numbers: an ordinary member of its kind, no unique features, no crown, banner or trophy
   - exactly eight legs, one body, one head
-  - very dark: add a clear cool rim light along the top edges so it reads on the dark battlefield
-  - side three-quarter view: the four near legs in front of the body, the four FAR legs visible above and behind the body, one tone darker, so all eight can be counted
-  - REDRAW (message F): the first delivery's design, colours and rim light are approved (glossy dark purple body, grey segmented legs, red eye cluster, pale fangs, cool rim along the top edges) - keep them; only the legs change
-  - COUNT the legs in every pose before saving: 4 near + 4 far, each leg one clear unbroken line from body to tip, no leg hidden behind another, no two legs crossing or merging, gaps of magenta between neighbouring legs
-  - no web, no poison drip, no effect
+  - side view at ground level like concept.png: the four near legs arch in front of the body, the four FAR legs arch above and behind it, one tone darker, so all eight can be counted
+  - REDRAW 2 (owner feedback on the delivery 77c9e8f): that version lost what the owner liked in the draft - it was seen from above, flat and toy-like, with grey legs and a smooth body. Go back to concept.png: ground-level side view, high-arched dark hairy legs, big hairy abdomen, glossy red eyes. Keep only its readable leg spacing (eight countable legs)
+  - MOTION: the legs stay PLANTED in all four poses (no stepping or leg-waving); the action is in the body, head and fangs
+  - COUNT the legs in every pose before saving: 4 near + 4 far, each leg one clear line from body to tip, no two legs merging
+  - no web, no venom spray, no drip, no effect (the engine draws effects)
   - exactly EIGHT legs, four per side, in every pose (count them); the short pedipalps at the mouth are not legs and stay short
-  - the draft body and legs are near-black on a dark ground: dark purple carapace as in COLOURS plus a clear cool rim light along the top edges of the abdomen, the head and every leg
-  - the draft is covered in fine hair noise: a smooth carapace and only a few short spikes on the legs
-  - the draft legs are very long and thin: thicker, shorter legs so the idle fits about 520 x 220 px and every leg survives downscaling
-  - the draft fangs are hidden in the hair: two clear fangs
+  - the draft body and legs are near-black on a dark ground: keep them dark purple-black, but add a clear cool rim light along the top edges of the abdomen, the head and every leg arch
+  - KEEP THE HAIR, but as readable clumps: tufts of bristles along the silhouette edges of the abdomen and the legs (each tuft a few strong pixels at game size), not fine noise all over
+  - the draft legs are very thin: a little thicker so every leg survives downscaling, but keep them long and high-arched
+  - the draft fangs are hidden in the hair: two clear pale fangs under the eyes
 
 POSES (no posekit mannequin for this creature: the text gives the pose, guide_layout.png the place and size):
-  1. idle (top-left quadrant): crouched on eight legs, all eight planted and spread evenly like a fan, each one separately visible
-  2. attack wind-up (top-right quadrant): rearing up: ONLY the front two legs (the first leg on each side) raised high, the other 6 planted on the ground, fangs bared
-  3. attack strike (bottom-left quadrant): lunging forward: body low and stretched, front legs stabbing forward-down, fangs open
-  4. hit reaction (bottom-right quadrant): recoiling backward: body tipped back, the legs splayed stiffly outward (NOT curled under), all eight still countable
+  1. idle (top-left quadrant): low crouch on all eight high-arched legs, abdomen slightly raised, palps and fangs visible under the red eyes
+  2. attack wind-up (top-right quadrant): threat rear: legs stay planted, the front of the body and the head lift and draw BACK, fangs spread wide open, abdomen tucked down behind
+  3. attack strike (bottom-left quadrant): lunging bite: legs stay planted but bend, the whole body thrusts FORWARD and low, head and fangs snapping shut at the front
+  4. hit reaction (bottom-right quadrant): flinch: body jolts back and up, abdomen bobbing, legs stay planted and stiffen, all eight still countable
 
 REFERENCES (folder art/requests/phase3/monster_giant-spider/ on branch claude/dot-fantasy-management-game-saupju: https://github.com/allycat92/pixel-management/tree/claude/dot-fantasy-management-game-saupju/art/requests/phase3/monster_giant-spider ; in a chat they are the attached images):
   - art/inbox/sheet_captain_blademaster.png on the art-inbox branch (in a chat: the attached approved Baren sheet) = the APPROVED STYLE ANCHOR: match its rendering, outline, palette treatment and lighting
@@ -67,19 +67,19 @@ SELF-CHECK before saving (redraw if any fails):
   [ ] the same creature, colours and proportions in all four poses; every FIX applied
   [ ] no text, guide lines, boxes, floor, shadow, effects or projectiles
   [ ] no figure pixel is #FF00FF or magenta-like (every figure colour at RGB distance >= 150 from #FF00FF)
-  [ ] reads clearly when shrunk to game size (idle ~36 px tall) on a dark background
+  [ ] reads clearly when shrunk to game size (idle ~43 px tall) on a dark background
 ```
 
 ## 주인용 요약 (한국어)
 
 - 순서: 1차 몬스터 **7번째** (메시지 E) — 승인된 바렌 그림(`art-inbox` 브랜치의 `art/inbox/sheet_captain_blademaster.png`)의 화풍에 맞춘다.
-- **초안** `concept.png` = `art/concepts/monster_giant-spider/concept_03.png` (주인이 고른 #3, 디자인만) — 가져올 것: 작은 머리 뒤의 크고 둥근 배, 머리 앞의 반짝이는 붉은 눈 무리(큰 눈 둘 + 작은 눈 여럿), 입가의 짧은 더듬이다리, 넓게 휜 긴 마디 다리, 낮게 웅크린 자세.
-- **초안에서 고칠 것** (영어 블록 FIX 끝부분): 다리는 모든 자세에서 정확히 여덟(한쪽에 넷) — 입가의 짧은 더듬이다리는 다리가 아니고 짧게. 어두운 바닥에 묻히는 새까만 몸 → 짙은 보라 등껍질 + 배·머리·다리 윗선의 찬 림 라이트. 온몸의 잔털 노이즈 → 매끈한 등껍질, 다리에 짧은 가시 몇 개. 아주 길고 가는 다리 → 굵고 짧게(대기 약 520x220px, 줄여도 다리가 보이게). 털에 묻힌 독니 → 큰 독니 둘이 보이게.
-- 설계: 낮고 넓은 다리 여덟 개 거미, 짙은 보라 등껍질, 붉은 눈 무리, 큰 독니. 대기 약 520x220px. 물기 근접 공격.
-- 자세: ① 여덟 다리로 웅크림(여덟 개 모두 바닥에, 부채처럼 고르게 벌려 하나하나 보이게) ② 앞다리 둘(양쪽 첫 다리)만 높이 들고 일어섬, 나머지 여섯은 바닥 ③ 낮게 앞으로 덮치며 앞다리로 찍음 ④ 몸이 뒤로 젖혀지며 다리를 뻣뻣하게 벌림(오므리지 않음, 여덟 개가 보이게). 먼 쪽 다리 넷은 몸 위·뒤로 보이게 한 단계 어둡게.
+- **초안** `concept.png` = `art/concepts/monster_giant-spider/concept_03.png` (주인이 고른 #3, 디자인만) — 가져올 것: 땅높이 옆모습(위에서 내려다보지 않음), 작은 머리 뒤의 크고 털 많은 둥근 배, 무릎이 등보다 높게 솟은 긴 다리 아치(몸이 그 사이에 낮게 매달림), 반짝이는 붉은 눈 무리, 입가의 짧은 더듬이다리·독니, 털로 까칠한 실루엣, 위협적인 검보라 덩어리.
+- **초안에서 고칠 것** (영어 블록 FIX 끝부분): 다리는 모든 자세에서 정확히 여덟. 새까만 몸 → 검보라 유지 + 배·머리·다리 아치 윗선의 찬 림 라이트. 털은 살리되 실루엣 가장자리의 덩어리진 털 뭉치로(온몸 잔털 노이즈 아님). 아주 가는 다리 → 조금 굵게(높은 아치는 유지). 털에 묻힌 독니 → 옅은 독니 둘이 보이게.
+- 설계: 땅높이 옆에서 본 털 많은 큰 거미: 다리가 몸보다 높게 아치를 그리고 몸은 그 사이에 낮게. 검보라 몸·다리 + 찬 림 라이트, 반짝이는 붉은 눈 무리, 옅은 독니 둘. 대기 약 540x260px. 공격은 물기(다리는 그대로 디딘 채 몸이 덮친다).
+- 자세: 네 자세 모두 다리는 바닥에 그대로(걷거나 흔들지 않음), 움직임은 몸·머리·독니로. ① 높이 휜 여덟 다리로 낮게 웅크림 ② 위협: 머리·몸 앞쪽을 들어 뒤로 당기고 독니를 크게 벌림 ③ 물기: 다리를 굽히며 몸 전체가 앞으로 낮게 덮치고 독니가 닫힘 ④ 움찔: 몸이 뒤·위로 튀고 배가 출렁, 다리는 디딘 채 뻣뻣하게. 먼 쪽 다리 넷은 몸 위·뒤로 한 단계 어둡게.
 - 배치: 1536x1024 **2x2 격자** (768x512 네 칸: 왼쪽 위 대기, 오른쪽 위 공격 준비, 왼쪽 아래 공격 타격, 오른쪽 아래 피격), 칸마다 맨 아래 픽셀 y=461. posekit 마네킹 없음(사람 골격이 아니다) — 자세는 글로, 자리·크기는 `guide_layout.png`의 상자로.
-- 크기: 대장과 같은 배율(머리 110px). 자세별 상자 대기 520x220, 공격 준비 480x320, 공격 타격 600x260, 피격 500x240 px. `guide_scale.png` = 같은 배율의 4등신 사람(대기 약 407 px) 옆에 대기 상자. 게임에서는 약 16.5% (대기 약 36 px 높이).
-- 공격: melee: lunging bite with the fangs
+- 크기: 대장과 같은 배율(머리 110px). 자세별 상자 대기 540x260, 공격 준비 520x330, 공격 타격 600x280, 피격 520x290 px. `guide_scale.png` = 같은 배율의 4등신 사람(대기 약 407 px) 옆에 대기 상자. 게임에서는 약 16.5% (대기 약 43 px 높이).
+- 공격: melee: a lunging BITE - the body lunges on planted legs and the fangs snap; the feet do not walk
 - 결과 파일: `art/inbox/sheet_monster_giant-spider.png` (id `sheet/monster/거대 거미`; 이름은 게임의 몬스터 이름 그대로)
 
 ### 파일 (ChatGPT 웹이면 이 순서로 첨부)

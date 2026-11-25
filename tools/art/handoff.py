@@ -833,39 +833,47 @@ CREATURES = {
     'monster_giant-spider': dict(
         en='Giant spider', enemy='거대 거미', order=27, layout='2x2',
         concepts={'concept.png': 'monster_giant-spider/concept_03.png'},
-        draft=dict(keep=('the big round abdomen behind a smaller head, the cluster of glossy red eyes (two big, several small) on the front of '
-                         'the head, short pedipalps at the mouth, long jointed legs in a wide arch, the low crouch'),
+        draft=dict(keep=('the LOW, GROUND-LEVEL side view (camera at the spider\'s height, NOT from above); the huge round hairy abdomen behind a '
+                         'smaller head; the long legs ARCHING HIGH above the body - every knee higher than the carapace, so the body hangs low '
+                         'between them; the cluster of glossy red eyes (two big, several small) on the front of the head; short pedipalps and '
+                         'fangs at the mouth; the dense dark hair that makes the silhouette bristly; the menacing near-black purple mass'),
                    fix=['exactly EIGHT legs, four per side, in every pose (count them); the short pedipalps at the mouth are not legs and stay short',
-                        'the draft body and legs are near-black on a dark ground: dark purple carapace as in COLOURS plus a clear cool rim light '
-                        'along the top edges of the abdomen, the head and every leg',
-                        'the draft is covered in fine hair noise: a smooth carapace and only a few short spikes on the legs',
-                        'the draft legs are very long and thin: thicker, shorter legs so the idle fits about 520 x 220 px and every leg survives '
-                        'downscaling',
-                        'the draft fangs are hidden in the hair: two clear fangs']),
-        boxes=dict(idle=(520, 220), windup=(480, 320), strike=(600, 260), hit=(500, 240)),
-        brief=dict(silhouette='a low, wide eight-legged spider in side three-quarter view; the body about knee-to-chest height of a human',
-                   size='SMALL in the data but WIDE: about 520 x 220 px in idle (legs spread)', attack='melee: lunging bite with the fangs',
+                        'the draft body and legs are near-black on a dark ground: keep them dark purple-black, but add a clear cool rim light '
+                        'along the top edges of the abdomen, the head and every leg arch',
+                        'KEEP THE HAIR, but as readable clumps: tufts of bristles along the silhouette edges of the abdomen and the legs '
+                        '(each tuft a few strong pixels at game size), not fine noise all over',
+                        'the draft legs are very thin: a little thicker so every leg survives downscaling, but keep them long and high-arched',
+                        'the draft fangs are hidden in the hair: two clear pale fangs under the eyes']),
+        boxes=dict(idle=(540, 260), windup=(520, 330), strike=(600, 280), hit=(520, 290)),
+        brief=dict(silhouette='a big hairy eight-legged spider seen from the side at ground level: legs arching high, body hanging low between them; '
+                              'the body about knee-to-chest height of a human',
+                   size='SMALL in the data but WIDE: about 540 x 260 px in idle (legs spread)',
+                   attack='melee: a lunging BITE - the body lunges on planted legs and the fangs snap; the feet do not walk',
                    where='forest battles (the elf woods)'),
-        design=['dark purple carapace with a lighter purple sheen on the top edges', 'hairy, segmented legs', 'a cluster of red eyes', 'two big fangs'],
-        colours=[('carapace', 'dark purple #3b3346, darker #241b29, sheen #5a4a66'), ('eyes', 'red #d6455d')],
-        fix=['exactly eight legs, one body, one head', 'very dark: add a clear cool rim light along the top edges so it reads on the dark battlefield',
-             'side three-quarter view: the four near legs in front of the body, the four FAR legs visible above and behind the body, one tone '
-             'darker, so all eight can be counted',
-             'REDRAW (message F): the first delivery\'s design, colours and rim light are approved (glossy dark purple body, grey segmented '
-             'legs, red eye cluster, pale fangs, cool rim along the top edges) - keep them; only the legs change',
-             'COUNT the legs in every pose before saving: 4 near + 4 far, each leg one clear unbroken line from body to tip, no leg hidden '
-             'behind another, no two legs crossing or merging, gaps of magenta between neighbouring legs',
-             'no web, no poison drip, no effect'],
-        pose=dict(idle='crouched on eight legs, all eight planted and spread evenly like a fan, each one separately visible',
-                  windup='rearing up: ONLY the front two legs (the first leg on each side) raised high, the other 6 planted on the ground, fangs bared',
-                  strike='lunging forward: body low and stretched, front legs stabbing forward-down, fangs open',
-                  hit='recoiling backward: body tipped back, the legs splayed stiffly outward (NOT curled under), all eight still countable'),
-        ko=dict(brief='낮고 넓은 다리 여덟 개 거미, 짙은 보라 등껍질, 붉은 눈 무리, 큰 독니. 대기 약 520x220px. 물기 근접 공격.',
-                pose='① 여덟 다리로 웅크림(여덟 개 모두 바닥에, 부채처럼 고르게 벌려 하나하나 보이게) ② 앞다리 둘(양쪽 첫 다리)만 높이 들고 일어섬, 나머지 여섯은 바닥 '
-                     '③ 낮게 앞으로 덮치며 앞다리로 찍음 ④ 몸이 뒤로 젖혀지며 다리를 뻣뻣하게 벌림(오므리지 않음, 여덟 개가 보이게). 먼 쪽 다리 넷은 몸 위·뒤로 보이게 한 단계 어둡게.',
-                draft_keep='작은 머리 뒤의 크고 둥근 배, 머리 앞의 반짝이는 붉은 눈 무리(큰 눈 둘 + 작은 눈 여럿), 입가의 짧은 더듬이다리, 넓게 휜 긴 마디 다리, 낮게 웅크린 자세.',
-                draft_fix='다리는 모든 자세에서 정확히 여덟(한쪽에 넷) — 입가의 짧은 더듬이다리는 다리가 아니고 짧게. 어두운 바닥에 묻히는 새까만 몸 → 짙은 보라 등껍질 + 배·머리·다리 윗선의 찬 림 라이트. '
-                          '온몸의 잔털 노이즈 → 매끈한 등껍질, 다리에 짧은 가시 몇 개. 아주 길고 가는 다리 → 굵고 짧게(대기 약 520x220px, 줄여도 다리가 보이게). 털에 묻힌 독니 → 큰 독니 둘이 보이게.'),
+        design=['near-black purple, hairy abdomen and legs with a cool rim light', 'legs arching high above the body',
+                'a cluster of glossy red eyes', 'two pale fangs'],
+        colours=[('body and legs', 'purple-black #241b29, dark purple #3b3346, rim/sheen #6a5a80 (cool)'), ('eyes', 'red #d6455d with a white glint'),
+                 ('fangs', 'pale bone #d8d0c0')],
+        fix=['exactly eight legs, one body, one head',
+             'side view at ground level like concept.png: the four near legs arch in front of the body, the four FAR legs arch above and behind it, '
+             'one tone darker, so all eight can be counted',
+             'REDRAW 2 (owner feedback on the delivery 77c9e8f): that version lost what the owner liked in the draft - it was seen from above, flat '
+             'and toy-like, with grey legs and a smooth body. Go back to concept.png: ground-level side view, high-arched dark hairy legs, '
+             'big hairy abdomen, glossy red eyes. Keep only its readable leg spacing (eight countable legs)',
+             'MOTION: the legs stay PLANTED in all four poses (no stepping or leg-waving); the action is in the body, head and fangs',
+             'COUNT the legs in every pose before saving: 4 near + 4 far, each leg one clear line from body to tip, no two legs merging',
+             'no web, no venom spray, no drip, no effect (the engine draws effects)'],
+        pose=dict(idle='low crouch on all eight high-arched legs, abdomen slightly raised, palps and fangs visible under the red eyes',
+                  windup='threat rear: legs stay planted, the front of the body and the head lift and draw BACK, fangs spread wide open, '
+                         'abdomen tucked down behind',
+                  strike='lunging bite: legs stay planted but bend, the whole body thrusts FORWARD and low, head and fangs snapping shut at the front',
+                  hit='flinch: body jolts back and up, abdomen bobbing, legs stay planted and stiffen, all eight still countable'),
+        ko=dict(brief='땅높이 옆에서 본 털 많은 큰 거미: 다리가 몸보다 높게 아치를 그리고 몸은 그 사이에 낮게. 검보라 몸·다리 + 찬 림 라이트, 반짝이는 붉은 눈 무리, 옅은 독니 둘. 대기 약 540x260px. 공격은 물기(다리는 그대로 디딘 채 몸이 덮친다).',
+                pose='네 자세 모두 다리는 바닥에 그대로(걷거나 흔들지 않음), 움직임은 몸·머리·독니로. ① 높이 휜 여덟 다리로 낮게 웅크림 ② 위협: 머리·몸 앞쪽을 들어 뒤로 당기고 독니를 크게 벌림 '
+                     '③ 물기: 다리를 굽히며 몸 전체가 앞으로 낮게 덮치고 독니가 닫힘 ④ 움찔: 몸이 뒤·위로 튀고 배가 출렁, 다리는 디딘 채 뻣뻣하게. 먼 쪽 다리 넷은 몸 위·뒤로 한 단계 어둡게.',
+                draft_keep='땅높이 옆모습(위에서 내려다보지 않음), 작은 머리 뒤의 크고 털 많은 둥근 배, 무릎이 등보다 높게 솟은 긴 다리 아치(몸이 그 사이에 낮게 매달림), 반짝이는 붉은 눈 무리, 입가의 짧은 더듬이다리·독니, 털로 까칠한 실루엣, 위협적인 검보라 덩어리.',
+                draft_fix='다리는 모든 자세에서 정확히 여덟. 새까만 몸 → 검보라 유지 + 배·머리·다리 아치 윗선의 찬 림 라이트. 털은 살리되 실루엣 가장자리의 덩어리진 털 뭉치로(온몸 잔털 노이즈 아님). '
+                          '아주 가는 다리 → 조금 굵게(높은 아치는 유지). 털에 묻힌 독니 → 옅은 독니 둘이 보이게.'),
     ),
     'monster_wraith': dict(
         en='Wraith', enemy='망령', order=28, layout='1x4',
