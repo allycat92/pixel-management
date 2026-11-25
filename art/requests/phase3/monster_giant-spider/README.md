@@ -1,7 +1,7 @@
 # 몬스터 — 거대 거미 — GPT handoff (`monster_giant-spider`)
 
 > `python3 tools/art/handoff.py`로 자동 생성된다. 고칠 때는 `tools/art/handoff.py`의 `CREATURES`를 고치고 다시 실행.
-> 공통 규칙: `art/requests/gpt_handoff_notes.md`. 전체 순서·붙여 넣을 메시지: `art/requests/phase3_gpt.md` (메시지 E).
+> 공통 규칙: `art/requests/gpt_handoff_notes.md`. 일하는 법: `art/requests/GPT_STANDING.md` + `dot_queue.md`「지금 차례」.
 > 모든 자료는 브랜치 `claude/dot-fantasy-management-game-saupju`에서 읽고, 결과 PNG 는 `art-inbox` 브랜치에만 올린다.
 
 ## THIS ROUND (overrides anything below that disagrees)
@@ -9,7 +9,7 @@
 ```
 KIND: fix (full sheet). BASE: art/inbox/check_giant-spider_idle.png @ 555007c on art-inbox - your idle check PASSED on silhouette:
 keep exactly that body, leg layout and foot positions in all four poses. LOAD concept_800.jpg (the owner's draft).
-MUST SURVIVE (what the owner liked in the draft): ground-level side view; legs arching higher than the back; big hairy abdomen;
+MUST SURVIVE (Claude's reading of why the owner rejected the last redraw - being confirmed with the owner): ground-level side view; legs arching higher than the back; big hairy abdomen;
 bristly silhouette; glossy red eye cluster; near-black purple mass.
 TWO FIXES in all four poses:
   1. EYES: dark purple now, 0 red pixels at game size. Make them GLOSSY BRIGHT RED #d6455d with one white glint each: two big eyes

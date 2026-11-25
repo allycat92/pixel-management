@@ -22,17 +22,13 @@
       "Bash(git -C ../pixel-management-inbox push origin art-inbox)",
       "Bash(git -C ../pixel-management-inbox rebase --abort)",
       "Bash(git -C ../pixel-management-inbox rebase --continue)",
-      "Bash(git add:*)",
-      "Bash(git commit:*)",
-      "Bash(git push origin art-inbox)",
-      "Bash(git rebase --abort)",
-      "Bash(git rebase --continue)",
       "Bash(git worktree list:*)",
       "Bash(uv run:*)",
       "Bash(ls:*)",
       "Bash(dir:*)",
       "mcp__aseprite",
-      "Bash(cd:*)"
+      "Edit(~/Documents/pm-pc-scratch/**)",
+      "Write(~/Documents/pm-pc-scratch/**)"
     ],
     "deny": [
       "mcp__aseprite__run_lua_script",
@@ -48,11 +44,13 @@
       "Write(~/Documents/pixel-management/**)"
     ],
     "additionalDirectories": [
-      "~/Documents/pixel-management-inbox"
+      "~/Documents/pixel-management-inbox",
+      "~/Documents/pm-pc-scratch"
     ]
   },
   "env": {
     "ASEPRITE_PATH": "D:/Program Files (x86)/Steam/steamapps/common/Aseprite/Aseprite.exe",
-    "PYTHONUTF8": "1"
+    "PYTHONUTF8": "1",
+    "GIT_EDITOR": "true"
   }
 }

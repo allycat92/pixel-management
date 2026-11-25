@@ -9,7 +9,7 @@
 | `portrait_800.jpg` | 승인된 초상화(긴 변 800px, 가벼운 사본 — **이것을 불러온다**) — 얼굴·머리·옷의 **디자인** 기준 |
 | `portrait.png` | 같은 초상화의 원본(약 1MB, 불러오지 못해도 된다) |
 
-- 납품 파일: art-inbox 브랜치 `art/inbox/sheet_captain_dragonslayer.png` + `art/inbox/NOTES.md`의 「3단계 — 지크린데」 절.
+- 납품 파일: art-inbox 브랜치 `art/inbox/sheet_captain_dragonslayer.png` + `art/inbox/NOTES.md`의 「sheet/captain/dragonslayer - 지크린데」 절.
 - 화풍 기준(앵커): art-inbox 의 `art/inbox/sheet_captain_blademaster.png`.
 - 요점: 지크린데: 30대, 사납게 퍼진 긴 금발+옆 땋은 머리, 이마·뺨 흉터, 투구 없음(초상화 우선), 진홍 용비늘 갑옷+주황 금테, 금 코등이 양손 대검. 가이드 katana(그롬과 같은 대검 자세). 칼날 몸 바깥, 불·용 효과 없음, 비늘은 큰 덩어리로.
 - 게임 칸: 96px — 어떤 자세도(든 무기·모자 포함) y=340 위로 올라가지 않게 (자세 높이 530px 이하).
@@ -45,6 +45,6 @@ SELF-CHECK before saving: 4 poses in one row · soles on y=870 · highest pixel 
 flat #FF00FF background · no figure colour within distance 170 of #FF00FF · ~40 colours with hard edges.
 Run `python3 tools/art/check_delivery.py art/inbox/sheet_captain_dragonslayer.png` if you can and paste its RESULT line.
 
-DELIVERY: commit art/inbox/sheet_captain_dragonslayer.png and add a section "3단계 — 지크린데" to art/inbox/NOTES.md using the template in art/requests/GPT_STANDING.md
+DELIVERY: commit art/inbox/sheet_captain_dragonslayer.png and add a section "## sheet/captain/dragonslayer - 지크린데" to art/inbox/NOTES.md using the template in art/requests/GPT_STANDING.md
 (CHECK / REFERENCES LOADED / DEVIATIONS / RISKS AT GAME SIZE / PROPOSALS). Push to art-inbox only. Do not touch files outside art/inbox/. Then stop.
 ```

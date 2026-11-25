@@ -9,7 +9,7 @@
 | `portrait_800.jpg` | 승인된 초상화(긴 변 800px, 가벼운 사본 — **이것을 불러온다**) — 얼굴·머리·옷의 **디자인** 기준 |
 | `portrait.png` | 같은 초상화의 원본(약 1MB, 불러오지 못해도 된다) |
 
-- 납품 파일: art-inbox 브랜치 `art/inbox/sheet_captain_frostjarl.png` + `art/inbox/NOTES.md`의 「3단계 — 비요른」 절.
+- 납품 파일: art-inbox 브랜치 `art/inbox/sheet_captain_frostjarl.png` + `art/inbox/NOTES.md`의 「sheet/captain/frostjarl - 비요른」 절.
 - 화풍 기준(앵커): art-inbox 의 `art/inbox/sheet_captain_blademaster.png`.
 - 요점: 비요른: 금 고리로 묶은 앞 땋은머리 둘, 금발 긴 머리·수염, 뺨 흉터, 투구 없음, 은백 테 청회색 갑옷, 어깨 눈송이 문장, 흰 서리 모피 망토. 무기는 이야기·스킬대로 양손 수염도끼(주인 확정 2026-11-25 — 초상화 등의 칼자루는 그리지 않음). 서리는 색으로만, 얼음 빛·입자 없음.
 - 게임 칸: 96px — 어떤 자세도(든 무기·모자 포함) y=340 위로 올라가지 않게 (자세 높이 530px 이하).
@@ -46,6 +46,6 @@ SELF-CHECK before saving: 4 poses in one row · soles on y=870 · highest pixel 
 flat #FF00FF background · no figure colour within distance 170 of #FF00FF · ~40 colours with hard edges.
 Run `python3 tools/art/check_delivery.py art/inbox/sheet_captain_frostjarl.png` if you can and paste its RESULT line.
 
-DELIVERY: commit art/inbox/sheet_captain_frostjarl.png and add a section "3단계 — 비요른" to art/inbox/NOTES.md using the template in art/requests/GPT_STANDING.md
+DELIVERY: commit art/inbox/sheet_captain_frostjarl.png and add a section "## sheet/captain/frostjarl - 비요른" to art/inbox/NOTES.md using the template in art/requests/GPT_STANDING.md
 (CHECK / REFERENCES LOADED / DEVIATIONS / RISKS AT GAME SIZE / PROPOSALS). Push to art-inbox only. Do not touch files outside art/inbox/. Then stop.
 ```

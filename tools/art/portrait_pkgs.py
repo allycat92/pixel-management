@@ -91,7 +91,7 @@ def readme(kind, it, S, info, spec_rel):
         shrink_en = (f"\nNOTE: guide_strip.png is drawn at {info['px_per_head']} px/head (the four guide poses did not fit at 110); "
                      "keep head = 110 px anyway and use the spare magenta.")
     # 게임 칸 예산: 칸 96 → 자세 높이 90 게임 px = 원본 544px. 든 무기가 이보다 높으면 등록할 때 줄이거나 칸을 키워야 한다 (아멜리 사례).
-    cell = S.get('cell') or (112 if S.get('size_class', 'normal') != 'normal' else 96)
+    cell = it.get('cell') or 96     # 칸은 요청서(phase3.json ← requests.js CELL_112) 한 곳에서만 정한다
     tall = int((cell - 6) / 0.1654) - 14
     top_y = 870 - tall
     wc = S.get('weapon_confirmed')
@@ -119,7 +119,7 @@ def readme(kind, it, S, info, spec_rel):
 | `portrait_800.jpg` | 승인된 초상화(긴 변 800px, 가벼운 사본 — **이것을 불러온다**) — 얼굴·머리·옷의 **디자인** 기준 |
 | `portrait.png` | 같은 초상화의 원본(약 1MB, 불러오지 못해도 된다) |
 
-- 납품 파일: art-inbox 브랜치 `art/inbox/{fname}` + `art/inbox/NOTES.md`의 「3단계 — {ko}」 절.
+- 납품 파일: art-inbox 브랜치 `art/inbox/{fname}` + `art/inbox/NOTES.md`의 「{it['id']} - {ko}」 절.
 - 화풍 기준(앵커): art-inbox 의 `art/inbox/sheet_captain_blademaster.png`.
 - 요점: {S.get('ko_notes', '').strip()}{size_ko}{shrink_ko}
 - 게임 칸: {cell}px — 어떤 자세도(든 무기·모자 포함) y={top_y} 위로 올라가지 않게 (자세 높이 {tall}px 이하).
@@ -155,7 +155,7 @@ SELF-CHECK before saving: 4 poses in one row · soles on y=870 · highest pixel 
 flat #FF00FF background · no figure colour within distance 170 of #FF00FF · ~40 colours with hard edges.
 Run `python3 tools/art/check_delivery.py art/inbox/{fname}` if you can and paste its RESULT line.
 
-DELIVERY: commit art/inbox/{fname} and add a section "3단계 — {ko}" to art/inbox/NOTES.md using the template in art/requests/GPT_STANDING.md
+DELIVERY: commit art/inbox/{fname} and add a section "## {it['id']} - {ko}" to art/inbox/NOTES.md using the template in art/requests/GPT_STANDING.md
 (CHECK / REFERENCES LOADED / DEVIATIONS / RISKS AT GAME SIZE / PROPOSALS). Push to art-inbox only. Do not touch files outside art/inbox/. Then stop.
 ```
 """

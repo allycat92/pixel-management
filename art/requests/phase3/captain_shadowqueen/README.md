@@ -9,7 +9,7 @@
 | `portrait_800.jpg` | 승인된 초상화(긴 변 800px, 가벼운 사본 — **이것을 불러온다**) — 얼굴·머리·옷의 **디자인** 기준 |
 | `portrait.png` | 같은 초상화의 원본(약 1MB, 불러오지 못해도 된다) |
 
-- 납품 파일: art-inbox 브랜치 `art/inbox/sheet_captain_shadowqueen.png` + `art/inbox/NOTES.md`의 「3단계 — 니클라」 절.
+- 납품 파일: art-inbox 브랜치 `art/inbox/sheet_captain_shadowqueen.png` + `art/inbox/NOTES.md`의 「sheet/captain/shadowqueen - 니클라」 절.
 - 화풍 기준(앵커): art-inbox 의 `art/inbox/sheet_captain_blademaster.png`.
 - 요점: 니클라: 진홍 테 짙은 자주빛 후드·망토, 금 문장 걸쇠, 긴 청흑색 웨이브 머리, 루비 귀걸이·펜던트, 금 버클 가죽 띠. 손에는 붉은 손잡이 긴 단검 하나, 두 번째 단검은 등에 꽂혀 손잡이만 보이게. 날은 중성 밝은 강철색·1.5배 길이·몸 바깥 배경 위(리라 교훈). 검정 대신 숯빛 보라 + 림 라이트, 빨강은 분홍 쪽으로 가지 않게. 그림자 효과 없음.
 - 게임 칸: 96px — 어떤 자세도(든 무기·모자 포함) y=340 위로 올라가지 않게 (자세 높이 530px 이하).
@@ -45,6 +45,6 @@ SELF-CHECK before saving: 4 poses in one row · soles on y=870 · highest pixel 
 flat #FF00FF background · no figure colour within distance 170 of #FF00FF · ~40 colours with hard edges.
 Run `python3 tools/art/check_delivery.py art/inbox/sheet_captain_shadowqueen.png` if you can and paste its RESULT line.
 
-DELIVERY: commit art/inbox/sheet_captain_shadowqueen.png and add a section "3단계 — 니클라" to art/inbox/NOTES.md using the template in art/requests/GPT_STANDING.md
+DELIVERY: commit art/inbox/sheet_captain_shadowqueen.png and add a section "## sheet/captain/shadowqueen - 니클라" to art/inbox/NOTES.md using the template in art/requests/GPT_STANDING.md
 (CHECK / REFERENCES LOADED / DEVIATIONS / RISKS AT GAME SIZE / PROPOSALS). Push to art-inbox only. Do not touch files outside art/inbox/. Then stop.
 ```

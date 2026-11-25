@@ -148,6 +148,7 @@ def main():
     ap.add_argument('--list', action='store_true', help='show what is new on art-inbox and stop')
     ap.add_argument('--work', help='scratch folder (default: a new temp folder)')
     ap.add_argument('--no-base', action='store_true', help='a first delivery: do not look for a previous version')
+    ap.add_argument('--base-rev', help='touch-ups: the 바탕 hash of the queue row (warns when the delivery was not made on it)')
     ap.add_argument('--aseprite-exe', default=os.environ.get('ASEPRITE_PATH') or (HEADLESS if os.path.exists(HEADLESS) else 'aseprite'))
     ap.add_argument('--no-fetch', action='store_true')
     a = ap.parse_args()
@@ -155,11 +156,15 @@ def main():
         git('fetch', '-q', 'origin', 'art-inbox')
     if a.list or not a.stem:
         return list_new()
-    stem = os.path.basename(a.stem)[:-4] if a.stem.endswith('.png') else os.path.basename(a.stem)
+    # a name under art/inbox: "sheet_monster_wolf", "guides/walk_base/walk_base_a", "check_sheet_monster_giant-spider_idle"
+    rel = a.stem[len('art/inbox/'):] if a.stem.startswith('art/inbox/') else a.stem
+    rel = rel[:-4] if rel.endswith('.png') else rel
+    stem = os.path.basename(rel)
+    sub = os.path.dirname(rel)
     work = a.work or tempfile.mkdtemp(prefix='receive-')
     os.makedirs(work, exist_ok=True)
     tip = git('rev-parse', 'origin/art-inbox')
-    path = f'art/inbox/{stem}.png'
+    path = f'art/inbox/{rel}.png'
     new = os.path.join(work, 'new', stem + '.png')
     os.makedirs(os.path.dirname(new), exist_ok=True)
     if not show('origin/art-inbox', path, new):
@@ -172,15 +177,20 @@ def main():
         outside = [p for p in touched if not p.startswith('art/inbox/')]
         print(f'- commit {revs[0]} touched {len(touched)} path(s)' + (f' — OUTSIDE art/inbox/: {outside}' if outside else ', all under art/inbox/'))
     base = None
-    if not a.no_base and len(revs) > 1:
+    want = a.base_rev or (revs[1] if len(revs) > 1 else None)
+    if a.base_rev and len(revs) > 1 and not (revs[1].startswith(a.base_rev[:7]) or a.base_rev.startswith(revs[1][:7])):
+        print(f'- BASE MISMATCH: the queue says {a.base_rev}, but the version before this delivery is {revs[1]} '
+              '(someone redelivered in between - the touch-up may sit on old art)')
+    if not a.no_base and want:
         base = os.path.join(work, 'base', stem + '.png')
         os.makedirs(os.path.dirname(base), exist_ok=True)
-        if show(revs[1], path, base):
-            print(f'- base: previous version {revs[1]}')
+        if show(want, path, base):
+            print(f'- base: version at {want}')
         else:
             base = None
     ase = os.path.join(work, 'new', stem + '.aseprite')
-    has_ase = show('origin/art-inbox', f'art/inbox/aseprite/{stem}.aseprite', ase)
+    # touch-ups keep the source under aseprite/, guides beside the PNG
+    has_ase = show('origin/art-inbox', f'art/inbox/{rel}.aseprite', ase) or show('origin/art-inbox', f'art/inbox/aseprite/{stem}.aseprite', ase)
     cmd = [sys.executable, os.path.join(ROOT, 'tools', 'art', 'check_delivery.py'), new]
     if base:
         cmd += ['--base', base]
@@ -188,6 +198,12 @@ def main():
         cmd += ['--aseprite', ase, '--aseprite-exe', a.aseprite_exe]
     r = subprocess.run(cmd, capture_output=True)
     print(r.stdout.decode('utf-8', 'replace').rstrip())
+    if sub.startswith('guides') or stem.startswith('check_'):
+        # pose guides and one-pose idle checks are not game sheets: checks only, then look at the PNG itself
+        print(f'- not a game sheet (guide / idle check): no conversion. Look at {new}')
+        print(f'- work folder: {work}')
+        print('- after judging: git checkout origin/art-inbox -- <the delivered paths> art/inbox/NOTES.md')
+        return r.returncode
     extra, _ = sheet_args(stem)
     sheet, previews, notes = dry_run(new, os.path.join(work, 'sheet_new'), extra)
     print('- convert (dry run' + (', ' + ' '.join(extra) if extra else ', phase3.json settings') + '):')

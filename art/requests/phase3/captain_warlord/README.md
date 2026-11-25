@@ -9,7 +9,7 @@
 | `portrait_800.jpg` | 승인된 초상화(긴 변 800px, 가벼운 사본 — **이것을 불러온다**) — 얼굴·머리·옷의 **디자인** 기준 |
 | `portrait.png` | 같은 초상화의 원본(약 1MB, 불러오지 못해도 된다) |
 
-- 납품 파일: art-inbox 브랜치 `art/inbox/sheet_captain_warlord.png` + `art/inbox/NOTES.md`의 「3단계 — 가르마크」 절.
+- 납품 파일: art-inbox 브랜치 `art/inbox/sheet_captain_warlord.png` + `art/inbox/NOTES.md`의 「sheet/captain/warlord - 가르마크」 절.
 - 화풍 기준(앵커): art-inbox 의 `art/inbox/sheet_captain_blademaster.png`.
 - 요점: 가르마크: 거구(그래도 4등신·같은 배율), 붉은 장발과 땋은 붉은 수염, 코·뺨 흉터, 뿔 달린 철투구, 회색 늑대 모피, 진홍 망토, 사자 걸쇠. 무기는 주인 결정(2026-11-25)으로 스킬명대로 양손 전쟁 도끼(가이드 katana 자리) — 초상화 등의 대검은 그리지 않는다. 도끼날은 몸 바깥, 회색 강철+진한 외곽선.
 - 게임 칸: 96px — 어떤 자세도(든 무기·모자 포함) y=340 위로 올라가지 않게 (자세 높이 530px 이하).
@@ -46,6 +46,6 @@ SELF-CHECK before saving: 4 poses in one row · soles on y=870 · highest pixel 
 flat #FF00FF background · no figure colour within distance 170 of #FF00FF · ~40 colours with hard edges.
 Run `python3 tools/art/check_delivery.py art/inbox/sheet_captain_warlord.png` if you can and paste its RESULT line.
 
-DELIVERY: commit art/inbox/sheet_captain_warlord.png and add a section "3단계 — 가르마크" to art/inbox/NOTES.md using the template in art/requests/GPT_STANDING.md
+DELIVERY: commit art/inbox/sheet_captain_warlord.png and add a section "## sheet/captain/warlord - 가르마크" to art/inbox/NOTES.md using the template in art/requests/GPT_STANDING.md
 (CHECK / REFERENCES LOADED / DEVIATIONS / RISKS AT GAME SIZE / PROPOSALS). Push to art-inbox only. Do not touch files outside art/inbox/. Then stop.
 ```

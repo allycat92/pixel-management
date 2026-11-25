@@ -9,7 +9,7 @@
 | `portrait_800.jpg` | 승인된 초상화(긴 변 800px, 가벼운 사본 — **이것을 불러온다**) — 얼굴·머리·옷의 **디자인** 기준 |
 | `portrait.png` | 같은 초상화의 원본(약 1MB, 불러오지 못해도 된다) |
 
-- 납품 파일: art-inbox 브랜치 `art/inbox/sheet_captain_archmagus.png` + `art/inbox/NOTES.md`의 「3단계 — 에우리아」 절.
+- 납품 파일: art-inbox 브랜치 `art/inbox/sheet_captain_archmagus.png` + `art/inbox/NOTES.md`의 「sheet/captain/archmagus - 에우리아」 절.
 - 화풍 기준(앵커): art-inbox 의 `art/inbox/sheet_captain_blademaster.png`.
 - 요점: 에우리아: 주름진 노년 여인, 아주 긴 흰(연보라 음영) 웨이브 머리, 별 장식 금 서클릿, 별 귀걸이, 금별 수놓은 짙은 남색 로브, 연보라 안감, 금 팔각별 브로치. 무기는 금 초승달 지팡이(어두운 원반 + 작은 별, 빛 없음). 모자 없음(초상화대로). 떠다니는 별·마법진 금지, 시전 손은 빈 손바닥.
 - 게임 칸: 96px — 어떤 자세도(든 무기·모자 포함) y=340 위로 올라가지 않게 (자세 높이 530px 이하).
@@ -45,6 +45,6 @@ SELF-CHECK before saving: 4 poses in one row · soles on y=870 · highest pixel 
 flat #FF00FF background · no figure colour within distance 170 of #FF00FF · ~40 colours with hard edges.
 Run `python3 tools/art/check_delivery.py art/inbox/sheet_captain_archmagus.png` if you can and paste its RESULT line.
 
-DELIVERY: commit art/inbox/sheet_captain_archmagus.png and add a section "3단계 — 에우리아" to art/inbox/NOTES.md using the template in art/requests/GPT_STANDING.md
+DELIVERY: commit art/inbox/sheet_captain_archmagus.png and add a section "## sheet/captain/archmagus - 에우리아" to art/inbox/NOTES.md using the template in art/requests/GPT_STANDING.md
 (CHECK / REFERENCES LOADED / DEVIATIONS / RISKS AT GAME SIZE / PROPOSALS). Push to art-inbox only. Do not touch files outside art/inbox/. Then stop.
 ```

@@ -9,7 +9,7 @@
 | `portrait_800.jpg` | 승인된 초상화(긴 변 800px, 가벼운 사본 — **이것을 불러온다**) — 얼굴·머리·옷의 **디자인** 기준 |
 | `portrait.png` | 같은 초상화의 원본(약 1MB, 불러오지 못해도 된다) |
 
-- 납품 파일: art-inbox 브랜치 `art/inbox/sheet_captain_liberator.png` + `art/inbox/NOTES.md`의 「3단계 — 카토」 절.
+- 납품 파일: art-inbox 브랜치 `art/inbox/sheet_captain_liberator.png` + `art/inbox/NOTES.md`의 「sheet/captain/liberator - 카토」 절.
 - 화풍 기준(앵커): art-inbox 의 `art/inbox/sheet_captain_blademaster.png`.
 - 요점: 카토: 민머리·흉터·근육질 검투사, 맨상체에 가죽 띠, 어깨 위 와인색 천. 무기는 한손 장검 하나(검+방패 가이드, 방패 없음). 빈손은 족쇄 찬 주먹. 양 손목 족쇄는 사슬 2~3고리만(휘두르는 사슬 없음). 칼날은 늘 몸 바깥.
 - 게임 칸: 96px — 어떤 자세도(든 무기·모자 포함) y=340 위로 올라가지 않게 (자세 높이 530px 이하).
@@ -45,6 +45,6 @@ SELF-CHECK before saving: 4 poses in one row · soles on y=870 · highest pixel 
 flat #FF00FF background · no figure colour within distance 170 of #FF00FF · ~40 colours with hard edges.
 Run `python3 tools/art/check_delivery.py art/inbox/sheet_captain_liberator.png` if you can and paste its RESULT line.
 
-DELIVERY: commit art/inbox/sheet_captain_liberator.png and add a section "3단계 — 카토" to art/inbox/NOTES.md using the template in art/requests/GPT_STANDING.md
+DELIVERY: commit art/inbox/sheet_captain_liberator.png and add a section "## sheet/captain/liberator - 카토" to art/inbox/NOTES.md using the template in art/requests/GPT_STANDING.md
 (CHECK / REFERENCES LOADED / DEVIATIONS / RISKS AT GAME SIZE / PROPOSALS). Push to art-inbox only. Do not touch files outside art/inbox/. Then stop.
 ```

@@ -13,7 +13,7 @@
    W1·W5 의 뒤꿈치 닿기와 W4·W8 의 발끝 밀기가 게임 크기에서 읽히는가, 머리가 쪼는 것처럼 보이지 않는가.
 3. SPEC 3절(캔버스)·4절(레이어)·5절(수치)을 지킨다. 뼈 길이는 바꾸지 않는다.
 4. 납품: art-inbox `art/inbox/guides/walk_base/` 에 `walk_base_a.png`, `walk_base_b.png`, `walk_base_a.aseprite`, `walk_base_b.aseprite`, `walk_base_preview.gif`.
-   NOTES 절 「뼈대 — 걷기 v2 (Aseprite)」: 바꾼 프레임과 수치(머리 단위 또는 px), 참고한 자료, 검사 한 줄. 커밋 `Refine walk base v2 (Aseprite)`.
+   NOTES 절 「뼈대 — 걷기 v2 (Aseprite)」: 바꾼 프레임과 수치(머리 단위 또는 px), 참고한 자료, 검사 한 줄. 커밋 `Touch up guide walk_base (Aseprite)`.
    손댈 곳이 없다고 판단하면 그렇게 적고 `.aseprite` 와 GIF 만 올려도 된다.
 
 ## 참고

@@ -6,4 +6,4 @@
 
 ## 이 PC 의 경로
 - Aseprite: `D:\Program Files (x86)\Steam\steamapps\common\Aseprite\Aseprite.exe` (설정의 `ASEPRITE_PATH` 에도 들어 있다 — 직접 부르지 않는다)
-- 게임 폴더: `C:\Users\doyoung\Documents\pixel-management` / 납품 폴더: `C:\Users\doyoung\Documents\pixel-management-inbox` (명령에서는 `../pixel-management-inbox`)
+- 게임 폴더: `%USERPROFILE%\Documents\pixel-management` / 납품 폴더: `%USERPROFILE%\Documents\pixel-management-inbox` (명령에서는 `../pixel-management-inbox`) / 작업 파일: `%USERPROFILE%\Documents\pm-pc-scratch`

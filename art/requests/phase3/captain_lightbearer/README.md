@@ -9,7 +9,7 @@
 | `portrait_800.jpg` | 승인된 초상화(긴 변 800px, 가벼운 사본 — **이것을 불러온다**) — 얼굴·머리·옷의 **디자인** 기준 |
 | `portrait.png` | 같은 초상화의 원본(약 1MB, 불러오지 못해도 된다) |
 
-- 납품 파일: art-inbox 브랜치 `art/inbox/sheet_captain_lightbearer.png` + `art/inbox/NOTES.md`의 「3단계 — 루치아」 절.
+- 납품 파일: art-inbox 브랜치 `art/inbox/sheet_captain_lightbearer.png` + `art/inbox/NOTES.md`의 「sheet/captain/lightbearer - 루치아」 절.
 - 화풍 기준(앵커): art-inbox 의 `art/inbox/sheet_captain_blademaster.png`.
 - 요점: 루치아: 긴 금발 웨이브, 파란 눈, 흰 꽃·금 잎 서클릿과 짧은 흰 베일, 주황 불꽃 자수의 크림색 로브·망토, 금 팔각별 브로치, 흰 장갑. 무기는 태양 머리 철퇴 홀(흰 자루·금 띠, 가이드 지팡이 3/4 길이). 손·머리의 빛, 후광, 반짝임 모두 금지(엔진 효과). 로브는 순백이 아닌 따뜻한 크림+베이지 그늘. 2·3번 치유 시전 자세.
 - 게임 칸: 96px — 어떤 자세도(든 무기·모자 포함) y=340 위로 올라가지 않게 (자세 높이 530px 이하).
@@ -45,6 +45,6 @@ SELF-CHECK before saving: 4 poses in one row · soles on y=870 · highest pixel 
 flat #FF00FF background · no figure colour within distance 170 of #FF00FF · ~40 colours with hard edges.
 Run `python3 tools/art/check_delivery.py art/inbox/sheet_captain_lightbearer.png` if you can and paste its RESULT line.
 
-DELIVERY: commit art/inbox/sheet_captain_lightbearer.png and add a section "3단계 — 루치아" to art/inbox/NOTES.md using the template in art/requests/GPT_STANDING.md
+DELIVERY: commit art/inbox/sheet_captain_lightbearer.png and add a section "## sheet/captain/lightbearer - 루치아" to art/inbox/NOTES.md using the template in art/requests/GPT_STANDING.md
 (CHECK / REFERENCES LOADED / DEVIATIONS / RISKS AT GAME SIZE / PROPOSALS). Push to art-inbox only. Do not touch files outside art/inbox/. Then stop.
 ```

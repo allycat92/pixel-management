@@ -9,7 +9,7 @@
 | `portrait_800.jpg` | 승인된 초상화(긴 변 800px, 가벼운 사본 — **이것을 불러온다**) — 얼굴·머리·옷의 **디자인** 기준 |
 | `portrait.png` | 같은 초상화의 원본(약 1MB, 불러오지 못해도 된다) |
 
-- 납품 파일: art-inbox 브랜치 `art/inbox/sheet_captain_beastmaster.png` + `art/inbox/NOTES.md`의 「3단계 — 오르가」 절.
+- 납품 파일: art-inbox 브랜치 `art/inbox/sheet_captain_beastmaster.png` + `art/inbox/NOTES.md`의 「sheet/captain/beastmaster - 오르가」 절.
 - 화풍 기준(앵커): art-inbox 의 `art/inbox/sheet_captain_blademaster.png`.
 - 요점: 오르가: 짙은 피부·흑갈색 장발·흰 전투 칠·회색 늑대 모피 망토의 조련사. 무기는 장궁 하나. 초상화의 늑대는 그리지 않음(늑대는 엔진이 연출, 모피·금 늑대 메달로 표현). 화살은 준비 자세에만, 쏜 뒤 손을 크게 뒤로.
 - 게임 칸: 96px — 어떤 자세도(든 무기·모자 포함) y=340 위로 올라가지 않게 (자세 높이 530px 이하).
@@ -45,6 +45,6 @@ SELF-CHECK before saving: 4 poses in one row · soles on y=870 · highest pixel 
 flat #FF00FF background · no figure colour within distance 170 of #FF00FF · ~40 colours with hard edges.
 Run `python3 tools/art/check_delivery.py art/inbox/sheet_captain_beastmaster.png` if you can and paste its RESULT line.
 
-DELIVERY: commit art/inbox/sheet_captain_beastmaster.png and add a section "3단계 — 오르가" to art/inbox/NOTES.md using the template in art/requests/GPT_STANDING.md
+DELIVERY: commit art/inbox/sheet_captain_beastmaster.png and add a section "## sheet/captain/beastmaster - 오르가" to art/inbox/NOTES.md using the template in art/requests/GPT_STANDING.md
 (CHECK / REFERENCES LOADED / DEVIATIONS / RISKS AT GAME SIZE / PROPOSALS). Push to art-inbox only. Do not touch files outside art/inbox/. Then stop.
 ```

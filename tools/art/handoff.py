@@ -847,7 +847,7 @@ CREATURES = {
         this_round=[
             'KIND: fix (full sheet). BASE: art/inbox/check_giant-spider_idle.png @ 555007c on art-inbox - your idle check PASSED on silhouette:',
             'keep exactly that body, leg layout and foot positions in all four poses. LOAD concept_800.jpg (the owner\'s draft).',
-            'MUST SURVIVE (what the owner liked in the draft): ground-level side view; legs arching higher than the back; big hairy abdomen;',
+            'MUST SURVIVE (Claude\'s reading of why the owner rejected the last redraw - being confirmed with the owner): ground-level side view; legs arching higher than the back; big hairy abdomen;',
             'bristly silhouette; glossy red eye cluster; near-black purple mass.',
             'TWO FIXES in all four poses:',
             '  1. EYES: dark purple now, 0 red pixels at game size. Make them GLOSSY BRIGHT RED #d6455d with one white glint each: two big eyes',
@@ -1243,7 +1243,7 @@ def readme(cid, C, it, info, has_portrait, mounted_item=None, minfo=None):
     pkg = f'art/requests/phase3/{cid}'
     L = [f'# {name} — GPT handoff (`{cid}`)', '',
          '> `python3 tools/art/handoff.py`로 자동 생성된다. 고칠 때는 `tools/art/handoff.py`의 `CHARS`를 고치고 다시 실행.',
-         '> 공통 규칙: `art/requests/gpt_handoff_notes.md`. 전체 순서·붙여 넣을 메시지: `art/requests/phase3_gpt.md`.',
+         '> 공통 규칙: `art/requests/gpt_handoff_notes.md`. 일하는 법: `art/requests/GPT_STANDING.md` + `dot_queue.md`「지금 차례」.',
          f'> 모든 자료는 브랜치 `{BRANCH}`에서 읽고, 결과 PNG 는 `art-inbox` 브랜치에만 올린다.', '',
          '## Prompt for GPT (English)', '', '```']
     P = []
@@ -1448,7 +1448,7 @@ def readme_creature(cid, C, it, slots, sinfo):
     two = C['layout'] == '2x2'
     L = [f'# {it["name"]} — GPT handoff (`{cid}`)', '',
          '> `python3 tools/art/handoff.py`로 자동 생성된다. 고칠 때는 `tools/art/handoff.py`의 `CREATURES`를 고치고 다시 실행.',
-         '> 공통 규칙: `art/requests/gpt_handoff_notes.md`. 전체 순서·붙여 넣을 메시지: `art/requests/phase3_gpt.md` (메시지 E).',
+         '> 공통 규칙: `art/requests/gpt_handoff_notes.md`. 일하는 법: `art/requests/GPT_STANDING.md` + `dot_queue.md`「지금 차례」.',
          f'> 모든 자료는 브랜치 `{BRANCH}`에서 읽고, 결과 PNG 는 `art-inbox` 브랜치에만 올린다.', '']
     if C.get('this_round'):
         # 이번 차례에 할 일: 아래 프롬프트보다 우선한다 (예전에는 phase3_gpt.md 의 메시지에 따로 적어 지시가 세 군데로 갈렸다)

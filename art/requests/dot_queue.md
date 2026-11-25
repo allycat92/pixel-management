@@ -1,7 +1,7 @@
 # 도트 납품 대기열 (dot_queue)
 
 게임 브랜치(`claude/dot-fantasy-management-game-saupju`)의 이 파일이 **무엇을 그릴 차례인지**를 정한다.
-그림 쪽(도트)은 `DOT_READY` 항목만 그리고, 결과는 **`art-inbox` 브랜치의 `art/inbox/`** 에 PNG + 납품 메모(`art/inbox/NOTES.md`)로 올린다.
+그림 쪽은 아래 「지금 차례」의 자기 줄만 하고, 결과는 **`art-inbox` 브랜치의 `art/inbox/`** 에 PNG + 납품 메모(`art/inbox/NOTES.md`)로 올린다.
 Claude Code 가 받아서 확인한 결과는 `art/requests/feedback.md`에 남기고, 이 표의 상태를 바꾼다.
 
 ## 상태
@@ -12,7 +12,7 @@ Claude Code 가 받아서 확인한 결과는 `art/requests/feedback.md`에 남�
 | `DOT_READY` | 요청서·가이드 준비 완료, 그려도 됨 | Claude Code |
 | `DELIVERED` | art-inbox 에 PNG·메모가 올라옴, 확인 중 | Claude Code (수령 시) |
 | `ACCEPTED` | 확인 통과 → 게임에 등록됨 | Claude Code (검토 통과 시 바로 — 주인이 위임함, 2026-11-25) |
-| `NEEDS_FIX` | 고칠 점이 있음 → feedback.md 참고 후 같은 이름으로 다시 납품 | Claude Code |
+| `NEEDS_FIX` | 고칠 점이 있음 → 「지금 차례」의 그 줄과 꾸러미 README 의 THIS ROUND 대로 같은 이름으로 다시 납품 | Claude Code |
 
 ## 지금 차례 (그림 쪽은 이 절만 보면 된다 — 위에서부터)
 
@@ -24,8 +24,17 @@ Claude Code 가 받아서 확인한 결과는 `art/requests/feedback.md`에 남�
 | GPT | new | `sheet/captain/warlord` | 가르마크 — 확정 무기: 양손 전쟁 도끼 |
 | GPT | new | `sheet/captain/khan` | 테무르 |
 | GPT | new | `sheet/captain/siegemaster` | 오토 |
-| PC | 한 번만 | (pc_notes.md) | art-inbox 에 `art/inbox/.gitattributes` (`NOTES.md merge=union`) |
 | PC | 뼈대 | `guide/walk_base` v2 | 8프레임 걷기 초안을 Aseprite 로 재생해 보며 다듬기 (`art/requests/guides/walk_base/README.md`) |
+
+## 주인에게 물을 것 (모아서 — 답이 없으면 「기본」대로 진행한다)
+
+| # | 질문 | 고를 것 | 기본 | 물은 날 |
+|---|---|---|---|---|
+| 1 | 걷기 그림의 범위 | A: 대장·특별 용병은 4자세 + 엔진 걷기, 그려 주는 것은 일반 병과 5종의 달리기·돌격 4프레임부터 / B: 모든 캐릭터에 걷기 띠 | A | 11-26 |
+| 2 | 거대 거미 시안에서 꼭 남길 것 | Claude 가 읽은 여섯 가지(땅높이 옆모습 · 등보다 높은 다리 아치 · 큰 털 배 · 털 실루엣 · 반짝이는 붉은 눈 · 검보라 덩어리)가 맞는지, 빠진 것 | 여섯 가지 그대로 | 11-26 |
+| 3 | 이사벨의 모자 | 초상화의 장교모 유지 / 요청서의 삼각모로 손질 | 유지 | 11-24 |
+| 4 | 뼈대 만드는 방식 | 클라우드가 수치표로 초안을 만들고 PC 가 Aseprite 로 다듬기 (11-25 에는 "PC 가 따로 만들게"였다) | 이 방식으로 | 11-26 |
+| 5 | 남은 대장의 무기 | 초상화·스킬 이름·이야기가 다를 때 스킬·이야기 이름을 따를지(지금까지 세 번 모두 그렇게 정하셨다) | 스킬·이야기 이름 | 11-26 |
 
 종류: `new` 새 시트 · `fix` 같은 파일을 적힌 만큼만 · `idle-check` 대기 한 자세만 먼저 · `review` 글로만 답(교차 검수) · `뼈대`/`손질` PC 작업.
 GPT 는 `art/requests/GPT_STANDING.md`, PC 는 `tools/aseprite-mcp/pc/CLAUDE.md` 대로 일한다.
@@ -93,13 +102,14 @@ GPT 는 `art/requests/GPT_STANDING.md`, PC 는 `tools/aseprite-mcp/pc/CLAUDE.md`
 - **판정**: 통과하면 바로 ACCEPTED (주인 위임). 수치(검사 결과)는 그림 쪽 것을 그대로 믿되, **개수·판독(다리 수, 무기 종류, 눈이 보이는가)은 게임 크기 변환본에서 직접 센다.**
   NOTES 의 DEVIATIONS 에 디자인(b)·확정 사항(c) 이탈이 있으면 시안·초상화와 게임 크기로 나란히 본 뒤에만 통과.
 - **GPT 제안 처리 (주인 위임 2026-11-25)**: GPT 가 NOTES 에 올린 제안·질문은 Claude 가 판단해 처리하고(수용·일부·거절과 이유를 feedback.md 에), 디자인 방향을 크게 바꾸거나 주인이 고른 것을 뒤집는 것만 주인에게 묻는다.
-- **교차 검수(xcheck)**: 양식과 "반드시 하는 경우"는 `art/requests/review/TEMPLATE.md`. 판독 문제에서 Claude 와 GPT 가 갈리면 GPT 의 FIX 를 기본으로 따른다(엘리노어 사례).
+- **교차 검수(xcheck)**: 양식과 "반드시 하는 경우"는 `art/requests/review/TEMPLATE.md`. Claude 와 GPT 가 갈릴 때 — GPT 의 FIX 가 PC 손질 한 건(자세·디자인은 그대로, 색·소품 크기만)으로 끝나면 묻지 않고 고친다(엘리노어 사례). 다시 그리기가 필요하거나 주인이 고른 디자인이 바뀌면 둘 다 적어 주인에게 묻는다.
 - **대기 한 자세 먼저(idle-check)**: 마네킹 가이드가 없는 몬스터, 보스·큰 괴물, 주인 반려 뒤의 다시 그리기, 새 체형·새 종류의 첫 시트. 초상화 기반 사람형 대장에는 쓰지 않는다(14/15 가 첫 납품 통과).
 - **시안에서 꼭 남길 것**: 주인이 시안 번호를 고르면 "이 시안에서 꼭 남길 것 2~3가지"를 물어 꾸러미의 MUST SURVIVE 에 주인의 말 그대로 적는다.
   Claude 의 가독성 제안(FIX)은 그것을 지우지 못한다. 비어 있으면 그 항목은 DOT_READY 로 올리지 않는다. (거대 거미: 우리 FIX 가 시안의 털·검은 다리를 지웠다)
 - **무기**: 초상화·스킬 이름·이야기가 서로 다르면 주인에게 한 번에 물어 `weapon_confirmed` 로 적는다. 열린 질문("확인 필요")이 든 요청서는 만들지 않는다(도구가 거부한다).
 - **PC 손질 요청 쓰는 법**: 메모 칸 맨 앞에 `바탕: art-inbox <해시>`. 변화는 게임 px 과 원본 px 을 함께 적는다("좌우 1px(원본 약 6px)"). 원본 6px 미만의 변화는 요청하지 않는다.
   PC 가 다음에도 지켜야 할 것은 feedback.md 가 아니라 `pc_notes.md` 에 한 줄로.
+- **걷기·달리기 그림**: `walk_<직업>`·`run_<직업>` 세트는 주인이 아래 「주인에게 물을 것」 1번에 답할 때까지 열지 않는다 (`walk_base` v2 다듬기만 진행).
 - **한 번에 열어 두는 수**: 사람형 대장(초상화 기반) DOT_READY 5개까지, 몬스터·보스는 하나씩(idle-check 부터). 5개 아래로 줄면 QUEUED 다음 것을 올린다.
 - **건너뛰어진 항목**: 위 항목이 건너뛰어진 채 아래 항목이 두 번 납품되면 「지금 차례」에 이유를 묻는 줄을 넣는다(오르가는 다섯 번 건너뛰어진 뒤에야 물었다).
 - **뒤집힌 판정**: feedback.md 의 앞 절 제목에 "(뒤집힘 → 아래 ○○)" 를 덧붙인다.

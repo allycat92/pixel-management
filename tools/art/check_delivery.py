@@ -21,6 +21,7 @@ Only Pillow and the standard library; the Aseprite call uses an argument list (n
 import argparse
 import math
 import os
+import re
 import subprocess
 import sys
 import tempfile
@@ -184,7 +185,11 @@ def check_png(path, layout, feet, cell=None, scale=None):
     if mode != "RGB":
         warns.append(f"PNG mode is {mode}, not RGB: an indexed PNG can import into Aseprite with a scrambled palette - save as RGB")
     rgb = load_rgb(path, errors)
-    if rgb.size != (W, H):
+    if layout == "1x1":
+        # idle check (one pose before the full sheet): a quadrant of a 2x2 sheet or one slot of a 1x4 strip
+        if rgb.size not in ((768, 512), (384, 1024)):
+            errors.append(f"size {rgb.size[0]}x{rgb.size[1]}, expected 768x512 (2x2 sheets) or 384x1024 (1x4 sheets) for an idle check")
+    elif rgb.size != (W, H):
         errors.append(f"size {rgb.size[0]}x{rgb.size[1]}, expected {W}x{H}")
     colors = rgb.getcolors(maxcolors=1 << 24) or []
     key_count = sum(n for n, c in colors if c == KEY)
@@ -208,7 +213,7 @@ def check_png(path, layout, feet, cell=None, scale=None):
     elif near:
         warns.append(f"{len(near)} figure colours are between {MIN_DIST:.0f} and {REC_DIST:.0f} from #FF00FF (allowed, but keep >= {REC_DIST:.0f})")
 
-    if rgb.size != (W, H):
+    if layout != "1x1" and rgb.size != (W, H):
         return errors, warns, info
     mask = Image.new("1", rgb.size, 0)
     mask.putdata([0 if c == KEY else 1 for c in pixels(rgb)])
@@ -217,11 +222,15 @@ def check_png(path, layout, feet, cell=None, scale=None):
         errors.append("no figure pixels at all")
         return errors, warns, info
     l, t, r, b = whole
-    if l < GAP or t < GAP or W - r < GAP or H - b < GAP:
+    cw_, ch_ = rgb.size
+    if l < GAP or t < GAP or cw_ - r < GAP or ch_ - b < GAP:
         errors.append(f"figure bbox {whole} is closer than {GAP}px to the border")
 
     poses = []  # (bbox in canvas coords, quadrant top y, soles line)
-    if layout == "1x4":
+    if layout == "1x1":
+        fy = feet if feet is not None else (461 if rgb.size[1] == 512 else 870)
+        poses = [(whole, 0, fy)]
+    elif layout == "1x4":
         fy = feet if feet is not None else 870
         poses = [(bb, 0, fy) for bb, _ in components(mask)]
     else:
@@ -236,7 +245,7 @@ def check_png(path, layout, feet, cell=None, scale=None):
                 if bb[0] < 8 or bb[1] < 8 or (W // 2) - bb[2] < 8 or (H // 2) - bb[3] < 8:
                     warns.append(f"quadrant at ({x0},{y0}): figure is within 8px of the quadrant edge")
                 poses.append(((x0 + bb[0], y0 + bb[1], x0 + bb[2], y0 + bb[3]), y0, fy))
-    expected = 4
+    expected = 1 if layout == "1x1" else 4
     if len(poses) != expected:
         errors.append(f"found {len(poses)} separate figures, expected {expected} poses "
                       "(poses must be >= 32px apart in every direction; no detached effects / projectiles)")
@@ -284,11 +293,19 @@ def check_layers(src, exe, base, errors, warns, info):
     r = subprocess.run([exe, "--batch", "--all-layers", "--list-layers", src], stdin=subprocess.DEVNULL, capture_output=True, timeout=120, env=env)
     names = [ln.strip() for ln in r.stdout.decode("utf-8", "replace").splitlines() if ln.strip()]
     if not names:
+        warns.append(".aseprite layers could not be listed (Aseprite printed nothing): hidden layers were NOT checked")
         return
-    info.append(".aseprite layers: " + " / ".join(names))
+    rv = subprocess.run([exe, "--batch", "--list-layers", src], stdin=subprocess.DEVNULL, capture_output=True, timeout=120, env=env)
+    visible = {ln.strip() for ln in rv.stdout.decode("utf-8", "replace").splitlines() if ln.strip()}
+    hidden = [n for n in names if n not in visible]
+    info.append(".aseprite layers: " + " / ".join(n + (" (hidden)" if n in hidden else "") for n in names))
     odd = [n for n in names if n not in ALLOWED_LAYERS and not n.startswith("touchup")]
     if odd:
         warns.append("layer names outside the agreed set (see art/requests/pc_notes.md): " + ", ".join(odd))
+    bad_hidden = [n for n in hidden if n not in ("original_ref", "joints")]
+    if bad_hidden:
+        errors.append("hidden layers other than original_ref / joints are not allowed (a hidden layer can carry reference art "
+                      "into the repository): " + ", ".join(bad_hidden))
     if "original_ref" in names and base:
         with tempfile.TemporaryDirectory() as tmp:
             out = os.path.join(tmp, "ref.png")
@@ -333,7 +350,7 @@ def compare_aseprite(src, exe, png, errors, info):
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("png")
-    ap.add_argument("--layout", choices=["1x4", "2x2"], default=None,
+    ap.add_argument("--layout", choices=["1x4", "2x2", "1x1"], default=None,
                     help="1x4 row or 2x2 grid of 768x512 quadrants. Default: the entry for this file in art/requests/phase3.json, else 1x4")
     ap.add_argument("--base", help="touch-ups: the received PNG this was made from - reports what changed and marks failures "
                                    "that the base already had as pre-existing warnings")
@@ -374,6 +391,11 @@ def main():
         a.base = tmp_base
     req = request_item(a.png)
     src_note = ""
+    m_idle = re.match(r"check_(.+)_idle\.png$", os.path.basename(a.png))
+    if m_idle:
+        # idle check: art/inbox/check_<sheet file stem>_idle.png - settings of the sheet it belongs to, one pose
+        req = request_item(m_idle.group(1) + ".png") or request_item("sheet_monster_" + m_idle.group(1) + ".png")
+        a.layout = a.layout or "1x1"
     if a.layout is None:
         a.layout = req.get("layout") if req.get("layout") in ("1x4", "2x2") else "1x4"
         src_note = " from phase3.json" if req.get("layout") else ""

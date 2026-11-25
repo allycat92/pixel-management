@@ -9,7 +9,7 @@
 | `portrait_800.jpg` | 승인된 초상화(긴 변 800px, 가벼운 사본 — **이것을 불러온다**) — 얼굴·머리·옷의 **디자인** 기준 |
 | `portrait.png` | 같은 초상화의 원본(약 1MB, 불러오지 못해도 된다) |
 
-- 납품 파일: art-inbox 브랜치 `art/inbox/sheet_captain_titan.png` + `art/inbox/NOTES.md`의 「3단계 — 우르그」 절.
+- 납품 파일: art-inbox 브랜치 `art/inbox/sheet_captain_titan.png` + `art/inbox/NOTES.md`의 「sheet/captain/titan - 우르그」 절.
 - 화풍 기준(앵커): art-inbox 의 `art/inbox/sheet_captain_blademaster.png`.
 - 요점: 우르그: 거구(어깨·팔이 보통 대장의 약 1.5배, 그래도 4등신·머리 110px), 긴 갈색 머리·수염, 뺨의 흰 전투 칠, 금 귀걸이, 흰 모피 깃, 금 장식 갈색 가죽 하네스, 어깨 금 룬 메달. 무기는 금 나선 룬 돌 망치(양손, 머리는 늘 몸 바깥). 바닥 균열·먼지 효과 없음. size_class large — 칸 112 필요할 수 있음.
 - 체격 등급: `large` — 4등신·머리 110px 유지, 덩치(어깨·팔)로만 크게. 시트 칸이 더 커야 할 수 있음.
@@ -46,6 +46,6 @@ SELF-CHECK before saving: 4 poses in one row · soles on y=870 · highest pixel 
 flat #FF00FF background · no figure colour within distance 170 of #FF00FF · ~40 colours with hard edges.
 Run `python3 tools/art/check_delivery.py art/inbox/sheet_captain_titan.png` if you can and paste its RESULT line.
 
-DELIVERY: commit art/inbox/sheet_captain_titan.png and add a section "3단계 — 우르그" to art/inbox/NOTES.md using the template in art/requests/GPT_STANDING.md
+DELIVERY: commit art/inbox/sheet_captain_titan.png and add a section "## sheet/captain/titan - 우르그" to art/inbox/NOTES.md using the template in art/requests/GPT_STANDING.md
 (CHECK / REFERENCES LOADED / DEVIATIONS / RISKS AT GAME SIZE / PROPOSALS). Push to art-inbox only. Do not touch files outside art/inbox/. Then stop.
 ```
