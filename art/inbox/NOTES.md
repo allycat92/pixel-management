@@ -470,3 +470,12 @@ REFERENCES LOADED: portrait_800.jpg OK; guide_strip.png OK; guide_1_idle.png, gu
 DEVIATIONS: (a) 지팡이 대신 짧은 흰 자루와 금빛 태양 원판. 1번 홀을 화면 왼쪽에 세우고 4번은 앞발을 들고 홀을 뒤로 낮춤. 대기 측정 453px(머리 장식 포함); 몸 축소 없이 폭 조절. (b) 그림 바깥의 광휘는 생략하고 원판 안에만 밝은 크림색 중심을 칠함. (c) none.
 RISKS AT GAME SIZE: 96px 변환에서 치유 동작의 빈손과 홀 머리는 구분되나, 눈밭에선 연한 옷과 장갑의 베이지 외곽 및 4번 피격 발 위치 보정 확인 부탁. 대기 자세의 꽃과 원판이 가까워 밝은 바닥에서 분리되는지도 확인 부탁.
 PROPOSALS: none.
+
+## 손질 — 리코 레이피어 날 (Aseprite)
+
+- 바꾼 것: `sheet_captain_bard.png`(바탕 art-inbox `fb47d45`) 네 자세 모두 레이피어 날만 다시 칠했다. 밝은 강철색 3단(밝은 면 #e6e9ee / 가운데 #c8ccd2 / 그늘 #8e939c, 위쪽이 밝은 면), 강철 10px + 양옆 1px 어두운 외곽선(#150926) = 원본 약 12px(게임 2px). 끝 1/4 은 뾰족하게 좁힌다. 날의 길이·각도·자세·몸·코등이·장갑·옷은 그대로(코등이·손·옷 위로는 칠하지 않음).
+- 게임 크기(0.1654) 전후 비교에서 날이 밝고 굵어진 것이 네 자세 모두 보인다.
+- 레이어: `aseprite/sheet_captain_bard.aseprite` Background(받은 그림) / touchup(바꾼 픽셀만). 내보내기 = PNG 픽셀 단위 일치.
+- 참고: 없음
+- 검사: `check_delivery.py` RESULT: PASS (42색, 키와 최소 거리 182.6, 네 자세 최하단 y=870) · against the base: silhouette changed 1513 px, colour changed 5171 px (per pose silhouette/colour: 327/1257, 443/1458, 344/1307, 399/1149)
+- 지침 판: 2026-11-26c

@@ -1,7 +1,7 @@
 # 이사벨 — 퇴역 참모 (전술가) — GPT handoff (`captain_tactician`)
 
 > `python3 tools/art/handoff.py`로 자동 생성된다. 고칠 때는 `tools/art/handoff.py`의 `CHARS`를 고치고 다시 실행.
-> 공통 규칙: `art/requests/gpt_handoff_notes.md`. 전체 순서·붙여 넣을 메시지: `art/requests/phase3_gpt.md`.
+> 공통 규칙: `art/requests/gpt_handoff_notes.md`. 일하는 법: `art/requests/GPT_STANDING.md` + `dot_queue.md`「지금 차례」.
 > 모든 자료는 브랜치 `claude/dot-fantasy-management-game-saupju`에서 읽고, 결과 PNG 는 `art-inbox` 브랜치에만 올린다.
 
 ## Prompt for GPT (English)
@@ -9,7 +9,7 @@
 ```
 TASK: draw the battle-sprite strip of Isabel (이사벨, tactician), a mercenary captain. Save it as art/inbox/sheet_captain_tactician.png on the art-inbox branch (a new file there; do not rename). In a chat without repository access, return the PNG in the chat instead.
 
-CHARACTER: a slim black officer's cane / baton with a gold knob (no orb, no crystal), in the near hand where the guide holds the staff, at the same angle, but only about HALF the guide staff's length (~1.2 heads, ~130 px); black tricorne hat with gold trim; long straight dark-indigo hair; charcoal long military coat; gold epaulettes and gold buttons; leather belt; dark trousers, black boots; calm, sharp expression.
+CHARACTER: a slim black officer's cane / baton with a gold knob (no orb, no crystal), in the near hand where the guide holds the staff, at the same angle, but only about HALF the guide staff's length (~1.2 heads, ~130 px); black peaked officer's cap with a gold band and a gold fleur-de-lis badge (as the portrait; NOT a tricorne - owner decision 2026-11-26); long straight dark-indigo hair; charcoal long military coat; gold epaulettes and gold buttons; leather belt; dark trousers, black boots; calm, sharp expression.
 
 COLOURS (keep close, muted): skin #f5d6b8; hair dark indigo #3a3f6b; coat charcoal #3a3a4a; trim, epaulettes, buttons gold #f2c94c (muted).
 
@@ -38,7 +38,7 @@ STYLE (same for every character):
   - 4 heads tall (top of the hair to the chin = 1 head), exactly the proportions and limb lengths of the guide; NOT chibi, NOT realistic
   - front three-quarter view, facing RIGHT; light from the upper left
   - muted, desaturated, hue-shifted palette (shadows toward purple/blue, highlights toward warm yellow), flat cel shading with 2-3 tones
-  - dark, desaturated, NON-black outline used selectively (no thick uniform black lineart), soft rim light on one side
+  - dark, desaturated, NON-black outline around the whole silhouette (no thick uniform black lineart); crisp pixel art: about 40 colours, hard pixel edges, no anti-aliased blending into the background
   - readable at 1x game size (the idle figure becomes ~64 px tall on a dark battlefield): big clear shapes, strong silhouette, few tiny details
 
 DELIVERABLE:
@@ -47,7 +47,9 @@ DELIVERABLE:
   - the lowest pixel of every figure (its soles) on the line y = 870 (85% of the height); head = 110 px for every character. Standing height would be 440 px (4 heads), but the guide idle pose is crouched, so the measured idle top-of-head to sole is about 401 px. Headgear (hats, helmets, plumes) and weapons are extra and not counted
   - at least 32 px of empty magenta between any two figures and between a figure and the image border (a weapon may reach over a neighbour's column as in the guide, but never closer than that)
   - background: perfectly flat solid magenta #FF00FF everywhere (preferred; a transparent PNG is also accepted) - no gradient, floor, cast shadow or scenery
-  - NO figure pixel may be magenta-like: every colour of the figure must stay clearly away from the background key #FF00FF, RGB distance sqrt((255-R)^2 + G^2 + (255-B)^2) >= 150 (no hot pink, magenta or bright violet; purples stay dark blue-purple such as #5a4a7a). If you reduce the palette, reduce the FIGURE colours only and never merge a figure colour into the background colour
+  - NO figure pixel may be magenta-like: every colour of the figure must stay clearly away from the background key #FF00FF, RGB distance sqrt((255-R)^2 + G^2 + (255-B)^2) >= 170, hard minimum 150 (no hot pink, magenta or bright violet; purples stay dark blue-purple such as #5a4a7a). If you reduce the palette, reduce the FIGURE colours only and never merge a figure colour into the background colour
+  - in every pose keep the weapon / key prop outside the body silhouette, over the background, with a 1 px dark outline
+  - the body keeps the guide size in every pose - when a wide pose does not fit, change the weapon angle or the stance, never shrink the figure
   - NO text, labels, numbers, frames, grid lines, watermark; NO effects outside the body (no slash trails, sparks, dust, glow, motion lines, projectiles)
 
 SELF-CHECK before saving (redraw if any fails):
@@ -57,7 +59,8 @@ SELF-CHECK before saving (redraw if any fails):
   [ ] same face, hair, outfit, colours and weapon in all four poses; exactly the weapons in CHARACTER (nothing extra)
   [ ] every FIX applied
   [ ] no text, floor, shadow, effects or projectiles; >= 32 px of magenta between figures and from the border
-  [ ] no figure pixel is #FF00FF or magenta-like (every figure colour at RGB distance >= 150 from #FF00FF)
+  [ ] no figure pixel is #FF00FF or magenta-like (every figure colour at RGB distance >= 170 from #FF00FF (hard minimum 150))
+  [ ] in every pose keep the weapon / key prop outside the body silhouette, over the background, with a 1 px dark outline
   [ ] reads clearly when shrunk to 64 px tall on a dark background
 ```
 
@@ -67,7 +70,7 @@ SELF-CHECK before saving (redraw if any fails):
 - 결과 파일: `art/inbox/sheet_captain_tactician.png` (id `sheet/captain/tactician`)
 - 무기: posekit `staff` 마네킹 → a slim black officer's cane / baton with a gold knob (no orb, no crystal), in the near hand where the guide holds the staff, at the same angle, but only about HALF the guide staff's length (~1.2 heads, ~130 px)
 - 자세(가이드 프레임): ① 대기 `cast_0` ② 공격 준비 `cast_1` ③ 공격 타격 `key_strike` ④ 피격 `key_hit` (`key_*` = handoff.py 의 KEY_POSES: 준비는 체중 뒤로, 타격은 내딛는 런지, 피격은 상체가 뒤로 젖혀짐)
-- 초안에서 가져올 것: 금테 검은 삼각모, 곧은 짙은 남보라 긴 머리, 숯색 긴 군복 코트, 금 견장·금단추, 검은 장화, 침착한 표정.
+- 초안에서 가져올 것: 금테·금 백합 휘장의 검은 장교모(초상화대로, 삼각모 아님 — 주인 결정 11-26), 곧은 짙은 남보라 긴 머리, 숯색 긴 군복 코트, 금 견장·금단추, 검은 장화, 침착한 표정.
 - 고칠 것: 초안은 약 6등신 → 4등신. 지팡이 → 가이드 지팡이 절반 길이의 장교 지휘봉(금 손잡이), 같은 손·같은 각도. 타격 = 앞으로 뻗은 팔로 손가락 지휘.
 - 초안에서 가져오지 말 것: 비율(등신), 칠하는 방식, 외곽선 굵기, 채도, 조명, 디테일 양 — 모두 4등신·앵커 화풍으로 통일.
 - 가이드 띠: 머리 하나 = 110 px (모든 캐릭터 같음). 선 키라면 440 px 이지만 대기 자세가 웅크려서 정수리~발바닥 약 401 px(높이의 39%). 모자·투구·깃털·무기는 따로. 발바닥(맨 아래 픽셀) y=870.

@@ -227,7 +227,7 @@ CHARS = {
         concepts={'concept.png': 'captain_tactician/concept_07.png'},
         weapon_desc=("a slim black officer's cane / baton with a gold knob (no orb, no crystal), in the near hand where the guide holds "
                      'the staff, at the same angle, but only about HALF the guide staff\'s length (~1.2 heads, ~130 px)'),
-        keep=['black tricorne hat with gold trim', 'long straight dark-indigo hair', 'charcoal long military coat',
+        keep=["black peaked officer's cap with a gold band and a gold fleur-de-lis badge (as the portrait; NOT a tricorne - owner decision 2026-11-26)", 'long straight dark-indigo hair', 'charcoal long military coat',
               'gold epaulettes and gold buttons', 'leather belt', 'dark trousers, black boots', 'calm, sharp expression'],
         colours=[('skin', '#f5d6b8'), ('hair', 'dark indigo #3a3f6b'), ('coat', 'charcoal #3a3a4a'),
                  ('trim, epaulettes, buttons', 'gold #f2c94c (muted)')],
@@ -239,7 +239,7 @@ CHARS = {
                   windup='cane raised, free hand lifted (about to give an order)',
                   strike='lunge; free arm extended straight forward, pointing with the index finger at the enemy; cane held up behind',
                   hit='torso thrown back, weight on the rear leg, wincing, hat still on'),
-        ko=dict(keep='금테 검은 삼각모, 곧은 짙은 남보라 긴 머리, 숯색 긴 군복 코트, 금 견장·금단추, 검은 장화, 침착한 표정.',
+        ko=dict(keep='금테·금 백합 휘장의 검은 장교모(초상화대로, 삼각모 아님 — 주인 결정 11-26), 곧은 짙은 남보라 긴 머리, 숯색 긴 군복 코트, 금 견장·금단추, 검은 장화, 침착한 표정.',
                 fix='초안은 약 6등신 → 4등신. 지팡이 → 가이드 지팡이 절반 길이의 장교 지휘봉(금 손잡이), 같은 손·같은 각도. 타격 = 앞으로 뻗은 팔로 손가락 지휘.'),
     ),
     'captain_lancer': dict(
