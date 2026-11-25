@@ -59,7 +59,7 @@ Claude Code 가 받아서 확인한 결과는 `art/requests/feedback.md`에 남�
 | `sheet/captain/shadowqueen` | **QUEUED** | `art/inbox/sheet_captain_shadowqueen.png` | `art/requests/phase3/captain_shadowqueen/README.md` ("Prompt for GPT" 블록) | `art/requests/phase3/captain_shadowqueen/guide_strip.png` (배치·크기 견본), `guide_1_idle.png` ~ `guide_4_hit.png` | 대장 니클라 (후반·late, 가이드 무기 `none`). 디자인 기준 `portrait.png`. 납품 메모: `art/inbox/NOTES.md` 「3단계 — 니클라」. |
 | `sheet/captain/titan` | **QUEUED** | `art/inbox/sheet_captain_titan.png` | `art/requests/phase3/captain_titan/README.md` ("Prompt for GPT" 블록) | `art/requests/phase3/captain_titan/guide_strip.png` (배치·크기 견본), `guide_1_idle.png` ~ `guide_4_hit.png` | 대장 우르그 (후반·late, 가이드 무기 `katana`). 디자인 기준 `portrait.png`. 납품 메모: `art/inbox/NOTES.md` 「3단계 — 우르그」. 체격 large — 시트 칸 112 필요할 수 있음. |
 | `guide/walk_base` | **DOT_READY** · **담당: PC(Aseprite)** | `art/inbox/guides/walk_base/walk_strip.png` (+ `walk_base.aseprite`) | `art/requests/guides/walk_base/README.md` | `art/requests/guides/walk_base/start_guide_walk_0..3.png` (posekit 출발점) | 걷기 뼈대 시범 — PC 손질 7건 모두 끝남(2026-11-25) → **지금 차례**. 납품 메모: NOTES.md 「뼈대 — 걷기 시범 (Aseprite)」 |
-| `review/xcheck_01` | **DOT_READY** · **담당: GPT(글로만)** | `art/inbox/NOTES.md` 「교차 검수 1」 (그림 없음) | `art/requests/review/xcheck_01/README.md` + `art/requests/phase3_gpt.md` 「메시지 G」 | `art/requests/review/xcheck_01/*.png` | 교차 검수 — 새 전투 효과 4종·애매한 납품 판단 8문항에 OK/FIX 로 답한다. PC 세션은 손대지 않는다. |
+| `review/xcheck_01` | **ACCEPTED** (2026-11-25 `3a04482` 답 받음·반영) | `art/inbox/NOTES.md` 「교차 검수 1」 (그림 없음) | `art/requests/review/xcheck_01/README.md` + `art/requests/phase3_gpt.md` 「메시지 G」 | `art/requests/review/xcheck_01/*.png` | 교차 검수 — 새 전투 효과 4종·애매한 납품 판단 8문항에 OK/FIX 로 답한다. PC 세션은 손대지 않는다. |
 
 ## 납품 규칙 (요약)
 

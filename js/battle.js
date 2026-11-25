@@ -246,18 +246,22 @@ const Battle = (() => {
     const d = s.dir < 0 ? -1 : 1, L = s.big ? 34 : 24, W = s.big ? 3 : 2;
     const tipX = Math.round(s.x + d * 3), y = Math.round(s.y);
     const rim = mixHex(s.color, '#5a7a98', 0.5), soft = mixHex(s.color, '#8aa8c4', 0.35);
-    const line = (from, to, w, col, dashed) => {
+    // 교차 검수 1(GPT) #3: 눈밭에서 흰 줄이 묻히지 않게 첫 두 단계의 핵심선·끝점에만 짙은 청회색 1px 윤곽
+    const EDGE = '#3a4a66';
+    const line = (from, to, w, col, dashed, edge) => {
       for (let i = from; i <= to; i++) {
         if (dashed && Math.floor(i / 3) % 2) continue;
         const k = i / L, ww = Math.max(1, Math.round(w * (1 - k)));
+        if (edge) px(ctx, tipX - d * i, y - (ww >> 1) - 1, 1, ww + 2, EDGE);
         px(ctx, tipX - d * i, y - (ww >> 1), 1, ww, col);
       }
     };
+    const tipEdge = () => { px(ctx, tipX - 2, y - 3, 5, 7, EDGE); px(ctx, tipX - 3, y - 2, 7, 5, EDGE); };
     if (step === 0) {
-      ctx.globalAlpha = 1; line(0, Math.round(L * 0.5), W, s.color);
-      px(ctx, tipX - 1, y - 2, 3, 5, '#ffffff'); px(ctx, tipX - 2, y - 1, 5, 3, '#ffffff');
+      ctx.globalAlpha = 1; line(0, Math.round(L * 0.5), W, s.color, false, true);
+      tipEdge(); px(ctx, tipX - 1, y - 2, 3, 5, '#ffffff'); px(ctx, tipX - 2, y - 1, 5, 3, '#ffffff');
     } else if (step === 1) {
-      ctx.globalAlpha = 1; line(0, L, W, s.color);
+      ctx.globalAlpha = 1; line(0, L, W, s.color, false, true);
       line(Math.round(L * 0.2), Math.round(L * 0.8), 1, soft, false);
       for (let i = 4; i < L * 0.7; i++) { px(ctx, tipX - d * i, y - 4, 1, 1, soft); px(ctx, tipX - d * (i + 3), y + 4, 1, 1, rim); }
       px(ctx, tipX + d, y - 3, 1, 7, s.color); px(ctx, tipX - 2, y, 6, 1, s.color);
@@ -302,14 +306,16 @@ const Battle = (() => {
     const R = s.big ? 22 : 15, W = s.big ? 5 : 3, S = 2.1;
     const d = s.dir < 0 ? -1 : 1;
     const cx = Math.round(s.x - d * 6), cy = Math.round(s.y);
-    const rim = mixHex(s.color, '#5a7a98', 0.5), soft = mixHex(s.color, '#8aa8c4', 0.35);
+    // 교차 검수 1(GPT) #1: 핵심 초승달은 늘 흰색, 일반/특수기는 둘째 프레임부터의 잔상색으로 가른다
+    const tint = s.color === '#ffffff' ? '#b8c4d4' : s.color;
+    const rim = mixHex(tint, '#5a7a98', 0.5), soft = mixHex(tint, '#8aa8c4', 0.2);
     const arc = (u0, u1) => d > 0 ? [-1.4 + u0 * S, -1.4 + u1 * S] : [Math.PI + 1.4 - u0 * S, Math.PI + 1.4 - u1 * S];
     if (step === 0) {
       ctx.globalAlpha = 1;
-      const [a, b] = arc(0, 0.6); smearArc(ctx, cx, cy, R, a, b, W, s.color, rim, false);
+      const [a, b] = arc(0, 0.6); smearArc(ctx, cx, cy, R, a, b, W, '#ffffff', rim, false);
     } else if (step === 1) {
       ctx.globalAlpha = 1;
-      let [a, b] = arc(0, 1); smearArc(ctx, cx, cy, R, a, b, W, s.color, rim, false);
+      let [a, b] = arc(0, 1); smearArc(ctx, cx, cy, R, a, b, W, '#ffffff', rim, false);
       [a, b] = arc(0.15, 0.9); smearArc(ctx, cx, cy, R + 3, a, b, 1, soft, soft, false);
     } else if (step === 2) {
       ctx.globalAlpha = 0.8;
