@@ -8,7 +8,7 @@
 2. 그림 쪽이 `art/inbox/`에 PNG를 넣고 `art-inbox` 브랜치에 푸시한다.
 3. 사람이 코드 쪽에 "올렸다"고 알리면, 코드 쪽이 받아서 처리한다.
 
-> **PC Aseprite 세션**: 주인 PC(Windows)의 Claude 가 정품 Aseprite + aseprite-mcp 로 도트를 그려 같은 길(`art-inbox`의 `art/inbox/`)로 납품한다.
+> **PC Aseprite 세션**: 주인 PC(Windows)의 Claude 가 정품 Aseprite + aseprite-mcp 로 받은 도트를 손질하고 자세 뼈대를 만들어 같은 길(`art-inbox`의 `art/inbox/`)로 납품한다.
 > PNG 와 함께 원본 `art/inbox/aseprite/<stem>.aseprite`를 올리고, 푸시 전 `tools/art/check_delivery.py`로 자체 검사한다.
 > 설치: `tools/aseprite-mcp/README.md`, 역할·브랜치·이름·PC 첫 지시문: `docs/pc_cloud_protocol.md`.
 

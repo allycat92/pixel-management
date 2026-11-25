@@ -18,12 +18,14 @@
 |---|---|---|
 | 어디서 | 주인 PC 의 게임 저장소 폴더. Claude Desktop(Code) 또는 `claude` / `claude remote-control` | claude.ai 클라우드 컨테이너 |
 | 도구 | 정품 Aseprite + aseprite-mcp (`tools/aseprite-mcp/README.md`, 위험 도구 5개 deny) | 게임 코드, `tools/art/*`, 머리 없는(headless) Aseprite 빌드 |
-| 하는 일 | `dot_queue.md` 의 차례인 항목을 Aseprite 로 그리거나 손봐서 납품 | 요청서·가이드·대기열 관리, 납품 검사, `sheets.py` 등록, 게임 연결, 피드백, 코드 리뷰 |
+| 하는 일 | `dot_queue.md` 에서 `담당: PC(Aseprite)` 가 붙은 항목만: 받은 시트 손질, 자세 뼈대 만들기·다듬기 | 요청서·가이드·대기열 관리, 납품 검사, `sheets.py` 등록, 게임 연결, 피드백, 코드 리뷰 |
 | 쓰는 곳 | **`art-inbox` 브랜치의 `art/inbox/` 만** | 게임 브랜치 `claude/dot-fantasy-management-game-saupju` (그리고 art-inbox 는 읽기만) |
 | 하지 않는 일 | 게임 브랜치에 푸시, `dot_queue.md`·`feedback.md`·`js/`·`assets/`·`tools/` 수정, 시트 등록 | PC 의 파일·프로그램을 직접 만지는 일 (닿지 않는다) |
 
-- **역할 나눔 (2026-11-25 주인 결정)**: GPT 도트 = 새로 그리기·다시 그리기, PC = 이미 받은 그림을 Aseprite 로 손질(색·외곽선·소품). 클라우드가 손질 항목에 `담당: PC(Aseprite)` 를 붙이고, PC 는 **그 항목만** 한다 (담당 표시가 없는 DOT_READY 는 GPT 몫).
-- PC 세션 지침과 권한 설정은 `tools/aseprite-mcp/pc/` 의 `CLAUDE.local.md`·`settings.local.json` 을 저장소 루트에 복사해 쓴다 (한국어 고정, 허가 요청 최소화).
+- **역할 나눔 (2026-11-25 주인 결정)**: GPT 도트 = 새로 그리기·다시 그리기, PC = 이미 받은 그림을 Aseprite 로 손질(색·소품) + 자세 뼈대(`art/requests/guides/SPEC.md`). 클라우드가 손질 항목에 `담당: PC(Aseprite)` 를 붙이고, PC 는 **그 항목만** 한다 (담당 표시가 없는 DOT_READY 는 GPT 몫).
+- **PC 지침의 원본은 `tools/aseprite-mcp/pc/CLAUDE.md` 하나뿐이다** (판 번호가 맨 위에 있다; 늘 지키는 규칙은 `art/requests/pc_notes.md`). `git pull` 로 따라온다.
+  PC 에는 한 번만 복사한다: `tools/aseprite-mcp/pc/CLAUDE.local.md`(본문을 불러오는 세 줄 + 이 PC 의 경로) → 게임 폴더 루트, `settings.local.json` → 게임 폴더의 `.claude\settings.local.json`
+  (둘 다 `.git\info\exclude` 에 적어 커밋되지 않게). 설정 파일의 허용 목록이 바뀌면 그때만 다시 복사한다.
 - `AGENTS.md` 의 그림 규칙은 그대로다: **NovelAI 그림은 디자인 초안 전용** — 픽셀을 가져오거나 레이어로 넣지 않는다 (`concept.png` 는 눈으로 보는 참고만).
 
 ## 2. 브랜치와 폴더
@@ -62,9 +64,9 @@ git worktree add ..\pixel-management-inbox art-inbox    # 납품용 폴더 (art-
 
 **`.aseprite` 원본 규칙**:
 - 캔버스 1536×1024, RGB, 프레임 1개. 내보내면 **납품 PNG 와 픽셀 하나까지 같아야** 한다 (클라우드가 비교한다).
-- 맨 아래 배경 레이어(Aseprite 의 `Background`) = 불투명 `#FF00FF` 로 꽉 채움. 그 위에 인물 레이어 (예: `pose1_idle`, `pose2_windup`, `pose3_strike`, `pose4_hit`).
-- 가이드·참고 그림 레이어는 작업 중에만 쓰고 **커밋 전에 지운다** (파일이 가벼워지고, NovelAI 초안이 원본에 섞이지 않는다).
-- 파일·레이어 이름은 영문.
+- 레이어 약속은 `art/requests/pc_notes.md` 「`.aseprite` 레이어」(손질) 와 `art/requests/guides/SPEC.md` 4절(뼈대). 숨긴 레이어는 `original_ref` 하나만 —
+  클라우드는 숨긴 레이어까지 모두 살펴본다 (`check_delivery.py` 가 레이어 이름과 `original_ref` == 받은 그림을 검사).
+- NovelAI 초안·`art/refs` 참고 그림은 숨긴 레이어로도 넣지 않는다. 파일·레이어 이름은 영문.
 
 ## 4. dot_queue 상태 — 누가 무엇을
 
@@ -72,46 +74,28 @@ git worktree add ..\pixel-management-inbox art-inbox    # 납품용 폴더 (art-
 
 | 상태 | PC 세션 | 클라우드 세션 |
 |---|---|---|
-| `QUEUED` | 그리지 않는다 | 차례가 되면 `DOT_READY` 로 올린다 |
-| `DOT_READY` | 위에서부터 하나씩 그려 납품 | 납품이 오면 `DELIVERED` |
-| `DELIVERED` | 건드리지 않는다 (검사 중) | 검사 → `ACCEPTED` 또는 `NEEDS_FIX` |
-| `NEEDS_FIX` | `feedback.md` 의 해당 절을 읽고 같은 이름으로 다시 납품 (`.aseprite` 도 함께 갱신) | 다시 검사 |
-| `ACCEPTED` | 건드리지 않는다 | 등록 끝 |
+| `QUEUED` | 하지 않는다 | 차례가 되면 `DOT_READY` 로 올린다 |
+| `DOT_READY` | `담당: PC` 표시가 있을 때만 한다 | 납품이 오면 검사 |
+| `NEEDS_FIX` | `담당: PC` 표시가 있을 때만: 그 줄의 메모·요청서대로 같은 이름으로 다시 납품 (`.aseprite` 도 함께) | 다시 검사 |
+| `DELIVERED`·`ACCEPTED` | 건드리지 않는다 | 검사 중 / 등록 끝 |
 
-- PC 가 고를 때: 메모에 `담당: PC(Aseprite)` 인 항목 → 없으면 위에서부터 `DOT_READY` → 그다음 `NEEDS_FIX`.
-- art-inbox 에 그 이름의 PNG 가 마지막 피드백보다 **새로 올라와 있으면** 다른 그림 쪽이 이미 납품한 것 → 건너뛴다.
-- `DOT_READY`·`NEEDS_FIX` 가 없으면 멈추고 주인에게 알린다.
-- PC 는 납품 뒤 주인에게 "올렸다(커밋 해시)" 라고 말한다. 주인이 클라우드에 전하거나, 클라우드가 art-inbox 를 주기적으로 확인한다.
+- PC 가 고를 때: **상태 칸에 `담당: PC(Aseprite)` 가 붙은 항목만**, 위에서부터 하나씩. 표시가 없는 항목은 상태가 무엇이든 GPT 몫이다.
+  표시된 항목이 없으면 "할 일 없음" 이라고 알리고 멈춘다.
+- 손질 항목에는 클라우드가 `바탕: art-inbox <해시>` 를 적는다. 그 파일의 마지막 커밋이 다르면(그 사이 GPT 가 다시 올림) PC 는 손대지 않고 알린다.
+- PC 는 납품 뒤 주인에게 "올렸다(커밋 해시, 지침 판)" 라고 말한다. 클라우드는 art-inbox 를 주기적으로 확인한다.
 
 ## 5. 커밋 메시지
 
-**PC (art-inbox)** — 첫 줄은 영어, 짧게:
-```
-Deliver Lyra battle sheet (Aseprite)
-Redeliver Lyra battle sheet (Aseprite): dagger outside the silhouette
-```
-본문: dot_queue id (`sheet/hero/lyra`), 넣은 파일, 자체 검사 결과 줄(`RESULT: PASS ...`).
+**PC (art-inbox)** — 첫 줄만, 영어, 본문 없음 (검사 결과는 NOTES 에 적는다):
+`Touch up <stem> (Aseprite)` / `Add guide <id> (Aseprite)` / `Touch up guide <id> (Aseprite)`. `<stem>` 은 파일 이름 그대로.
 
-**클라우드 (게임 브랜치)** — 지금처럼: `Dot loop: <무엇> ...`, `Accept and register <누구> ...`, 도구 변경은 그 내용대로.
+**클라우드 (게임 브랜치)** — 지금처럼: `Accept <누구> ...`, 도구 변경은 그 내용대로.
 
 ## 6. PC 가 푸시하기 전에 할 일
 
-1. Aseprite 에서 PNG 를 내보낸다 (보이는 레이어만 합쳐진다):
-   ```powershell
-   $INBOX = "$HOME\Documents\pixel-management-inbox"     # 납품 폴더 (2절에서 만든 worktree)
-   & "C:\Program Files\Aseprite\Aseprite.exe" -b "$INBOX\art\inbox\aseprite\sheet_hero_lyra.aseprite" --save-as "$INBOX\art\inbox\sheet_hero_lyra.png"
-   ```
-   (Steam 판은 Aseprite 경로를 바꾼다: `setup_windows.ps1` 이 찾아 준 경로.)
-2. **자체 검사** (게임 브랜치 폴더에서; 마젠타 거리·크기·자세 수·발 높이·여백·색 수·원본과 PNG 가 같은지):
-   ```powershell
-   cd $HOME\Documents\pixel-management
-   uv run --no-project --with pillow python tools\art\check_delivery.py "$INBOX\art\inbox\sheet_hero_lyra.png" `
-     --aseprite "$INBOX\art\inbox\aseprite\sheet_hero_lyra.aseprite" --aseprite-exe "C:\Program Files\Aseprite\Aseprite.exe"
-   ```
-   2x2 몬스터는 `--layout 2x2`. **`RESULT: FAIL` 이면 푸시하지 않는다.** `WARN` 은 메모에 이유를 적으면 된다.
-3. 게임 크기로 줄여 보기: `view_sprite` 나 Aseprite 에서 1/6 크기(약 64px 키)로 보고, 무기·얼굴이 읽히는지 본다.
-4. `art/inbox/NOTES.md` 에 절 추가: 만든 파일, 가이드와 다르게 한 점, 다시 그리고 싶은 점, 검사 결과 줄.
-5. `git status` 로 **`art/inbox/` 안의 파일만** 바뀌었는지 확인 → 커밋 → `git pull --rebase origin art-inbox` → `git push origin art-inbox`.
+`tools/aseprite-mcp/pc/CLAUDE.md` 「납품」 그대로 (여기에 따로 적지 않는다 — 두 벌이 어긋났었다). 요점: 내보내기와 자체 검사는
+`check_delivery.py ... --aseprite <원본> --export --base-rev <바탕 해시>` 한 줄, 새로 생긴 FAIL 이 있으면 푸시하지 않는다, `art/inbox/` 안만 커밋,
+NOTES.md 충돌은 양쪽 절을 모두 남기고 PNG·`.aseprite` 충돌은 풀지 않고 멈춘다.
 
 ## 7. 클라우드가 받은 납품을 처리하는 법
 
@@ -119,65 +103,17 @@ Redeliver Lyra battle sheet (Aseprite): dagger outside the silhouette
 저장소에 없고 컨테이너가 바뀌면 다시 빌드). aseprite-mcp 는 클라우드에서 쓰지 않는다 — Aseprite 명령줄만 쓴다.
 
 ```bash
-git fetch origin art-inbox
-T=<스크래치 폴더>; mkdir -p $T/ase $T/in
-git show origin/art-inbox:art/inbox/sheet_hero_lyra.png > $T/in/sheet_hero_lyra.png
-git show origin/art-inbox:art/inbox/aseprite/sheet_hero_lyra.aseprite > $T/in/sheet_hero_lyra.aseprite
-ASE=/home/user/aseprite-build/src/build/bin/aseprite
-export HOME=$T/ase XDG_CONFIG_HOME=$T/ase/c ASEPRITE_USER_FOLDER=$T/ase/a; unset DISPLAY WAYLAND_DISPLAY   # 버리는 프로필
-# 원본 살펴보기 (레이어·태그·크기)
-$ASE -b --list-layers --list-tags $T/in/sheet_hero_lyra.aseprite --data $T/in/info.json --format json-array --sheet $T/in/flat.png
-# 규격 + 원본==PNG
-python3 tools/art/check_delivery.py $T/in/sheet_hero_lyra.png --aseprite $T/in/sheet_hero_lyra.aseprite --aseprite-exe $ASE
+ASE=/home/user/aseprite-build/src/build/bin/aseprite    # 버리는 프로필로 감싼 스크립트를 쓰면 편하다 (HOME·XDG_CONFIG_HOME 을 스크래치로)
+python3 tools/art/receive.py <stem> --aseprite-exe $ASE --work <스크래치 폴더>
 ```
+`receive.py` 가 한 번에 한다: art-inbox 에서 PNG·원본 꺼내기 → 이전 판을 바탕으로 찾기 → `check_delivery.py`(배치·칸·점 색은 `phase3.json` 에서,
+바탕과의 윤곽·색 차이, 원본==PNG, 레이어 이름, 숨긴 `original_ref` == 바탕) → `sheets.py --dry-run`(등록된 시트와 같은 배율·칸) →
+게임 크기에서 실제로 바뀐 픽셀 수 → 그 납품이 `art/inbox/` 밖을 건드렸는지. 등록·커밋은 하지 않는다 (미리보기를 본 뒤 사람이 판단).
 - 검사가 통과하면 평소대로: `sheets.py ... --dry-run` 으로 미리보기 → 검토 → 등록 (`art/README.md` 「전투 캐릭터 시트」) → `dot_queue.md` 상태와 `feedback.md` 갱신 → 게임 브랜치에 푸시.
 - PNG 와 원본이 다르면 `NEEDS_FIX` ("PNG 를 원본에서 다시 내보낼 것"). PNG 가 빠졌으면 클라우드가 원본에서 내보내 검사해도 되지만, 피드백에 적어 다음부터 둘 다 올리게 한다.
 - `.aseprite` 원본은 art-inbox 에만 둔다 (게임 브랜치로 옮기지 않는다). 피드백에서 레이어 이름으로 고칠 곳을 가리킬 수 있다.
 
 ## 8. PC 세션에 처음 붙여 넣을 지시
 
-PC 의 게임 저장소 폴더에서 Claude 를 연 뒤 첫 메시지로 붙여 넣는다.
-(매번 붙이기 번거로우면 같은 내용을 그 폴더의 `CLAUDE.local.md` 로 저장하고, `.git\info\exclude` 에 `CLAUDE.local.md` 한 줄을 넣어 커밋되지 않게 한다.)
-
-```markdown
-# 너의 역할: pixel-management 의 PC 도트 담당 (Aseprite)
-
-- 이 PC(Windows)에는 정품 Aseprite 와 aseprite-mcp(MCP 서버 이름 `aseprite`)가 있다. 게임 코드는 클라우드의 다른 Claude 세션이 맡는다.
-  그 세션은 이 PC 에 닿지 못한다. 서로는 GitHub 저장소로만 주고받는다. 약속 전체: docs/pc_cloud_protocol.md.
-- 폴더: 게임 브랜치 = 이 폴더(`claude/dot-fantasy-management-game-saupju`, 읽기만, 커밋·푸시 금지),
-  납품 = `..\pixel-management-inbox` (art-inbox 브랜치 worktree; 없으면 docs/pc_cloud_protocol.md 2절대로 만든다).
-
-## 시작할 때마다
-1. 이 폴더에서 `git pull`, 납품 폴더에서 `git pull --rebase origin art-inbox`.
-2. 읽기: AGENTS.md, art/README.md, art/requests/dot_queue.md, art/requests/gpt_handoff_notes.md, art/requests/feedback.md(최근 절),
-   맡을 항목의 art/requests/phase3/<id>/README.md 와 guide_strip.png, portrait.png, 화풍 기준(앵커) 시트.
-3. 맡을 항목 고르기: 메모에 `담당: PC(Aseprite)` → 없으면 위에서부터 `DOT_READY` → 그다음 `NEEDS_FIX`(feedback.md 의 고칠 점만).
-   QUEUED·DELIVERED·ACCEPTED 는 건드리지 않는다. 할 것이 없으면 멈추고 알려 준다.
-   어떤 항목을 고를지·무엇을 그릴지 애매하면 시작 전에 묻는다.
-
-## 작업
-- 원본: `<납품폴더>\art\inbox\aseprite\<stem>.aseprite` (stem = 대기열의 납품 PNG 이름에서 .png 뺀 것).
-  1536x1024 RGB, 프레임 1개, 맨 아래 `Background` 레이어를 불투명 #FF00FF 로, 그 위에 자세별 레이어. 영문 이름.
-- 규격: 요청서 README 의 DELIVERABLE·SELF-CHECK 그대로 (1x4 또는 README 가 말하면 2x2, 발 y=870, 여백 32px+,
-  #FF00FF 와 거리 170 이상, 40색 안팎·또렷한 가장자리, 무기는 몸 실루엣 바깥 배경 위).
-- aseprite 도구에는 언제나 **절대 경로**. 게임 저장소 밖에 파일을 쓰지 않는다.
-- 쓰지 않는 도구: run_lua_script, audit_animation, animation_sanitize, start_preview_server, stop_preview_server (막혀 있다 — 우회하지 말 것).
-- NovelAI 그림(concept.png, nai_*)은 보기만 한다. 픽셀을 가져오거나 레이어로 넣지 않는다.
-- 가이드·참고 레이어는 작업 중에만, 커밋 전에 지운다.
-
-## 납품 (docs/pc_cloud_protocol.md 6절)
-1. Aseprite 명령줄로 PNG 내보내기: `Aseprite.exe -b <원본> --save-as <납품폴더>\art\inbox\<stem>.png`
-2. 자체 검사: 이 폴더에서
-   `uv run --no-project --with pillow python tools\art\check_delivery.py <PNG> --aseprite <원본> --aseprite-exe <Aseprite.exe>`
-   (2x2 는 --layout 2x2). FAIL 이면 고친다 — 푸시하지 않는다.
-3. 게임 크기(약 1/6)로 줄여 보고 무기·얼굴이 읽히는지 확인.
-4. art/inbox/NOTES.md 에 「3단계 — <이름> (Aseprite)」 절: 만든 파일, 가이드와 다른 점, 다시 그리고 싶은 점, 검사 결과 줄.
-5. 납품 폴더에서 art/inbox/ 안만 바뀌었는지 확인 → 커밋 (`Deliver <Name> battle sheet (Aseprite)`) →
-   `git pull --rebase origin art-inbox` → `git push origin art-inbox`. 강제 푸시 금지.
-6. 주인에게 "올렸다 (커밋 해시, 파일)" 라고 알리고, DOT_READY 가 더 있으면 다음 항목으로.
-
-## 하지 않는 것
-- 게임 브랜치 커밋·푸시, art/inbox/ 밖 수정, dot_queue.md·feedback.md 수정 (상태는 클라우드가 바꾼다).
-- Aseprite 프로그램 파일을 저장소에 넣기 (EULA). 토큰·비밀번호를 파일에 쓰기.
-- tools/aseprite-mcp 의 고정 커밋 바꾸기, aseprite-mcp 업데이트 (클라우드가 검토한 뒤에만).
-```
+따로 없다. PC 의 게임 폴더에 `CLAUDE.local.md`(1절)가 있으면 Claude 가 지침을 스스로 읽는다. 주인은 "다음 손질 진행해" 처럼 한 줄만 말하면 된다.
+(예전에 여기 있던 긴 지시문은 지웠다 — `CLAUDE.md` 와 내용이 어긋나 표시 없는 DOT_READY 까지 그리라고 적혀 있었다.)

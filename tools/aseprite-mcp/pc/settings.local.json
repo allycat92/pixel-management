@@ -11,9 +11,22 @@
       "Bash(git log:*)",
       "Bash(git diff:*)",
       "Bash(git show:*)",
+      "Bash(git -C ../pixel-management-inbox status:*)",
+      "Bash(git -C ../pixel-management-inbox log:*)",
+      "Bash(git -C ../pixel-management-inbox diff:*)",
+      "Bash(git -C ../pixel-management-inbox show:*)",
+      "Bash(git -C ../pixel-management-inbox fetch:*)",
+      "Bash(git -C ../pixel-management-inbox add art/inbox:*)",
+      "Bash(git -C ../pixel-management-inbox commit:*)",
+      "Bash(git -C ../pixel-management-inbox pull --rebase origin art-inbox)",
+      "Bash(git -C ../pixel-management-inbox push origin art-inbox)",
+      "Bash(git -C ../pixel-management-inbox rebase --abort)",
+      "Bash(git -C ../pixel-management-inbox rebase --continue)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(git push origin art-inbox)",
+      "Bash(git rebase --abort)",
+      "Bash(git rebase --continue)",
       "Bash(git worktree list:*)",
       "Bash(uv run:*)",
       "Bash(ls:*)",
@@ -37,5 +50,9 @@
     "additionalDirectories": [
       "~/Documents/pixel-management-inbox"
     ]
+  },
+  "env": {
+    "ASEPRITE_PATH": "D:/Program Files (x86)/Steam/steamapps/common/Aseprite/Aseprite.exe",
+    "PYTHONUTF8": "1"
   }
 }

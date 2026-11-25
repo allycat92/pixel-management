@@ -25,5 +25,10 @@
 - Aseprite: never commit Aseprite binaries (EULA forbids redistribution). Build notes only.
 - PC Aseprite session: the owner's Windows PC runs official Aseprite + aseprite-mcp (pinned, reviewed commit; setup and the
   5 denied tools in `tools/aseprite-mcp/README.md`). The PC session only writes `art/inbox/` on `art-inbox`
-  (`<stem>.png` + `aseprite/<stem>.aseprite`); this repo's cloud session checks (`tools/art/check_delivery.py`), registers and
-  owns `dot_queue.md` statuses. Roles, branches, naming and the PC's first instruction: `docs/pc_cloud_protocol.md`.
+  (`<stem>.png` + `aseprite/<stem>.aseprite`; pose-skeleton guides: `guides/<id>/` with the .aseprite beside the PNG); this repo's
+  cloud session receives (`tools/art/receive.py` → `check_delivery.py` + `sheets.py --dry-run`), registers and owns `dot_queue.md` statuses.
+  Roles, branches, naming: `docs/pc_cloud_protocol.md`; the PC's instruction is `tools/aseprite-mcp/pc/CLAUDE.md` (versioned) + `art/requests/pc_notes.md`.
+- Collaboration rules of the art loop (who decides what, cross-checks, single-pose checks): `art/requests/dot_queue.md` rules section;
+  GPT's standing instruction `art/requests/GPT_STANDING.md`; skeleton guides `art/requests/guides/SPEC.md`.
+- Owner policy: references (including third-party effect libraries or sprites) are for learning only — never ship someone else's
+  finished assets or code in the game; generation/editing tools (Aseprite, sprite-gen offline) are fine.

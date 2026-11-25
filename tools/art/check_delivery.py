@@ -337,6 +337,8 @@ def main():
                     help="1x4 row or 2x2 grid of 768x512 quadrants. Default: the entry for this file in art/requests/phase3.json, else 1x4")
     ap.add_argument("--base", help="touch-ups: the received PNG this was made from - reports what changed and marks failures "
                                    "that the base already had as pre-existing warnings")
+    ap.add_argument("--base-rev", help="like --base, but takes the base from git: the version of this PNG at that commit of the "
+                                       "repository the PNG is in (e.g. the 바탕 hash of the dot_queue row)")
     ap.add_argument("--spot", help="declared spot colours (tiny must-show colours), e.g. '#d6455d,#f2c94c'. Default: phase3.json 'spots'")
     ap.add_argument("--cell", type=int, help="game cell size for the height budget (default: phase3.json 'cell', else 96)")
     ap.add_argument("--export", action="store_true", help="first export --aseprite to the PNG path (then check it)")
@@ -357,6 +359,19 @@ def main():
     if not os.path.isfile(a.png):
         print(f"not found: {a.png}")
         return 2
+    tmp_base = None
+    if a.base_rev and not a.base:
+        d = os.path.dirname(os.path.abspath(a.png))
+        top = subprocess.run(["git", "-C", d, "rev-parse", "--show-toplevel"], capture_output=True).stdout.decode().strip()
+        rel = os.path.relpath(os.path.abspath(a.png), top).replace(os.sep, "/") if top else ""
+        blob = subprocess.run(["git", "-C", d, "show", f"{a.base_rev}:{rel}"], capture_output=True)
+        if not top or blob.returncode != 0:
+            print(f"could not read {rel} at {a.base_rev}")
+            return 2
+        fd, tmp_base = tempfile.mkstemp(suffix=".png")
+        with os.fdopen(fd, "wb") as f:
+            f.write(blob.stdout)
+        a.base = tmp_base
     req = request_item(a.png)
     src_note = ""
     if a.layout is None:
@@ -391,6 +406,8 @@ def main():
     for m in errors:
         print("  FAIL: " + m)
     print("RESULT: " + ("FAIL" if errors else ("PASS (with warnings)" if warns else "PASS")))
+    if tmp_base:
+        os.unlink(tmp_base)
     return 1 if errors else 0
 
 
