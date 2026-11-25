@@ -378,3 +378,9 @@ CHECK: RESULT: PASS
 REFERENCES LOADED: portrait_800.jpg, guide_strip.png, guide_1_idle.png, guide_2_windup.png, guide_3_strike.png, guide_4_hit.png, Baren style anchor PNG, art/STYLE.md, latest handoff notes → ok.
 DEVIATIONS: (a) 대기·피격 자세의 활이 다리와 겹치지 않도록 팔을 더 뻗고 활을 세웠습니다. 두 자세의 높이는 유지하고 좌우 폭만 약 5% 줄였습니다. (b) 초상에서 보이지 않는 하체·장화는 녹색/갈색으로 보완. (c) none.
 RISKS AT GAME SIZE: 활 자체는 배경과 분리되지만 가는 시위와 장전된 화살은 어두운 전장에서 흐려질 수 있습니다. 관자놀이의 잎 장식과 머리띠 보석은 축소 시 합쳐 보일 수 있습니다. 96px 칸·0.1654 변환 통과, 로컬 유휴 루프는 기본 대체 동작으로 확인.
+
+## sheet/captain/warlord - 3단계 — 가르마크
+CHECK: RESULT: PASS
+REFERENCES LOADED: portrait_800.jpg, guide_strip.png, guide_1_idle.png, guide_2_windup.png, guide_3_strike.png, guide_4_hit.png, Baren style anchor PNG, art/STYLE.md, latest handoff notes → ok.
+DEVIATIONS: (a) 가이드의 칼 대신 같은 양날 전쟁 도끼를 네 컷에 유지했습니다. 피격에서 자루는 한 손에 남고 도끼날은 뒤쪽으로 떨어지며, 공격 컷의 하체는 가이드보다 조금 낮게 굽혔습니다. (b) 초상에서 보이지 않는 하체·장화는 갈색으로 보완. 초상의 등 뒤 대검은 확정 사항에 따라 제외. (c) none.
+RISKS AT GAME SIZE: 피격 때 도끼자루는 망토 바로 옆을 지나서 어두운 전장에서 일부가 약하게 보일 수 있습니다. 도끼날은 네 컷 모두 배경 위에 있습니다. 96px 칸·0.1654 변환 통과, 로컬 유휴 루프는 기본 대체 동작으로 확인.
