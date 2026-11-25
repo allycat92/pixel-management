@@ -103,6 +103,58 @@ const Battle = (() => {
       }
     }
   }
+  // 도트 폭발: 60ms 단계로 끊어서 — 0~1 뾰족한 별꼴 섬광 → 2~4 불꽃 조각이 퍼짐 → 5~8 불티가 흩어지며 사라짐.
+  // 바닥에는 점선 고리. (주인이 준 마법사 예시: 별꼴 한 번 → 조각 → 불티, 부드러운 원형 빛이 아니라 칸 단위 모양)
+  function drawBurst(ctx, s, r) {
+    const step = Math.min(8, Math.floor(s.t / 0.06));
+    const cx = Math.round(s.x), cy = Math.round(s.y), R = Math.max(10, Math.round(s.r * 0.9 + 8));
+    let seed = (Math.round(s.x) * 73856093 ^ Math.round(s.y) * 19349663) >>> 0;
+    const rnd = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
+    const N = 10, ang = [], len = [];
+    for (let i = 0; i < N; i++) { ang.push((i + rnd() * 0.5) * (Math.PI * 2 / N)); len.push(i % 2 ? 0.45 + rnd() * 0.15 : 0.8 + rnd() * 0.2); }
+    const hot = mixHex(s.color, '#ffffff', 0.65), dark = mixHex(s.color, '#3a2a2a', 0.45);
+    const a0 = ctx.globalAlpha;
+    if (step <= 1) {
+      const sc = step === 0 ? 1 : 0.7;
+      for (let i = 0; i < N; i++) {
+        const L = Math.round(R * len[i] * sc), c = Math.cos(ang[i]), sn = Math.sin(ang[i]);
+        for (let d = 0; d <= L; d++) {
+          const w = d < L * 0.3 ? 2 : 1;
+          px(ctx, Math.round(cx + c * d), Math.round(cy + sn * d * 0.8), w, w, d < L * 0.2 ? hot : s.color);
+        }
+      }
+      const core = Math.round(R * (step === 0 ? 0.17 : 0.11));
+      for (let y = -core; y <= core; y++) {
+        const hw = Math.round(Math.sqrt(core * core - y * y));
+        px(ctx, cx - hw, cy + Math.round(y * 0.8), hw * 2 + 1, 1, step === 0 ? '#ffffff' : hot);
+      }
+    } else if (step <= 4) {
+      ctx.globalAlpha = a0 * (1 - (step - 2) * 0.18);
+      const dist = R * (0.35 + (step - 2) * 0.22);
+      for (let i = 0; i < N + 4; i++) {
+        const a = rnd() * Math.PI * 2, dd = dist * (0.7 + rnd() * 0.5), sz = step === 2 ? 3 : 2;
+        px(ctx, Math.round(cx + Math.cos(a) * dd), Math.round(cy + Math.sin(a) * dd * 0.8), sz, sz, i % 3 ? s.color : hot);
+        if (step === 2) px(ctx, Math.round(cx + Math.cos(a) * dd * 0.8), Math.round(cy + Math.sin(a) * dd * 0.64), 2, 1, dark);
+      }
+    } else {
+      ctx.globalAlpha = a0 * Math.max(0.15, 0.7 - (step - 5) * 0.16);
+      const dist = R * (0.9 + (step - 5) * 0.15);
+      for (let i = 0; i < N + 6; i++) {
+        const a = rnd() * Math.PI * 2, dd = dist * (0.6 + rnd() * 0.6);
+        if ((i + step) % 2) continue;
+        px(ctx, Math.round(cx + Math.cos(a) * dd), Math.round(cy + Math.sin(a) * dd * 0.8 - (step - 5)), 1, 1, i % 4 ? s.color : dark);
+      }
+    }
+    // 바닥 점선 고리 (전과 같은 크기 r 로 퍼짐)
+    ctx.globalAlpha = a0 * Math.max(0, 1 - s.t / 0.5);
+    const rx = Math.round(r * 1.1), ry = Math.round(r * 0.45), n = Math.max(12, Math.round(rx * 0.9));
+    for (let i = 0; i < n; i++) {
+      if (i % 3 === 2) continue;
+      const a = i / n * Math.PI * 2;
+      px(ctx, Math.round(s.x + Math.cos(a) * rx), Math.round(s.y + 10 + Math.sin(a) * ry), 1, 1, s.color);
+    }
+    ctx.globalAlpha = a0;
+  }
   function drawSmear(ctx, s) {
     const step = Math.min(3, Math.floor(s.t / 0.055));
     const R = s.big ? 22 : 15, W = s.big ? 5 : 3, S = 2.1;
@@ -1716,18 +1768,12 @@ const Battle = (() => {
       if (s.t < 0) return;
       if (s.boom) {
         const k = s.t / 0.5, dim = capDim(view, s.x, s.y);
-        ctx.globalAlpha = Math.max(0, 1 - k) * dim;
+        // 은은한 빛은 남기되 옅게 — 폭발의 모양은 도트 폭발(drawBurst)이 맡는다
+        ctx.globalAlpha = Math.max(0, 1 - k) * dim * 0.5;
         const r = Math.round(s.r * (0.5 + k * 1.2) + 10);
         ctx.drawImage(glow(s.color, r), s.x - r, s.y - r);
-        // 흰 섬광 핵: 대장 몸 위라면 더 옅게 (색 번짐·고리로 타격은 충분히 읽힌다)
-        if (k < 0.3) {
-          const w = Math.round(r * 0.8), a = ctx.globalAlpha;
-          ctx.globalAlpha = a * (dim < 1 ? 0.55 : 1);
-          ctx.drawImage(glow('#ffffff', w), s.x - w, s.y - w);
-          ctx.globalAlpha = a;
-        }
-        ctx.strokeStyle = s.color; ctx.lineWidth = 2;
-        ctx.beginPath(); ctx.ellipse(s.x, s.y + 10, r * 1.1, r * 0.45, 0, 0, Math.PI * 2); ctx.stroke();
+        ctx.globalAlpha = dim;
+        drawBurst(ctx, s, r);
       } else if (s.dash) {
         ctx.globalAlpha = Math.max(0, 1 - s.t / 0.22);
         px(ctx, Math.round(s.x) - 30, Math.round(s.y), 60, 2, '#ffffff');
