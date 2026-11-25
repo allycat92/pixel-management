@@ -523,6 +523,79 @@
     },
     "w": 384
   },
+  "sheet/captain/hedgemage": {
+    "file": "assets/art/sheets/sheet_captain_hedgemage.png",
+    "h": 192,
+    "sheet": {
+      "anchor": [
+        48,
+        92
+      ],
+      "anims": {
+        "attack": {
+          "from": 4,
+          "ms": [
+            150,
+            260
+          ],
+          "to": 5
+        },
+        "hit": {
+          "from": 6,
+          "ms": [
+            220
+          ],
+          "to": 6
+        },
+        "idle": {
+          "from": 0,
+          "ms": [
+            240,
+            240,
+            240,
+            240
+          ],
+          "to": 3
+        }
+      },
+      "cell": [
+        96,
+        96
+      ],
+      "facing": 1,
+      "frames": [
+        [
+          0,
+          0
+        ],
+        [
+          96,
+          0
+        ],
+        [
+          192,
+          0
+        ],
+        [
+          288,
+          0
+        ],
+        [
+          0,
+          96
+        ],
+        [
+          96,
+          96
+        ],
+        [
+          192,
+          96
+        ]
+      ]
+    },
+    "w": 384
+  },
   "sheet/captain/huntress": {
     "file": "assets/art/sheets/sheet_captain_huntress.png",
     "h": 192,
@@ -817,6 +890,947 @@
   },
   "sheet/captain/veteran": {
     "file": "assets/art/sheets/sheet_captain_veteran.png",
+    "h": 192,
+    "sheet": {
+      "anchor": [
+        48,
+        92
+      ],
+      "anims": {
+        "attack": {
+          "from": 4,
+          "ms": [
+            150,
+            260
+          ],
+          "to": 5
+        },
+        "hit": {
+          "from": 6,
+          "ms": [
+            220
+          ],
+          "to": 6
+        },
+        "idle": {
+          "from": 0,
+          "ms": [
+            240,
+            240,
+            240,
+            240
+          ],
+          "to": 3
+        }
+      },
+      "cell": [
+        96,
+        96
+      ],
+      "facing": 1,
+      "frames": [
+        [
+          0,
+          0
+        ],
+        [
+          96,
+          0
+        ],
+        [
+          192,
+          0
+        ],
+        [
+          288,
+          0
+        ],
+        [
+          0,
+          96
+        ],
+        [
+          96,
+          96
+        ],
+        [
+          192,
+          96
+        ]
+      ]
+    },
+    "w": 384
+  },
+  "sheet/class/archer": {
+    "file": "assets/art/sheets/sheet_class_archer.png",
+    "h": 192,
+    "sheet": {
+      "anchor": [
+        48,
+        92
+      ],
+      "anims": {
+        "attack": {
+          "from": 4,
+          "ms": [
+            150,
+            260
+          ],
+          "to": 5
+        },
+        "hit": {
+          "from": 6,
+          "ms": [
+            220
+          ],
+          "to": 6
+        },
+        "idle": {
+          "from": 0,
+          "ms": [
+            240,
+            240,
+            240,
+            240
+          ],
+          "to": 3
+        }
+      },
+      "cell": [
+        96,
+        96
+      ],
+      "facing": 1,
+      "frames": [
+        [
+          0,
+          0
+        ],
+        [
+          96,
+          0
+        ],
+        [
+          192,
+          0
+        ],
+        [
+          288,
+          0
+        ],
+        [
+          0,
+          96
+        ],
+        [
+          96,
+          96
+        ],
+        [
+          192,
+          96
+        ]
+      ],
+      "tint": {
+        "accent": [
+          "#3f7a6c",
+          "#5ea590",
+          "#96d1bb"
+        ],
+        "outfit": [
+          "#263459",
+          "#394b78",
+          "#52679c",
+          "#7489be"
+        ]
+      }
+    },
+    "w": 384
+  },
+  "sheet/class/cleric": {
+    "file": "assets/art/sheets/sheet_class_cleric.png",
+    "h": 192,
+    "sheet": {
+      "anchor": [
+        48,
+        92
+      ],
+      "anims": {
+        "attack": {
+          "from": 4,
+          "ms": [
+            150,
+            260
+          ],
+          "to": 5
+        },
+        "hit": {
+          "from": 6,
+          "ms": [
+            220
+          ],
+          "to": 6
+        },
+        "idle": {
+          "from": 0,
+          "ms": [
+            240,
+            240,
+            240,
+            240
+          ],
+          "to": 3
+        }
+      },
+      "cell": [
+        96,
+        96
+      ],
+      "facing": 1,
+      "frames": [
+        [
+          0,
+          0
+        ],
+        [
+          96,
+          0
+        ],
+        [
+          192,
+          0
+        ],
+        [
+          288,
+          0
+        ],
+        [
+          0,
+          96
+        ],
+        [
+          96,
+          96
+        ],
+        [
+          192,
+          96
+        ]
+      ],
+      "tint": {
+        "accent": [
+          "#3f7a6c",
+          "#5ea590",
+          "#96d1bb"
+        ],
+        "outfit": [
+          "#263459",
+          "#394b78",
+          "#52679c",
+          "#7489be"
+        ]
+      }
+    },
+    "w": 384
+  },
+  "sheet/class/mage": {
+    "file": "assets/art/sheets/sheet_class_mage.png",
+    "h": 192,
+    "sheet": {
+      "anchor": [
+        48,
+        92
+      ],
+      "anims": {
+        "attack": {
+          "from": 4,
+          "ms": [
+            150,
+            260
+          ],
+          "to": 5
+        },
+        "hit": {
+          "from": 6,
+          "ms": [
+            220
+          ],
+          "to": 6
+        },
+        "idle": {
+          "from": 0,
+          "ms": [
+            240,
+            240,
+            240,
+            240
+          ],
+          "to": 3
+        }
+      },
+      "cell": [
+        96,
+        96
+      ],
+      "facing": 1,
+      "frames": [
+        [
+          0,
+          0
+        ],
+        [
+          96,
+          0
+        ],
+        [
+          192,
+          0
+        ],
+        [
+          288,
+          0
+        ],
+        [
+          0,
+          96
+        ],
+        [
+          96,
+          96
+        ],
+        [
+          192,
+          96
+        ]
+      ],
+      "tint": {
+        "accent": [
+          "#3f7a6c",
+          "#5ea590",
+          "#96d1bb"
+        ],
+        "outfit": [
+          "#263459",
+          "#394b78",
+          "#52679c",
+          "#7489be"
+        ]
+      }
+    },
+    "w": 384
+  },
+  "sheet/class/rogue": {
+    "file": "assets/art/sheets/sheet_class_rogue.png",
+    "h": 192,
+    "sheet": {
+      "anchor": [
+        48,
+        92
+      ],
+      "anims": {
+        "attack": {
+          "from": 4,
+          "ms": [
+            150,
+            260
+          ],
+          "to": 5
+        },
+        "hit": {
+          "from": 6,
+          "ms": [
+            220
+          ],
+          "to": 6
+        },
+        "idle": {
+          "from": 0,
+          "ms": [
+            240,
+            240,
+            240,
+            240
+          ],
+          "to": 3
+        }
+      },
+      "cell": [
+        96,
+        96
+      ],
+      "facing": 1,
+      "frames": [
+        [
+          0,
+          0
+        ],
+        [
+          96,
+          0
+        ],
+        [
+          192,
+          0
+        ],
+        [
+          288,
+          0
+        ],
+        [
+          0,
+          96
+        ],
+        [
+          96,
+          96
+        ],
+        [
+          192,
+          96
+        ]
+      ],
+      "tint": {
+        "accent": [
+          "#3f7a6c",
+          "#5ea590",
+          "#96d1bb"
+        ],
+        "outfit": [
+          "#263459",
+          "#394b78",
+          "#52679c",
+          "#7489be"
+        ]
+      }
+    },
+    "w": 384
+  },
+  "sheet/class/warrior": {
+    "file": "assets/art/sheets/sheet_class_warrior.png",
+    "h": 192,
+    "sheet": {
+      "anchor": [
+        48,
+        92
+      ],
+      "anims": {
+        "attack": {
+          "from": 4,
+          "ms": [
+            150,
+            260
+          ],
+          "to": 5
+        },
+        "hit": {
+          "from": 6,
+          "ms": [
+            220
+          ],
+          "to": 6
+        },
+        "idle": {
+          "from": 0,
+          "ms": [
+            240,
+            240,
+            240,
+            240
+          ],
+          "to": 3
+        }
+      },
+      "cell": [
+        96,
+        96
+      ],
+      "facing": 1,
+      "frames": [
+        [
+          0,
+          0
+        ],
+        [
+          96,
+          0
+        ],
+        [
+          192,
+          0
+        ],
+        [
+          288,
+          0
+        ],
+        [
+          0,
+          96
+        ],
+        [
+          96,
+          96
+        ],
+        [
+          192,
+          96
+        ]
+      ],
+      "tint": {
+        "accent": [
+          "#3f7a6c",
+          "#5ea590",
+          "#96d1bb"
+        ],
+        "outfit": [
+          "#263459",
+          "#394b78",
+          "#52679c",
+          "#7489be"
+        ]
+      }
+    },
+    "w": 384
+  },
+  "sheet/monster/가고일": {
+    "file": "assets/art/sheets/sheet_monster_gargoyle.png",
+    "h": 224,
+    "sheet": {
+      "anchor": [
+        56,
+        108
+      ],
+      "anims": {
+        "attack": {
+          "from": 4,
+          "ms": [
+            150,
+            260
+          ],
+          "to": 5
+        },
+        "hit": {
+          "from": 6,
+          "ms": [
+            220
+          ],
+          "to": 6
+        },
+        "idle": {
+          "from": 0,
+          "ms": [
+            240,
+            240,
+            240,
+            240
+          ],
+          "to": 3
+        }
+      },
+      "cell": [
+        112,
+        112
+      ],
+      "facing": 1,
+      "frames": [
+        [
+          0,
+          0
+        ],
+        [
+          112,
+          0
+        ],
+        [
+          224,
+          0
+        ],
+        [
+          336,
+          0
+        ],
+        [
+          0,
+          112
+        ],
+        [
+          112,
+          112
+        ],
+        [
+          224,
+          112
+        ]
+      ]
+    },
+    "w": 448
+  },
+  "sheet/monster/들늑대": {
+    "file": "assets/art/sheets/sheet_monster_wolf.png",
+    "h": 224,
+    "sheet": {
+      "anchor": [
+        56,
+        108
+      ],
+      "anims": {
+        "attack": {
+          "from": 4,
+          "ms": [
+            150,
+            260
+          ],
+          "to": 5
+        },
+        "hit": {
+          "from": 6,
+          "ms": [
+            220
+          ],
+          "to": 6
+        },
+        "idle": {
+          "from": 0,
+          "ms": [
+            240,
+            240,
+            240,
+            240
+          ],
+          "to": 3
+        }
+      },
+      "cell": [
+        112,
+        112
+      ],
+      "facing": 1,
+      "frames": [
+        [
+          0,
+          0
+        ],
+        [
+          112,
+          0
+        ],
+        [
+          224,
+          0
+        ],
+        [
+          336,
+          0
+        ],
+        [
+          0,
+          112
+        ],
+        [
+          112,
+          112
+        ],
+        [
+          224,
+          112
+        ]
+      ]
+    },
+    "w": 448
+  },
+  "sheet/monster/망령": {
+    "file": "assets/art/sheets/sheet_monster_wraith.png",
+    "h": 192,
+    "sheet": {
+      "anchor": [
+        48,
+        92
+      ],
+      "anims": {
+        "attack": {
+          "from": 4,
+          "ms": [
+            150,
+            260
+          ],
+          "to": 5
+        },
+        "hit": {
+          "from": 6,
+          "ms": [
+            220
+          ],
+          "to": 6
+        },
+        "idle": {
+          "from": 0,
+          "ms": [
+            240,
+            240,
+            240,
+            240
+          ],
+          "to": 3
+        }
+      },
+      "cell": [
+        96,
+        96
+      ],
+      "facing": 1,
+      "frames": [
+        [
+          0,
+          0
+        ],
+        [
+          96,
+          0
+        ],
+        [
+          192,
+          0
+        ],
+        [
+          288,
+          0
+        ],
+        [
+          0,
+          96
+        ],
+        [
+          96,
+          96
+        ],
+        [
+          192,
+          96
+        ]
+      ]
+    },
+    "w": 384
+  },
+  "sheet/monster/사막 도적": {
+    "file": "assets/art/sheets/sheet_monster_desert-bandit.png",
+    "h": 192,
+    "sheet": {
+      "anchor": [
+        48,
+        92
+      ],
+      "anims": {
+        "attack": {
+          "from": 4,
+          "ms": [
+            150,
+            260
+          ],
+          "to": 5
+        },
+        "hit": {
+          "from": 6,
+          "ms": [
+            220
+          ],
+          "to": 6
+        },
+        "idle": {
+          "from": 0,
+          "ms": [
+            240,
+            240,
+            240,
+            240
+          ],
+          "to": 3
+        }
+      },
+      "cell": [
+        96,
+        96
+      ],
+      "facing": 1,
+      "frames": [
+        [
+          0,
+          0
+        ],
+        [
+          96,
+          0
+        ],
+        [
+          192,
+          0
+        ],
+        [
+          288,
+          0
+        ],
+        [
+          0,
+          96
+        ],
+        [
+          96,
+          96
+        ],
+        [
+          192,
+          96
+        ]
+      ]
+    },
+    "w": 384
+  },
+  "sheet/monster/산적": {
+    "file": "assets/art/sheets/sheet_monster_bandit.png",
+    "h": 192,
+    "sheet": {
+      "anchor": [
+        48,
+        92
+      ],
+      "anims": {
+        "attack": {
+          "from": 4,
+          "ms": [
+            150,
+            260
+          ],
+          "to": 5
+        },
+        "hit": {
+          "from": 6,
+          "ms": [
+            220
+          ],
+          "to": 6
+        },
+        "idle": {
+          "from": 0,
+          "ms": [
+            240,
+            240,
+            240,
+            240
+          ],
+          "to": 3
+        }
+      },
+      "cell": [
+        96,
+        96
+      ],
+      "facing": 1,
+      "frames": [
+        [
+          0,
+          0
+        ],
+        [
+          96,
+          0
+        ],
+        [
+          192,
+          0
+        ],
+        [
+          288,
+          0
+        ],
+        [
+          0,
+          96
+        ],
+        [
+          96,
+          96
+        ],
+        [
+          192,
+          96
+        ]
+      ]
+    },
+    "w": 384
+  },
+  "sheet/monster/하피": {
+    "file": "assets/art/sheets/sheet_monster_harpy.png",
+    "h": 224,
+    "sheet": {
+      "anchor": [
+        56,
+        108
+      ],
+      "anims": {
+        "attack": {
+          "from": 4,
+          "ms": [
+            150,
+            260
+          ],
+          "to": 5
+        },
+        "hit": {
+          "from": 6,
+          "ms": [
+            220
+          ],
+          "to": 6
+        },
+        "idle": {
+          "from": 0,
+          "ms": [
+            240,
+            240,
+            240,
+            240
+          ],
+          "to": 3
+        }
+      },
+      "cell": [
+        112,
+        112
+      ],
+      "facing": 1,
+      "frames": [
+        [
+          0,
+          0
+        ],
+        [
+          112,
+          0
+        ],
+        [
+          224,
+          0
+        ],
+        [
+          336,
+          0
+        ],
+        [
+          0,
+          112
+        ],
+        [
+          112,
+          112
+        ],
+        [
+          224,
+          112
+        ]
+      ]
+    },
+    "w": 448
+  },
+  "sheet/monster/해골 병사": {
+    "file": "assets/art/sheets/sheet_monster_skeleton.png",
     "h": 192,
     "sheet": {
       "anchor": [
