@@ -163,6 +163,83 @@ const Battle = (() => {
     }
     ctx.globalAlpha = a0;
   }
+  // ── 타격 불꽃·쓰러짐 먼지 (pixelfx 의 견본을 보고 원리만 가져와 새로 짠 것: 색 사다리를 따라 식는 불꽃, 한쪽으로 긴 십자 섬광,
+  //    중력·바닥 튕김이 있는 짧은 줄 모양 불티, 두 톤 그늘의 둥근 먼지 덩이. 코드는 이 게임용으로 직접 썼다.) ──
+  const WARM_RAMP = ['#ffffff', '#fff3b0', '#ffd060', '#ff9a3c', '#d4502a', '#6a2418'];
+  const rampCache = {};
+  function rampOf(col) {
+    return rampCache[col] || (rampCache[col] = ['#ffffff', mixHex(col, '#ffffff', 0.55), mixHex(col, '#ffffff', 0.2), col,
+      mixHex(col, '#2a2030', 0.45), mixHex(col, '#2a2030', 0.72)]);
+  }
+  const rampAt = (ramp, k) => ramp[Math.min(ramp.length - 1, Math.max(0, Math.floor(k * ramp.length)))];
+  // 맞은 자리: 한쪽(공격 방향)으로 긴 십자 섬광 2단계 + 그 방향 부채꼴로 튀는 불티 (위로 조금, 바닥에서 한 번 튕김)
+  function hitSpark(view, x, y, dir, floor, big, ramp) {
+    view.flares.push({ x: Math.round(x), y: Math.round(y), dir: dir < 0 ? -1 : 1, t: 0, big, ramp });
+    const n = big ? 9 : 5;
+    for (let i = 0; i < n && view.sparks.length < 300; i++) {
+      const a = (dir < 0 ? Math.PI : 0) + rnd(-0.9, 0.5) * (dir < 0 ? -1 : 1), sp = rnd(60, big ? 170 : 120);
+      view.sparks.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - rnd(10, 50), t: -rnd(0, 0.03), max: rnd(0.25, big ? 0.55 : 0.4),
+        floor, bounced: false, ramp });
+    }
+  }
+  // 쓰러진 자리: 발밑에서 먼지 덩이 3~5개가 부풀었다 작아지며 살짝 떠오른다
+  function downPuff(view, x, foot, big) {
+    const n = big ? 5 : 3;
+    for (let i = 0; i < n; i++) {
+      view.puffs.push({ x: x + rnd(-8, 8) * (big ? 1.6 : 1), y: foot - rnd(0, 3), r: rnd(3, 5) * (big ? 1.4 : 1), t: -i * 0.03, max: rnd(0.45, 0.7),
+        vx: rnd(-14, 14), vy: -rnd(4, 12) });
+    }
+  }
+  function updateSparks(view, dt) {
+    view.sparks.forEach((p) => {
+      p.t += dt;
+      if (p.t < 0) return;
+      p.px = p.x; p.py = p.y;
+      p.vy += 320 * dt; p.x += p.vx * dt; p.y += p.vy * dt;
+      if (!p.bounced && p.y > p.floor && p.vy > 0) { p.y = p.floor; p.vy *= -0.35; p.vx *= 0.55; p.bounced = true; }
+      else if (p.bounced && p.y > p.floor) { p.y = p.floor; p.vy = 0; p.vx *= 0.8; }
+    });
+    view.sparks = view.sparks.filter((p) => p.t < p.max);
+    view.flares.forEach((f) => { f.t += dt; });
+    view.flares = view.flares.filter((f) => f.t < 0.1);
+    view.puffs.forEach((p) => { p.t += dt; if (p.t > 0) { p.x += p.vx * dt; p.y += p.vy * dt; p.vx *= 0.9; } });
+    view.puffs = view.puffs.filter((p) => p.t < p.max);
+  }
+  function drawSparks(ctx, view) {
+    // 섬광: 0~50ms 크게(흰 핵 + 긴 빛줄기), 50~100ms 작게 식은 색
+    view.flares.forEach((f) => {
+      const k = f.t < 0.05 ? 0 : 1, L = (f.big ? 13 : 9) - k * 4, s = f.big ? 4 : 3;
+      ctx.globalAlpha = 0.5 - k * 0.25;
+      ctx.drawImage(glow(f.ramp[2], f.big ? 10 : 7), f.x - (f.big ? 10 : 7), f.y - (f.big ? 10 : 7));
+      ctx.globalAlpha = 1;
+      const hot = k ? f.ramp[2] : '#ffffff', mid = k ? f.ramp[3] : f.ramp[1];
+      px(ctx, f.x + (f.dir > 0 ? 0 : -L), f.y, L + 1, 1, mid);                 // 공격 방향으로 긴 줄기
+      px(ctx, f.x - (f.dir > 0 ? 3 : -1) * 1, f.y, 3, 1, mid);                  // 뒤로 짧게
+      px(ctx, f.x, f.y - s, 1, s * 2 + 1, mid);                                // 위아래 짧게
+      px(ctx, f.x - 1, f.y - 1, 3, 3, hot); if (!k) px(ctx, f.x, f.y - 2, 1, 5, hot);
+    });
+    // 불티: 지나온 길로 2~4px 짧은 줄, 식는 색
+    view.sparks.forEach((p) => {
+      if (p.t < 0 || p.px == null) return;
+      const col = rampAt(p.ramp, p.t / p.max);
+      const dx = p.x - p.px, dy = p.y - p.py, len = Math.min(4, Math.max(1, Math.round(Math.hypot(dx, dy))));
+      for (let i = 0; i < len; i++) px(ctx, Math.round(p.x - dx * i / len), Math.round(p.y - dy * i / len), 1, 1, i ? rampAt(p.ramp, Math.min(1, p.t / p.max + 0.2)) : col);
+    });
+    // 먼지 덩이: 두 톤(왼쪽 위 밝게, 오른쪽 아래 그늘), 부풀었다가 작아진다
+    view.puffs.forEach((p) => {
+      if (p.t < 0) return;
+      const k = p.t / p.max, r = Math.max(1, Math.round(p.r * (k < 0.3 ? 0.6 + k * 1.3 : 1 - (k - 0.3) * 0.9)));
+      ctx.globalAlpha = k < 0.6 ? 0.9 : 0.9 * (1 - (k - 0.6) / 0.4);
+      const cx = Math.round(p.x), cy = Math.round(p.y);
+      for (let yy = -r; yy <= r; yy++) {
+        const hw = Math.round(Math.sqrt(r * r - yy * yy));
+        px(ctx, cx - hw, cy + yy, hw * 2 + 1, 1, yy < 0 ? '#c9bca4' : '#9a8c76');
+      }
+      px(ctx, cx - Math.round(r * 0.5), cy - Math.round(r * 0.6), Math.max(1, Math.round(r * 0.5)), 1, '#ddd2bc');
+    });
+    ctx.globalAlpha = 1;
+  }
+
   // 찌르기: 공격자 쪽에서 표적으로 곧게 뻗는 줄 — 끝(표적 쪽)이 두껍고 뒤가 가늘다, 위아래로 가는 속도선, 끝에 작은 별.
   function drawThrust(ctx, s) {
     const step = Math.min(3, Math.floor(s.t / 0.055));
@@ -1279,7 +1356,7 @@ const Battle = (() => {
   // 렌더러 상태: 입자, 화면 흔들림, 타격 멈춤
   function makeView(terrain) {
     const bg = background(terrain);
-    return { bg, fg: foreground(terrain), parts: [], sigils: [], slashes: [], vfx: [], amb: [], terrain, shake: 0, stop: 0, flash: 0, flashColor: '#ffffff',
+    return { bg, fg: foreground(terrain), parts: [], sparks: [], flares: [], puffs: [], downSeen: new Set(), sigils: [], slashes: [], vfx: [], amb: [], terrain, shake: 0, stop: 0, flash: 0, flashColor: '#ffffff',
       clock: 0, rs: new Map(), groundLum: groundLum(bg) };  // clock: 연출 시계(초) — 타격 멈춤 동안은 서 있다
   }
 
@@ -1306,6 +1383,12 @@ const Battle = (() => {
 
   // 새로 생긴 효과 이벤트를 입자·궤적·마법진으로 바꾼다
   function ingest(view, st) {
+    // 새로 쓰러진 유닛: 발밑 먼지
+    st.units.forEach((u) => {
+      if (u.alive || u.downAt == null || view.downSeen.has(u)) return;
+      view.downSeen.add(u);
+      downPuff(view, u.x * Z + edxOf(view, u), u.y * Z, !!(u.bigMon || u.boss));
+    });
     // 새로 날아가기 시작한 투사체: 쏜 유닛이 공격(마법은 시전) 동작을 한다
     st.shots.forEach((s) => {
       if (s.seen) return;
@@ -1336,7 +1419,7 @@ const Battle = (() => {
       // 몸통 높이: 타격·폭발은 그림 키의 절반쯤
       const Y = f.foot != null && (f.kind === 'hit' || f.kind === 'boom') ? f.foot - Math.round(f.tall * 0.5) : f.y * Z;
       if (f.kind === 'hit') {
-        spawn(view, f.big ? 12 : 4, X, Y, { sp: [40, f.big ? 160 : 90], life: [0.15, 0.35], color: f.color, size: f.big ? 3 : 2 });
+        hitSpark(view, X, Y, f.dir || 1, f.foot != null ? f.foot : Y + 14, f.big, f.melee ? WARM_RAMP : rampOf(f.color));
         if (f.melee) view.slashes.push({ x: X, y: Y, foot: f.foot != null ? f.foot : Y + 12, dir: f.dir, t: 0, big: f.big, style: f.style, color: f.special ? '#9fd8ff' : '#ffffff' });
         if (f.big) { view.shake = Math.max(view.shake, f.special ? 5 : 3); view.stop = Math.max(view.stop, f.special ? 0.09 : 0.05); }
       } else if (f.kind === 'boom') {
@@ -1579,6 +1662,7 @@ const Battle = (() => {
       p.vy += p.grav * dt; p.vx *= 0.92; p.vy *= p.grav ? 1 : 0.92;
     });
     view.parts = view.parts.filter((p) => p.life < p.max);
+    updateSparks(view, dt);
     view.slashes.forEach((s) => { s.t += dt; });
     view.slashes = view.slashes.filter((s) => s.t < (s.boom ? 0.5 : 0.22));
     view.sigils.forEach((s) => { s.t += dt; });
@@ -1854,6 +1938,8 @@ const Battle = (() => {
     ctx.globalAlpha = 1;
 
     drawVfx(ctx, view, now);
+
+    drawSparks(ctx, view);
 
     // 입자
     view.parts.forEach((p) => {
