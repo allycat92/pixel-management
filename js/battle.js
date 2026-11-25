@@ -7,10 +7,20 @@
 const Battle = (() => {
   const W = 320, H = 180;
   const TOP = 80, BOTTOM = 170;      // 전장의 위·아래 경계 (유닛 발 위치). 유닛은 발 위로 약 32 단위 높이로 그려진다
-  // 몸집: 캐릭터를 약 32(높이)×16(너비) 논리 단위로 그리므로 서로 이만큼 떨어져 선다
-  const SEP_X = 15, SEP_Y = 10;      // 같은 편끼리 최소 간격 (가로·깊이)
-  const SEP_FOE_X = 12;              // 맞붙은 적과의 최소 가로 간격 (근접 사거리보다 짧아야 한다)
-  const BODY = 4;                    // 근접 공격이 닿는 거리에 더하는 몸 폭
+  // 몸집: 캐릭터를 약 32(높이)×16(너비) 논리 단위(화면 64px 안팎)로 그리므로 서로 이만큼 떨어져 선다.
+  // 깊이(세로)로 10만 떨어지면 몸의 2/3가 겹쳐 한 덩어리로 보이므로, 같은 편은 깊이로 넉넉히 벌리고 엇갈려 선다.
+  const SEP_X = 18, SEP_Y = 18;      // 같은 편끼리 최소 간격 (가로·깊이)
+  const SEP_FOE_X = 13, SEP_FOE_Y = 16; // 맞붙은 적과의 최소 간격 (근접 사거리보다 짧아야 한다)
+  const BODY = 6;                    // 근접 공격이 닿는 거리에 더하는 몸 폭
+  const DEPTH = 0.6;                 // 근접 거리에서 깊이(세로) 차이를 덜 센다: 비스듬히 위·아래에서 붙어도 닿는다
+  // 근접 교전 자리: 목표 앞(정면)과 비스듬히 위·아래, 큰 적은 뒤쪽 위·아래까지. [가로(공격자 쪽으로), 깊이]
+  // 모두 사거리(11+BODY, 깊이 DEPTH 배) 안쪽이라 자리에 서면 바로 칠 수 있다.
+  const MELEE_SLOTS = [[15, 0], [12, -18], [12, 18], [-12, -18], [-12, 18]];
+  const EDGE = 14;                   // 싸우는 유닛이 화면 가장자리에 반쯤 잘려 서지 않게 (몸 폭의 절반 남짓)
+  // 한 목표에 동시에 붙는 근접 공격자 수와 쓸 수 있는 자리 수. 보통은 앞 세 자리 중 둘만 차서 대열이 엉키지 않는다.
+  // 넘치는 공격자는 다른 적을 찾거나, 한 걸음 물러서 자리가 나기를 기다린다.
+  const meleeCap = (t) => (t.boss ? 5 : t.bigMon ? 3 : 2);
+  const slotCount = (t) => (t.boss ? 5 : 3);
   const DT = 0.05;                   // 시뮬레이션 한 틱(초)
   const MAX_TIME = 90;               // 시간 제한(초)
   const END_HOLD = 2.2;              // 결판 후 화면 유지(초)
@@ -328,7 +338,7 @@ const Battle = (() => {
       list.forEach((g, i) => {
         // 부대는 한 줄로 위아래에 늘어선다 (진영당 최대 3개). 가운데 부대는 조금 뒤에 서서 겹쳐 보이지 않게 한다.
         const cy = TOP + ((BOTTOM - TOP) * (i + 0.5)) / list.length;
-        const back = list.length === 3 && i === 1 ? 10 : 0;
+        const back = list.length === 3 && i === 1 ? 14 : 0;
         const cx = side === 0 ? 58 - back : W - 58 + back;
         g.units = groups[g.id].units.map((ud, k) => {
           const captain = k === 0;
@@ -347,10 +357,10 @@ const Battle = (() => {
           if (captain) str *= 1.15;
           if (ud.doomed) str *= 0.6;
           const hp = base.hp * str * (captain && !ud.mon ? 1.6 : 1) * (ud.unique ? 1.15 : 1);
-          // 대형: 대장이 뒤 가운데, 대원 둘이 앞 위아래, 셋째는 맨 앞 (큰 도트끼리 겹치지 않는 간격)
+          // 대형: 대장이 뒤 가운데, 대원 둘이 앞 위아래, 셋째는 맨 앞 (큰 도트끼리 겹치지 않는 간격: SEP_X·SEP_Y 타원 밖)
           const fwd = side === 0 ? 1 : -1;
-          const SLOT = [[-6, 0], [10, -9], [10, 9], [24, 0]];
-          const [sx, sy] = SLOT[k] || [-6 - 16 * (k - 3), k % 2 ? -9 : 9];
+          const SLOT = [[-8, 0], [10, -10], [10, 10], [28, 0]];
+          const [sx, sy] = SLOT[k] || [-8 - 18 * (k - 3), k % 2 ? -10 : 10];
           const ox = fwd * sx, oy = sy;
           const unit = {
             g, side, captain, ...ud,
@@ -374,12 +384,52 @@ const Battle = (() => {
 
   const groupAlive = (g) => g.units.filter((u) => u.alive && !u.fled);
   const sideActive = (st, side) => st.groups.some((g) => g.side === side && !g.routed && groupAlive(g).length);
-  const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+  // Math.hypot 은 느려서 (전투 찾기가 한 판을 여러 번 시뮬레이션한다) 제곱근으로 직접 잰다
+  const dist = (a, b) => { const dx = a.x - b.x, dy = a.y - b.y; return Math.sqrt(dx * dx + dy * dy); };
+  const len2 = (x, y) => Math.sqrt(x * x + y * y);
+  const meleeDist = (a, b) => { const dx = a.x - b.x, dy = (a.y - b.y) * DEPTH; return Math.sqrt(dx * dx + dy * dy); };
   const sizeOf = (u) => (u.scale > 1 ? u.scale * 4 : 0);
+  const isMelee = (u) => !u.healer && !u.skills[0].shot;
+
+  // 근접 교전 자리 배정: 목표마다 자리(MELEE_SLOTS)를 나눠 쥐어, 여럿이 한 점에 겹쳐 서지 않게 한다.
+  // 자리 주인은 그 목표를 계속 노리는 동안만 유효하다 (목표를 바꾸거나 쓰러지면 자리가 빈다).
+  const holdsSlot = (a, t, i) => a.alive && !a.fled && !a.g.routed && a.target === t && a.slotOf === t && a.slot === i;
+  const slotFree = (t, i, u) => { const a = t.slots[i]; return !a || a === u || !holdsSlot(a, t, i); };
+  const slotAt = (t, i, s) => {
+    const [ox, oy] = MELEE_SLOTS[i];
+    return { x: t.x + (ox >= 0 ? s : -s) * (Math.abs(ox) + sizeOf(t)), y: clamp(t.y + oy, TOP, BOTTOM) };
+  };
+  // 목표 곁에 이미 붙은 다른 근접 공격자 수 (다 찼으면 Infinity)
+  function crowdOf(t, u) {
+    if (!t.slots) return 0;
+    let n = 0;
+    for (let i = 0; i < slotCount(t); i++) if (!slotFree(t, i, u)) n++;
+    return n >= meleeCap(t) ? Infinity : n;
+  }
+  // u 가 t 를 칠 자리 (자리가 다 찼으면 null)
+  function slotPos(t, u) {
+    if (!t.slots) t.slots = [];
+    if (u.slotOf !== t || u.slot < 0 || t.slots[u.slot] !== u) {
+      // 새로 자리를 잡는다: 빈자리 중 가장 가까운 곳. 다가오는 쪽(왼쪽/오른쪽)은 이때 정해 둔다.
+      const s = u.x <= t.x ? -1 : 1;
+      const full = crowdOf(t, u) === Infinity;
+      let best = -1, bd = Infinity;
+      for (let i = 0; i < slotCount(t) && !full; i++) {
+        if (!slotFree(t, i, u)) continue;
+        const p = slotAt(t, i, s);
+        const d = len2(p.x - u.x, p.y - u.y);
+        if (d < bd) { bd = d; best = i; }
+      }
+      u.slotOf = t; u.slot = best; u.slotSide = s;
+      if (best < 0) return null;
+      t.slots[best] = u;
+    }
+    return slotAt(t, u.slot, u.slotSide);
+  }
   const buffSum = (u, k, t) => u.buffs.reduce((a, b) => a + (b.until > t ? (b[k] || 0) : 0), 0);
   const atkMul = (u, t) => {
     const cap = u.g.captain;
-    const aura = cap.alive && cap !== u && Math.hypot(cap.x - u.x, cap.y - u.y) < 60 ? 1.1 : 1; // 대장 곁의 대원은 힘이 난다
+    const aura = cap.alive && cap !== u && len2(cap.x - u.x, cap.y - u.y) < 60 ? 1.1 : 1; // 대장 곁의 대원은 힘이 난다
     return (1 + buffSum(u, 'atk', t)) * aura;
   };
   const defMul = (u, t) => 1 - Math.min(0.6, buffSum(u, 'def', t));
@@ -454,7 +504,7 @@ const Battle = (() => {
     let best = null, bd = Infinity;
     for (const e of live) {
       if (e.side === u.side || e.g.routed) continue;
-      const d = dist(e, u) - sizeOf(e);
+      const d = (sk.shot ? dist(e, u) : meleeDist(e, u)) - sizeOf(e);
       if (d <= reach && d < bd) { bd = d; best = e; }
     }
     return best;
@@ -491,7 +541,7 @@ const Battle = (() => {
     if (sk.dash) {
       // 돌진: 대상 곁으로 뛰어든다
       const d = dist(u, t) || 1;
-      const stop = SEP_FOE_X - 2 + sizeOf(t);
+      const stop = MELEE_SLOTS[0][0] + sizeOf(t); // 정면 자리 거리에서 멈춘다
       if (d > stop) { u.x = t.x - ((t.x - u.x) / d) * stop; u.y = t.y - ((t.y - u.y) / d) * stop; }
       st.fx.push({ kind: 'dash', x: u.x, y: u.y - 6, t: 0 });
     }
@@ -556,46 +606,59 @@ const Battle = (() => {
           let foe = null, fd = Infinity;
           for (const e of live) { if (e.side !== u.side && !e.g.routed) { const d = dist(e, u); if (d < fd) { fd = d; foe = e; } } }
           if (foe && fd > basic.range * 0.9) {
-            const dx = foe.x - u.x, dy = foe.y - u.y, d = Math.hypot(dx, dy) || 1;
+            const dx = foe.x - u.x, dy = foe.y - u.y, d = len2(dx, dy) || 1;
             u.x += (dx / d) * u.speed * DT; u.y += (dy / d) * u.speed * DT; u.moving = true; u.face = dx >= 0 ? 1 : -1;
           }
         }
         continue;
       }
-      // 목표 재선정: 가까운 적, 같은 높이(전열)를 조금 더 선호
+      // 목표 재선정: 가까운 적, 같은 높이(전열)를 조금 더 선호. 근접은 자리가 다 찬 적을 피한다 (한 명에게 우르르 몰리지 않게)
       u.retarget -= DT;
+      const crowd = isMelee(u);
       if (!u.target || !u.target.alive || u.target.fled || u.target.side === u.side || u.target.g.routed || u.retarget <= 0) {
         u.retarget = 0.4 + r() * 0.3;
         let best = null, bd = Infinity;
         for (const e of live) {
           if (e.side === u.side || e.g.routed) continue;
-          const d = Math.abs(e.x - u.x) + Math.abs(e.y - u.y) * 1.4 + (e.captain ? -6 : 0);
+          const d = Math.abs(e.x - u.x) + Math.abs(e.y - u.y) * 1.4 + (e.captain ? -6 : 0) + (crowd ? Math.min(48, crowdOf(e, u) * 16) : 0);
           if (d < bd) { bd = d; best = e; }
         }
         u.target = best;
       }
       const tg = u.target;
       if (!tg) continue;
-      const dx = tg.x - u.x, dy = tg.y - u.y, d = Math.hypot(dx, dy) || 1;
+      const dx = tg.x - u.x, dy = tg.y - u.y, d = len2(dx, dy) || 1;
       u.face = dx >= 0 ? 1 : -1;
       const reach = basic.range + sizeOf(tg) + (basic.shot ? 0 : BODY);
-      if (d > reach) {
-        // 대장 근처로 모이려는 힘을 약간 섞는다 (부대 대형 유지)
-        let mx = dx / d, my = dy / d;
+      // 근접: 목표 곁의 자기 자리로 간다 (정면·비스듬히 위아래). 자리가 다 찼으면 한 걸음 물러서 기다린다.
+      const melee = !basic.shot;
+      const md = melee ? meleeDist(u, tg) : d;
+      let gx = tg.x, gy = tg.y;
+      if (melee) {
+        const p = slotPos(tg, u);
+        if (p) { gx = p.x; gy = p.y; } else { gx = tg.x + u.slotSide * (reach + 14); gy = u.y; }
+      }
+      const ex = gx - u.x, ey = gy - u.y, ed = len2(ex, ey);
+      if (md > reach || (melee && ed > 3)) {
+        // 대장 근처로 모이려는 힘을 약간 섞는다 (부대 대형 유지) — 목표에 닿기 전까지만
+        let mx = ex / (ed || 1), my = ey / (ed || 1);
         const cap = u.g.captain;
-        if (!u.captain && cap.alive) {
-          const cx = cap.x - u.x, cy = cap.y - u.y, cd = Math.hypot(cx, cy);
+        if (md > reach && !u.captain && cap.alive) {
+          const cx = cap.x - u.x, cy = cap.y - u.y, cd = len2(cx, cy);
           if (cd > 32) { mx += (cx / cd) * 0.45; my += (cy / cd) * 0.45; }
         }
-        const ml = Math.hypot(mx, my) || 1;
-        u.x += (mx / ml) * u.speed * DT; u.y += (my / ml) * u.speed * DT;
-        u.moving = true;
+        const ml = len2(mx, my) || 1;
+        // 이미 닿은 채 자리를 고쳐 서는 중이면 천천히
+        const v = u.speed * DT * (md > reach ? 1 : 0.5);
+        const stepLen = Math.min(v, ed || v);
+        u.x += (mx / ml) * stepLen; u.y += (my / ml) * stepLen;
+        u.moving = stepLen > 0.2;
       } else if (basic.shot && d < reach * 0.45) {
         // 원거리 유닛은 너무 붙으면 물러난다
         u.x -= (dx / d) * u.speed * 0.6 * DT; u.y -= (dy / d) * u.speed * 0.3 * DT;
         u.moving = true;
       }
-      if (d <= reach && basic.left <= 0) useSkill(st, u, basic, tg, live);
+      if (md <= reach && basic.left <= 0) useSkill(st, u, basic, tg, live);
     }
     // 겹침 방지: 가로로 넓고 깊이(세로)로 얕은 타원 간격. 큰 도트가 한 덩어리로 뭉개지지 않게 한다.
     // 맞붙은 적끼리는 근접 사거리 안에 들어올 만큼만 떨어진다.
@@ -606,24 +669,26 @@ const Battle = (() => {
         const b = live[j];
         if (!b.alive) continue;
         const big = sizeOf(a) + sizeOf(b);
-        const mx = (a.side === b.side ? SEP_X : SEP_FOE_X) + big * 0.75, my = SEP_Y + big * 0.5;
+        const same = a.side === b.side;
+        const mx = (same ? SEP_X : SEP_FOE_X) + big * 0.75, my = (same ? SEP_Y : SEP_FOE_Y) + big * 0.5;
         const ddx = (b.x - a.x) || (j % 2 ? 0.01 : -0.01), ddy = b.y - a.y;
         if (Math.abs(ddx) >= mx || Math.abs(ddy) >= my) continue;
         const nx = ddx / mx, ny = ddy / my;
-        const nd = Math.hypot(nx, ny);
-        if (nd >= 1) continue;
+        const nd2 = nx * nx + ny * ny;
+        if (nd2 >= 1) continue;
+        const nd = Math.sqrt(nd2);
         const push = (1 - nd) * 0.5;
         const ux = nx / nd, uy = ny / nd;
         a.x -= ux * push * mx; a.y -= uy * push * my * 0.8;
         b.x += ux * push * mx; b.y += uy * push * my * 0.8;
       }
     }
-    live.forEach((u) => { u.y = clamp(u.y, TOP, BOTTOM); if (!u.g.routed) u.x = clamp(u.x, 6, W - 6); });
+    live.forEach((u) => { u.y = clamp(u.y, TOP, BOTTOM); if (!u.g.routed) u.x = clamp(u.x, EDGE, W - EDGE); });
     // 투사체
     for (let i = st.shots.length - 1; i >= 0; i--) {
       const s = st.shots[i];
       const tx = s.to.x, ty = s.to.y - 9;
-      const dd = Math.hypot(tx - s.x, ty - s.y);
+      const dd = len2(tx - s.x, ty - s.y);
       const stepLen = s.speed * DT;
       if (dd <= stepLen) {
         if (s.heal) mend(st, s.from, s.to, s.sk);
