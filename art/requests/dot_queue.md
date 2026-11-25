@@ -23,7 +23,7 @@ Claude Code 가 받아서 확인한 결과는 `art/requests/feedback.md`에 남�
 | GPT | new | `sheet/captain/liberator` | 카토 — **막힘 답(ab4b3cd)**: 지금 초안을 그대로 납품한다. 대기 자세의 장검·의상 겹침은 DEVIATIONS 에 적으면 PC 가 그 자세의 검만 손질한다 |
 | GPT | new | `sheet/captain/elfwarden` | 세레니엘 |
 | GPT | new | `sheet/captain/warlord` | 가르마크 — 확정 무기: 양손 전쟁 도끼 |
-| GPT | new | `sheet/captain/khan` | 바투르 |
+| GPT | new | `sheet/captain/khan` | 테무르 |
 | PC | 한 번만 | (pc_notes.md) | art-inbox 에 `art/inbox/.gitattributes` (`NOTES.md merge=union`) |
 | PC | 뼈대 | `guide/walk_base` v2 | 8프레임 걷기 초안을 Aseprite 로 재생해 보며 다듬기 (`art/requests/guides/walk_base/README.md`) |
 
