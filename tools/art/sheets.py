@@ -12,7 +12,7 @@
   → idle 자세 높이를 기준으로 모든 자세를 같은 배율로 축소 (캐릭터 키 약 64px)
   → 알파 0.45 기준 이진화, 외톨이 점 제거·1px 구멍 메우기
   → 가장자리 1px 를 어두운 보라(18,16,26) 쪽으로 → 외곽까지 포함한 시트 전체 공통 팔레트(--colors, 기본 40색)로 한 번 양자화
-  → 80x80 칸에 발바닥 가운데를 (40,76)에 맞춰 배치
+  → 80x80 칸에 발바닥 가운데를 (40,76)에 맞춰 배치 (발이 다 닿지 않은 공격·피격 자세와 네발짐승은 몸 무게중심을 idle 의 자리에: pose_feet_x)
   → idle 은 sprite-gen breathe --mode pixel 로 4칸 숨쉬기 루프 (없으면 간단한 1px 들썩임)
   → 시트 png + Aseprite json-array(태그 idle/attack/hit) → tools/art/register_sheet.py 로 등록.
   직업 시트(요청서 항목에 tint 가 있으면): 제복·장식 열쇠 색에 가까운 픽셀(RGB 거리 <= KEY_TOL)을 원본 해상도에서 찾아
@@ -22,6 +22,7 @@
 실행:
   python3 tools/art/sheets.py                          # art/inbox/sheet_*.png 전부
   python3 tools/art/sheets.py art/inbox/sheet_captain_blademaster.png
+  python3 tools/art/sheets.py --realign [--dry-run] [sheet/monster/들늑대 ...]   # 등록된 시트의 공격·피격 칸 발 맞추기만 다시
   옵션: --id ID  --grid CxR  --flip  --height 64 | --scale 0.1654  --cell 96  --colors 40  --work DIR
         --dry-run (manifest 를 건드리지 않음)  --no-register  --aseprite OUT.aseprite  --no-tint
   요청서 항목의 scale · cell · height · layout(2x2) · tint 를 기본값으로 쓴다 (명령줄 옵션이 우선).
@@ -358,11 +359,55 @@ def cleanup(rgb, mask):
     return rgb, mask
 
 
-def feet_x(mask):
-    """가장 아래 6줄에서 불투명 픽셀의 왼쪽 끝·오른쪽 끝의 가운데."""
+def feet_band(mask):
+    """가장 아래 6줄에서 불투명 픽셀의 왼쪽 끝·오른쪽 끝 (x0, x1)."""
     ys, xs = np.nonzero(mask)
     band = ys >= ys.max() - 5
-    return (xs[band].min() + xs[band].max() + 1) / 2
+    return xs[band].min(), xs[band].max() + 1
+
+
+def feet_x(mask):
+    """가장 아래 6줄에서 불투명 픽셀의 왼쪽 끝·오른쪽 끝의 가운데."""
+    x0, x1 = feet_band(mask)
+    return (x0 + x1) / 2
+
+
+def mass_x(mask):
+    """불투명 픽셀의 가로 무게중심."""
+    return float(np.nonzero(mask)[1].mean())
+
+
+# 자세별 발 맞추기 (idle 이 아닌 자세):
+#  보통은 가장 아래 줄(발바닥)의 가운데를 앵커에 둔다. 그런데 발이 다 땅에 닿지 않은 자세는 '가장 아래 픽셀'이 발이 아니다 —
+#  덮치는 늑대는 뒷발 끝만, 뒷발로 선 늑대는 뒷발만, 한 발로 선 피격 자세는 그 발끝이나 늘어뜨린 칼끝만 남는다.
+#  그 가운데를 앵커에 맞추면 몸 전체가 앞으로 몇십 px 튀어 나간다 (전투에서 늑대가 '뛰어오르는' 것처럼 보였다).
+#  그런 자세와 네발짐승(가로로 긴 몸)의 모든 자세는 몸의 무게중심을 idle 의 무게중심 자리에 둔다:
+#  몸은 제자리에서 웅크리고 뻗고, 앞으로 내딛는 움직임은 게임이 공격 순간에 몸을 앞으로 밀어 그린다 (battle.js lunge).
+NARROW_BASE = 0.5            # 자세의 발바닥 띠가 idle 띠의 이 배보다 좁으면 '발이 다 닿지 않은 자세'
+
+
+def align_ref(idle_mask):
+    """idle 자세의 기준: (네발짐승인가, 발바닥 띠 너비, 무게중심 - 발 가운데)."""
+    ys, xs = np.nonzero(idle_mask)
+    w, h = xs.max() - xs.min() + 1, ys.max() - ys.min() + 1
+    x0, x1 = feet_band(idle_mask)
+    return {'quad': bool(w >= WIDE_BREATHE * h), 'band': x1 - x0, 'off': mass_x(idle_mask) - (x0 + x1) / 2}
+
+
+def pose_feet_x(mask, ref, label=''):
+    """앵커에 올릴 x (자세 그림 좌표). ref 가 없으면(idle) 발바닥 가운데."""
+    fx = feet_x(mask)
+    if ref is None:
+        return fx
+    x0, x1 = feet_band(mask)
+    why = '네발짐승' if ref['quad'] else (f'발바닥 띠 {x1 - x0}px < idle {ref["band"]}px 의 {NARROW_BASE:g}배'
+                                       if x1 - x0 < NARROW_BASE * ref['band'] else None)
+    if not why:
+        return fx
+    cx = mass_x(mask) - ref['off']
+    if label and abs(cx - fx) >= 1:
+        log(f'  {label}: 무게중심으로 발 맞춤 ({why}) — 발바닥 기준보다 {fx - cx:+.0f}px')
+    return cx
 
 
 WIDE_BREATHE = 1.3           # 대기 자세 너비가 키의 이 배 이상이면 네발짐승 숨쉬기 (breathe)
@@ -370,8 +415,9 @@ WIDE_BREATHE_DEPTH = 0.04    # 그때 몸이 오르내리는 폭 (몸 높이의 
 MAX_SHRINK = 0.85            # 칸에 맞추려고 이보다 더 줄여야 하면 실패 (자세가 잘못 나뉘었거나 여럿이 한 칸에 들어간 것)
 
 
-def place(rgb, mask, label):
-    """80x80 칸에 발 위치를 맞춰 넣는다. 조금 크면 줄이고, 15% 넘게 줄여야 하면 None (실패)."""
+def place(rgb, mask, label, ref=None):
+    """80x80 칸에 발 위치를 맞춰 넣는다. 조금 크면 줄이고, 15% 넘게 줄여야 하면 None (실패).
+    ref: idle 자세의 align_ref (idle 이 아닌 자세의 발 맞추기 — pose_feet_x)."""
     h, w = mask.shape
     max_w, max_h = CELL - 2, ANCHOR[1] - 2
     if w > max_w or h > max_h:
@@ -384,8 +430,10 @@ def place(rgb, mask, label):
         rgb = np.asarray(Image.fromarray(rgb.astype(np.uint8)).resize((nw, nh), Image.Resampling.NEAREST)).astype(np.float32)
         mask = np.asarray(Image.fromarray(mask.astype(np.uint8) * 255).resize((nw, nh), Image.Resampling.NEAREST)) > 127
         h, w = mask.shape
-    fx = feet_x(mask)
+    fx = pose_feet_x(mask, ref, label)
     x0 = int(round(ANCHOR[0] - fx))
+    if not 1 <= x0 <= CELL - 1 - w:
+        log(f'  주의: {label} 자세가 칸 밖으로 나가 {x0 - min(max(x0, 1), CELL - 1 - w):+d}px 만큼 밀어 넣었다 (발이 앵커에서 비켜난다)')
     x0 = min(max(x0, 1), CELL - 1 - w)
     ys = np.nonzero(mask.any(1))[0]
     y0 = ANCHOR[1] - 1 - ys.max()
@@ -846,14 +894,17 @@ def process(path, sid, a, reqs):
         same = np.all(pal == kc, -1)
         pal[same, 0] = np.where(kc[0] > 0, kc[0] - 1, 1)
     cells = {}
+    ref = None
     for (s_rgb, mask, klab), nm in zip(small, names):
         q = snap(s_rgb, pal)
         if len(keys):
             q = apply_keys(q, mask, klab, keys, roles)
         q[~mask] = 0
-        cell = place(q, mask, nm)
+        cell = place(q, mask, nm, ref)
         if cell is None:
             return False
+        if nm == 'idle':
+            ref = align_ref(mask)
         cells[nm] = cell
         hh = mask.shape[0]
         log(f'  {nm}: {mask.shape[1]}x{hh}px')
@@ -918,6 +969,61 @@ def process(path, sid, a, reqs):
     return r.returncode == 0
 
 
+def realign(ids, a):
+    """이미 등록된 시트의 idle 이 아닌 칸을 pose_feet_x 규칙으로 다시 맞춘다 (원본 그림 없이, 칸 안에서 가로로만 민다).
+    manifest 는 그대로 (칸 위치·앵커가 같다). ids 가 비면 등록된 시트 전부를 검사한다."""
+    mpath = os.path.join(ROOT, 'assets', 'art', 'manifest.json')
+    with open(mpath, encoding='utf-8') as f:
+        man = json.load(f)
+    ids = ids or sorted(k for k, v in man.items() if k.startswith('sheet/') and isinstance(v, dict) and 'sheet' in v)
+    changed = 0
+    for sid in ids:
+        ent = man.get(sid)
+        if not ent or 'sheet' not in ent:
+            log(f'{sid}: manifest 에 시트가 없다')
+            continue
+        m = ent['sheet']
+        cw, ch = m['cell']
+        ax = m['anchor'][0]
+        path = os.path.join(ROOT, ent['file'])
+        im = np.array(Image.open(path).convert('RGBA'))
+        idle = m['anims']['idle']
+        cell = lambda i: im[m['frames'][i][1]:m['frames'][i][1] + ch, m['frames'][i][0]:m['frames'][i][0] + cw]
+        ref = align_ref(cell(idle['from'])[..., 3] > 0)
+        names = {i: n for n, an in m['anims'].items() for i in range(an['from'], an['to'] + 1)}
+        moves = []
+        for i in range(len(m['frames'])):
+            if idle['from'] <= i <= idle['to']:
+                continue
+            c = cell(i)
+            mask = c[..., 3] > 0
+            if not mask.any():
+                continue
+            fx = pose_feet_x(mask, ref)
+            if fx == feet_x(mask):
+                continue   # 발바닥 기준 그대로인 칸
+            xs = np.nonzero(mask.any(0))[0]
+            dx = int(round(ax - fx))
+            dx = min(max(dx, 1 - xs.min()), cw - 1 - (xs.max() + 1))
+            if not dx:
+                continue
+            moves.append((i, dx))
+            log(f'{sid}: 칸 {i} ({names.get(i, "?")}) {dx:+d}px (발바닥 띠 가운데 {feet_x(mask) - ax:+.0f} → 무게중심 기준)')
+            if not a.dry_run:
+                fx0, fy0 = m['frames'][i]
+                out = np.zeros_like(c)
+                if dx > 0:
+                    out[:, dx:] = c[:, :cw - dx]
+                else:
+                    out[:, :cw + dx] = c[:, -dx:]
+                im[fy0:fy0 + ch, fx0:fx0 + cw] = out
+        if moves and not a.dry_run:
+            Image.fromarray(im).save(path, optimize=True)
+            changed += 1
+    log(f'다시 맞춘 시트 {changed}개{" (--dry-run: 저장하지 않음)" if a.dry_run else ""}')
+    return 0
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument('inputs', nargs='*', help='처리할 png (기본: art/inbox/sheet_*.png 전부)')
@@ -944,7 +1050,12 @@ def main():
     ap.add_argument('--aseprite-bin', help='Aseprite 실행 파일 경로 (기본: $ASEPRITE, PATH)')
     ap.add_argument('--allow-draft', action='store_true',
                     help='시험용: NovelAI 초안도 처리한다. 언제나 --dry-run (manifest 등록 불가) — 게임 그림은 GPT 를 거친다')
+    ap.add_argument('--realign', action='store_true',
+                    help='원본 없이 이미 등록된 시트(입력 = manifest id, 없으면 전부)의 공격·피격 칸을 발 맞추기 규칙(pose_feet_x)으로 '
+                    '다시 맞춘다. --dry-run 이면 보고만')
     a = ap.parse_args()
+    if a.realign:
+        return realign(a.inputs, a)
     if a.allow_draft:
         a.dry_run = True   # 초안은 미리보기까지만. 등록 경로는 없다.
 

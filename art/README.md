@@ -78,6 +78,10 @@ python3 tools/art/sheets.py art/inbox/sheet_captain_lancer.png --scale 0.1654 --
 - 칸마다 배경 제거 → 대기 자세 몸 높이를 64px로 맞춘 같은 배율로 축소 → 알파 정리 → 1px 어두운 가장자리 → 가장자리까지 포함한 시트 공통 팔레트(`--colors`, 기본 40색)
   → 80×80 칸, 발 (40,76) → 대기는 `sprite-gen breathe --mode pixel` 숨쉬기 4칸 → 시트 png + Aseprite json-array(태그 idle/attack/hit)
   → `tools/art/register_sheet.py`로 `manifest.json`의 `sheet/<kind>/<key>` 항목 등록. `--aseprite OUT`이면 태그 붙은 .aseprite 도 (Aseprite 있을 때만).
+- 발 맞추기: 보통은 가장 아래 줄(발바닥)의 가운데를 앵커에. 발이 다 닿지 않은 공격·피격 자세(발바닥 띠가 대기 자세의 절반보다 좁다: 덮치는 늑대의
+  뒷발 끝, 한 발로 선 피격, 늘어뜨린 칼끝)와 네발짐승(대기 자세 너비 ≥ 키×1.3)의 모든 자세는 몸 무게중심을 대기 자세의 무게중심 자리에 둔다
+  (`pose_feet_x`). 예전에는 늑대가 공격·피격 때 앞으로 7~21px 튀어 나갔다. 이미 등록된 시트는 원본 없이
+  `python3 tools/art/sheets.py --realign [--dry-run] [id ...]`로 같은 규칙에 맞춰 칸 안에서 민다 (manifest 는 그대로, 두 번 돌려도 같다).
 - 작업 폴더의 `preview_x4.png`를 열어 확인한다. 왼쪽을 보고 그려졌으면 `--flip`.
 - 가로로 긴 그림은 키가 비슷한 인물이 셋 이상(또는 붙은 인물들로 아주 넓은 덩어리 하나)일 때만 1×4 띠로 보고, 자세는 인물 가운데 위치로 나눈다 (인물끼리 칼끝이 닿으면 경계에서 자른다). 한 사람 옆에 떨어진 불꽃·구슬·늑대가 있는 그림은 한 자세로 본다.
 - 칸에 맞추려고 15% 넘게 줄여야 하는 자세, 대기 자세 키의 절반 남짓도 안 되는 자세가 나오면 실패로 끝나고 등록하지 않는다 (`--grid` / `--poses`로 지정해 다시).

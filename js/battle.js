@@ -17,6 +17,9 @@ const Battle = (() => {
   // 모두 사거리(11+BODY, 깊이 DEPTH 배) 안쪽이라 자리에 서면 바로 칠 수 있다.
   const MELEE_SLOTS = [[15, 0], [12, -18], [12, 18], [-12, -18], [-12, 18]];
   const EDGE = 14;                   // 싸우는 유닛이 화면 가장자리에 반쯤 잘려 서지 않게 (몸 폭의 절반 남짓)
+  // 큰 괴물(우두머리는 시트를 1.5배로, 코드 생성 도트는 5·7배로 그린다)은 날개·몸통이 95~140px 이라 그만큼 더 안쪽에 선다:
+  // scale 2 → 34, scale 3 → 44 (몸 폭 절반 ≈ 70px). 그림 폭이 남는 만큼은 그리는 쪽이 화면 안으로 당긴다 (screenX).
+  const EDGE_BIG = 2.5;
   // 한 목표에 동시에 붙는 근접 공격자 수와 쓸 수 있는 자리 수. 보통은 앞 세 자리 중 둘만 차서 대열이 엉키지 않는다.
   // 넘치는 공격자는 다른 적을 찾거나, 한 걸음 물러서 자리가 나기를 기다린다.
   const meleeCap = (t) => (t.boss ? 5 : t.bigMon ? 3 : 2);
@@ -683,7 +686,7 @@ const Battle = (() => {
         b.x += ux * push * mx; b.y += uy * push * my * 0.8;
       }
     }
-    live.forEach((u) => { u.y = clamp(u.y, TOP, BOTTOM); if (!u.g.routed) u.x = clamp(u.x, EDGE, W - EDGE); });
+    live.forEach((u) => { u.y = clamp(u.y, TOP, BOTTOM); if (!u.g.routed) { const e = EDGE + sizeOf(u) * EDGE_BIG; u.x = clamp(u.x, e, W - e); } });
     // 투사체
     for (let i = st.shots.length - 1; i >= 0; i--) {
       const s = st.shots[i];
@@ -1060,6 +1063,46 @@ const Battle = (() => {
     return r.stat;
   }
 
+  // 그림이 차지하는 가로 폭 (앵커 기준 왼쪽 l·오른쪽 r, 그리는 px): 시트는 모든 칸(공격·피격 포함)을 합친 폭이라
+  // 동작이 바뀌어도 변하지 않는다. 코드 생성 도트는 지금 칸.
+  const spanCache = new Map();
+  function spanOf(fr) {
+    const k = fr.k || 1;
+    if (!fr.sheet) { const b = opaqueBox(fr); return { l: (fr.ax - b.left) * k, r: (b.right - fr.ax) * k }; }
+    const sh = fr.sheet, ck = `${sh.id}|${k}`;
+    let sp = spanCache.get(ck);
+    if (sp) return sp;
+    const m = sh.meta;
+    let l = 0, r = 0;
+    m.frames.forEach((f, i) => {
+      const b = opaqueBox({ img: sh.img, sx: f[0], sy: f[1], sw: m.cell[0], sh: m.cell[1], key: `${sh.id}#${i}` });
+      l = Math.max(l, m.anchor[0] - b.left); r = Math.max(r, b.right - m.anchor[0]);
+    });
+    sp = { l: l * k, r: r * k };
+    spanCache.set(ck, sp);
+    return sp;
+  }
+
+  // 화면에 그릴 발 x (px): 그림 전체가 640px 화면 안에 들도록 안쪽으로 당긴다 (시뮬레이션 위치는 그대로).
+  // 넓은 괴물(날개 편 하피·가고일)이 가장자리에서 잘리지 않게. 당기는 양은 r.edx 에 두고, 더 당겨야 할 때는 바로,
+  // 풀어 줄 때(패주해 화면 밖으로 달아날 때 등)는 서서히 (초당 120px) — 그림이 튀지 않게.
+  const SCREEN_PAD = 2;
+  function screenX(view, u, fr, flip, lunge = 0) {
+    const r = rsOf(view, u), X = u.x * Z + lunge;
+    let want = 0;
+    if (!u.g.routed) {
+      const sp = spanOf(fr), left = flip ? sp.r : sp.l, right = flip ? sp.l : sp.r;
+      if (left + right < CW - 2 * SCREEN_PAD) want = Math.max(SCREEN_PAD + left - X, Math.min(0, CW - SCREEN_PAD - right - X));
+    }
+    const cur = r.edx || 0, dt = Math.max(0, view.clock - (r.edxAt == null ? view.clock : r.edxAt));
+    r.edxAt = view.clock;
+    if ((want > 0 && want >= cur) || (want < 0 && want <= cur)) r.edx = want;
+    else r.edx = cur + Math.max(-120 * dt, Math.min(120 * dt, want - cur));
+    return X + r.edx;   // (lunge 포함: 앞으로 내딛는 몸도 화면 밖으로 나가지 않게)
+  }
+  // 체력바·글자처럼 유닛을 따라가는 것의 x 보정 (지난 그리기의 당김)
+  const edxOf = (view, u) => (u && view.rs.has(u) ? view.rs.get(u).edx || 0 : 0);
+
   // 효과가 가리키는 유닛 찾기 (x, y 는 논리 좌표의 발 위치)
   function nearestUnit(st, x, y, pred) {
     let best = null, bd = 10;
@@ -1127,7 +1170,7 @@ const Battle = (() => {
         const u = nearestUnit(st, f.x, f.y, (e) => e.alive);
         if (u) triggerAttack(view, u, 'cast');
       }
-      const X = f.x * Z;
+      const X = f.x * Z + edxOf(view, f.who);
       // 몸통 높이: 타격·폭발은 그림 키의 절반쯤
       const Y = f.foot != null && (f.kind === 'hit' || f.kind === 'boom') ? f.foot - Math.round(f.tall * 0.5) : f.y * Z;
       if (f.kind === 'hit') {
@@ -1444,7 +1487,7 @@ const Battle = (() => {
     st.units.forEach((u) => {
       if (!u.alive || u.fled || u.side !== 0 || !u.unique || !u.target || !u.target.alive) return;
       const t = u.target, w = Math.round(stature(view, t).w * 0.9) + 12;
-      brackets(ctx, Math.round(t.x * Z - w / 2), Math.round(t.y * Z - 10), w, 14, '#ff5a7a');
+      brackets(ctx, Math.round(t.x * Z + edxOf(view, t) - w / 2), Math.round(t.y * Z - 10), w, 14, '#ff5a7a');
     });
 
     // 유닛: 쓰러진 유닛 먼저, 그다음 발 위치(y) 순으로 — 아래쪽(앞쪽) 인물이 위에 그려진다
@@ -1470,7 +1513,7 @@ const Battle = (() => {
       const S = stature(view, u);
       const face = u.face || (u.side === 0 ? 1 : -1);
       const flip = face !== fr.face;
-      const X = Math.round(u.x * Z + (u.lunge > 0 ? face * 8 : 0)), Y = Math.round(u.y * Z);
+      const X = Math.round(screenX(view, u, fr, flip, u.lunge > 0 ? face * 8 : 0)), Y = Math.round(u.y * Z);
       if (!u.alive) {
         // 쓰러짐: 잠깐 깜빡인 뒤 땅으로 가라앉으며 사라진다
         const dt = st.t - u.downAt;
@@ -1538,6 +1581,35 @@ const Battle = (() => {
       }
       if (u.g.routed && Math.floor(now / 250) % 2) text(ctx, '!', X, top - 2, 14, '#ffffff');
     }
+    // 큰 괴물(1.5배 우두머리·거대 괴물·보스)의 몸이 먼저(뒤쪽에) 그린 아군 단원을 덮으면, 그 괴물 몸 자리 안에서만 단원을 반투명하게
+    // 덧그린다 — 괴물이 그 자리만 살짝 비쳐 보이는 셈. 난전에서 단원이 이름표만 남지 않게. (대장·특별 용병은 아래 윤곽선이 맡는다)
+    // 켜고 끌 때는 연출 시계로 0.2초 동안 서서히 (깜빡이지 않게)
+    drawn.forEach((d, i) => {
+      if (d.u.side !== 0 || keepVisible(d.u)) return;
+      const r = rsOf(view, d.u), area = (d.x1 - d.x0) * (d.y1 - d.y0);
+      const clips = [];
+      let cover = 0;
+      for (let k = i + 1; k < drawn.length; k++) {
+        const o = drawn[k];
+        if (o.u.side === 0 || !(o.u.bigMon || o.u.boss || (o.fr.k || 1) > 1)) continue;
+        const w = Math.min(d.x1, o.x1) - Math.max(d.x0, o.x0), h = Math.min(d.y1, o.y1) - Math.max(d.y0, o.y0);
+        if (w > 0 && h > 0) { cover += w * h; clips.push([o.x0, o.y0, o.x1 - o.x0, o.y1 - o.y0]); }
+      }
+      const want = cover >= area * 0.2 ? 1 : 0;
+      const step = Math.max(0, view.clock - (r.seeAt == null ? view.clock : r.seeAt)) / 0.2;
+      r.seeAt = view.clock;
+      r.see = want > (r.see || 0) ? Math.min(want, (r.see || 0) + step) : Math.max(want, (r.see || 0) - step);
+      if (clips.length) r.seeClips = clips;
+      if (r.see <= 0.01 || !r.seeClips) return;
+      ctx.save();
+      ctx.beginPath();
+      r.seeClips.forEach((c) => ctx.rect(...c));
+      ctx.clip();
+      ctx.globalAlpha = 0.55 * r.see;
+      blit(ctx, d.fr, d.X, d.Y, d.flip, null, d.tf);
+      ctx.globalAlpha = 1;
+      ctx.restore();
+    });
     view.capBodies = drawn.filter((d) => keepVisible(d.u)).map((d) => ({ u: d.u, x0: d.x0, x1: d.x1, y0: d.y0, y1: d.y1 }));
     // 그래도 앞쪽 인물에 몸이 꽤 가려진 아군 대장·특별 용병: 윤곽선과 옅은 몸을 그 위에 덧그려 자리를 알린다
     drawn.forEach((d, i) => {
@@ -1693,33 +1765,64 @@ const Battle = (() => {
       px(ctx, t.x, t.y, t.w, 1, '#8aa0ff');
       ctx.fillStyle = '#ffffff'; ctx.fillText(t.name, t.X, t.y + 11);
     };
-    const geo = (u) => ({ X: Math.round(u.x * Z), top: Math.round(u.y * Z - stature(view, u).h) - 2, color: u.side === 0 ? '#7ee07e' : '#ff6a6a' });
+    const geo = (u) => ({ X: Math.round(u.x * Z + edxOf(view, u)), top: Math.round(u.y * Z - stature(view, u).h) - 2, color: u.side === 0 ? '#7ee07e' : '#ff6a6a' });
     const barW = (u) => (u.boss ? 60 : 32);
     // 대장 체력바·이름표 자리를 먼저 잡아 둔다 (다른 이름표가 그 자리를 피한다)
     live.forEach((u) => { if (keepVisible(u)) { const { X, top } = geo(u); bars.push({ u, x: X - barW(u) / 2 - 1, y: top - 9, w: barW(u) + 2, h: 6 }); } });
     const keyTags = live.filter((u) => keepVisible(u) && u.side === 0 && (u.unique || u.named)).map((u) => { const g = geo(u); return tagOf(u, g.X, g.top); });
-    // 1) 일반 병사의 작은 체력바
-    live.forEach((u) => {
-      if (u.captain || u.named || u.boss || keepVisible(u) || u.hp >= u.maxHp) return;
-      const { X, top, color } = geo(u);
-      const d = dodge(u, X - 12, top - 5, 24, 4, 20);
-      if (d == null) return;
-      px(ctx, X + d - 12, top - 5, 24, 4, '#140e18');
-      px(ctx, X + d - 11, top - 4, Math.max(0, Math.round(22 * (u.hp / u.maxHp))), 2, color);
-    });
-    // 2) 적 부대장·우두머리·이름 있는 병사 (대장이 아닌 쪽): 체력바 자리를 모두 잡은 뒤 이름표를 놓는다
+    // 일반 단원·적 부대장의 체력바와 이름표: 이미 자리 잡은 체력바·이름표(대장 것 먼저)와 겹치면 그동안 서서히 감춘다.
+    // 난전에서 이름표·체력바가 한 덩어리로 쌓이지 않게. 지난 그리기에 보이던 것이 자리를 지키고(먼저 자리를 잡는다),
+    // 한 번 감춘 것은 0.35초 동안 감춘 채로 둔다 — 두 유닛이 비슷한 자리를 오가도 깜빡이지 않는다.
+    const shown = bars.map((b) => ({ x: b.x, y: b.y, w: b.w, h: b.h })).concat(keyTags.filter(Boolean).map((t) => ({ x: t.x, y: t.y, w: t.w, h: 14 })));
+    const clash = (x, y, w, h) => shown.some((b) => x < b.x + b.w && x + w > b.x && y < b.y + b.h && y + h > b.y);
+    const labOf = (u, kind) => { const r = rsOf(view, u); r.lab = r.lab || {}; return r.lab[kind] || (r.lab[kind] = { a: 0, want: 1, at: view.clock, hold: -1 }); };
+    const fadeLab = (L, want) => {
+      if (!want && L.want) L.hold = view.clock + 0.35;
+      if (want && view.clock < L.hold) want = 0;
+      const dt = Math.max(0, view.clock - L.at);
+      L.at = view.clock; L.want = want;
+      L.a = Math.max(0, Math.min(1, L.a + Math.max(-dt / 0.18, Math.min(dt / 0.18, want - L.a))));
+      return L.a;
+    };
+    const order = (kind, rank) => (a, b) => labOf(b, kind).want - labOf(a, kind).want || rank(b) - rank(a) || st.units.indexOf(a) - st.units.indexOf(b);
+    // 1) 적 부대장·우두머리·이름 있는 병사 (대장이 아닌 쪽): 체력바 → 이름표
     const mid = [];
-    live.forEach((u) => {
-      if (keepVisible(u) || !(u.captain || u.named || u.boss)) return;
+    live.filter((u) => !keepVisible(u) && (u.captain || u.named || u.boss)).sort(order('bar', (u) => (u.boss ? 2 : u.captain ? 1 : 0))).forEach((u) => {
       const { X, top, color } = geo(u);
-      const w = barW(u);
+      const w = barW(u), L = labOf(u, 'bar');
       const d = dodge(u, X - w / 2, top - 8, w, 6, 24);
-      if (d == null) return;
-      bars.push({ u, x: X + d - w / 2 - 1, y: top - 9, w: w + 2, h: 6 });
-      mid.push({ u, X: X + d, top, color, w });
+      const ok = d != null && !clash(X + d - w / 2 - 1, top - 9, w + 2, 6);
+      if (ok) { L.dx = d; bars.push({ u, x: X + d - w / 2 - 1, y: top - 9, w: w + 2, h: 6 }); shown.push(bars[bars.length - 1]); }
+      const a = fadeLab(L, ok ? 1 : 0);
+      if (a > 0.02 && L.dx != null) mid.push({ u, X: X + L.dx, top, color, w, a });
     });
-    mid.forEach((m) => segBar(ctx, m.X - m.w / 2, m.top - 8, m.w, m.u.hp / m.u.maxHp, m.color, m.u.boss ? 10 : 5));
-    mid.forEach((m) => { if (m.u.side === 0 && m.u.named) { const t = tagOf(m.u, m.X, m.top); if (t) drawTag(t); } });
+    mid.forEach((m) => { ctx.globalAlpha = m.a; segBar(ctx, m.X - m.w / 2, m.top - 8, m.w, m.u.hp / m.u.maxHp, m.color, m.u.boss ? 10 : 5); });
+    ctx.globalAlpha = 1;
+    live.filter((u) => !keepVisible(u) && u.side === 0 && u.named).sort(order('tag', () => 0)).forEach((u) => {
+      const { X, top } = geo(u), L = labOf(u, 'tag');
+      const t = tagOf(u, X + (u.captain || u.named || u.boss ? labOf(u, 'bar').dx || 0 : 0), top);
+      const ok = !!t && !clash(t.x, t.y, t.w, 14);
+      if (ok) { L.t = { dx: t.x - X, dy: t.y - top, w: t.w, name: t.name, unique: t.unique }; shown.push({ x: t.x, y: t.y, w: t.w, h: 14 }); }
+      const a = fadeLab(L, ok ? 1 : 0);
+      if (a > 0.02 && L.t) {
+        ctx.globalAlpha = a;
+        drawTag({ x: X + L.t.dx, y: top + L.t.dy, w: L.t.w, name: L.t.name, X: X + L.t.dx + L.t.w / 2, unique: L.t.unique });
+        ctx.globalAlpha = 1;
+      }
+    });
+    // 2) 일반 병사의 작은 체력바 (맞은 병사만)
+    live.filter((u) => !(u.captain || u.named || u.boss || keepVisible(u) || u.hp >= u.maxHp)).sort(order('bar', () => 0)).forEach((u) => {
+      const { X, top, color } = geo(u), L = labOf(u, 'bar');
+      const d = dodge(u, X - 12, top - 5, 24, 4, 20);
+      const ok = d != null && !clash(X + d - 12, top - 5, 24, 4);
+      if (ok) { L.dx = d; shown.push({ x: X + d - 12, y: top - 5, w: 24, h: 4 }); }
+      const a = fadeLab(L, ok ? 1 : 0);
+      if (a <= 0.02 || L.dx == null) return;
+      ctx.globalAlpha = a;
+      px(ctx, X + L.dx - 12, top - 5, 24, 4, '#140e18');
+      px(ctx, X + L.dx - 11, top - 4, Math.max(0, Math.round(22 * (u.hp / u.maxHp))), 2, color);
+      ctx.globalAlpha = 1;
+    });
     // 3) 아군 대장·특별 용병: 맨 위에
     live.forEach((u) => {
       if (!keepVisible(u)) return;
@@ -1748,22 +1851,33 @@ const Battle = (() => {
     const textW = (str, size) => { ctx.font = `bold ${size}px Galmuri11, monospace`; return Math.ceil(ctx.measureText(str).width) + 4; };
     // 피해 숫자·스킬 이름·치유
     st.fx.forEach((f) => {
-      const X = f.x * Z;
+      const X = f.x * Z + edxOf(view, f.who);
       // 글자는 그 유닛 그림의 머리 위 쪽에 (ingest 에서 기억한 키 기준)
       const head = f.foot != null ? f.foot - f.tall : f.y * Z;
       const Y = f.kind === 'pop' ? head + 26 : f.kind === 'heal' ? head + 18 : f.kind === 'label' ? head - 30 : f.y * Z;
       if (f.kind === 'pop') {
         if (!(f.crit || f.ally && f.named || f.mine)) return; // 화면이 어지럽지 않게
+        if (f.merged) return;
         if (f.jx == null) {
-          f.jx = rnd(-14, 14); f.jy = rnd(-6, 6);
+          // 난전에서 숫자가 쌓이지 않게: 같은 유닛이 방금 맞아 아직 떠 있는 숫자가 있으면 그 숫자에 더하고(합친 피해),
+          // 가까운 무리(가로 44px·세로 30px 안)에 이미 떠 있는 숫자 위로 한 줄씩 올려 놓는다. 세 줄이 차면 치명타만 네 번째 줄에.
+          const fresh = st.fx.filter((o) => o !== f && o.kind === 'pop' && o.jx != null && !o.merged && o.t < 0.45);
+          const twin = f.who && fresh.find((o) => o.who === f.who && o.ally === f.ally);
+          if (twin) { twin.sum = (twin.sum != null ? twin.sum : +twin.text) + +f.text; twin.big = twin.big || f.crit; f.merged = true; return; }
+          const near = fresh.filter((o) => Math.abs(o.x - f.x) * Z < 44 && Math.abs(o.y - f.y) * Z < 30);
+          let lane = 0;
+          while (lane < 3 && near.some((o) => (o.lane || 0) === lane)) lane++;
+          if (lane >= 3 && !f.crit) { f.merged = true; return; }
+          f.lane = lane;
+          f.jx = rnd(-14, 14) * (near.length ? 0.4 : 1); f.jy = rnd(-6, 6) - lane * 15;
           // 대장이 맞은 숫자: 가슴 대신 등 뒤 옆으로 (몸 너비의 절반 + 여유)
-          if (f.capW) { f.jx = -f.capFace * (f.capW * 0.5 + rnd(6, 14)); f.jy = rnd(-14, -4); }
+          if (f.capW) { f.jx = -f.capFace * (f.capW * 0.5 + rnd(6, 14)); f.jy = rnd(-14, -4) - lane * 15; }
         }
-        const up = Math.min(1, f.t * 5);
-        const y = Y - 6 - up * 10 - f.t * 14 + f.jy, size = f.crit ? 20 : 15;
-        if (marks.length) { const w = textW(f.text, size); avoid(f, f.who, X + f.jx - w / 2, y - size + 2, w, size); }
+        const up = Math.min(1, f.t * 5), str = f.sum != null ? String(Math.round(f.sum)) : f.text, big = f.crit || f.big;
+        const y = Y - 6 - up * 10 - f.t * 14 + f.jy, size = big ? 20 : 15;
+        if (marks.length) { const w = textW(str, size); avoid(f, f.who, X + f.jx - w / 2, y - size + 2, w, size); }
         ctx.globalAlpha = f.t > 0.5 ? Math.max(0, 1 - (f.t - 0.5) * 5) : 1;
-        text(ctx, f.text, X + f.jx + (f.ax || 0), y + (f.ay || 0), size, f.ally ? '#ff7a96' : f.crit ? '#ffd84a' : '#ffffff');
+        text(ctx, str, X + f.jx + (f.ax || 0), y + (f.ay || 0), size, f.ally ? '#ff7a96' : big ? '#ffd84a' : '#ffffff');
         ctx.globalAlpha = 1;
       } else if (f.kind === 'heal' && f.named) {
         ctx.globalAlpha = Math.max(0, 1 - f.t * 1.4);
