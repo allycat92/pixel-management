@@ -2,6 +2,7 @@
 
 ## Rules changed (newest first — read this list every time)
 
+- 2026-11-26 **Hit reaction: a real flinch, not a pose** (owner: "the hit pose keeps the calm face and the posture is unnatural - it looks comical"): change the FACE (wince, eyes squeezed shut, mouth open or teeth gritted), jolt the head and torso away from the blow, bend the knees to absorb it, keep the feet planted (at most a short stagger step) - do NOT lift the front leg high. Keep the weapon in hand.
 - 2026-11-26 **Body size is fixed — do not shrink the figure to fit the width**: Crimson (idle 367 px) and Bjorn (373 px) arrived 8-12% smaller than
   the other captains (385-440 px, hat and weapon included) after a "layout width correction". The game converts every sheet at one scale, so they
   stood a head shorter; we fixed those two in conversion. From now on: head 110 px, idle top-of-head to sole about 400 px. When a wide pose does not
