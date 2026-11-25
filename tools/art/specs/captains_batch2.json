@@ -1,0 +1,532 @@
+[
+ {
+  "key": "windhunter",
+  "en": "Narin (나린) — Wind-Chasing Hunter (바람 사냥꾼, archer captain)",
+  "weapon": "bow",
+  "size_class": "normal",
+  "character": "Narin: lean, tanned woman in her twenties, very long wild dark-brown hair blowing back, green headband with two long trailing tails, calm narrow eyes, small gold hoop earring, dark forest-green hooded cloak/mantle with lime-green trim and a lime leaf-shaped brooch, gold toggle clasps, brown leather cross-strap with square buckle, brown wooden longbow with gold bands, quiver of white-fletched arrows on her back.",
+  "colours": "skin #c68a5c, hair #2b1d14 (long), outfit #2a4a3a (dark forest green), accent #a7d26a (lime trim, headband); secondary: brown leather #5a3a22-ish, gold fittings #d9a441-ish",
+  "notes": [
+   "Weapon: a plain brown wooden longbow with gold grip bands (as in the portrait), held in the far-forward hand so the whole limb and string sit on magenta outside the body; one bow only.",
+   "Quiver with a few white-fletched arrows stays on her back; an arrow appears only nocked in the wind-up pose, never in flight in the strike pose (the engine draws projectiles).",
+   "Hair is long and windswept like the portrait but kept as a compact mass streaming BEHIND her (to the left) so it never covers the bow, bow arm or face; headband tails stream back with it.",
+   "Green headband, gold hoop earring and lime leaf brooch stay visible in every pose; cloak is dark green with clear lime trim so it does not merge into dark terrain.",
+   "No wind lines, leaves, glow or motion effects even though she is the 'wind' hunter."
+  ],
+  "poses": [
+   "1 idle: bow held low in front in the forward hand, string side facing her, ready, wide stance with bent knees.",
+   "2 wind-up: full draw: arrow nocked, string pulled back to the cheek, bow arm straight out in front of the body on magenta.",
+   "3 strike: release: bow arm extended, string straight, drawing hand flung far back behind the shoulder, NO arrow in flight.",
+   "4 hit: torso thrown back, weight on the rear leg, head jerked back, bow dropped low-forward clear of the body."
+  ],
+  "ko_notes": "나린: 갈색 피부, 바람에 날리는 긴 흑갈색 머리, 꼬리 달린 녹색 머리띠, 금 귀걸이, 진녹색 망토+연두 장식, 나뭇잎 브로치, 금테 나무 장궁, 등에 화살통. 가이드 무기 bow. 화살은 준비 자세에서만, 날아가는 화살·바람 효과 없음. 머리카락은 뒤로 날려 활을 가리지 않게."
+ },
+ {
+  "key": "shadowlord",
+  "en": "Moro (모로) — Rat King of the Port (그림자 두목, rogue captain)",
+  "weapon": "none",
+  "size_class": "normal",
+  "character": "Moro: wiry man in his forties, cunning toothy rat-like grin, wavy shoulder-length brown hair spilling out of a deep dark-plum hood, short beard and stubble, small cheek scar, gold hoop earrings, dark plum hooded cloak with gold trim and a gold round brooch, gold chain across the chest, brown leather belt with square buckle, gold rings on his fingers, a single straight steel dagger with a gold crossguard.",
+  "colours": "skin #e0ac7e, hair #5a3720, outfit #1a1420 (near-black plum), accent #d9a441 (gold trim, rings, chain); dagger blade neutral steel ~#d8dde3",
+  "notes": [
+   "Weapon: ONE straight dagger with a gold crossguard in the near hand, where the guide mannequin holds its dagger (the guide's short reverse-grip dagger is the placeholder). The blade must be neutral light steel (~#d8dde3) with a 1px dark outline and about 1.5x a normal dagger length (Lyra lesson).",
+   "The dagger sits OUTSIDE the cloak silhouette on magenta in every pose; never in front of the dark cloak where it vanishes at 64px.",
+   "His skill throws poisoned daggers, but draw NO thrown knives, no knives in flight and no second weapon in hand; no poison drips, smoke or glow.",
+   "Hood stays up in every pose with the face and grin readable; keep gold trim, gold brooch, chain and rings as bold gold blocks so the near-black outfit has readable edges.",
+   "Plum shadows/highlights stay dark and desaturated (no pink or bright violet) to keep the magenta distance >= 170."
+  ],
+  "poses": [
+   "1 idle: crouched ready stance, dagger held forward-low in the near hand out beside the body, free hand raised as a guard, sly grin.",
+   "2 wind-up: dagger arm drawn back high behind and above the head, blade clear of hood and cloak on magenta, body coiled.",
+   "3 strike: lunge forward, dagger thrust/slash across at full arm extension in front of the body.",
+   "4 hit: torso thrown back, weight on the rear leg, head jerked back in the hood, dagger hand flung out to the side away from the cloak."
+  ],
+  "ko_notes": "모로: 40대, 쥐 같은 능글맞은 웃음, 후드 밖으로 나온 곱슬 갈색 머리, 수염, 금 귀걸이·반지·사슬, 금테 검자주 망토. 가이드 무기 none + 금 코등이 단검 한 자루. 리라 교훈대로 날은 밝은 강철색·1.5배 길이·항상 망토 바깥. 투척 단검·독 효과 그리지 않음."
+ },
+ {
+  "key": "spellblade",
+  "en": "Cassian (카시안) — Excommunicated Spellblade (마검사, mage captain)",
+  "weapon": "staff",
+  "size_class": "normal",
+  "character": "Cassian: tall, elegant man in his thirties, long wavy ash-silver hair to mid-back, stern blue eyes, two thin diagonal scars on the cheek, high-collared dark navy long coat with pale-cyan trim and swirl embroidery on the shoulder cape, small gold four-point star brooch, holds a dark staff topped by a gold-caged pale-cyan diamond crystal (as in the portrait).",
+  "colours": "skin #f5d6b8, hair #c9c2b8 (long), outfit #2a2a6a (dark navy), accent #7fd6e8 (pale cyan trim, crystal); gold fittings ~#d9a441",
+  "notes": [
+   "Weapon follows the PORTRAIT: a dark staff with a gold-caged pale-cyan diamond crystal head (his '마력검' slash is drawn by the engine; the strike pose follows the guide: free hand thrust forward, staff upright behind). The story/prompt mentions a magic sword; owner to confirm — if a sword is wanted instead, use a one-handed longsword with cyan runes and the katana guide.",
+   "Crystal head is a solid pale-cyan gem with a dark outline: NO glow, no blue smoke wisp (the portrait's smoke is omitted), no floating particles or runes.",
+   "Staff head and crystal stay outside the head/hair silhouette on magenta in every pose; long hair is kept as a compact mass behind the shoulders.",
+   "Coat is dark navy-blue, not violet; keep any purple highlights blue-shifted and dark (magenta rule), cyan trim crisp so the coat reads on dark terrain.",
+   "Cheek scars and the gold star brooch remain visible."
+  ],
+  "poses": [
+   "1 idle: staff held upright-forward in the near hand, crystal head above and ahead of the shoulder on magenta, free hand low, wide stance.",
+   "2 wind-up: staff raised high in the near hand, crystal head well above the head on magenta, free hand lifted, weight on the back leg, body coiled.",
+   "3 strike: lunge; free arm thrust straight forward, palm open; staff held upright behind in the near hand, crystal head clear of hair and body — NO glow, NO effect.",
+   "4 hit: torso thrown back, weight on the rear leg, head jerked back, staff dropped low and out to the front."
+  ],
+  "ko_notes": "카시안: 긴 물결 은발, 뺨의 두 줄 흉터, 남색 하이칼라 코트+하늘색 장식, 금 별 브로치. 초상화·게임 데이터대로 금테 수정 지팡이(가이드 staff). 타격은 가이드대로 빈손을 앞으로 내밀고 지팡이는 뒤에 세움(마력검 베기는 엔진 효과). 이야기·요청서는 '마법검'이라 충돌 — 주인 확인 필요(검이면 katana 가이드). 빛·연기·룬 효과 없음, 보라 대신 짙은 남색."
+ },
+ {
+  "key": "saintknight",
+  "en": "Eleanor (엘리노어) — Knight of Holy Light (성광 기사, cleric captain)",
+  "weapon": "staff",
+  "size_class": "normal",
+  "character": "Eleanor: noble young woman knight in her twenties, long wavy golden hair with a braided crown and a large white ribbon bow at the back, calm blue eyes, bare-headed (no helmet, as in the portrait), white plate armour with gold trim and gold four-point star emblems on the breastplate and pauldrons, white gauntlets, wielding a gold spiked star-headed mace (morning-star head on a steel haft).",
+  "colours": "skin #f2c9a0, hair #e3c565 (long), outfit #e8e4d8 (ivory-white plate), accent #f2c94c (gold trim, stars, mace head); armour shadows cool grey ~#9a96a0",
+  "notes": [
+   "Weapon: a one-handed mace with a gold spiked star-shaped head on a steel haft (not a staff — the staff guide is only the healer pose base); no shield.",
+   "Bare-headed with the white ribbon and braid as in the portrait (the data's 'helmet' headgear is overridden by the portrait).",
+   "Mace head stays outside the head/hair silhouette on magenta in every pose; outline the gold mace head darkly so it does not merge with her golden hair.",
+   "No holy light, halo, glow or sparkles (the engine draws heal/smite effects).",
+   "White armour needs grey-blue shading and a dark outline so it reads on snow and pale terrain; gold star emblems stay large and simple."
+  ],
+  "poses": [
+   "1 idle: mace held ready in the near hand, head raised beside and ahead of the shoulder, free hand low, wide stance.",
+   "2 wind-up: mace raised high in the near hand, star head above and behind the head, free hand lifted, weight back.",
+   "3 strike: lunge; free hand thrust forward with an open palm (heal / smite gesture); mace held upright behind in the near hand, star head clear of hair and body — NO glow, NO effect.",
+   "4 hit: torso thrown back, weight on the rear leg, head jerked back, mace dropped low and out to the side."
+  ],
+  "ko_notes": "엘리노어: 긴 금발 물결머리+땋은 왕관, 흰 리본, 투구 없음(초상화 우선), 금 테두리 흰 판금, 가슴·어깨 금 별 문양, 금빛 별 모양 가시 철퇴(방패 없음). 세라핀처럼 가이드 staff. 빛·후광 없음, 흰 갑옷은 회청색 음영+진한 외곽선, 철퇴 머리는 금발과 안 겹치게."
+ },
+ {
+  "key": "warlord",
+  "en": "Garmak (가르마크) — Warlord of a Hundred Battles (전쟁군주, warrior captain)",
+  "weapon": "katana",
+  "size_class": "normal",
+  "character": "Garmak: huge, broad-shouldered man in his forties, long dark-red hair and a big braided red beard, heavy brows, scar across the nose and cheek, grey iron horned helmet with curved ivory horns and a star emblem, grey wolf-fur mantle, crimson cloak, iron lion-head round clasp, brown leather harness with square buckle, two-handed greatsword with a red-wrapped grip and round pommel (carried on his back in the portrait).",
+  "colours": "skin #c68a5c, hair #8c2f2f (red, beard braided), outfit #5a3a1a (brown leather), accent #d6455d (crimson cloak); fur grey-brown ~#8a7a6a, iron ~#8a8a8a",
+  "notes": [
+   "Weapon follows the PORTRAIT: a heavy two-handed greatsword (red-wrapped grip, round pommel, broad straight blade), not a katana and not an axe (his skill is named '전쟁 도끼'; owner may swap to a two-handed war axe — then keep the same guide).",
+   "Blade stays outside the body silhouette on magenta in every pose; give it a neutral grey steel with a dark outline so it reads against the grey fur and red cloak.",
+   "Bulky and broad (wide chest, thick arms) but still exactly 4 heads tall and the same scale as other captains — not a giant; horned helmet stays on in every pose and the horns are not counted in the height.",
+   "Fur mantle and crimson cloak kept as large simple shapes; cloak must not cover the sword or sword arm.",
+   "No rally-horn, banner or effects (his rally skill is drawn by the engine)."
+  ],
+  "poses": [
+   "1 idle: two-handed greatsword held diagonally in front, point forward-up, wide low stance.",
+   "2 wind-up: sword raised high over the rear shoulder, weight back, blade clear above and behind the helmet horns.",
+   "3 strike: step-in lunge, sword cut down and forward at full extension.",
+   "4 hit: torso thrown back, weight on the rear leg, head jerked back, sword dropped low."
+  ],
+  "ko_notes": "가르마크: 거구(그래도 4등신·같은 배율), 붉은 장발과 땋은 붉은 수염, 코·뺨 흉터, 뿔 달린 철투구, 회색 늑대 모피, 진홍 망토, 사자 걸쇠. 초상화 등의 대검을 무기로(가이드 katana). 스킬명·요청서는 '전쟁 도끼'라 충돌 — 양손 도끼로 바꿀지 주인 확인. 칼날은 몸 바깥, 회색 강철+진한 외곽선."
+ },
+ {
+  "key": "khan",
+  "en": "Temur (테무르) — Khan of the Steppe (초원의 칸, archer captain)",
+  "weapon": "bow",
+  "size_class": "normal",
+  "character": "Temur: strong nomad man in his thirties, dark brown skin, long dark-brown hair in loose locks plus two thick braids bound with gold rings, short goatee, gold hoop earring, heavy cream-white fur collar, brown steppe coat (deel) with gold curling embroidery and a round gold medallion clasp, recurved composite bow with gold bands, quiver of white-fletched arrows on his back.",
+  "colours": "skin #8d5a3b, hair #2b1d14 (long, braids), outfit #8a5a2a (brown coat), accent #e8c86a (gold embroidery, rings); fur cream ~#e8dcc8",
+  "notes": [
+   "Weapon: a recurved composite bow with strongly curled tips and gold bands (as in the portrait), held out in front so it sits on magenta outside the body; one bow only.",
+   "On foot — NO horse (his '기마 돌격' charge is drawn by the engine; do not make a mounted version).",
+   "Arrow only nocked in the wind-up; no arrow in flight in the strike pose; quiver stays on the back.",
+   "Gold-ringed braids, fur collar and gold medallion stay visible; give the cream fur a darker outline and shading so it does not read as a blank blob on snow/desert.",
+   "Brown coat needs dark outline and darker leather accents so he does not vanish on desert sand."
+  ],
+  "poses": [
+   "1 idle: recurved bow held low in front, ready, wide stance with bent knees.",
+   "2 wind-up: full draw: arrow nocked, string pulled back toward the cheek, bow arm straight out in front.",
+   "3 strike: release: bow arm extended, string straight, drawing hand flung far back behind the shoulder, NO arrow in flight.",
+   "4 hit: torso thrown back, weight on the rear leg, head jerked back, bow dropped low-forward clear of the body."
+  ],
+  "ko_notes": "테무르: 짙은 갈색 피부, 금고리로 묶은 두 가닥 땋은 머리+긴 흑갈색 머리, 염소수염, 금 귀걸이, 크림색 모피 깃, 금 자수 갈색 유목 코트, 금 원형 걸쇠, 끝이 말린 복합궁. 가이드 bow. 말 없음(도보), 날아가는 화살 없음. 모피·코트는 사막·눈밭에서 안 묻히게 진한 외곽선."
+ },
+ {
+  "key": "dragonslayer",
+  "en": "Sieglinde (지크린데) — Dragonslayer (용살자, warrior captain)",
+  "weapon": "katana",
+  "size_class": "normal",
+  "character": "Sieglinde: battle-hardened, athletic woman in her thirties, wild long golden-blonde hair with a side braid, stern dark eyes, scar across the brow and a slash scar on the cheek, bare-headed (no helmet, as in the portrait), dark crimson dragon-scale armour with orange-gold trim and layered scale pauldrons, brown leather belt with gold buckle, huge two-handed greatsword with a gold crossguard and red-wrapped grip.",
+  "colours": "skin #f2c9a0, hair #e3c565 (long), outfit #6a1a14 (dark crimson scale), accent #f39c12 (orange-gold trim, hilt); blade neutral steel ~#c8ccd2",
+  "notes": [
+   "Weapon: a very large two-handed European greatsword (gold crossguard, red-wrapped grip), not a katana; the blade stays outside the body silhouette on magenta in every pose.",
+   "Bare-headed as in the portrait (the data's 'helmet' headgear is overridden); her face scars stay visible.",
+   "Dragon-scale armour as a few large scale rows and plates, not noisy texture; crimson darks shift toward brown, not toward magenta/pink.",
+   "No fire, dragon motifs as effects, glow or slash trails; her execution dash is drawn by the engine.",
+   "Hair is a big mass but kept behind the head so it never covers the sword or face."
+  ],
+  "poses": [
+   "1 idle: two-handed greatsword held diagonally in front, point forward-up, wide low stance.",
+   "2 wind-up: sword raised high over the rear shoulder, weight back, blade clear of the hair mass.",
+   "3 strike: step-in lunge, sword cut down and forward at full extension.",
+   "4 hit: torso thrown back, weight on the rear leg, head jerked back, sword dropped low."
+  ],
+  "ko_notes": "지크린데: 30대, 사납게 퍼진 긴 금발+옆 땋은 머리, 이마·뺨 흉터, 투구 없음(초상화 우선), 진홍 용비늘 갑옷+주황 금테, 금 코등이 양손 대검. 가이드 katana(그롬과 같은 대검 자세). 칼날 몸 바깥, 불·용 효과 없음, 비늘은 큰 덩어리로."
+ },
+ {
+  "key": "demonhunter",
+  "en": "Mordecai (모르데카이) — Demon Hunter (마귀 사냥꾼, cleric captain)",
+  "weapon": "staff",
+  "size_class": "normal",
+  "character": "Mordecai: grizzled, sturdy man in his fifties, deep dark-charcoal hood and long hooded cloak with ash-grey trim and cross motifs, grey hair strands and a short grey beard, deeply lined scowling face, bandolier of large silver bullets/cartridges across the chest, small bone-white cross pendant, holding a holy mace: dark wrapped haft with a gold band and a spiked round head bearing a cross.",
+  "colours": "skin #e0ac7e, hair #c9c2b8 (grey), outfit #2a2a3a (charcoal), accent #c9c2b8 (ash-grey trim, crosses); silver bullets ~#d8dde3, gold band ~#d9a441",
+  "notes": [
+   "Weapon: ONE holy mace with a spiked round head marked with a cross (as in the portrait); the staff guide is just the cleric pose base. No gun, no crossbow, no shield.",
+   "Silver bullets are worn as a chest bandolier only; his '은탄' shot is drawn by the engine — no bullets in flight, no muzzle flash.",
+   "Mace head stays outside the hood/cloak silhouette on magenta in every pose; outline it darkly and keep it lighter than the cloak so it reads at 64px.",
+   "Hood up in every pose with the bearded face visible; ash-grey trim drawn as bold lines so the charcoal cloak has edges on dark terrain.",
+   "No holy light, exorcism glow, runes or smoke."
+  ],
+  "poses": [
+   "1 idle: mace held ready in the near hand, head out ahead of the shoulder, free hand low near the bandolier, wide stance.",
+   "2 wind-up: mace raised high in the near hand, head above and behind the hood, free hand lifted, weight back.",
+   "3 strike: lunge; free hand thrust forward open-palmed (the ward); mace held upright behind in the near hand, head clear of the hood and cloak — NO glow, NO effect.",
+   "4 hit: torso thrown back, weight on the rear leg, head jerked back in the hood, mace dropped low and out to the side."
+  ],
+  "ko_notes": "모르데카이: 50대, 깊은 숯색 후드 망토+잿빛 테두리·십자 문양, 회색 머리·짧은 회색 수염, 주름진 얼굴, 가슴에 은탄 탄띠, 십자 박힌 가시 철퇴. 가이드 staff(세라핀식). 총·석궁 없음, 날아가는 은탄·빛 효과 없음. 철퇴 머리는 망토 바깥, 후드 계속 씀."
+ },
+ {
+  "key": "bard",
+  "en": "Rico (리코) — The Singing Blade (음유 검객, rogue)",
+  "weapon": "sword_shield",
+  "size_class": "normal",
+  "character": "Rico: flamboyant young man in his twenties, slim agile build, long wavy dark-red hair in a loose braid over the shoulder, confident smirk, two thin diagonal scars on the left cheek, gold hoop earring; wide-brimmed plum tricorn-style hat with gold trim, gold round badge and a big cream feather; plum frock coat with gold buttons, gold-edged collar and short shoulder cape, cream ruffled jabot; a rapier with a gold cup/swept hilt in hand and a small round-bodied lute strapped on his back.",
+  "colours": "skin #f2c9a0, hair #8c2f2f (long), outfit #7a2a5a (plum), accent #f2c94c (gold trim/buttons); portrait extras: feather and jabot cream ~#e0d2c0, lute warm brown/ochre",
+  "notes": [
+   "Real weapon is ONE rapier (thin straight blade, gold swept/cup hilt) in the near hand; the guide's shield is a placeholder — NO shield: the free hand is empty and open, palm out, exactly where the guide holds the shield.",
+   "Rapier blade: neutral light steel (~#d8dde3) with a 1px dark outline, about the guide sword's length (long and thin, not longer: it must keep 32 px from the neighbouring poses), always held out on the magenta background, never laid across the plum coat (a thin blade over the dark coat vanishes at 64px).",
+   "Lute stays strapped flat on his back as a small prop (top of the neck may peek above the shoulder); never played, never swung, no notes or music symbols.",
+   "Feathered hat stays on in every pose; feather is a big simple cream shape; long red hair visible below the brim.",
+   "Plum outfit: keep the lightest plum no brighter/pinker than ~#8e4a62 (shift highlights toward warm grey-rose, not pink) so every colour stays >=170 from #FF00FF.",
+   "No sparkles, music notes, slash trails or glow (the engine draws the 'battle song' buff)."
+  ],
+  "poses": [
+   "idle: fencer's stance side-on, knees bent, rapier extended forward-low in the near hand, free hand open at chest height in front (where the guide holds the shield); blade fully on the background in front of the body.",
+   "wind-up: rapier drawn back high beside the head with the point aimed forward, weight on the rear leg, free hand reaching forward for balance; blade above/behind the hat brim, not across the coat.",
+   "strike: deep fencing lunge, front knee bent, rapier arm at full extension straight forward, free hand open at the chest where the guide holds the shield; the blade reaches past the front foot on the background.",
+   "hit: torso thrown back, weight on the rear leg, head jerked back (hat stays on), rapier arm flung out and down away from the body, free hand up."
+  ],
+  "ko_notes": "리코: 붉은 장발·깃털 모자·자주 코트의 음유 검객. 실제 무기는 레이피어 한 자루(가이드는 검+방패, 방패 없음, 빈손은 가이드 방패 자리에 편 손). 날은 밝은 강철색으로 늘 몸 바깥. 류트는 등에 메기만(연주·음표 없음). 자주색 밝은 면은 분홍으로 가지 않게."
+ },
+ {
+  "key": "beastmaster",
+  "en": "Orga (오르가) — Mother of the Wolf Pack (야수 조련사, archer)",
+  "weapon": "bow",
+  "size_class": "normal",
+  "character": "Orga: dark-skinned woman in her thirties, strong athletic build, long thick dark-brown wavy hair with a braid, stern face, white war-paint stripes on the forehead and across the cheek, gold earrings; huge grey-and-cream wolf-fur mantle over the shoulders fastened with a round gold wolf-head medallion, dark brown leather tunic with brown strap and square gold buckle, headband; a dark wooden longbow with gold-capped tips and a quiver of cream-fletched arrows on her back.",
+  "colours": "skin #8d5a3b, hair #2b1d14 (long), outfit #5a4a3a (brown leather), accent #d9a441 (gold medallion/tips); portrait extras: wolf fur grey ~#8a8690 with cream ~#e0d4c4 tips, face paint ~#ece6dc",
+  "notes": [
+   "Main weapon is ONE longbow (dark wood, gold-capped tips); bow and string stay outside the body silhouette on the magenta background in every pose.",
+   "The grey wolf from the portrait is NOT drawn (no companion animal, no wolf head on the ground) — the wolf-pack skill is drawn by the engine; the wolf theme lives in the fur mantle and gold wolf medallion.",
+   "Wolf-fur mantle as a few big jagged grey/cream fur clumps over both shoulders, not pixel noise; keep it from swallowing the bow arm.",
+   "White face-paint stripes on forehead and cheek must read at 64px (one or two bold pixels-wide strokes).",
+   "Arrow only in the wind-up (nocked); NO arrow in flight, no motion lines, no glow."
+  ],
+  "poses": [
+   "idle: wide hunter's stance, knees bent, bow held low in front in the near hand with the bow away from the body, drawing hand resting near the quiver strap.",
+   "wind-up: full draw — arrow nocked, string pulled back to the cheek, bow arm extended straight forward, bow upright clear of the fur mantle.",
+   "strike: release — bow arm still extended, string straight, drawing hand flung far back behind the shoulder (clearly further than in the wind-up), NO arrow in flight.",
+   "hit: torso thrown back, weight on the rear leg, head and hair jerked back, bow dropped low-forward away from the body."
+  ],
+  "ko_notes": "오르가: 짙은 피부·흑갈색 장발·흰 전투 칠·회색 늑대 모피 망토의 조련사. 무기는 장궁 하나. 초상화의 늑대는 그리지 않음(늑대는 엔진이 연출, 모피·금 늑대 메달로 표현). 화살은 준비 자세에만, 쏜 뒤 손을 크게 뒤로."
+ },
+ {
+  "key": "runesmith",
+  "en": "Brok (브로크) — The Rune-Carving Smith (룬 대장장이, warrior)",
+  "weapon": "katana",
+  "size_class": "normal",
+  "character": "Brok: stout, barrel-chested man in his forties, broad and stocky (still 4 heads tall), bare head with swept-back copper-orange hair, huge braided orange beard bound with gold rings, heavy brow, scar on the cheek; dark-brown leather-and-steel armour with big rounded grey steel pauldrons and plates engraved with cyan runes, gold trim bands; a heavy two-handed rune warhammer (grey steel block head with a cyan rune, dark wrapped haft, gold collar).",
+  "colours": "skin #e0ac7e, hair #a8642a (copper-orange, braided beard), outfit #6a4a2a (dark brown leather), accent #7fd6e8 (rune lines); portrait extras: steel plate grey ~#8a8890 / light ~#c4c2c6, gold bands ~#d9a441",
+  "notes": [
+   "Real weapon is ONE two-handed rune warhammer, not a sword: rectangular steel head ~0.6 head wide, haft ~1.5 heads long; the guide's two-handed blade is the placeholder for its position. Keep the hammer head on the magenta background, outside the body and beard, in every pose.",
+   "Runes are FLAT cyan #7fd6e8 lines on the hammer head and pauldrons — no glow, no light halo, no sparks (the prompt's 'glowing' is done by the engine).",
+   "Bare head as in the portrait (no helmet, even though the class data lists one); the big orange beard braid with gold rings must read at 64px.",
+   "Stocky build: wide shoulders and short thick legs inside the same 110 px head / 4-head scale — do not enlarge the figure; keep the raised hammer within about one head above the hair so the wind-up does not run off the top of the cell.",
+   "Armour as a few big plates (pauldrons, chest plate, belt), not small rivet noise; no anvil or tongs."
+  ],
+  "poses": [
+   "idle: low wide stance, warhammer held two-handed diagonally in front, head up and forward clear of the beard.",
+   "wind-up: hammer heaved up and back over the near shoulder, weight on the rear leg, hammer head behind and above the head on the background.",
+   "strike: step-in lunge, hammer smashed down and forward at full extension, hammer head low in front of the front foot at about knee height (never below the soles line y=870).",
+   "hit: torso thrown back, weight on the rear leg, head jerked back, hammer dropped low to the side away from the body."
+  ],
+  "ko_notes": "브로크: 땅딸막한 구릿빛 수염 대장장이. 실제 무기는 양손 룬 전쟁망치(가이드 양손검 자리). 룬은 평평한 하늘색 선(빛·불꽃 없음). 초상화대로 투구 없음. 체격은 넓게, 크기는 키우지 말고 준비 자세 망치가 칸 위로 넘치지 않게."
+ },
+ {
+  "key": "pilgrim",
+  "en": "Amelie (아멜리) — The Barefoot Pilgrim (순례 기사, cleric)",
+  "weapon": "staff",
+  "size_class": "normal",
+  "character": "Amelie: gentle young woman in her twenties, slender, long wavy golden-blonde hair with a braid over one shoulder, calm blue eyes, soft smile; beige hooded pilgrim cloak with a navy-blue hood band and stole embroidered with gold crosses, navy-blue tunic, prayer-bead string with a gold cross at the chest, BARE FEET; a long-hafted holy mace (dark haft, spiked gold-and-steel sun head with a gold cross).",
+  "colours": "skin #f5d6b8, hair #e3c565 (long), outfit #c8b89a (beige cloak), accent #3d5a9c (navy band/tunic); portrait extras: gold crosses ~#e0b040, mace head steel ~#6a6a78",
+  "notes": [
+   "Real weapon is ONE long-hafted holy mace (staff-length haft, spiked sun head with a gold cross), held like the guide staff; the mace head stays outside the body silhouette on the background in every pose.",
+   "BAREFOOT: bare feet with visible toes in every pose — no boots or sandals; the cloak hem must stop above the ankles.",
+   "Hood up in every pose with the navy band and gold crosses; blonde braid visible outside the hood.",
+   "Prayer beads with the gold cross hang at the chest as part of the costume (not held up as a second item).",
+   "No healing glow, halo, light rays or holy symbols in the air (the engine draws heal effects).",
+   "Beige cloak vs magenta-free palette: keep beige shadows toward cool grey-brown, never pink/mauve."
+  ],
+  "poses": [
+   "idle: steady stance, mace held upright in the near hand like a staff with the head above shoulder height in front of the body edge, free hand at the prayer beads.",
+   "wind-up: mace raised high in the near hand, free hand lifted, weight back, head of the mace above and behind the hood on the background.",
+   "strike: lunge; free hand thrust forward with an open palm (blessing); mace held upright behind in the near hand, sun head clear of the hood and body.",
+   "hit: torso thrown back, weight on the rear bare foot, head jerked back (hood stays on), mace dropped low and out to the side."
+  ],
+  "ko_notes": "아멜리: 금발 땋은 머리·베이지 두건 망토·남색 띠(금 십자)의 맨발 순례자. 무기는 자루 긴 성스러운 철퇴(지팡이 가이드). 네 자세 모두 맨발·발가락 보이게, 두건 유지. 치유 빛·후광 없음."
+ },
+ {
+  "key": "hexer",
+  "en": "Belladonna (벨라도나) — The Curse Broker (저주술사, mage)",
+  "weapon": "staff",
+  "size_class": "normal",
+  "character": "Belladonna: pale woman in her thirties, slender, very long wavy dark navy-blue hair, sly smirk, dark lips, beauty mark under the eye, gold earrings; huge wide-brimmed dark plum witch hat with a bent tip, green band, bone skull charm and gold crescent; dark plum high-collared coat with green swirl trim and a green gem brooch, fingerless dark gloves with gold bangle; a twisted wooden staff with a coiled top holding a green gem.",
+  "colours": "skin #f5d6b8, hair #3a3f6b (long, dark blue), outfit #3a1a3a (dark plum), accent #7ed37e (green trim/gem); portrait extras: skull charm bone ~#e0d4c0, staff wood ~#a08a6a, gold ~#d9a441",
+  "notes": [
+   "Weapon is ONE twisted wooden staff with a coiled top cradling a green gem; the staff head stays outside the hat brim and body on the background in every pose.",
+   "NO green curse flame in her palm (the portrait's flame is an effect — the engine draws curse bolts); the gem is flat green with one highlight pixel, no glow; free hand empty and open.",
+   "The wide witch hat stays on in every pose; it may enlarge the silhouette but must not grow the figure (head stays 110 px) and must not hide the face.",
+   "Plum outfit and dark hair: keep the lightest plum around #6a3a5e (no pink/violet) and give the dark hair/coat a clear lighter rim so she does not vanish on dark terrain; every colour >=170 from #FF00FF.",
+   "Green swirl trim as a few bold lines, not fine filigree."
+  ],
+  "poses": [
+   "idle: relaxed caster stance, staff held upright in the near hand slightly in front of the body edge, free hand at the hip with fingers spread.",
+   "wind-up: staff raised high in the near hand, gem end high behind the hat brim on the background, free hand lifted, body coiled.",
+   "strike: casting thrust — lunge, free hand pushed forward with an open palm toward the target; staff held upright behind in the near hand, gem head clear of the hat brim; NO flame, orb or glow.",
+   "hit: torso thrown back, weight on the rear leg, head jerked back with the hat tipped, staff dropped low and out to the side."
+  ],
+  "ko_notes": "벨라도나: 남청 장발·넓은 자주 마녀 모자(해골·초승달)·초록 테두리 코트의 저주 상인. 무기는 초록 보석 박힌 꼬인 나무 지팡이. 손바닥 초록 불꽃은 그리지 않음(효과는 엔진), 보석도 빛나지 않게. 자주색은 분홍으로 밝히지 말 것."
+ },
+ {
+  "key": "liberator",
+  "en": "Kato (카토) — He Who Broke the Chains (해방 검투사, warrior)",
+  "weapon": "sword_shield",
+  "size_class": "normal",
+  "character": "Kato: dark-skinned, heavily muscled man in his thirties, shaved head with a pale scar across the scalp and cheek scars, short dark beard, scowl; bare scarred torso with a brown leather strap across the chest and a square steel buckle, torn wine-red cloth over one shoulder, dark brown leather gladiator kilt/pants and wraps; heavy iron shackles on both wrists with short broken chain stubs; a broad one-handed gladiator longsword with a red-wrapped grip and round pommel.",
+  "colours": "skin #8d5a3b, hair #2b1d14 (shaved head, beard), outfit #7a4a2a (brown leather), accent #c9c2b8 (iron shackles, steel); portrait extras: shoulder cloth wine red ~#7a2a3a, scar highlight ~#d98a6a",
+  "notes": [
+   "Weapon is ONE broad one-handed longsword (red-wrapped grip, round steel pommel, light neutral steel blade with a dark outline) in the near hand; the guide shield is a placeholder — NO shield: the off hand is a clenched fist wearing its broken shackle.",
+   "Shackles on BOTH wrists are costume: thick grey-iron cuffs with only 2-3 broken chain links hanging; no long swinging chain (it would be a second weapon and a thin line lost at 64px).",
+   "Sword blade stays outside the torso on the magenta background in every pose — never across the brown chest or the brown kilt.",
+   "Dark skin and brown leather are close in value: separate them with the light grey shackles, the steel buckle and a clear dark outline; the wine-red shoulder cloth stays a dark red (not pink).",
+   "No sparks, chain-break shards, dust or motion lines."
+  ],
+  "poses": [
+   "idle: wide gladiator stance, knees bent, sword held forward-low in the near hand pointing ahead, shackled off-hand fist raised at chest height.",
+   "wind-up: sword raised high over the near shoulder, weight back, off-hand fist thrust forward; blade above and behind the head on the background.",
+   "strike: step-in lunge, sword cut down and forward at full one-handed extension, off-hand fist held at chest height in front (where the guide holds the shield) with the chain stubs hanging.",
+   "hit: torso thrown back, weight on the rear leg, head jerked back, sword arm flung out low away from the body, off-hand shackle up."
+  ],
+  "ko_notes": "카토: 민머리·흉터·근육질 검투사, 맨상체에 가죽 띠, 어깨 위 와인색 천. 무기는 한손 장검 하나(검+방패 가이드, 방패 없음). 빈손은 족쇄 찬 주먹. 양 손목 족쇄는 사슬 2~3고리만(휘두르는 사슬 없음). 칼날은 늘 몸 바깥."
+ },
+ {
+  "key": "admiral",
+  "en": "Maren (마렌) — The Retired Admiral (퇴역 제독, archer)",
+  "weapon": "bow",
+  "size_class": "normal",
+  "character": "Maren: elderly woman in her sixties, upright lean build, short voluminous wavy grey hair, stern face with a scar on the cheek and age lines, blue eyes, gold drop earring; navy double-breasted admiral's coat with gold piping, gold buttons, gold fringed epaulettes, gold anchor emblem on the lapel, cream cravat; a wooden-stocked crossbow with a steel prod and string.",
+  "colours": "skin #f2c9a0, hair #c9c2b8 (short grey), outfit #1a2a5a (navy), accent #f2c94c (gold trim/epaulettes/anchor); portrait extras: cravat cream ~#e0d6c6, crossbow wood ~#8a6a48, steel ~#a8a8b0",
+  "notes": [
+   "Real weapon is ONE crossbow (wooden stock, steel prod), not a bow: held with both hands at shoulder/hip, never drawn like a longbow; the guide bow marks where the weapon sits. The crossbow stays outside the body silhouette on the background in every pose.",
+   "Bare head with the short wavy grey hair as in the portrait (no hat, even though the class data lists one); no pistol, sword or cannon props.",
+   "A bolt only in the wind-up (loaded); NO bolt in flight, no smoke, no muzzle flash — the 'naval barrage' skill is drawn by the engine.",
+   "Navy coat is very dark: give it a clear lighter navy rim and keep the gold epaulettes and trim bold so she reads on dark terrain; grey hair must not merge with the cream cravat (separate with outline).",
+   "Elderly but steady and dignified: straight back, no hunch."
+  ],
+  "poses": [
+   "idle: composed officer's stance, crossbow held diagonally across the body with the front of the prod forward and up, clear of the coat.",
+   "wind-up: crossbow raised to the shoulder and aimed forward, bolt loaded, both arms extended, cheek near the stock, weight back.",
+   "strike: shot — crossbow kicked up by the recoil with the string forward and empty, rear elbow high, no bolt visible.",
+   "hit: torso thrown back, weight on the rear leg, head jerked back, crossbow dropped low-forward away from the body in one hand."
+  ],
+  "ko_notes": "마렌: 은회색 짧은 곱슬머리·볼 흉터의 노제독, 금 견장·닻 문장의 남색 코트. 무기는 석궁(활 가이드 자리, 활처럼 당기지 않음). 초상화대로 모자 없음. 볼트는 준비 자세에만, 사격 연기·포탄 없음. 짙은 남색 코트에 밝은 테두리."
+ },
+ {
+  "key": "elfwarden",
+  "en": "Sereniel (세레니엘) — Captain of the Forest Wardens (엘프 숲지기, archer)",
+  "weapon": "bow",
+  "size_class": "normal",
+  "character": "Sereniel: tall, slender elf woman of ageless look, very long wavy silver-grey hair with a side braid, long pointed ears, green eyes, serious face; gold circlet with a small green gem, a green leaf hair ornament; dark-green hooded cloak with large cream leaf patterns and cream trim, cream square clasp, brown leather strap; an elegant carved wooden recurve longbow and a brown quiver of cream-fletched arrows on her back.",
+  "colours": "skin #f5d6b8, hair #c9c2b8 (long silver-grey), outfit #2f6a3a (forest green), accent #e8e4d8 (cream leaf patterns/trim); portrait extras: circlet gold ~#d9a441, leaf ornament ~#6a9a4a, bow wood ~#b08a5a",
+  "notes": [
+   "Main weapon is ONE elegant carved recurve longbow; bow and string stay outside the body and the long hair on the magenta background in every pose.",
+   "Long pointed ears and the gold circlet must read at 64px; silver hair is separated from the cream cloak pattern by a clear outline (do not merge hair and cream into one pale blob).",
+   "Cream leaf pattern on the cloak as 3-4 big simple leaf shapes, not small noise.",
+   "Tall and slender but the same 4-head / 110 px head scale as everyone — do not enlarge the figure; distinguish her from Kai (blond male elf) by the silver hair, circlet and patterned cloak.",
+   "Arrow only in the wind-up; NO arrow in flight, no leaf swirl, no glow."
+  ],
+  "poses": [
+   "idle: poised ranger stance, knees bent, bow held low in front in the near hand, drawing hand near the quiver, long hair behind.",
+   "wind-up: full draw — arrow nocked, string pulled back to the cheek, bow arm extended straight forward, bow upright clear of the hair.",
+   "strike: release — bow arm extended, string straight, drawing hand flung far back behind the shoulder, NO arrow in flight.",
+   "hit: torso thrown back, weight on the rear leg, head and hair jerked back, bow dropped low-forward away from the body."
+  ],
+  "ko_notes": "세레니엘: 은회색 장발·금 이마띠·뾰족귀, 크림색 잎무늬의 초록 망토를 두른 엘프 순찰대장. 무기는 조각 장식 리커브 장궁 하나. 은발과 크림 무늬가 한 덩어리가 되지 않게 외곽선. 키만 크게 느끼게, 크기는 동일. 화살은 준비 자세에만."
+ },
+ {
+  "key": "siegemaster",
+  "en": "Otto",
+  "weapon": "bow",
+  "size_class": "normal",
+  "character": "Otto, siege engineer man in his forties, sturdy build, shoulder-length messy brown hair, full short brown beard, green eyes, soot smudge on the cheek, dark-grey round brimmed steel helmet with brass goggles strapped on it, long dark-brown leather coat with ochre-gold trim, ochre neckerchief, steel wrench hanging on a chest strap, brown boots, heavy wooden crossbow with brass fittings and a steel bow-arm.",
+  "colours": "skin #e0ac7e, hair/beard #5a3720, coat #5a4a3a (dark brown leather), accent #d9a441 (ochre gold trim, neckerchief, brass), helmet dark grey steel",
+  "notes": [
+   "the guide bow is a placeholder: draw a HEAVY CROSSBOW (wooden stock, brass fittings, steel prod across the front) held level in both hands, about as long as the guide bow is tall",
+   "the crossbow always sits in front of the body on the magenta background, never laid across the dark coat; prod and stock both readable at 64 px",
+   "a bolt is loaded only in idle and wind-up; in the strike the groove is empty and NOTHING flies (no bolt, no smoke, no catapult stone — the engine draws projectiles)",
+   "brass goggles on the helmet and the wrench on the chest stay visible in every pose; no catapult, no backpack siege gear",
+   "dark coat vs dark ground: keep a clear dark outline plus the ochre trim lines, and a warm rim light on the upper-left edges"
+  ],
+  "poses": [
+   "idle: wide stance, crossbow held low-forward at hip height in both hands, loaded bolt, muzzle pointing right-down, clear of the coat",
+   "wind-up: crossbow raised to the shoulder and aimed straight right, cheek on the stock, weight on the back leg, loaded bolt",
+   "strike: just fired: crossbow bucked upward about 30 degrees by the recoil, string forward, empty groove, front foot braced, rear elbow flung out",
+   "hit: torso thrown back, weight on the rear leg, head jerked back wincing, crossbow dropped low-forward in one hand, helmet still on"
+  ],
+  "ko_notes": "오토: 황동 고글 달린 회색 챙 투구, 갈색 머리·수염, 뺨 그을음, 황토 테 갈색 가죽 코트, 황토 스카프, 가슴의 스패너. 무기는 가이드 활 대신 무거운 쇠뇌(양손, 몸 앞 배경 위). 볼트는 대기·준비에만, 타격은 반동으로 쇠뇌가 들린 빈 홈 — 날아가는 볼트·투석기 없음."
+ },
+ {
+  "key": "inquisitorlord",
+  "en": "Balthazar",
+  "weapon": "staff",
+  "size_class": "normal",
+  "character": "Balthazar, severe grand inquisitor in his fifties, lean upright build, swept-back dark-brown hair, deep frown lines and old scars on the cheek, grey eyes, deep crimson hooded inquisitor robe with gold trim and a gold cord across the chest, one large gold ornate cross on the chest, dark leather gloves, dark boots, long-hafted iron mace with a spiked cage head.",
+  "colours": "skin #f2c9a0, hair #2b1d14, robe #4a1a1a (deep crimson), accent #f2c94c (muted gold trim, cord, cross), mace dark iron",
+  "notes": [
+   "the guide staff is the mace haft: a long iron mace whose spiked CAGE head (brazier-like) sits where the guide staff has its orb, about the guide staff's length",
+   "NO fire: the portrait's 'burning brand' flame is an effect the engine draws; the cage head is plain dark iron, empty, no embers, no glow",
+   "ONE simplified gold cross on the chest only (drop the smaller shoulder crosses); hood stays up in every pose with the face visible under it",
+   "the dark crimson robe must not merge with the dark outline: lit side a clear warm red, gold trim as large simple lines",
+   "slots 2-3 are cast poses: the same sheet is used for his heal and his fire-sentence skill; the casting hand is open and empty"
+  ],
+  "poses": [
+   "idle: upright stern stance, mace held upright at his side in the near hand with the cage head above the shoulder and clear of the hood, free hand low",
+   "wind-up: mace raised high and back in the near hand, free hand lifted, weight on the back leg, gathering",
+   "strike: lunge; free gloved arm thrust straight forward, palm open toward the enemy (passing sentence); mace held upright behind, head clear of the body",
+   "hit: torso thrown back, weight on the rear leg, head jerked back wincing, hood still on, mace dropped low-back"
+  ],
+  "ko_notes": "발타자르: 금테 진홍 두건 로브, 짙은 갈색 머리, 얼굴 주름·흉터, 가슴의 금 장식 십자 하나, 금 끈, 가죽 장갑. 무기는 긴 자루 철장 철퇴(가이드 지팡이 = 자루, 구슬 자리에 철장 머리). 초상화의 불꽃은 그리지 않음(엔진 효과). 2·3번은 치유·화형 선고 겸용 시전 자세."
+ },
+ {
+  "key": "pirateking",
+  "en": "Crimson",
+  "weapon": "sword_shield",
+  "size_class": "normal",
+  "character": "Crimson, confident pirate queen woman in her thirties, athletic build, long wavy crimson hair, tan skin, two slash scars on the cheek, gold hoop earring, sly smile, black tricorne with gold trim, a small skull emblem and a cream-and-red feather, crimson long coat with cream lapels and a cream ruffled shirt, gold chain with a steel hook on the shoulder, dark gloves, dark boots, cutlass with a gold basket guard.",
+  "colours": "skin #c68a5c, hair #8c2f2f (long), coat #7a1a1a (crimson), accent #1b1420 (black hat, gloves, boots — lift to dark charcoal-violet), lapels/shirt cream, trim gold",
+  "notes": [
+   "weapon: ONE curved cutlass with a gold basket guard in the near hand; the guide's shield is NOT drawn: the far hand is empty and open as a guard",
+   "the hook chain is a prop only: a short gold chain with a steel hook hanging from the shoulder/belt, never swung or thrown (no flying hook)",
+   "the blade is bright neutral steel with a 1 px dark outline and always sits on the magenta background, never across the crimson coat",
+   "hair and coat are both red: separate them with a dark outline, the cream lapels, and a warmer/browner hair red vs a deeper coat red",
+   "the feather stays compact; tricorne on in every pose; skull emblem as one tiny simple shape; no pink highlights (magenta rule)"
+  ],
+  "poses": [
+   "idle: swaggering ready stance, cutlass held forward-low in the near hand clear of the body, free hand open at chest height in front (where the guide holds the shield)",
+   "wind-up: weight on the back leg; cutlass raised up and back above the shoulder, free hand thrust forward",
+   "strike: step-in lunge; cutlass slashing forward and down at full extension, free hand open at chest height in front (where the guide holds the shield)",
+   "hit: torso thrown back, weight on the rear leg, head jerked back wincing, hat still on, cutlass arm flung out-back"
+  ],
+  "ko_notes": "크림슨: 금테 검은 삼각모(작은 해골·크림/빨강 깃털), 진홍 웨이브 긴 머리, 갈색 피부, 뺨 흉터 두 줄, 금 귀걸이, 크림색 깃 진홍 코트. 무기는 금 손잡이 커틀러스 하나(가이드 방패는 그리지 않음, 빈 손). 갈고리 사슬은 어깨·허리에 걸린 소품만. 머리와 코트 빨강 구분, 분홍 금지."
+ },
+ {
+  "key": "frostjarl",
+  "en": "Bjorn",
+  "weapon": "katana",
+  "size_class": "normal",
+  "character": "Bjorn, frost jarl man in his thirties, tall broad build, long wavy blond hair with two thick front braids bound by gold rings, full blond beard, blue eyes, diagonal scars on the cheek, small gold earring, no helmet, slate-blue armoured tunic with silver-white trim and a snowflake emblem on the pauldron, huge white frosted fur mantle on the shoulders, dark trousers, fur-trimmed boots, long-hafted bearded war axe.",
+  "colours": "skin #f5d6b8, hair/beard #e3c565 (long), armour #4a6a8a (slate blue), accent #e8eef2 (white fur and trim, shaded pale blue-grey), axe steel",
+  "notes": [
+   "the guide katana is a placeholder: draw a long-hafted two-handed bearded Dane axe (axe head where the blade tip is) — 'frost axe' from his story and skills; do NOT draw the sword hilt that shows on his back in the portrait",
+   "the axe head stays outside the body silhouette on the background in every pose, never in front of the fur mantle",
+   "frost = painted colour only: white fur and pale-blue rime on armour and axe; NO ice glow, mist, snowflakes or particles",
+   "the fur mantle stays compact (no huge pelt reaching the neighbour); shade the white fur pale blue-grey, never pure white, with a dark outline",
+   "both blond braids and the snowflake pauldron stay visible; no helmet (as the portrait)"
+  ],
+  "poses": [
+   "idle: wide braced stance, axe held diagonally in front with both hands, head up to the right, clear of the mantle",
+   "wind-up: weight on the back leg; axe raised high over the rear shoulder in both hands, head behind and above the head",
+   "strike: step-in lunge; axe cleaving down and forward at full extension, head out in front of the front foot",
+   "hit: torso thrown back, weight on the rear leg, head jerked back wincing, braids swinging, axe dropped low in the near hand, free arm flung up"
+  ],
+  "ko_notes": "비요른: 금 고리로 묶은 앞 땋은머리 둘, 금발 긴 머리·수염, 뺨 흉터, 투구 없음, 은백 테 청회색 갑옷, 어깨 눈송이 문장, 흰 서리 모피 망토. 무기는 이야기·스킬대로 양손 수염도끼(초상화 등의 칼자루는 그리지 않음 — 주인 확인 권장). 서리는 색으로만, 얼음 빛·입자 없음."
+ },
+ {
+  "key": "archmagus",
+  "en": "Euria",
+  "weapon": "staff",
+  "size_class": "normal",
+  "character": "Euria, the last archmagus, ancient wise woman, slender slightly stooped build, wrinkled serene face, grey eyes, very long wavy white-lavender hair, gold circlet with small star ornaments, gold star-drop earrings, deep navy robe and mantle embroidered with gold stars, lavender inner panel with a gold zigzag pattern, gold eight-pointed star brooch, gold staff with a crescent-moon head around a dark star disc.",
+  "colours": "skin #f5d6b8, hair #ffffff (long, shaded lavender-grey), robe #1a1a4a (deep navy), accent #f2f2ff (pale silver) with gold #d9a441-family ornaments, inner panel lavender",
+  "notes": [
+   "weapon: the gold crescent-moon staff from the portrait, guide staff length; its head is a gold crescent ring around a dark navy disc with a small painted four-point star — NO glow, rays or sparkles",
+   "no floating stars, orbs or magic circles; the casting hand is open and empty (the engine draws the arcane beam and falling star)",
+   "no hat (as the portrait): gold circlet only; very long hair falls down her back but stays inside the figure's space",
+   "white hair shaded lavender/blue-grey (never pink or magenta) and outlined so it does not merge with the pale trim",
+   "stars on the robe: a few large gold shapes, not noise; staff head always above or in front of the figure, clear of the hair"
+  ],
+  "poses": [
+   "idle: calm upright stance, staff planted at her side in the near hand with the crescent head above her shoulder, free hand low",
+   "wind-up: staff raised high in the near hand, free hand lifted and drawn back, weight on the back leg, gathering",
+   "strike: lunge; free arm thrust straight forward, palm open toward the enemy (casting); staff held upright behind, head clear of the body",
+   "hit: torso thrown back, weight on the rear leg, head jerked back wincing, hair swinging, staff dropped low"
+  ],
+  "ko_notes": "에우리아: 주름진 노년 여인, 아주 긴 흰(연보라 음영) 웨이브 머리, 별 장식 금 서클릿, 별 귀걸이, 금별 수놓은 짙은 남색 로브, 연보라 안감, 금 팔각별 브로치. 무기는 금 초승달 지팡이(어두운 원반 + 작은 별, 빛 없음). 모자 없음(초상화대로). 떠다니는 별·마법진 금지, 시전 손은 빈 손바닥."
+ },
+ {
+  "key": "lightbearer",
+  "en": "Lucia",
+  "weapon": "staff",
+  "size_class": "normal",
+  "character": "Lucia, prophesied apostle of light, young woman around twenty, slender build, very long wavy golden hair, blue eyes, gentle smile, gold leaf circlet with a white flower and a short white veil, layered cream-white robes and cape with orange flame embroidery on the hem, gold eight-pointed star brooch, gold belt, white gloves, sun-headed mace scepter.",
+  "colours": "skin #f2c9a0, hair #e3c565 (long), robes #f2ecd8 (warm cream, shaded beige), accent #f39c12 (orange-gold embroidery, star, mace head)",
+  "notes": [
+   "weapon: a long sun-mace scepter (white haft with gold bands, spiked sun head) — the guide staff is the haft, about 3/4 of its length, the sun head where the guide orb is",
+   "NO light: no glow around the hands, no halo, no rays or sparkles on the mace or brooch — the engine draws her heals; the sun head is a flat gold-orange spiked disc with a pale cream centre",
+   "cream robes are never pure white: mid warm beige shadows and a dark outline so she reads on snow; orange flame embroidery as a few large shapes",
+   "flower, circlet and veil stay small and on the head; long hair stays inside the figure's space",
+   "slots 2-3 are her cast poses (the same sheet is used for her heals); the forward hand is open and empty"
+  ],
+  "poses": [
+   "idle: serene stance, sun-mace held upright at her side in the near hand with the head above the shoulder, free hand low",
+   "wind-up: sun-mace raised high in the near hand, free hand lifted and drawn back, weight on the back leg, gathering",
+   "strike: lunge; free arm extended straight forward, palm open (blessing); sun-mace held upright behind, head clear of hair and body",
+   "hit: torso thrown back, weight on the rear leg, head jerked back wincing, hair and veil swinging, mace dropped low"
+  ],
+  "ko_notes": "루치아: 긴 금발 웨이브, 파란 눈, 흰 꽃·금 잎 서클릿과 짧은 흰 베일, 주황 불꽃 자수의 크림색 로브·망토, 금 팔각별 브로치, 흰 장갑. 무기는 태양 머리 철퇴 홀(흰 자루·금 띠, 가이드 지팡이 3/4 길이). 손·머리의 빛, 후광, 반짝임 모두 금지(엔진 효과). 로브는 순백이 아닌 따뜻한 크림+베이지 그늘. 2·3번 치유 시전 자세."
+ },
+ {
+  "key": "shadowqueen",
+  "en": "Nikla",
+  "weapon": "none",
+  "size_class": "normal",
+  "character": "Nikla, queen of the shadow guilds, elegant dangerous woman in her thirties, lithe build, long wavy blue-black hair, tan skin, dark-red eyes, faint scar on the cheek, knowing smile, deep plum-black hood and cloak with crimson trim and a gold emblem clasp, ruby earring and pendant, dark corset with gold-buckled leather belts, dark boots, long dagger with a red-wrapped grip and gold guard.",
+  "colours": "skin #e0ac7e, hair #1b1420 (long, blue-black), outfit #1a0a2a (deep plum, painted dark charcoal-violet), accent #d6455d (crimson trim), gold fittings",
+  "notes": [
+   "ONE long dagger (red-wrapped grip, gold guard) in the near hand; the second dagger stays sheathed on her back with only its hilt over the far shoulder — never two blades in hand",
+   "the blade is bright neutral steel (~#d8dde3, no blue or violet tint), about 1.5x a normal dagger, 1 px dark outline, and always on the magenta background outside the body (Lyra lesson)",
+   "dark outfit vanishes on dark ground: paint it dark charcoal-violet (not black), cool rim light on the upper-left edges, slightly lighter outline",
+   "crimson trim stays red (highlights toward orange-red, never pink); plum lit side stays dark violet (magenta rule)",
+   "hood up in every pose with the face visible; no shadow smoke, afterimages or trails (the engine draws the shadow flurry)"
+  ],
+  "poses": [
+   "idle: low crouched stance, dagger hand held out to the side away from the cloak with the blade on the background, free hand up as a guard",
+   "wind-up: body coiled, dagger arm drawn back high behind and above the head, blade at least 32 px clear of the hood",
+   "strike: dashing lunge; dagger arm fully extended forward slashing across, free hand flung back, cloak trailing",
+   "hit: torso thrown back, weight on the rear leg, head jerked back wincing, hood still up, dagger hand flung out"
+  ],
+  "ko_notes": "니클라: 진홍 테 짙은 자주빛 후드·망토, 금 문장 걸쇠, 긴 청흑색 웨이브 머리, 루비 귀걸이·펜던트, 금 버클 가죽 띠. 손에는 붉은 손잡이 긴 단검 하나, 두 번째 단검은 등에 꽂혀 손잡이만 보이게. 날은 중성 밝은 강철색·1.5배 길이·몸 바깥 배경 위(리라 교훈). 검정 대신 숯빛 보라 + 림 라이트, 빨강은 분홍 쪽으로 가지 않게. 그림자 효과 없음."
+ },
+ {
+  "key": "titan",
+  "en": "Urg",
+  "weapon": "katana",
+  "size_class": "large",
+  "character": "Urg, last of the giant-blooded tribe, man in his thirties, enormous muscular build with huge shoulders and bare arms, long wild brown hair, short brown beard, blue eyes, pale war-paint scar streaks on the cheek, gold earring, white fur collar, dark-brown leather harness and tunic with gold fittings and a large gold rune medallion on the shoulder, fur-wrapped boots, huge two-handed stone maul with a gold spiral rune and gold-banded haft.",
+  "colours": "skin #c68a5c, hair/beard #5a3720 (long), leather #5a3a2a, accent #e8c86a (gold fittings, rune, medallion), fur off-white, maul head grey stone",
+  "notes": [
+   "the guide katana is a placeholder: draw a HUGE two-handed maul (grey stone/iron block head about 1 head wide with one gold spiral rune, dark wooden haft with gold bands), head where the blade tip is",
+   "size_class large: still 4 heads tall with the 110 px head, the size comes from a much broader, heavier body (shoulders and arms about 1.5x a normal captain); the sheet may need a larger cell (like the lancer's 112)",
+   "the maul head always sits on the background outside the body (above, behind or in front), never in front of the torso",
+   "NO ground crack, dust, shockwave or debris on the strike — the engine draws the earth slam",
+   "skin as in the portrait (warm tan, not stone-grey); fur collar and gold medallion stay visible; no tribal sigils beyond the one rune"
+  ],
+  "poses": [
+   "idle: massive wide stance, maul held diagonally across the front in both hands, head up to the right clear of the body",
+   "wind-up: weight on the back leg; maul heaved high over the rear shoulder in both hands, head above and behind the head",
+   "strike: step-in lunge; maul slammed down and forward at full extension, head out in front of the front foot at about knee height (never below the soles line y=870)",
+   "hit: torso thrown back, weight on the rear leg, head jerked back wincing, hair swinging, maul dropped low in the near hand, free arm flung up"
+  ],
+  "ko_notes": "우르그: 거구(어깨·팔이 보통 대장의 약 1.5배, 그래도 4등신·머리 110px), 긴 갈색 머리·수염, 뺨의 흰 전투 칠, 금 귀걸이, 흰 모피 깃, 금 장식 갈색 가죽 하네스, 어깨 금 룬 메달. 무기는 금 나선 룬 돌 망치(양손, 머리는 늘 몸 바깥). 바닥 균열·먼지 효과 없음. size_class large — 칸 112 필요할 수 있음."
+ }
+]
