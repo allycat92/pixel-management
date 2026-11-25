@@ -33,6 +33,9 @@
       "Bash(git reset --hard:*)",
       "Edit(~/Documents/pixel-management/**)",
       "Write(~/Documents/pixel-management/**)"
+    ],
+    "additionalDirectories": [
+      "~/Documents/pixel-management-inbox"
     ]
   }
 }
