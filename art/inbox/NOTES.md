@@ -272,3 +272,9 @@
 - `sheet_monster_harpy.png`: 자세·윤곽·크기·위치는 그대로(실루엣 픽셀 변화 0). 몸통 깃털 상의와 허벅지 깃털을 붉은 갈색에서 피부보다 확실히 어두운 갈색 4단계로(#9a6a46 / #7a5236 / #563a26 / #3e2a1c) — 붉은 머리카락·살구색 피부·비늘 다리는 그대로라 서로 구분된다. 몸 둘레 외곽선을 #2e2420 으로, 바깥 테두리 + 안쪽 한 줄 = 2px 로 진하게. 날개·꼬리의 청보라는 그대로.
 - Aseprite 원본: `aseprite/sheet_monster_harpy.aseprite` (Background = 받은 PNG / touchup 레이어).
 - 검사: `check_delivery.py --layout 2x2` PASS (45색, 키와 최소 거리 186.9, 네 칸 모두 칸 안 최하단 y=461).
+
+## 손질 — 망령 (Aseprite)
+
+- `sheet_monster_wraith.png`: 자세·윤곽·크기·위치는 그대로(실루엣 픽셀 변화 0). 연한 라벤더·흰색 천을 밝기 순서는 지킨 채 한 단계 짙고 차가운 청회색으로 옮겼다(밝은 면 #c4cede / 바탕 #8e9cb8 / 그늘 #66708c, 그 아래 #4a5268). 피규어 평균 밝기 131 → 116, 가장 밝은 면(밝기 200+) 비율 10.8% → 3.8%. 바깥 테두리와 보라 번짐 픽셀을 짙은 남회색 #2a2e3e 로. 어두운 얼굴 속 눈 점 둘은 원래의 옅은 빛 그대로(원래 색 #d5e3f1 / #9bb4d8 두 가지로 정리) — 원본 눈이 청록이 아니라 옅은 하늘색이어서 그 색을 유지했다.
+- Aseprite 원본: `aseprite/sheet_monster_wraith.aseprite` (Background = 받은 PNG / touchup 레이어).
+- 검사: `check_delivery.py` PASS (40색, 키와 최소 거리 205.1, 네 자세 최하단 y=870).
