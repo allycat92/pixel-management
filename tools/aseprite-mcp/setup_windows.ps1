@@ -151,8 +151,15 @@ function Get-OrAddObject($Parent, [string]$Name) {
 function Find-Uv {
     $c = Get-Command uv -ErrorAction SilentlyContinue
     if ($c) { return $c.Source }
-    foreach ($p in @((Join-Path $env:USERPROFILE '.local\bin\uv.exe'), (Join-Path $env:USERPROFILE '.cargo\bin\uv.exe'))) {
+    foreach ($p in @((Join-Path $env:USERPROFILE '.local\bin\uv.exe'), (Join-Path $env:USERPROFILE '.cargo\bin\uv.exe'),
+                     (Join-Path $env:LOCALAPPDATA 'Microsoft\WinGet\Links\uv.exe'))) {
         if (Test-Path -LiteralPath $p) { return $p }
+    }
+    # winget package folder (when the Links shim is missing)
+    $pk = Join-Path $env:LOCALAPPDATA 'Microsoft\WinGet\Packages'
+    if (Test-Path -LiteralPath $pk) {
+        $f = Get-ChildItem -LiteralPath $pk -Filter 'uv.exe' -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+        if ($f) { return $f.FullName }
     }
     return $null
 }
@@ -326,7 +333,16 @@ if (-not $uv) {
     $ErrorActionPreference = 'Stop'
     $env:Path = (Join-Path $env:USERPROFILE '.local\bin') + ';' + $env:Path
     $uv = Find-Uv
-    if (-not $uv) { Fail 'uv 설치에 실패했습니다. 인터넷 연결을 확인하고 다시 실행하세요.' 'uv install failed' }
+    if (-not $uv -and (Get-Command winget -ErrorAction SilentlyContinue)) {
+        Warn 'astral.sh 설치가 안 되어 winget 으로 다시 시도합니다 (GitHub 에서 받음).' 'astral.sh failed; trying winget (downloads from GitHub)'
+        $ErrorActionPreference = 'Continue'
+        & winget install --id astral-sh.uv -e --source winget --accept-package-agreements --accept-source-agreements
+        $ErrorActionPreference = 'Stop'
+        $env:Path = (Join-Path $env:LOCALAPPDATA 'Microsoft\WinGet\Links') + ';' + $env:Path
+        $uv = Find-Uv
+    }
+    if (-not $uv) { Fail ('uv 설치에 실패했습니다. 수동 설치 후 새 PowerShell 창에서 다시 실행하세요:' +
+                          "`n    winget install --id astral-sh.uv -e --source winget") 'uv install failed' }
 }
 $uvVer = Invoke-Native $uv @('--version') -Quiet
 Ok "uv: $uv ($($uvVer.Output))"
