@@ -102,10 +102,21 @@ NOTES.md 충돌은 양쪽 절을 모두 남기고 PNG·`.aseprite` 충돌은 풀
 클라우드에는 머리 없는 Aseprite 빌드가 있다 (`/home/user/aseprite-build/src/build/bin/aseprite`, 만드는 법 `tools/aseprite/README.md`;
 저장소에 없고 컨테이너가 바뀌면 다시 빌드). aseprite-mcp 는 클라우드에서 쓰지 않는다 — Aseprite 명령줄만 쓴다.
 
+### 클라우드 수령 절차 (정기 점검도 이 절차를 따른다)
+
 ```bash
-ASE=/home/user/aseprite-build/src/build/bin/aseprite    # 버리는 프로필로 감싼 스크립트를 쓰면 편하다 (HOME·XDG_CONFIG_HOME 을 스크래치로)
-python3 tools/art/receive.py <stem> --aseprite-exe $ASE --work <스크래치 폴더>
+python3 tools/art/receive.py --list                       # 새로 올라온 파일·NOTES 절 (이 브랜치의 art/inbox 와 다른 것 = 아직 안 본 것)
+python3 tools/art/receive.py <stem> --work <스크래치 폴더>   # 한 파일 검사 (Aseprite 는 tools/art/ase_headless.sh 가 버리는 프로필로 부른다)
 ```
+1. `--list` 에 아무것도 없으면 끝. 새 NOTES 절(제안·막힘·교차 검수 답)이 있으면 읽고 처리한다(`dot_queue.md` 「운영 규칙」).
+2. 파일마다 `receive.py <stem>` → **`review.png` 를 눈으로 본다** (왼쪽 디자인 기준 = 초상화·시안, 오른쪽 게임 크기 x3 을 어두운 바닥·모래·눈 위에).
+   세는 것(다리·눈·무기 종류)은 게임 크기에서 직접 센다. 시안이 기준인 항목은 시안과 나란히 보지 않고는 통과시키지 않는다.
+3. 통과: `python3 tools/art/sheets.py art/inbox/<stem>.png` (배율·칸·배치·점 색은 `phase3.json` 에서 — 플래그 없이) → 대기열 ACCEPTED → feedback.md 기록.
+   결함: 대기열 NEEDS_FIX + 그 줄 메모(GPT 는 꾸러미 README 의 THIS ROUND 로, PC 는 `바탕:` 해시와 함께) → feedback.md 기록.
+4. 통과든 결함이든 `git checkout origin/art-inbox -- <납품 경로들> art/inbox/NOTES.md` 로 이 브랜치에 가져온다 (이것이 "봤다"는 표시다 — 따로 상태 파일이 없다).
+5. 대기열 「지금 차례」를 고치고, 사람형 대장 DOT_READY 가 5개 아래면 다음 QUEUED 를 올린다. 커밋·푸시, 주인에게 미리보기와 함께 짧게 보고.
+- `dot_queue.md` 에 DOT_READY·NEEDS_FIX·DELIVERED 가 하나라도 있으면 감시(60초 폴링, 30분마다 다시 켬)와 한 시간 정기 점검을 켜 둔다.
+  감시가 꺼져 있던 것을 발견하면 다시 켜기 전에 `--list` 부터 돌린다.
 `receive.py` 가 한 번에 한다: art-inbox 에서 PNG·원본 꺼내기 → 이전 판을 바탕으로 찾기 → `check_delivery.py`(배치·칸·점 색은 `phase3.json` 에서,
 바탕과의 윤곽·색 차이, 원본==PNG, 레이어 이름, 숨긴 `original_ref` == 바탕) → `sheets.py --dry-run`(등록된 시트와 같은 배율·칸) →
 게임 크기에서 실제로 바뀐 픽셀 수 → 그 납품이 `art/inbox/` 밖을 건드렸는지. 등록·커밋은 하지 않는다 (미리보기를 본 뒤 사람이 판단).

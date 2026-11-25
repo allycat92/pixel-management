@@ -86,7 +86,7 @@ GPT 는 `art/requests/GPT_STANDING.md`, PC 는 `tools/aseprite-mcp/pc/CLAUDE.md`
   `gpt_handoff_notes.md`「Rules changed」(GPT) · `pc_notes.md`(PC). `feedback.md` 는 Claude 의 검토 기록이라 그림 쪽이 읽을 필요가 없다.
 - **역할 나눔**: GPT = 새로 그리기·다시 그리기·교차 검수(글) / PC(Aseprite) = 받은 그림 손질 + 자세 뼈대. 상태 칸에 **`담당: PC(Aseprite)`** 가 붙은 항목만 PC 가 한다.
 - 납품 메모: `art/inbox/NOTES.md` 에 항목별 절 (GPT: `GPT_STANDING.md` 의 양식 / PC: `pc_notes.md` 맨 아래).
-- Claude Code 가 art-inbox 를 감시해 수령·검토한다 (`tools/art/receive.py`). 마지막으로 본 커밋은 `art/requests/inbox_reviewed.txt`.
+- Claude Code 가 art-inbox 를 감시해 수령·검토한다 (`tools/art/receive.py --list`, 절차는 `docs/pc_cloud_protocol.md` 7절). 본 납품은 통과든 반려든 이 브랜치의 `art/inbox/` 로 가져온다.
 
 ## 운영 규칙 (Claude 가 지키는 것 — 2026-11-26 검토에서 정리)
 
@@ -103,3 +103,14 @@ GPT 는 `art/requests/GPT_STANDING.md`, PC 는 `tools/aseprite-mcp/pc/CLAUDE.md`
 - **한 번에 열어 두는 수**: 사람형 대장(초상화 기반) DOT_READY 5개까지, 몬스터·보스는 하나씩(idle-check 부터). 5개 아래로 줄면 QUEUED 다음 것을 올린다.
 - **건너뛰어진 항목**: 위 항목이 건너뛰어진 채 아래 항목이 두 번 납품되면 「지금 차례」에 이유를 묻는 줄을 넣는다(오르가는 다섯 번 건너뛰어진 뒤에야 물었다).
 - **뒤집힌 판정**: feedback.md 의 앞 절 제목에 "(뒤집힘 → 아래 ○○)" 를 덧붙인다.
+
+## 나중 손질 (PC) — 통과시켰지만 적어 둔 것 (PC 대기열이 비면 위에서부터 올린다)
+
+| 파일 | 손볼 것 | 상태 |
+|---|---|---|
+| `sheet_captain_bard.png` (리코) | 레이피어 날이 1px 짙은 회색이라 어두운 전장에서 흐리다 → 밝은 강철색(#c8ccd2 근처) 2px(원본 약 12px) | LATER |
+| `sheet_hero_kai.png` (카이) | 타격 자세에서 시위 당긴 손이 뒤로 빠지는 폭이 작아 준비·타격이 덜 구분된다 | LATER |
+| `sheet_monster_giant-spider.png` | 다시 그리기 2 가 통과하면 피격 자세가 대기와 구분되는지 확인 | 다시 그리기 뒤 |
+| `sheet_monster_skeleton.png` | 찌르기 자세가 칸 오른쪽 끝에 닿아 2px 밀려 들어간다 (자세를 약간 좁히기) | LATER |
+| `sheet_monster_desert-bandit.png` | 타격 칼끝과 피격 자세 사이가 32px 안(검사 FAIL, 원래부터 — 변환은 정상). 피격 자세를 오른쪽으로 원본 12px | LATER (알려진 FAIL) |
+| 그 밖의 메모 | feedback.md 의 "급하지 않음·다음 손질 때" 줄들(세라핀·그롬·아스텔·오스윈·진·이사벨) — 올리기 전에 게임 화면에서 다시 확인 | 확인 필요 |

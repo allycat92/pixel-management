@@ -1,8 +1,13 @@
 #!/usr/bin/env python3
-"""Cloud-side receipt of one art-inbox delivery: fetch, check, diff against the previous version, dry-run convert.
+"""Cloud-side receipt of art-inbox deliveries: what is new, and for one file: fetch, check, diff, dry-run convert, review sheet.
 
+  python3 tools/art/receive.py --list                        # files on art-inbox that differ from this branch + new NOTES sections
   python3 tools/art/receive.py sheet_monster_wolf            # or the .png name
   python3 tools/art/receive.py sheet_captain_pilgrim --work /tmp/rcv --aseprite-exe /path/to/aseprite
+
+"Reviewed" has no state file: a delivery counts as reviewed once its files are copied into this branch's art/inbox/
+(git checkout origin/art-inbox -- <paths>, done for accepted AND rejected deliveries, NOTES.md included). So the unreviewed set is
+`git diff --name-only HEAD origin/art-inbox -- art/inbox`, which survives a wiped scratchpad and cannot skip a commit.
 
 It does the steps the reviewer otherwise repeats by hand (and has got wrong by hand):
   1. git fetch origin art-inbox; copy the PNG (and aseprite/<stem>.aseprite when present) out of origin/art-inbox
@@ -10,8 +15,10 @@ It does the steps the reviewer otherwise repeats by hand (and has got wrong by h
   3. check_delivery.py with the layout / cell / spots of art/requests/phase3.json, --base and --aseprite
   4. sheets.py --dry-run for the new file (and the base), with the scale and cell the registered sheet uses,
      and count the game-size pixels that changed per frame (a touch-up nobody can see changes 0)
-  5. list every path the delivery commits touched (they must all be under art/inbox/)
-Nothing is registered or committed: after reading the previews, run sheets.py without --dry-run yourself.
+  5. check that the commit which last changed the file touched nothing outside art/inbox/
+  6. write review.png: the design reference (portrait / concept) beside the game-size sheet on three floors (dark, sand, snow),
+     and print how much of the sprite is within +-25 luminance of each floor (it vanishes there)
+Nothing is registered or committed: after reading review.png, run sheets.py <file> yourself (settings come from phase3.json).
 """
 import argparse
 import json
@@ -23,7 +30,71 @@ import tempfile
 from PIL import Image, ImageChops
 
 ROOT = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
-REVIEWED = os.path.join(ROOT, 'art', 'requests', 'inbox_reviewed.txt')
+FLOORS = (('dark', (46, 58, 46)), ('sand', (201, 164, 90)), ('snow', (226, 232, 238)))
+HEADLESS = os.path.join(ROOT, 'tools', 'art', 'ase_headless.sh')
+
+
+def unreviewed():
+    out = git('diff', '--name-only', 'HEAD', 'origin/art-inbox', '--', 'art/inbox') or ''
+    return [p for p in out.split('\n') if p]
+
+
+def list_new():
+    files = unreviewed()
+    if not files:
+        print('nothing new: art/inbox on origin/art-inbox matches this branch')
+        return 0
+    print(f'{len(files)} path(s) differ from this branch (unreviewed):')
+    for f in files:
+        h = git('log', '-1', '--format=%h %ci %s', 'origin/art-inbox', '--', f) or '?'
+        who = 'PC' if '(Aseprite)' in h else 'GPT'
+        print(f'  [{who}] {f}  ←  {h}')
+    if 'art/inbox/NOTES.md' in files:
+        diff = git('diff', 'HEAD', 'origin/art-inbox', '--', 'art/inbox/NOTES.md') or ''
+        heads = [ln[1:].strip() for ln in diff.split('\n') if ln.startswith('+## ')]
+        removed = [ln for ln in diff.split('\n') if ln.startswith('-') and not ln.startswith('---')]
+        print('  new NOTES sections: ' + (' | '.join(heads) if heads else '(none)'))
+        if removed:
+            print(f'  WARNING: NOTES.md lost {len(removed)} line(s) that this branch has - a section may have been dropped in a rebase')
+    return 0
+
+
+def review_sheet(sheet, stem, work):
+    """review.png + per-floor share of sprite pixels that nearly match the floor's brightness."""
+    im = Image.open(sheet).convert('RGBA')
+    cell = im.size[0] // 4
+    frames = [im.crop(((i % 4) * cell, (i // 4) * cell, (i % 4 + 1) * cell, (i // 4 + 1) * cell)) for i in (0, 4, 5, 6)]
+    ref = None
+    for d in os.listdir(os.path.join(ROOT, 'art', 'requests', 'phase3')):
+        if stem.replace('sheet_', '') == d:
+            for name in ('concept_800.jpg', 'portrait_800.jpg', 'concept.png', 'portrait.png'):
+                q = os.path.join(ROOT, 'art', 'requests', 'phase3', d, name)
+                if os.path.exists(q):
+                    ref = Image.open(q).convert('RGB')
+                    break
+    z = 3
+    rows = len(FLOORS)
+    rw = 0
+    if ref:
+        k = (cell * z * rows) / ref.height
+        ref = ref.resize((max(1, round(ref.width * k)), cell * z * rows), Image.LANCZOS)
+        rw = ref.width + 8
+    out = Image.new('RGB', (rw + cell * z * 4, cell * z * rows), (20, 20, 20))
+    if ref:
+        out.paste(ref, (0, 0))
+    lum = lambda c: 0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2]  # noqa: E731
+    shares = []
+    px = [p for f in frames for p in getattr(f, 'get_flattened_data', f.getdata)() if p[3] > 0]
+    for r, (name, col) in enumerate(FLOORS):
+        for i, f in enumerate(frames):
+            bg = Image.new('RGBA', f.size, col + (255,))
+            bg.alpha_composite(f)
+            out.paste(bg.convert('RGB').resize((cell * z, cell * z), Image.NEAREST), (rw + i * cell * z, r * cell * z))
+        near = sum(1 for p in px if abs(lum(p) - lum(col)) <= 25) / max(1, len(px))
+        shares.append((name, near))
+    path = os.path.join(work, 'review.png')
+    out.save(path)
+    return path, shares
 
 
 def git(*args, binary=False):
@@ -51,17 +122,9 @@ def sheet_args(stem):
     except (OSError, ValueError):
         items = []
     it = next((i for i in items if i.get('file') == name), {})
-    if it.get('scale'):
-        return [], it
-    cell = 96
-    try:
-        man = json.load(open(os.path.join(ROOT, 'assets', 'art', 'manifest.json'), encoding='utf-8'))
-        for v in man.values():
-            if isinstance(v, dict) and str(v.get('file', '')).endswith('/' + name) and v.get('sheet'):
-                cell = v['sheet']['cell'][0]
-    except (OSError, ValueError):
-        pass
-    return ['--scale', '0.1654', '--cell', str(cell)], it
+    if it.get('scale') or not name.startswith(('sheet_captain_', 'sheet_hero_')):
+        return [], it          # phase3.json carries scale / cell / layout (captains and heroes too since 2026-11-26)
+    return ['--scale', '0.1654', '--cell', '96'], it
 
 
 def dry_run(png, work, extra):
@@ -81,17 +144,20 @@ def dry_run(png, work, extra):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument('stem')
+    ap.add_argument('stem', nargs='?')
+    ap.add_argument('--list', action='store_true', help='show what is new on art-inbox and stop')
     ap.add_argument('--work', help='scratch folder (default: a new temp folder)')
     ap.add_argument('--no-base', action='store_true', help='a first delivery: do not look for a previous version')
-    ap.add_argument('--aseprite-exe', default=os.environ.get('ASEPRITE_PATH', 'aseprite'))
+    ap.add_argument('--aseprite-exe', default=os.environ.get('ASEPRITE_PATH') or (HEADLESS if os.path.exists(HEADLESS) else 'aseprite'))
     ap.add_argument('--no-fetch', action='store_true')
     a = ap.parse_args()
+    if not a.no_fetch:
+        git('fetch', '-q', 'origin', 'art-inbox')
+    if a.list or not a.stem:
+        return list_new()
     stem = os.path.basename(a.stem)[:-4] if a.stem.endswith('.png') else os.path.basename(a.stem)
     work = a.work or tempfile.mkdtemp(prefix='receive-')
     os.makedirs(work, exist_ok=True)
-    if not a.no_fetch:
-        git('fetch', '-q', 'origin', 'art-inbox')
     tip = git('rev-parse', 'origin/art-inbox')
     path = f'art/inbox/{stem}.png'
     new = os.path.join(work, 'new', stem + '.png')
@@ -101,12 +167,10 @@ def main():
         return 2
     revs = (git('log', '--format=%h', 'origin/art-inbox', '--', path) or '').split()
     print(f'# {stem} — art-inbox {revs[0] if revs else "?"} (tip {tip[:7]})')
-    # paths touched since the last reviewed commit
-    last = open(REVIEWED).read().strip() if os.path.exists(REVIEWED) else None
-    if last and git('cat-file', '-e', last) is not None:
-        touched = (git('diff', '--name-only', last, 'origin/art-inbox') or '').split('\n')
-        outside = [p for p in touched if p and not p.startswith('art/inbox/')]
-        print(f'- paths changed since {last[:7]}: {len([p for p in touched if p])}' + (f' — OUTSIDE art/inbox/: {outside}' if outside else ' (all under art/inbox/)'))
+    if revs:
+        touched = [p for p in (git('show', '--name-only', '--format=', revs[0]) or '').split('\n') if p]
+        outside = [p for p in touched if not p.startswith('art/inbox/')]
+        print(f'- commit {revs[0]} touched {len(touched)} path(s)' + (f' — OUTSIDE art/inbox/: {outside}' if outside else ', all under art/inbox/'))
     base = None
     if not a.no_base and len(revs) > 1:
         base = os.path.join(work, 'base', stem + '.png')
@@ -128,7 +192,7 @@ def main():
     sheet, previews, notes = dry_run(new, os.path.join(work, 'sheet_new'), extra)
     print('- convert (dry run' + (', ' + ' '.join(extra) if extra else ', phase3.json settings') + '):')
     for n in notes:
-        print('    ' + n)
+        print('    ' + n + ('   ← a declared spot colour is GONE at game size' if '점 색 0px' in n else ''))
     if base and sheet:
         bsheet, _, _ = dry_run(base, os.path.join(work, 'sheet_base'), extra)
         if bsheet:
@@ -147,10 +211,17 @@ def main():
                       + ('  ← some frames show NO visible change' if min(counts) == 0 else ''))
             else:
                 print(f'- game sheet size changed: {y.size} -> {x.size}')
+    if sheet:
+        rp, shares = review_sheet(sheet, stem, work)
+        print('- sprite pixels within +-25 luminance of the floor: ' + ', '.join(f'{n} {100 * v:.1f}%' for n, v in shares)
+              + ('   ← pale sprite: check the bright floors in review.png (the wraith was 3.0% on snow before its fix)'
+                 if max(v for n, v in shares if n != 'dark') > 0.03 else '')
+              + '  (dark: outlines and shadows always match a dark floor - judge by eye; the engine adds a rim)')
+        print('- review sheet (design reference | game size x3 on dark / sand / snow): ' + rp)
     for p in previews:
         print('- preview: ' + p)
     print(f'- work folder: {work}')
-    print(f'- after accepting: write {tip} to art/requests/inbox_reviewed.txt')
+    print('- after judging (pass or fail): git checkout origin/art-inbox -- <the delivered paths> art/inbox/NOTES.md, so it counts as reviewed')
     return r.returncode
 
 

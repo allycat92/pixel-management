@@ -44,7 +44,9 @@
           1216
         ],
         "source": "art/concepts/selections.json (#5)"
-      }
+      },
+      "scale": 0.1654,
+      "cell": 96
     },
     {
       "kind": "sheet",
@@ -86,7 +88,9 @@
           1216
         ],
         "source": "art/concepts/selections.json (#8)"
-      }
+      },
+      "scale": 0.1654,
+      "cell": 96
     },
     {
       "kind": "sheet",
@@ -128,7 +132,9 @@
           1216
         ],
         "source": "art/concepts/selections.json (#7)"
-      }
+      },
+      "scale": 0.1654,
+      "cell": 96
     },
     {
       "kind": "sheet",
@@ -170,7 +176,9 @@
           1216
         ],
         "source": "art/concepts/selections.json (#12)"
-      }
+      },
+      "scale": 0.1654,
+      "cell": 112
     },
     {
       "kind": "sheet",
@@ -212,7 +220,9 @@
           1216
         ],
         "source": "art/concepts/selections.json (#4)"
-      }
+      },
+      "scale": 0.1654,
+      "cell": 96
     },
     {
       "kind": "sheet",
@@ -254,7 +264,9 @@
           1216
         ],
         "source": "art/concepts/selections.json (#8)"
-      }
+      },
+      "scale": 0.1654,
+      "cell": 96
     },
     {
       "kind": "sheet",
@@ -296,7 +308,9 @@
           1216
         ],
         "source": "art/concepts/selections.json (#3)"
-      }
+      },
+      "scale": 0.1654,
+      "cell": 96
     },
     {
       "kind": "sheet",
@@ -338,7 +352,9 @@
           1216
         ],
         "source": "art/concepts/selections.json (#5)"
-      }
+      },
+      "scale": 0.1654,
+      "cell": 96
     },
     {
       "kind": "sheet",
@@ -380,7 +396,9 @@
           1216
         ],
         "source": "art/concepts/selections.json (#3)"
-      }
+      },
+      "scale": 0.1654,
+      "cell": 96
     },
     {
       "kind": "sheet",
@@ -725,7 +743,9 @@
       "nai": {
         "prompt": "1boy, solo, young elf man, pointed ears, long blond hair, green ranger cloak, silver longbow, green outfit, white trim, headband, four heads tall, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
         "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
-      }
+      },
+      "scale": 0.1654,
+      "cell": 96
     },
     {
       "kind": "sheet",
@@ -744,7 +764,9 @@
       "nai": {
         "prompt": "1girl, solo, young woman, pale, blonde hair, torn white saint robes with a red sash, sorrowful but kind, long hair, white outfit, tan trim, holding mace, four heads tall, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
         "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
-      }
+      },
+      "scale": 0.1654,
+      "cell": 96
     },
     {
       "kind": "sheet",
@@ -763,7 +785,9 @@
       "nai": {
         "prompt": "1girl, solo, young woman in a white half-mask, dark violet outfit, hood, quick daggers, mischievous smile, red hair, long hair, charcoal outfit, white trim, hood, four heads tall, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
         "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
-      }
+      },
+      "scale": 0.1654,
+      "cell": 96
     },
     {
       "kind": "sheet",
@@ -782,7 +806,9 @@
       "nai": {
         "prompt": "1boy, solo, massive clan warrior man, brown skin, scarred, arena champion belt, greatsword, dark brown hair, short hair, crimson outfit, yellow trim, four heads tall, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
         "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
-      }
+      },
+      "scale": 0.1654,
+      "cell": 96
     },
     {
       "kind": "sheet",
@@ -801,7 +827,9 @@
       "nai": {
         "prompt": "1boy, solo, young man scholar-mage, glasses, purple robes with gold embroidery, floating spellbook, grey hair, long hair, dark purple outfit, yellow trim, hat, holding staff, four heads tall, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
         "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
-      }
+      },
+      "scale": 0.1654,
+      "cell": 96
     },
     {
       "kind": "sheet",
@@ -820,7 +848,9 @@
       "nai": {
         "prompt": "1girl, solo, woman pirate captain in her thirties, tricorn hat, navy coat, flintlock pistol and bow, dark brown hair, long hair, navy outfit, tan trim, hat, four heads tall, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
         "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
-      }
+      },
+      "scale": 0.1654,
+      "cell": 96
     },
     {
       "kind": "sheet",
@@ -839,7 +869,9 @@
       "nai": {
         "prompt": "1boy, solo, old knight commander, grey hair, rusted silver plate armor with a faded royal crest, short hair, silver outfit, blue trim, helmet, holding sword, four heads tall, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
         "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
-      }
+      },
+      "scale": 0.1654,
+      "cell": 96
     },
     {
       "kind": "sheet",
@@ -1132,6 +1164,9 @@
       "layout": "2x2",
       "cell": 112,
       "scale": 0.1654,
+      "spots": [
+        "#d6455d"
+      ],
       "humanoid": false,
       "package": "art/requests/phase3/monster_giant-spider",
       "readme": "art/requests/phase3/monster_giant-spider/README.md",
@@ -1474,7 +1509,9 @@
       "nai": {
         "prompt": "1girl, solo, tanned woman in her twenties, long black hair blowing in the wind, green headband, longbow, dark green outfit, lime green trim, headband, four heads tall, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
         "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
-      }
+      },
+      "scale": 0.1654,
+      "cell": 96
     },
     {
       "kind": "sheet",
@@ -1493,7 +1530,9 @@
       "nai": {
         "prompt": "1boy, solo, cunning man in his forties, rat-like grin, hood, gold rings, dagger, brown hair, short hair, black outfit, gold trim, hood, four heads tall, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
         "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
-      }
+      },
+      "scale": 0.1654,
+      "cell": 96
     },
     {
       "kind": "sheet",
@@ -1512,7 +1551,9 @@
       "nai": {
         "prompt": "1boy, solo, elegant man in his thirties, long silver hair, sword glowing with blue magic, dark blue outfit, silver trim, four heads tall, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
         "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
-      }
+      },
+      "scale": 0.1654,
+      "cell": 96
     },
     {
       "kind": "sheet",
@@ -1531,7 +1572,9 @@
       "nai": {
         "prompt": "1girl, solo, noble woman knight in her twenties, long golden hair, white and gold plate armor, holy mace, white outfit, yellow trim, helmet, four heads tall, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
         "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
-      }
+      },
+      "scale": 0.1654,
+      "cell": 96
     },
     {
       "kind": "sheet",
@@ -1550,7 +1593,9 @@
       "nai": {
         "prompt": "1boy, solo, huge man in his forties, red hair and beard, horned helmet, war axe, battle scars, short hair, brown outfit, tan trim, helmet, four heads tall, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
         "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
-      }
+      },
+      "scale": 0.1654,
+      "cell": 96
     },
     {
       "kind": "sheet",
@@ -1569,7 +1614,9 @@
       "nai": {
         "prompt": "1boy, solo, nomad man in his thirties, long black braids, fur-trimmed coat, composite bow, steppe warrior, dark brown hair, long hair, auburn outfit, blonde trim, headband, four heads tall, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
         "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
-      }
+      },
+      "scale": 0.1654,
+      "cell": 96
     },
     {
       "kind": "sheet",
@@ -1588,7 +1635,9 @@
       "nai": {
         "prompt": "1girl, solo, battle-hardened woman in her thirties, long blonde hair, dragon-scale armor, greatsword, crimson outfit, orange trim, helmet, four heads tall, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
         "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
-      }
+      },
+      "scale": 0.1654,
+      "cell": 96
     },
     {
       "kind": "sheet",
@@ -1607,7 +1656,9 @@
       "nai": {
         "prompt": "1boy, solo, grizzled man in his fifties, grey stubble, dark hood, silver bullets and a holy mace, grey hair, short hair, charcoal outfit, grey trim, hood, four heads tall, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
         "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
-      }
+      },
+      "scale": 0.1654,
+      "cell": 96
     },
     {
       "kind": "sheet",
@@ -1626,7 +1677,9 @@
       "nai": {
         "prompt": "1boy, solo, flamboyant young man, long red hair, feathered hat, lute on his back and a rapier, magenta outfit, yellow trim, hat, four heads tall, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
         "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
-      }
+      },
+      "scale": 0.1654,
+      "cell": 96
     },
     {
       "kind": "sheet",
@@ -1645,7 +1698,9 @@
       "nai": {
         "prompt": "1girl, solo, dark-skinned woman in her thirties, long black hair, wolf-fur mantle, a grey wolf beside her, brown leather outfit, gold trim, headband, holding bow, quiver, four heads tall, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
         "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
-      }
+      },
+      "scale": 0.1654,
+      "cell": 96
     },
     {
       "kind": "sheet",
@@ -1664,7 +1719,9 @@
       "nai": {
         "prompt": "1boy, solo, stout bearded man in his forties, orange beard, glowing blue runes on his hammer and armor, auburn hair, short hair, brown leather outfit, silver trim, helmet, four heads tall, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
         "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
-      }
+      },
+      "scale": 0.1654,
+      "cell": 96
     },
     {
       "kind": "sheet",
@@ -1683,7 +1740,9 @@
       "nai": {
         "prompt": "1girl, solo, gentle young woman, long blonde hair, barefoot pilgrim robes, holy mace and a prayer charm, grey outfit, blue trim, four heads tall, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
         "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
-      }
+      },
+      "scale": 0.1654,
+      "cell": 112
     },
     {
       "kind": "sheet",
@@ -1702,7 +1761,9 @@
       "nai": {
         "prompt": "1girl, solo, pale woman in her thirties, long dark-blue hair, wide witch hat, green curse flames in her palm, charcoal outfit, lime green trim, hat, holding staff, four heads tall, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
         "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
-      }
+      },
+      "scale": 0.1654,
+      "cell": 96
     },
     {
       "kind": "sheet",
@@ -1721,7 +1782,9 @@
       "nai": {
         "prompt": "1boy, solo, dark-skinned muscular man, shaved head, broken shackles still on his wrists, chain weapon, red outfit, grey trim, four heads tall, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
         "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
-      }
+      },
+      "scale": 0.1654,
+      "cell": 96
     },
     {
       "kind": "sheet",
@@ -1740,7 +1803,9 @@
       "nai": {
         "prompt": "1girl, solo, elderly woman in her sixties, short grey hair, navy admiral coat with gold trim, crossbow, navy outfit, yellow trim, hat, four heads tall, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
         "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
-      }
+      },
+      "scale": 0.1654,
+      "cell": 96
     },
     {
       "kind": "sheet",
@@ -1759,7 +1824,9 @@
       "nai": {
         "prompt": "1girl, solo, tall elf woman, long silver hair, pointed ears, green leaf-patterned cloak, elegant longbow, green outfit, white trim, headband, four heads tall, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
         "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
-      }
+      },
+      "scale": 0.1654,
+      "cell": 96
     },
     {
       "kind": "sheet",
@@ -1778,7 +1845,9 @@
       "nai": {
         "prompt": "1boy, solo, engineer man in his forties, brass goggles on his helmet, soot-stained, heavy crossbow, brown hair, short hair, brown leather outfit, gold trim, helmet, four heads tall, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
         "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
-      }
+      },
+      "scale": 0.1654,
+      "cell": 96
     },
     {
       "kind": "sheet",
@@ -1797,7 +1866,9 @@
       "nai": {
         "prompt": "1boy, solo, severe man in his fifties, black hair, deep red hooded inquisitor robes, burning brand, short hair, dark crimson outfit, yellow trim, hood, holding mace, four heads tall, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
         "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
-      }
+      },
+      "scale": 0.1654,
+      "cell": 96
     },
     {
       "kind": "sheet",
@@ -1816,7 +1887,9 @@
       "nai": {
         "prompt": "1girl, solo, confident woman in her thirties, long crimson hair, tricorn hat, cutlass and hook chain, crimson outfit, black trim, hat, four heads tall, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
         "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
-      }
+      },
+      "scale": 0.1654,
+      "cell": 96
     },
     {
       "kind": "sheet",
@@ -1835,7 +1908,9 @@
       "nai": {
         "prompt": "1boy, solo, tall man in his thirties, long blond hair and braided beard, frost-covered armor, axe, blue outfit, white trim, helmet, four heads tall, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
         "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
-      }
+      },
+      "scale": 0.1654,
+      "cell": 96
     },
     {
       "kind": "sheet",
@@ -1854,7 +1929,9 @@
       "nai": {
         "prompt": "1girl, solo, ancient wise woman, very long white hair, star-embroidered robes, glowing staff, navy outfit, white trim, hat, four heads tall, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
         "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
-      }
+      },
+      "scale": 0.1654,
+      "cell": 96
     },
     {
       "kind": "sheet",
@@ -1873,7 +1950,9 @@
       "nai": {
         "prompt": "1girl, solo, radiant young woman, long golden hair, white robes, soft light around her hands, white outfit, orange trim, holding mace, four heads tall, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
         "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
-      }
+      },
+      "scale": 0.1654,
+      "cell": 96
     },
     {
       "kind": "sheet",
@@ -1892,7 +1971,9 @@
       "nai": {
         "prompt": "1girl, solo, dangerous elegant woman in her thirties, long black hair, dark hood, twin daggers, black outfit, tan trim, hood, four heads tall, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
         "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
-      }
+      },
+      "scale": 0.1654,
+      "cell": 96
     },
     {
       "kind": "sheet",
@@ -1911,7 +1992,9 @@
       "nai": {
         "prompt": "1boy, solo, giant man with giant-blood, long brown hair, enormous build, stone-like skin, huge maul, brown outfit, blonde trim, four heads tall, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
         "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
-      }
+      },
+      "scale": 0.1654,
+      "cell": 112
     }
   ]
 }

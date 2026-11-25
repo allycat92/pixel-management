@@ -427,6 +427,7 @@ const MON_SPOTS = {
   '해골 병사': ['#ff4a3a'],              // 빨간 눈 (PC 손질 ea6fe20)
   '들늑대': ['#f2c94c', '#b8862a'],      // 호박색 눈 (PC 손질 66aca5a)
   '가고일': ['#d6455d'],                 // 빨간 눈 (PC 손질 cea8630)
+  '거대 거미': ['#d6455d'],              // 빨간 눈 무리 (다시 그리기 2: 대기 컷에서 눈이 0px 이었다)
 };
 const MON_HUMANOID = new Set(['해골 병사', '사막 도적', '산적']);   // 사람 골격: 대장과 같은 posekit 가이드 띠
 const MON_KEY = Object.fromEntries(MONSTERS.map(([enemy, key]) => [enemy, key]));
@@ -481,6 +482,15 @@ Object.entries(D.CAPTAINS).forEach(([key, C]) => {
   }));
 });
 
+// 대장·특별 용병 시트의 배율·칸: 예전에는 등록할 때마다 손으로 `--scale 0.1654 --cell 96` 을 붙였고, 아멜리의 칸 112 는 manifest 에만 있었다.
+// 여기 적어 두면 sheets.py · check_delivery.py · receive.py 가 플래그 없이 같은 결과를 낸다.
+const CELL_112 = new Set(['lancer', 'pilgrim', 'titan']);   // 든 무기·덩치가 96칸(자세 높이 90px)을 넘는 대장
+phase3.forEach((it) => {
+  const m = /^sheet\/(captain|hero)\/([a-z_]+)$/.exec(it.id);
+  if (!m || m[2].endsWith('_mounted')) return;
+  if (it.scale == null) it.scale = GPT_SCALE;
+  if (it.cell == null) it.cell = CELL_112.has(m[2]) ? 112 : 96;
+});
 fs.writeFileSync(path.join(ROOT, 'art/requests/phase3.json'), JSON.stringify({ version: 1, phase: 3, inbox: 'art/inbox/', items: phase3 }, null, 2) + '\n');
 const md3 = [
   '# 그림 요청서 — 3단계 (전투 캐릭터 스프라이트 시트)',
