@@ -32,6 +32,7 @@ except ImportError:  # pragma: no cover
     sys.exit(2)
 
 KEY = (255, 0, 255)
+SPOT_TOL = 40.0     # tools/art/sheets.py SPOT_TOL: pixels this close to a declared spot colour are kept at game size
 W, H = 1536, 1024
 MIN_DIST = 150.0
 REC_DIST = 170.0
@@ -103,8 +104,85 @@ def trapped_key_pixels(rgb):
     return m.histogram()[255]
 
 
-def check_png(path, layout, feet):
+def request_item(png):
+    """The art/requests/phase3.json entry for this file name (layout, cell, scale, spots), or {}."""
+    here = os.path.dirname(os.path.abspath(__file__))
+    try:
+        import json
+        with open(os.path.join(here, "..", "..", "art", "requests", "phase3.json"), encoding="utf-8") as f:
+            items = json.load(f).get("items", [])
+    except (OSError, ValueError):
+        return {}
+    name = os.path.basename(png)
+    for it in items:
+        if it.get("file") == name:
+            return it
+    return {}
+
+
+def hex_rgb(h):
+    h = h.strip().lstrip("#")
+    return tuple(int(h[i:i + 2], 16) for i in (0, 2, 4))
+
+
+def check_spots(rgb, spots, errors, warns, info):
+    """Declared 'spot colours' (tiny must-show colours such as eyes): they must be unique enough in the sheet,
+    because the converter keeps every pixel within SPOT_TOL of them at game size."""
+    colors = [(n, c) for n, c in (rgb.getcolors(maxcolors=1 << 24) or []) if c != KEY]
+    for h in spots:
+        try:
+            sc = hex_rgb(h)
+        except ValueError:
+            errors.append(f"spot colour '{h}' is not #rrggbb")
+            continue
+        d = lambda c: math.sqrt(sum((c[i] - sc[i]) ** 2 for i in range(3)))  # noqa: E731
+        exact = sum(n for n, c in colors if c == sc)
+        near = sum(n for n, c in colors if d(c) <= SPOT_TOL)
+        others = [d(c) for n, c in colors if d(c) > SPOT_TOL]
+        nearest = min(others, default=999.0)
+        info.append(f"spot {h}: {exact} px exact, {near} px within {SPOT_TOL:.0f}, nearest other colour at distance {nearest:.1f}")
+        if exact == 0:
+            errors.append(f"spot {h}: no pixel has exactly this colour")
+        elif near > 2 * exact:
+            errors.append(f"spot {h}: {near} px lie within {SPOT_TOL:.0f} of it but only {exact} are exact - it is not unique "
+                          "(other materials would be painted in the spot colour); choose a colour >= 60 away from every other colour")
+        elif nearest < 60:
+            warns.append(f"spot {h}: another colour is only {nearest:.0f} away (keep >= 60)")
+
+
+def compare_base(rgb, base_path, layout, feet, errors, warns, info):
+    """Touch-ups: what changed against the received PNG, and which failures were already there."""
+    b_err, _, _ = check_png(base_path, layout, feet)
+    base = Image.open(base_path).convert("RGB")
+    if base.size != rgb.size:
+        errors.append(f"base size {base.size} differs")
+        return
+    sil = col = 0
+    cols = [[0, 0] for _ in range(4)]
+    w = rgb.size[0]
+    for i, (p, q) in enumerate(zip(pixels(base), pixels(rgb))):
+        if p == q:
+            continue
+        x, y = i % w, i // w
+        k = (x * 4 // w) if layout == "1x4" else (int(y >= H // 2) * 2 + int(x >= W // 2))
+        if (p == KEY) != (q == KEY):
+            sil += 1; cols[k][0] += 1
+        else:
+            col += 1; cols[k][1] += 1
+    info.append(f"against the base: silhouette changed {sil} px, colour changed {col} px "
+                f"(per pose silhouette/colour: {', '.join(f'{a}/{b}' for a, b in cols)})")
+    old = set(b_err)
+    for m in list(errors):
+        if m in old:
+            errors.remove(m)
+            warns.append("pre-existing (also fails on the base, not caused by this touch-up): " + m)
+
+
+def check_png(path, layout, feet, cell=None, scale=None):
     errors, warns, info = [], [], []
+    mode = Image.open(path).mode
+    if mode != "RGB":
+        warns.append(f"PNG mode is {mode}, not RGB: an indexed PNG can import into Aseprite with a scrambled palette - save as RGB")
     rgb = load_rgb(path, errors)
     if rgb.size != (W, H):
         errors.append(f"size {rgb.size[0]}x{rgb.size[1]}, expected {W}x{H}")
@@ -169,6 +247,11 @@ def check_png(path, layout, feet):
         if layout == "2x2":
             msg += f" (y={rel} in its quadrant)"
         info.append(msg)
+        if cell and scale:
+            hh, budget = (bb[3] - bb[1]) * scale, cell - 6
+            if hh > budget:
+                warns.append(f"pose {i}: {bb[3] - bb[1]} px tall = {hh:.1f} game px, over the {budget} px a {cell} px cell holds "
+                             f"(the pose is shrunk or the sheet needs a bigger cell): keep raised weapons below this")
         if abs(rel - fy) > 3:
             errors.append(f"pose {i}: lowest pixel at y={rel}, expected {fy} (soles on the guide line)")
         elif rel != fy:
@@ -187,6 +270,41 @@ def export_aseprite(src, exe, out_png):
                        capture_output=True, timeout=180, env=env)
     if r.returncode != 0 or not os.path.exists(out_png):
         raise RuntimeError("Aseprite export failed: " + (r.stderr or r.stdout).decode("utf-8", "replace")[-400:])
+
+
+ALLOWED_LAYERS = {"Background", "touchup", "original_ref", "head", "torso", "arm_near", "arm_far", "leg_near", "leg_far",
+                  "cloth_back", "cloth_front", "weapon", "weapon_back", "weapon_front", "shield", "joints"}
+
+
+def check_layers(src, exe, base, errors, warns, info):
+    """Layer names (all layers, hidden included) and the hidden original_ref layer, which must be the received PNG."""
+    env = dict(os.environ)
+    if os.name != "nt":
+        env.pop("DISPLAY", None); env.pop("WAYLAND_DISPLAY", None)
+    r = subprocess.run([exe, "--batch", "--all-layers", "--list-layers", src], stdin=subprocess.DEVNULL, capture_output=True, timeout=120, env=env)
+    names = [ln.strip() for ln in r.stdout.decode("utf-8", "replace").splitlines() if ln.strip()]
+    if not names:
+        return
+    info.append(".aseprite layers: " + " / ".join(names))
+    odd = [n for n in names if n not in ALLOWED_LAYERS and not n.startswith("touchup")]
+    if odd:
+        warns.append("layer names outside the agreed set (see art/requests/pc_notes.md): " + ", ".join(odd))
+    if "original_ref" in names and base:
+        with tempfile.TemporaryDirectory() as tmp:
+            out = os.path.join(tmp, "ref.png")
+            subprocess.run([exe, "--batch", "--all-layers", "--layer", "original_ref", src, "--save-as", out],
+                           stdin=subprocess.DEVNULL, capture_output=True, timeout=180, env=env)
+            if os.path.exists(out):
+                ref = Image.new("RGB", (W, H), KEY)
+                im = Image.open(out).convert("RGBA")
+                ref.paste(im, (0, 0), im)
+                got = Image.open(base).convert("RGB")
+                diff = sum(1 for p, q in zip(pixels(ref), pixels(got)) if p != q) if ref.size == got.size else -1
+                if diff:
+                    warns.append(f"hidden layer original_ref differs from the base PNG in {diff} px "
+                                 "(an indexed PNG imported with the wrong palette? convert to RGB before importing)")
+                else:
+                    info.append("hidden layer original_ref == base PNG")
 
 
 def compare_aseprite(src, exe, png, errors, info):
@@ -215,26 +333,57 @@ def compare_aseprite(src, exe, png, errors, info):
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("png")
-    ap.add_argument("--layout", choices=["1x4", "2x2"], default="1x4",
-                    help="1x4 row (default) or 2x2 grid of 768x512 quadrants (the package README DELIVERABLE decides)")
+    ap.add_argument("--layout", choices=["1x4", "2x2"], default=None,
+                    help="1x4 row or 2x2 grid of 768x512 quadrants. Default: the entry for this file in art/requests/phase3.json, else 1x4")
+    ap.add_argument("--base", help="touch-ups: the received PNG this was made from - reports what changed and marks failures "
+                                   "that the base already had as pre-existing warnings")
+    ap.add_argument("--spot", help="declared spot colours (tiny must-show colours), e.g. '#d6455d,#f2c94c'. Default: phase3.json 'spots'")
+    ap.add_argument("--cell", type=int, help="game cell size for the height budget (default: phase3.json 'cell', else 96)")
+    ap.add_argument("--export", action="store_true", help="first export --aseprite to the PNG path (then check it)")
     ap.add_argument("--feet", type=int, default=None, help="soles line (default 870 for 1x4, 461 per 2x2 quadrant)")
     ap.add_argument("--aseprite", help="the .aseprite source to export and compare with the PNG")
     ap.add_argument("--aseprite-exe", default=os.environ.get("ASEPRITE_PATH", "aseprite"),
                     help="Aseprite executable (default: $ASEPRITE_PATH or 'aseprite')")
     a = ap.parse_args()
+    if a.export:
+        if not a.aseprite or not os.path.isfile(a.aseprite):
+            print("--export needs --aseprite <source>")
+            return 2
+        try:
+            export_aseprite(a.aseprite, a.aseprite_exe, a.png)
+        except Exception as e:  # noqa: BLE001
+            print("export failed: " + str(e))
+            return 2
     if not os.path.isfile(a.png):
         print(f"not found: {a.png}")
         return 2
-    errors, warns, info = check_png(a.png, a.layout, a.feet)
+    req = request_item(a.png)
+    src_note = ""
+    if a.layout is None:
+        a.layout = req.get("layout") if req.get("layout") in ("1x4", "2x2") else "1x4"
+        src_note = " from phase3.json" if req.get("layout") else ""
+    cell = a.cell or req.get("cell") or 96
+    scale = req.get("scale") or 0.1654
+    errors, warns, info = check_png(a.png, a.layout, a.feet, cell, scale)
+    rgb = Image.open(a.png).convert("RGB")
+    spots = [h for h in (a.spot.split(",") if a.spot is not None else (req.get("spots") or [])) if h.strip()]
+    if spots:
+        check_spots(rgb, spots, errors, warns, info)
+    if a.base:
+        if not os.path.isfile(a.base):
+            errors.append(f"base not found: {a.base}")
+        else:
+            compare_base(rgb, a.base, a.layout, a.feet, errors, warns, info)
     if a.aseprite:
         if not os.path.isfile(a.aseprite):
             errors.append(f".aseprite not found: {a.aseprite}")
         else:
             try:
                 compare_aseprite(a.aseprite, a.aseprite_exe, a.png, errors, info)
+                check_layers(a.aseprite, a.aseprite_exe, a.base, errors, warns, info)
             except Exception as e:  # noqa: BLE001
                 errors.append(str(e))
-    print(f"== {a.png} ({a.layout})")
+    print(f"== {a.png} ({a.layout}{src_note}, cell {cell})")
     for m in info:
         print("  info: " + m)
     for m in warns:
