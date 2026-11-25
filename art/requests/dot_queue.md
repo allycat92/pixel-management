@@ -58,6 +58,7 @@ Claude Code 가 받아서 확인한 결과는 `art/requests/feedback.md`에 남�
 | `sheet/captain/lightbearer` | **QUEUED** | `art/inbox/sheet_captain_lightbearer.png` | `art/requests/phase3/captain_lightbearer/README.md` ("Prompt for GPT" 블록) | `art/requests/phase3/captain_lightbearer/guide_strip.png` (배치·크기 견본), `guide_1_idle.png` ~ `guide_4_hit.png` | 대장 루치아 (후반·late, 가이드 무기 `staff`). 디자인 기준 `portrait.png`. 납품 메모: `art/inbox/NOTES.md` 「3단계 — 루치아」. |
 | `sheet/captain/shadowqueen` | **QUEUED** | `art/inbox/sheet_captain_shadowqueen.png` | `art/requests/phase3/captain_shadowqueen/README.md` ("Prompt for GPT" 블록) | `art/requests/phase3/captain_shadowqueen/guide_strip.png` (배치·크기 견본), `guide_1_idle.png` ~ `guide_4_hit.png` | 대장 니클라 (후반·late, 가이드 무기 `none`). 디자인 기준 `portrait.png`. 납품 메모: `art/inbox/NOTES.md` 「3단계 — 니클라」. |
 | `sheet/captain/titan` | **QUEUED** | `art/inbox/sheet_captain_titan.png` | `art/requests/phase3/captain_titan/README.md` ("Prompt for GPT" 블록) | `art/requests/phase3/captain_titan/guide_strip.png` (배치·크기 견본), `guide_1_idle.png` ~ `guide_4_hit.png` | 대장 우르그 (후반·late, 가이드 무기 `katana`). 디자인 기준 `portrait.png`. 납품 메모: `art/inbox/NOTES.md` 「3단계 — 우르그」. 체격 large — 시트 칸 112 필요할 수 있음. |
+| `guide/walk_base` | **DOT_READY** · **담당: PC(Aseprite)** | `art/inbox/guides/walk_base/walk_strip.png` (+ `walk_base.aseprite`) | `art/requests/guides/walk_base/README.md` | `art/requests/guides/walk_base/start_guide_walk_0..3.png` (posekit 출발점) | 걷기 뼈대 시범 — **PC 손질 7건을 끝낸 뒤** 진행. 납품 메모: NOTES.md 「뼈대 — 걷기 시범 (Aseprite)」 |
 
 ## 납품 규칙 (요약)
 
