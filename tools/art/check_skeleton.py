@@ -277,10 +277,20 @@ def export(flats, durs, out, name):
     small[0].save(os.path.join(out, f'{name}_preview.gif'), save_all=True, append_images=small[1:], duration=durs, loop=0, disposal=1)
 
 
-def compare(frames, base):
+def compare(frames, base, warns):
+    """what changed against the draft, per frame and layer; warns when a limb was repainted but none of its joint dots moved
+    (a small shift keeps the dot on the limb, so the measurements would silently describe the old pose)"""
     lines = []
     for i, (a, b) in enumerate(zip(frames, base)):
         ch = []
+        if 'joints' in a and 'joints' in b and a['joints'].shape == b['joints'].shape:
+            ja, jb = dots(a['joints'])[0], dots(b['joints'])[0]
+            for ln in BODY:
+                if ln in a and ln in b and a[ln].shape == b[ln].shape and int(np.any(a[ln] != b[ln], axis=-1).sum()) >= 150:
+                    mine = [j for j, part in PART_OF.items() if part == ln and j in ja and j in jb]
+                    if mine and all(dist(ja[j], jb[j]) < 0.75 for j in mine):
+                        warns.append(f'W{i + 1}: {ln} was repainted but its joint dots ({", ".join(mine)}) did not move - '
+                                     'move the dots with the limb, or say in NOTES that only the outline changed')
         for ln in a:
             if ln == 'Background':
                 continue
@@ -325,7 +335,7 @@ def main(argv=None):
         if a.base:
             try:
                 print('- changed against the draft:')
-                for ln in compare(frames, load(a.base, 'base')[0]):
+                for ln in compare(frames, load(a.base, 'base')[0], warns):
                     print('    ' + ln)
             except (RuntimeError, OSError, ValueError, subprocess.SubprocessError) as e:
                 warns.append(f'could not read the draft {a.base}: {e}')
