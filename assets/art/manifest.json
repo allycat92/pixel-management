@@ -2275,6 +2275,79 @@
     },
     "w": 384
   },
+  "sheet/captain/titan": {
+    "file": "assets/art/sheets/sheet_captain_titan.png",
+    "h": 224,
+    "sheet": {
+      "anchor": [
+        56,
+        108
+      ],
+      "anims": {
+        "attack": {
+          "from": 4,
+          "ms": [
+            150,
+            260
+          ],
+          "to": 5
+        },
+        "hit": {
+          "from": 6,
+          "ms": [
+            220
+          ],
+          "to": 6
+        },
+        "idle": {
+          "from": 0,
+          "ms": [
+            240,
+            240,
+            240,
+            240
+          ],
+          "to": 3
+        }
+      },
+      "cell": [
+        112,
+        112
+      ],
+      "facing": 1,
+      "frames": [
+        [
+          0,
+          0
+        ],
+        [
+          112,
+          0
+        ],
+        [
+          224,
+          0
+        ],
+        [
+          336,
+          0
+        ],
+        [
+          0,
+          112
+        ],
+        [
+          112,
+          112
+        ],
+        [
+          224,
+          112
+        ]
+      ]
+    },
+    "w": 448
+  },
   "sheet/captain/veteran": {
     "file": "assets/art/sheets/sheet_captain_veteran.png",
     "h": 192,
