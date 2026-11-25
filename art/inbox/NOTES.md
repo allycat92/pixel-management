@@ -435,3 +435,10 @@ REFERENCES LOADED: portrait_800.jpg OK; guide_strip.png OK; guide_1_idle.png, gu
 DEVIATIONS: (a) 가이드 방패 대신 빈손, 1번 칼날을 코트 밖으로 올려 분리. 3번 빈손은 균형을 위해 뒤로 뻗고 4번은 앞발을 들었음. 초기 배치 폭 약 2% 보정, 1번 실루엣 높이는 약 366px. (b) 고리 장식은 어깨 대신 허리 사슬에 붙임. (c) none.
 RISKS AT GAME SIZE: 96px 변환에서 타격 칸 +1px 이동, 피격은 무게중심으로 발 맞춤. 실제 전투에서 발 위치 변화와 준비 자세에서 칼 손잡이와 모자 깃털의 경계를 확인 부탁. 모자 해골과 얼굴 흉터는 축소 시 흐려질 수 있음.
 PROPOSALS: none.
+
+## sheet/captain/frostjarl - 비요른
+CHECK: RESULT: PASS
+REFERENCES LOADED: portrait_800.jpg OK; guide_strip.png OK; guide_1_idle.png, guide_2_windup.png, guide_3_strike.png, guide_4_hit.png OK; Baren anchor OK.
+DEVIATIONS: (a) 가이드 카타나 대신 확정된 양손 수염도끼. 4번 앞발을 들었고 도끼는 낮은 뒤편으로 떨어뜨림. 포즈 폭 약 4.6% 배치 보정. 1번 자루 아랫부분은 양손 그립을 따라 허리 앞을 지나며 날은 망토 밖으로 분리. (b) 초상화 등 뒤의 칼자루는 요청대로 생략, 눈송이 어깨 문장과 두 앞땋은 머리 유지. (c) none.
+RISKS AT GAME SIZE: 96px 변환에서 준비 자세 높이 79px, 피격은 무게중심으로 발 맞춤. 실제 전투에서 준비→타격 때 수염도끼 날 모양과 피격 기준 발 이동 확인 부탁. 작아진 눈송이 문장은 무늬로만 읽힐 수 있음.
+PROPOSALS: none.
