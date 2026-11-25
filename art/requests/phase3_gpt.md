@@ -670,3 +670,16 @@ WRITE: add a section "교차 검수 1" (Korean is fine) to art/inbox/NOTES.md on
 ```
 웹판(저장소를 못 읽는 곳): 위 문장 그대로 + `art/requests/review/xcheck_01/` 의 PNG 9장과 README 를 첨부하고, 답은 대화창에 받아 주인이 Claude 에게 붙여 준다.
 
+## 메시지 H — 교차 검수 2: 걷기 뼈대 (저장소용; 그림 없이 글로만)
+
+```
+You are the art-side reviewer for this pixel-art game (repo allycat92/pixel-management).
+READ (branch claude/dot-fantasy-management-game-saupju): art/requests/review/xcheck_02/README.md and walk_review.png in that folder;
+the delivered files are on the art-inbox branch under art/inbox/guides/walk_base/ (walk_strip.png, walk_preview.gif).
+This is a 4-frame walk SKELETON (a pose guide for drawing every character's walk), made in Aseprite by the owner's PC session.
+Cloud measurements already pass. Judge it with an artist's eye at real game size. Do NOT draw anything.
+For each of the 5 numbered questions answer "OK" or "FIX: <what exactly to change>" plus one line of reasoning.
+WRITE: add a section "교차 검수 2" to art/inbox/NOTES.md on the art-inbox branch, commit "Cross-check 2 notes", push art-inbox only. Then stop.
+```
+웹판: 위 문장 + `art/requests/review/xcheck_02/walk_review.png` 와 README 첨부, 답은 대화창으로 받아 주인이 Claude 에게 붙여 준다.
+
