@@ -384,3 +384,9 @@ CHECK: RESULT: PASS
 REFERENCES LOADED: portrait_800.jpg, guide_strip.png, guide_1_idle.png, guide_2_windup.png, guide_3_strike.png, guide_4_hit.png, Baren style anchor PNG, art/STYLE.md, latest handoff notes → ok.
 DEVIATIONS: (a) 가이드의 칼 대신 같은 양날 전쟁 도끼를 네 컷에 유지했습니다. 피격에서 자루는 한 손에 남고 도끼날은 뒤쪽으로 떨어지며, 공격 컷의 하체는 가이드보다 조금 낮게 굽혔습니다. (b) 초상에서 보이지 않는 하체·장화는 갈색으로 보완. 초상의 등 뒤 대검은 확정 사항에 따라 제외. (c) none.
 RISKS AT GAME SIZE: 피격 때 도끼자루는 망토 바로 옆을 지나서 어두운 전장에서 일부가 약하게 보일 수 있습니다. 도끼날은 네 컷 모두 배경 위에 있습니다. 96px 칸·0.1654 변환 통과, 로컬 유휴 루프는 기본 대체 동작으로 확인.
+
+## sheet/captain/khan - 3단계 — 테무르
+CHECK: RESULT: PASS
+REFERENCES LOADED: portrait_800.jpg, guide_strip.png, guide_1_idle.png, guide_2_windup.png, guide_3_strike.png, guide_4_hit.png, Baren style anchor PNG, art/STYLE.md, latest handoff notes → ok.
+DEVIATIONS: (a) 대기·피격 시 활 끝이 종아리와 겹치지 않도록 가이드보다 활을 조금 더 세웠습니다. (b) 초상에 나오지 않는 아래쪽 델 자락과 장화는 갈색/금색으로 보완. (c) none.
+RISKS AT GAME SIZE: 진한 바닥에서는 시위가 점선처럼 약하게 남을 수 있고, 피격 시 활 끝과 앞 장화 사이 간격이 좁습니다. 가는 금속 고리·수염 디테일은 원본보다 단순하게 읽힙니다. 96px 칸·0.1654 변환 통과, 로컬 유휴 루프는 기본 대체 동작으로 확인.
