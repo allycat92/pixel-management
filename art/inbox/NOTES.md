@@ -390,3 +390,9 @@ CHECK: RESULT: PASS
 REFERENCES LOADED: portrait_800.jpg, guide_strip.png, guide_1_idle.png, guide_2_windup.png, guide_3_strike.png, guide_4_hit.png, Baren style anchor PNG, art/STYLE.md, latest handoff notes → ok.
 DEVIATIONS: (a) 대기·피격 시 활 끝이 종아리와 겹치지 않도록 가이드보다 활을 조금 더 세웠습니다. (b) 초상에 나오지 않는 아래쪽 델 자락과 장화는 갈색/금색으로 보완. (c) none.
 RISKS AT GAME SIZE: 진한 바닥에서는 시위가 점선처럼 약하게 남을 수 있고, 피격 시 활 끝과 앞 장화 사이 간격이 좁습니다. 가는 금속 고리·수염 디테일은 원본보다 단순하게 읽힙니다. 96px 칸·0.1654 변환 통과, 로컬 유휴 루프는 기본 대체 동작으로 확인.
+
+## 제안 - 직업별 달리기 그림 전에 엔진 연결을 한 장으로 확인
+
+주인께서 일반 병과 달리기·돌격 그림을 승인하시는 경우에만, 다섯 병과를 열기 전에 **임시 태그 시트 한 장**으로 일반 전투 화면에서 달리기·돌격이 걷기와 구분되는지 먼저 보는 건 어떨까요? 현 `js/battle.js:1371–1379`는 움직이는 시트에 `anims.walk`만 고릅니다. `tools/art/register_sheet.py`는 Aseprite 태그는 보존하지만 변환 시 `walkStride`는 보존하지 않습니다. 가이드의 한 걸음 23.7 게임 px가 빠지면 프레임 전환이 다른 거리에서 일어나 발이 미끄러질 수 있습니다.
+
+임시 그림이라도 걷기·달리기·돌격 선택과 등록 후 보폭 수치가 남는 것까지 확인되면, 이후 전사/방패병 중 하나만 엔진 걸음과 나란히 비교할 수 있습니다. 코드만 읽어본 상태로 실제 태그 시트는 재생해 보지 않았습니다. 범위와 우선순위는 클로드 판단에 맡깁니다.
