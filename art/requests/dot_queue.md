@@ -23,7 +23,6 @@ Claude Code 가 받아서 확인한 결과는 `art/requests/feedback.md`에 남�
 | GPT | new | `sheet/captain/liberator` | 카토 — **막힘 답(ab4b3cd)**: 지금 초안을 그대로 납품한다. 대기 자세의 장검·의상 겹침은 DEVIATIONS 에 적으면 PC 가 그 자세의 검만 손질한다 |
 | GPT | new | `sheet/captain/shadowqueen` | 니클라 |
 | GPT | new | `sheet/captain/titan` | 우르그 — 체격 large, 칸 112(꾸러미 README 의 CELL BUDGET) |
-| PC | 손질 | `sheet/captain/bard` | 리코 — 레이피어 날을 밝은 강철색·굵기 2px(원본 약 12px)로 (바탕 `fb47d45`, 그 줄의 메모) |
 
 ## 주인에게 물을 것 (모아서 — 답이 없으면 「기본」대로 진행한다)
 
@@ -60,7 +59,7 @@ GPT 는 `art/requests/GPT_STANDING.md`, PC 는 `tools/aseprite-mcp/pc/CLAUDE.md`
 | `sheet/monster/망령` | **ACCEPTED** (2026-11-25 PC 손질 `cd0d963` 등록) | `art/inbox/sheet_monster_wraith.png` | `art/requests/phase3/monster_wraith/README.md` + `art/requests/phase3_gpt.md` 「메시지 F」 | `art/requests/phase3/monster_wraith/guide_layout.png` | 손보기(새로): 눈밭에서 묻힘 → feedback.md 「메시지 F 보충」. 같은 이름으로 덮어쓰기 |
 | `sheet/captain/windhunter` | **ACCEPTED** (2026-11-25 등록, art-inbox `a9b4ddc`) | `art/inbox/sheet_captain_windhunter.png` | `art/requests/phase3/captain_windhunter/README.md` ("Prompt for GPT" 블록) | `art/requests/phase3/captain_windhunter/guide_strip.png` (배치·크기 견본), `guide_1_idle.png` ~ `guide_4_hit.png` | 대장 나린 (초반·early, 가이드 무기 `bow`). 디자인 기준 `portrait.png`. 납품 메모: `art/inbox/NOTES.md` 「3단계 — 나린」. |
 | `sheet/captain/shadowlord` | **ACCEPTED** (2026-11-25 등록, art-inbox `33c3340`) | `art/inbox/sheet_captain_shadowlord.png` | `art/requests/phase3/captain_shadowlord/README.md` ("Prompt for GPT" 블록) | `art/requests/phase3/captain_shadowlord/guide_strip.png` (배치·크기 견본), `guide_1_idle.png` ~ `guide_4_hit.png` | 대장 모로 (초반·early, 가이드 무기 `none`). 디자인 기준 `portrait.png`. 납품 메모: `art/inbox/NOTES.md` 「3단계 — 모로」. |
-| `sheet/captain/bard` | **NEEDS_FIX** · **담당: PC(Aseprite)** (등록본은 그대로 쓰는 중 — 2026-11-25 `fb47d45`) | `art/inbox/sheet_captain_bard.png` | `art/requests/phase3/captain_bard/README.md` ("Prompt for GPT" 블록) | `art/requests/phase3/captain_bard/guide_strip.png` (배치·크기 견본), `guide_1_idle.png` ~ `guide_4_hit.png` | 바탕: art-inbox `fb47d45`. 손보기(나중 손질 목록 1번): 레이피어 날이 게임 크기에서 1px 짙은 회색이라 어두운 전장에서 흐리다 → 네 자세 모두 날을 **밝은 강철색(#c8ccd2 근처)으로, 굵기 원본 약 12px(게임 2px)** 로. 날의 길이·각도·자세·몸·색은 그대로, 날 둘레 1px 어두운 외곽선 유지. 같은 이름으로 덮어쓰기 + `aseprite/sheet_captain_bard.aseprite`. |
+| `sheet/captain/bard` | **ACCEPTED** (2026-11-26 PC 손질 `caebb20` 재등록 — 레이피어 날) | `art/inbox/sheet_captain_bard.png` | `art/requests/phase3/captain_bard/README.md` ("Prompt for GPT" 블록) | `art/requests/phase3/captain_bard/guide_strip.png` (배치·크기 견본), `guide_1_idle.png` ~ `guide_4_hit.png` | 바탕: art-inbox `fb47d45`. 손보기(나중 손질 목록 1번): 레이피어 날이 게임 크기에서 1px 짙은 회색이라 어두운 전장에서 흐리다 → 네 자세 모두 날을 **밝은 강철색(#c8ccd2 근처)으로, 굵기 원본 약 12px(게임 2px)** 로. 날의 길이·각도·자세·몸·색은 그대로, 날 둘레 1px 어두운 외곽선 유지. 같은 이름으로 덮어쓰기 + `aseprite/sheet_captain_bard.aseprite`. |
 | `sheet/captain/beastmaster` | **DOT_READY** | `art/inbox/sheet_captain_beastmaster.png` | `art/requests/phase3/captain_beastmaster/README.md` ("Prompt for GPT" 블록) | `art/requests/phase3/captain_beastmaster/guide_strip.png` (배치·크기 견본), `guide_1_idle.png` ~ `guide_4_hit.png` | 대장 오르가 (초반·early, 가이드 무기 `bow`). 디자인 기준 `portrait.png`. 납품 메모: `art/inbox/NOTES.md` 「3단계 — 오르가」. |
 | `sheet/captain/runesmith` | **ACCEPTED** (2026-11-25 `27e7a9d` 등록) | `art/inbox/sheet_captain_runesmith.png` | `art/requests/phase3/captain_runesmith/README.md` ("Prompt for GPT" 블록) | `art/requests/phase3/captain_runesmith/guide_strip.png` (배치·크기 견본), `guide_1_idle.png` ~ `guide_4_hit.png` | 대장 브로크 (초반·early, 가이드 무기 `katana`). 디자인 기준 `portrait.png`. 납품 메모: `art/inbox/NOTES.md` 「3단계 — 브로크」. |
 | `sheet/captain/pilgrim` | **ACCEPTED** (2026-11-25 `df2301b` 등록, 칸 112) | `art/inbox/sheet_captain_pilgrim.png` | `art/requests/phase3/captain_pilgrim/README.md` ("Prompt for GPT" 블록) | `art/requests/phase3/captain_pilgrim/guide_strip.png` (배치·크기 견본), `guide_1_idle.png` ~ `guide_4_hit.png` | 대장 아멜리 (초반·early, 가이드 무기 `staff`). 디자인 기준 `portrait.png`. 납품 메모: `art/inbox/NOTES.md` 「3단계 — 아멜리」. |
@@ -118,7 +117,7 @@ GPT 는 `art/requests/GPT_STANDING.md`, PC 는 `tools/aseprite-mcp/pc/CLAUDE.md`
 
 | 파일 | 손볼 것 | 상태 |
 |---|---|---|
-| `sheet_captain_bard.png` (리코) | 레이피어 날이 1px 짙은 회색이라 어두운 전장에서 흐리다 → 밝은 강철색(#c8ccd2 근처) 2px(원본 약 12px) | **올림 (2026-11-26, 「지금 차례」)** |
+| `sheet_captain_bard.png` (리코) | 레이피어 날이 1px 짙은 회색이라 어두운 전장에서 흐리다 → 밝은 강철색(#c8ccd2 근처) 2px(원본 약 12px) | **끝 (`caebb20`)** |
 | `sheet_captain_frostjarl.png` (비요른) | 수염도끼 날이 작아 게임 크기에서 곡괭이처럼 보일 수 있다 → 날을 원본 약 30% 키우기(네 자세) | LATER |
 | `sheet_hero_kai.png` (카이) | 타격 자세에서 시위 당긴 손이 뒤로 빠지는 폭이 작아 준비·타격이 덜 구분된다 | LATER |
 | `sheet_monster_giant-spider.png` | 다시 그리기 2 가 통과하면 피격 자세가 대기와 구분되는지 확인 | 다시 그리기 뒤 |
