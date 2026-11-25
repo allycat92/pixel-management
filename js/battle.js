@@ -81,6 +81,51 @@ const Battle = (() => {
   // 화면은 시뮬레이션 좌표(320×180)의 2배 해상도로 그린다
   const Z = 2, CW = W * Z, CH = H * Z;
   function px(c, x, y, w, h, col) { c.fillStyle = col; c.fillRect(x, y, w, h); }
+
+  // 도트 베기 잔상: 매끈한 선 대신 칸 단위로 칠한 초승달 — 가운데가 두껍고 양끝이 가늘다.
+  // 60ms 마다 한 단계씩(프레임처럼 끊어서): 0 휘두르는 중 → 1 다 그은 초승달 + 바깥 잔줄 → 2 가늘어지며 잔줄 → 3 잔줄 조각만.
+  function mixHex(a, b, k) {
+    const p = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+    const A = p(a), B = p(b);
+    return '#' + A.map((v, i) => Math.round(v + (B[i] - v) * k).toString(16).padStart(2, '0')).join('');
+  }
+  function smearArc(ctx, cx, cy, R, th0, th1, wMax, col, rim, dashed) {
+    const n = Math.max(6, Math.ceil(Math.abs(th1 - th0) * R * 1.6));
+    for (let i = 0; i <= n; i++) {
+      const u = i / n;
+      if (dashed && Math.floor(u * 7) % 2) continue;
+      const th = th0 + (th1 - th0) * u;
+      const w = Math.max(1, Math.round(wMax * Math.pow(Math.sin(Math.PI * u), 0.8)));
+      const c = Math.cos(th), sn = Math.sin(th);
+      for (let r = 0; r < w; r++) {
+        const rr = R - r;
+        px(ctx, Math.round(cx + c * rr), Math.round(cy + sn * rr * 0.85), 1, 1, r === 0 && w > 2 ? rim : col);
+      }
+    }
+  }
+  function drawSmear(ctx, s) {
+    const step = Math.min(3, Math.floor(s.t / 0.055));
+    const R = s.big ? 22 : 15, W = s.big ? 5 : 3, S = 2.1;
+    const d = s.dir < 0 ? -1 : 1;
+    const cx = Math.round(s.x - d * 6), cy = Math.round(s.y);
+    const rim = mixHex(s.color, '#5a7a98', 0.5), soft = mixHex(s.color, '#8aa8c4', 0.35);
+    const arc = (u0, u1) => d > 0 ? [-1.4 + u0 * S, -1.4 + u1 * S] : [Math.PI + 1.4 - u0 * S, Math.PI + 1.4 - u1 * S];
+    if (step === 0) {
+      ctx.globalAlpha = 1;
+      const [a, b] = arc(0, 0.6); smearArc(ctx, cx, cy, R, a, b, W, s.color, rim, false);
+    } else if (step === 1) {
+      ctx.globalAlpha = 1;
+      let [a, b] = arc(0, 1); smearArc(ctx, cx, cy, R, a, b, W, s.color, rim, false);
+      [a, b] = arc(0.15, 0.9); smearArc(ctx, cx, cy, R + 3, a, b, 1, soft, soft, false);
+    } else if (step === 2) {
+      ctx.globalAlpha = 0.8;
+      let [a, b] = arc(0.25, 1); smearArc(ctx, cx, cy, R, a, b, Math.ceil(W / 2), soft, rim, false);
+      [a, b] = arc(0.1, 0.85); smearArc(ctx, cx, cy, R + 4, a, b, 1, soft, soft, true);
+    } else {
+      ctx.globalAlpha = 0.5;
+      const [a, b] = arc(0.3, 1); smearArc(ctx, cx, cy, R + 5, a, b, 1, soft, soft, true);
+    }
+  }
   // 지형별 색: 하늘 위/아래, 먼 산, 중경, 땅, 땅 어두움, 땅 밝음, 앞쪽 수풀
   const PAL = {
     plains: { sky: ['#3a5a8a', '#8fb0d8'], far: '#4a6a7a', mid: '#2f5a3a', ground: '#5a7a3a', dark: '#3f5a2a', light: '#7a9a4a', fore: '#1f3a1f', deco: 'grass' },
@@ -1688,14 +1733,7 @@ const Battle = (() => {
         px(ctx, Math.round(s.x) - 30, Math.round(s.y), 60, 2, '#ffffff');
         px(ctx, Math.round(s.x) - 20, Math.round(s.y) - 6, 40, 1, '#ffffff');
       } else {
-        // 초승달 모양 베기 궤적
-        const k = s.t / 0.22, R = s.big ? 22 : 15;
-        ctx.globalAlpha = Math.max(0, 1 - k);
-        ctx.strokeStyle = s.color; ctx.lineWidth = s.big ? 4 : 2;
-        const a0 = s.dir > 0 ? -1.4 : Math.PI - 0.6, sweep = 2.0 * Math.min(1, k * 3);
-        ctx.beginPath(); ctx.arc(s.x - s.dir * 6, s.y, R, a0, a0 + sweep * (s.dir > 0 ? 1 : 1)); ctx.stroke();
-        ctx.lineWidth = 1; ctx.globalAlpha *= 0.6;
-        ctx.beginPath(); ctx.arc(s.x - s.dir * 6, s.y, R - 4, a0 + 0.2, a0 + sweep); ctx.stroke();
+        drawSmear(ctx, s);
       }
     });
     ctx.globalAlpha = 1;
