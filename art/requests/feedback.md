@@ -350,3 +350,10 @@
 - 결정: 세 자세가 맞는 시트를 통째로 묵혀 둘 이유가 없다. 초안을 그대로 납품받고, 그 한 자세의 무기를 몸 밖으로 옮기는 것은 PC(Aseprite) 손질로 돌린다
   (PC 손질 9건 재작업 0건, 건당 1~6분). 받으면 `바탕:` 해시와 함께 `담당: PC` 로 올린다.
 - 규칙으로 남김: `gpt_handoff_notes.md` 「One bad pose does not block a sheet」.
+
+## 마렌(`sheet_captain_admiral.png`) 수령 ✅ — 통과, 등록 완료 (ACCEPTED) · 새 수령 절차 첫 적용
+- art-inbox `3604e08`. `receive.py`: 검사 PASS (39색, 키와 최소 거리 192.6, 네 자세 y=870, 칸 96 안), 플래그 없이 변환, 대기 74px.
+- 초상화와 나란히 확인(review.png): 회색 물결 머리·남색 제독 코트·금 견장·석궁 — 맞다. 마네킹의 활을 석궁으로 바꾼 것은 초상화 그대로(DEVIATIONS a).
+- GPT 가 적은 위험(준비 자세의 볼트·시위가 어두운 바닥에서 가늘다)을 세 바닥 위에서 확인함: 어두운 바닥에서 석궁이 가늘지만 금테 코트 덕에 자세는 읽힌다. 모래·눈 위는 또렷. 그대로 둔다.
+- 새 메모 양식(CHECK / REFERENCES LOADED / DEVIATIONS / RISKS)으로 온 첫 납품 — 가벼운 초상화 사본(`portrait_800.jpg`)을 불러왔다고 적혀 있다.
+- 다음: 바투르(칸)를 DOT_READY 로 올림.
