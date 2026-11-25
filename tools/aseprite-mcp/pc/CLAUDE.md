@@ -1,13 +1,15 @@
 # PC 세션 지침 — pixel-management 도트 손질·뼈대 담당 (Aseprite)
 
-지침 판: 2026-11-26c  (보고할 때 이 판을 함께 말한다 — 클라우드가 PC 가 낡은 지침으로 일하는지 알 수 있다)
+지침 판: 2026-11-26d  (보고할 때 이 판을 함께 말한다 — 클라우드가 PC 가 낡은 지침으로 일하는지 알 수 있다)
+이번 판에서 바뀐 것: 마네킹(뼈대) 시퀀스를 요청서의 프레임 사양대로 PC 가 만든다(주인 2026-11-26), 이동 프레임 납품 자리 `art/inbox/gait/` 추가.
 
 **모든 답변·질문·보고는 한국어로 한다.** 영어 문서를 읽더라도 주인에게는 한국어로 말한다. 짧고 쉽게.
 
 ## 너의 역할
 맡는 일은 두 가지뿐이다.
 1. **손질**: 이미 받은 전투 시트 PNG 를 정품 Aseprite 로 지시된 만큼만 고친다.
-2. **뼈대**: `art/requests/guides/<id>/README.md` 가 시킨 자세 가이드(마네킹)를 만들거나 다듬는다 (`art/requests/guides/SPEC.md`).
+2. **뼈대**: `art/requests/guides/<id>/README.md` 의 프레임 사양대로 마네킹 시퀀스(자세 가이드)를 만들거나 다듬는다 (`art/requests/guides/SPEC.md`).
+   주인 결정(2026-11-26): "마네킹 시퀀스도 pc하청으로" — 시퀀스는 PC 가 만들고, 클라우드는 사양을 쓰고 검사(`check_skeleton.py`)한다. 요청서에 초안 `.aseprite` 가 있으면 출발점으로 써도 된다.
 캐릭터 그림을 처음부터 그리는 일은 하지 않는다 (GPT 담당).
 
 ## 할 일 고르기
@@ -28,6 +30,8 @@
 | 손질 | `art/inbox/<stem>.png` + `art/inbox/aseprite/<stem>.aseprite` | 「손질 — <이름> (Aseprite)」 | `Touch up <stem> (Aseprite)` |
 | 뼈대 | `art/inbox/guides/<id>/<id>.aseprite` 하나 (레이어가 나뉜 8프레임 작업 파일 — 띠·GIF 는 클라우드가 뽑는다) | 「뼈대 — <이름> (Aseprite)」 | `Add guide <id> (Aseprite)` / 고칠 때 `Touch up guide <id> (Aseprite)` |
 `<stem>` 은 파일 이름에서 `.png` 를 뺀 것 그대로 (예: `sheet_monster_desert-bandit`).
+대기열 줄이 캐릭터의 이동 프레임(달리기·걷기 띠)을 시키면 납품 자리는 `art/inbox/gait/<시트 stem>_<run|walk>.aseprite` 다 (예: `art/inbox/gait/sheet_class_warrior_run.aseprite`;
+`art/inbox/` 바로 아래·`sheet_*.png` 이름 금지 — 기본 시트로 처리된다). 이 파일에는 `joints` 레이어를 두지 않는다(뼈대로 보고 받지 않는다). 검사 명령은 그 줄의 요청서에 있다.
 
 ## 명령 습관 (허가 창 줄이기)
 - 납품 폴더의 git 은 항상 `git -C ../pixel-management-inbox <명령>` 꼴로, 경로는 `/` 로 쓴다 (`\` 는 Git Bash 에서 깨진다).
@@ -53,7 +57,7 @@
    - `pull --rebase` 가 충돌로 멈추면: NOTES.md 뿐이면 양쪽 절을 모두 남기고 `rebase --continue`.
      (`art/inbox/.gitattributes` 의 합치기 설정 덕에 NOTES.md 는 대개 저절로 합쳐진다.)
      **PNG·.aseprite 가 충돌하면 풀지 않는다** — `rebase --abort` 하고 "○○ 파일을 다른 쪽이 먼저 바꿨음" 이라고 알리고 멈춘다.
-4. 주인에게 한국어로 한 줄 보고 ("○○ 손질 올림, 커밋 abc1234, 지침 판 2026-11-26c") 후 다음 항목.
+4. 주인에게 한국어로 한 줄 보고 ("○○ 손질 올림, 커밋 abc1234, 지침 판 2026-11-26d") 후 다음 항목.
 
 ## 하지 않는 것
 - 게임 브랜치(이 폴더) 커밋·푸시, `art/inbox/` 밖 수정, dot_queue.md·feedback.md·pc_notes.md 수정 (클라우드가 바꾼다).

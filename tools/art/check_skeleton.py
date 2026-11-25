@@ -9,11 +9,15 @@ The working file is the layered 8-frame .aseprite that walk8.py builds (384x1024
 `joints` layer with one colour-coded 3x3 dot per joint). The Aseprite session plays and refines it; this tool then measures
 what only numbers can tell (bone lengths, the planted foot, the mirror half, the bob) from the joint dots and the layers.
 
-FAIL: canvas/frames/layers wrong, a joint dot missing or left behind by its limb, bone length off by more than 2 px in any frame,
+FAIL: canvas/frames/layers wrong, the joints layer not hidden, a joint dot missing or left behind by its limb, bone length off by
+      more than 2 px in any frame, the hip centre (mid-point of hipN/hipF) more than 1 px off x=192 (the body stays on the frame's
+      centre column: add_gait.py anchors every frame on it), the head layer empty or not touching the torso layer (detached head),
       stance sole not on y=870 or a foot below it, step outside 135-151 px, planted foot not retreating by step/4 (+-3 px) per frame,
       W(i+4) not the mirror of W(i), soft (half-transparent) pixels.
 WARN: bob outside 12-16 px or in the wrong order, passing knee bent more than 15 deg, lifted foot outside 30-36 px,
-      forward hand less than 20 px outside the torso, neighbouring frames nearly identical at game size.
+      forward hand less than 20 px outside the torso, neighbouring frames nearly identical at game size, the head moving more than
+      4 px against the neck dot across the frames (a tilt about the neck is allowed: the drift is what is left after the head's own
+      rotation), a frame duration that differs from pose.json nominal_ms (walk 120, run 80 when no pose.json is given).
 --export DIR writes the strips (<set>_a.png, <set>_b.png), the game-size preview GIF and pose_measured.json from the file,
 so the Aseprite session only has to deliver the .aseprite. --base DRAFT.aseprite lists what was changed per frame and layer.
 Exit code 1 on FAIL.
@@ -25,12 +29,15 @@ FAIL: R1-R3 / R5-R7: the supporting sole not on y=870, a pixel below it, or the 
       feet down is a walk); R4 / R8: lowest pixel less than 18 px above the floor (no flight); the planted toe (front end of the
       supporting sole) not retreating by step/4 (+-3 px) per stance frame, where step = 2 x (toe R1 - toe R3) is the distance the
       body travels per step; step more than 14 px from the request (pose.json step_px, default 275); R(i+4) not the mirror of
-      R(i) (hip height +-1, ankle x +-2, ankle y +-4); hip not lowest at down or not highest in flight.
-WARN: bob outside 32-46 px; elbow flex outside 60-125 deg in any frame; the arm of the pushing leg not at least 60 px ahead of
+      R(i) (hip height +-1, ankle x +-2, ankle y +-4); hip not lowest at down or not highest in flight; R4 / R8: the leg that
+      just pushed off (near in R4, far in R8) not trailing the other one by 110 px or more (ankle x - scissored legs, the right
+      leg behind); the arm of the pushing leg BEHIND the other one at push-off / flight (arms pumping the wrong way).
+WARN: bob outside 32-46 px; elbow flex outside 60-125 deg in any frame; the arm of the pushing leg less than 60 px ahead of
       the other one at push-off / flight (hand x from its shoulder); lean outside 14-26 deg, lean range over 5 deg or the neck
       travelling more than 12 px (pecking); push-off knee bent more than 30 deg; down knee outside 35-65 deg; landing foot not
-      0-70 px ahead of the hip; flight ankles less than 110 px apart; neighbouring frames nearly identical at game size;
-      strip findings of check_delivery.py (the two strips are built in memory; its floor rule is not applied to the flight frame).
+      0-70 px ahead of the hip; neighbouring frames nearly identical at game size;
+      strip findings of check_delivery.py (the two strips are built in memory and checked with --flight-slots 4: slot 4 is the
+      flight frame and must be 18 px or more above the floor instead of on it).
 """
 import argparse
 from collections import Counter
@@ -161,12 +168,64 @@ def knee_flex(hip, knee, ank):
 
 
 # run sets (SPEC section 5b). Numbers from the run_base v1 draft: step 275 px, bob 37.4 px, flight clearance 37-41 px,
-# elbows 80-110 deg, lean 18.2-20.5 deg, push-off knee 12-15 deg, down knee 51-53 deg, landing ankle 40 px ahead of the hip
+# elbows 80-110 deg, lean 18.2-20.5 deg, push-off knee 16-18 deg, down knee 51-53 deg, landing ankle 40 px ahead of the hip,
+# flight ankles 176 px apart with the pushing leg behind
 RUN = dict(step=RUN_STEP * HEAD_PX, step_tol=14, clear=18, other=12, bob=(32, 46), elbow=(60, 125), pump=60, lean=(14, 26), lean_range=5,
            neck=12, push_flex=30, down_flex=(35, 65), land=(0, 70), scissor=110)
+HIP_X_TOL = 1          # the hip centre stays on the frame's centre column x = SLOT / 2 (add_gait.py anchors there)
+HEAD_DRIFT = 4         # px the head may move against the neck dot over the cycle, after its own tilt (both drafts: under 1.1)
+NOMINAL_MS = dict(walk=120, run=80)
 
 
-def check(frames, durs, names, hidden, bones, gait='walk', want_step=None):
+def grow1(mask):
+    """the mask grown by one pixel (8 neighbours), NumPy only (the PC runs this with pillow + numpy)"""
+    g = mask.copy()
+    g[1:] |= mask[:-1]
+    g[:-1] |= mask[1:]
+    h = g.copy()
+    h[:, 1:] |= g[:, :-1]
+    h[:, :-1] |= g[:, 1:]
+    return h
+
+
+def head_pose(head_mask, neck):
+    """-> (centroid of the head layer from the neck dot (x, y), orientation of the head's shape in rad, elongation) or None.
+    The orientation (principal axis of the second moments) lets head_cycle() tell a tilt about the neck from a head that slides."""
+    ys, xs = np.nonzero(head_mask)
+    if not len(xs):
+        return None
+    x, y = xs - xs.mean(), ys - ys.mean()
+    a, b, c = float((x * x).mean()), float((x * y).mean()), float((y * y).mean())
+    root = math.sqrt(((a - c) / 2) ** 2 + b * b)
+    lo, hi = (a + c) / 2 - root, (a + c) / 2 + root
+    return (float(xs.mean()) - neck[0], float(ys.mean()) - neck[1]), 0.5 * math.atan2(2 * b, a - c), hi / max(lo, 1e-6)
+
+
+def head_cycle(meas, T, warns, info):
+    """the head against the neck dot over the cycle. A tilt about the neck is allowed: the head's own rotation (from its shape)
+    is taken out, the rest is drift (a head that pecks or slides on the neck). A nearly round head gives no usable rotation:
+    then only the distance from the neck is compared."""
+    hp = [m.get('head') for m in meas]
+    if any(h is None for h in hp):
+        return
+    hp = [(tuple(h['from_neck_px']), h['axis_rad'], h['elongation']) for h in hp]
+    (c0x, c0y), th0, _ = hp[0]
+    round_head = min(h[2] for h in hp) < 1.08
+    drift, tilts = [], []
+    for (cx, cy), th, _ in hp:
+        dt = 0.0 if round_head else (th - th0 + math.pi / 2) % math.pi - math.pi / 2
+        tilts.append(math.degrees(dt))
+        px, py = c0x * math.cos(dt) - c0y * math.sin(dt), c0x * math.sin(dt) + c0y * math.cos(dt)
+        drift.append(abs(math.hypot(cx, cy) - math.hypot(c0x, c0y)) if round_head else math.hypot(cx - px, cy - py))
+    info.append('head against the neck dot (after its own tilt' + (', round head: distance only' if round_head else '') + '): drift '
+                + ' '.join(f'{d:.1f}' for d in drift) + f' px, tilt {min(tilts):+.1f}..{max(tilts):+.1f} deg from {T}1')
+    for i, d in enumerate(drift):
+        if d > HEAD_DRIFT:
+            warns.append(f'{T}{i + 1}: the head layer sits {d:.1f} px off its {T}1 place against the neck dot (after its tilt), SPEC asks '
+                         f'{HEAD_DRIFT} or less - the head pecks or slides on the neck (move it with the torso, or tilt it about the neck)')
+
+
+def check(frames, durs, names, hidden, bones, gait='walk', want_step=None, nominal_ms=None):
     errors, warns, info, meas = [], [], [], []
     n = len(frames)
     T = 'R' if gait == 'run' else 'W'
@@ -187,6 +246,14 @@ def check(frames, durs, names, hidden, bones, gait='walk', want_step=None):
         warns.append(f'layer order {present} differs from SPEC section 4 (bottom to top: {" · ".join(m for m in ORDER if m in present)})')
     if errors:
         return errors, warns, info, meas, []
+    if 'joints' not in hidden:
+        errors.append('layer "joints" is visible: hide it (the dots would be in the exported strips and in the game frames '
+                      'add_gait.py makes from the .aseprite)')
+    want_ms = nominal_ms or NOMINAL_MS[gait]
+    odd_ms = [f'{T}{i + 1} {d}' for i, d in enumerate(durs) if d != want_ms]
+    if odd_ms:
+        warns.append(f'frame duration differs from pose.json nominal_ms {want_ms} ms: {", ".join(odd_ms)} ms '
+                     f'(add_gait.py takes anims.{gait}.ms from the .aseprite durations)')
     flats = []
     for i, fr in enumerate(frames):
         tag = f'{T}{i + 1}'
@@ -212,7 +279,19 @@ def check(frames, durs, names, hidden, bones, gait='walk', want_step=None):
                               '(the limb was moved without its dot, or the dot without the limb)')
         m = dict(frame=tag, joints={k: [round(v[0], 1), round(v[1], 1)] for k, v in J.items()})
         hip = ((J['hipN'][0] + J['hipF'][0]) / 2, (J['hipN'][1] + J['hipF'][1]) / 2)
+        m['hip_x_px'] = round(hip[0], 1)
+        if abs(hip[0] - SLOT / 2) > HIP_X_TOL:
+            errors.append(f'{tag}: hip centre (between hipN and hipF) at x={hip[0]:.1f}, must be {SLOT // 2} +-{HIP_X_TOL} - the body stays '
+                          'on the frame\'s centre column (add_gait.py anchors every frame on it: this frame would jump sideways in the game)')
         m['hip_height_px'] = round(BASELINE - hip[1], 1)
+        head = fr['head'][..., 3] > 0
+        hp = head_pose(head, J['neck'])
+        if hp is None:
+            errors.append(f'{tag}: the head layer is empty')
+        else:
+            m['head'] = dict(from_neck_px=[round(hp[0][0], 2), round(hp[0][1], 2)], axis_rad=round(hp[1], 4), elongation=round(hp[2], 3))
+            if not (grow1(head) & (fr['torso'][..., 3] > 0)).any():
+                errors.append(f'{tag}: the head layer does not touch the torso layer (a detached head: move it back onto the neck)')
         m['bones_px'] = {}
         for bone, a, b in BONES:
             for s in 'NF':
@@ -244,6 +323,7 @@ def check(frames, durs, names, hidden, bones, gait='walk', want_step=None):
         run_cycle(meas, want_step, errors, warns, info)
     else:
         walk_cycle(meas, errors, warns, info)
+    head_cycle(meas, T, warns, info)
     # neighbouring frames at game size
     small = []
     for _, mask in flats:
@@ -327,6 +407,14 @@ def run_frame(m, i, fr, J, hip, lows, stance, swing, errors):
         if m['clearance_px'] < RUN['clear']:
             errors.append(f'{tag} (flight): the lowest pixel is {m["clearance_px"]} px above the floor (y={m["lowest_px"]}), a flight frame needs '
                           f'{RUN["clear"]} or more - both feet must be clearly off the ground')
+        # scissor: the leg that pushed off in the frame before (the stance leg of this half) trails, the other one reaches forward
+        p, o = ('N', 'F') if stance == 'leg_near' else ('F', 'N')
+        m['scissor_px'] = round(m['ankle_x'][p] - m['ankle_x'][o], 1)
+        if m['scissor_px'] > -RUN['scissor']:
+            errors.append(f'{tag} (flight): the {"near" if p == "N" else "far"} ankle (the leg that just pushed off) is '
+                          + (f'{m["scissor_px"]:.0f} px AHEAD of' if m['scissor_px'] > 0 else f'{-m["scissor_px"]:.0f} px behind')
+                          + f' the other one, it must trail by {RUN["scissor"]} or more - legs scissored, the pushing leg behind '
+                          '(wrong frame order or the legs swapped?)')
         return
     if lows[stance] != BASELINE:
         errors.append(f'{tag}: the stance leg ({stance}) ends at y={lows[stance]}, not on the floor line {BASELINE}')
@@ -407,7 +495,10 @@ def run_cycle(meas, want_step, errors, warns, info):
         m, s, o = meas[i], 'NF'[i // 4], 'FN'[i // 4]
         d = m['hand_from_shoulder_px'][s] - m['hand_from_shoulder_px'][o]
         pump.append(d)
-        if d < RUN['pump']:
+        if d < 0:
+            errors.append(f'{m["frame"]} ({m["phase"]}): the {"near" if s == "N" else "far"} hand is {-d:.0f} px BEHIND the other one (each from its '
+                          'shoulder) - the arm of the pushing leg must be forward: the arms pump the wrong way (arms or frames swapped?)')
+        elif d < RUN['pump']:
             warns.append(f'{m["frame"]} ({m["phase"]}): the {"near" if s == "N" else "far"} hand is {d:.0f} px ahead of the other one (each from its '
                          f'shoulder), SPEC asks {RUN["pump"]} or more - the arm of the pushing leg is forward, the other one back')
     info.append('arm pump at push-off/flight (hand of the pushing side ahead of the other, from the shoulders): ' + ' '.join(f'{d:.0f}' for d in pump) + ' px')
@@ -425,32 +516,23 @@ def run_cycle(meas, want_step, errors, warns, info):
         if not RUN['land'][0] <= v <= RUN['land'][1]:
             warns.append(f'R{i + 1} (contact): the landing ankle is {v:.0f} px ahead of the hip, SPEC asks {RUN["land"][0]}-{RUN["land"][1]} '
                          '(a little ahead of the body, knee bent)')
-    for i in (3, 7):
-        v = abs(meas[i]['ankle_x']['N'] - meas[i]['ankle_x']['F'])
-        if v < RUN['scissor']:
-            warns.append(f'R{i + 1} (flight): the ankles are {v:.0f} px apart, SPEC asks {RUN["scissor"]} or more (legs scissored)')
+    info.append('flight scissor (ankle of the leg that pushed off minus the other one, from the hip): '
+                + ' '.join(f'R{i + 1} {meas[i]["scissor_px"]:.0f}' for i in (3, 7)) + f' px (must be -{RUN["scissor"]} or less)')
 
 
-def strip_rules(flats, work, clear, errors, warns, info):
-    """run sets: the two strips against tools/art/check_delivery.py (size, flat key colour, colour distance, gaps, four poses).
-    Its rule 'lowest pixel of every pose on y=870' cannot hold for a flight frame: that one finding is replaced by the
-    clearance rule above, everything else is passed on"""
-    import re
+def strip_rules(flats, work, errors, warns, info):
+    """run sets: the two strips against tools/art/check_delivery.py (size, flat key colour, colour distance, gaps, four poses),
+    with pose 4 as the flight frame (check_delivery --flight-slots 4: 18 px or more above y=870 instead of on it)"""
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
     import check_delivery
     os.makedirs(work, exist_ok=True)
     for k, s in enumerate('ab'):
         path = os.path.join(work, f'strip_{s}.png')
         Image.fromarray(np.concatenate([flats[k * 4 + j][0] for j in range(4)], axis=1), 'RGB').save(path)
-        e, w_, _ = check_delivery.check_png(path, '1x4', None)
-        for msg in e:
-            mt = re.match(r'pose 4: lowest pixel at y=(\d+), expected 870', msg)
-            if mt and clear[k] is not None and BASELINE - int(mt.group(1)) == clear[k]:
-                info.append(f'strip {s}: check_delivery.py reports "{msg}" - that is the flight frame R{k * 4 + 4} '
-                            f'({clear[k]} px above the floor), not a fault')
-            else:
-                errors.append(f'strip {s} (check_delivery): {msg}')
-        warns += [f'strip {s} (check_delivery): {msg}' for msg in w_]
+        e, w_, inf = check_delivery.check_png(path, '1x4', None, flight=(4,))
+        errors += [f'strip {s} (check_delivery --flight-slots 4): {msg}' for msg in e]
+        warns += [f'strip {s} (check_delivery --flight-slots 4): {msg}' for msg in w_]
+        info += [f'strip {s} (check_delivery --flight-slots 4): {msg}' for msg in inf if '(flight)' in msg]
 
 
 def export(flats, durs, out, name):
@@ -525,9 +607,10 @@ def main(argv=None):
             print(f'FAIL: cannot read {a.src}: {e}')
             return 1
         errors, warns, info, meas, flats = check(frames, durs, names, hidden, bones, gait,
-                                                 request.get('step_px') if request.get('gait') == 'run' else None)
+                                                 request.get('step_px') if request.get('gait') == 'run' else None,
+                                                 request.get('nominal_ms') if request.get('gait', 'walk') == gait else None)
         if gait == 'run' and len(flats) == 8 and all(m is not None for m in meas):
-            strip_rules(flats, os.path.join(tmp, 'strips'), [meas[i].get('clearance_px') for i in (3, 7)], errors, warns, info)
+            strip_rules(flats, os.path.join(tmp, 'strips'), errors, warns, info)
         name = a.name or os.path.splitext(os.path.basename(os.path.normpath(a.src)))[0]
         print(f'# skeleton {name}' + (' (run)' if gait == 'run' else ''))
         for ln in info:
@@ -551,7 +634,7 @@ def main(argv=None):
                 f.write('\n')
             print(f'- exported strips, preview and pose_measured.json to {a.export} ' + (
                 '(run check_delivery.py on the two strips)' if gait == 'walk' else
-                '(the strip rules of check_delivery.py are applied above; run on its own it fails slot 4, the flight frame)'))
+                '(the strip rules of check_delivery.py are applied above; on its own run it with --flight-slots 4)'))
         print('RESULT: ' + ('FAIL' if errors else 'PASS' + (f' ({len(warns)} warning(s))' if warns else '')))
     return 1 if errors else 0
 

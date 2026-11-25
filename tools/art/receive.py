@@ -19,10 +19,20 @@ It does the steps the reviewer otherwise repeats by hand (and has got wrong by h
   6. write review_<stem>.png: the design reference (portrait / concept) beside the game-size sheet on three floors (dark, sand, snow),
      and print how much of the sprite is within +-25 luminance of each floor (it vanishes there)
 Nothing is registered or committed: after reading it, run sheets.py <file> yourself (settings come from phase3.json).
+
+Two kinds of delivery are not base sheets and never go to sheets.py:
+  guides/<set>/<set>.aseprite     a skeleton (mannequin) from the PC: check_skeleton.py with the request's pose.json and draft, strips
+                                  exported and checked (run sets: check_delivery --flight-slots 4, the flight frame R4 / R8 is in the air)
+  gait/<sheet stem>_<run|walk>.aseprite, gait/<sheet stem>_<run|walk>_a.png + _b.png
+                                  final gait frames for a registered sheet: strips checked (run: --flight-slots 4), the .aseprite export
+                                  compared with the PNGs, then add_gait.py --dry-run (stride from guides/<gait>_<class> or <gait>_base)
+  python3 tools/art/receive.py guides/run_base/run_base
+  python3 tools/art/receive.py gait/sheet_class_warrior_run
 """
 import argparse
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -52,10 +62,22 @@ def list_new():
         print('nothing new: art/inbox on origin/art-inbox matches this branch')
         return 0
     print(f'{len(files)} path(s) differ from this branch (unreviewed):')
+    gaits = {}
     for f in files:
         h = git('log', '-1', '--format=%h %ci %s', 'origin/art-inbox', '--', f) or '?'
         who = 'PC' if '(Aseprite)' in h else 'GPT'
-        print(f'  [{who}] {f}  ←  {h}')
+        r = f[len('art/inbox/'):]
+        m = GAIT_RE.match(r[:-4] if r.endswith('.png') else r)
+        kind = ''
+        if r.startswith('gait/'):
+            kind = '  [gait frames: add_gait.py, NOT a base sheet]' if m else '  [gait/ but not named <sheet>_<run|walk>[_a|_b]]'
+            if m:
+                gaits.setdefault(f'{m.group(1)}_{m.group(2)}', []).append(os.path.basename(f))
+        elif r.startswith('guides/'):
+            kind = '  [skeleton guide: never game frames]'
+        print(f'  [{who}] {f}  ←  {h}{kind}')
+    for k, names in gaits.items():
+        print(f'  gait set {k}: {", ".join(sorted(names))}  →  python3 tools/art/receive.py gait/{k}')
     if 'art/inbox/NOTES.md' in files:
         diff = git('diff', 'HEAD', 'origin/art-inbox', '--', 'art/inbox/NOTES.md') or ''
         heads = [ln[1:].strip() for ln in diff.split('\n') if ln.startswith('+## ')]
@@ -185,9 +207,40 @@ def dry_run(png, work, extra):
     return sheet, sorted(prev), notes
 
 
+def version_key(d):
+    """v2 < v10 (folder names of request drafts)"""
+    m = re.match(r'v(\d+)$', d)
+    return (0, int(m.group(1)), d) if m else (1, 0, d)
+
+
+def latest_pose(set_name):
+    """art/requests/guides/<set>/<newest vN>/pose.json -> (path, dict) or (None, {})"""
+    req = os.path.join(ROOT, 'art', 'requests', 'guides', set_name)
+    for d in sorted((d for d in (os.listdir(req) if os.path.isdir(req) else []) if os.path.exists(os.path.join(req, d, 'pose.json'))),
+                    key=version_key, reverse=True):
+        p = os.path.join(req, d, 'pose.json')
+        try:
+            with open(p, encoding='utf-8') as f:
+                return p, json.load(f)
+        except (OSError, ValueError):
+            continue
+    return None, {}
+
+
+def strip_check(strip, label, extra):
+    """check_delivery.py on one 1x4 strip -> return code (prints the RESULT / FAIL / WARN lines)"""
+    c = subprocess.run([sys.executable, os.path.join(ROOT, 'tools', 'art', 'check_delivery.py'), strip, '--layout', '1x4', *extra], capture_output=True)
+    lines = [ln.strip() for ln in c.stdout.decode('utf-8', 'replace').splitlines()
+             if ln.strip().startswith(('RESULT', 'FAIL', 'WARN', 'ERROR')) or '(flight)' in ln]
+    print(f'- {label}: ' + (' | '.join(lines) or c.stdout.decode('utf-8', 'replace').strip()[-300:]))
+    return c.returncode
+
+
 def skeleton(rel, name, work, exe, tip):
     """a skeleton set delivered as one layered .aseprite (guides/<set>/<set>.aseprite): measure it, list what changed against
-    the draft of the request, and make the strips + preview from it (the Aseprite session does not have to export them)."""
+    the draft of the request, and make the strips + preview from it (the Aseprite session does not have to export them).
+    The gait (walk / run) comes from the request's pose.json: a run strip has a flight frame in slot 4, so check_delivery runs
+    with --flight-slots 4 (it must be 18 px or more above the floor instead of on it)."""
     path = f'art/inbox/{rel}.aseprite'
     new = os.path.join(work, 'new', name + '.aseprite')
     os.makedirs(os.path.dirname(new), exist_ok=True)
@@ -195,26 +248,166 @@ def skeleton(rel, name, work, exe, tip):
         print(f'{path} is not on origin/art-inbox')
         return 2
     revs = (git('log', '--format=%h', 'origin/art-inbox', '--', path) or '').split()
-    print(f'# {name} (skeleton) — art-inbox {revs[0] if revs else "?"} (tip {tip[:7]})')
     req = os.path.join(ROOT, 'art', 'requests', 'guides', name)
-    drafts = sorted(d for d in (os.listdir(req) if os.path.isdir(req) else []) if os.path.exists(os.path.join(req, d, name + '.aseprite')))
+    drafts = sorted((d for d in (os.listdir(req) if os.path.isdir(req) else []) if os.path.exists(os.path.join(req, d, name + '.aseprite'))),
+                    key=version_key)
+    pose = {}
+    if drafts and os.path.exists(os.path.join(req, drafts[-1], 'pose.json')):
+        with open(os.path.join(req, drafts[-1], 'pose.json'), encoding='utf-8') as f:
+            pose = json.load(f)
+    gait = pose.get('gait', 'walk')
+    print(f'# {name} (skeleton, {gait}) — art-inbox {revs[0] if revs else "?"} (tip {tip[:7]})')
     out = os.path.join(work, 'skeleton')
     cmd = [sys.executable, os.path.join(ROOT, 'tools', 'art', 'check_skeleton.py'), new, '--export', out, '--aseprite-exe', exe]
     if drafts:
         cmd += ['--base', os.path.join(req, drafts[-1], name + '.aseprite'), '--pose', os.path.join(req, drafts[-1], 'pose.json')]
         print(f'- draft of the request: art/requests/guides/{name}/{drafts[-1]}/')
+    else:
+        print(f'- NO draft of the request under art/requests/guides/{name}/: no --pose / --base (gait guessed from the file name)')
     r = subprocess.run(cmd, capture_output=True)
     print(r.stdout.decode('utf-8', 'replace').rstrip() or r.stderr.decode('utf-8', 'replace')[-400:])
     rc = r.returncode
+    flight = ['--flight-slots', '4'] if gait == 'run' else []
     for s in 'ab':
         strip = os.path.join(out, f'{name}_{s}.png')
         if os.path.exists(strip):
-            c = subprocess.run([sys.executable, os.path.join(ROOT, 'tools', 'art', 'check_delivery.py'), strip], capture_output=True)
-            lines = [ln for ln in c.stdout.decode('utf-8', 'replace').splitlines() if ln.startswith(('RESULT', 'FAIL', 'WARN', 'ERROR'))]
-            print(f'- strip {s}: ' + ' | '.join(lines))
-            rc = rc or c.returncode
+            rc = rc or strip_check(strip, f'strip {s}' + (' (check_delivery --flight-slots 4: R4 / R8 are in the air)' if flight else ''), flight)
     print(f'- work folder: {work} (strips, {name}_preview.gif and pose_measured.json under skeleton/)')
+    print('- a skeleton is a pose guide for the request, never game frames: add_gait.py refuses it (guides/ path, joints layer)')
     print('- after judging: git checkout origin/art-inbox -- <the delivered paths> art/inbox/NOTES.md')
+    return rc
+
+
+GAIT_RE = re.compile(r'^gait/(sheet_[^/]+?)_(run|walk)(?:_([ab]))?(?:\.aseprite)?$')
+
+
+def gait_pose(sheet, gait):
+    """the request whose stride the gait frames follow: guides/<gait>_<sheet without 'sheet_'>, <gait>_<last name part>, else <gait>_base"""
+    body = sheet[len('sheet_'):]
+    for set_name in (f'{gait}_{body}', f'{gait}_{body.split("_")[-1]}', f'{gait}_base'):
+        p, d = latest_pose(set_name)
+        if p:
+            return p, d
+    return None, {}
+
+
+def export_ase_strips(src, exe, out, stem):
+    """the visible layers of an n-frame .aseprite -> <stem>_a.png (frames 1-4), <stem>_b.png (5-8) -> (paths, frame count, problem)"""
+    os.makedirs(out, exist_ok=True)
+    env = dict(os.environ)
+    env.pop('DISPLAY', None)
+    env.pop('WAYLAND_DISPLAY', None)
+    png, js = os.path.join(out, 'frames.png'), os.path.join(out, 'frames.json')
+    try:
+        r = subprocess.run([exe, '--batch', src, '--sheet', png, '--sheet-type', 'horizontal', '--data', js, '--format', 'json-array'],
+                           stdin=subprocess.DEVNULL, capture_output=True, timeout=300, env=env)
+    except (OSError, subprocess.SubprocessError) as e:
+        return [], 0, f'Aseprite could not be run ({exe}): {e}'
+    if r.returncode or not os.path.exists(png) or not os.path.exists(js):
+        return [], 0, 'Aseprite export failed: ' + (r.stderr or r.stdout).decode('utf-8', 'replace')[-300:]
+    with open(js, encoding='utf-8') as f:
+        frames = [fr['frame'] for fr in json.load(f)['frames']]
+    im = Image.open(png)
+    im.load()
+    if im.mode in ('RGBA', 'LA', 'P'):
+        rgba = im.convert('RGBA')
+        # an opaque Background layer exports as RGBA with alpha 255 everywhere: save RGB; real transparency stays for check_delivery
+        im = rgba.convert('RGB') if rgba.getchannel('A').getextrema()[0] == 255 else rgba
+    cut = [im.crop((fr['x'], fr['y'], fr['x'] + fr['w'], fr['y'] + fr['h'])) for fr in frames]
+    if any(c.size != (384, 1024) for c in cut):
+        return [], len(cut), f'frame size {sorted({c.size for c in cut})}, a gait frame is 384x1024 (art/requests/guides/SPEC.md section 2)'
+    paths = []
+    for k, s in enumerate('ab'):
+        part = cut[k * 4:(k + 1) * 4]
+        if not part:
+            break
+        strip = Image.new(im.mode, (384 * 4, 1024))
+        for j, c in enumerate(part):
+            strip.paste(c, (j * 384, 0))
+        p = os.path.join(out, f'{stem}_{s}.png')
+        strip.save(p)
+        paths.append(p)
+    return paths, len(cut), None
+
+
+def gait_delivery(rel, work, exe, tip):
+    """final gait frames for a registered sheet: art/inbox/gait/<sheet png stem>_<gait>.aseprite and/or _<gait>_a.png + _<gait>_b.png.
+    They are NOT a base sheet (sheets.py never sees them): check the strips (run: --flight-slots 4), then add_gait.py --dry-run
+    shows what the sheet would become. Nothing is registered."""
+    m = GAIT_RE.match(rel)
+    if not m:
+        print(f'art/inbox/{rel}: under gait/ a delivery is named <sheet png stem>_<run|walk>.aseprite or _<run|walk>_a.png / _b.png '
+              '(e.g. gait/sheet_class_warrior_run_a.png) - not checked')
+        return 2
+    sheet, gait = m.group(1), m.group(2)
+    stem = f'{sheet}_{gait}'
+    out = os.path.join(work, 'gait')
+    os.makedirs(out, exist_ok=True)
+    got = {}
+    for suffix in ('.aseprite', '_a.png', '_b.png'):
+        dst = os.path.join(out, stem + suffix)
+        if show('origin/art-inbox', f'art/inbox/gait/{stem}{suffix}', dst):
+            got[suffix] = dst
+    print(f'# {stem} (gait frames for {sheet}, {gait}) — tip {tip[:7]}')
+    if not got:
+        print(f'art/inbox/gait/{stem}.aseprite / {stem}_a.png / {stem}_b.png: none is on origin/art-inbox')
+        return 2
+    rc = 0
+    for suffix in got:
+        path = f'art/inbox/gait/{stem}{suffix}'
+        revs = (git('log', '--format=%h', 'origin/art-inbox', '--', path) or '').split()
+        touched = [p for p in (git('show', '--name-only', '--format=', revs[0]) or '').split('\n') if p] if revs else []
+        outside = [p for p in touched if not p.startswith('art/inbox/')]
+        print(f'- {path}: art-inbox {revs[0] if revs else "?"}' + (f' — commit touched OUTSIDE art/inbox/: {outside}' if outside else ''))
+    print('- not a base sheet: sheets.py is never run on these; they are attached to the registered sheet with add_gait.py')
+    if ('_a.png' in got) != ('_b.png' in got):
+        print('  FAIL: only one strip delivered - a gait set is _a.png (frames 1-4) AND _b.png (frames 5-8)')
+        rc = 1
+    flight = ['--flight-slots', '4'] if gait == 'run' else []
+    _, item = sheet_args(sheet)
+    cellarg = ['--cell', str(item['cell'])] if item.get('cell') else []
+    strips = [got[s] for s in ('_a.png', '_b.png') if s in got]
+    if '.aseprite' in got:
+        exp, n, problem = export_ase_strips(got['.aseprite'], exe, os.path.join(out, 'from_aseprite'), stem)
+        if problem:
+            print(f'  FAIL: {stem}.aseprite: {problem}')
+            rc = 1
+        else:
+            print(f'- {stem}.aseprite: {n} frames exported (visible layers) to {os.path.dirname(exp[0])}' + ('' if n == 8 else '  ← a cycle is 8 frames'))
+            if n != 8:
+                rc = 1
+            for p, q in zip(exp, strips):
+                a_, b_ = Image.open(p).convert('RGB'), Image.open(q).convert('RGB')
+                same = a_.size == b_.size and ImageChops.difference(a_, b_).getbbox() is None
+                print(f'- {os.path.basename(q)} ' + ('== the .aseprite export' if same else '≠ the .aseprite export: re-export the PNG from the .aseprite'))
+                rc = rc or (0 if same else 1)
+            if not strips:
+                strips = exp
+    for p in strips:
+        rc = strip_check(p, os.path.basename(p) + (' (--flight-slots 4)' if flight else ''), flight + cellarg) or rc
+    pose_path, pose = gait_pose(sheet, gait)
+    src = [got['_a.png'], got['_b.png']] if '_a.png' in got and '_b.png' in got else ([got['.aseprite']] if '.aseprite' in got else [])
+    if src:
+        cmd = [sys.executable, os.path.join(ROOT, 'tools', 'art', 'add_gait.py'), sheet, '--gait', gait, '--src', *src,
+               '--dry-run', '--work', os.path.join(work, 'add_gait'), '--aseprite-bin', exe]
+        if pose_path:
+            cmd += ['--pose', pose_path]
+            print(f'- stride from {os.path.relpath(pose_path, ROOT)} (step_px {pose.get("step_px")})')
+        else:
+            print(f'- no request pose.json for {gait} (guides/{gait}_<class> or {gait}_base): add_gait needs --stride')
+        r = subprocess.run(cmd, capture_output=True)
+        txt = (r.stdout + r.stderr).decode('utf-8', 'replace')
+        print('- add_gait.py --dry-run' + (' FAILED' if r.returncode else '') + ':')
+        for ln in txt.splitlines():
+            if ln.strip() and '원본 창' not in ln:
+                print('    ' + ln.strip()[:300])
+        rc = rc or r.returncode
+        if not r.returncode:
+            print(f'- register after judging (copy the files in first): python3 tools/art/add_gait.py {sheet} --gait {gait} --src art/inbox/gait/'
+                  + (f'{stem}_a.png art/inbox/gait/{stem}_b.png' if len(src) == 2 else f'{stem}.aseprite')
+                  + (f' --pose {os.path.relpath(pose_path, ROOT)}' if pose_path else ' --stride <game px>'))
+    print(f'- work folder: {work}')
+    print(f'- after judging (pass or fail): git checkout {tip[:7]} -- <the delivered paths>   (it then counts as reviewed)')
     return rc
 
 
@@ -244,6 +437,8 @@ def main():
     tip = git('rev-parse', 'origin/art-inbox')
     if sub.startswith('guides/') and stem == os.path.basename(sub):
         return skeleton(rel, stem, work, a.aseprite_exe, tip)
+    if rel.startswith('gait/'):
+        return gait_delivery(rel, work, a.aseprite_exe, tip)
     path = f'art/inbox/{rel}.png'
     new = os.path.join(work, 'new', stem + '.png')
     os.makedirs(os.path.dirname(new), exist_ok=True)

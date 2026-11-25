@@ -5,7 +5,8 @@ Checks the dot_queue / package README spec for a 1x4 strip (or a 2x2 grid):
   * 1536x1024, flat #FF00FF background, no transparency
   * every figure colour at RGB distance >= 150 from #FF00FF (>= 170 recommended)
   * figure colour count (~40 with hard edges; many more = soft / anti-aliased edges)
-  * pose count, lowest pixel of each pose on y=870 (2x2: y=461 inside each 768x512 quadrant)
+  * pose count, lowest pixel of each pose on y=870 (2x2: y=461 inside each 768x512 quadrant); run strips: --flight-slots 4 makes
+    pose 4 a flight frame (lowest pixel >= 18 px above y=870 instead of on it)
   * >= 32 px of magenta between poses and to the border
 Optionally exports an .aseprite source with Aseprite (--aseprite) and checks that it equals the PNG.
 
@@ -13,6 +14,7 @@ Usage:
   python3 tools/art/check_delivery.py art/inbox/sheet_hero_lyra.png
   python3 tools/art/check_delivery.py art/inbox/sheet_hero_lyra.png \
       --aseprite art/inbox/aseprite/sheet_hero_lyra.aseprite --aseprite-exe "C:/Program Files/Aseprite/Aseprite.exe"
+  python3 tools/art/check_delivery.py art/inbox/gait/sheet_class_warrior_run_a.png --flight-slots 4   # run strip: R4 is in the air
   (Windows without a system Python:  uv run --no-project --with pillow python tools\\art\\check_delivery.py ...)
 
 Exit code 0 = pass (warnings allowed), 1 = fail, 2 = could not run.
@@ -155,9 +157,9 @@ def check_spots(rgb, spots, errors, warns, info):
 REDRAW_SHARE = 0.30   # a touch-up changes a prop or some colours; above this share of the figure it is a new drawing
 
 
-def compare_base(rgb, base_path, layout, feet, errors, warns, info):
+def compare_base(rgb, base_path, layout, feet, errors, warns, info, flight=()):
     """Touch-ups: what changed against the received PNG, and which failures were already there."""
-    b_err, _, _ = check_png(base_path, layout, feet)
+    b_err, _, _ = check_png(base_path, layout, feet, flight=flight)
     base = Image.open(base_path).convert("RGB")
     if base.size != rgb.size:
         errors.append(f"base size {base.size} differs")
@@ -193,7 +195,13 @@ def compare_base(rgb, base_path, layout, feet, errors, warns, info):
 SMALL_IDLE = 380
 
 
-def check_png(path, layout, feet, cell=None, scale=None):
+FLIGHT_CLEAR = 18   # px: a run's flight frame (both feet off the ground) - tools/art/check_skeleton.py RUN['clear'], 3 game px
+GAIT_STRIP = re.compile(r"_(run|walk)_[ab]\.png$")   # gait frame strips (<sheet stem>_<gait>_a.png): pose 1 is not an idle pose
+
+
+def check_png(path, layout, feet, cell=None, scale=None, flight=()):
+    """flight: 1-based pose numbers of a 1x4 strip that are flight frames of a run (both feet off the ground): their lowest
+    pixel must be FLIGHT_CLEAR px or more above the soles line instead of on it."""
     errors, warns, info = [], [], []
     mode = Image.open(path).mode
     if mode != "RGB":
@@ -277,11 +285,17 @@ def check_png(path, layout, feet, cell=None, scale=None):
                              f"(the pose is shrunk or the sheet needs a bigger cell): keep raised weapons below this")
         stem = os.path.basename(path)
         if i == 1 and layout == "1x4" and stem.startswith(("sheet_captain_", "sheet_hero_")) and not stem.endswith("_mounted.png") \
-                and bb[3] - bb[1] < SMALL_IDLE:
+                and not GAIT_STRIP.search(stem) and bb[3] - bb[1] < SMALL_IDLE:
             warns.append(f"pose 1 (idle) is {bb[3] - bb[1]} px tall with hat and weapon; the other captains are 385-440 px. The game converts "
                          "every sheet at one scale, so this character will stand shorter than the rest: keep the head at 110 px and the "
                          "body at guide size - when a wide pose does not fit, change the weapon angle or the stance, never the body size")
-        if abs(rel - fy) > 3:
+        if layout == "1x4" and i in flight:
+            if fy - rel < FLIGHT_CLEAR:
+                errors.append(f"pose {i} (flight): lowest pixel at y={rel}, {fy - rel} px above the guide line y={fy}; a flight frame "
+                              f"needs {FLIGHT_CLEAR} px or more (both feet clearly off the ground)")
+            else:
+                info.append(f"pose {i} (flight): {fy - rel} px above the guide line (>= {FLIGHT_CLEAR})")
+        elif abs(rel - fy) > 3:
             errors.append(f"pose {i}: lowest pixel at y={rel}, expected {fy} (soles on the guide line)")
         elif rel != fy:
             warns.append(f"pose {i}: lowest pixel at y={rel}, guide line is {fy}")
@@ -393,10 +407,21 @@ def main():
     ap.add_argument("--cell", type=int, help="game cell size for the height budget (default: phase3.json 'cell', else 96)")
     ap.add_argument("--export", action="store_true", help="first export --aseprite to the PNG path (then check it)")
     ap.add_argument("--feet", type=int, default=None, help="soles line (default 870 for 1x4, 461 per 2x2 quadrant)")
+    ap.add_argument("--flight-slots", default="",
+                    help="1x4 run strips: poses that are flight frames, e.g. '4' (run_<set>_a/_b: R4 / R8). Their lowest pixel must be "
+                         f">= {FLIGHT_CLEAR} px above the soles line instead of on it")
     ap.add_argument("--aseprite", help="the .aseprite source to export and compare with the PNG")
     ap.add_argument("--aseprite-exe", default=os.environ.get("ASEPRITE_PATH", "aseprite"),
                     help="Aseprite executable (default: $ASEPRITE_PATH or 'aseprite')")
     a = ap.parse_args()
+    try:
+        flight = tuple(sorted({int(s) for s in a.flight_slots.replace(" ", "").split(",") if s}))
+    except ValueError:
+        print(f"--flight-slots must be pose numbers 1-4 separated by commas, got '{a.flight_slots}'")
+        return 2
+    if any(not 1 <= s <= 4 for s in flight):
+        print(f"--flight-slots must be pose numbers 1-4, got '{a.flight_slots}'")
+        return 2
     tmp_base = None
     if a.base_rev and not a.base:
         # before --export (a typo in the hash must not cost the PNG); git resolves "./name" in the PNG's own folder, so links,
@@ -434,7 +459,10 @@ def main():
         src_note = " from phase3.json" if req.get("layout") else ""
     cell = a.cell or req.get("cell") or 96
     scale = req.get("scale") or 0.1654
-    errors, warns, info = check_png(a.png, a.layout, a.feet, cell, scale)
+    if flight and a.layout != "1x4":
+        print("--flight-slots applies to 1x4 strips only")
+        return 2
+    errors, warns, info = check_png(a.png, a.layout, a.feet, cell, scale, flight)
     unchecked = None
     rgb = Image.open(a.png).convert("RGB")
     spots = [h for h in (a.spot.split(",") if a.spot is not None else (req.get("spots") or [])) if h.strip()]
@@ -444,7 +472,7 @@ def main():
         if not os.path.isfile(a.base):
             errors.append(f"base not found: {a.base}")
         else:
-            compare_base(rgb, a.base, a.layout, a.feet, errors, warns, info)
+            compare_base(rgb, a.base, a.layout, a.feet, errors, warns, info, flight)
     if a.aseprite:
         if not os.path.isfile(a.aseprite):
             errors.append(f".aseprite not found: {a.aseprite}")

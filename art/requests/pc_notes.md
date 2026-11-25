@@ -3,6 +3,12 @@
 클라우드(Claude Code)가 관리한다. **지켜야 하는 것은 전부 여기와 대기열 줄에 있다.** (`feedback.md` 는 클라우드의 검토 기록이다 — 지난 납품에 대한 답이 궁금할 때만 제목에 「PC」 가 든 맨 아래 절을 본다.)
 PC 세션은 일을 시작할 때마다 이 파일을 처음부터 끝까지 읽는다. (그림 쪽 GPT 의 같은 문서: `gpt_handoff_notes.md`)
 
+## 마네킹 시퀀스·이동 프레임 (2026-11-26)
+- **마네킹(뼈대) 시퀀스는 PC 가 만든다** (주인: "마네킹 시퀀스도 pc하청으로"). 클라우드는 요청서 README 에 프레임 사양·검사 명령을 적고, 받은 것을 `check_skeleton.py` 로 잰다.
+  요청서에 클라우드 초안(`walk_base` v2, `run_base` v1 등)이 있으면 그 `.aseprite` 를 납품 폴더로 복사해 출발점으로 쓴다. `joints` 레이어는 숨긴 채 저장한다.
+- 납품 자리: 뼈대 `art/inbox/guides/<id>/<id>.aseprite` · 캐릭터의 이동 프레임(달리기·걷기 띠) `art/inbox/gait/<시트 stem>_<run|walk>.aseprite`
+  (예: `sheet_class_warrior_run.aseprite`, `joints` 레이어 없이). 둘 다 `art/inbox/` 바로 아래에 두지 않는다.
+
 ## 작업 파일을 두는 곳
 - 스크립트·중간 그림은 `~/Documents/pm-pc-scratch/` 에만 둔다 (납품 폴더에 두면 `add art/inbox` 에 딸려 올라간다).
 

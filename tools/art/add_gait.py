@@ -9,7 +9,8 @@
   python3 tools/art/add_gait.py <시트> --reattach        # register_sheet.py 가 다시 등록한 뒤 부른다 (손으로 불러도 된다)
 
   예: python3 tools/art/add_gait.py sheet/class/warrior --gait run \\
-          --src art/inbox/run_warrior_a.png art/inbox/run_warrior_b.png --pose art/requests/guides/run_base/v1/pose.json
+          --src art/inbox/gait/sheet_class_warrior_run_a.png art/inbox/gait/sheet_class_warrior_run_b.png \\
+          --pose art/requests/guides/run_base/v1/pose.json
 
 원본 (art/requests/guides/SPEC.md 2·3절의 프레임 규격):
   - 띠 png: 한 프레임 384x1024 를 나란히 (<set>_a.png = 1~4번, <set>_b.png = 5~8번), 배경 #FF00FF
@@ -33,8 +34,14 @@
 기본 시트를 다시 등록하면 (sheets.py → register_sheet.py): register_sheet.py 가 gaits 기록을 새 항목에 옮기고 이 도구를 --reattach 로 불러
 기록된 원본에서 다시 변환해 붙인다. 원본이 없으면 기록은 남기고(anims 는 없다 → 게임은 그 시트의 이동 칸 없이 돈다) 다시 붙일 명령을 크게 알린다.
 
-게임에 들어가는 그림만 받는다: 초안·뼈대 가이드 자리(art/concepts/, art/requests/, drafts/, nai_*)의 파일은 sheets.py 와 같은 규칙으로 거부한다.
+게임에 들어가는 그림만 받는다: 초안 자리(art/concepts/, art/requests/, drafts/, nai_*)의 파일은 sheets.py 와 같은 규칙으로, 뼈대(마네킹)는
+  — 경로에 guides 폴더가 있는 파일(art/inbox/guides/<id>/ 포함), 옆에 pose_measured.json 이 있는 띠(check_skeleton --export), joints 레이어가 있는
+  .aseprite — 모두 거부한다. joints 레이어가 보이는 .aseprite 는 --allow-draft 로도 받지 않는다 (관절 점이 찍힌다).
   --allow-draft = 파이프라인 시험용, 언제나 --dry-run.
+실패로 끝나는 그림: 384px 프레임의 테두리에 닿는 프레임 (띠가 잘리거나 옆 자세가 넘어온 것 — 프레임 번호를 알린다),
+  바닥 줄 아래로 내려가는 프레임 (--allow-below 를 주면 받고 기록에 남긴다), 칸에 들어가지 않는 프레임.
+최종 이동 프레임이 들어오는 자리: art/inbox/gait/<시트 png 이름>_<gait>.aseprite 또는 _<gait>_a.png / _<gait>_b.png
+  (tools/art/receive.py gait/<시트 png 이름>_<gait> 가 검사하고 이 도구의 --dry-run 까지 돌린다).
 필요: Pillow + NumPy (+ .aseprite 원본이면 Aseprite: tools/art/ase_headless.sh)
 """
 import argparse
@@ -188,13 +195,33 @@ def find_aseprite(given):
     return None
 
 
+def ase_env():
+    env = dict(os.environ)
+    env.pop('DISPLAY', None)
+    env.pop('WAYLAND_DISPLAY', None)
+    return env
+
+
+def ase_layers(path, exe):
+    """→ (모든 레이어 이름, 보이는 레이어 이름). 마네킹(뼈대 가이드)인지 가리는 데 쓴다."""
+    exe = find_aseprite(exe)
+    if not exe:
+        raise Fail('.aseprite 원본을 읽을 Aseprite 실행 파일이 없다 (--aseprite-bin / tools/art/ase_headless.sh) — 띠 png 두 장을 --src 로 줄 수도 있다')
+    out = []
+    for extra in (['--all-layers'], []):
+        r = subprocess.run([exe, '--batch', *extra, '--list-layers', os.path.abspath(path)], stdin=subprocess.DEVNULL, capture_output=True,
+                           timeout=120, env=ase_env())
+        out.append([n.strip() for n in r.stdout.decode('utf-8', 'replace').splitlines() if n.strip()])
+    if not out[0]:
+        raise Fail(f'Aseprite 가 {path} 의 레이어를 읽지 못했다 — 마네킹(joints 레이어)인지 확인할 수 없어 받지 않는다')
+    return out[0], out[1]
+
+
 def frames_from_aseprite(path, exe):
     exe = find_aseprite(exe)
     if not exe:
         raise Fail('.aseprite 원본을 읽을 Aseprite 실행 파일이 없다 (--aseprite-bin / tools/art/ase_headless.sh) — 띠 png 두 장을 --src 로 줄 수도 있다')
-    env = dict(os.environ)
-    env.pop('DISPLAY', None)
-    env.pop('WAYLAND_DISPLAY', None)
+    env = ase_env()
     with tempfile.TemporaryDirectory(prefix='gait-ase-') as tmp:
         png, js = os.path.join(tmp, 'frames.png'), os.path.join(tmp, 'frames.json')
         r = subprocess.run([exe, '--batch', os.path.abspath(path), '--sheet', png, '--data', js, '--format', 'json-array'],
@@ -266,7 +293,7 @@ def convert(frames, cell, anchor, scale, pal, keys, roles, spots, floor, center)
     eff = (cw / Sx, ch / Sy)
     log(f'  원본 창 {Sx}x{Sy}px → 칸 {cw}x{ch} (실제 배율 {eff[0]:.5f} x {eff[1]:.5f}, 요청 {scale:g}); '
         f'원본 x={center:g} → 칸 x={ox * cw / Sx:.2f} (anchor {ax}), 바닥 줄 y={floor} 아랫변 → 칸 y={oy * ch / Sy:.2f} (anchor {ay})')
-    cells, info, bad = [], [], []
+    cells, info, bad, edge = [], [], [], []
     for i, arr in enumerate(frames):
         rgb, alpha, _ = sh.matte(np.ascontiguousarray(arr))
         H, W = alpha.shape
@@ -274,6 +301,11 @@ def convert(frames, cell, anchor, scale, pal, keys, roles, spots, floor, center)
         if bb is None:
             raise Fail(f'{i + 1}번 프레임이 비었다')
         x0, y0, x1, y1 = (int(v) for v in bb)
+        # 띠는 384px 씩 자른다: 그림이 칸의 가장자리 열(0 / 383)에 닿으면 옆 칸으로 넘어간 것이다 (잘린 그림 또는 옆 자세의 조각)
+        touch = [s for s, hit in (('왼쪽(x=0)', x0 <= 0), (f'오른쪽(x={W - 1})', x1 >= W), ('위(y=0)', y0 <= 0), (f'아래(y={H - 1})', y1 >= H)) if hit]
+        if touch:
+            edge.append(f'{i + 1}번 프레임: 그림이 {SLOT}px 프레임의 {"·".join(touch)} 가장자리에 닿는다 (bbox x {x0}-{x1 - 1}, y {y0}-{y1 - 1})')
+            continue
         over = [(side, d) for side, d in (('왼쪽으로', 1 - (x0 + dx) * cw / Sx), ('오른쪽으로', (x1 + dx) * cw / Sx - (cw - 1)),
                                            ('위로', 1 - (y0 + dy) * ch / Sy), ('아래로', (y1 + dy) * ch / Sy - ch)) if d > 1e-6]
         if over:
@@ -298,6 +330,9 @@ def convert(frames, cell, anchor, scale, pal, keys, roles, spots, floor, center)
         ys, xs = np.nonzero(mask)
         info.append({'frame': i + 1, 'bbox': [int(xs.min()), int(ys.min()), int(xs.max()) + 1, int(ys.max()) + 1],
                      'above_floor': int(ay - 1 - ys.max()), 'src_lowest_y': y1 - 1})
+    if edge:
+        raise Fail('프레임 칸(384px)의 테두리를 넘는 그림이 있다 — 띠를 384px 씩 자르면 그림이 잘리거나 옆 프레임의 조각이 들어온다. '
+                   '자세를 프레임 가운데(엉덩이 x=192)에 두고 테두리와 띄워 다시 그릴 것:\n    ' + '\n    '.join(edge))
     if bad:
         raise Fail(f'칸 {cw}x{ch} (가장자리 1px 여유)에 들어가지 않는 프레임이 있다 — 줄이거나 밀지 않는다. '
                    '그림을 고치거나 더 큰 칸으로 기본 시트를 다시 등록할 것:\n    ' + '\n    '.join(bad))
@@ -318,14 +353,35 @@ def command_for(sid, gait, rec):
         cmd += ['--center', str(rec['center'])]
     if rec.get('scale'):
         cmd += ['--scale', f'{rec["scale"]:g}']
+    if rec.get('allow_below'):
+        cmd += ['--allow-below']
     return ' '.join(shlex.quote(c) for c in cmd)
 
 
-def draft_guard(src, allow):
-    """sheets.py 와 같은 규칙: 초안·가이드 자리의 그림은 게임 시트에 붙이지 않는다. → 시험 처리(dry-run 강제)인가"""
+def guide_reason(p, exe):
+    """뼈대 가이드(마네킹)로 보이면 그 이유, 아니면 None. 마네킹은 PC 가 만드는 자세 가이드이고 게임 프레임이 되지 않는다:
+    - 경로에 guides 폴더 (art/requests/guides/<id>/…, PC 가 넘기는 art/inbox/guides/<id>/<id>.aseprite)
+    - 옆에 pose_measured.json (check_skeleton.py --export 가 마네킹에서 뽑은 띠)
+    - joints 레이어가 있는 .aseprite (관절 점 레이어 = 뼈대 작업 파일)"""
+    real = os.path.realpath(p)
+    if 'guides' in real.split(os.sep)[:-1]:
+        return 'guides/ 폴더 안의 파일 = 뼈대 가이드'
+    if os.path.exists(os.path.join(os.path.dirname(real), 'pose_measured.json')):
+        return '옆에 pose_measured.json — check_skeleton.py --export 가 마네킹에서 뽑은 띠'
+    if p.lower().endswith(('.aseprite', '.ase')):
+        names, visible = ase_layers(p, exe)
+        if 'joints' in names:
+            if 'joints' in visible:
+                raise Fail(f'{p}: joints 레이어가 보인다 — 관절 점이 프레임에 그대로 찍힌다. 이 파일은 뼈대(마네킹)이고 게임 프레임이 아니다')
+            return 'joints 레이어가 있는 .aseprite = 뼈대 작업 파일(마네킹)'
+    return None
+
+
+def draft_guard(src, allow, exe=None):
+    """sheets.py 와 같은 규칙 + 뼈대 가이드: 초안·가이드의 그림은 게임 시트에 붙이지 않는다. → 시험 처리(dry-run 강제)인가"""
     forced = False
     for p in src:
-        why = sh.novelai_draft_reason(p)
+        why = sh.novelai_draft_reason(p) or guide_reason(p, exe)
         if not why:
             continue
         if not allow:
@@ -391,8 +447,13 @@ def gait_blocks(sid, entry, img, gait, rec, exe):
     log('  프레임별 맨 아래 픽셀 (바닥 줄 위 게임 px): ' + ' '.join(f'{r["frame"]}:{r["above_floor"]}' for r in info))
     if not touch:
         log(f'  주의: 바닥 줄(y={rec.get("floor", FLOOR)})에 닿는 프레임이 하나도 없다 — 바닥 줄이 다른 그림이면 --floor 로 줄 것')
+    if below and not rec.get('allow_below'):
+        raise Fail('바닥 줄 아래로 내려가는 프레임이 있다 — 게임에서 발이 땅에 묻힌다:\n    '
+                   + '\n    '.join(f'{r["frame"]}번 프레임: 바닥 줄(y={rec.get("floor", FLOOR)}) 아래로 게임 {-r["above_floor"]}px '
+                                   f'(원본 맨 아래 y={r["src_lowest_y"]})' for r in below)
+                   + '\n    디딘 발의 맨 아래 픽셀을 y=870 에 두고 다시 그릴 것 (바닥 줄이 다른 그림이면 --floor). 일부러 그런 것이면 --allow-below')
     for r in below:
-        log(f'  주의: {r["frame"]}번 프레임이 바닥 줄 아래로 {-r["above_floor"]}px 내려간다 (원본 맨 아래 y={r["src_lowest_y"]})')
+        log(f'  주의 (--allow-below): {r["frame"]}번 프레임이 바닥 줄 아래로 {-r["above_floor"]}px 내려간다 (원본 맨 아래 y={r["src_lowest_y"]})')
     return cells, ms, stride, info
 
 
@@ -499,7 +560,7 @@ def reattach(sid, man, a):
             missing = [p for p in rec.get('src', []) if not os.path.exists(absp(p))]
             if missing or not rec.get('src'):
                 raise Fail('원본이 없다: ' + (', '.join(missing) or '(기록에 src 가 없다)'))
-            draft_guard([absp(p) for p in rec['src']], False)
+            draft_guard([absp(p) for p in rec['src']], False, a.aseprite_bin)
             attach(sid, man, g, rec, a)
         except Fail as e:
             failed += 1
@@ -527,7 +588,8 @@ def main(argv=None):
     ap.add_argument('--reattach', action='store_true', help='기록은 있는데 칸이 없는 이동 동작을 기록된 원본에서 다시 붙인다')
     ap.add_argument('--dry-run', action='store_true', help='시트·manifest 를 바꾸지 않고 --work 에 결과만 쓴다')
     ap.add_argument('--work', help='새 시트·항목·미리보기를 둘 폴더 (--dry-run 에서는 여기에만 쓴다)')
-    ap.add_argument('--allow-draft', action='store_true', help='시험용: 초안·가이드 자리의 원본도 처리한다. 언제나 --dry-run')
+    ap.add_argument('--allow-draft', action='store_true', help='시험용: 초안·가이드(뼈대 마네킹 포함) 원본도 처리한다. 언제나 --dry-run')
+    ap.add_argument('--allow-below', action='store_true', help='바닥 줄 아래로 내려가는 프레임을 받는다 (기본: 실패). 기록에 남아 다시 붙일 때도 쓴다')
     ap.add_argument('--aseprite-bin', help='Aseprite 실행 파일 (기본: $ASEPRITE_PATH, tools/art/ase_headless.sh, $ASEPRITE, PATH)')
     a = ap.parse_args(argv)
     try:
@@ -546,11 +608,16 @@ def main(argv=None):
         log(f'{sid}: {a.gait} ← {", ".join(a.src)}')
         if a.allow_draft:
             a.dry_run = True
-        if draft_guard(a.src, a.allow_draft):
+        for p in a.src:
+            if not os.path.exists(p):
+                raise Fail(f'원본이 없다: {p}')
+        if draft_guard(a.src, a.allow_draft, a.aseprite_bin):
             a.dry_run = True
         rec = {'src': [rel(p) for p in a.src], 'floor': a.floor, 'center': a.center}
         if a.scale:
             rec['scale'] = a.scale
+        if a.allow_below:
+            rec['allow_below'] = True
         if a.ms:
             rec['ms'] = a.ms
         pose = a.pose

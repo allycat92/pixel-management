@@ -18,11 +18,13 @@
 |---|---|---|
 | 어디서 | 주인 PC 의 게임 저장소 폴더. Claude Desktop(Code) 또는 `claude` / `claude remote-control` | claude.ai 클라우드 컨테이너 |
 | 도구 | 정품 Aseprite + aseprite-mcp (`tools/aseprite-mcp/README.md`, 위험 도구 5개 deny) | 게임 코드, `tools/art/*`, 머리 없는(headless) Aseprite 빌드 |
-| 하는 일 | `dot_queue.md` 에서 `담당: PC(Aseprite)` 가 붙은 항목만: 받은 시트 손질, 자세 뼈대 만들기·다듬기 | 요청서·가이드·대기열 관리, 납품 검사, `sheets.py` 등록, 게임 연결, 피드백, 코드 리뷰 |
+| 하는 일 | `dot_queue.md` 에서 `담당: PC(Aseprite)` 가 붙은 항목만: 받은 시트 손질, 자세 뼈대(마네킹 시퀀스)를 클라우드의 프레임 사양대로 만들기·다듬기 | 요청서·가이드(프레임 사양)·대기열 관리, 납품 검사(뼈대는 `check_skeleton.py`), `sheets.py`·`add_gait.py` 등록, 게임 연결, 피드백, 코드 리뷰 |
 | 쓰는 곳 | **`art-inbox` 브랜치의 `art/inbox/` 만** | 게임 브랜치 `claude/dot-fantasy-management-game-saupju` (그리고 art-inbox 는 읽기만) |
 | 하지 않는 일 | 게임 브랜치에 푸시, `dot_queue.md`·`feedback.md`·`js/`·`assets/`·`tools/` 수정, 시트 등록 | PC 의 파일·프로그램을 직접 만지는 일 (닿지 않는다) |
 
-- **역할 나눔 (2026-11-25 주인 결정)**: GPT 도트 = 새로 그리기·다시 그리기, PC = 이미 받은 그림을 Aseprite 로 손질(색·소품) + 자세 뼈대(`art/requests/guides/SPEC.md`). 클라우드가 손질 항목에 `담당: PC(Aseprite)` 를 붙이고, PC 는 **그 항목만** 한다 (담당 표시가 없는 DOT_READY 는 GPT 몫).
+- **역할 나눔 (2026-11-25 주인 결정)**: GPT 도트 = 새로 그리기·다시 그리기, PC = 이미 받은 그림을 Aseprite 로 손질(색·소품) + 자세 뼈대(`art/requests/guides/SPEC.md`).
+  **마네킹 시퀀스도 PC 가 만든다 (2026-11-26 주인 결정: "마네킹 시퀀스도 pc하청으로")**: 클라우드는 요청서에 프레임 사양과 검사 명령을 적고 검사를 맡는다.
+  클라우드가 수치표로 구운 초안(걷기 `walk_base` v2, 달리기 `run_base` v1)은 PC 가 출발점으로 써도 된다. 클라우드가 손질 항목에 `담당: PC(Aseprite)` 를 붙이고, PC 는 **그 항목만** 한다 (담당 표시가 없는 DOT_READY 는 GPT 몫).
 - **PC 지침의 원본은 `tools/aseprite-mcp/pc/CLAUDE.md` 하나뿐이다** (판 번호가 맨 위에 있다; 늘 지키는 규칙은 `art/requests/pc_notes.md`). `git pull` 로 따라온다.
   PC 에는 한 번만 복사한다: `tools/aseprite-mcp/pc/CLAUDE.local.md`(본문을 불러오는 세 줄 + 이 PC 의 경로) → 게임 폴더 루트, `settings.local.json` → 게임 폴더의 `.claude\settings.local.json`
   (둘 다 `.git\info\exclude` 에 적어 커밋되지 않게). 설정 파일의 허용 목록이 바뀌면 그때만 다시 복사한다.
@@ -56,6 +58,12 @@ git worktree add ..\pixel-management-inbox art-inbox    # 납품용 폴더 (art-
 | 납품 PNG | `art/inbox/<stem>.png` | `art/inbox/sheet_hero_lyra.png` |
 | Aseprite 원본 | `art/inbox/aseprite/<stem>.aseprite` | `art/inbox/aseprite/sheet_hero_lyra.aseprite` |
 | 납품 메모 | `art/inbox/NOTES.md` 의 절 | 「3단계 — 리라 (Aseprite)」, 다시 그리면 「리라 — 다시 그림 (Aseprite)」 |
+| 뼈대(마네킹 시퀀스) | `art/inbox/guides/<id>/<id>.aseprite` 하나 | `art/inbox/guides/run_base/run_base.aseprite` |
+| 이동 프레임(달리기·걷기 띠) | `art/inbox/gait/<시트 stem>_<run\|walk>.aseprite` | `art/inbox/gait/sheet_class_warrior_run.aseprite` |
+
+이동 프레임은 기본 시트가 아니다: 이름이 `sheet_*.png` 로 `art/inbox/` 바로 아래 오면 `sheets.py` 가 시트로 잘못 처리한다. 그래서 `gait/` 폴더에 두고,
+클라우드는 `add_gait.py` 로 등록된 시트에 붙인다(다시 등록할 때 그 자리의 원본을 다시 읽으므로 옮기거나 지우지 않는다).
+이동 프레임 `.aseprite` 에는 `joints` 레이어를 두지 않는다 — 관절 점 레이어가 있는 파일은 뼈대로 보고 `add_gait.py` 가 받지 않는다.
 
 **PNG 규격** (요청서 README 의 DELIVERABLE·SELF-CHECK 와 같다):
 1536×1024 RGB, 평평한 `#FF00FF` 배경, 자세 4개 한 줄(README 가 2x2 라고 하면 768×512 칸 4개), 발바닥(가장 아래 픽셀) y=870 (2x2 는 칸마다 y=461),
@@ -107,6 +115,8 @@ NOTES.md 충돌은 양쪽 절을 모두 남기고 PNG·`.aseprite` 충돌은 풀
 ```bash
 python3 tools/art/receive.py --list                       # 새로 올라온 파일·NOTES 절 (이 브랜치의 art/inbox 와 다른 것 = 아직 안 본 것)
 python3 tools/art/receive.py <stem> --work <스크래치 폴더>   # 한 파일 검사 (Aseprite 는 tools/art/ase_headless.sh 가 버리는 프로필로 부른다)
+python3 tools/art/receive.py guides/<id>/<id>              # 뼈대: check_skeleton.py (요청의 pose.json·초안과 비교), 띠를 뽑아 검사
+python3 tools/art/receive.py gait/<시트 stem>_<run|walk>    # 이동 프레임: 띠 검사(달리기 --flight-slots 4) → add_gait.py --dry-run
 ```
 1. `--list` 에 아무것도 없으면 끝. 새 NOTES 절(제안·막힘·교차 검수 답)이 있으면 읽고 처리한다(`dot_queue.md` 「운영 규칙」).
 2. 파일마다 `receive.py <stem>` → **`review_<stem>.png` 를 눈으로 본다** (왼쪽 디자인 기준 = 초상화·시안, 오른쪽 게임 크기 x3 을 어두운 바닥·모래·눈 위에).
