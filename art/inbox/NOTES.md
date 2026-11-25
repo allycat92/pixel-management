@@ -463,3 +463,10 @@ REFERENCES LOADED: portrait_800.jpg OK; guide_strip.png OK; guide_1_idle.png, gu
 DEVIATIONS: (a) 지팡이 머리를 어두운 원판의 별이 든 금빛 초승달로 교체. 1번에서 지팡이를 화면 왼쪽에 세우고 3번은 열린 빈손 손바닥을 위로 향하게 했음. 4번은 발을 땅에 두고 상체와 지팡이를 뒤로 젖힘. 대기 몸 높이 414px(지팡이 끝 제외), 몸의 폭을 줄이지 않음. (b) 초상화의 광휘는 요청대로 빼고 원판 안에만 칠한 별을 둠. (c) none.
 RISKS AT GAME SIZE: 96px 변환 준비 자세 80px, 달과 중심 원판은 분리되어 보이나 작은 별·귀걸이는 금색 점으로만 읽힐 수 있음. 대기·시전의 지팡이 자루 일부가 로브의 금테와 나란하여 밝은 전장에서도 구분되는지 확인 부탁.
 PROPOSALS: none.
+
+## sheet/captain/lightbearer - 루치아
+CHECK: RESULT: PASS
+REFERENCES LOADED: portrait_800.jpg OK; guide_strip.png OK; guide_1_idle.png, guide_2_windup.png, guide_3_strike.png, guide_4_hit.png OK; Baren anchor OK.
+DEVIATIONS: (a) 지팡이 대신 짧은 흰 자루와 금빛 태양 원판. 1번 홀을 화면 왼쪽에 세우고 4번은 앞발을 들고 홀을 뒤로 낮춤. 대기 측정 453px(머리 장식 포함); 몸 축소 없이 폭 조절. (b) 그림 바깥의 광휘는 생략하고 원판 안에만 밝은 크림색 중심을 칠함. (c) none.
+RISKS AT GAME SIZE: 96px 변환에서 치유 동작의 빈손과 홀 머리는 구분되나, 눈밭에선 연한 옷과 장갑의 베이지 외곽 및 4번 피격 발 위치 보정 확인 부탁. 대기 자세의 꽃과 원판이 가까워 밝은 바닥에서 분리되는지도 확인 부탁.
+PROPOSALS: none.
