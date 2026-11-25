@@ -2,6 +2,9 @@
 
 ## Rules changed (newest first — read this list every time)
 
+- 2026-11-26 **One bad pose does not block a sheet**: if three poses are right and one misses a rule you cannot fix with your tools
+  (e.g. a weapon overlapping the body), DELIVER the sheet and name that pose under DEVIATIONS. The PC Aseprite session moves or repaints
+  the prop in that pose. Report 막힘 only when the whole sheet cannot be made (a reference will not load, the request contradicts itself).
 - 2026-11-26 **How work arrives**: one standing instruction (`art/requests/GPT_STANDING.md`) + `dot_queue.md` section "지금 차례". No per-item messages.
   NOTES sections use the template there (CHECK / REFERENCES LOADED / DEVIATIONS / RISKS AT GAME SIZE / PROPOSALS).
 - 2026-11-26 **References must load**: use the `*_800.jpg` copies. If a design reference (portrait, concept) does not load, do not draw from the text — report "막힘".

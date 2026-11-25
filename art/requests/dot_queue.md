@@ -19,8 +19,8 @@ Claude Code 가 받아서 확인한 결과는 `art/requests/feedback.md`에 남�
 | 누구 | 종류 | id | 할 일 (자세한 것은 그 줄의 요청서) |
 |---|---|---|---|
 | GPT | fix | `sheet/monster/거대 거미` | 꾸러미 README 맨 위 **THIS ROUND**: 통과한 대기 컷(`555007c`)을 바탕으로 네 자세, 눈을 선명한 빨강으로·몸 색 차갑게 |
-| GPT | new | `sheet/captain/beastmaster` | 오르가 — 다섯 번 건너뛰어졌다. 못 그리는 이유가 있으면 NOTES 에 「막힘 - sheet/captain/beastmaster」 |
-| GPT | new | `sheet/captain/liberator` | 카토 — 한손 장검, 방패 없음, 양손목 족쇄 |
+| GPT | new | `sheet/captain/beastmaster` | 오르가 — **막힘 답(ab4b3cd)**: 지금 초안을 그대로 납품한다. 피격 자세의 활·다리 겹침은 NOTES 의 DEVIATIONS 에 적으면 PC 가 그 자세의 활만 손질한다 |
+| GPT | new | `sheet/captain/liberator` | 카토 — **막힘 답(ab4b3cd)**: 지금 초안을 그대로 납품한다. 대기 자세의 장검·의상 겹침은 DEVIATIONS 에 적으면 PC 가 그 자세의 검만 손질한다 |
 | GPT | new | `sheet/captain/admiral` | 마렌 |
 | GPT | new | `sheet/captain/elfwarden` | 세레니엘 |
 | GPT | new | `sheet/captain/warlord` | 가르마크 — 확정 무기: 양손 전쟁 도끼 |
