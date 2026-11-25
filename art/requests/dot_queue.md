@@ -71,4 +71,5 @@ Claude Code 가 받아서 확인한 결과는 `art/requests/feedback.md`에 남�
 - **역할 나눔**: GPT(도트) = 새로 그리기·다시 그리기 / PC(Aseprite) = 이미 받은 그림의 색·외곽선·소품 손질. 상태 칸에 **`담당: PC(Aseprite)`** 가 붙은 항목은 PC 몫이라 GPT 쪽은 건드리지 않는다. PC 는 그 표시가 있는 항목**만** 한다 (`tools/aseprite-mcp/pc/CLAUDE.local.md`).
 - `QUEUED`·`NEEDS_FIX`(고칠 점이 feedback.md 에 있을 때만 다시 그림)·`DELIVERED`·`ACCEPTED`는 건드리지 않는다. `DOT_READY`가 없으면 멈춘다.
 - Claude Code 가 art-inbox 를 주기적으로 확인해서 수령·검토하고 feedback.md 와 이 표를 갱신한다.
+- **GPT 제안 처리 (주인 위임 2026-11-25)**: GPT 가 NOTES 등에 올린 제안·질문에 대한 답과 수용 여부는 Claude 가 판단해 처리한다(수용·일부 수용·거절과 이유를 feedback.md 에 기록). 주인 결정이 필요한 것(디자인 방향을 크게 바꾸는 것, 주인이 직접 고른 것을 뒤집는 것)만 주인에게 묻는다.
 - **교차 검수 (주인 요청 2026-11-25)**: 잘 안 되는 부분·애매한 판단(다시 그릴지 말지, 새 효과·자세 기준 등)은 주인만이 아니라 GPT 에게도 `review/xcheck_NN` 항목으로 물어 교차 검증한다. 의견이 갈리면 둘 다 적어 주인에게 묻는다.

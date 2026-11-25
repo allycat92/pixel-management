@@ -711,7 +711,7 @@ lowest pixel on y=461, facing right, at the same scale as the 2x2 quadrant (abou
 Keep what the owner liked in the draft: the ground-level side silhouette, legs arching higher than the back, the big hairy abdomen,
 the glossy red eye cluster. Separate the 4 near and 4 far legs as you proposed - stagger the far feet and knees and shade them darker,
 do NOT raise the viewpoint. Add a short section "거대 거미 — 대기 한 컷" to art/inbox/NOTES.md, commit, push art-inbox only, then stop.
-Claude will compare it with the draft at the same size and at game size (~36 px tall); after the owner OKs it, message I continues with the other three poses
+Claude will compare it with the draft at the same size and at game size (~36 px tall); once Claude passes it, message I continues with the other three poses
 built on that idle (same silhouette and foot positions).
 ```
 웹판: 위 문장 + `concept_800.jpg`·`guide_scale.png` 와 바렌 시트 첨부.
