@@ -2,6 +2,10 @@
 
 ## Rules changed (newest first — read this list every time)
 
+- 2026-11-26 **Body size is fixed — do not shrink the figure to fit the width**: Crimson (idle 367 px) and Bjorn (373 px) arrived 8-12% smaller than
+  the other captains (385-440 px, hat and weapon included) after a "layout width correction". The game converts every sheet at one scale, so they
+  stood a head shorter; we fixed those two in conversion. From now on: head 110 px, idle top-of-head to sole about 400 px. When a wide pose does not
+  fit between its neighbours, change the weapon angle or narrow the stance. `check_delivery.py` now prints a WARN when the idle pose is under 380 px.
 - 2026-11-26 **One bad pose does not block a sheet**: if three poses are right and one misses a rule you cannot fix with your tools
   (e.g. a weapon overlapping the body), DELIVER the sheet and name that pose under DEVIATIONS. The PC Aseprite session moves or repaints
   the prop in that pose. Report 막힘 only when the whole sheet cannot be made (a reference will not load, the request contradicts itself).

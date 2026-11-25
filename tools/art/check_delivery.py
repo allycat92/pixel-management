@@ -179,6 +179,11 @@ def compare_base(rgb, base_path, layout, feet, errors, warns, info):
             warns.append("pre-existing (also fails on the base, not caused by this touch-up): " + m)
 
 
+# idle silhouettes (hat and weapon included) of the 36 humanoid strips delivered by 2026-11-26: median 418 px, two under 380 px
+# (Crimson 367, Bjorn 373) - both had to be converted at a larger scale to stand level with the others
+SMALL_IDLE = 380
+
+
 def check_png(path, layout, feet, cell=None, scale=None):
     errors, warns, info = [], [], []
     mode = Image.open(path).mode
@@ -261,6 +266,12 @@ def check_png(path, layout, feet, cell=None, scale=None):
             if hh > budget:
                 warns.append(f"pose {i}: {bb[3] - bb[1]} px tall = {hh:.1f} game px, over the {budget} px a {cell} px cell holds "
                              f"(the pose is shrunk or the sheet needs a bigger cell): keep raised weapons below this")
+        stem = os.path.basename(path)
+        if i == 1 and layout == "1x4" and stem.startswith(("sheet_captain_", "sheet_hero_")) and not stem.endswith("_mounted.png") \
+                and bb[3] - bb[1] < SMALL_IDLE:
+            warns.append(f"pose 1 (idle) is {bb[3] - bb[1]} px tall with hat and weapon; the other captains are 385-440 px. The game converts "
+                         "every sheet at one scale, so this character will stand shorter than the rest: keep the head at 110 px and the "
+                         "body at guide size - when a wide pose does not fit, change the weapon angle or the stance, never the body size")
         if abs(rel - fy) > 3:
             errors.append(f"pose {i}: lowest pixel at y={rel}, expected {fy} (soles on the guide line)")
         elif rel != fy:
