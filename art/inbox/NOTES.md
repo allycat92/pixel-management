@@ -515,3 +515,10 @@ REFERENCES LOADED: portrait_800.jpg OK; guide_strip.png OK; guide_1_idle.png, gu
 DEVIATIONS: (a) 가이드 검 대신 확정 디자인인 양손 돌망치. 대기 몸 높이 406px, 양팔과 어깨 폭을 유지. 1번과 2번의 x 투영이 3px 겹치지만 실제 그림 간 키 색 여백은 분리돼 있고 4포즈 검사를 통과; 변환기는 연결 덩어리 기준으로 네 자세를 분리. 4번 앞발을 들고 망치를 뒤로 낮춤. (b) none. (c) none.
 RISKS AT GAME SIZE: 112px 변환 준비 자세 80px. 망치 머리는 네 자세에서 몸 밖에 남으나 금빛 소용돌이 룬은 축소 시 점으로 보일 수 있음. 피격 기준 발 보정과 타격 때 망치 머리 높이는 실제 전투 확인 부탁.
 PROPOSALS: none.
+
+## sheet/captain/shadowqueen - 니클라 쌍검
+CHECK: RESULT: PASS
+REFERENCES LOADED: 승인본 c9d582c OK; portrait_800.jpg OK; guide_strip.png OK; guide_1_idle.png, guide_2_windup.png, guide_3_strike.png, guide_4_hit.png OK; Baren anchor OK.
+DEVIATIONS: (a) THIS ROUND의 동작을 우선해 1번 열린 V·2번 어깨 위 X·3번 낮은 가위 베기·4번 양옆으로 젖힘. 대기 몸 421px, 발 y=870. 2번은 X가 읽히도록 두 날이 한 지점에서만 교차하고 나머지는 분리. 공간을 위해 1·3번 검을 가파르게 들고 내렸으며 날은 요청의 220px보다 짧게 읽힐 수 있음. (b) 초상화의 칼 두 자루는 양손에 옮겨 등에 남기지 않음. (c) none.
+RISKS AT GAME SIZE: 96px 변환에서 V·X·열리는 두 날이 구분됨. 2번 교차점과 3번 망토에 가까운 아래 손목이 실제 전투 배경에서도 따로 읽히는지 확인 부탁. 피격 중심 보정 -4px.
+PROPOSALS: 이전 등록본 교체 여부는 클로드 검수 후 결정.

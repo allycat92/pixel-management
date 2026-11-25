@@ -3,19 +3,16 @@
 ## THIS ROUND (overrides anything below that disagrees)
 
 ```
-KIND: fix (full redraw of all four poses). BASE: your accepted sheet art/inbox/sheet_captain_shadowqueen.png @ c9d582c on art-inbox -
-keep her face, hood, cloak, hair, colours, size (idle 420 px) and soles on y=870 exactly as they are.
-WHY: the portrait shows TWIN SWORDS on her back, and her second skill "그림자 난무" is a 4-hit dash. A single dagger was our request's mistake
-(Claude's simplification), not yours. Owner, 2026-11-26: every character should move in their own way - Nikla fights with both blades.
-CHANGE:
-  1. WEAPONS: the two short swords of the portrait, one in EACH hand - straight steel blades ~2 heads (~220 px), red-wrapped grips, gold
-     crossguards, round gold pommels; bright neutral steel ~#d8dde3 with a 1 px dark outline; nothing left on her back.
-  2. HER OWN MOTION (see "POSES" below - they were rewritten for twin blades):
-     idle = low assassin crouch, the two blades an open V in front of her / wind-up = arms crossed behind the near shoulder, the blades an X
-     above and behind her - make this anticipation big and clear / strike = the X released in a low dashing scissor slash, both blades ahead /
-     hit = thrown back, both blades flung out to the sides.
-  Both blades on the magenta background outside the body in every pose, never overlapping each other. No trails or afterimages.
-DELIVER: art/inbox/sheet_captain_shadowqueen.png (overwrite), same layout and checks as before. NOTES section "## sheet/captain/shadowqueen - 니클라 쌍검".
+KIND: fix (pose 3 only). BASE: art/inbox/sheet_captain_shadowqueen.png @ aa0687e on art-inbox - the twin-sword sheet is ACCEPTED and
+registered. Poses 1, 2 and 4 stay exactly as they are (pixel for pixel); the X wind-up (pose 2) is excellent - it is her signature now.
+FIX pose 3 (strike) only: now she crouches with one blade straight up and one blade down - at game size it reads as another guard stance,
+not as the moment of the hit. Make it the RELEASE of the X:
+  - a low DASHING LUNGE toward the right: front knee bent far forward, rear leg stretched long behind, torso leaning forward
+    (the hips about 60-80 px further right than in pose 2), cloak and hair streaming back;
+  - BOTH arms swept forward: near blade extended straight ahead at chest height pointing right, far blade sweeping low and forward
+    ahead of the front knee - the two blades open like scissors toward the enemy, both tips to the RIGHT of her front foot;
+  - same size, face, colours and swords as poses 1, 2 and 4; soles on y=870 (rear foot may be on its toes); blades on the background.
+DELIVER: art/inbox/sheet_captain_shadowqueen.png (overwrite, all four poses in the file). NOTES "## sheet/captain/shadowqueen - 니클라 타격 자세".
 ```
 
 도트 납품 대기열(`art/requests/dot_queue.md`) 항목. 규칙은 `art/requests/gpt_handoff_notes.md`가 우선이다.
