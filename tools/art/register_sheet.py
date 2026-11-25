@@ -16,6 +16,8 @@ Aseprite 의 json-array 출력(--list-tags 포함)을 읽어 assets/art/manifest
 - anchor: 칸(cell) 안에서 발바닥 가운데 위치. 기본은 80x80 칸 기준 40,76.
 - facing: 그림이 바라보는 방향 (1 = 오른쪽, -1 = 왼쪽).
 - 태그 이름(idle/walk/attack/hit/cast ...)이 그대로 애니메이션 이름이 된다. idle 은 꼭 있어야 한다.
+- 이전 항목에 tools/art/add_gait.py 가 붙인 달리기·걷기 칸(sheet.gaits 기록)이 있으면, 새 시트에는 그 칸이 없으므로 기록을 새 항목에
+  옮겨 두고 등록 뒤 `add_gait.py <id> --reattach` 를 불러 기록된 원본에서 다시 붙인다 (원본이 없으면 크게 경고한다 — 조용히 잃지 않는다).
 Aseprite 내보내기 예:
   aseprite -b in.aseprite --sheet out.png --data out.json --format json-array \\
       --list-tags --sheet-type rows --sheet-columns 8
@@ -27,6 +29,7 @@ import json
 import os
 import re
 import shutil
+import subprocess
 import sys
 
 from PIL import Image
@@ -34,6 +37,7 @@ from PIL import Image
 ROOT = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..'))
 MANIFEST = os.path.join(ROOT, 'assets', 'art', 'manifest.json')
 SHEETS = os.path.join(ROOT, 'assets', 'art', 'sheets')
+ADD_GAIT = os.path.join(ROOT, 'tools', 'art', 'add_gait.py')
 ID_RE = re.compile(r'^sheet/(captain|hero|class|monster)/[^/]+$')  # 이름 안의 빈칸은 된다 (앞뒤 빈칸은 안 됨)
 FILE_RE = re.compile(r'^[A-Za-z0-9_.@-]+\.png$')
 HEX_RE = re.compile(r'^#?[0-9A-Fa-f]{6}$')
@@ -144,6 +148,15 @@ def main():
              'sheet': {'cell': [cw, ch], 'anchor': anchor, 'facing': a.facing, 'frames': rects, 'anims': anims}}
     if tint:
         entry['sheet']['tint'] = tint
+    # add_gait.py 가 붙였던 달리기·걷기 칸: 새 png 에는 없다. 출처 기록만 옮겨 두고 (anims 에는 없다 = 아직 안 붙은 상태) 등록 뒤 다시 붙인다.
+    prev = (manifest.get(a.id) or {}).get('sheet') or {}
+    gaits = {g: rec for g, rec in (prev.get('gaits') or {}).items() if g not in anims}
+    for g in sorted(set(prev.get('gaits') or {}) - set(gaits)):
+        print(f'  주의: 새 시트에 자체 {g} 태그가 있다 — add_gait.py 가 붙였던 {g} 칸의 기록은 버린다')
+    if gaits:
+        entry['sheet']['gaits'] = gaits
+        print(f'  주의: 이전 항목의 이동 칸({", ".join(sorted(gaits))})은 새 시트에 없다 — '
+              + ('등록하면 기록된 원본에서 다시 붙인다 (add_gait.py --reattach)' if a.dry_run else '등록 뒤 기록된 원본에서 다시 붙인다'))
     if a.dry_run:
         print(json.dumps({a.id: entry}, ensure_ascii=False, indent=2))
         return 0
@@ -160,6 +173,12 @@ def main():
     print(f'{a.id}: {len(frames)} 칸 {cw}x{ch}, anchor {anchor[0]},{anchor[1]}, '
           f'애니 {", ".join(f"{k}({v["to"] - v["from"] + 1})" for k, v in sorted(anims.items()))} -> {rel}'
           f' (manifest {before} -> {len(manifest)} 항목)')
+    if gaits:
+        sys.stdout.flush()
+        r = subprocess.run([sys.executable, ADD_GAIT, a.id, '--reattach']) if os.path.exists(ADD_GAIT) else None
+        if r is None or r.returncode:
+            print('!!! 경고: ' + a.id + ' 의 이동 칸(' + ', '.join(sorted(gaits)) + ') 가운데 다시 붙지 않은 것이 있다 (위의 경고) — 원본을 되돌린 뒤 '
+                  f'python3 tools/art/add_gait.py "{a.id}" --reattach, 또는 --gait <run|walk> --src ... 로 새로 붙일 것', flush=True)
     return 0
 
 

@@ -29,6 +29,8 @@
 NovelAI 그림은 거부한다 (주인 결정: NovelAI 는 디자인 초안 전용, 게임 그림은 언제나 GPT 를 거친다):
   PNG 메타데이터의 NovelAI 표시, art/concepts/·art/requests/·drafts/ 안의 파일, nai_*.png 이름.
   --allow-draft = 파이프라인 시험용, 언제나 --dry-run 이라 manifest 에 등록할 수 없다.
+달리기·걷기 프레임은 tools/art/add_gait.py 가 등록된 시트에 붙인다 (이 파일의 shrink_pose · paint_pose 를 같이 쓴다).
+  시트를 다시 등록하면 register_sheet.py 가 그 칸을 기록된 원본에서 다시 붙인다 (원본이 없으면 크게 경고). --realign 은 그 칸을 밀지 않는다.
 필요: Pillow + NumPy (sprite-gen venv 가 있으면 숨쉬기 루프에 쓴다)
 """
 import argparse
@@ -667,6 +669,45 @@ def outline(rgb, mask):
     return rgb
 
 
+# ───────── 한 자세: 축소 → 칠하기 (process 와 tools/art/add_gait.py 가 함께 쓴다) ─────────
+
+def shrink_pose(c_rgb, c_a, klab, nk, spots, scale, nw, nh, alpha=0.45, keep_key_specks=False):
+    """원본 해상도의 한 자세(rgb, 알파, 열쇠 색 번호 또는 None)를 nw x nh 게임 px 로 줄인다:
+    열쇠 색 점 지우기 → premultiplied BOX 축소 → 점 색 층 → 알파 이진화·정리 → 열쇠 색 번호 축소 → 외톨이 열쇠 픽셀 빼기.
+    → (rgb, mask, 열쇠 색 번호(-1 = 없음), 점 색 번호(-1 = 없음), 원본에서 뺀 열쇠 px 수, 게임 해상도에서 뺀 열쇠 px 수)"""
+    speck = lone = 0
+    if klab is not None and not keep_key_specks:
+        klab, drop = clean_key_specks(klab, scale)
+        speck = int(drop.sum())
+        if speck:
+            # 뺀 점은 둘레의 열쇠 색이 아닌 색으로 (축소 전에: 사슬 갑옷의 푸른 점 → 회색 고리)
+            c_rgb = fill_from_neighbours(c_rgb, drop, (c_a >= 0.5) & (klab < 0))
+    s_rgb, s_a = box_resize(c_rgb, c_a, nw, nh)
+    s_sp = spot_layer(c_rgb, c_a, spots, nw, nh)
+    mask = s_a > alpha
+    s_rgb, mask = cleanup(s_rgb, mask)
+    s_k = key_resize(klab, c_a, nk, nw, nh) if klab is not None else np.full(mask.shape, -1)
+    s_k[~mask] = -1
+    if klab is not None and not keep_key_specks:
+        s_k, lone_m = drop_lone_keys(s_k)
+        lone = int(lone_m.sum())
+        if lone:
+            s_rgb = fill_from_neighbours(s_rgb, lone_m, mask & (s_k < 0))
+    s_sp[~mask | (s_k >= 0)] = -1
+    return s_rgb, mask, s_k, s_sp, speck, lone
+
+
+def paint_pose(s_rgb, mask, klab, sp, pal, keys, roles, spots):
+    """줄인 자세를 시트 공통 팔레트에 맞추고 열쇠 색·점 색을 제 색 그대로 칠한다 (투명 자리는 0)."""
+    q = snap(s_rgb, pal)
+    if len(keys):
+        q = apply_keys(q, mask, klab, keys, roles)
+    if len(spots):
+        q[sp >= 0] = spots[sp[sp >= 0]]
+    q[~mask] = 0
+    return q
+
+
 # ───────── 숨쉬기 ─────────
 
 def sprite_gen_bin():
@@ -903,24 +944,7 @@ def process(path, sid, a, reqs):
             log(f'  {nm}: 자세 배율 x{ps:g} (그림이 이 자세만 크게 그려졌다 — {"--pose-scale" if a.pose_scale else "요청서 pose_scale"})')
         nw = max(1, int(round(c_a.shape[1] * scale * ps)))
         nh = max(1, int(round(c_a.shape[0] * scale * ps)))
-        speck = lone = 0
-        if klab is not None and not a.keep_key_specks:
-            klab, drop = clean_key_specks(klab, scale)
-            speck = int(drop.sum())
-            if speck:
-                # 뺀 점은 둘레의 열쇠 색이 아닌 색으로 (축소 전에: 사슬 갑옷의 푸른 점 → 회색 고리)
-                c_rgb = fill_from_neighbours(c_rgb, drop, (c_a >= 0.5) & (klab < 0))
-        s_rgb, s_a = box_resize(c_rgb, c_a, nw, nh)
-        s_sp = spot_layer(c_rgb, c_a, spots, nw, nh)
-        mask = s_a > a.alpha
-        s_rgb, mask = cleanup(s_rgb, mask)
-        s_k = key_resize(klab, c_a, len(keys), nw, nh) if klab is not None else np.full(mask.shape, -1)
-        s_k[~mask] = -1
-        if klab is not None and not a.keep_key_specks:
-            s_k, lone_m = drop_lone_keys(s_k)
-            lone = int(lone_m.sum())
-            if lone:
-                s_rgb = fill_from_neighbours(s_rgb, lone_m, mask & (s_k < 0))
+        s_rgb, mask, s_k, s_sp, speck, lone = shrink_pose(c_rgb, c_a, klab, len(keys), spots, scale, nw, nh, a.alpha, a.keep_key_specks)
         if speck or lone:
             log(f'  {nm}: 열쇠 색 점 지움 — 원본 {speck}px (덩어리에서 떨어진 점·그물), 게임 해상도 외톨이 {lone}px → 둘레 색으로')
         bb = bbox(mask.astype(np.float32), 0.5)
@@ -930,7 +954,6 @@ def process(path, sid, a, reqs):
         x0, y0, x1, y1 = bb
         small.append((s_rgb[y0:y1, x0:x1], mask[y0:y1, x0:x1], s_k[y0:y1, x0:x1]))
         sp = s_sp[y0:y1, x0:x1].copy()
-        sp[~mask[y0:y1, x0:x1] | (s_k[y0:y1, x0:x1] >= 0)] = -1
         spot_small.append(sp)
         if len(spots):
             log(f'  {nm}: 점 색 {int((sp >= 0).sum())}px')
@@ -954,12 +977,7 @@ def process(path, sid, a, reqs):
     cells = {}
     ref = None
     for (s_rgb, mask, klab), sp, nm in zip(small, spot_small, names):
-        q = snap(s_rgb, pal)
-        if len(keys):
-            q = apply_keys(q, mask, klab, keys, roles)
-        if len(spots):
-            q[sp >= 0] = spots[sp[sp >= 0]]
-        q[~mask] = 0
+        q = paint_pose(s_rgb, mask, klab, sp, pal, keys, roles, spots)
         cell = place(q, mask, nm, ref, spot=sp if len(spots) else None)
         if cell is None:
             return False
@@ -1051,9 +1069,11 @@ def realign(ids, a):
         cell = lambda i: im[m['frames'][i][1]:m['frames'][i][1] + ch, m['frames'][i][0]:m['frames'][i][0] + cw]
         ref = align_ref(cell(idle['from'])[..., 3] > 0)
         names = {i: n for n, an in m['anims'].items() for i in range(an['from'], an['to'] + 1)}
+        # 달리기·걷기 칸(tools/art/add_gait.py)은 발바닥이 아니라 고정된 바닥 줄·프레임 가운데 열에 맞춰 놓은 것이다 — 밀지 않는다
+        gait = {i for i, n in names.items() if n in set(m.get('gaits') or {}) | {'run', 'walk'}}
         moves = []
         for i in range(len(m['frames'])):
-            if idle['from'] <= i <= idle['to']:
+            if idle['from'] <= i <= idle['to'] or i in gait:
                 continue
             c = cell(i)
             mask = c[..., 3] > 0

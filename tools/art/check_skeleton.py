@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Measure a walk skeleton set (pose guide, not game art) against art/requests/guides/SPEC.md sections 3-6.
+"""Measure a walk or run skeleton set (pose guide, not game art) against art/requests/guides/SPEC.md sections 3-6 (run: 5b).
 
-  python3 tools/art/check_skeleton.py SET.aseprite [--pose pose.json] [--base DRAFT.aseprite] [--export DIR]
+  python3 tools/art/check_skeleton.py SET.aseprite [--pose pose.json] [--base DRAFT.aseprite] [--export DIR] [--gait walk|run]
   python3 tools/art/check_skeleton.py LAYERS_DIR          # W<n>_<layer>.png files as tools/pixelart/walk8.py writes them (no Aseprite needed)
+                                                          # (R<n>_<layer>.png from tools/pixelart/run8.py)
 
 The working file is the layered 8-frame .aseprite that walk8.py builds (384x1024 per frame, layers per body part, a hidden
 `joints` layer with one colour-coded 3x3 dot per joint). The Aseprite session plays and refines it; this tool then measures
@@ -16,6 +17,20 @@ WARN: bob outside 12-16 px or in the wrong order, passing knee bent more than 15
 --export DIR writes the strips (<set>_a.png, <set>_b.png), the game-size preview GIF and pose_measured.json from the file,
 so the Aseprite session only has to deliver the .aseprite. --base DRAFT.aseprite lists what was changed per frame and layer.
 Exit code 1 on FAIL.
+
+RUN sets (gait "run" in --pose pose.json, or --gait run, or R<n>_ layer files, or a file named run_*): frames R1 contact, R2 down,
+R3 push-off, R4 flight, R5-R8 the mirror. The shared rules (canvas, layers, joint dots on their limbs, bones +-2 px, crisp edges)
+stay; the walk rules are replaced by:
+FAIL: R1-R3 / R5-R7: the supporting sole not on y=870, a pixel below it, or the OTHER foot less than 12 px above the floor (both
+      feet down is a walk); R4 / R8: lowest pixel less than 18 px above the floor (no flight); the planted toe (front end of the
+      supporting sole) not retreating by step/4 (+-3 px) per stance frame, where step = 2 x (toe R1 - toe R3) is the distance the
+      body travels per step; step more than 14 px from the request (pose.json step_px, default 275); R(i+4) not the mirror of
+      R(i) (hip height +-1, ankle x +-2, ankle y +-4); hip not lowest at down or not highest in flight.
+WARN: bob outside 32-46 px; elbow flex outside 60-125 deg in any frame; the arm of the pushing leg not at least 60 px ahead of
+      the other one at push-off / flight (hand x from its shoulder); lean outside 14-26 deg, lean range over 5 deg or the neck
+      travelling more than 12 px (pecking); push-off knee bent more than 30 deg; down knee outside 35-65 deg; landing foot not
+      0-70 px ahead of the hip; flight ankles less than 110 px apart; neighbouring frames nearly identical at game size;
+      strip findings of check_delivery.py (the two strips are built in memory; its floor rule is not applied to the flight frame).
 """
 import argparse
 from collections import Counter
@@ -31,7 +46,8 @@ from PIL import Image
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, os.path.join(ROOT, 'tools', 'pixelart'))
-from walk8 import BASELINE, JOINTS, SCALE, SLOT, SH_  # noqa: E402
+from walk8 import BASELINE, HEAD_PX, JOINTS, SCALE, SLOT, SH_  # noqa: E402
+from run8 import SOLE_BAND, STEP as RUN_STEP  # noqa: E402
 
 HEADLESS = os.path.join(ROOT, 'tools', 'art', 'ase_headless.sh')
 BODY = ('arm_far', 'leg_far', 'leg_near', 'torso', 'head', 'arm_near')          # the layers every set must have
@@ -79,17 +95,22 @@ def load_aseprite(src, exe, work):
     return frames, durs, names, list((Counter(names) - Counter(visible)).elements())
 
 
+def dir_prefix(src):
+    """'R' for a folder of run8.py layer files (R<n>_<layer>.png), else 'W'"""
+    return 'R' if os.path.isdir(src) and os.path.exists(os.path.join(src, 'R1_torso.png')) else 'W'
+
+
 def load_dir(src):
-    frames, i = [], 1
-    while os.path.exists(os.path.join(src, f'W{i}_torso.png')):
+    frames, i, t = [], 1, dir_prefix(src)
+    while os.path.exists(os.path.join(src, f'{t}{i}_torso.png')):
         fr = {}
         for fn in sorted(os.listdir(src)):
-            if fn.startswith(f'W{i}_') and fn.endswith('.png'):
-                fr[fn[len(f'W{i}_'):-4]] = np.asarray(Image.open(os.path.join(src, fn)).convert('RGBA'))
+            if fn.startswith(f'{t}{i}_') and fn.endswith('.png'):
+                fr[fn[len(f'{t}{i}_'):-4]] = np.asarray(Image.open(os.path.join(src, fn)).convert('RGBA'))
         frames.append(fr)
         i += 1
     names = [n for n in ORDER if frames and n in frames[0]] + ['joints']
-    return frames, [120] * len(frames), ['Background'] + names, ['joints']
+    return frames, [120 if t == 'W' else 80] * len(frames), ['Background'] + names, ['joints']
 
 
 def flatten(fr, names):
@@ -132,17 +153,25 @@ def dist(a, b):
 
 
 def knee_flex(hip, knee, ank):
+    """bend at the middle joint of a three-joint chain in degrees (0 = straight); also used for the elbow"""
     a = (hip[0] - knee[0], hip[1] - knee[1])
     b = (ank[0] - knee[0], ank[1] - knee[1])
     c = (a[0] * b[0] + a[1] * b[1]) / (math.hypot(*a) * math.hypot(*b) or 1)
     return 180 - math.degrees(math.acos(max(-1.0, min(1.0, c))))
 
 
-def check(frames, durs, names, hidden, bones):
+# run sets (SPEC section 5b). Numbers from the run_base v1 draft: step 275 px, bob 37.4 px, flight clearance 37-41 px,
+# elbows 80-110 deg, lean 18.2-20.5 deg, push-off knee 12-15 deg, down knee 51-53 deg, landing ankle 40 px ahead of the hip
+RUN = dict(step=RUN_STEP * HEAD_PX, step_tol=14, clear=18, other=12, bob=(32, 46), elbow=(60, 125), pump=60, lean=(14, 26), lean_range=5,
+           neck=12, push_flex=30, down_flex=(35, 65), land=(0, 70), scissor=110)
+
+
+def check(frames, durs, names, hidden, bones, gait='walk', want_step=None):
     errors, warns, info, meas = [], [], [], []
     n = len(frames)
+    T = 'R' if gait == 'run' else 'W'
     if n != 8:
-        errors.append(f'{n} frames, a walk cycle is 8 (SPEC section 5)')
+        errors.append(f'{n} frames, a walk cycle is 8 (SPEC section 5)' if gait == 'walk' else f'{n} frames, a run cycle is 8 (SPEC section 5b)')
     h, w = next(iter(frames[0].values())).shape[:2]
     if (w, h) != (SLOT, SH_):
         errors.append(f'frame canvas {w}x{h}, expected {SLOT}x{SH_}')
@@ -160,7 +189,7 @@ def check(frames, durs, names, hidden, bones):
         return errors, warns, info, meas, []
     flats = []
     for i, fr in enumerate(frames):
-        tag = f'W{i + 1}'
+        tag = f'{T}{i + 1}'
         for ln in names:
             if ln in ('Background', 'joints'):
                 continue
@@ -195,19 +224,43 @@ def check(frames, durs, names, hidden, bones):
         m['knee_flex_deg'] = {s: round(knee_flex(J['hip' + s], J['knee' + s], J['ank' + s]), 1) for s in 'NF'}
         ys = np.nonzero(mask.any(1))[0]
         m['lowest_px'] = int(ys.max())
-        if m['lowest_px'] != BASELINE:
-            errors.append(f'{tag}: lowest pixel at y={m["lowest_px"]}, the planted sole must be on y={BASELINE}')
         stance, swing = (('leg_near', 'leg_far') if i < 4 else ('leg_far', 'leg_near'))
         lows = {ln: int(np.nonzero((fr[ln][..., 3] > 0).any(1))[0].max()) for ln in (stance, swing)}
-        if lows[stance] != BASELINE:
-            errors.append(f'{tag}: the stance leg ({stance}) ends at y={lows[stance]}, not on the floor line {BASELINE}')
-        m['swing_sole_height_px'] = BASELINE - lows[swing]
+        if gait == 'run':
+            run_frame(m, i, fr, J, hip, lows, stance, swing, errors)
+        else:
+            if m['lowest_px'] != BASELINE:
+                errors.append(f'{tag}: lowest pixel at y={m["lowest_px"]}, the planted sole must be on y={BASELINE}')
+            if lows[stance] != BASELINE:
+                errors.append(f'{tag}: the stance leg ({stance}) ends at y={lows[stance]}, not on the floor line {BASELINE}')
+            m['swing_sole_height_px'] = BASELINE - lows[swing]
         m['top_px'] = int(ys.min())
         tx = np.nonzero((fr['torso'][..., 3] > 0).any(0))[0]
         m['hand_past_torso_px'] = {s: round(J['hand' + s][0] - float(tx.max()), 1) for s in 'NF'}
         meas.append(m)
     if any(m is None for m in meas) or n != 8:
         return errors, warns, info, meas, flats
+    if gait == 'run':
+        run_cycle(meas, want_step, errors, warns, info)
+    else:
+        walk_cycle(meas, errors, warns, info)
+    # neighbouring frames at game size
+    small = []
+    for _, mask in flats:
+        im = Image.fromarray((mask * 255).astype(np.uint8)).resize((round(w * SCALE), round(h * SCALE)), Image.BOX)
+        small.append(np.asarray(im) >= 128)
+    diffs = []
+    for i in range(n):
+        a, b = small[i], small[(i + 1) % n]
+        diffs.append(100.0 * (a ^ b).sum() / max(1, (a | b).sum()))
+        if diffs[-1] < 8:
+            warns.append(f'{T}{i + 1}->{T}{(i + 1) % n + 1}: silhouettes differ by {diffs[-1]:.0f}% at game size (under 8%: the frame adds nothing)')
+    info.append('silhouette change to the next frame at game size: ' + ' '.join(f'{d:.0f}%' for d in diffs))
+    return errors, warns, info, meas, flats
+
+
+def walk_cycle(meas, errors, warns, info):
+    """the walk rules that compare frames (SPEC section 5)"""
     # the step and the planted foot
     step = [meas[0]['ankle_x']['N'] - meas[0]['ankle_x']['F'], meas[4]['ankle_x']['F'] - meas[4]['ankle_x']['N']]
     info.append(f'step (ankle to ankle at contact): W1 {step[0]:.1f} px, W5 {step[1]:.1f} px (= {step[0] * SCALE:.1f} game px, the sheet\'s walkStride)')
@@ -253,19 +306,151 @@ def check(frames, durs, names, hidden, bones):
         v = meas[i]['hand_past_torso_px'][side]
         if v < 20:
             warns.append(f'W{i + 1}: the forward hand is {v:.0f} px outside the torso, SPEC asks 20 or more (it must read at game size)')
-    # neighbouring frames at game size
-    small = []
-    for _, mask in flats:
-        im = Image.fromarray((mask * 255).astype(np.uint8)).resize((round(w * SCALE), round(h * SCALE)), Image.BOX)
-        small.append(np.asarray(im) >= 128)
-    diffs = []
-    for i in range(n):
-        a, b = small[i], small[(i + 1) % n]
-        diffs.append(100.0 * (a ^ b).sum() / max(1, (a | b).sum()))
-        if diffs[-1] < 8:
-            warns.append(f'W{i + 1}->W{(i + 1) % n + 1}: silhouettes differ by {diffs[-1]:.0f}% at game size (under 8%: the frame adds nothing)')
-    info.append('silhouette change to the next frame at game size: ' + ' '.join(f'{d:.0f}%' for d in diffs))
-    return errors, warns, info, meas, flats
+
+
+def run_frame(m, i, fr, J, hip, lows, stance, swing, errors):
+    """the run rules of one frame (SPEC section 5b): R1-R3 / R5-R7 stand on ONE foot, R4 / R8 on none. Fills m with what
+    run_cycle compares between frames"""
+    tag, k = m['frame'], i % 4
+    m['phase'] = ('contact', 'down', 'push-off', 'flight')[k]
+    m['sole_height_px'] = {'N' if ln == 'leg_near' else 'F': BASELINE - lows[ln] for ln in (stance, swing)}
+    m['ankle_y'] = {s: round(J['ank' + s][1] - hip[1], 1) for s in 'NF'}
+    m['elbow_flex_deg'] = {s: round(knee_flex(J['sho' + s], J['elb' + s], J['hand' + s]), 1) for s in 'NF'}
+    m['hand_from_shoulder_px'] = {s: round(J['hand' + s][0] - J['sho' + s][0], 1) for s in 'NF'}
+    m['lean_deg'] = round(math.degrees(math.atan2(J['neck'][0] - hip[0], hip[1] - J['neck'][1])), 1)
+    m['neck_x'] = round(J['neck'][0] - hip[0], 1)
+    m['toe_x'] = None
+    if m['lowest_px'] > BASELINE:
+        errors.append(f'{tag}: lowest pixel at y={m["lowest_px"]}, nothing may be below the floor line {BASELINE}')
+    if k == 3:
+        m['clearance_px'] = BASELINE - m['lowest_px']
+        if m['clearance_px'] < RUN['clear']:
+            errors.append(f'{tag} (flight): the lowest pixel is {m["clearance_px"]} px above the floor (y={m["lowest_px"]}), a flight frame needs '
+                          f'{RUN["clear"]} or more - both feet must be clearly off the ground')
+        return
+    if lows[stance] != BASELINE:
+        errors.append(f'{tag}: the stance leg ({stance}) ends at y={lows[stance]}, not on the floor line {BASELINE}')
+    else:
+        band = fr[stance][BASELINE - SOLE_BAND:BASELINE + 1, :, 3] > 0
+        m['toe_x'] = round(float(np.nonzero(band.any(0))[0].max()) - hip[0], 1)
+    if BASELINE - lows[swing] < RUN['other']:
+        errors.append(f'{tag}: the other leg ({swing}) is {BASELINE - lows[swing]} px above the floor, a run has ONE foot down '
+                      f'(at least {RUN["other"]} px; both feet on the floor is a walk)')
+
+
+def run_cycle(meas, want_step, errors, warns, info):
+    """the run rules that compare frames (SPEC section 5b)"""
+    want = float(want_step or RUN['step'])
+    steps = []
+    for half, side in ((0, 'N'), (4, 'F')):
+        toes = [meas[half + k]['toe_x'] for k in range(3)]
+        name = 'near' if side == 'N' else 'far'
+        if any(t is None for t in toes):
+            continue                                   # the stance leg is not on the floor: reported per frame
+        step = 2 * (toes[0] - toes[2])
+        steps.append(step)
+        info.append(f'planted {name} toe x (front of the sole, from the hip): ' + ' -> '.join(f'{x:.0f}' for x in toes)
+                    + f' -> step {step:.0f} px (step/4 = {step / 4:.1f})')
+        for k in range(2):
+            d = toes[k] - toes[k + 1]
+            if abs(d - step / 4) > 3:
+                errors.append(f'R{half + k + 1}->R{half + k + 2}: planted toe moves back {d:.1f} px, must be {step / 4:.1f} +-3 '
+                              '(the body travels step/4 per frame: the foot would slide)')
+        if abs(step - want) > RUN['step_tol']:
+            errors.append(f'R{half + 1}-R{half + 3}: step {step:.1f} px, must be {want:.0f} +-{RUN["step_tol"]} '
+                          f'(the request; a different stride needs a new runStride and a new request)')
+    if steps:
+        s = sum(steps) / len(steps)
+        info.append(f'step (body travel per step = 2 x the toe retreat R1->R3): {" / ".join(f"{v:.0f}" for v in steps)} px '
+                    f'(= {s * SCALE:.1f} game px, the sheet\'s runStride)')
+    # R(i+4) is R(i) with the legs swapped
+    for k in range(4):
+        a, b = meas[k], meas[k + 4]
+        if abs(a['hip_height_px'] - b['hip_height_px']) > 1:
+            errors.append(f'R{k + 1}/R{k + 5}: hip height {a["hip_height_px"]} vs {b["hip_height_px"]} px (mirror halves must match +-1)')
+        for s, o in (('N', 'F'), ('F', 'N')):
+            if abs(a['ankle_x'][s] - b['ankle_x'][o]) > 2:
+                errors.append(f'R{k + 1}/R{k + 5}: ankle x {a["ankle_x"][s]} vs {b["ankle_x"][o]} px (mirror halves must match +-2)')
+            if abs(a['ankle_y'][s] - b['ankle_y'][o]) > 4:
+                errors.append(f'R{k + 1}/R{k + 5}: ankle {a["ankle_y"][s]} vs {b["ankle_y"][o]} px below the hip (mirror halves must match +-4)')
+    hips = [m['hip_height_px'] for m in meas]
+    bob = max(hips) - min(hips)
+    info.append('hip height: ' + ' '.join(f'{v:.0f}' for v in hips) + f' -> bob {bob:.1f} px ({bob * SCALE:.1f} game px)')
+    if not RUN['bob'][0] <= bob <= RUN['bob'][1]:
+        warns.append(f'bob {bob:.1f} px, SPEC asks {RUN["bob"][0]}-{RUN["bob"][1]} (about 9% of the height: less reads as a fast walk, more as jumping)')
+    for half in (0, 4):
+        hh = hips[half:half + 4]
+        if hh.index(min(hh)) != 1 or hh.index(max(hh)) != 3:
+            errors.append(f'R{half + 1}-R{half + 4}: the hip must be lowest at down and highest in flight, got {hh}')
+    clear = [meas[i].get('clearance_px') for i in (3, 7)]
+    info.append(f'flight clearance (lowest pixel above the floor): R4 {clear[0]} px, R8 {clear[1]} px; other foot in the stance frames: '
+                + ' '.join(str(meas[i]['sole_height_px']['F' if i < 4 else 'N']) for i in (0, 1, 2, 4, 5, 6)) + ' px')
+    el = [v for m in meas for v in m['elbow_flex_deg'].values()]
+    info.append(f'elbow flex {min(el):.0f}-{max(el):.0f} deg, lean {min(m["lean_deg"] for m in meas):.1f}-{max(m["lean_deg"] for m in meas):.1f} deg, '
+                f'neck x {min(m["neck_x"] for m in meas):.0f}-{max(m["neck_x"] for m in meas):.0f} px ahead of the hip')
+    for m in meas:
+        for s in 'NF':
+            v = m['elbow_flex_deg'][s]
+            if not RUN['elbow'][0] <= v <= RUN['elbow'][1]:
+                warns.append(f'{m["frame"]}: the {"near" if s == "N" else "far"} elbow is bent {v:.0f} deg, a run keeps it at '
+                             f'{RUN["elbow"][0]}-{RUN["elbow"][1]} (near 90) all the way round')
+        if not RUN['lean'][0] <= m['lean_deg'] <= RUN['lean'][1]:
+            warns.append(f'{m["frame"]}: torso lean {m["lean_deg"]:.1f} deg (hip to neck), SPEC asks {RUN["lean"][0]}-{RUN["lean"][1]} (the walk has 8-11)')
+    leans = [m['lean_deg'] for m in meas]
+    if max(leans) - min(leans) > RUN['lean_range']:
+        warns.append(f'lean changes by {max(leans) - min(leans):.1f} deg over the cycle, SPEC asks {RUN["lean_range"]} or less (the head must not peck)')
+    necks = [m['neck_x'] for m in meas]
+    if max(necks) - min(necks) > RUN['neck']:
+        warns.append(f'the neck travels {max(necks) - min(necks):.0f} px forward and back, SPEC asks {RUN["neck"]} or less (the head must not peck)')
+    pump = []
+    for i in (2, 3, 6, 7):
+        m, s, o = meas[i], 'NF'[i // 4], 'FN'[i // 4]
+        d = m['hand_from_shoulder_px'][s] - m['hand_from_shoulder_px'][o]
+        pump.append(d)
+        if d < RUN['pump']:
+            warns.append(f'{m["frame"]} ({m["phase"]}): the {"near" if s == "N" else "far"} hand is {d:.0f} px ahead of the other one (each from its '
+                         f'shoulder), SPEC asks {RUN["pump"]} or more - the arm of the pushing leg is forward, the other one back')
+    info.append('arm pump at push-off/flight (hand of the pushing side ahead of the other, from the shoulders): ' + ' '.join(f'{d:.0f}' for d in pump) + ' px')
+    for i, s in ((2, 'N'), (6, 'F')):
+        v = meas[i]['knee_flex_deg'][s]
+        if v > RUN['push_flex']:
+            warns.append(f'R{i + 1} (push-off): the pushing knee is bent {v:.0f} deg, SPEC asks {RUN["push_flex"]} or less (the leg extends behind the body)')
+    for i, s in ((1, 'N'), (5, 'F')):
+        v = meas[i]['knee_flex_deg'][s]
+        if not RUN['down_flex'][0] <= v <= RUN['down_flex'][1]:
+            warns.append(f'R{i + 1} (down): the supporting knee is bent {v:.0f} deg, SPEC asks {RUN["down_flex"][0]}-{RUN["down_flex"][1]} '
+                         '(compression carries the weight; less reads as a skipping walk)')
+    for i, s in ((0, 'N'), (4, 'F')):
+        v = meas[i]['ankle_x'][s]
+        if not RUN['land'][0] <= v <= RUN['land'][1]:
+            warns.append(f'R{i + 1} (contact): the landing ankle is {v:.0f} px ahead of the hip, SPEC asks {RUN["land"][0]}-{RUN["land"][1]} '
+                         '(a little ahead of the body, knee bent)')
+    for i in (3, 7):
+        v = abs(meas[i]['ankle_x']['N'] - meas[i]['ankle_x']['F'])
+        if v < RUN['scissor']:
+            warns.append(f'R{i + 1} (flight): the ankles are {v:.0f} px apart, SPEC asks {RUN["scissor"]} or more (legs scissored)')
+
+
+def strip_rules(flats, work, clear, errors, warns, info):
+    """run sets: the two strips against tools/art/check_delivery.py (size, flat key colour, colour distance, gaps, four poses).
+    Its rule 'lowest pixel of every pose on y=870' cannot hold for a flight frame: that one finding is replaced by the
+    clearance rule above, everything else is passed on"""
+    import re
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import check_delivery
+    os.makedirs(work, exist_ok=True)
+    for k, s in enumerate('ab'):
+        path = os.path.join(work, f'strip_{s}.png')
+        Image.fromarray(np.concatenate([flats[k * 4 + j][0] for j in range(4)], axis=1), 'RGB').save(path)
+        e, w_, _ = check_delivery.check_png(path, '1x4', None)
+        for msg in e:
+            mt = re.match(r'pose 4: lowest pixel at y=(\d+), expected 870', msg)
+            if mt and clear[k] is not None and BASELINE - int(mt.group(1)) == clear[k]:
+                info.append(f'strip {s}: check_delivery.py reports "{msg}" - that is the flight frame R{k * 4 + 4} '
+                            f'({clear[k]} px above the floor), not a fault')
+            else:
+                errors.append(f'strip {s} (check_delivery): {msg}')
+        warns += [f'strip {s} (check_delivery): {msg}' for msg in w_]
 
 
 def export(flats, durs, out, name):
@@ -281,7 +466,7 @@ def export(flats, durs, out, name):
     small[0].save(os.path.join(out, f'{name}_preview.gif'), save_all=True, append_images=small[1:], duration=durs, loop=0, disposal=1)
 
 
-def compare(frames, base, warns):
+def compare(frames, base, warns, T='W'):
     """what changed against the draft, per frame and layer; warns when a limb was repainted but none of its joint dots moved
     (a small shift keeps the dot on the limb, so the measurements would silently describe the old pose)"""
     lines = []
@@ -293,7 +478,7 @@ def compare(frames, base, warns):
                 if ln in a and ln in b and a[ln].shape == b[ln].shape and int(np.any(a[ln] != b[ln], axis=-1).sum()) >= 150:
                     mine = [j for j, part in PART_OF.items() if part == ln and j in ja and j in jb]
                     if mine and all(dist(ja[j], jb[j]) < 0.75 for j in mine):
-                        warns.append(f'W{i + 1}: {ln} was repainted but its joint dots ({", ".join(mine)}) did not move - '
+                        warns.append(f'{T}{i + 1}: {ln} was repainted but its joint dots ({", ".join(mine)}) did not move - '
                                      'move the dots with the limb, or say in NOTES that only the outline changed')
         for ln in a:
             if ln == 'Background':
@@ -306,23 +491,31 @@ def compare(frames, base, warns):
                 d = int(np.any(a[ln] != b[ln], axis=-1).sum())
                 if d:
                     ch.append(f'{ln} {d}px')
-        lines.append(f'W{i + 1}: ' + (', '.join(ch) if ch else 'unchanged'))
+        lines.append(f'{T}{i + 1}: ' + (', '.join(ch) if ch else 'unchanged'))
     return lines
 
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument('src', help='SET.aseprite, or a folder of W<n>_<layer>.png')
+    ap.add_argument('src', help='SET.aseprite, or a folder of W<n>_<layer>.png (run sets: R<n>_<layer>.png)')
     ap.add_argument('--pose', help='pose.json of the request (bone lengths); default: the lengths of SPEC section 6')
     ap.add_argument('--base', help='the draft .aseprite (or layers folder) this was refined from: list what changed')
     ap.add_argument('--export', help='write <set>_a.png, <set>_b.png, <set>_preview.gif and pose_measured.json here')
     ap.add_argument('--name', help='set name for --export (default: the file name)')
+    ap.add_argument('--gait', choices=('walk', 'run'), help='which rules to apply. Default: "gait" of --pose pose.json, else run for a folder '
+                                                            'of R<n>_ files or a file named run_*, else walk')
     ap.add_argument('--aseprite-exe', default=os.environ.get('ASEPRITE_PATH') or (HEADLESS if os.path.exists(HEADLESS) else 'aseprite'))
     a = ap.parse_args(argv)
     bones = dict(DEFAULT_BONES)
+    request = {}
     if a.pose:
         with open(a.pose, encoding='utf-8') as f:
-            bones.update(json.load(f).get('bones_px', {}))
+            request = json.load(f)
+        bones.update(request.get('bones_px', {}))
+    gait = a.gait or request.get('gait') or ('run' if dir_prefix(a.src) == 'R' or os.path.basename(os.path.normpath(a.src)).startswith('run_') else 'walk')
+    if gait not in ('walk', 'run'):
+        print(f'FAIL: {a.pose}: unknown gait "{gait}" (walk or run)')
+        return 1
     with tempfile.TemporaryDirectory(prefix='skeleton-') as tmp:
         def load(src, sub):
             return load_dir(src) if os.path.isdir(src) else load_aseprite(src, a.aseprite_exe, os.path.join(tmp, sub))
@@ -331,15 +524,18 @@ def main(argv=None):
         except (RuntimeError, OSError, ValueError, subprocess.SubprocessError) as e:
             print(f'FAIL: cannot read {a.src}: {e}')
             return 1
-        errors, warns, info, meas, flats = check(frames, durs, names, hidden, bones)
+        errors, warns, info, meas, flats = check(frames, durs, names, hidden, bones, gait,
+                                                 request.get('step_px') if request.get('gait') == 'run' else None)
+        if gait == 'run' and len(flats) == 8 and all(m is not None for m in meas):
+            strip_rules(flats, os.path.join(tmp, 'strips'), [meas[i].get('clearance_px') for i in (3, 7)], errors, warns, info)
         name = a.name or os.path.splitext(os.path.basename(os.path.normpath(a.src)))[0]
-        print(f'# skeleton {name}')
+        print(f'# skeleton {name}' + (' (run)' if gait == 'run' else ''))
         for ln in info:
             print('- ' + ln)
         if a.base:
             try:
                 print('- changed against the draft:')
-                for ln in compare(frames, load(a.base, 'base')[0], warns):
+                for ln in compare(frames, load(a.base, 'base')[0], warns, 'R' if gait == 'run' else 'W'):
                     print('    ' + ln)
             except (RuntimeError, OSError, ValueError, subprocess.SubprocessError) as e:
                 warns.append(f'could not read the draft {a.base}: {e}')
@@ -353,7 +549,9 @@ def main(argv=None):
                 json.dump(dict(set=name, source=os.path.basename(a.src), baseline=BASELINE, scale=SCALE, durations_ms=durs, frames=meas), f,
                           ensure_ascii=False, indent=1)
                 f.write('\n')
-            print(f'- exported strips, preview and pose_measured.json to {a.export} (run check_delivery.py on the two strips)')
+            print(f'- exported strips, preview and pose_measured.json to {a.export} ' + (
+                '(run check_delivery.py on the two strips)' if gait == 'walk' else
+                '(the strip rules of check_delivery.py are applied above; run on its own it fails slot 4, the flight frame)'))
         print('RESULT: ' + ('FAIL' if errors else 'PASS' + (f' ({len(warns)} warning(s))' if warns else '')))
     return 1 if errors else 0
 

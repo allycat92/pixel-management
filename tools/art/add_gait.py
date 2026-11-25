@@ -1,0 +1,584 @@
+#!/usr/bin/env python3
+"""그려 온 이동 프레임(달리기 run · 걷기 walk)을 이미 등록된 전투 시트에 붙인다.
+
+  python3 tools/art/add_gait.py <시트 id | 시트 png 이름> --gait run|walk
+        --src <a.png> <b.png> | --src <파일.aseprite>
+        [--stride 게임px | --pose pose.json] [--ms N] [--floor 870] [--center 192] [--scale S]
+        [--dry-run --work DIR] [--allow-draft] [--aseprite-bin EXE]
+  python3 tools/art/add_gait.py <시트> --gait run|walk --remove [--dry-run --work DIR]
+  python3 tools/art/add_gait.py <시트> --reattach        # register_sheet.py 가 다시 등록한 뒤 부른다 (손으로 불러도 된다)
+
+  예: python3 tools/art/add_gait.py sheet/class/warrior --gait run \\
+          --src art/inbox/run_warrior_a.png art/inbox/run_warrior_b.png --pose art/requests/guides/run_base/v1/pose.json
+
+원본 (art/requests/guides/SPEC.md 2·3절의 프레임 규격):
+  - 띠 png: 한 프레임 384x1024 를 나란히 (<set>_a.png = 1~4번, <set>_b.png = 5~8번), 배경 #FF00FF
+  - 또는 프레임마다 384x1024 인 .aseprite 하나 (보이는 레이어만 쓴다 — 숨긴 joints 레이어는 빠진다; Aseprite 실행 파일 필요)
+  모든 프레임에서 엉덩이 중심 열 x=192, 바닥 줄 y=870 (디딘 발의 맨 아래 픽셀) 이 같다.
+
+하는 일:
+  - 프레임마다 그 시트를 만들 때와 같은 변환을 한다 — sheets.py 의 함수를 그대로 쓴다 (matte → key_label → shrink_pose → outline →
+    paint_pose): 요청서(art/requests/phase3.json)의 scale, 배경 키 제거, BOX 축소·알파 이진화, 열쇠 색(tint)·점 색(spots).
+    팔레트는 새로 만들지 않고 등록된 시트의 기본 칸에 실제로 있는 색(열쇠 색·점 색 제외)을 쓴다 — 이동 칸이 기본 칸과 같은 색만 쓴다.
+  - 자리 맞춤은 **고정된 바닥 줄과 프레임 가운데 열**: 원본 y=870 의 아랫변 → 칸의 anchor y, 원본 x=192 → anchor x.
+    맨 아래 픽셀이나 그림 테두리로 맞추지 않는다 (달리기에는 두 발이 다 뜬 프레임이 있고, 프레임마다 몸이 흔들리면 안 된다).
+    모든 프레임이 같은 표본 격자(칸 전체에 해당하는 원본 창)로 줄어든다. 칸에 안 들어가는 프레임은 줄이거나 밀지 않고 몇 px 넘는지 알리고 실패한다.
+  - 시트 png 아래에 새 줄로 칸을 붙인다 (기본 칸의 픽셀은 그대로; 이동 칸의 줄은 붙인 순서와 상관없이 run → walk). manifest 항목의 sheet 에:
+      frames 에 새 칸의 [x, y], anims.<gait> = {from, to, ms:[...]}, <gait>Stride = 한 걸음에 가는 게임 px (n 프레임 = 두 걸음),
+      gaits.<gait> = {src, floor, center, stride, ms[, pose, step_px]} — 어디서 온 프레임인지 (다시 붙일 때 쓴다)
+  - --stride 가 없으면 --pose (없으면 원본 옆의 pose.json) 의 step_px x 시트 배율.
+  - --remove: 그 이동 칸·anims·Stride·기록을 뺀다 (다른 이동 칸은 남는다. 하나도 안 남으면 시트 png 가 붙이기 전과 같아진다).
+  - --dry-run: 시트·manifest 를 건드리지 않고 --work DIR 에 새 png · 등록될 항목(<이름>.entry.json) · 미리보기만 쓴다.
+
+기본 시트를 다시 등록하면 (sheets.py → register_sheet.py): register_sheet.py 가 gaits 기록을 새 항목에 옮기고 이 도구를 --reattach 로 불러
+기록된 원본에서 다시 변환해 붙인다. 원본이 없으면 기록은 남기고(anims 는 없다 → 게임은 그 시트의 이동 칸 없이 돈다) 다시 붙일 명령을 크게 알린다.
+
+게임에 들어가는 그림만 받는다: 초안·뼈대 가이드 자리(art/concepts/, art/requests/, drafts/, nai_*)의 파일은 sheets.py 와 같은 규칙으로 거부한다.
+  --allow-draft = 파이프라인 시험용, 언제나 --dry-run.
+필요: Pillow + NumPy (+ .aseprite 원본이면 Aseprite: tools/art/ase_headless.sh)
+"""
+import argparse
+import copy
+import json
+import os
+import shlex
+import shutil
+import subprocess
+import sys
+import tempfile
+
+import numpy as np
+from PIL import Image
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, HERE)
+import sheets as sh  # noqa: E402
+
+ROOT = sh.ROOT
+MANIFEST = os.path.join(ROOT, 'assets', 'art', 'manifest.json')
+HEADLESS = os.path.join(HERE, 'ase_headless.sh')
+SLOT = 384                   # 한 프레임의 너비 (SPEC 2절)
+FLOOR = 870                  # 바닥 줄: 디딘 발의 맨 아래 픽셀 (SPEC 3절)
+GAITS = ('run', 'walk')
+DEFAULT_MS = {'run': 80, 'walk': 120}
+ALPHA = 0.45                 # sheets.py --alpha 의 기본값
+log = sh.log
+
+
+class Fail(Exception):
+    pass
+
+
+def rnd(v):
+    return int(np.floor(v + 0.5))
+
+
+def rel(path):
+    """저장소 안의 파일은 저장소 기준 경로로 (기록·명령에 쓴다)."""
+    p = os.path.abspath(path)
+    return os.path.relpath(p, ROOT).replace(os.sep, '/') if p.startswith(ROOT + os.sep) else p
+
+
+def absp(path):
+    return path if os.path.isabs(path) else os.path.join(ROOT, path)
+
+
+# ───────── manifest ─────────
+
+def load_manifest():
+    if not os.path.exists(MANIFEST):
+        raise Fail(f'{rel(MANIFEST)} 가 없다')
+    with open(MANIFEST, encoding='utf-8') as f:
+        return json.load(f)
+
+
+def save_manifest(man):
+    """register_sheet.py 와 같은 모양으로 쓴다."""
+    tmp = MANIFEST + '.tmp'
+    with open(tmp, 'w', encoding='utf-8') as f:
+        json.dump(man, f, ensure_ascii=False, indent=2, sort_keys=True)
+        f.write('\n')
+    os.replace(tmp, MANIFEST)
+
+
+def resolve_sheet(arg, man):
+    if isinstance(man.get(arg), dict) and 'sheet' in man[arg]:
+        return arg
+    stem = os.path.basename(arg)
+    stem = stem[:-4] if stem.lower().endswith('.png') else stem
+    hits = [k for k, v in man.items() if isinstance(v, dict) and 'sheet' in v and os.path.basename(v['file'])[:-4] == stem]
+    if len(hits) != 1:
+        raise Fail(f'"{arg}" 에 해당하는 등록된 시트가 {"없다" if not hits else "여럿이다: " + ", ".join(hits)} '
+                   '(manifest 의 id — 예: sheet/class/warrior — 또는 png 이름 sheet_class_warrior)')
+    return hits[0]
+
+
+def request_for(sid):
+    for it in sh.request_map().values():
+        if it.get('id') == sid:
+            return it
+    return {}
+
+
+def layout(meta):
+    """→ (붙어 있는 이동 칸 이름들 (시트에 놓인 순서), 기본 칸 수). add_gait 가 붙인 칸은 언제나 frames 의 끝에 차례로 있다."""
+    recs = meta.get('gaits') or {}
+    attached = sorted((g for g in recs if g in meta['anims']), key=lambda g: meta['anims'][g]['from'])
+    base_n = min((meta['anims'][g]['from'] for g in attached), default=len(meta['frames']))
+    pos = base_n
+    for g in attached:
+        an = meta['anims'][g]
+        if an['from'] != pos or an['to'] < an['from']:
+            raise Fail(f'manifest 의 {g} 칸 범위({an["from"]}-{an["to"]})가 기본 칸 뒤에 차례로 있지 않다 — 손으로 고친 항목인가')
+        pos = an['to'] + 1
+    if pos != len(meta['frames']):
+        raise Fail(f'manifest 의 frames 가 {len(meta["frames"])}칸인데 기본 {base_n}칸 + 이동 칸의 끝은 {pos} 이다')
+    return attached, base_n
+
+
+def rebuild(entry, img, blocks):
+    """기본 칸(그림 그대로) + blocks {이름: (칸 목록, ms 목록)} 을 차례로 새 줄에 놓은 시트 → (그림, 새 항목).
+    stride·기록(gaits)은 부르는 쪽이 채운다."""
+    meta = entry['sheet']
+    cw, ch = meta['cell']
+    attached, base_n = layout(meta)
+    base_h = meta['frames'][base_n][1] if attached else img.shape[0]
+    W = img.shape[1]
+    cols = max(1, W // cw)
+    new = copy.deepcopy(entry)
+    nm = new['sheet']
+    nm['frames'] = [list(r) for r in meta['frames'][:base_n]]
+    for g in attached:
+        del nm['anims'][g]
+    parts, y = [img[:base_h]], base_h
+    for g, (cells, ms) in blocks.items():
+        rows = -(-len(cells) // cols)
+        block = np.zeros((rows * ch, W, 4), np.uint8)
+        start = len(nm['frames'])
+        for i, c in enumerate(cells):
+            x, yy = (i % cols) * cw, (i // cols) * ch
+            block[yy:yy + ch, x:x + cw] = c
+            nm['frames'].append([x, y + yy])
+        nm['anims'][g] = {'from': start, 'to': start + len(cells) - 1, 'ms': [int(v) for v in ms]}
+        parts.append(block)
+        y += rows * ch
+    out = np.concatenate(parts, axis=0)
+    new['w'], new['h'] = int(out.shape[1]), int(out.shape[0])
+    return out, new
+
+
+def existing_blocks(entry, img, skip=()):
+    meta = entry['sheet']
+    cw, ch = meta['cell']
+    out = {}
+    for g in layout(meta)[0]:
+        if g in skip:
+            continue
+        an = meta['anims'][g]
+        out[g] = ([img[y:y + ch, x:x + cw].copy() for x, y in meta['frames'][an['from']:an['to'] + 1]], an['ms'])
+    return out
+
+
+# ───────── 원본 프레임 ─────────
+
+def find_aseprite(given):
+    for c in (given, os.environ.get('ASEPRITE_PATH'), HEADLESS if os.path.exists(HEADLESS) else None, sh.find_aseprite(None)):
+        if c and os.path.exists(c) and os.access(c, os.X_OK):
+            return c
+    return None
+
+
+def frames_from_aseprite(path, exe):
+    exe = find_aseprite(exe)
+    if not exe:
+        raise Fail('.aseprite 원본을 읽을 Aseprite 실행 파일이 없다 (--aseprite-bin / tools/art/ase_headless.sh) — 띠 png 두 장을 --src 로 줄 수도 있다')
+    env = dict(os.environ)
+    env.pop('DISPLAY', None)
+    env.pop('WAYLAND_DISPLAY', None)
+    with tempfile.TemporaryDirectory(prefix='gait-ase-') as tmp:
+        png, js = os.path.join(tmp, 'frames.png'), os.path.join(tmp, 'frames.json')
+        r = subprocess.run([exe, '--batch', os.path.abspath(path), '--sheet', png, '--data', js, '--format', 'json-array'],
+                           stdin=subprocess.DEVNULL, capture_output=True, timeout=300, env=env)
+        if r.returncode or not os.path.exists(png) or not os.path.exists(js):
+            raise Fail(f'Aseprite 가 {path} 를 내보내지 못했다: ' + (r.stderr or r.stdout).decode('utf-8', 'replace').strip()[-300:])
+        with open(js, encoding='utf-8') as f:
+            data = json.load(f)['frames']
+        arr = np.asarray(Image.open(png).convert('RGBA'))
+    frames, durs = [], []
+    for i, fr in enumerate(data):
+        r = fr['frame']
+        if r['w'] != SLOT:
+            raise Fail(f'{path}: {i + 1}번 프레임 너비 {r["w"]} — 한 프레임은 {SLOT}px 이어야 한다 (SPEC 2절)')
+        frames.append(arr[r['y']:r['y'] + r['h'], r['x']:r['x'] + r['w']].copy())
+        durs.append(int(fr.get('duration', 0)) or None)
+    return frames, (durs if all(durs) else None)
+
+
+def load_frames(src, exe):
+    """→ (RGBA 프레임 목록 (너비 SLOT), 프레임 시간 ms 목록 또는 None)"""
+    for p in src:
+        if not os.path.exists(p):
+            raise Fail(f'원본이 없다: {p}')
+    if any(p.lower().endswith(('.aseprite', '.ase')) for p in src):
+        if len(src) != 1:
+            raise Fail('.aseprite 원본은 하나만 준다 (프레임이 모두 그 안에 있다)')
+        return frames_from_aseprite(src[0], exe)
+    frames = []
+    for p in src:
+        if not p.lower().endswith('.png'):
+            raise Fail(f'{p}: 띠 png 또는 .aseprite 만 받는다')
+        arr = np.asarray(Image.open(p).convert('RGBA'))
+        if arr.shape[1] % SLOT:
+            raise Fail(f'{p}: 너비 {arr.shape[1]} 가 한 프레임 {SLOT}px 의 배수가 아니다 (띠 = 384x1024 프레임을 나란히)')
+        frames += [arr[:, k * SLOT:(k + 1) * SLOT] for k in range(arr.shape[1] // SLOT)]
+    return frames, None
+
+
+# ───────── 변환 ─────────
+
+def sheet_palette(base, keys, spots):
+    """등록된 시트의 기본 칸에 실제로 있는 색 (열쇠 색·점 색 제외) — sheets.py 가 그 시트에 쓴 공통 팔레트 중 쓰인 색."""
+    px = base[base[..., 3] > 0][:, :3]
+    pal = np.unique(px, axis=0).astype(np.float32)
+    for c in list(keys) + list(spots):
+        pal = pal[~np.all(pal == c, -1)]
+    if not len(pal):
+        raise Fail('시트의 기본 칸에서 팔레트를 얻지 못했다 (빈 시트?)')
+    return pal
+
+
+def window(c, a, scale):
+    """칸의 한 변 c (게임 px, anchor 는 a)에 해당하는 원본 창의 길이 (정수 px) → (길이, 창 안에서 anchor 의 자리).
+    c/scale 에 가장 가까운 세 정수 중에서, anchor 가 원본 픽셀 경계에서 벗어나는 양(게임 px) + 배율 오차가 anchor 에서 칸 끝까지
+    쌓이는 양(게임 px)이 가장 작은 것 — 96 칸은 580 (가운데 290 딱 맞음), 112 칸의 가로는 678 (677 이면 가운데가 반 픽셀 어긋난다)."""
+    def cost(S):
+        return abs(a * S / c - rnd(a * S / c)) * c / S + abs(c / (S * scale) - 1) * max(a, c - a)
+    S = min((rnd(c / scale) + d for d in (0, -1, 1)), key=cost)
+    return S, rnd(a * S / c)
+
+
+def convert(frames, cell, anchor, scale, pal, keys, roles, spots, floor, center):
+    """원본 프레임들 → (칸 목록, 프레임별 잰 값). 모든 프레임이 같은 원본 창(= 칸 전체)에서 같은 격자로 줄어든다."""
+    cw, ch = cell
+    ax, ay = anchor
+    (Sx, ox), (Sy, oy) = window(cw, ax, scale), window(ch, ay, scale)   # 칸 전체에 해당하는 원본 창, 그 안의 가운데 열·바닥 줄 아랫변
+    dx, dy = ox - center, oy - (floor + 1)             # 프레임 좌표 → 창 좌표
+    eff = (cw / Sx, ch / Sy)
+    log(f'  원본 창 {Sx}x{Sy}px → 칸 {cw}x{ch} (실제 배율 {eff[0]:.5f} x {eff[1]:.5f}, 요청 {scale:g}); '
+        f'원본 x={center:g} → 칸 x={ox * cw / Sx:.2f} (anchor {ax}), 바닥 줄 y={floor} 아랫변 → 칸 y={oy * ch / Sy:.2f} (anchor {ay})')
+    cells, info, bad = [], [], []
+    for i, arr in enumerate(frames):
+        rgb, alpha, _ = sh.matte(np.ascontiguousarray(arr))
+        H, W = alpha.shape
+        bb = sh.bbox(alpha, 0.5)
+        if bb is None:
+            raise Fail(f'{i + 1}번 프레임이 비었다')
+        x0, y0, x1, y1 = (int(v) for v in bb)
+        over = [(side, d) for side, d in (('왼쪽으로', 1 - (x0 + dx) * cw / Sx), ('오른쪽으로', (x1 + dx) * cw / Sx - (cw - 1)),
+                                           ('위로', 1 - (y0 + dy) * ch / Sy), ('아래로', (y1 + dy) * ch / Sy - ch)) if d > 1e-6]
+        if over:
+            bad.append(f'{i + 1}번 프레임: ' + ', '.join(f'{side} {d:.1f}px (원본 {int(np.ceil(d / eff[0]))}px)' for side, d in over))
+            continue
+        c_rgb = np.zeros((Sy, Sx, 3), np.float32)
+        c_a = np.zeros((Sy, Sx), np.float32)
+        fx0, fy0, fx1, fy1 = max(0, -dx), max(0, -dy), min(W, Sx - dx), min(H, Sy - dy)
+        c_rgb[fy0 + dy:fy1 + dy, fx0 + dx:fx1 + dx] = rgb[fy0:fy1, fx0:fx1]
+        c_a[fy0 + dy:fy1 + dy, fx0 + dx:fx1 + dx] = alpha[fy0:fy1, fx0:fx1]
+        klab = sh.key_label(c_rgb, c_a, keys) if len(keys) else None
+        s_rgb, mask, s_k, s_sp, _, _ = sh.shrink_pose(c_rgb, c_a, klab, len(keys), spots, scale, cw, ch, ALPHA)
+        if not mask.any():
+            raise Fail(f'{i + 1}번 프레임이 축소 후 비었다')
+        s_rgb = sh.outline(s_rgb, mask)
+        q = sh.paint_pose(s_rgb, mask, s_k, s_sp, pal, keys, roles, spots)
+        c = np.zeros((ch, cw, 4), np.uint8)
+        c[..., :3] = np.clip(q, 0, 255).astype(np.uint8)
+        c[..., 3] = mask * 255
+        c[..., :3][~mask] = 0
+        cells.append(c)
+        ys, xs = np.nonzero(mask)
+        info.append({'frame': i + 1, 'bbox': [int(xs.min()), int(ys.min()), int(xs.max()) + 1, int(ys.max()) + 1],
+                     'above_floor': int(ay - 1 - ys.max()), 'src_lowest_y': y1 - 1})
+    if bad:
+        raise Fail(f'칸 {cw}x{ch} (가장자리 1px 여유)에 들어가지 않는 프레임이 있다 — 줄이거나 밀지 않는다. '
+                   '그림을 고치거나 더 큰 칸으로 기본 시트를 다시 등록할 것:\n    ' + '\n    '.join(bad))
+    return cells, info
+
+
+# ───────── 붙이기 · 빼기 ─────────
+
+def command_for(sid, gait, rec):
+    cmd = ['python3', 'tools/art/add_gait.py', sid, '--gait', gait, '--src', *rec.get('src', ['<원본>'])]
+    cmd += ['--pose', rec['pose']] if rec.get('pose') else ['--stride', f'{rec.get("stride", 0):g}']
+    ms = rec.get('ms')
+    if isinstance(ms, int):
+        cmd += ['--ms', str(ms)]
+    if rec.get('floor', FLOOR) != FLOOR:
+        cmd += ['--floor', str(rec['floor'])]
+    if rec.get('center', SLOT // 2) != SLOT // 2:
+        cmd += ['--center', str(rec['center'])]
+    if rec.get('scale'):
+        cmd += ['--scale', f'{rec["scale"]:g}']
+    return ' '.join(shlex.quote(c) for c in cmd)
+
+
+def draft_guard(src, allow):
+    """sheets.py 와 같은 규칙: 초안·가이드 자리의 그림은 게임 시트에 붙이지 않는다. → 시험 처리(dry-run 강제)인가"""
+    forced = False
+    for p in src:
+        why = sh.novelai_draft_reason(p)
+        if not why:
+            continue
+        if not allow:
+            raise Fail(f'{p}: 게임 그림이 아닌 자리의 파일이라 거부 ({why}). 디자인 초안·뼈대 가이드는 게임에 넣지 않는다 — 게임 그림은 GPT 를 거쳐 '
+                       'art/inbox/ 로 온다. 파이프라인 시험만이라면 --allow-draft (항상 --dry-run).')
+        log(f'  {p}: 초안·가이드 ({why}) — --allow-draft 시험 처리, 시트·manifest 는 바꾸지 않는다')
+        forced = True
+    return forced
+
+
+def gait_blocks(sid, entry, img, gait, rec, exe):
+    """rec 의 원본을 변환해 → (칸 목록, ms 목록, 한 걸음 게임 px, 잰 값)"""
+    meta = entry['sheet']
+    req = request_for(sid)
+    scale = rec.get('scale') or req.get('scale')
+    if not scale:
+        raise Fail(f'{sid}: 요청서에 scale 이 없다 (대기 자세 높이로 배율을 정한 시트) — 그 시트를 만든 배율을 --scale 로 줄 것')
+    src = [absp(p) for p in rec['src']]
+    frames, durs = load_frames(src, exe)
+    n = len(frames)
+    if n < 2:
+        raise Fail(f'프레임이 {n}장뿐이다')
+    if n % 2:
+        log(f'  주의: 프레임이 {n}장(홀수) — 게임은 n 프레임을 두 걸음으로 본다')
+    tint = req.get('tint') or meta.get('tint')
+    if sid.startswith('sheet/class/') and 'tint' not in meta:
+        tint = None                                   # 열쇠 색 없이 등록한 직업 시트 (--no-tint)
+    keys, roles = sh.tint_keys(tint)
+    spots = np.array([sh.hex_rgb(h) for h in (req.get('spots') or [])], np.float32).reshape(-1, 3)
+    attached, base_n = layout(meta)
+    base = img[:meta['frames'][base_n][1]] if attached else img
+    pal = sheet_palette(base, keys, spots)
+    log(f'  {n} 프레임, 배율 {scale:g}, 칸 {meta["cell"][0]}x{meta["cell"][1]}, anchor {meta["anchor"][0]},{meta["anchor"][1]}, '
+        f'팔레트 {len(pal)}색 (시트의 기본 칸에서){", 열쇠 색 %d" % len(keys) if len(keys) else ""}{", 점 색 %d" % len(spots) if len(spots) else ""}')
+    cells, info = convert(frames, meta['cell'], meta['anchor'], scale, pal, keys, roles, spots,
+                          rec.get('floor', FLOOR), rec.get('center', SLOT // 2))
+    # 한 걸음
+    pose = None
+    if rec.get('pose') and os.path.exists(absp(rec['pose'])):
+        with open(absp(rec['pose']), encoding='utf-8') as f:
+            pose = json.load(f)
+    if rec.get('step_px'):
+        stride = round(rec['step_px'] * scale, 1)
+    elif rec.get('stride'):
+        stride = rec['stride']
+    else:
+        raise Fail('한 걸음(게임 px)을 알 수 없다 — --stride 또는 step_px 가 든 --pose pose.json')
+    if pose:
+        pg = pose.get('gait', 'walk')
+        if pg != gait:
+            log(f'  주의: {rec["pose"]} 는 {pg} 세트인데 {gait} 로 붙인다')
+        if pose.get('frames_per_cycle') and pose['frames_per_cycle'] != n:
+            log(f'  주의: {rec["pose"]} 는 {pose["frames_per_cycle"]} 프레임인데 원본은 {n} 프레임')
+    # 프레임 시간
+    ms = rec.get('ms')
+    if isinstance(ms, list) and len(ms) != n:
+        ms = None
+    if ms is None:
+        ms = durs or (pose or {}).get('nominal_ms') or DEFAULT_MS[gait]
+    ms = [int(ms)] * n if not isinstance(ms, list) else [int(v) for v in ms]
+    touch = [r['frame'] for r in info if r['above_floor'] == 0]
+    below = [r for r in info if r['above_floor'] < 0]
+    log('  프레임별 맨 아래 픽셀 (바닥 줄 위 게임 px): ' + ' '.join(f'{r["frame"]}:{r["above_floor"]}' for r in info))
+    if not touch:
+        log(f'  주의: 바닥 줄(y={rec.get("floor", FLOOR)})에 닿는 프레임이 하나도 없다 — 바닥 줄이 다른 그림이면 --floor 로 줄 것')
+    for r in below:
+        log(f'  주의: {r["frame"]}번 프레임이 바닥 줄 아래로 {-r["above_floor"]}px 내려간다 (원본 맨 아래 y={r["src_lowest_y"]})')
+    return cells, ms, stride, info
+
+
+def write_previews(work, name, sheet, entry, gait):
+    meta = entry['sheet']
+    cw, ch = meta['cell']
+    sh.CELL, sh.ANCHOR = ch, tuple(meta['anchor'])
+    sh.preview(sheet, os.path.join(work, f'{name}_preview_x4.png'))
+    an = meta['anims'].get(gait)
+    if not an:
+        return
+    ims = []
+    for x, y in meta['frames'][an['from']:an['to'] + 1]:
+        bg = np.zeros((ch, cw, 4), np.uint8)
+        bg[..., :3], bg[..., 3] = (44, 40, 48), 255
+        bg[meta['anchor'][1], :, :3] = (90, 60, 60)
+        im = Image.fromarray(bg)
+        im.alpha_composite(Image.fromarray(np.ascontiguousarray(sheet[y:y + ch, x:x + cw])))
+        ims.append(im.convert('RGB').resize((cw * 4, ch * 4), Image.Resampling.NEAREST))
+    ims[0].save(os.path.join(work, f'{name}_{gait}_x4.gif'), save_all=True, append_images=ims[1:], duration=an['ms'], loop=0, disposal=1)
+
+
+def finish(sid, man, entry, new, sheet, a, gait=None):
+    """새 시트·항목을 쓴다 (dry-run 이면 --work 에만)."""
+    name = os.path.basename(entry['file'])[:-4]
+    work = a.work
+    if a.dry_run and not work:
+        work = tempfile.mkdtemp(prefix='gait-')
+    if work:
+        os.makedirs(work, exist_ok=True)
+    if a.dry_run:
+        Image.fromarray(sheet).save(os.path.join(work, name + '.png'), optimize=True)
+        with open(os.path.join(work, name + '.entry.json'), 'w', encoding='utf-8') as f:
+            json.dump({sid: new}, f, ensure_ascii=False, indent=2, sort_keys=True)
+            f.write('\n')
+        write_previews(work, name, sheet, new, gait)
+        log(f'  --dry-run: 시트·manifest 는 그대로. 새 시트 {os.path.join(work, name + ".png")} · 등록될 항목 {name}.entry.json · 미리보기 {name}_preview_x4.png')
+        return
+    Image.fromarray(sheet).save(os.path.join(ROOT, entry['file']), optimize=True)
+    man[sid] = new
+    save_manifest(man)
+    if work:
+        write_previews(work, name, sheet, new, gait)
+
+
+def summary(sid, new):
+    m = new['sheet']
+    parts = [f'{k}({v["to"] - v["from"] + 1})' for k, v in sorted(m['anims'].items(), key=lambda kv: kv[1]['from'])]
+    strides = ', '.join(f'{g}Stride {m[g + "Stride"]:g}' for g in GAITS if g + 'Stride' in m)
+    return f'{sid}: 시트 {new["w"]}x{new["h"]}, {len(m["frames"])}칸 — {", ".join(parts)}{"; " + strides if strides else ""}'
+
+
+def attach(sid, man, gait, rec, a):
+    entry = man[sid]
+    meta = entry['sheet']
+    if gait in meta['anims'] and gait not in (meta.get('gaits') or {}):
+        raise Fail(f'{sid} 에는 add_gait 가 붙이지 않은 {gait} 칸이 이미 있다 (시트 자체의 태그) — 그대로 둔다')
+    img = np.asarray(Image.open(os.path.join(ROOT, entry['file'])).convert('RGBA'))
+    cells, ms, stride, _ = gait_blocks(sid, entry, img, gait, rec, a.aseprite_bin)
+    blocks = existing_blocks(entry, img)
+    blocks[gait] = (cells, ms)
+    blocks = {g: blocks[g] for g in GAITS if g in blocks}   # 줄의 순서는 언제나 run → walk: 붙인 순서와 상관없이 같은 결과
+    sheet, new = rebuild(entry, img, blocks)
+    nm = new['sheet']
+    nm[gait + 'Stride'] = stride
+    rec = dict(rec, stride=stride, ms=ms[0] if len(set(ms)) == 1 else ms)
+    nm.setdefault('gaits', {})[gait] = rec
+    finish(sid, man, entry, new, sheet, a, gait)
+    log('  ' + summary(sid, new))
+    log(f'  다시 붙이는 명령: {command_for(sid, gait, rec)}')
+    return new
+
+
+def remove(sid, man, gait, a):
+    entry = man[sid]
+    meta = entry['sheet']
+    recs = meta.get('gaits') or {}
+    if gait not in recs:
+        raise Fail(f'{sid} 에 add_gait 가 붙인 {gait} 칸이 없다' + (' (시트 자체의 태그는 건드리지 않는다)' if gait in meta['anims'] else ''))
+    img = np.asarray(Image.open(os.path.join(ROOT, entry['file'])).convert('RGBA'))
+    sheet, new = rebuild(entry, img, existing_blocks(entry, img, skip=(gait,)))
+    nm = new['sheet']
+    nm.pop(gait + 'Stride', None)
+    del nm['gaits'][gait]
+    if not nm['gaits']:
+        del nm['gaits']
+    finish(sid, man, entry, new, sheet, a)
+    log(f'  {gait} 칸을 뺐다. ' + summary(sid, new))
+    return new
+
+
+def reattach(sid, man, a):
+    """기록(gaits)은 있는데 칸(anims)이 없는 이동 동작을 기록된 원본에서 다시 붙인다 — 기본 시트를 다시 등록한 뒤."""
+    recs = dict(man[sid]['sheet'].get('gaits') or {})
+    pending = [g for g in recs if g not in man[sid]['sheet']['anims']]
+    if not pending:
+        log(f'{sid}: 다시 붙일 이동 칸이 없다')
+        return 0
+    failed = 0
+    for g in pending:
+        rec = recs[g]
+        log(f'{sid}: {g} 칸을 기록된 원본에서 다시 붙인다 ({", ".join(rec.get("src", []))})')
+        try:
+            missing = [p for p in rec.get('src', []) if not os.path.exists(absp(p))]
+            if missing or not rec.get('src'):
+                raise Fail('원본이 없다: ' + (', '.join(missing) or '(기록에 src 가 없다)'))
+            draft_guard([absp(p) for p in rec['src']], False)
+            attach(sid, man, g, rec, a)
+        except Fail as e:
+            failed += 1
+            bar = '!' * 78
+            log(f'{bar}\n!!! 경고: {sid} 의 {g} 칸을 다시 붙이지 못했다 — {e}\n'
+                f'!!! 지금 이 시트에는 {g} 칸이 없다 (게임은 이 시트를 {g} 동작 없이 그린다). 기록(sheet.gaits.{g})은 남겨 두었다.\n'
+                f'!!! 원본을 되돌려 놓고:  python3 tools/art/add_gait.py {shlex.quote(sid)} --reattach\n'
+                f'!!! 또는 새 원본으로:    {command_for(sid, g, dict(rec, src=["<a.png>", "<b.png>"]))}\n'
+                f'!!! 기록까지 지우려면:   python3 tools/art/add_gait.py {shlex.quote(sid)} --gait {g} --remove\n{bar}')
+    return 1 if failed else 0
+
+
+def main(argv=None):
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument('sheet', help='manifest id (sheet/class/warrior) 또는 등록된 시트 png 이름 (sheet_class_warrior)')
+    ap.add_argument('--gait', choices=GAITS, help='run (전투 이동의 기본) | walk (둔화용)')
+    ap.add_argument('--src', nargs='+', help='띠 png 들 (프레임 순서대로: <set>_a.png <set>_b.png) 또는 .aseprite 하나')
+    ap.add_argument('--stride', type=float, help='한 걸음에 가는 게임 px (n 프레임 = 두 걸음). 없으면 --pose 의 step_px x 시트 배율')
+    ap.add_argument('--pose', help='그 세트의 pose.json (step_px, nominal_ms). 기본: 원본 옆의 pose.json')
+    ap.add_argument('--ms', type=int, help='프레임 시간 ms (기본: .aseprite 의 프레임 시간 → pose.json nominal_ms → run 80 / walk 120)')
+    ap.add_argument('--floor', type=int, default=FLOOR, help=f'원본의 바닥 줄 = 디딘 발의 맨 아래 픽셀 y (기본 {FLOOR}; 모든 프레임에 같은 값)')
+    ap.add_argument('--center', type=int, default=SLOT // 2, help=f'한 프레임 안의 엉덩이 중심 열 x (기본 {SLOT // 2})')
+    ap.add_argument('--scale', type=float, help='원본 → 게임 배율 (기본: 요청서 phase3.json 의 scale)')
+    ap.add_argument('--remove', action='store_true', help='그 이동 칸을 뺀다')
+    ap.add_argument('--reattach', action='store_true', help='기록은 있는데 칸이 없는 이동 동작을 기록된 원본에서 다시 붙인다')
+    ap.add_argument('--dry-run', action='store_true', help='시트·manifest 를 바꾸지 않고 --work 에 결과만 쓴다')
+    ap.add_argument('--work', help='새 시트·항목·미리보기를 둘 폴더 (--dry-run 에서는 여기에만 쓴다)')
+    ap.add_argument('--allow-draft', action='store_true', help='시험용: 초안·가이드 자리의 원본도 처리한다. 언제나 --dry-run')
+    ap.add_argument('--aseprite-bin', help='Aseprite 실행 파일 (기본: $ASEPRITE_PATH, tools/art/ase_headless.sh, $ASEPRITE, PATH)')
+    a = ap.parse_args(argv)
+    try:
+        man = load_manifest()
+        sid = resolve_sheet(a.sheet, man)
+        if a.reattach:
+            return reattach(sid, man, a)
+        if not a.gait:
+            raise Fail('--gait run|walk 가 필요하다')
+        if a.remove:
+            log(f'{sid}: {a.gait} 칸 빼기')
+            remove(sid, man, a.gait, a)
+            return 0
+        if not a.src:
+            raise Fail('--src 가 필요하다 (띠 png 들 또는 .aseprite)')
+        log(f'{sid}: {a.gait} ← {", ".join(a.src)}')
+        if a.allow_draft:
+            a.dry_run = True
+        if draft_guard(a.src, a.allow_draft):
+            a.dry_run = True
+        rec = {'src': [rel(p) for p in a.src], 'floor': a.floor, 'center': a.center}
+        if a.scale:
+            rec['scale'] = a.scale
+        if a.ms:
+            rec['ms'] = a.ms
+        pose = a.pose
+        if not pose and a.stride is None:
+            near = os.path.join(os.path.dirname(os.path.abspath(a.src[0])), 'pose.json')
+            if os.path.exists(near):
+                pose = near
+                log(f'  한 걸음: 원본 옆의 {rel(near)} 에서')
+        if a.stride is not None:
+            if a.stride <= 0:
+                raise Fail('--stride 는 0 보다 커야 한다')
+            rec['stride'] = a.stride
+            if pose:
+                rec['pose'] = rel(pose)
+        elif pose:
+            with open(pose, encoding='utf-8') as f:
+                step = json.load(f).get('step_px')
+            if not step:
+                raise Fail(f'{pose} 에 step_px 가 없다 — --stride 로 줄 것')
+            rec['pose'], rec['step_px'] = rel(pose), step
+        else:
+            raise Fail('한 걸음을 알 수 없다: --stride 게임px 또는 --pose pose.json (step_px)')
+        attach(sid, man, a.gait, rec, a)
+        return 0
+    except Fail as e:
+        print(f'add_gait: {e}', file=sys.stderr)
+        return 1
+
+
+if __name__ == '__main__':
+    sys.exit(main())

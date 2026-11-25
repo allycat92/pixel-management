@@ -96,6 +96,28 @@ python3 tools/art/sheets.py art/inbox/sheet_captain_lancer.png --scale 0.1654 --
 - 이름 뒤에 `@`이 붙은 후보(`sheet_x_y@123.png`)는 직접 지정할 때만 처리한다.
 - `process.py`는 `sheet/*` 등 자기가 만들지 않은 manifest 항목을 건드리지 않는다.
 
+### 달리기·걷기 프레임 붙이기 (`tools/art/add_gait.py`)
+전투에서 유닛은 달린다 (주인 결정 2026-11-26) — 그려 온 **달리기(run)** 프레임을 이미 등록된 시트에 붙인다. 걷기(walk, 둔화용)도 같은 방법이다.
+```
+python3 tools/art/add_gait.py sheet/class/warrior --gait run --src art/inbox/gait/run_warrior_a.png art/inbox/gait/run_warrior_b.png \
+        --pose art/requests/guides/run_base/v1/pose.json            # 한 걸음 = pose.json 의 step_px x 시트 배율 (run_base 275px → 45.5)
+python3 tools/art/add_gait.py sheet_class_warrior --gait run --src art/inbox/gait/run_warrior.aseprite --stride 45.5 --ms 80
+python3 tools/art/add_gait.py sheet/class/warrior --gait run --src ... --dry-run --work /tmp/gait   # 새 png · 등록될 항목 · 미리보기만
+python3 tools/art/add_gait.py sheet/class/warrior --gait run --remove                              # 다시 뺀다
+```
+- 원본은 `art/requests/guides/SPEC.md` 의 프레임 규격: 한 프레임 384×1024, 띠 `_a.png`(1~4번)·`_b.png`(5~8번) 또는 프레임이 든 `.aseprite` 하나(보이는 레이어만).
+  **모든 프레임에서 엉덩이 중심 x=192, 바닥 줄 y=870.** 파일 이름은 `sheet_` 로 시작하지 않게 한다 (인자 없는 `sheets.py` 가 `art/inbox/sheet_*.png` 를 시트로 처리한다).
+- 변환은 그 시트를 만들 때와 같다 (`sheets.py` 의 함수 `matte`·`shrink_pose`·`outline`·`paint_pose` 를 그대로 부른다: 요청서의 scale, 키 제거, 열쇠 색·점 색).
+  팔레트는 등록된 시트의 기본 칸에 있는 색을 쓴다 — 이동 칸에 새 색이 생기지 않는다.
+- 자리 맞춤은 맨 아래 픽셀이 아니라 **바닥 줄 y=870 → anchor y, x=192 → anchor x** (달리기의 뜬 프레임이 바닥에 내려앉지 않고, 프레임마다 몸이 흔들리지 않는다).
+  바닥 줄·가운데 열이 다른 그림이면 `--floor` / `--center` (모든 프레임에 같은 값). 칸에 안 들어가는 프레임은 줄이지 않고 몇 px 넘는지 알리며 실패한다.
+- 결과: 시트 png 아래에 새 줄(기본 7칸의 픽셀은 그대로, 줄 순서는 run → walk), manifest 의 `sheet` 에 `frames` 추가 · `anims.run = {from, to, ms}` ·
+  `runStride`(한 걸음의 게임 px, n 프레임 = 두 걸음) · `gaits.run`(원본·바닥 줄·걸음 기록). 걷기는 `anims.walk` / `walkStride` / `gaits.walk`. `js/art.js` 는 그대로 읽는다.
+- **기본 시트를 다시 등록해도 잃지 않는다**: `register_sheet.py`(= `sheets.py` 의 마지막 단계)가 `gaits` 기록을 새 항목에 옮기고 `add_gait.py <id> --reattach` 로
+  기록된 원본에서 다시 변환해 붙인다 (새 팔레트·새 칸 크기로). 원본이 없으면 `!!! 경고` 와 다시 붙일 명령을 찍고 기록만 남긴다 (그동안 게임은 그 시트를 이동 칸 없이 그린다).
+  그래서 붙인 원본은 `art/inbox/` 에 그대로 둔다. `sheets.py --realign` 은 이동 칸을 밀지 않는다.
+- 뼈대 가이드·초안(`art/requests/`, `art/concepts/`, `drafts/`, `nai_*`)은 `sheets.py` 와 같은 규칙으로 거부한다. `--allow-draft` 는 시험용이고 언제나 `--dry-run`.
+
 ### NovelAI (사용자가 원할 때만, 디자인 초안 전용)
 `python3 tools/art/novelai.py --only sheet/class/warrior` → `art/concepts/class_warrior/drafts/nai_class_warrior_s21149.png` (한 자세, 마젠타 배경; `drafts/`는 git 에 올리지 않는다).
 **NovelAI 그림은 게임 그림이 되지 않는다** (주인 결정: 최종 그림은 언제나 GPT). `novelai.py`는 `art/inbox/`·`assets/`·`art/requests/`에 쓰지 못하고
