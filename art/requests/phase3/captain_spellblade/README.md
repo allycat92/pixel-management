@@ -5,12 +5,12 @@
 | 파일 | 내용 |
 |---|---|
 | `guide_strip.png` | **결과물과 같은 배치** — 1536x1024, #FF00FF, 4자세 한 줄, 머리 110px, 발바닥 y=870 (가장 중요) |
-| `guide_1_idle.png` … `guide_4_hit.png` | 같은 자세를 크게 (posekit 4등신 마네킹, 무기 `katana`) |
+| `guide_1_idle.png` … `guide_4_hit.png` | 같은 자세를 크게 (posekit 4등신 마네킹, 무기 `sword_shield`) |
 | `portrait.png` | 승인된 초상화 — 얼굴·머리·옷의 **디자인** 기준 (NovelAI 초안 없음) |
 
 - 납품 파일: art-inbox 브랜치 `art/inbox/sheet_captain_spellblade.png` + `art/inbox/NOTES.md`의 「3단계 — 카시안」 절.
 - 화풍 기준(앵커): art-inbox 의 `art/inbox/sheet_captain_blademaster.png`.
-- 요점: 카시안: 긴 물결 은발, 뺨의 두 줄 흉터, 남색 하이칼라 코트+하늘색 장식, 금 별 브로치. 무기는 주인 결정(2026-11-25)으로 청록 룬이 새겨진 장검(가이드 katana, 가이드처럼 두 손으로 쥐는 자세) — 초상화의 수정 지팡이는 쓰지 않는다(얼굴·머리·코트만 초상화에서). 룬은 평평한 하늘색 선, 빛·연기·궤적 없음(마력검 베기는 엔진 효과). 칼날은 몸 바깥, 보라 대신 짙은 남색.
+- 요점: 카시안: 긴 물결 은발, 뺨의 두 줄 흉터, 남색 하이칼라 코트+하늘색 장식, 금 별 브로치. 무기는 주인 결정(2026-11-25)으로 청록 룬이 새겨진 한손 장검(가이드 sword_shield — 방패는 자리 표시일 뿐 없음, 빈 왼손은 마법사처럼 펼친 손, 효과 없음) — 초상화의 수정 지팡이는 쓰지 않는다(얼굴·머리·코트만 초상화에서). 룬은 평평한 하늘색 선, 빛·연기·궤적 없음(마력검 베기는 엔진 효과). 칼날은 몸 바깥, 보라 대신 짙은 남색.
 - 생성: `python3 tools/art/portrait_pkgs.py captain tools/art/specs/captains_batch2.json spellblade` (고칠 때는 spec JSON 을 고치고 다시 실행).
 
 ## Prompt for GPT
@@ -21,13 +21,13 @@ art/inbox/sheet_captain_spellblade.png on the art-inbox branch.
 
 CHARACTER: Cassian: tall, elegant man in his thirties, long wavy ash-silver hair to mid-back, stern blue eyes, two thin diagonal scars on the cheek, high-collared dark navy long coat with pale-cyan trim and swirl embroidery on the shoulder cape, small gold four-point star brooch; wields a one-handed rune longsword (straight light-steel blade engraved with flat pale-cyan runes, gold cross-guard, dark wrapped grip). Class: 마검사 (mage). Colours: skin #f5d6b8, hair #c9c2b8 (long), outfit #2a2a6a (dark navy), accent #7fd6e8 (pale cyan trim, blade runes); gold fittings ~#d9a441, blade steel ~#c8ccd2.
 Take the face, hair and outfit design from portrait.png (design only; not its painting style).
-NOTES: Weapon (owner decision): ONE longsword with flat pale-cyan runes along the blade, gold cross-guard, dark grip long enough for a second hand — NOT the portrait's crystal staff (take only face, hair and coat from portrait.png). Hold it as the guide does (both hands on the grip where the guide shows two hands); the guide's blade marks the sword's position and length / Runes are FLAT cyan #7fd6e8 lines on a light neutral-steel blade (~#c8ccd2) with a dark outline: NO glow, no blue smoke, no floating runes or particles (the engine draws the '마력검' slash) / Blade stays outside the head/hair and coat silhouette on magenta in every pose; long hair is kept as a compact mass behind the shoulders / Coat is dark navy-blue, not violet; keep any purple highlights blue-shifted and dark (magenta rule), cyan trim crisp so the coat reads on dark terrain / Cheek scars and the gold star brooch remain visible.
+NOTES: Weapon (owner decision): ONE ONE-HANDED longsword in the near hand (flat pale-cyan runes along the blade, gold cross-guard, short dark grip) — NOT the portrait's crystal staff (take only face, hair and coat from portrait.png). The guide's SHIELD is only a placeholder: NO shield — the off hand is empty and open (a spell-caster's hand) where the guide shows the shield, with no glow or effect around it / Runes are FLAT cyan #7fd6e8 lines on a light neutral-steel blade (~#c8ccd2) with a dark outline: NO glow, no blue smoke, no floating runes or particles (the engine draws the '마력검' slash) / Blade stays outside the head/hair and coat silhouette on magenta in every pose; long hair is kept as a compact mass behind the shoulders / Coat is dark navy-blue, not violet; keep any purple highlights blue-shifted and dark (magenta rule), cyan trim crisp so the coat reads on dark terrain / Cheek scars and the gold star brooch remain visible.
 
 POSES (match guide_strip.png exactly — pose, limb lengths, proportions, position and size; the mannequin weapon is a placeholder for the real weapon):
-1 idle: low guard stance, sword gripped with both hands at the waist, blade angled up and forward ahead of the body on magenta.
-2 wind-up: sword raised overhead with both hands, blade pointing back behind and above the head on magenta, weight on the back leg.
-3 strike: deep lunge, two-handed down-forward cut with the arms extended, blade angled down and forward in front of the body, tip above knee height — NO trail, NO glow, NO effect.
-4 hit: torso thrown back, weight on the rear leg, head jerked back, free arm flung up, sword hanging low in the near hand pointing down-forward away from the body.
+1 idle: guard stance, sword held one-handed in the near hand, blade angled up and forward across the front of the body on magenta; free hand open at chest height in front, palm out (where the guide shield is).
+2 wind-up: sword drawn back high over the near shoulder, blade behind and above the head on magenta; free hand thrust forward open, weight on the back leg.
+3 strike: deep lunge, sword arm fully extended in a forward cut, blade angled down and forward in front of the body; free hand pulled in to the chest — NO trail, NO glow, NO effect.
+4 hit: torso thrown back, weight on the rear leg, head jerked back, sword hanging low in the near hand pointing down-forward away from the body; free hand flung up and back, open.
 
 FORMAT: 1536x1024 PNG, the same character four times in ONE row (1x4), facing RIGHT, front three-quarter view, light from the upper left.
 4 heads tall, head = 110 px; the crouched idle is about 400 px from top of head to sole (hair, headgear and weapon not counted).
