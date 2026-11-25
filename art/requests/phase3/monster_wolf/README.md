@@ -13,13 +13,14 @@ BRIEF: a lean grey wild wolf in side three-quarter view, head low, tail down: a 
 
 DESIGN: shaggy grey fur with a darker back and a lighter belly; amber eyes; bared fangs, ears back; four legs, ONE tail, ONE head.
 
-COLOURS (keep close, muted): fur grey #8a8f99, dark #5c606a, light grey-beige belly; eyes amber #f2c94c; mouth dark red-brown.
+COLOURS (keep close, muted): fur grey #8a8f99, dark #5c606a, light grey-beige belly; eyes amber #f2c94c (never grey); mouth interior dark red-brown #5a2a24 / #3e1e1a (no magenta, pink or purple); fangs off-white.
 
 FROM concept.png (the owner's pick, NovelAI draft #6; design only) TAKE: the head held below the shoulder line with a snarl and bared fangs, a thick darker ruff over the neck and shoulders, pale cheeks and muzzle, pale lower legs and paws, a long bushy tail, a lean long-legged build.
 
 FIX (do not reproduce the draft here):
   - a common monster seen in large numbers: an ordinary member of its kind, no unique features, no crown, banner or trophy
   - a real wolf (not a werewolf, never standing up)
+  - the eyes are AMBER #f2c94c and the open mouth is dark red-brown, in every pose
   - exactly four legs, one tail and one head in every pose
   - the PAWS are the lowest pixels (on the baseline, as DELIVERABLE says); the low-hanging tail tip always stays above the paw line
   - the draft fur is a noise of thin hatching strokes: a few big fur clumps in 2-3 tones

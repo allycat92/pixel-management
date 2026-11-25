@@ -383,6 +383,11 @@ CLASS_COMMON_KEEP = ['the FACE is covered or in shadow (see the headgear below),
 CLASS_COMMON_FIX = ['the face stays covered / shadowed the SAME way in ALL FOUR poses: the visor, hood, mask, brim or veil never '
                     'slips, opens or falls back, not even in the hit pose; the shadowed face is a warm or neutral dark '
                     '(e.g. #3a2e2a), never blue and never a key colour']
+# Owner review of the first class delivery: the archer's hood edge around the face and the rogue's scarf were ACCENT keys, so a
+# bright faction accent (cities #f2c94c, elves lime, clans cream) painted the face as a solid yellow block. Cloth over or around
+# the face is OUTFIT keys (the archer's mask already was); the accent keys stay on trim away from the face.
+FACE_CLOTH_FIX = ('NO accent key on or around the face: {what} use the OUTFIT keys (never the accent keys), because a bright faction '
+                  'accent such as yellow would turn the whole face into one solid block')
 # draft notes (owner's NovelAI pick, concept.png): `draft` = what to take from the drawing (keep) and its defects (fix, appended
 # to FIX). The class drafts were prompted "plain slate blue ... pale teal trim": that only marks the key-colour SLOT.
 CLASS_DRAFT_FIX = ('the draft\'s slate-blue / teal / cyan cloth only marks WHERE the key colours go: repaint those areas with the exact '
@@ -452,30 +457,31 @@ CHARS.update({
                         'at most two tiny eye glints); the mask still covers everything below the nose',
                         'the draft bow is a long bow whose string line breaks and crosses the body: a short recurve bow the size of the guide bow '
                         'with ONE clean string; an arrow only on the drawn bow in the wind-up',
-                        'the draft has no trim: accent keys on the hood\'s front edge and the tunic hem',
+                        'the draft has no trim: accent keys on the tunic hem (the hood\'s front edge around the face stays OUTFIT keys)',
                         'the draft trousers are blue-purple grey: warm dark grey-brown (nothing blue outside the keys)']),
         head=head_fix('the hood and the mask'),
         weapon_desc='a short recurve bow the size of the guide bow (brown wood), a brown leather quiver of arrows on the back',
         keep=CLASS_COMMON_KEEP + ['the HOOD of the tunic is UP, and a cloth MASK covers the lower face up to the nose, so only a '
                                   'narrow warm-dark shadow strip at eye level shows, no skin (hair hidden)',
                                   'knee-length HOODED TUNIC', 'brown leather vest over the tunic', 'leather bracers', 'dark trousers, brown boots', 'lean build'],
-        roles=dict(outfit='the hooded tunic (hood, sleeves, skirt of the tunic) and the face mask',
-                   accent='the hood\'s front edge and the tunic\'s hem trim'),
+        roles=dict(outfit='the hooded tunic (hood with its front edge around the face, sleeves, skirt of the tunic) and the face mask',
+                   accent='the tunic\'s hem trim only'),
         colours=[('eye strip', 'warm-dark shadow #3a2e2a with at most two tiny eye glints - no skin visible (gloved hands, no skin anywhere)'),
                  ('vest, bracers, quiver, bow', 'warm browns'),
                  ('arrowheads', 'NEUTRAL steel grey')],
-        fix=CLASS_COMMON_FIX + ['an arrow appears ONLY on the drawn bow in the wind-up; after the release (strike) there is NO flying arrow (the engine draws projectiles)',
+        fix=CLASS_COMMON_FIX + [FACE_CLOTH_FIX.format(what='the mask, the hood and the hood\'s front edge around the face (a fold in the darkest outfit key #263459 may mark the edge)'),
+             'an arrow appears ONLY on the drawn bow in the wind-up; after the release (strike) there is NO flying arrow (the engine draws projectiles)',
              'the leather vest stays brown and small, so the tunic underneath still shows clearly on the chest, sleeves and skirt'],
         pose=dict(idle='bow held low in front, ready',
                   windup='full draw: arrow nocked, string pulled back to the cheek',
                   strike='release: bow arm extended, string straight, drawing hand flung back, no arrow',
                   hit='torso thrown back, weight on the rear leg, head jerked back, hood and mask still in place; bow dropped low-forward, drawing hand flung back'),
         ko=dict(keep='후드를 쓰고 천 마스크로 코 아래를 가린 얼굴(눈 둘레만 그늘 속에), 무릎 길이 후드 상의(제복), 갈색 가죽 조끼·팔 보호대, 등의 화살통, 짧은 활.',
-                fix='후드 상의·마스크 = 제복 열쇠 색, 후드 앞 가장자리·상의 밑단 = 장식 열쇠 색. 화살은 당길 때만, 쏜 뒤에는 없음.',
+                fix='후드 상의·마스크·얼굴 둘레의 후드 앞 가장자리 = 제복 열쇠 색, 상의 밑단만 장식 열쇠 색 (얼굴 둘레에 장식 색 금지 — 밝은 진영 장식 색이 얼굴을 노란 덩어리로 만든다). 화살은 당길 때만, 쏜 뒤에는 없음.',
                 face='궁수는 후드 + 코 아래를 가린 천 마스크',
                 draft_keep='후드와 마스크가 어깨의 짧은 두건 망토로 이어지는 한 장의 천, 긴 소매 무릎 길이 상의(밑자락 퍼짐), 대각선 띠 하나 있는 작은 가죽 조끼, 주머니 달린 갈색 띠, 긴 갈색 장갑, 끝단 접힌 갈색 장화, 등의 화살통.',
                 draft_fix='초안의 청회색은 열쇠 색 자리 표시 → 정확한 열쇠 색. 눈 없는 새까만 얼굴 구멍 → 눈높이의 좁은 따뜻한 어둠(눈빛 두 점까지), 코 아래는 마스크. '
-                          '긴 활·끊긴 시위 → 가이드 크기 짧은 활, 시위 하나. 후드 앞 가장자리·상의 밑단에 장식 열쇠 색 추가. 청보라 바지 → 따뜻한 짙은 회갈색.'),
+                          '긴 활·끊긴 시위 → 가이드 크기 짧은 활, 시위 하나. 상의 밑단에 장식 열쇠 색 추가(후드 앞 가장자리는 제복 열쇠 색). 청보라 바지 → 따뜻한 짙은 회갈색.'),
     ),
     'class_cleric': dict(
         kind='class', en='Cleric', order=14, weapon='staff',
@@ -563,8 +569,9 @@ CHARS.update({
                          'only: legs, crouch depth and size exactly as guide_strip.png), dark-brown '
                          'leather chest armour, many brown leather straps around the thighs and shins, soft boots, ONE dagger'),
                    fix=[CLASS_DRAFT_FIX,
-                        'the draft draws hood and scarf as ONE bright cyan piece: the hood plus the short shoulder cape (which the draft lacks) '
-                        'use the OUTFIT keys, the scarf over mouth and nose the ACCENT keys - two clearly separate pieces',
+                        'the draft draws hood and scarf as ONE bright cyan piece: the hood, the short shoulder cape (which the draft lacks) '
+                        'and the scarf over mouth and nose all use the OUTFIT keys, the scarf kept a clearly separate piece by a warm-dark '
+                        'outline / the darkest outfit key #263459 along its edge',
                         'the draft sleeves, trousers and boots are navy blue: warm dark brown / warm dark grey (nothing blue outside the keys)',
                         'the draft\'s head is sunk into the chest and the arms are knotted across the belly with the blade poking out behind the hip: '
                         'normal 4-head anatomy with the head clearly above the shoulders, the dagger only in the near hand, reverse grip, as the guide draws it',
@@ -575,10 +582,11 @@ CHARS.update({
         keep=CLASS_COMMON_KEEP + ['deep HOOD pulled low so the face is in shadow (at most two small eye glints) and a short SHOULDER CAPE',
                                   'a SCARF over the mouth and nose',
                                   'dark-brown leather armour with straps', 'dark trousers, dark-brown boots', 'lean, agile build'],
-        roles=dict(outfit='the hood and the shoulder cape', accent='the scarf and one thin belt sash'),
+        roles=dict(outfit='the hood, the shoulder cape and the scarf over the mouth and nose', accent='one thin belt sash only'),
         colours=[('skin (hands only; the face is in shadow)', '#e0ac7e'), ('leather armour, straps, boots', 'warm dark brown #4a3a2e (NOT black, NOT blue-grey)'),
                  ('dagger', 'NEUTRAL steel grey')],
-        fix=CLASS_COMMON_FIX + ['exactly ONE dagger, reverse grip, in the near hand; the other hand is always empty',
+        fix=CLASS_COMMON_FIX + [FACE_CLOTH_FIX.format(what='the scarf over the mouth and nose and the hood'),
+             'exactly ONE dagger, reverse grip, in the near hand; the other hand is always empty',
              'the dark leather stays WARM brown (never blue-grey), so it never comes close to the uniform keys; add a warm rim light on the '
              'upper-left edges so it reads on the dark battlefield'],
         pose=dict(idle='low ready stance, dagger hand low in front, free hand up as a guard',
@@ -586,10 +594,10 @@ CHARS.update({
                   strike='lunge; dagger arm fully extended forward, free hand pulled back',
                   hit='torso thrown back, weight on the rear leg, head jerked back, hood and scarf still in place; dagger arm flung back, free hand up'),
         ko=dict(keep='깊게 눌러쓴 후드(얼굴은 그늘, 눈빛 두 점까지만) + 짧은 어깨 망토, 입·코를 가린 스카프, 끈 많은 짙은 갈색 가죽 갑옷, 역수 단검 하나.',
-                fix='후드·어깨 망토 = 제복 열쇠 색, 스카프·가는 허리 천 = 장식 열쇠 색. 가죽은 따뜻한 짙은 갈색(청회색 금지) + 왼쪽 위 따뜻한 림 라이트. 진과 같은 틀.',
+                fix='후드·어깨 망토·입과 코를 가린 스카프 = 제복 열쇠 색(스카프는 따뜻한 어둠 외곽선으로 후드와 나눔), 가는 허리 천만 장식 열쇠 색 (얼굴에 장식 색 금지). 가죽은 따뜻한 짙은 갈색(청회색 금지) + 왼쪽 위 따뜻한 림 라이트. 진과 같은 틀.',
                 face='도적은 깊은 후드 + 스카프, 얼굴은 그늘',
                 draft_keep='입·코까지 감싼 깊은 후드(어두운 눈 틈만), 경계하는 태도(태도만 — 다리·웅크린 깊이·크기는 guide_strip.png 그대로), 짙은 갈색 가죽 가슴 갑옷, 허벅지·정강이를 감은 갈색 가죽 끈 여럿, 부드러운 장화, 단검 하나.',
-                draft_fix='초안은 후드와 스카프가 한 덩어리의 밝은 시안 → 후드 + (초안에 없는) 짧은 어깨 망토 = 제복 열쇠 색, 입·코의 스카프 = 장식 열쇠 색, 따로 보이게. '
+                draft_fix='초안은 후드와 스카프가 한 덩어리의 밝은 시안 → 후드 + (초안에 없는) 짧은 어깨 망토 + 입·코의 스카프 = 모두 제복 열쇠 색, 스카프는 따뜻한 어둠 외곽선으로 따로 보이게. '
                           '남색 소매·바지·장화 → 따뜻한 짙은 갈색·회색(열쇠 색 밖에 파랑 없음). 가슴에 파묻힌 머리·배 앞에 꼬인 팔·엉덩이 뒤로 삐져나온 칼 → '
                           '정상 4등신, 머리는 어깨 위, 단검은 가까운 손에 역수로(가이드대로). 새까만 눈 틈 → 따뜻한 어둠, 눈빛 두 점까지.'),
     ),
@@ -602,36 +610,42 @@ CHARS.update({
         kind='monster', en='Skeleton soldier', enemy='해골 병사', order=21, weapon='sword_shield',
         frames=dict(idle='idle_0', windup='key_windup', strike='key_strike', hit='key_hit'),
         concepts={'concept.png': 'monster_skeleton/concept_01.png'},
-        draft=dict(keep=('the rusty brown bowl-shaped open-faced helmet over a grinning skull, two red eye points, the big ribcage, dirty '
-                         'off-white bones, tattered dark cloth hanging from the shoulders and as a ragged loincloth, the round wooden shield with '
-                         'an iron rim, bare bony feet'),
+        draft=dict(keep=('the bowl-shaped open-faced helmet over a grinning skull (its colour from COLOURS: neutral grey steel, not rusty '
+                         'brown), two red eye points, the big ribcage, pale bones, tattered cloth hanging from the shoulders and as a ragged '
+                         'loincloth, the round wooden shield with an iron rim, bare bony feet'),
                    fix=[ONE_HEAD_FIX + ': one skull inside one helmet',
                         'the draft sword is a hooked, machete-like blade: a straight, notched one-handed sword in the near hand as the guide holds it',
                         'the draft faces the viewer and fills the far leg and forearm solid black: three-quarter view facing right, every limb '
                         'drawn as bone (no black silhouette limbs)',
                         'the draft spine is thin and leaves a hole of background at the waist: a chunky spine and pelvis, no background showing '
                         'through the torso',
-                        'the draft cloth is blue-black: dark faded brown (COLOURS)',
+                        'the draft cloth is blue-black: dark desaturated red or cold grey (COLOURS)',
                         'the draft eyes glow with a halo: two small red clusters, no halo']),
         brief=dict(silhouette='a human-sized undead soldier: the same 4-head build as the captains (the helmeted skull is the 110 px head), round shield and sword',
                    size='SMALL (human scale, the same height as a captain)', attack='melee: sword slash',
                    where='frost and holy-ground battles, magic-investigation contracts, the demon calamity army (the most frequent monster in battle)'),
-        weapon_desc='a notched, rusty one-handed sword in the near hand and a battered round wooden shield with an iron rim on the far arm (the guide shield\'s size)',
-        keep=['skull under a rusty open-faced iron helmet', 'two small red points of light in the eye sockets (just two small red pixel clusters, no halo)',
+        weapon_desc='a notched one-handed sword (neutral grey steel) in the near hand and a battered round wooden shield with an iron rim on the far arm (the guide shield\'s size)',
+        keep=['skull under a dented open-faced steel helmet', 'two small red points of light in the eye sockets (just two small red pixel clusters, no halo)',
               'CHUNKY simplified bones: the ribcage as one shape, thick limb bones, big hands and feet', 'tattered dark cloth scraps at the hips',
               'no skin, no hair'],
-        colours=[('bone', 'muted off-white #e8e4d8, shaded #a8a49a toward cool grey-violet (never pure white)'),
-                 ('helmet and sword', 'rusty iron #5c606a with brown rust'), ('eyes', 'red #d6455d'), ('cloth scraps', 'dark faded brown')],
-        fix=MONSTER_COMMON_FIX + ['bones must stay chunky: thin realistic bones vanish at 64 px', 'no green fire, glow or aura'],
+        colours=[('bone', 'pale ivory #e8e2cc, shaded #b4ad98 / #7e786a (never pure white)'),
+                 ('helmet, sword, shield rim', 'NEUTRAL grey steel #8a8a86 / #5a5652, light #c8c6c0 (no rust brown)'),
+                 ('cloth scraps', 'dark desaturated red #5e2f2c / #3e2220 or cold grey #4a4e56'), ('shield wood', 'warm brown'),
+                 ('eyes', 'bright red #ff4a3a (two small clusters, no halo)'), ('outline', 'dark neutral #2e2a28 around the bones')],
+        fix=MONSTER_COMMON_FIX + ['bones must stay chunky: thin realistic bones vanish at 64 px', 'no green fire, glow or aura',
+                                  'four separate materials, not one warm-brown mass: ivory bone, grey steel, dark red / cold grey cloth, '
+                                  'brown wood; the dark outline keeps the pale bones readable on snow, and the bright red eyes read in '
+                                  'the dark eye sockets'],
         pose=dict(idle='shield up, sword ready, slightly hunched',
                   windup='weight on the back leg; sword raised up and back behind the head, shield kept forward',
                   strike='step-in lunge; sword cutting forward and down at full extension, shield pulled in',
                   hit='torso thrown back, weight on the rear leg, skull snapped back, jaw open; shield up, sword arm dropped down-back'),
-        ko=dict(keep='녹슨 개방형 투구 아래 해골, 눈구멍의 작은 붉은 점 둘, 굵게 단순화한 뼈, 허리의 해진 천, 이 빠진 녹슨 한손검 + 쇠테 두른 둥근 나무 방패.',
-                fix='뼈는 굵게(가는 뼈는 64px 에서 사라진다), 순백 금지, 초록 불꽃·빛 없음. 사람과 같은 크기.',
-                draft_keep='녹슨 갈색 사발 모양 개방형 투구와 이를 드러낸 해골, 붉은 눈 점 둘, 큰 갈비뼈, 때 묻은 흰 뼈, 어깨와 허리에 걸친 해진 검은 천, 쇠테 두른 둥근 나무 방패, 맨발 뼈.',
+        ko=dict(keep='찌그러진 회색 강철 개방형 투구 아래 해골, 눈구멍의 밝은 붉은 점 둘, 굵게 단순화한 뼈, 허리의 해진 천, 이 빠진 한손검 + 쇠테 두른 둥근 나무 방패.',
+                fix='재질을 나눈다: 뼈 = 옅은 상아색, 투구·칼 = 중성 회색 강철(녹슨 갈색 아님), 천 = 탁한 짙은 빨강 또는 찬 회색, 눈 = 밝은 빨강 #ff4a3a — 온통 따뜻한 갈색 덩어리 금지, '
+                    '눈 위에서도 보이게 뼈 둘레에 어두운 외곽선. 뼈는 굵게(가는 뼈는 64px 에서 사라진다), 순백 금지, 초록 불꽃·빛 없음. 사람과 같은 크기.',
+                draft_keep='사발 모양 개방형 투구(색은 회색 강철)와 이를 드러낸 해골, 붉은 눈 점 둘, 큰 갈비뼈, 때 묻은 흰 뼈, 어깨와 허리에 걸친 해진 검은 천, 쇠테 두른 둥근 나무 방패, 맨발 뼈.',
                 draft_fix='머리는 정확히 하나(같은 초안의 다른 장들은 머리가 둘). 갈고리 진 마체테 같은 칼 → 곧고 이 빠진 한손검(가이드 손). 정면을 보며 먼 다리·팔이 새까만 덩어리 → '
-                          '오른쪽 보는 3/4, 모든 팔다리를 뼈로. 가는 척추·허리에 뚫린 배경 구멍 → 굵은 척추·골반, 몸통에 구멍 없음. 청흑색 천 → 바랜 짙은 갈색. 눈의 빛 번짐 없이 작은 붉은 점.'),
+                          '오른쪽 보는 3/4, 모든 팔다리를 뼈로. 가는 척추·허리에 뚫린 배경 구멍 → 굵은 척추·골반, 몸통에 구멍 없음. 청흑색 천 → 탁한 짙은 빨강 또는 찬 회색. 눈의 빛 번짐 없이 작은 붉은 점.'),
     ),
     'monster_desert-bandit': dict(
         kind='monster', en='Desert bandit', enemy='사막 도적', order=23, weapon='sword_shield',
@@ -644,26 +658,28 @@ CHARS.update({
                         'the draft scimitar is a huge sickle-like crescent: a normal scimitar about as long as the guide sword with a moderate '
                         'curve, in the near hand as the guide holds the sword',
                         'the draft eye gap reads like dark goggles: a narrow skin-coloured gap between wrap and veil with two eyes, no goggles',
-                        'the draft vest and sash are dark wine-red: brown #8d5a3b (COLOURS)']),
+                        'the draft vest and sash are dark wine-red: dark brown #5e3a26 (COLOURS)']),
         brief=dict(silhouette='a human raider in loose desert robes and a head wrap, one curved sword',
                    size='SMALL (human scale)', attack='melee: scimitar slash', where='desert battles (the two desert provinces)'),
         weapon_desc=('a curved scimitar in the near hand (where the guide holds the sword, same angle). NO shield: the guide\'s round shield is a '
                      'placeholder - the far hand is EMPTY and held up open as a guard where the shield is'),
         keep=['sand-coloured head wrap and a face veil (only the eyes show)', 'loose sand-coloured robe-tunic', 'brown leather vest and a sash',
               'baggy trousers tucked into leather boots', 'tan skin on the hands'],
-        colours=[('skin', '#c68a5c'), ('head wrap, robe', 'sand #e8d5a3 (muted, shaded toward warm grey; never white)'),
-                 ('vest, sash, boots', 'brown #8d5a3b'), ('scimitar', 'NEUTRAL steel grey')],
+        colours=[('skin', '#c68a5c'), ('head wrap, robe', 'sand #e8d5a3 (muted; shade steps #b89c6e / #7e6648, never white)'),
+                 ('vest, sash, boots', 'dark brown #5e3a26 / #3e261a (clearly darker than the sand cloth)'), ('scimitar', 'NEUTRAL steel grey'),
+                 ('outline', 'a strong dark warm-brown #2e2018 all around the figure')],
         fix=MONSTER_COMMON_FIX + ['exactly one weapon (the scimitar); no shield, no second blade',
-                                  'the sand robe must not merge with the desert background: give it a darker outline and clear shading'],
+                                  'the sand robe must not merge with the desert sand background: a strong dark outline all around the '
+                                  'figure, the deep shade steps on the robe, and the dark-brown vest, sash and boots as dark value accents'],
         pose=dict(idle='scimitar held ready in front, free hand up as a guard',
                   windup='weight on the back leg; scimitar raised up and back behind the head, free hand forward',
                   strike='step-in lunge; scimitar slashing forward and down at full extension, free hand pulled back',
                   hit='torso thrown back, weight on the rear leg, wincing; scimitar arm dropped down-back, free hand up'),
         ko=dict(keep='모래색 머리 두건과 얼굴 가리개(눈만 보임), 헐렁한 모래색 겉옷, 갈색 가죽 조끼·허리 천, 통 넓은 바지와 장화, 곡도(시미터) 하나.',
-                fix='방패 없음 — 가이드의 둥근 방패 자리는 빈손(막는 자세). 모래색이 사막 배경에 묻히지 않게 외곽선·명암 분명히.',
+                fix='방패 없음 — 가이드의 둥근 방패 자리는 빈손(막는 자세). 모래색이 사막 모래 배경에 묻히지 않게 둘레에 진한 짙은 갈색 외곽선, 겉옷의 깊은 그늘, 짙은 갈색 조끼·허리 천·장화(어두운 명암 포인트).',
                 draft_keep='모래색 머리 두건과 얼굴 가리개, 팔뚝을 감은 헐렁한 모래색 상의, 앞이 열린 조끼, 앞에 긴 천이 늘어진 허리 천, 정강이에서 모인 아주 헐렁한 바지, 감싼 짙은 장화, 싸울 태세와 막는 빈손(태도만 — 다리·자세 폭·크기는 guide_strip.png 그대로).',
                 draft_fix='머리는 정확히 하나(같은 초안의 다른 장들은 머리가 둘). 낫 같은 거대한 초승달 칼 → 가이드 칼 길이의 보통 곡도(적당히 휨), 가이드 손. '
-                          '고글처럼 보이는 눈 틈 → 피부색 좁은 틈과 두 눈(고글 없음). 와인빛 조끼·허리 천 → 갈색 #8d5a3b.'),
+                          '고글처럼 보이는 눈 틈 → 피부색 좁은 틈과 두 눈(고글 없음). 와인빛 조끼·허리 천 → 짙은 갈색 #5e3a26.'),
     ),
     'monster_bandit': dict(
         kind='monster', en='Bandit', enemy='산적', order=25, weapon='sword_shield',
@@ -719,8 +735,10 @@ CREATURES = {
                    size='SMALL: shoulder about half a standing human, nose to tail about one human height (idle ~420 x 250 px)',
                    attack='melee: lunging bite', where='plains and forest battles (the most frequent beast)'),
         design=['shaggy grey fur with a darker back and a lighter belly', 'amber eyes', 'bared fangs, ears back', 'four legs, ONE tail, ONE head'],
-        colours=[('fur', 'grey #8a8f99, dark #5c606a, light grey-beige belly'), ('eyes', 'amber #f2c94c'), ('mouth', 'dark red-brown')],
-        fix=['a real wolf (not a werewolf, never standing up)', 'exactly four legs, one tail and one head in every pose',
+        colours=[('fur', 'grey #8a8f99, dark #5c606a, light grey-beige belly'), ('eyes', 'amber #f2c94c (never grey)'),
+                 ('mouth interior', 'dark red-brown #5a2a24 / #3e1e1a (no magenta, pink or purple)'), ('fangs', 'off-white')],
+        fix=['a real wolf (not a werewolf, never standing up)',
+             'the eyes are AMBER #f2c94c and the open mouth is dark red-brown, in every pose', 'exactly four legs, one tail and one head in every pose',
              'the PAWS are the lowest pixels (on the baseline, as DELIVERABLE says); the low-hanging tail tip always stays above the paw line'],
         pose=dict(idle='standing on all fours, head lowered, snarling, tail down',
                   windup='crouched back on the haunches, front low, ready to pounce, ears flat',
@@ -738,7 +756,7 @@ CREATURES = {
         draft=dict(keep=('two large blue-purple feathered wings in place of arms, wild spiky brown-auburn hair, red eyes, brown feathered '
                          'thighs, scaly bird legs ending in big curved talons, the hovering pose with the talons hanging down (legs kept short, see BRIEF)'),
                    fix=['the draft is too revealing (fur bandeau, bare shoulders and bare midriff): cover the WHOLE torso - shoulders, chest '
-                        'and belly - with a BROWN feather bodice (#a8764e family, continuous with the brown feathered thighs; purple only on '
+                        'and belly - with a DARK BROWN feather bodice (#7a5236 family, continuous with the brown feathered thighs; purple only on '
                         'the wings and the tail); no exposed chest or skin anywhere except the face and neck',
                         'the draft shows a third wing-shaped mass behind the hips: exactly TWO wings; behind the hips only the short fan of tail feathers',
                         'the draft blurs the wing roots with human shoulders: the wings grow from the shoulders INSTEAD of arms (three small claws '
@@ -761,8 +779,11 @@ CREATURES = {
                  ('wing and tail feathers', 'muted purple #8a6aa8 shaded with #5a4a7a (blue-purple, never pink or magenta); their highlights stay '
                   'cool or neutral (toward grey-lavender such as #a898c0), never warm - warming purple drifts toward pink (this overrides '
                   '"highlights toward warm yellow" for the purple feathers)'),
-                 ('bodice feathers, thigh feathers, legs and talons', 'brown #a8764e family'), ('eyes', 'red #d6455d')],
-        fix=['tasteful: the chest is covered with brown feathers',
+                 ('bodice feathers, thigh feathers', 'darker brown #7a5236 / #563a26 (clearly darker than the skin, so the bodice never reads as bare skin)'),
+                 ('legs and talons', 'brown #8a6040 family, dark talons'), ('eyes', 'red #d6455d'),
+                 ('outline', 'a strong dark outline #2e2420 all around the figure (it fights over desert sand)')],
+        fix=['tasteful: the chest is covered with brown feathers, darker than the skin',
+             'reads on the desert sand background: the strong dark outline and the dark-brown bodice give dark value accents',
              'the feathers stay blue-purple and dark enough: no pixel may come close to the #FF00FF background (see the magenta rule)',
              'the engine draws the projectile and the glow: no fire, light or effect in the drawing'],
         pose=dict(idle='hovering low with the wings half raised; short legs with the knees drawn up, talons hanging below them, the lowest talon on the baseline',
@@ -797,8 +818,8 @@ CREATURES = {
                    where='the volcanic mountains and the beast calamity army'),
         design=['grey stone skin with a few big cracks and chipped edges', 'curved horns', 'bat wings of stone', 'red eyes (two small red clusters)',
                 'big claws, a pointed tail'],
-        colours=[('stone', 'grey #6b737c, dark #44494f, light #9aa3ad'), ('eyes', 'red #d6455d'), ('mouth', 'dark')],
-        fix=['stone texture only as a few big cracks, not noise', 'the engine draws the fire: no flames, glow or dust in the drawing'],
+        colours=[('stone', 'grey #6b737c, dark #44494f, light #9aa3ad'), ('eyes', 'red #d6455d (never purple)'), ('mouth', 'dark')],
+        fix=['stone texture only as a few big cracks, not noise', 'the eyes are RED #d6455d in every pose, not purple', 'the engine draws the fire: no flames, glow or dust in the drawing'],
         pose=dict(idle='crouched like a statue on all fours, wings folded half open, head low',
                   windup='rearing up on the hind legs, wings spread wide, claws raised, head pulled back',
                   strike='lunging forward low: head thrust forward with the jaws wide open (spitting), claws reaching forward, wings swept back',
@@ -830,14 +851,17 @@ CREATURES = {
         fix=['exactly eight legs, one body, one head', 'very dark: add a clear cool rim light along the top edges so it reads on the dark battlefield',
              'side three-quarter view: the four near legs in front of the body, the four FAR legs visible above and behind the body, one tone '
              'darker, so all eight can be counted',
-             '"front two pairs" = the first two legs on EACH side: 4 legs raised, 4 on the ground',
+             'REDRAW (message F): the first delivery\'s design, colours and rim light are approved (glossy dark purple body, grey segmented '
+             'legs, red eye cluster, pale fangs, cool rim along the top edges) - keep them; only the legs change',
+             'COUNT the legs in every pose before saving: 4 near + 4 far, each leg one clear unbroken line from body to tip, no leg hidden '
+             'behind another, no two legs crossing or merging, gaps of magenta between neighbouring legs',
              'no web, no poison drip, no effect'],
-        pose=dict(idle='crouched on eight legs, the first leg on each side slightly raised',
-                  windup='rearing up: the front two pairs of legs (the first two legs on each side, 4 legs) raised high, the other 4 on the ground, fangs bared',
+        pose=dict(idle='crouched on eight legs, all eight planted and spread evenly like a fan, each one separately visible',
+                  windup='rearing up: ONLY the front two legs (the first leg on each side) raised high, the other 6 planted on the ground, fangs bared',
                   strike='lunging forward: body low and stretched, front legs stabbing forward-down, fangs open',
                   hit='recoiling backward: body tipped back, the legs splayed stiffly outward (NOT curled under), all eight still countable'),
         ko=dict(brief='낮고 넓은 다리 여덟 개 거미, 짙은 보라 등껍질, 붉은 눈 무리, 큰 독니. 대기 약 520x220px. 물기 근접 공격.',
-                pose='① 여덟 다리로 웅크림(양쪽 첫 다리를 조금 듦) ② 앞다리 두 쌍(양쪽 앞 두 다리씩, 4개)을 높이 들고 일어섬, 나머지 4개는 바닥 '
+                pose='① 여덟 다리로 웅크림(여덟 개 모두 바닥에, 부채처럼 고르게 벌려 하나하나 보이게) ② 앞다리 둘(양쪽 첫 다리)만 높이 들고 일어섬, 나머지 여섯은 바닥 '
                      '③ 낮게 앞으로 덮치며 앞다리로 찍음 ④ 몸이 뒤로 젖혀지며 다리를 뻣뻣하게 벌림(오므리지 않음, 여덟 개가 보이게). 먼 쪽 다리 넷은 몸 위·뒤로 보이게 한 단계 어둡게.',
                 draft_keep='작은 머리 뒤의 크고 둥근 배, 머리 앞의 반짝이는 붉은 눈 무리(큰 눈 둘 + 작은 눈 여럿), 입가의 짧은 더듬이다리, 넓게 휜 긴 마디 다리, 낮게 웅크린 자세.',
                 draft_fix='다리는 모든 자세에서 정확히 여덟(한쪽에 넷) — 입가의 짧은 더듬이다리는 다리가 아니고 짧게. 어두운 바닥에 묻히는 새까만 몸 → 짙은 보라 등껍질 + 배·머리·다리 윗선의 찬 림 라이트. '
@@ -946,6 +970,8 @@ def keys_en(tint, roles, fname):
             'the uniform at runtime by replacing these EXACT colours with the faction colours, keeping their light/dark steps.\n'
             f'  - OUTFIT keys = {roles["outfit"]}, darkest to lightest: {o[0]} (deep shadow, folds), {o[1]} (shadow), {o[2]} (base), {o[3]} (lit side)\n'
             f'  - ACCENT keys = {roles["accent"]}, darkest to lightest: {a[0]} (shadow), {a[1]} (base), {a[2]} (lit)\n'
+            '  - cloth over the face (mask, scarf, veil) is OUTFIT keys, never ACCENT keys: some factions use a bright accent '
+            '(yellow, lime, cream) that would turn the face into one solid block\n'
             '  - flat fills only on these areas: no dithering, gradient, noise, texture, soft blending or in-between shades; '
             'their shading uses only these steps\n'
             '  - these seven colours appear NOWHERE else (not on metal, skin, hair, leather, eyes, outline or background), and nothing else on '

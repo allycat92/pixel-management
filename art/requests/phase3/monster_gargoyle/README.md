@@ -13,13 +13,14 @@ BRIEF: a hunched stone demon statue come alive: crouching on clawed hands and fe
 
 DESIGN: grey stone skin with a few big cracks and chipped edges; curved horns; bat wings of stone; red eyes (two small red clusters); big claws, a pointed tail.
 
-COLOURS (keep close, muted): stone grey #6b737c, dark #44494f, light #9aa3ad; eyes red #d6455d; mouth dark.
+COLOURS (keep close, muted): stone grey #6b737c, dark #44494f, light #9aa3ad; eyes red #d6455d (never purple); mouth dark.
 
 FROM concept.png (the owner's pick, NovelAI draft #2; design only) TAKE: the blue-grey stone body with crack lines, the beaked snout with a red eye, stone wing bones with dark membranes, the crouch on all fours with big hooked claws, the long thin tail ending in a spade tip.
 
 FIX (do not reproduce the draft here):
   - a common monster seen in large numbers: an ordinary member of its kind, no unique features, no crown, banner or trophy
   - stone texture only as a few big cracks, not noise
+  - the eyes are RED #d6455d in every pose, not purple
   - the engine draws the fire: no flames, glow or dust in the drawing
   - the draft wings span the whole canvas: in idle fold them half open so the pose fits its box (~380 x 330); only the wind-up spreads them wide
   - the draft has no readable horns: add two clear curved horns

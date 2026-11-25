@@ -22,7 +22,8 @@ FIX (do not reproduce the draft here):
   - exactly eight legs, one body, one head
   - very dark: add a clear cool rim light along the top edges so it reads on the dark battlefield
   - side three-quarter view: the four near legs in front of the body, the four FAR legs visible above and behind the body, one tone darker, so all eight can be counted
-  - "front two pairs" = the first two legs on EACH side: 4 legs raised, 4 on the ground
+  - REDRAW (message F): the first delivery's design, colours and rim light are approved (glossy dark purple body, grey segmented legs, red eye cluster, pale fangs, cool rim along the top edges) - keep them; only the legs change
+  - COUNT the legs in every pose before saving: 4 near + 4 far, each leg one clear unbroken line from body to tip, no leg hidden behind another, no two legs crossing or merging, gaps of magenta between neighbouring legs
   - no web, no poison drip, no effect
   - exactly EIGHT legs, four per side, in every pose (count them); the short pedipalps at the mouth are not legs and stay short
   - the draft body and legs are near-black on a dark ground: dark purple carapace as in COLOURS plus a clear cool rim light along the top edges of the abdomen, the head and every leg
@@ -31,8 +32,8 @@ FIX (do not reproduce the draft here):
   - the draft fangs are hidden in the hair: two clear fangs
 
 POSES (no posekit mannequin for this creature: the text gives the pose, guide_layout.png the place and size):
-  1. idle (top-left quadrant): crouched on eight legs, the first leg on each side slightly raised
-  2. attack wind-up (top-right quadrant): rearing up: the front two pairs of legs (the first two legs on each side, 4 legs) raised high, the other 4 on the ground, fangs bared
+  1. idle (top-left quadrant): crouched on eight legs, all eight planted and spread evenly like a fan, each one separately visible
+  2. attack wind-up (top-right quadrant): rearing up: ONLY the front two legs (the first leg on each side) raised high, the other 6 planted on the ground, fangs bared
   3. attack strike (bottom-left quadrant): lunging forward: body low and stretched, front legs stabbing forward-down, fangs open
   4. hit reaction (bottom-right quadrant): recoiling backward: body tipped back, the legs splayed stiffly outward (NOT curled under), all eight still countable
 
@@ -75,7 +76,7 @@ SELF-CHECK before saving (redraw if any fails):
 - **초안** `concept.png` = `art/concepts/monster_giant-spider/concept_03.png` (주인이 고른 #3, 디자인만) — 가져올 것: 작은 머리 뒤의 크고 둥근 배, 머리 앞의 반짝이는 붉은 눈 무리(큰 눈 둘 + 작은 눈 여럿), 입가의 짧은 더듬이다리, 넓게 휜 긴 마디 다리, 낮게 웅크린 자세.
 - **초안에서 고칠 것** (영어 블록 FIX 끝부분): 다리는 모든 자세에서 정확히 여덟(한쪽에 넷) — 입가의 짧은 더듬이다리는 다리가 아니고 짧게. 어두운 바닥에 묻히는 새까만 몸 → 짙은 보라 등껍질 + 배·머리·다리 윗선의 찬 림 라이트. 온몸의 잔털 노이즈 → 매끈한 등껍질, 다리에 짧은 가시 몇 개. 아주 길고 가는 다리 → 굵고 짧게(대기 약 520x220px, 줄여도 다리가 보이게). 털에 묻힌 독니 → 큰 독니 둘이 보이게.
 - 설계: 낮고 넓은 다리 여덟 개 거미, 짙은 보라 등껍질, 붉은 눈 무리, 큰 독니. 대기 약 520x220px. 물기 근접 공격.
-- 자세: ① 여덟 다리로 웅크림(양쪽 첫 다리를 조금 듦) ② 앞다리 두 쌍(양쪽 앞 두 다리씩, 4개)을 높이 들고 일어섬, 나머지 4개는 바닥 ③ 낮게 앞으로 덮치며 앞다리로 찍음 ④ 몸이 뒤로 젖혀지며 다리를 뻣뻣하게 벌림(오므리지 않음, 여덟 개가 보이게). 먼 쪽 다리 넷은 몸 위·뒤로 보이게 한 단계 어둡게.
+- 자세: ① 여덟 다리로 웅크림(여덟 개 모두 바닥에, 부채처럼 고르게 벌려 하나하나 보이게) ② 앞다리 둘(양쪽 첫 다리)만 높이 들고 일어섬, 나머지 여섯은 바닥 ③ 낮게 앞으로 덮치며 앞다리로 찍음 ④ 몸이 뒤로 젖혀지며 다리를 뻣뻣하게 벌림(오므리지 않음, 여덟 개가 보이게). 먼 쪽 다리 넷은 몸 위·뒤로 보이게 한 단계 어둡게.
 - 배치: 1536x1024 **2x2 격자** (768x512 네 칸: 왼쪽 위 대기, 오른쪽 위 공격 준비, 왼쪽 아래 공격 타격, 오른쪽 아래 피격), 칸마다 맨 아래 픽셀 y=461. posekit 마네킹 없음(사람 골격이 아니다) — 자세는 글로, 자리·크기는 `guide_layout.png`의 상자로.
 - 크기: 대장과 같은 배율(머리 110px). 자세별 상자 대기 520x220, 공격 준비 480x320, 공격 타격 600x260, 피격 500x240 px. `guide_scale.png` = 같은 배율의 4등신 사람(대기 약 407 px) 옆에 대기 상자. 게임에서는 약 16.5% (대기 약 36 px 높이).
 - 공격: melee: lunging bite with the fangs

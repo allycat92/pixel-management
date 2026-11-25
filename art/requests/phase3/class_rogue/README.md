@@ -12,8 +12,9 @@ TASK: draw the battle-sprite strip of the GENERIC rogue class sprite (도적). T
 CHARACTER: ONE short dagger in the near hand (screen-left arm = the character's right), REVERSE grip (blade leaving the little-finger side, running back along the forearm), exactly as the guide draws it; the FACE is covered or in shadow (see the headgear below), because this one sprite stands for hundreds of different soldiers; whatever little of the face shows is generic, with no scars, marks or distinctive features; deep HOOD pulled low so the face is in shadow (at most two small eye glints) and a short SHOULDER CAPE; a SCARF over the mouth and nose; dark-brown leather armour with straps; dark trousers, dark-brown boots; lean, agile build.
 
 KEY COLOURS (the most important rule of this sheet): ONE sheet is shared by every faction and company, and the game recolours the uniform at runtime by replacing these EXACT colours with the faction colours, keeping their light/dark steps.
-  - OUTFIT keys = the hood and the shoulder cape, darkest to lightest: #263459 (deep shadow, folds), #394b78 (shadow), #52679c (base), #7489be (lit side)
-  - ACCENT keys = the scarf and one thin belt sash, darkest to lightest: #3f7a6c (shadow), #5ea590 (base), #96d1bb (lit)
+  - OUTFIT keys = the hood, the shoulder cape and the scarf over the mouth and nose, darkest to lightest: #263459 (deep shadow, folds), #394b78 (shadow), #52679c (base), #7489be (lit side)
+  - ACCENT keys = one thin belt sash only, darkest to lightest: #3f7a6c (shadow), #5ea590 (base), #96d1bb (lit)
+  - cloth over the face (mask, scarf, veil) is OUTFIT keys, never ACCENT keys: some factions use a bright accent (yellow, lime, cream) that would turn the face into one solid block
   - flat fills only on these areas: no dithering, gradient, noise, texture, soft blending or in-between shades; their shading uses only these steps
   - these seven colours appear NOWHERE else (not on metal, skin, hair, leather, eyes, outline or background), and nothing else on the figure is blue, slate, teal or mint: steel is NEUTRAL grey, leather and wood are warm browns, shadows on the other parts are warm or neutral, never blue (this overrides the general "shadows toward purple/blue" style rule for this sheet)
   - every NON-key colour on the figure (outline, shadows, metal, leather, skin, eyes ...) must be at RGB distance sqrt(dR^2 + dG^2 + dB^2) >= 50 from all seven keys: the pipeline snaps colours within 34 of a key ONTO the key (so they get recoloured), and shades 34-50 away stay as untinted blue islands
@@ -27,11 +28,12 @@ FROM concept.png (the owner's pick, NovelAI draft #2; design only) TAKE: the dee
 
 FIX (do not reproduce the draft here):
   - the face stays covered / shadowed the SAME way in ALL FOUR poses: the visor, hood, mask, brim or veil never slips, opens or falls back, not even in the hit pose; the shadowed face is a warm or neutral dark (e.g. #3a2e2a), never blue and never a key colour
+  - NO accent key on or around the face: the scarf over the mouth and nose and the hood use the OUTFIT keys (never the accent keys), because a bright faction accent such as yellow would turn the whole face into one solid block
   - exactly ONE dagger, reverse grip, in the near hand; the other hand is always empty
   - the dark leather stays WARM brown (never blue-grey), so it never comes close to the uniform keys; add a warm rim light on the upper-left edges so it reads on the dark battlefield
   - HEAD SIZE: the hood and the scarf enclose the 110 px head (outer silhouette about 115-125 px from crown to chin); do not draw a 110 px head and then a bigger helm / hood around it, and do not enlarge the figure (this overrides "headgear is extra" in DELIVERABLE for this sheet)
   - the draft's slate-blue / teal / cyan cloth only marks WHERE the key colours go: repaint those areas with the exact KEY COLOURS ramps above (flat), never with the draft's own blues, teals or cyans
-  - the draft draws hood and scarf as ONE bright cyan piece: the hood plus the short shoulder cape (which the draft lacks) use the OUTFIT keys, the scarf over mouth and nose the ACCENT keys - two clearly separate pieces
+  - the draft draws hood and scarf as ONE bright cyan piece: the hood, the short shoulder cape (which the draft lacks) and the scarf over mouth and nose all use the OUTFIT keys, the scarf kept a clearly separate piece by a warm-dark outline / the darkest outfit key #263459 along its edge
   - the draft sleeves, trousers and boots are navy blue: warm dark brown / warm dark grey (nothing blue outside the keys)
   - the draft's head is sunk into the chest and the arms are knotted across the belly with the blade poking out behind the hip: normal 4-head anatomy with the head clearly above the shoulders, the dagger only in the near hand, reverse grip, as the guide draws it
   - the draft eye slit is pure black: warm-dark shadow, at most two small eye glints
@@ -72,7 +74,7 @@ SELF-CHECK before saving (redraw if any fails):
   [ ] soles of all four on y = 870; same size in all four; head ~110 px; idle ~401 px without headgear
   [ ] 4 heads tall; front three-quarter view facing right; light from the upper left
   [ ] same face, hair, outfit, colours and weapon in all four poses; exactly the weapons in CHARACTER (nothing extra)
-  [ ] the uniform (the hood and the shoulder cape) uses ONLY the four outfit keys and the trim (the scarf and one thin belt sash) ONLY the three accent keys, exact hex, flat; the seven keys appear nowhere else and nothing else on the figure is blue, slate, teal or mint; every other figure colour (outline and shadows included) is at RGB distance >= 50 from all seven keys: the key check prints 0 near-key pixels
+  [ ] the uniform (the hood, the shoulder cape and the scarf over the mouth and nose) uses ONLY the four outfit keys and the trim (one thin belt sash only) ONLY the three accent keys, exact hex, flat; the seven keys appear nowhere else and nothing else on the figure is blue, slate, teal or mint; every other figure colour (outline and shadows included) is at RGB distance >= 50 from all seven keys: the key check prints 0 near-key pixels
   [ ] every FIX applied
   [ ] no text, floor, shadow, effects or projectiles; >= 32 px of magenta between figures and from the border
   [ ] no figure pixel is #FF00FF or magenta-like (every figure colour at RGB distance >= 150 from #FF00FF)
@@ -90,9 +92,9 @@ SELF-CHECK before saving (redraw if any fails):
 - 무기: posekit `none` 마네킹 → ONE short dagger in the near hand (screen-left arm = the character's right), REVERSE grip (blade leaving the little-finger side, running back along the forearm), exactly as the guide draws it
 - 자세(가이드 프레임): ① 대기 `key_idle` ② 공격 준비 `key_windup` ③ 공격 타격 `key_strike` ④ 피격 `key_hit` (`key_*` = handoff.py 의 KEY_POSES: 준비는 체중 뒤로, 타격은 내딛는 런지, 피격은 상체가 뒤로 젖혀짐)
 - 초안에서 가져올 것: 깊게 눌러쓴 후드(얼굴은 그늘, 눈빛 두 점까지만) + 짧은 어깨 망토, 입·코를 가린 스카프, 끈 많은 짙은 갈색 가죽 갑옷, 역수 단검 하나.
-- 고칠 것: 후드·어깨 망토 = 제복 열쇠 색, 스카프·가는 허리 천 = 장식 열쇠 색. 가죽은 따뜻한 짙은 갈색(청회색 금지) + 왼쪽 위 따뜻한 림 라이트. 진과 같은 틀.
+- 고칠 것: 후드·어깨 망토·입과 코를 가린 스카프 = 제복 열쇠 색(스카프는 따뜻한 어둠 외곽선으로 후드와 나눔), 가는 허리 천만 장식 열쇠 색 (얼굴에 장식 색 금지). 가죽은 따뜻한 짙은 갈색(청회색 금지) + 왼쪽 위 따뜻한 림 라이트. 진과 같은 틀.
 - **초안** `concept.png` = `art/concepts/class_rogue/concept_02.png` (주인이 고른 #2, 디자인만) — 가져올 것: 입·코까지 감싼 깊은 후드(어두운 눈 틈만), 경계하는 태도(태도만 — 다리·웅크린 깊이·크기는 guide_strip.png 그대로), 짙은 갈색 가죽 가슴 갑옷, 허벅지·정강이를 감은 갈색 가죽 끈 여럿, 부드러운 장화, 단검 하나.
-- **초안에서 고칠 것** (영어 블록 FIX 끝부분): 초안은 후드와 스카프가 한 덩어리의 밝은 시안 → 후드 + (초안에 없는) 짧은 어깨 망토 = 제복 열쇠 색, 입·코의 스카프 = 장식 열쇠 색, 따로 보이게. 남색 소매·바지·장화 → 따뜻한 짙은 갈색·회색(열쇠 색 밖에 파랑 없음). 가슴에 파묻힌 머리·배 앞에 꼬인 팔·엉덩이 뒤로 삐져나온 칼 → 정상 4등신, 머리는 어깨 위, 단검은 가까운 손에 역수로(가이드대로). 새까만 눈 틈 → 따뜻한 어둠, 눈빛 두 점까지.
+- **초안에서 고칠 것** (영어 블록 FIX 끝부분): 초안은 후드와 스카프가 한 덩어리의 밝은 시안 → 후드 + (초안에 없는) 짧은 어깨 망토 + 입·코의 스카프 = 모두 제복 열쇠 색, 스카프는 따뜻한 어둠 외곽선으로 따로 보이게. 남색 소매·바지·장화 → 따뜻한 짙은 갈색·회색(열쇠 색 밖에 파랑 없음). 가슴에 파묻힌 머리·배 앞에 꼬인 팔·엉덩이 뒤로 삐져나온 칼 → 정상 4등신, 머리는 어깨 위, 단검은 가까운 손에 역수로(가이드대로). 새까만 눈 틈 → 따뜻한 어둠, 눈빛 두 점까지.
 - 초안에서 가져오지 말 것: 비율(등신), 칠하는 방식, 외곽선 굵기, 채도, 조명, 디테일 양 — 모두 4등신·앵커 화풍으로 통일.
 - 가이드 띠: 머리 하나 = 110 px (모든 캐릭터 같음). 선 키라면 440 px 이지만 대기 자세가 웅크려서 정수리~발바닥 약 401 px(높이의 39%). 모자·투구·깃털·무기는 따로. 발바닥(맨 아래 픽셀) y=870.
 

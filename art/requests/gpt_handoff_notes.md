@@ -117,12 +117,15 @@ One sheet per base class (warrior, archer, mage, cleric, rogue) is shared by eve
 soldier, friend and foe; promoted classes fall back to it. The engine recolours the uniform per faction by replacing
 EXACT colours (`js/battle.js` `sheetRecolor`: key -> faction colour x key luminance / mean luminance of that role's keys).
 
-- outfit keys (tabard / the mage's hat, robe with shoulder capelet and high collar / hooded tunic and mask / cowl and veil /
-  hood and cape, the warrior's shield face), dark to light:
+- outfit keys (tabard / the mage's hat, robe with shoulder capelet and high collar / hooded tunic and mask, the hood's edge
+  around the face included / cowl and veil / hood, cape and the rogue's scarf, the warrior's shield face), dark to light:
   `#263459` `#394b78` `#52679c` `#7489be`
-- accent keys (trim, sash, hood / cowl edge, hat band, the mage's front trim line and capelet edge, the cleric's chest disc,
-  the rogue's scarf), dark to light:
+- accent keys (trim, sash, the cleric's cowl edge, hat band, the mage's front trim line and capelet edge, the cleric's chest
+  disc, the archer's tunic hem, the rogue's thin belt sash), dark to light:
   `#3f7a6c` `#5ea590` `#96d1bb`
+- **cloth over the face (mask, scarf, veil) is OUTFIT keys, never accent keys** (owner review of the first class delivery):
+  factions with a bright accent (cities `#f2c94c`, elves lime, clans cream) turned the archer's hood edge and the rogue's
+  scarf into solid yellow blocks over the face. The archer's hood edge around the face is outfit keys too.
 - flat fills only on those areas (no dithering, gradients, texture or in-between shades); the seven keys appear nowhere
   else, and nothing else on the figure is blue, slate, teal or mint (steel is neutral grey, leather and wood warm brown,
   other shadows warm or neutral - this overrides the general "shadows toward purple/blue" rule for these sheets).
@@ -160,6 +163,11 @@ The eight most frequent non-boss monsters (counted from `Battle.plan` over simul
   lowest pixel on y=461 of each quadrant; the 1x4 row for the wraith) with a size box per pose, and `guide_scale.png`
   shows the idle box next to a grey 4-head human at the same scale. Boxes, lines, labels and the grey human are guide-only.
 - Ranged monsters (harpy, gargoyle, wraith) get a cast / shriek pose; the engine draws the projectile.
+
+First delivery (owner review): Felix recolour, the five classes and seven monsters were accepted and registered; the giant
+spider is redrawn (legs not countable as eight), and the accepted sheets get small re-exports (message F in `phase3_gpt.md`):
+archer / rogue face cloth to outfit keys, skeleton materials, wolf and gargoyle eye / mouth colours, desert bandit and harpy
+outline and dark value accents on sand. Breathing in idle is added by the pipeline (`sprite-gen breathe`), not drawn by GPT.
 
 Both batches have the owner's NovelAI design picks (`art/concepts/selections.json`: classes warrior #5, archer #10, mage #9,
 cleric #4, rogue #2; monsters skeleton #1, wolf #6, desert bandit #5, harpy #9, bandit #1, gargoyle #2, giant spider #3,
