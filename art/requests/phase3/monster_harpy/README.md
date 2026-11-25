@@ -13,16 +13,17 @@ BRIEF: a hovering bird-woman: human head and torso at the captains' scale (head 
 
 DESIGN: wild auburn hair; red eyes, a fierce face; purple feathered wings instead of arms (three small claws at the wing bend); a brown feather bodice covering the shoulders, chest and belly (no bare skin except the face and neck); short scaly bird legs with big talons, knees drawn up while hovering; a short fan of purple tail feathers.
 
-COLOURS (keep close, muted): skin #e0ac7e (muted); wing and tail feathers muted purple #8a6aa8 shaded with #5a4a7a (blue-purple, never pink or magenta); their highlights stay cool or neutral (toward grey-lavender such as #a898c0), never warm - warming purple drifts toward pink (this overrides "highlights toward warm yellow" for the purple feathers); bodice feathers, thigh feathers, legs and talons brown #a8764e family; eyes red #d6455d.
+COLOURS (keep close, muted): skin #e0ac7e (muted); wing and tail feathers muted purple #8a6aa8 shaded with #5a4a7a (blue-purple, never pink or magenta); their highlights stay cool or neutral (toward grey-lavender such as #a898c0), never warm - warming purple drifts toward pink (this overrides "highlights toward warm yellow" for the purple feathers); bodice feathers, thigh feathers darker brown #7a5236 / #563a26 (clearly darker than the skin, so the bodice never reads as bare skin); legs and talons brown #8a6040 family, dark talons; eyes red #d6455d; outline a strong dark outline #2e2420 all around the figure (it fights over desert sand).
 
 FROM concept.png (the owner's pick, NovelAI draft #9; design only) TAKE: two large blue-purple feathered wings in place of arms, wild spiky brown-auburn hair, red eyes, brown feathered thighs, scaly bird legs ending in big curved talons, the hovering pose with the talons hanging down (legs kept short, see BRIEF).
 
 FIX (do not reproduce the draft here):
   - a common monster seen in large numbers: an ordinary member of its kind, no unique features, no crown, banner or trophy
-  - tasteful: the chest is covered with brown feathers
+  - tasteful: the chest is covered with brown feathers, darker than the skin
+  - reads on the desert sand background: the strong dark outline and the dark-brown bodice give dark value accents
   - the feathers stay blue-purple and dark enough: no pixel may come close to the #FF00FF background (see the magenta rule)
   - the engine draws the projectile and the glow: no fire, light or effect in the drawing
-  - the draft is too revealing (fur bandeau, bare shoulders and bare midriff): cover the WHOLE torso - shoulders, chest and belly - with a BROWN feather bodice (#a8764e family, continuous with the brown feathered thighs; purple only on the wings and the tail); no exposed chest or skin anywhere except the face and neck
+  - the draft is too revealing (fur bandeau, bare shoulders and bare midriff): cover the WHOLE torso - shoulders, chest and belly - with a DARK BROWN feather bodice (#7a5236 family, continuous with the brown feathered thighs; purple only on the wings and the tail); no exposed chest or skin anywhere except the face and neck
   - the draft shows a third wing-shaped mass behind the hips: exactly TWO wings; behind the hips only the short fan of tail feathers
   - the draft blurs the wing roots with human shoulders: the wings grow from the shoulders INSTEAD of arms (three small claws at the wing bend), no human arms or hands
   - the draft wingspan fills the whole canvas: fold the wings enough that each pose fits its box

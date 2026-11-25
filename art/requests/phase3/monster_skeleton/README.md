@@ -11,21 +11,22 @@ TASK: draw the battle-sprite strip of a skeleton soldier (해골 병사), a comm
 
 BRIEF: a human-sized undead soldier: the same 4-head build as the captains (the helmeted skull is the 110 px head), round shield and sword. Size: SMALL (human scale, the same height as a captain). Attack: melee: sword slash. Appears in: frost and holy-ground battles, magic-investigation contracts, the demon calamity army (the most frequent monster in battle).
 
-CHARACTER: a notched, rusty one-handed sword in the near hand and a battered round wooden shield with an iron rim on the far arm (the guide shield's size); skull under a rusty open-faced iron helmet; two small red points of light in the eye sockets (just two small red pixel clusters, no halo); CHUNKY simplified bones: the ribcage as one shape, thick limb bones, big hands and feet; tattered dark cloth scraps at the hips; no skin, no hair.
+CHARACTER: a notched one-handed sword (neutral grey steel) in the near hand and a battered round wooden shield with an iron rim on the far arm (the guide shield's size); skull under a dented open-faced steel helmet; two small red points of light in the eye sockets (just two small red pixel clusters, no halo); CHUNKY simplified bones: the ribcage as one shape, thick limb bones, big hands and feet; tattered dark cloth scraps at the hips; no skin, no hair.
 
-COLOURS (keep close, muted): bone muted off-white #e8e4d8, shaded #a8a49a toward cool grey-violet (never pure white); helmet and sword rusty iron #5c606a with brown rust; eyes red #d6455d; cloth scraps dark faded brown.
+COLOURS (keep close, muted): bone pale ivory #e8e2cc, shaded #b4ad98 / #7e786a (never pure white); helmet, sword, shield rim NEUTRAL grey steel #8a8a86 / #5a5652, light #c8c6c0 (no rust brown); cloth scraps dark desaturated red #5e2f2c / #3e2220 or cold grey #4a4e56; shield wood warm brown; eyes bright red #ff4a3a (two small clusters, no halo); outline dark neutral #2e2a28 around the bones.
 
-FROM concept.png (the owner's pick, NovelAI draft #1; design only) TAKE: the rusty brown bowl-shaped open-faced helmet over a grinning skull, two red eye points, the big ribcage, dirty off-white bones, tattered dark cloth hanging from the shoulders and as a ragged loincloth, the round wooden shield with an iron rim, bare bony feet.
+FROM concept.png (the owner's pick, NovelAI draft #1; design only) TAKE: the bowl-shaped open-faced helmet over a grinning skull (its colour from COLOURS: neutral grey steel, not rusty brown), two red eye points, the big ribcage, pale bones, tattered cloth hanging from the shoulders and as a ragged loincloth, the round wooden shield with an iron rim, bare bony feet.
 
 FIX (do not reproduce the draft here):
   - a common monster seen in large numbers: an ordinary member of its kind, no unique features, no crown, banner or trophy
   - bones must stay chunky: thin realistic bones vanish at 64 px
   - no green fire, glow or aura
+  - four separate materials, not one warm-brown mass: ivory bone, grey steel, dark red / cold grey cloth, brown wood; the dark outline keeps the pale bones readable on snow, and the bright red eyes read in the dark eye sockets
   - exactly ONE head (sibling drafts of this design came out with a duplicated head): one head, one neck: one skull inside one helmet
   - the draft sword is a hooked, machete-like blade: a straight, notched one-handed sword in the near hand as the guide holds it
   - the draft faces the viewer and fills the far leg and forearm solid black: three-quarter view facing right, every limb drawn as bone (no black silhouette limbs)
   - the draft spine is thin and leaves a hole of background at the waist: a chunky spine and pelvis, no background showing through the torso
-  - the draft cloth is blue-black: dark faded brown (COLOURS)
+  - the draft cloth is blue-black: dark desaturated red or cold grey (COLOURS)
   - the draft eyes glow with a halo: two small red clusters, no halo
 
 POSES (the guide mannequin fixes pose, proportions, size and position; its colours, round head, plain clothes and fist-shaped hands are placeholders - follow the text for hands and weapon details):
@@ -75,12 +76,12 @@ SELF-CHECK before saving (redraw if any fails):
 - 순서: 1차 몬스터 **1번째** (메시지 E) — 승인된 바렌 그림(`art-inbox` 브랜치의 `art/inbox/sheet_captain_blademaster.png`)의 화풍에 맞춘다.
 - 몬스터 설계: 해골 병사 — SMALL (human scale, the same height as a captain); 공격 melee: sword slash; 나오는 곳 frost and holy-ground battles, magic-investigation contracts, the demon calamity army (the most frequent monster in battle).
 - 결과 파일: `art/inbox/sheet_monster_skeleton.png` (id `sheet/monster/해골 병사`)
-- 무기: posekit `sword_shield` 마네킹 → a notched, rusty one-handed sword in the near hand and a battered round wooden shield with an iron rim on the far arm (the guide shield's size)
+- 무기: posekit `sword_shield` 마네킹 → a notched one-handed sword (neutral grey steel) in the near hand and a battered round wooden shield with an iron rim on the far arm (the guide shield's size)
 - 자세(가이드 프레임): ① 대기 `idle_0` ② 공격 준비 `key_windup` ③ 공격 타격 `key_strike` ④ 피격 `key_hit` (`key_*` = handoff.py 의 KEY_POSES: 준비는 체중 뒤로, 타격은 내딛는 런지, 피격은 상체가 뒤로 젖혀짐)
-- 초안에서 가져올 것: 녹슨 개방형 투구 아래 해골, 눈구멍의 작은 붉은 점 둘, 굵게 단순화한 뼈, 허리의 해진 천, 이 빠진 녹슨 한손검 + 쇠테 두른 둥근 나무 방패.
-- 고칠 것: 뼈는 굵게(가는 뼈는 64px 에서 사라진다), 순백 금지, 초록 불꽃·빛 없음. 사람과 같은 크기.
-- **초안** `concept.png` = `art/concepts/monster_skeleton/concept_01.png` (주인이 고른 #1, 디자인만) — 가져올 것: 녹슨 갈색 사발 모양 개방형 투구와 이를 드러낸 해골, 붉은 눈 점 둘, 큰 갈비뼈, 때 묻은 흰 뼈, 어깨와 허리에 걸친 해진 검은 천, 쇠테 두른 둥근 나무 방패, 맨발 뼈.
-- **초안에서 고칠 것** (영어 블록 FIX 끝부분): 머리는 정확히 하나(같은 초안의 다른 장들은 머리가 둘). 갈고리 진 마체테 같은 칼 → 곧고 이 빠진 한손검(가이드 손). 정면을 보며 먼 다리·팔이 새까만 덩어리 → 오른쪽 보는 3/4, 모든 팔다리를 뼈로. 가는 척추·허리에 뚫린 배경 구멍 → 굵은 척추·골반, 몸통에 구멍 없음. 청흑색 천 → 바랜 짙은 갈색. 눈의 빛 번짐 없이 작은 붉은 점.
+- 초안에서 가져올 것: 찌그러진 회색 강철 개방형 투구 아래 해골, 눈구멍의 밝은 붉은 점 둘, 굵게 단순화한 뼈, 허리의 해진 천, 이 빠진 한손검 + 쇠테 두른 둥근 나무 방패.
+- 고칠 것: 재질을 나눈다: 뼈 = 옅은 상아색, 투구·칼 = 중성 회색 강철(녹슨 갈색 아님), 천 = 탁한 짙은 빨강 또는 찬 회색, 눈 = 밝은 빨강 #ff4a3a — 온통 따뜻한 갈색 덩어리 금지, 눈 위에서도 보이게 뼈 둘레에 어두운 외곽선. 뼈는 굵게(가는 뼈는 64px 에서 사라진다), 순백 금지, 초록 불꽃·빛 없음. 사람과 같은 크기.
+- **초안** `concept.png` = `art/concepts/monster_skeleton/concept_01.png` (주인이 고른 #1, 디자인만) — 가져올 것: 사발 모양 개방형 투구(색은 회색 강철)와 이를 드러낸 해골, 붉은 눈 점 둘, 큰 갈비뼈, 때 묻은 흰 뼈, 어깨와 허리에 걸친 해진 검은 천, 쇠테 두른 둥근 나무 방패, 맨발 뼈.
+- **초안에서 고칠 것** (영어 블록 FIX 끝부분): 머리는 정확히 하나(같은 초안의 다른 장들은 머리가 둘). 갈고리 진 마체테 같은 칼 → 곧고 이 빠진 한손검(가이드 손). 정면을 보며 먼 다리·팔이 새까만 덩어리 → 오른쪽 보는 3/4, 모든 팔다리를 뼈로. 가는 척추·허리에 뚫린 배경 구멍 → 굵은 척추·골반, 몸통에 구멍 없음. 청흑색 천 → 탁한 짙은 빨강 또는 찬 회색. 눈의 빛 번짐 없이 작은 붉은 점.
 - 초안에서 가져오지 말 것: 비율(등신), 칠하는 방식, 외곽선 굵기, 채도, 조명, 디테일 양 — 모두 4등신·앵커 화풍으로 통일.
 - 가이드 띠: 머리 하나 = 110 px (모든 캐릭터 같음). 선 키라면 440 px 이지만 대기 자세가 웅크려서 정수리~발바닥 약 401 px(높이의 39%). 모자·투구·깃털·무기는 따로. 발바닥(맨 아래 픽셀) y=870.
 

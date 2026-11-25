@@ -13,18 +13,18 @@ BRIEF: a human raider in loose desert robes and a head wrap, one curved sword. S
 
 CHARACTER: a curved scimitar in the near hand (where the guide holds the sword, same angle). NO shield: the guide's round shield is a placeholder - the far hand is EMPTY and held up open as a guard where the shield is; sand-coloured head wrap and a face veil (only the eyes show); loose sand-coloured robe-tunic; brown leather vest and a sash; baggy trousers tucked into leather boots; tan skin on the hands.
 
-COLOURS (keep close, muted): skin #c68a5c; head wrap, robe sand #e8d5a3 (muted, shaded toward warm grey; never white); vest, sash, boots brown #8d5a3b; scimitar NEUTRAL steel grey.
+COLOURS (keep close, muted): skin #c68a5c; head wrap, robe sand #e8d5a3 (muted; shade steps #b89c6e / #7e6648, never white); vest, sash, boots dark brown #5e3a26 / #3e261a (clearly darker than the sand cloth); scimitar NEUTRAL steel grey; outline a strong dark warm-brown #2e2018 all around the figure.
 
 FROM concept.png (the owner's pick, NovelAI draft #5; design only) TAKE: the sand head wrap and face veil, the loose sand tunic with wrapped forearms, an open vest, a sash with a long cloth flap hanging at the front, very baggy trousers gathered at the shins, dark wrapped boots, the alert fighting attitude with the free hand raised as a guard (attitude only: legs, stance width, crouch depth and size exactly as guide_strip.png).
 
 FIX (do not reproduce the draft here):
   - a common monster seen in large numbers: an ordinary member of its kind, no unique features, no crown, banner or trophy
   - exactly one weapon (the scimitar); no shield, no second blade
-  - the sand robe must not merge with the desert background: give it a darker outline and clear shading
+  - the sand robe must not merge with the desert sand background: a strong dark outline all around the figure, the deep shade steps on the robe, and the dark-brown vest, sash and boots as dark value accents
   - exactly ONE head (sibling drafts of this design came out with a duplicated head): one head, one neck
   - the draft scimitar is a huge sickle-like crescent: a normal scimitar about as long as the guide sword with a moderate curve, in the near hand as the guide holds the sword
   - the draft eye gap reads like dark goggles: a narrow skin-coloured gap between wrap and veil with two eyes, no goggles
-  - the draft vest and sash are dark wine-red: brown #8d5a3b (COLOURS)
+  - the draft vest and sash are dark wine-red: dark brown #5e3a26 (COLOURS)
 
 POSES (the guide mannequin fixes pose, proportions, size and position; its colours, round head, plain clothes and fist-shaped hands are placeholders - follow the text for hands and weapon details):
   1. idle: scimitar held ready in front, free hand up as a guard
@@ -76,9 +76,9 @@ SELF-CHECK before saving (redraw if any fails):
 - 무기: posekit `sword_shield` 마네킹 → a curved scimitar in the near hand (where the guide holds the sword, same angle). NO shield: the guide's round shield is a placeholder - the far hand is EMPTY and held up open as a guard where the shield is
 - 자세(가이드 프레임): ① 대기 `idle_0` ② 공격 준비 `key_windup` ③ 공격 타격 `key_strike` ④ 피격 `key_hit` (`key_*` = handoff.py 의 KEY_POSES: 준비는 체중 뒤로, 타격은 내딛는 런지, 피격은 상체가 뒤로 젖혀짐)
 - 초안에서 가져올 것: 모래색 머리 두건과 얼굴 가리개(눈만 보임), 헐렁한 모래색 겉옷, 갈색 가죽 조끼·허리 천, 통 넓은 바지와 장화, 곡도(시미터) 하나.
-- 고칠 것: 방패 없음 — 가이드의 둥근 방패 자리는 빈손(막는 자세). 모래색이 사막 배경에 묻히지 않게 외곽선·명암 분명히.
+- 고칠 것: 방패 없음 — 가이드의 둥근 방패 자리는 빈손(막는 자세). 모래색이 사막 모래 배경에 묻히지 않게 둘레에 진한 짙은 갈색 외곽선, 겉옷의 깊은 그늘, 짙은 갈색 조끼·허리 천·장화(어두운 명암 포인트).
 - **초안** `concept.png` = `art/concepts/monster_desert-bandit/concept_05.png` (주인이 고른 #5, 디자인만) — 가져올 것: 모래색 머리 두건과 얼굴 가리개, 팔뚝을 감은 헐렁한 모래색 상의, 앞이 열린 조끼, 앞에 긴 천이 늘어진 허리 천, 정강이에서 모인 아주 헐렁한 바지, 감싼 짙은 장화, 싸울 태세와 막는 빈손(태도만 — 다리·자세 폭·크기는 guide_strip.png 그대로).
-- **초안에서 고칠 것** (영어 블록 FIX 끝부분): 머리는 정확히 하나(같은 초안의 다른 장들은 머리가 둘). 낫 같은 거대한 초승달 칼 → 가이드 칼 길이의 보통 곡도(적당히 휨), 가이드 손. 고글처럼 보이는 눈 틈 → 피부색 좁은 틈과 두 눈(고글 없음). 와인빛 조끼·허리 천 → 갈색 #8d5a3b.
+- **초안에서 고칠 것** (영어 블록 FIX 끝부분): 머리는 정확히 하나(같은 초안의 다른 장들은 머리가 둘). 낫 같은 거대한 초승달 칼 → 가이드 칼 길이의 보통 곡도(적당히 휨), 가이드 손. 고글처럼 보이는 눈 틈 → 피부색 좁은 틈과 두 눈(고글 없음). 와인빛 조끼·허리 천 → 짙은 갈색 #5e3a26.
 - 초안에서 가져오지 말 것: 비율(등신), 칠하는 방식, 외곽선 굵기, 채도, 조명, 디테일 양 — 모두 4등신·앵커 화풍으로 통일.
 - 가이드 띠: 머리 하나 = 110 px (모든 캐릭터 같음). 선 키라면 440 px 이지만 대기 자세가 웅크려서 정수리~발바닥 약 401 px(높이의 39%). 모자·투구·깃털·무기는 따로. 발바닥(맨 아래 픽셀) y=870.
 
