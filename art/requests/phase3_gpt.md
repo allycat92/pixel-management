@@ -683,22 +683,24 @@ WRITE: add a section "교차 검수 2" to art/inbox/NOTES.md on the art-inbox br
 ```
 웹판: 위 문장 + `art/requests/review/xcheck_02/walk_review.png` 와 README 첨부, 답은 대화창으로 받아 주인이 Claude 에게 붙여 준다.
 
-## 메시지 I — 거대 거미 다시 그리기 2 (주인 피드백; 저장소용)
+## 메시지 I — 거대 거미 나머지 자세 (대기 컷 `555007c` 조건부 통과 뒤; 저장소용)
 
 ```
-Redraw art/inbox/sheet_monster_giant-spider.png (art-inbox branch, overwrite the same name).
-READ FIRST (branch claude/dot-fantasy-management-game-saupju): art/requests/phase3/monster_giant-spider/README.md (rewritten) and concept.png in that folder.
-The owner rejected the last redraw (77c9e8f): it lost everything they liked in the NovelAI draft. It was seen from ABOVE, flat and toy-like,
-with grey legs and a smooth body. Go back to concept.png's design: a ground-level SIDE view, long dark legs ARCHING HIGH above the body
-(knees higher than the carapace, the body hanging low between them), a big HAIRY abdomen, bristly silhouette (hair as readable tufts),
-glossy red eye cluster, pale fangs - near-black purple with a cool rim light so it reads on a dark battlefield.
-Keep from the last version only its readable leg spacing: exactly 8 legs (4 near + 4 far, far ones a tone darker), all countable at game size.
-MOTION: the legs stay planted in all four poses; the action is in the body, head and fangs:
-  1 idle crouch  2 threat rear (head lifts and draws back, fangs wide)  3 lunging bite (body thrusts forward low, fangs snap)  4 flinch (body jolts back/up).
-Same format as before: 1536x1024 2x2, lowest pixel y=461 in each quadrant, flat #FF00FF, the approved style anchor, no effects.
+Your idle check (art/inbox/check_giant-spider_idle.png, 555007c) PASSES on silhouette: ground-level side view, high-arched hairy legs,
+big hairy abdomen, staggered far legs - keep exactly that body, leg layout and foot positions.
+Now draw the full sheet art/inbox/sheet_monster_giant-spider.png (art-inbox, overwrite): 1536x1024, 2x2, lowest pixel y=461 per quadrant, flat #FF00FF.
+TWO FIXES to apply in all four poses (they were the only things missing from the owner's draft):
+  1. EYES: the idle's eyes are dark purple and vanish at game size (0 red pixels). Make them GLOSSY BRIGHT RED #d6455d with one white glint each:
+     two big eyes about 14-16 px wide at source plus 3-4 small ones, a 1 px darker red rim, no glow. They are the focal point of the design.
+  2. BODY TONE: shift the purple cooler and a little darker (purple-black #241b29, dark purple #3b3346) and add a thin COOL rim light (#6a5a80)
+     along the top edge of the abdomen and of each near leg arch, so the shape reads on a dark battlefield. Fangs stay pale bone.
+POSES - legs stay planted in all four (same foot positions as the idle); the action is in the body, head and fangs:
+  top-left idle (the approved one with the two fixes) / top-right threat rear: head and front of the body lift and draw BACK, fangs wide open, abdomen tucked down /
+  bottom-left lunging bite: legs bend, the whole body thrusts FORWARD and low, fangs snapping shut / bottom-right flinch: body jolts back and up, legs stiffen.
+The threat pose is also the wind-up of its new "web spray" special (the engine draws the web) - no web, venom or effects in the art.
 Add a section "3단계 — 거대 거미 다시 그리기 2" to art/inbox/NOTES.md, commit, push art-inbox only. Then stop.
 ```
-웹판: 위 문장 + `art/requests/phase3/monster_giant-spider/` 의 concept.png·guide_layout.png·guide_scale.png 와 바렌 시트 첨부.
+웹판: 위 문장 + 방금 그린 대기 컷, `concept_800.jpg`·`guide_layout.png`·`guide_scale.png`, 바렌 시트 첨부.
 
 ## 메시지 I-0 — 거대 거미: 대기 한 컷 먼저 (GPT 제안 수락; 메시지 I 보다 먼저)
 
