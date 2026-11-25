@@ -5,6 +5,14 @@
 'use strict';
 
 const Battle = (() => {
+  // 근접 공격의 연출 갈래 (그림만 — 전투 계산과 무관): 찌르기는 곧은 줄, 내려치기는 위에서 아래로 + 바닥 먼지, 나머지는 초승달 베기.
+  // 스킬에 fx 가 있으면 그대로, 없으면 이름으로 고른다.
+  const THRUST_RE = /찌르기|랜스|기마 돌격|암살|뒤치기|기습/;
+  const SMASH_RE = /망치|철퇴|강타|주먹|도끼/;   // 방패 치기(일반 전사 기본기)는 칼을 든 그림이라 베기 그대로
+  function meleeStyle(sk) {
+    if (sk.fx) return sk.fx;
+    return THRUST_RE.test(sk.name) ? 'thrust' : SMASH_RE.test(sk.name) ? 'smash' : 'slash';
+  }
   const W = 320, H = 180;
   const TOP = 80, BOTTOM = 170;      // 전장의 위·아래 경계 (유닛 발 위치). 유닛은 발 위로 약 32 단위 높이로 그려진다
   // 몸집: 캐릭터를 약 32(높이)×16(너비) 논리 단위(화면 64px 안팎)로 그리므로 서로 이만큼 떨어져 선다.
@@ -154,6 +162,63 @@ const Battle = (() => {
       px(ctx, Math.round(s.x + Math.cos(a) * rx), Math.round(s.y + 10 + Math.sin(a) * ry), 1, 1, s.color);
     }
     ctx.globalAlpha = a0;
+  }
+  // 찌르기: 공격자 쪽에서 표적으로 곧게 뻗는 줄 — 끝(표적 쪽)이 두껍고 뒤가 가늘다, 위아래로 가는 속도선, 끝에 작은 별.
+  function drawThrust(ctx, s) {
+    const step = Math.min(3, Math.floor(s.t / 0.055));
+    const d = s.dir < 0 ? -1 : 1, L = s.big ? 34 : 24, W = s.big ? 3 : 2;
+    const tipX = Math.round(s.x + d * 3), y = Math.round(s.y);
+    const rim = mixHex(s.color, '#5a7a98', 0.5), soft = mixHex(s.color, '#8aa8c4', 0.35);
+    const line = (from, to, w, col, dashed) => {
+      for (let i = from; i <= to; i++) {
+        if (dashed && Math.floor(i / 3) % 2) continue;
+        const k = i / L, ww = Math.max(1, Math.round(w * (1 - k)));
+        px(ctx, tipX - d * i, y - (ww >> 1), 1, ww, col);
+      }
+    };
+    if (step === 0) {
+      ctx.globalAlpha = 1; line(0, Math.round(L * 0.5), W, s.color);
+      px(ctx, tipX - 1, y - 2, 3, 5, '#ffffff'); px(ctx, tipX - 2, y - 1, 5, 3, '#ffffff');
+    } else if (step === 1) {
+      ctx.globalAlpha = 1; line(0, L, W, s.color);
+      line(Math.round(L * 0.2), Math.round(L * 0.8), 1, soft, false);
+      for (let i = 4; i < L * 0.7; i++) { px(ctx, tipX - d * i, y - 4, 1, 1, soft); px(ctx, tipX - d * (i + 3), y + 4, 1, 1, rim); }
+      px(ctx, tipX + d, y - 3, 1, 7, s.color); px(ctx, tipX - 2, y, 6, 1, s.color);
+    } else if (step === 2) {
+      ctx.globalAlpha = 0.8; line(Math.round(L * 0.25), L, Math.max(1, W - 1), soft);
+      for (let i = 8; i < L * 0.9; i += 2) { px(ctx, tipX - d * i, y - 5, 1, 1, soft); px(ctx, tipX - d * (i + 4), y + 5, 1, 1, soft); }
+    } else {
+      ctx.globalAlpha = 0.5; line(Math.round(L * 0.4), L + 4, 1, soft, true);
+    }
+  }
+  // 내려치기: 머리 위에서 앞쪽 아래로 짧고 두꺼운 반원 → 바닥(발)에 부딪힌 자리에 먼지 고리와 튀는 조각.
+  function drawSmash(ctx, s) {
+    const step = Math.min(3, Math.floor(s.t / 0.055));
+    const d = s.dir < 0 ? -1 : 1, R = s.big ? 18 : 13, W = s.big ? 6 : 4;
+    const cx = Math.round(s.x - d * 4), cy = Math.round(s.y - 2), fy = Math.round(s.foot);
+    const rim = mixHex(s.color, '#5a7a98', 0.5), soft = mixHex(s.color, '#8aa8c4', 0.35);
+    const dust = '#b8a890', dustD = '#7e705e';
+    // 위(-π/2)에서 앞쪽 아래(앞으로 약 70°)까지: 오른쪽을 보면 -1.75 → 1.2, 왼쪽은 거울
+    const arc = (u0, u1) => d > 0 ? [-1.75 + u0 * 2.95, -1.75 + u1 * 2.95] : [Math.PI + 1.75 - u0 * 2.95, Math.PI + 1.75 - u1 * 2.95];
+    let seed = (Math.round(s.x) * 2654435761 ^ fy * 40503) >>> 0;
+    const rnd = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
+    if (step === 0) {
+      ctx.globalAlpha = 1; const [a, b] = arc(0, 0.7); smearArc(ctx, cx, cy, R, a, b, W, s.color, rim, false);
+    } else {
+      ctx.globalAlpha = step === 1 ? 1 : step === 2 ? 0.75 : 0.45;
+      if (step < 3) { const [a, b] = arc(0.3, 1); smearArc(ctx, cx, cy, R, a, b, step === 1 ? W : Math.ceil(W / 2), step === 1 ? s.color : soft, rim, false); }
+      // 바닥 먼지: 납작한 점선 고리가 퍼지고, 조각이 위로 튄다
+      const rx = 6 + step * 5, ry = 2 + step;
+      for (let i = 0; i < 18; i++) {
+        if ((i + step) % 3 === 0) continue;
+        const a = i / 18 * Math.PI * 2;
+        px(ctx, Math.round(s.x + Math.cos(a) * rx), Math.round(fy + Math.sin(a) * ry), 2, 1, i % 4 ? dust : dustD);
+      }
+      for (let i = 0; i < 6; i++) {
+        const dx = (rnd() - 0.5) * (8 + step * 6), up = Math.round((rnd() * 6 + 3) * (step === 3 ? 0.6 : step / 2));
+        px(ctx, Math.round(s.x + dx), fy - up, step === 1 ? 2 : 1, step === 1 ? 2 : 1, i % 2 ? dust : dustD);
+      }
+    }
   }
   function drawSmear(ctx, s) {
     const step = Math.min(3, Math.floor(s.t / 0.055));
@@ -567,7 +632,7 @@ const Battle = (() => {
       if (sk.stun && e.alive) e.stunUntil = Math.max(e.stunUntil, st.t + sk.stun * (e.boss ? 0.3 : e.bigMon ? 0.6 : 1));
     });
     const special = sk !== u.skills[0];
-    st.fx.push({ kind: 'hit', x: t.x, y: t.y - 8, dir: u.face, melee: !sk.shot, big: crit || special, special, t: 0,
+    st.fx.push({ kind: 'hit', x: t.x, y: t.y - 8, dir: u.face, melee: !sk.shot, style: sk.shot ? null : meleeStyle(sk), big: crit || special, special, t: 0,
       color: SHOT_COLOR[sk.shot] || (u.side === 0 ? '#bfe8ff' : '#ffb0a0') });
     if (sk.aoe) st.fx.push({ kind: 'boom', x: t.x, y: t.y - 8, r: sk.aoe, t: 0, color: SHOT_COLOR[sk.shot] || '#f39c12' });
     if (sk.drain && u.alive) {
@@ -1272,7 +1337,7 @@ const Battle = (() => {
       const Y = f.foot != null && (f.kind === 'hit' || f.kind === 'boom') ? f.foot - Math.round(f.tall * 0.5) : f.y * Z;
       if (f.kind === 'hit') {
         spawn(view, f.big ? 12 : 4, X, Y, { sp: [40, f.big ? 160 : 90], life: [0.15, 0.35], color: f.color, size: f.big ? 3 : 2 });
-        if (f.melee) view.slashes.push({ x: X, y: Y, dir: f.dir, t: 0, big: f.big, color: f.special ? '#9fd8ff' : '#ffffff' });
+        if (f.melee) view.slashes.push({ x: X, y: Y, foot: f.foot != null ? f.foot : Y + 12, dir: f.dir, t: 0, big: f.big, style: f.style, color: f.special ? '#9fd8ff' : '#ffffff' });
         if (f.big) { view.shake = Math.max(view.shake, f.special ? 5 : 3); view.stop = Math.max(view.stop, f.special ? 0.09 : 0.05); }
       } else if (f.kind === 'boom') {
         view.slashes.push({ x: X, y: Y, t: 0, boom: true, r: f.r * Z, color: f.color });
@@ -1778,6 +1843,10 @@ const Battle = (() => {
         ctx.globalAlpha = Math.max(0, 1 - s.t / 0.22);
         px(ctx, Math.round(s.x) - 30, Math.round(s.y), 60, 2, '#ffffff');
         px(ctx, Math.round(s.x) - 20, Math.round(s.y) - 6, 40, 1, '#ffffff');
+      } else if (s.style === 'thrust') {
+        drawThrust(ctx, s);
+      } else if (s.style === 'smash') {
+        drawSmash(ctx, s);
       } else {
         drawSmear(ctx, s);
       }

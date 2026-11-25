@@ -29,6 +29,9 @@
    (같은 파일·같은 자세, 적힌 것만). 덮어쓸 파일 여덟 개는 메시지 안에 있다.
    - **올라올 때마다 Claude 가**: 그 파일만 가져와 `--dry-run` 미리보기를 지난 등록본과 나란히 보여 주고(거미 다리 수, 궁수·도적 얼굴에 장식 색 없음,
      해골 눈밭 대비), 승인한 것만 다시 등록(같은 manifest 항목을 바꿈) → 커밋·푸시.
+6. **메시지 G — 교차 검수 1** (주인 요청: 애매한 판단은 GPT 도 교차 검증) — 새 전투 효과 4종(베기·폭발·찌르기·내려치기)과 애매한 납품 판단
+   (카시안 칼날 색, 엘리노어 철퇴 자루, 궁수 당기는 높이, 걷기 뼈대 수치) 8문항. 그림은 그리지 않고 글로만 답한다. 아래 「메시지 G」를 그대로 붙여 넣는다.
+   - **답이 올라오면 Claude 가**: OK 는 그대로, 「고칠 것」은 반영하고 feedback.md 에 기록. 의견이 갈리면 둘 다 정리해 주인에게 묻는다.
 
 ## 브랜치 규칙 (그림 쪽에도 그대로 전한다)
 
@@ -653,3 +656,17 @@ python3 tools/art/sheets.py art/inbox/sheet_class_warrior.png                   
 받은 파일만 `art-inbox`에서 가져와 하나씩 `sheets.py … --dry-run --work /tmp/sheets` → 지난 등록본과 나란히 비교(자세·윤곽이 같은지, 바뀐 것만 바뀌었는지).
 거미는 자세마다 다리 여덟, 궁수·도적은 `preview_tint_x4.png`에서 밝은 장식 색(노랑)으로 칠해도 얼굴이 노랗지 않은지, 해골은 눈밭 배경에서 확인.
 주인이 승인하면 같은 명령에서 `--dry-run`을 빼고 등록한다 (manifest 의 같은 `sheet/<kind>/<key>` 항목을 바꾼다; 거미는 새 항목).
+
+## 메시지 G — 교차 검수 1 (저장소용; 그림 없이 글로만)
+
+```
+You are the art-side reviewer for this pixel-art game (repo allycat92/pixel-management).
+READ (branch claude/dot-fantasy-management-game-saupju): art/requests/review/xcheck_01/README.md and the 9 PNGs in that folder.
+The owner asked for a CROSS-CHECK: Claude already made these calls (new battle effects for slash / area blast / thrust / smash,
+and three borderline sprite judgements). Look at them critically, as a second pair of eyes, at real game size (characters ~64 px tall).
+Do NOT draw anything. For each of the 8 numbered questions answer "OK" or "FIX: <what exactly to change>" plus one line of reasoning.
+If you think a question is the wrong question, say so.
+WRITE: add a section "교차 검수 1" (Korean is fine) to art/inbox/NOTES.md on the art-inbox branch, commit "Cross-check 1 notes", push art-inbox only. Then stop.
+```
+웹판(저장소를 못 읽는 곳): 위 문장 그대로 + `art/requests/review/xcheck_01/` 의 PNG 9장과 README 를 첨부하고, 답은 대화창에 받아 주인이 Claude 에게 붙여 준다.
+

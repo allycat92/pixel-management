@@ -59,6 +59,7 @@ Claude Code 가 받아서 확인한 결과는 `art/requests/feedback.md`에 남�
 | `sheet/captain/shadowqueen` | **QUEUED** | `art/inbox/sheet_captain_shadowqueen.png` | `art/requests/phase3/captain_shadowqueen/README.md` ("Prompt for GPT" 블록) | `art/requests/phase3/captain_shadowqueen/guide_strip.png` (배치·크기 견본), `guide_1_idle.png` ~ `guide_4_hit.png` | 대장 니클라 (후반·late, 가이드 무기 `none`). 디자인 기준 `portrait.png`. 납품 메모: `art/inbox/NOTES.md` 「3단계 — 니클라」. |
 | `sheet/captain/titan` | **QUEUED** | `art/inbox/sheet_captain_titan.png` | `art/requests/phase3/captain_titan/README.md` ("Prompt for GPT" 블록) | `art/requests/phase3/captain_titan/guide_strip.png` (배치·크기 견본), `guide_1_idle.png` ~ `guide_4_hit.png` | 대장 우르그 (후반·late, 가이드 무기 `katana`). 디자인 기준 `portrait.png`. 납품 메모: `art/inbox/NOTES.md` 「3단계 — 우르그」. 체격 large — 시트 칸 112 필요할 수 있음. |
 | `guide/walk_base` | **DOT_READY** · **담당: PC(Aseprite)** | `art/inbox/guides/walk_base/walk_strip.png` (+ `walk_base.aseprite`) | `art/requests/guides/walk_base/README.md` | `art/requests/guides/walk_base/start_guide_walk_0..3.png` (posekit 출발점) | 걷기 뼈대 시범 — PC 손질 7건 모두 끝남(2026-11-25) → **지금 차례**. 납품 메모: NOTES.md 「뼈대 — 걷기 시범 (Aseprite)」 |
+| `review/xcheck_01` | **DOT_READY** · **담당: GPT(글로만)** | `art/inbox/NOTES.md` 「교차 검수 1」 (그림 없음) | `art/requests/review/xcheck_01/README.md` + `art/requests/phase3_gpt.md` 「메시지 G」 | `art/requests/review/xcheck_01/*.png` | 교차 검수 — 새 전투 효과 4종·애매한 납품 판단 8문항에 OK/FIX 로 답한다. PC 세션은 손대지 않는다. |
 
 ## 납품 규칙 (요약)
 
@@ -69,3 +70,4 @@ Claude Code 가 받아서 확인한 결과는 `art/requests/feedback.md`에 남�
 - **역할 나눔**: GPT(도트) = 새로 그리기·다시 그리기 / PC(Aseprite) = 이미 받은 그림의 색·외곽선·소품 손질. 상태 칸에 **`담당: PC(Aseprite)`** 가 붙은 항목은 PC 몫이라 GPT 쪽은 건드리지 않는다. PC 는 그 표시가 있는 항목**만** 한다 (`tools/aseprite-mcp/pc/CLAUDE.local.md`).
 - `QUEUED`·`NEEDS_FIX`(고칠 점이 feedback.md 에 있을 때만 다시 그림)·`DELIVERED`·`ACCEPTED`는 건드리지 않는다. `DOT_READY`가 없으면 멈춘다.
 - Claude Code 가 art-inbox 를 주기적으로 확인해서 수령·검토하고 feedback.md 와 이 표를 갱신한다.
+- **교차 검수 (주인 요청 2026-11-25)**: 잘 안 되는 부분·애매한 판단(다시 그릴지 말지, 새 효과·자세 기준 등)은 주인만이 아니라 GPT 에게도 `review/xcheck_NN` 항목으로 물어 교차 검증한다. 의견이 갈리면 둘 다 적어 주인에게 묻는다.
