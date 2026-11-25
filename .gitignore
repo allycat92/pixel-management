@@ -2,3 +2,9 @@
 __pycache__/
 # NovelAI raw design-draft candidates (tools/art/novelai.py); only the owner's picks are committed as concept_NN.png
 art/concepts/*/drafts/
+
+# 동작·화풍 참고 자료: 남의 작품은 저장소에 올리지 않는다 (PC 에 두고 참고만).
+# 저작권이 끝났거나 CC0 인 자료만 art/refs/free/ 에 출처와 함께 올린다.
+art/refs/*
+!art/refs/README.md
+!art/refs/free/

@@ -24,5 +24,10 @@ GPT 가 이 뼈대 위에 캐릭터별 걷기 프레임을 그릴 수 있게 한
 2. GPT 교차 검수: 「이 뼈대 위에 캐릭터를 그릴 수 있나, 걷기로 읽히나」 짧게 판단.
 3. 통과하면 이 형식으로 직업별(전사·궁수·마법사·사제·도적) 자세 세트로 넓힌다.
 
+## 참고 자료 (있으면)
+`art/refs/` (주인 PC 에만 있는 동작 참고 — `art/refs/README.md`)와 `art/refs/free/`. 동작의 리듬·무게 이동·팔다리 엇갈림만 참고하고,
+비율(4등신·머리 110px)과 이 요청서의 수치가 우선한다. 참고 자료를 따라 그리거나 납품물에 넣지 않는다.
+NOTES 에 어떤 자료를 참고했는지 한 줄 적는다.
+
 ## 납품
 art-inbox 브랜치 `art/inbox/guides/walk_base/` 에 위 파일 + `art/inbox/NOTES.md` 「뼈대 — 걷기 시범 (Aseprite)」 절. 커밋 `Add walk base guide (Aseprite)`.
