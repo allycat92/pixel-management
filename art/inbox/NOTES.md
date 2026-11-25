@@ -522,3 +522,10 @@ REFERENCES LOADED: 승인본 c9d582c OK; portrait_800.jpg OK; guide_strip.png OK
 DEVIATIONS: (a) THIS ROUND의 동작을 우선해 1번 열린 V·2번 어깨 위 X·3번 낮은 가위 베기·4번 양옆으로 젖힘. 대기 몸 421px, 발 y=870. 2번은 X가 읽히도록 두 날이 한 지점에서만 교차하고 나머지는 분리. 공간을 위해 1·3번 검을 가파르게 들고 내렸으며 날은 요청의 220px보다 짧게 읽힐 수 있음. (b) 초상화의 칼 두 자루는 양손에 옮겨 등에 남기지 않음. (c) none.
 RISKS AT GAME SIZE: 96px 변환에서 V·X·열리는 두 날이 구분됨. 2번 교차점과 3번 망토에 가까운 아래 손목이 실제 전투 배경에서도 따로 읽히는지 확인 부탁. 피격 중심 보정 -4px.
 PROPOSALS: 이전 등록본 교체 여부는 클로드 검수 후 결정.
+
+## sheet/captain/shadowqueen - 니클라 타격 자세
+CHECK: RESULT: PASS
+REFERENCES LOADED: 쌍검 바탕 aa0687e OK; portrait_800.jpg OK; guide_strip.png OK; guide_1_idle.png, guide_2_windup.png, guide_3_strike.png, guide_4_hit.png OK; Baren anchor OK.
+DEVIATIONS: (a) 3번만 낮은 돌진으로 교체. 위 칼은 가슴 높이에서 수평, 아래 칼은 사선으로 내려 두 끝 모두 앞발보다 오른쪽. 고정 포즈 구역에 맞춰 뒷다리는 앞뒤 원근으로 조금 겹쳐 보임. 1·2·4번은 각 연결 실루엣의 색·좌표·픽셀 마스크가 바탕과 일치. (b) none. (c) none.
+RISKS AT GAME SIZE: 낮게 숙인 타격의 실루엣은 66x46px(변환기가 낮은 자세로 인해 크기 차이 주의 출력). 두 날은 분리되고, 실제 전투에선 X에서 타격으로 넘어가는 골반 전진과 앞발 기준을 확인 부탁. --base의 사각 구간 집계는 3번이 구간 경계를 넘은 픽셀을 2번 구간에 포함하지만 기존 2번 그림 자체는 그대로.
+PROPOSALS: none.

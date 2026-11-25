@@ -1,19 +1,8 @@
 # 니클라 — 그림자 길드의 여왕 (밤의 여왕) · `sheet/captain/shadowqueen`
 
-## THIS ROUND (overrides anything below that disagrees)
+## THIS ROUND
 
-```
-KIND: fix (pose 3 only). BASE: art/inbox/sheet_captain_shadowqueen.png @ aa0687e on art-inbox - the twin-sword sheet is ACCEPTED and
-registered. Poses 1, 2 and 4 stay exactly as they are (pixel for pixel); the X wind-up (pose 2) is excellent - it is her signature now.
-FIX pose 3 (strike) only: now she crouches with one blade straight up and one blade down - at game size it reads as another guard stance,
-not as the moment of the hit. Make it the RELEASE of the X:
-  - a low DASHING LUNGE toward the right: front knee bent far forward, rear leg stretched long behind, torso leaning forward
-    (the hips about 60-80 px further right than in pose 2), cloak and hair streaming back;
-  - BOTH arms swept forward: near blade extended straight ahead at chest height pointing right, far blade sweeping low and forward
-    ahead of the front knee - the two blades open like scissors toward the enemy, both tips to the RIGHT of her front foot;
-  - same size, face, colours and swords as poses 1, 2 and 4; soles on y=870 (rear foot may be on its toes); blades on the background.
-DELIVER: art/inbox/sheet_captain_shadowqueen.png (overwrite, all four poses in the file). NOTES "## sheet/captain/shadowqueen - 니클라 타격 자세".
-```
+(none - the twin-sword sheet was accepted on 2026-11-26: `aa0687e` + strike pose `0cc6046`. The text below is the original request.)
 
 도트 납품 대기열(`art/requests/dot_queue.md`) 항목. 규칙은 `art/requests/gpt_handoff_notes.md`가 우선이다.
 
