@@ -1,0 +1,21 @@
+{
+  "mcpServers": {
+    "aseprite": {
+      "command": "C:\\Users\\YOUR_NAME\\.local\\bin\\uv.exe",
+      "args": [
+        "--directory",
+        "C:\\Users\\YOUR_NAME\\tools\\aseprite-mcp",
+        "run",
+        "--frozen",
+        "--no-dev",
+        "-m",
+        "aseprite_mcp"
+      ],
+      "env": {
+        "PYTHONUTF8": "1",
+        "ASEPRITE_PATH": "C:\\Program Files\\Aseprite\\Aseprite.exe",
+        "ASEPRITE_TIMEOUT_SECONDS": "60"
+      }
+    }
+  }
+}

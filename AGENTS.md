@@ -15,7 +15,7 @@
 - NovelAI: `tools/art/novelai.py` may generate images **only when the user asks**, within the free tier
   (area <= 1024x1024, <= 28 steps, 1 image per call, `--max` 2 per run; no `--allow-paid` unless the user says so).
   The token is injected by the cloud proxy (or `NOVELAI_TOKEN` locally); never write it to files or logs.
-  **NovelAI is for design drafts ONLY (owner decision): final game art always goes through GPT.** Never request or
+  **NovelAI is for design drafts ONLY (owner decision): final game art always goes through GPT (the owner's PC session may refine it in Aseprite — see docs/pc_cloud_protocol.md).** Never request or
   register a NovelAI "final": `novelai.py` writes only `art/concepts/<id>/drafts/nai_*.png` (git-ignored) or a scratch
   `--outdir` and refuses `art/inbox/`, `assets/`, `art/requests/`; `sheets.py` refuses NovelAI images
   (`--allow-draft` is a test flag that always implies `--dry-run`).
@@ -23,3 +23,7 @@
   `guide_strip.png` layout, README with the GPT prompt); rules in `art/requests/gpt_handoff_notes.md`, messages in `art/requests/phase3_gpt.md`.
 - Procedural pixel characters: `tools/pixelart/` (`python3 tools/pixelart/baren.py OUT_DIR`).
 - Aseprite: never commit Aseprite binaries (EULA forbids redistribution). Build notes only.
+- PC Aseprite session: the owner's Windows PC runs official Aseprite + aseprite-mcp (pinned, reviewed commit; setup and the
+  5 denied tools in `tools/aseprite-mcp/README.md`). The PC session only writes `art/inbox/` on `art-inbox`
+  (`<stem>.png` + `aseprite/<stem>.aseprite`); this repo's cloud session checks (`tools/art/check_delivery.py`), registers and
+  owns `dot_queue.md` statuses. Roles, branches, naming and the PC's first instruction: `docs/pc_cloud_protocol.md`.
