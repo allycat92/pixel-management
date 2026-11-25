@@ -529,3 +529,10 @@ REFERENCES LOADED: 쌍검 바탕 aa0687e OK; portrait_800.jpg OK; guide_strip.pn
 DEVIATIONS: (a) 3번만 낮은 돌진으로 교체. 위 칼은 가슴 높이에서 수평, 아래 칼은 사선으로 내려 두 끝 모두 앞발보다 오른쪽. 고정 포즈 구역에 맞춰 뒷다리는 앞뒤 원근으로 조금 겹쳐 보임. 1·2·4번은 각 연결 실루엣의 색·좌표·픽셀 마스크가 바탕과 일치. (b) none. (c) none.
 RISKS AT GAME SIZE: 낮게 숙인 타격의 실루엣은 66x46px(변환기가 낮은 자세로 인해 크기 차이 주의 출력). 두 날은 분리되고, 실제 전투에선 X에서 타격으로 넘어가는 골반 전진과 앞발 기준을 확인 부탁. --base의 사각 구간 집계는 3번이 구간 경계를 넘은 픽셀을 2번 구간에 포함하지만 기존 2번 그림 자체는 그대로.
 PROPOSALS: none.
+
+## sheet/captain/shadowqueen - 니클라 대기 자세
+CHECK: RESULT: PASS
+REFERENCES LOADED: 타격 승인본 0cc6046 OK; portrait_800.jpg OK; guide_strip.png OK; guide_1_idle.png, guide_2_windup.png, guide_3_strike.png, guide_4_hit.png OK; Baren anchor OK.
+DEVIATIONS: (a) 1번 대기만 두 칼을 내렸음. 가까운 칼은 몸 밖 앞으로 비스듬히, 먼 칼은 망토와 뒷다리 뒤 아래쪽 끝만 보이게 했음(THIS ROUND 예외). 대기 몸 419px(변환기 측정), y=870. --base 검사에서 2·3·4번 원본 실루엣/색 변화가 모두 0/0. (b) none. (c) none.
+RISKS AT GAME SIZE: 대기에서 먼 칼끝은 의도적으로 짧게 드러나 어두운 바닥에서 망토 밑단과 가까워 보일 수 있음. 대기→머리 위 X 준비가 매끄러운지 실제 전투에서 확인 부탁. 타격 높이 주의는 승인된 낮은 자세가 그대로라 재출력됨.
+PROPOSALS: none.
