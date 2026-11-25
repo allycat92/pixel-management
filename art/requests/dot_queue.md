@@ -17,7 +17,7 @@ Claude Code 가 받아서 확인한 결과는 `art/requests/feedback.md`에 남�
 
 | id | 상태 | 납품 PNG (art-inbox) | 요청서 | 포즈 가이드 | 메모 |
 |---|---|---|---|---|---|
-| `sheet/hero/kai` | **DOT_READY** | `art/inbox/sheet_hero_kai.png` | `art/requests/phase3/hero_kai/README.md` ("Prompt for GPT" 블록) | `art/requests/phase3/hero_kai/guide_strip.png` (배치·크기 견본), `guide_1_idle.png` ~ `guide_4_hit.png` | 납품 시운전 1호. 디자인 기준 `portrait.png`(승인된 초상화), 화풍 기준 art-inbox 의 `art/inbox/sheet_captain_blademaster.png`. 납품 메모: `art/inbox/NOTES.md` 「3단계 — 카이 (시운전)」 |
+| `sheet/hero/kai` | **DELIVERED** (확인 통과 — 주인 승인 후 등록) | `art/inbox/sheet_hero_kai.png` | `art/requests/phase3/hero_kai/README.md` ("Prompt for GPT" 블록) | `art/requests/phase3/hero_kai/guide_strip.png` (배치·크기 견본), `guide_1_idle.png` ~ `guide_4_hit.png` | 납품 시운전 1호. 디자인 기준 `portrait.png`(승인된 초상화), 화풍 기준 art-inbox 의 `art/inbox/sheet_captain_blademaster.png`. 납품 메모: `art/inbox/NOTES.md` 「3단계 — 카이 (시운전)」. 수령: art-inbox `09d981f`, 검토 결과 `art/requests/feedback.md` 「도트 납품 시운전 1호」 |
 
 ## 납품 규칙 (요약)
 
