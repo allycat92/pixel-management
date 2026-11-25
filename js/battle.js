@@ -1079,7 +1079,7 @@ const Battle = (() => {
   }
 
   // 공격 동작 시작 (같은 순간 여러 번 불려도 한 번만)
-  function triggerAttack(view, u, kind) {
+  function triggerAttack(view, u, kind, onImpact) {
     const r = rsOf(view, u), c = view.clock;
     if (c - (r.trigAt == null ? -9 : r.trigAt) < 0.12) return;
     r.trigAt = c;
@@ -1092,8 +1092,10 @@ const Battle = (() => {
     // 준비 자세를 이미 보여 줬으면(windAt) 타격 칸부터 시작한다 → 맞는 순간(피해·불꽃·멈춤)과 휘두르는 그림이 겹친다.
     // 미리 보여 주지 못한 공격(특기 등)은 전처럼 준비 칸부터.
     const wShare = a && a.ms && a.ms.length > 1 ? a.ms[0] / a.total : 0.35;
-    const pre = c - (r.windAt == null ? -9 : r.windAt) < 0.3;
-    r.atkAt = pre ? c - wShare * r.atkDur : c;
+    // onImpact: 기본 근접 공격이 맞는 틱에 불린 것 — 준비를 미리 못 보여 줬어도 타격 칸부터 (맞은 뒤에 준비 자세가 나오지 않게)
+    const pre = !!onImpact || c - (r.windAt == null ? -9 : r.windAt) < 0.3;
+    // 2ms 더 당긴다: 딱 경계에 놓으면 소수 오차로 절반쯤은 준비 칸(149.99ms)이 한 프레임 더 보였고, 타격 멈춤이 그 칸에서 얼었다
+    r.atkAt = pre ? c - wShare * r.atkDur - 0.002 : c;
     r.strikeAt = pre ? c : c + wShare * r.atkDur;
     r.windAt = -9;
   }
@@ -1119,14 +1121,15 @@ const Battle = (() => {
   }
   function gaitKind(st, u, r) {
     if (u.g.routed) return 'run';
-    if (r.fwd < 0) return 'back';
     if (u.skills && isMelee(u)) {
       let fd = Infinity;
-      for (const e of st.units) if (e.alive && !e.fled && e.side !== u.side) { const d = dist(e, u); if (d < fd) fd = d; }
-      if (fd <= (u.reach || 11) * 1.3 + 6) return 'reseat';
-      if (fd < 70) return 'charge';
+      for (const e of st.units) if (e.alive && !e.fled && e.side !== u.side) { const d = meleeDist(e, u) - sizeOf(e); if (d < fd) fd = d; }
+      // 맞붙은 채 밀려나는 것은 뒷걸음이 아니라 자리 고치기다 (뒷걸음으로 치면 걸음이 거꾸로 돌고 준비 자세도 빠졌다)
+      if (fd <= (u.reach || 11) * 1.3 + BODY) return 'reseat';
+      if (r.fwd < 0) return 'back';
+      return fd < 70 ? 'charge' : 'march';
     }
-    return 'march';
+    return r.fwd < 0 ? 'back' : 'march';
   }
   // 유닛이 화면에서 실제로 움직인 만큼 걸음을 나아가게 하고(시계가 아니라 거리), 걷는 정도(gait 0..1)를 부드럽게 올리고 내린다.
   // 한두 틱짜리 자리 밀림은 걸음으로 치지 않는다(세 틱 이상 이어져야 걷기 시작) — 난전에서 걸음이 깜빡이지 않게.
@@ -1137,7 +1140,8 @@ const Battle = (() => {
     if (r.gx == null) { r.gx = bx; r.gy = by; r.gait = 0; r.wp = r.phase; r.run = 0; r.moveC = -9; r.dirX = face; r.fwd = 1; r.kind = 'march'; r.gp = { ...GAITS.march }; }
     const dx = bx - r.gx, dy = by - r.gy, d = Math.hypot(dx, dy);
     if (d > 0.05) {
-      r.run = c - r.moveC < 0.09 ? r.run + 1 : 1;
+      // 문턱은 연출 시계 기준이라 화면이 느리면(프레임 하나가 길면) 같이 늘린다 — 고정 0.09초면 30fps 아래의 2·4배속에서 걷기가 시작되지 않았다
+      r.run = c - r.moveC < Math.max(0.09, dtc * 2.2) ? r.run + 1 : 1;
       r.moveC = c; r.gx = bx; r.gy = by;
       if (Math.abs(dx) > 0.3) r.dirX = dx > 0 ? 1 : -1;
       r.fwd = (Math.abs(dx) > Math.abs(dy) * 0.5 && dx * face < 0) ? -1 : 1;   // 보는 쪽과 반대로 가면 뒷걸음 (걸음이 거꾸로 돈다)
@@ -1149,7 +1153,7 @@ const Battle = (() => {
       r.wp += dd / sl;
       r.walkDist = (r.walkDist || 0) + dd;
     }
-    const want = u.alive && r.run >= 3 && c - r.moveC < 0.11;
+    const want = u.alive && r.run >= 3 && c - r.moveC < Math.max(0.11, dtc * 1.5);
     r.gait = want ? Math.min(1, r.gait + dtc / 0.10) : Math.max(0, r.gait - dtc / 0.16);
     const T = GAITS[r.kind] || GAITS.march, a = Math.min(1, dtc / 0.15);
     for (const k in T) r.gp[k] += (T[k] - r.gp[k]) * a;
@@ -1245,9 +1249,10 @@ const Battle = (() => {
     if (!b || !u.alive || u.healer || u.g.routed || u.stunUntil > st.t) return false;
     // 걸어가는 중에는 짐작하지 않는다 — 단, 맞붙은 채 자리를 고치는 잔걸음(reseat)은 싸우는 중이므로 예외
     if (!(b.left > 0 && b.left <= 0.2) || ((r.gait || 0) > 0.3 && r.kind !== 'reseat')) return false;
-    const reach = b.shot ? b.range : (u.reach || b.range) * 1.5 + 6;
-    for (const e of st.units) if (e.alive && !e.fled && e.side !== u.side && dist(e, u) <= reach + (b.shot ? 0 : sizeOf(e))) return true;
-    return false;
+    // 전투 계산이 쓰는 것과 같은 표적·거리로 본다 (근접은 세로 차이를 덜 세는 meleeDist: 비스듬히 붙은 자리에서도 맞는다)
+    const tg = u.target;
+    if (!tg || !tg.alive || tg.fled || tg.side === u.side) return false;
+    return (b.shot ? dist(tg, u) : meleeDist(u, tg)) <= b.range + sizeOf(tg) + (b.shot ? 0 : BODY) + 2;
   }
 
   // 애니메이션 안의 몇 번째 칸인가 (ms: 애니 시작부터 흐른 시간)
@@ -1363,7 +1368,7 @@ const Battle = (() => {
       else if (c - r.atkAt < r.atkDur) { const a = Art.anim(m, r.atkAnim); i = frameAt(a, ((c - r.atkAt) / r.atkDur) * a.total, true); }
       else if (c - r.hitAt < 0.22) { const a = Art.anim(m, 'hit'); i = frameAt(a, ((c - r.hitAt) / 0.22) * a.total, true); }
       else if (c - (r.windAt == null ? -9 : r.windAt) < 0.1) i = Art.anim(m, 'attack').from;   // 곧 칠 것이 보일 때: 준비 자세 먼저 (연출만)
-      else if (r.gait > 0.05 && m.anims.walk) {
+      else if (r.gait > 0.05 && m.anims.walk && r.kind !== 'reseat') {   // 맞붙은 채 잔걸음에는 걷기 칸을 쓰지 않는다 (대기↔걷기 키 차이로 튄다)
         // 걷기 동작이 있는 시트: 프레임을 걸은 거리에 묶는다 (n 프레임 = 두 걸음, 한 걸음 = 요청서의 walkStride, 없으면 키의 약 28.5%)
         const a = Art.anim(m, 'walk'), n = a.to - a.from + 1, sl = m.walkStride || (r.sh || m.cell[1] * 0.7) * 0.285;
         const q = ((r.walkDist || 0) / sl + r.phase) * n / 2;
@@ -1998,7 +2003,7 @@ const Battle = (() => {
     for (const u of sorted) {
       const r = rsOf(view, u);
       // 연출 상태 갱신: 근접 공격(앞으로 내딛기)·피격 번쩍임이 새로 시작됐는지
-      if (u.lunge > r.prevLunge + 0.01) { triggerAttack(view, u, 'attack'); r.atkMelee = true; }
+      if (u.lunge > r.prevLunge + 0.01) { triggerAttack(view, u, 'attack', true); r.atkMelee = true; }
       if (u.flash > r.prevFlash + 0.01) r.hitAt = view.clock;
       r.prevLunge = u.lunge; r.prevFlash = u.flash;
       const S = stature(view, u);
