@@ -1,6 +1,6 @@
 # PC 세션 지침 — pixel-management 도트 손질·뼈대 담당 (Aseprite)
 
-지침 판: 2026-11-26b  (보고할 때 이 판을 함께 말한다 — 클라우드가 PC 가 낡은 지침으로 일하는지 알 수 있다)
+지침 판: 2026-11-26c  (보고할 때 이 판을 함께 말한다 — 클라우드가 PC 가 낡은 지침으로 일하는지 알 수 있다)
 
 **모든 답변·질문·보고는 한국어로 한다.** 영어 문서를 읽더라도 주인에게는 한국어로 말한다. 짧고 쉽게.
 
@@ -26,7 +26,7 @@
 | 일 | 파일 (납품 폴더 안) | NOTES 절 제목 | 커밋 첫 줄 (영어, 본문 없음) |
 |---|---|---|---|
 | 손질 | `art/inbox/<stem>.png` + `art/inbox/aseprite/<stem>.aseprite` | 「손질 — <이름> (Aseprite)」 | `Touch up <stem> (Aseprite)` |
-| 뼈대 | `art/inbox/guides/<id>/` 안에 PNG·`.aseprite`·GIF 모두 | 「뼈대 — <이름> (Aseprite)」 | `Add guide <id> (Aseprite)` / 고칠 때 `Touch up guide <id> (Aseprite)` |
+| 뼈대 | `art/inbox/guides/<id>/<id>.aseprite` 하나 (레이어가 나뉜 8프레임 작업 파일 — 띠·GIF 는 클라우드가 뽑는다) | 「뼈대 — <이름> (Aseprite)」 | `Add guide <id> (Aseprite)` / 고칠 때 `Touch up guide <id> (Aseprite)` |
 `<stem>` 은 파일 이름에서 `.png` 를 뺀 것 그대로 (예: `sheet_monster_desert-bandit`).
 
 ## 명령 습관 (허가 창 줄이기)
@@ -46,13 +46,14 @@
    `uv run --no-project --with pillow python tools/art/check_delivery.py ../pixel-management-inbox/art/inbox/<stem>.png --aseprite ../pixel-management-inbox/art/inbox/aseprite/<stem>.aseprite --export --base-rev <바탕 해시>`
    - **새로 생긴 FAIL 이 있으면 푸시하지 않는다.** `pre-existing`(받은 그림에도 있던 것)은 NOTES 에 "원래부터" 라고 적고 그대로 둔다.
    - 맨 아래 `against the base:` 줄(윤곽·색이 몇 px 바뀌었나)과 `RESULT` 줄을 NOTES 에 옮겨 적는다.
-   - **뼈대**는 원본이 PNG 옆에 있고 바탕 해시가 없다. 띠마다: `uv run --no-project --with pillow python tools/art/check_delivery.py ../pixel-management-inbox/art/inbox/guides/<id>/<파일>.png --aseprite ../pixel-management-inbox/art/inbox/guides/<id>/<파일>.aseprite --export`
+   - **뼈대**는 바탕 해시가 없고 검사 도구가 다르다(요청서 README 에 그대로 적혀 있다): `uv run --no-project --with pillow --with numpy python tools/art/check_skeleton.py ../pixel-management-inbox/art/inbox/guides/<id>/<id>.aseprite --pose art/requests/guides/<id>/<초안 폴더>/pose.json --base art/requests/guides/<id>/<초안 폴더>/<id>.aseprite`
+     출발점은 요청서의 초안 `.aseprite` 를 납품 폴더로 복사한 것. 팔다리를 옮기면 `joints` 레이어의 관절 점도 같이 옮긴다.
 2. `art/inbox/NOTES.md` 에 절을 붙인다 (제목과 줄 순서: `pc_notes.md` 맨 아래).
 3. `git -C ../pixel-management-inbox status` 로 `art/inbox/` 안만 바뀌었는지 확인 → `add art/inbox` → `commit -m "<위 표의 첫 줄>"` → `pull --rebase origin art-inbox` → `push origin art-inbox`.
    - `pull --rebase` 가 충돌로 멈추면: NOTES.md 뿐이면 양쪽 절을 모두 남기고 `rebase --continue`.
      (`art/inbox/.gitattributes` 의 합치기 설정 덕에 NOTES.md 는 대개 저절로 합쳐진다.)
      **PNG·.aseprite 가 충돌하면 풀지 않는다** — `rebase --abort` 하고 "○○ 파일을 다른 쪽이 먼저 바꿨음" 이라고 알리고 멈춘다.
-4. 주인에게 한국어로 한 줄 보고 ("○○ 손질 올림, 커밋 abc1234, 지침 판 2026-11-26b") 후 다음 항목.
+4. 주인에게 한국어로 한 줄 보고 ("○○ 손질 올림, 커밋 abc1234, 지침 판 2026-11-26c") 후 다음 항목.
 
 ## 하지 않는 것
 - 게임 브랜치(이 폴더) 커밋·푸시, `art/inbox/` 밖 수정, dot_queue.md·feedback.md·pc_notes.md 수정 (클라우드가 바꾼다).

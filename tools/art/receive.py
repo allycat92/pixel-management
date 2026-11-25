@@ -143,6 +143,39 @@ def dry_run(png, work, extra):
     return sheet, sorted(prev), notes
 
 
+def skeleton(rel, name, work, exe, tip):
+    """a skeleton set delivered as one layered .aseprite (guides/<set>/<set>.aseprite): measure it, list what changed against
+    the draft of the request, and make the strips + preview from it (the Aseprite session does not have to export them)."""
+    path = f'art/inbox/{rel}.aseprite'
+    new = os.path.join(work, 'new', name + '.aseprite')
+    os.makedirs(os.path.dirname(new), exist_ok=True)
+    if not show('origin/art-inbox', path, new):
+        print(f'{path} is not on origin/art-inbox')
+        return 2
+    revs = (git('log', '--format=%h', 'origin/art-inbox', '--', path) or '').split()
+    print(f'# {name} (skeleton) — art-inbox {revs[0] if revs else "?"} (tip {tip[:7]})')
+    req = os.path.join(ROOT, 'art', 'requests', 'guides', name)
+    drafts = sorted(d for d in (os.listdir(req) if os.path.isdir(req) else []) if os.path.exists(os.path.join(req, d, name + '.aseprite')))
+    out = os.path.join(work, 'skeleton')
+    cmd = [sys.executable, os.path.join(ROOT, 'tools', 'art', 'check_skeleton.py'), new, '--export', out, '--aseprite-exe', exe]
+    if drafts:
+        cmd += ['--base', os.path.join(req, drafts[-1], name + '.aseprite'), '--pose', os.path.join(req, drafts[-1], 'pose.json')]
+        print(f'- draft of the request: art/requests/guides/{name}/{drafts[-1]}/')
+    r = subprocess.run(cmd, capture_output=True)
+    print(r.stdout.decode('utf-8', 'replace').rstrip() or r.stderr.decode('utf-8', 'replace')[-400:])
+    rc = r.returncode
+    for s in 'ab':
+        strip = os.path.join(out, f'{name}_{s}.png')
+        if os.path.exists(strip):
+            c = subprocess.run([sys.executable, os.path.join(ROOT, 'tools', 'art', 'check_delivery.py'), strip], capture_output=True)
+            lines = [ln for ln in c.stdout.decode('utf-8', 'replace').splitlines() if ln.startswith(('RESULT', 'FAIL', 'WARN', 'ERROR'))]
+            print(f'- strip {s}: ' + ' | '.join(lines))
+            rc = rc or c.returncode
+    print(f'- work folder: {work} (strips, {name}_preview.gif and pose_measured.json under skeleton/)')
+    print('- after judging: git checkout origin/art-inbox -- <the delivered paths> art/inbox/NOTES.md')
+    return rc
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument('stem', nargs='?')
@@ -165,6 +198,8 @@ def main():
     work = a.work or tempfile.mkdtemp(prefix='receive-')
     os.makedirs(work, exist_ok=True)
     tip = git('rev-parse', 'origin/art-inbox')
+    if sub.startswith('guides/') and stem == os.path.basename(sub):
+        return skeleton(rel, stem, work, a.aseprite_exe, tip)
     path = f'art/inbox/{rel}.png'
     new = os.path.join(work, 'new', stem + '.png')
     os.makedirs(os.path.dirname(new), exist_ok=True)

@@ -8,3 +8,4 @@ art/concepts/*/drafts/
 art/refs/*
 !art/refs/README.md
 !art/refs/free/
+art/requests/guides/*/v*/layers/
