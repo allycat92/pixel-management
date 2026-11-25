@@ -1,5 +1,21 @@
 # GPT handoff notes (character sprites)
 
+## Rules changed (newest first — read this list every time)
+
+- 2026-11-26 **How work arrives**: one standing instruction (`art/requests/GPT_STANDING.md`) + `dot_queue.md` section "지금 차례". No per-item messages.
+  NOTES sections use the template there (CHECK / REFERENCES LOADED / DEVIATIONS / RISKS AT GAME SIZE / PROPOSALS).
+- 2026-11-26 **References must load**: use the `*_800.jpg` copies. If a design reference (portrait, concept) does not load, do not draw from the text — report "막힘".
+- 2026-11-26 **MUST SURVIVE beats FIX**: what the owner liked in a draft (MUST SURVIVE / "FROM concept TAKE") wins over Claude's readability suggestions.
+  The first spider redraw failed because our FIX notes ("smooth carapace", "keep grey legs") erased the draft's hair and dark legs.
+- 2026-11-26 **Cell budget**: each README states the highest allowed pixel (cell 96: nothing above y=340; cell 112: y=245). Tilt or lower a raised weapon; never shrink the figure.
+- 2026-11-26 **Idle-check first** for creatures without a mannequin, bosses, and redraws after an owner rejection: one idle pose (`check_<stem>_idle.png`), then the rest.
+- 2026-11-25 **Spot colours**: tiny must-show colours (eyes, gems) vanish at 1/6 scale unless declared. Paint them >= 60 RGB away from every other colour, >= 14 px wide at source, and list them in NOTES as `SPOT: #rrggbb`.
+- 2026-11-25 **Weapon decisions are final when marked CONFIRMED** (they may contradict the portrait: the owner chose the skill/story weapon three times out of three).
+- 2026-11-25 **Weapon / key prop outside the body silhouette** in every pose, over the background, with a 1 px dark outline (Lyra's dagger vanished at 64 px).
+- 2026-11-25 **Crisp pixels**: about 40 colours, hard edges, no blending into the background (Kai's first sheet had 110k colours).
+- 2026-11-25 **Magenta distance**: every figure colour >= 170 from #FF00FF (hard minimum 150).
+- 2026-11-25 **Self-check tool**: `python3 tools/art/check_delivery.py <png>` (finds layout / cell / spots itself). Your numbers have matched ours exactly; visual "looks fine at 64 px" claims have not — list risks instead.
+
 Work split agreed with the project owner:
 
 | step | who | output |

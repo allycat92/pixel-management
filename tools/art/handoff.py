@@ -844,6 +844,22 @@ CREATURES = {
                         '(each tuft a few strong pixels at game size), not fine noise all over',
                         'the draft legs are very thin: a little thicker so every leg survives downscaling, but keep them long and high-arched',
                         'the draft fangs are hidden in the hair: two clear pale fangs under the eyes']),
+        this_round=[
+            'KIND: fix (full sheet). BASE: art/inbox/check_giant-spider_idle.png @ 555007c on art-inbox - your idle check PASSED on silhouette:',
+            'keep exactly that body, leg layout and foot positions in all four poses. LOAD concept_800.jpg (the owner\'s draft).',
+            'MUST SURVIVE (what the owner liked in the draft): ground-level side view; legs arching higher than the back; big hairy abdomen;',
+            'bristly silhouette; glossy red eye cluster; near-black purple mass.',
+            'TWO FIXES in all four poses:',
+            '  1. EYES: dark purple now, 0 red pixels at game size. Make them GLOSSY BRIGHT RED #d6455d with one white glint each: two big eyes',
+            '     14-16 px wide at source plus 3-4 small ones, a 1 px darker red rim, no glow. SPOT: #d6455d (keep every other colour >= 60 away).',
+            '  2. BODY TONE: cooler and a little darker (purple-black #241b29, dark purple #3b3346) with a thin COOL rim light (#6a5a80) along',
+            '     the top edge of the abdomen and of each near leg arch. Fangs stay pale bone.',
+            'POSES - legs stay planted (same foot positions as the idle); the action is in the body, head and fangs:',
+            '  top-left idle (the approved one + the two fixes) / top-right threat rear: head and front of the body lift and draw BACK, fangs wide,',
+            '  abdomen tucked down (this is also the wind-up of its web-spray special; the engine draws the web) /',
+            '  bottom-left lunging bite: legs bend, the whole body thrusts FORWARD and low, fangs snapping shut / bottom-right flinch: body jolts back and up.',
+            'DELIVER: art/inbox/sheet_monster_giant-spider.png (overwrite), 1536x1024 2x2, lowest pixel y=461 per quadrant, flat #FF00FF.',
+        ],
         boxes=dict(idle=(540, 260), windup=(520, 330), strike=(600, 280), hit=(520, 290)),
         brief=dict(silhouette='a big hairy eight-legged spider seen from the side at ground level: legs arching high, body hanging low between them; '
                               'the body about knee-to-chest height of a human',
@@ -1433,8 +1449,11 @@ def readme_creature(cid, C, it, slots, sinfo):
     L = [f'# {it["name"]} — GPT handoff (`{cid}`)', '',
          '> `python3 tools/art/handoff.py`로 자동 생성된다. 고칠 때는 `tools/art/handoff.py`의 `CREATURES`를 고치고 다시 실행.',
          '> 공통 규칙: `art/requests/gpt_handoff_notes.md`. 전체 순서·붙여 넣을 메시지: `art/requests/phase3_gpt.md` (메시지 E).',
-         f'> 모든 자료는 브랜치 `{BRANCH}`에서 읽고, 결과 PNG 는 `art-inbox` 브랜치에만 올린다.', '',
-         '## Prompt for GPT (English)', '', '```']
+         f'> 모든 자료는 브랜치 `{BRANCH}`에서 읽고, 결과 PNG 는 `art-inbox` 브랜치에만 올린다.', '']
+    if C.get('this_round'):
+        # 이번 차례에 할 일: 아래 프롬프트보다 우선한다 (예전에는 phase3_gpt.md 의 메시지에 따로 적어 지시가 세 군데로 갈렸다)
+        L += ['## THIS ROUND (overrides anything below that disagrees)', '', '```', *C['this_round'], '```', '']
+    L += ['## Prompt for GPT (English)', '', '```']
     P = [task_en(cid, dict(C, kind='monster'), it), brief_en(C['brief']),
          'DESIGN: ' + '; '.join(C['design']) + '.',
          'COLOURS (keep close, muted): ' + '; '.join(f'{k} {v}' for k, v in C['colours']) + '.',
@@ -1542,6 +1561,12 @@ def main():
         os.makedirs(d, exist_ok=True)
         for dst, src in C.get('concepts', {}).items():
             shutil.copyfile(os.path.join(CONCEPTS, src), os.path.join(d, dst))
+            # 가벼운 사본 (긴 변 800px JPEG): 그림 쪽이 1MB 안팎의 PNG 를 불러오지 못한 일이 있었다
+            cim = Image.open(os.path.join(CONCEPTS, src)).convert('RGB')
+            ck = 800 / max(cim.size)
+            if ck < 1:
+                cim = cim.resize((round(cim.width * ck), round(cim.height * ck)), Image.LANCZOS)
+            cim.save(os.path.join(d, os.path.splitext(dst)[0] + '_800.jpg'), quality=88)
         if cid in CREATURES:
             if 'sword_shield' not in cache:
                 cache['sword_shield'] = builds_for('sword_shield')

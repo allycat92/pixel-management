@@ -14,6 +14,22 @@ Claude Code 가 받아서 확인한 결과는 `art/requests/feedback.md`에 남�
 | `ACCEPTED` | 확인 통과 → 게임에 등록됨 | Claude Code (검토 통과 시 바로 — 주인이 위임함, 2026-11-25) |
 | `NEEDS_FIX` | 고칠 점이 있음 → feedback.md 참고 후 같은 이름으로 다시 납품 | Claude Code |
 
+## 지금 차례 (그림 쪽은 이 절만 보면 된다 — 위에서부터)
+
+| 누구 | 종류 | id | 할 일 (자세한 것은 그 줄의 요청서) |
+|---|---|---|---|
+| GPT | fix | `sheet/monster/거대 거미` | 꾸러미 README 맨 위 **THIS ROUND**: 통과한 대기 컷(`555007c`)을 바탕으로 네 자세, 눈을 선명한 빨강으로·몸 색 차갑게 |
+| GPT | new | `sheet/captain/beastmaster` | 오르가 — 다섯 번 건너뛰어졌다. 못 그리는 이유가 있으면 NOTES 에 「막힘 - sheet/captain/beastmaster」 |
+| GPT | new | `sheet/captain/liberator` | 카토 — 한손 장검, 방패 없음, 양손목 족쇄 |
+| GPT | new | `sheet/captain/admiral` | 마렌 |
+| GPT | new | `sheet/captain/elfwarden` | 세레니엘 |
+| GPT | new | `sheet/captain/warlord` | 가르마크 — 확정 무기: 양손 전쟁 도끼 |
+| PC | 한 번만 | (pc_notes.md) | art-inbox 에 `art/inbox/.gitattributes` (`NOTES.md merge=union`) |
+| PC | 뼈대 | `guide/walk_base` v2 | 8프레임 걷기 초안을 Aseprite 로 재생해 보며 다듬기 (`art/requests/guides/walk_base/README.md`) |
+
+종류: `new` 새 시트 · `fix` 같은 파일을 적힌 만큼만 · `idle-check` 대기 한 자세만 먼저 · `review` 글로만 답(교차 검수) · `뼈대`/`손질` PC 작업.
+GPT 는 `art/requests/GPT_STANDING.md`, PC 는 `tools/aseprite-mcp/pc/CLAUDE.md` 대로 일한다.
+
 ## 대기열
 
 | id | 상태 | 납품 PNG (art-inbox) | 요청서 | 포즈 가이드 | 메모 |
@@ -25,7 +41,7 @@ Claude Code 가 받아서 확인한 결과는 `art/requests/feedback.md`에 남�
 | `sheet/hero/astel` | **ACCEPTED** (2026-11-25 등록, art-inbox `67fc9a4`) | `art/inbox/sheet_hero_astel.png` | `art/requests/phase3/hero_astel/README.md` ("Prompt for GPT" 블록) | `art/requests/phase3/hero_astel/guide_strip.png` (배치·크기 견본), `guide_1_idle.png` ~ `guide_4_hit.png` | 특별 용병 아스텔. 디자인 기준 `portrait.png`. 납품 메모: `art/inbox/NOTES.md` 「3단계 — 아스텔」 |
 | `sheet/hero/marisol` | **ACCEPTED** (2026-11-25 등록, art-inbox `838857f`) | `art/inbox/sheet_hero_marisol.png` | `art/requests/phase3/hero_marisol/README.md` ("Prompt for GPT" 블록) | `art/requests/phase3/hero_marisol/guide_strip.png` (배치·크기 견본), `guide_1_idle.png` ~ `guide_4_hit.png` | 특별 용병 마리솔. 디자인 기준 `portrait.png`. 납품 메모: `art/inbox/NOTES.md` 「3단계 — 마리솔」 |
 | `sheet/hero/oswin` | **ACCEPTED** (2026-11-25 등록, art-inbox `cd09ed7`) | `art/inbox/sheet_hero_oswin.png` | `art/requests/phase3/hero_oswin/README.md` ("Prompt for GPT" 블록) | `art/requests/phase3/hero_oswin/guide_strip.png` (배치·크기 견본), `guide_1_idle.png` ~ `guide_4_hit.png` | 특별 용병 오스윈. 디자인 기준 `portrait.png`. 납품 메모: `art/inbox/NOTES.md` 「3단계 — 오스윈」 |
-| `sheet/monster/거대 거미` | **NEEDS_FIX** | `art/inbox/sheet_monster_giant-spider.png` | `art/requests/phase3/monster_giant-spider/README.md` + `art/requests/phase3_gpt.md` 「메시지 I」 (대기 컷 `555007c` 조건부 통과 — 눈을 선명한 빨강으로·몸 색을 차갑게+림 라이트, 나머지 세 자세) | `art/requests/phase3/monster_giant-spider/guide_layout.png` | 다시 그리기 2(주인 피드백): `77c9e8f` 는 시안의 좋은 점이 빠짐(위에서 본 납작한 장난감 거미·회색 다리·매끈한 몸). 시안처럼 땅높이 옆모습·높이 휜 털 많은 검보라 다리·큰 털 배·붉은 눈 무리로 돌아가고, 다리는 디딘 채 몸·독니로 위협→물기. 같은 이름으로 덮어쓰기 (그때까지 지금 것을 임시로 씀) |
+| `sheet/monster/거대 거미` | **NEEDS_FIX** | `art/inbox/sheet_monster_giant-spider.png` | `art/requests/phase3/monster_giant-spider/README.md` 맨 위 **THIS ROUND** (대기 컷 `555007c` 조건부 통과 — 눈을 선명한 빨강으로·몸 색을 차갑게+림 라이트, 나머지 세 자세) | `art/requests/phase3/monster_giant-spider/guide_layout.png` | 다시 그리기 2(주인 피드백): `77c9e8f` 는 시안의 좋은 점이 빠짐(위에서 본 납작한 장난감 거미·회색 다리·매끈한 몸). 시안처럼 땅높이 옆모습·높이 휜 털 많은 검보라 다리·큰 털 배·붉은 눈 무리로 돌아가고, 다리는 디딘 채 몸·독니로 위협→물기. 같은 이름으로 덮어쓰기 (그때까지 지금 것을 임시로 씀) |
 | `sheet/class/archer` | **ACCEPTED** (2026-11-25 PC 손질 `9b72e75` 등록) | `art/inbox/sheet_class_archer.png` | `art/requests/phase3/class_archer/README.md` + `art/requests/phase3_gpt.md` 「메시지 F」 | `art/requests/phase3/class_archer/guide_strip.png` | 손보기: 후드 앞 가장자리 → 제복 열쇠 색, 마스크는 어두운 단계 #263459/#394b78 로 (평평한 판 금지). 메시지 F 2번 + feedback.md 「메시지 F 보충」. 같은 이름으로 덮어쓰기 |
 | `sheet/class/rogue` | **ACCEPTED** (2026-11-25 PC 손질 `a9d92aa` 등록) | `art/inbox/sheet_class_rogue.png` | `art/requests/phase3/class_rogue/README.md` + `art/requests/phase3_gpt.md` 「메시지 F」 | `art/requests/phase3/class_rogue/guide_strip.png` | 손보기: 스카프 → 제복 열쇠 색 어두운 단계 #263459/#394b78 + 외곽선. 메시지 F 3번 + 보충. 같은 이름으로 덮어쓰기 |
 | `sheet/monster/해골 병사` | **ACCEPTED** (2026-11-25 PC 손질 `ea6fe20` 등록) | `art/inbox/sheet_monster_skeleton.png` | `art/requests/phase3/monster_skeleton/README.md` + `art/requests/phase3_gpt.md` 「메시지 F」 | `art/requests/phase3/monster_skeleton/guide_strip.png` | 손보기: 뼈·강철·천 재질 분리, 밝은 빨강 눈. 메시지 F 4번. 같은 이름으로 덮어쓰기 |
@@ -44,9 +60,9 @@ Claude Code 가 받아서 확인한 결과는 `art/requests/feedback.md`에 남�
 | `sheet/captain/saintknight` | **ACCEPTED** (2026-11-25 PC 손질 `88d31af` 재등록) | `art/inbox/sheet_captain_saintknight.png` | `art/requests/phase3/captain_saintknight/README.md` ("Prompt for GPT" 블록) | `art/requests/phase3/captain_saintknight/guide_strip.png` (배치·크기 견본), `guide_1_idle.png` ~ `guide_4_hit.png` | 손보기(주인 결정, 교차 검수 1 #6): 별 철퇴가 64px 에서 지팡이로 읽힌다 → 네 자세 모두 **손 위 자루를 약 1/4 줄이고**(별 머리를 손 쪽으로 당김) **별 머리를 좌우 1px(원본 약 6px)씩 넓힌다**. 자세·몸·색은 그대로, 줄인 자루 자리는 마젠타로. 같은 이름으로 덮어쓰기 + `aseprite/sheet_captain_saintknight.aseprite`. **걷기 뼈대 시범보다 먼저** 한다. |
 | `sheet/captain/hexer` | **ACCEPTED** (2026-11-25 `4c7c185` 등록) | `art/inbox/sheet_captain_hexer.png` | `art/requests/phase3/captain_hexer/README.md` ("Prompt for GPT" 블록) | `art/requests/phase3/captain_hexer/guide_strip.png` (배치·크기 견본), `guide_1_idle.png` ~ `guide_4_hit.png` | 대장 벨라도나 (중반·mid1, 가이드 무기 `staff`). 디자인 기준 `portrait.png`. 납품 메모: `art/inbox/NOTES.md` 「3단계 — 벨라도나」. |
 | `sheet/captain/liberator` | **DOT_READY** | `art/inbox/sheet_captain_liberator.png` | `art/requests/phase3/captain_liberator/README.md` ("Prompt for GPT" 블록) | `art/requests/phase3/captain_liberator/guide_strip.png` (배치·크기 견본), `guide_1_idle.png` ~ `guide_4_hit.png` | 대장 카토 (중반·mid1, 가이드 무기 `sword_shield`). 디자인 기준 `portrait.png`. 납품 메모: `art/inbox/NOTES.md` 「3단계 — 카토」. |
-| `sheet/captain/admiral` | **QUEUED** | `art/inbox/sheet_captain_admiral.png` | `art/requests/phase3/captain_admiral/README.md` ("Prompt for GPT" 블록) | `art/requests/phase3/captain_admiral/guide_strip.png` (배치·크기 견본), `guide_1_idle.png` ~ `guide_4_hit.png` | 대장 마렌 (중반·mid1, 가이드 무기 `bow`). 디자인 기준 `portrait.png`. 납품 메모: `art/inbox/NOTES.md` 「3단계 — 마렌」. |
-| `sheet/captain/elfwarden` | **QUEUED** | `art/inbox/sheet_captain_elfwarden.png` | `art/requests/phase3/captain_elfwarden/README.md` ("Prompt for GPT" 블록) | `art/requests/phase3/captain_elfwarden/guide_strip.png` (배치·크기 견본), `guide_1_idle.png` ~ `guide_4_hit.png` | 대장 세레니엘 (중반·mid1, 가이드 무기 `bow`). 디자인 기준 `portrait.png`. 납품 메모: `art/inbox/NOTES.md` 「3단계 — 세레니엘」. |
-| `sheet/captain/warlord` | **QUEUED** | `art/inbox/sheet_captain_warlord.png` | `art/requests/phase3/captain_warlord/README.md` ("Prompt for GPT" 블록) | `art/requests/phase3/captain_warlord/guide_strip.png` (배치·크기 견본), `guide_1_idle.png` ~ `guide_4_hit.png` | 대장 가르마크 (중반·mid2, 가이드 무기 `katana`). 디자인 기준 `portrait.png`. 납품 메모: `art/inbox/NOTES.md` 「3단계 — 가르마크」. 무기 확정(2026-11-25 주인): 양손 전쟁 도끼 — 초상화의 대검은 그리지 않음. |
+| `sheet/captain/admiral` | **DOT_READY** | `art/inbox/sheet_captain_admiral.png` | `art/requests/phase3/captain_admiral/README.md` ("Prompt for GPT" 블록) | `art/requests/phase3/captain_admiral/guide_strip.png` (배치·크기 견본), `guide_1_idle.png` ~ `guide_4_hit.png` | 대장 마렌 (중반·mid1, 가이드 무기 `bow`). 디자인 기준 `portrait.png`. 납품 메모: `art/inbox/NOTES.md` 「3단계 — 마렌」. |
+| `sheet/captain/elfwarden` | **DOT_READY** | `art/inbox/sheet_captain_elfwarden.png` | `art/requests/phase3/captain_elfwarden/README.md` ("Prompt for GPT" 블록) | `art/requests/phase3/captain_elfwarden/guide_strip.png` (배치·크기 견본), `guide_1_idle.png` ~ `guide_4_hit.png` | 대장 세레니엘 (중반·mid1, 가이드 무기 `bow`). 디자인 기준 `portrait.png`. 납품 메모: `art/inbox/NOTES.md` 「3단계 — 세레니엘」. |
+| `sheet/captain/warlord` | **DOT_READY** | `art/inbox/sheet_captain_warlord.png` | `art/requests/phase3/captain_warlord/README.md` ("Prompt for GPT" 블록) | `art/requests/phase3/captain_warlord/guide_strip.png` (배치·크기 견본), `guide_1_idle.png` ~ `guide_4_hit.png` | 대장 가르마크 (중반·mid2, 가이드 무기 `katana`). 디자인 기준 `portrait.png`. 납품 메모: `art/inbox/NOTES.md` 「3단계 — 가르마크」. 무기 확정(2026-11-25 주인): 양손 전쟁 도끼 — 초상화의 대검은 그리지 않음. |
 | `sheet/captain/khan` | **QUEUED** | `art/inbox/sheet_captain_khan.png` | `art/requests/phase3/captain_khan/README.md` ("Prompt for GPT" 블록) | `art/requests/phase3/captain_khan/guide_strip.png` (배치·크기 견본), `guide_1_idle.png` ~ `guide_4_hit.png` | 대장 테무르 (중반·mid2, 가이드 무기 `bow`). 디자인 기준 `portrait.png`. 납품 메모: `art/inbox/NOTES.md` 「3단계 — 테무르」. |
 | `sheet/captain/siegemaster` | **QUEUED** | `art/inbox/sheet_captain_siegemaster.png` | `art/requests/phase3/captain_siegemaster/README.md` ("Prompt for GPT" 블록) | `art/requests/phase3/captain_siegemaster/guide_strip.png` (배치·크기 견본), `guide_1_idle.png` ~ `guide_4_hit.png` | 대장 오토 (중반·mid2, 가이드 무기 `bow`). 디자인 기준 `portrait.png`. 납품 메모: `art/inbox/NOTES.md` 「3단계 — 오토」. |
 | `sheet/captain/inquisitorlord` | **QUEUED** | `art/inbox/sheet_captain_inquisitorlord.png` | `art/requests/phase3/captain_inquisitorlord/README.md` ("Prompt for GPT" 블록) | `art/requests/phase3/captain_inquisitorlord/guide_strip.png` (배치·크기 견본), `guide_1_idle.png` ~ `guide_4_hit.png` | 대장 발타자르 (중반·mid2, 가이드 무기 `staff`). 디자인 기준 `portrait.png`. 납품 메모: `art/inbox/NOTES.md` 「3단계 — 발타자르」. |
@@ -65,12 +81,25 @@ Claude Code 가 받아서 확인한 결과는 `art/requests/feedback.md`에 남�
 
 ## 납품 규칙 (요약)
 
-- 읽기: 이 브랜치(`claude/dot-fantasy-management-game-saupju`)의 요청서·가이드·`art/requests/gpt_handoff_notes.md`.
-- 쓰기: `art-inbox` 브랜치의 `art/inbox/`만. 파일 이름은 표의 이름 그대로. `art/inbox/` 밖은 고치지 않는다.
-- 납품 메모: `art/inbox/NOTES.md`에 항목별 절 — 만든 파일, 가이드와 다르게 한 점, 다시 그리고 싶은 점.
-- `DOT_READY` 항목을 위에서부터 하나씩 그린다. 하나를 올릴 때마다 커밋·푸시하고, `DOT_READY`가 남아 있으면 다음 것으로 넘어가도 된다.
-- **역할 나눔**: GPT(도트) = 새로 그리기·다시 그리기 / PC(Aseprite) = 이미 받은 그림의 색·외곽선·소품 손질. 상태 칸에 **`담당: PC(Aseprite)`** 가 붙은 항목은 PC 몫이라 GPT 쪽은 건드리지 않는다. PC 는 그 표시가 있는 항목**만** 한다 (`tools/aseprite-mcp/pc/CLAUDE.local.md`).
-- `QUEUED`·`NEEDS_FIX`(고칠 점이 feedback.md 에 있을 때만 다시 그림)·`DELIVERED`·`ACCEPTED`는 건드리지 않는다. `DOT_READY`가 없으면 멈춘다.
-- Claude Code 가 art-inbox 를 주기적으로 확인해서 수령·검토하고 feedback.md 와 이 표를 갱신한다.
-- **GPT 제안 처리 (주인 위임 2026-11-25)**: GPT 가 NOTES 등에 올린 제안·질문에 대한 답과 수용 여부는 Claude 가 판단해 처리한다(수용·일부 수용·거절과 이유를 feedback.md 에 기록). 주인 결정이 필요한 것(디자인 방향을 크게 바꾸는 것, 주인이 직접 고른 것을 뒤집는 것)만 주인에게 묻는다.
-- **교차 검수 (주인 요청 2026-11-25)**: 잘 안 되는 부분·애매한 판단(다시 그릴지 말지, 새 효과·자세 기준 등)은 주인만이 아니라 GPT 에게도 `review/xcheck_NN` 항목으로 물어 교차 검증한다. 의견이 갈리면 둘 다 적어 주인에게 묻는다.
+- 읽기: 이 브랜치(`claude/dot-fantasy-management-game-saupju`). 쓰기: `art-inbox` 브랜치의 `art/inbox/`만. 파일 이름은 표의 이름 그대로.
+- **지시가 있는 곳은 두 군데뿐**: 이 표의 그 줄(메모·요청서 칸)과 꾸러미 README(맨 위 THIS ROUND 가 우선). 늘 지키는 규칙은
+  `gpt_handoff_notes.md`「Rules changed」(GPT) · `pc_notes.md`(PC). `feedback.md` 는 Claude 의 검토 기록이라 그림 쪽이 읽을 필요가 없다.
+- **역할 나눔**: GPT = 새로 그리기·다시 그리기·교차 검수(글) / PC(Aseprite) = 받은 그림 손질 + 자세 뼈대. 상태 칸에 **`담당: PC(Aseprite)`** 가 붙은 항목만 PC 가 한다.
+- 납품 메모: `art/inbox/NOTES.md` 에 항목별 절 (GPT: `GPT_STANDING.md` 의 양식 / PC: `pc_notes.md` 맨 아래).
+- Claude Code 가 art-inbox 를 감시해 수령·검토한다 (`tools/art/receive.py`). 마지막으로 본 커밋은 `art/requests/inbox_reviewed.txt`.
+
+## 운영 규칙 (Claude 가 지키는 것 — 2026-11-26 검토에서 정리)
+
+- **판정**: 통과하면 바로 ACCEPTED (주인 위임). 수치(검사 결과)는 그림 쪽 것을 그대로 믿되, **개수·판독(다리 수, 무기 종류, 눈이 보이는가)은 게임 크기 변환본에서 직접 센다.**
+  NOTES 의 DEVIATIONS 에 디자인(b)·확정 사항(c) 이탈이 있으면 시안·초상화와 게임 크기로 나란히 본 뒤에만 통과.
+- **GPT 제안 처리 (주인 위임 2026-11-25)**: GPT 가 NOTES 에 올린 제안·질문은 Claude 가 판단해 처리하고(수용·일부·거절과 이유를 feedback.md 에), 디자인 방향을 크게 바꾸거나 주인이 고른 것을 뒤집는 것만 주인에게 묻는다.
+- **교차 검수(xcheck)**: 양식과 "반드시 하는 경우"는 `art/requests/review/TEMPLATE.md`. 판독 문제에서 Claude 와 GPT 가 갈리면 GPT 의 FIX 를 기본으로 따른다(엘리노어 사례).
+- **대기 한 자세 먼저(idle-check)**: 마네킹 가이드가 없는 몬스터, 보스·큰 괴물, 주인 반려 뒤의 다시 그리기, 새 체형·새 종류의 첫 시트. 초상화 기반 사람형 대장에는 쓰지 않는다(14/15 가 첫 납품 통과).
+- **시안에서 꼭 남길 것**: 주인이 시안 번호를 고르면 "이 시안에서 꼭 남길 것 2~3가지"를 물어 꾸러미의 MUST SURVIVE 에 주인의 말 그대로 적는다.
+  Claude 의 가독성 제안(FIX)은 그것을 지우지 못한다. 비어 있으면 그 항목은 DOT_READY 로 올리지 않는다. (거대 거미: 우리 FIX 가 시안의 털·검은 다리를 지웠다)
+- **무기**: 초상화·스킬 이름·이야기가 서로 다르면 주인에게 한 번에 물어 `weapon_confirmed` 로 적는다. 열린 질문("확인 필요")이 든 요청서는 만들지 않는다(도구가 거부한다).
+- **PC 손질 요청 쓰는 법**: 메모 칸 맨 앞에 `바탕: art-inbox <해시>`. 변화는 게임 px 과 원본 px 을 함께 적는다("좌우 1px(원본 약 6px)"). 원본 6px 미만의 변화는 요청하지 않는다.
+  PC 가 다음에도 지켜야 할 것은 feedback.md 가 아니라 `pc_notes.md` 에 한 줄로.
+- **한 번에 열어 두는 수**: 사람형 대장(초상화 기반) DOT_READY 5개까지, 몬스터·보스는 하나씩(idle-check 부터). 5개 아래로 줄면 QUEUED 다음 것을 올린다.
+- **건너뛰어진 항목**: 위 항목이 건너뛰어진 채 아래 항목이 두 번 납품되면 「지금 차례」에 이유를 묻는 줄을 넣는다(오르가는 다섯 번 건너뛰어진 뒤에야 물었다).
+- **뒤집힌 판정**: feedback.md 의 앞 절 제목에 "(뒤집힘 → 아래 ○○)" 를 덧붙인다.

@@ -4,6 +4,25 @@
 > 공통 규칙: `art/requests/gpt_handoff_notes.md`. 전체 순서·붙여 넣을 메시지: `art/requests/phase3_gpt.md` (메시지 E).
 > 모든 자료는 브랜치 `claude/dot-fantasy-management-game-saupju`에서 읽고, 결과 PNG 는 `art-inbox` 브랜치에만 올린다.
 
+## THIS ROUND (overrides anything below that disagrees)
+
+```
+KIND: fix (full sheet). BASE: art/inbox/check_giant-spider_idle.png @ 555007c on art-inbox - your idle check PASSED on silhouette:
+keep exactly that body, leg layout and foot positions in all four poses. LOAD concept_800.jpg (the owner's draft).
+MUST SURVIVE (what the owner liked in the draft): ground-level side view; legs arching higher than the back; big hairy abdomen;
+bristly silhouette; glossy red eye cluster; near-black purple mass.
+TWO FIXES in all four poses:
+  1. EYES: dark purple now, 0 red pixels at game size. Make them GLOSSY BRIGHT RED #d6455d with one white glint each: two big eyes
+     14-16 px wide at source plus 3-4 small ones, a 1 px darker red rim, no glow. SPOT: #d6455d (keep every other colour >= 60 away).
+  2. BODY TONE: cooler and a little darker (purple-black #241b29, dark purple #3b3346) with a thin COOL rim light (#6a5a80) along
+     the top edge of the abdomen and of each near leg arch. Fangs stay pale bone.
+POSES - legs stay planted (same foot positions as the idle); the action is in the body, head and fangs:
+  top-left idle (the approved one + the two fixes) / top-right threat rear: head and front of the body lift and draw BACK, fangs wide,
+  abdomen tucked down (this is also the wind-up of its web-spray special; the engine draws the web) /
+  bottom-left lunging bite: legs bend, the whole body thrusts FORWARD and low, fangs snapping shut / bottom-right flinch: body jolts back and up.
+DELIVER: art/inbox/sheet_monster_giant-spider.png (overwrite), 1536x1024 2x2, lowest pixel y=461 per quadrant, flat #FF00FF.
+```
+
 ## Prompt for GPT (English)
 
 ```
