@@ -456,3 +456,10 @@ REFERENCES LOADED: portrait_800.jpg OK; guide_strip.png OK; guide_1_idle.png, gu
 DEVIATIONS: (a) 지팡이 대신 십자 무늬 둥근 철퇴. 2번 철퇴를 뒤로 기울여 상단 여백 확보, 3번은 발 간격을 줄이고 뻗는 빈 팔을 굽힘. 4번 앞발을 들고 철퇴를 뒤로 낮춤. 몸 폭을 축소하지 않고 33px 이상 배치 여백 확보. (b) none. (c) none.
 RISKS AT GAME SIZE: 대기 447px로 산출(두건 포함, 철퇴 끝 제외). 96px 변환의 어두운 바닥에서 머리 윤곽과 철퇴 머리는 남으나, 은탄 장식과 손이 포개져 보일 수 있음. 실제 전투에서 피격 무게중심 보정과 함께 확인 부탁.
 PROPOSALS: none.
+
+## sheet/captain/archmagus - 에우리아
+CHECK: RESULT: PASS
+REFERENCES LOADED: portrait_800.jpg OK; guide_strip.png OK; guide_1_idle.png, guide_2_windup.png, guide_3_strike.png, guide_4_hit.png OK; Baren anchor OK.
+DEVIATIONS: (a) 지팡이 머리를 어두운 원판의 별이 든 금빛 초승달로 교체. 1번에서 지팡이를 화면 왼쪽에 세우고 3번은 열린 빈손 손바닥을 위로 향하게 했음. 4번은 발을 땅에 두고 상체와 지팡이를 뒤로 젖힘. 대기 몸 높이 414px(지팡이 끝 제외), 몸의 폭을 줄이지 않음. (b) 초상화의 광휘는 요청대로 빼고 원판 안에만 칠한 별을 둠. (c) none.
+RISKS AT GAME SIZE: 96px 변환 준비 자세 80px, 달과 중심 원판은 분리되어 보이나 작은 별·귀걸이는 금색 점으로만 읽힐 수 있음. 대기·시전의 지팡이 자루 일부가 로브의 금테와 나란하여 밝은 전장에서도 구분되는지 확인 부탁.
+PROPOSALS: none.
