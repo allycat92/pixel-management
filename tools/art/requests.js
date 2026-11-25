@@ -484,11 +484,14 @@ Object.entries(D.CAPTAINS).forEach(([key, C]) => {
 
 // 대장·특별 용병 시트의 배율·칸: 예전에는 등록할 때마다 손으로 `--scale 0.1654 --cell 96` 을 붙였고, 아멜리의 칸 112 는 manifest 에만 있었다.
 // 여기 적어 두면 sheets.py · check_delivery.py · receive.py 가 플래그 없이 같은 결과를 낸다.
-const CELL_112 = new Set(['lancer', 'pilgrim', 'titan']);   // 든 무기·덩치가 96칸(자세 높이 90px)을 넘는 대장
+// 그림이 가이드보다 작게 그려진 시트의 변환 배율 (원본이 6배 크므로 다시 그리지 않고 변환에서 맞춘다; 몸 크기를 다른 대장과 같게).
+//   pirateking: 대기 실루엣 363px(모자 포함) — 다른 대장 400~435px 보다 12~15% 작게 그려졌다 (art-inbox 9124b86)
+const DRAWN_SMALL = { pirateking: 0.185 };
+const CELL_112 = new Set(['lancer', 'pilgrim', 'titan', 'pirateking']);   // 든 무기·덩치가 96칸(자세 높이 90px)을 넘는 대장
 phase3.forEach((it) => {
   const m = /^sheet\/(captain|hero)\/([a-z_]+)$/.exec(it.id);
   if (!m || m[2].endsWith('_mounted')) return;
-  if (it.scale == null) it.scale = GPT_SCALE;
+  if (it.scale == null) it.scale = DRAWN_SMALL[m[2]] || GPT_SCALE;
   if (it.cell == null) it.cell = CELL_112.has(m[2]) ? 112 : 96;
 });
 fs.writeFileSync(path.join(ROOT, 'art/requests/phase3.json'), JSON.stringify({ version: 1, phase: 3, inbox: 'art/inbox/', items: phase3 }, null, 2) + '\n');

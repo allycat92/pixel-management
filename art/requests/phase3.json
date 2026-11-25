@@ -1888,8 +1888,8 @@
         "prompt": "1girl, solo, confident woman in her thirties, long crimson hair, tricorn hat, cutlass and hook chain, crimson outfit, black trim, hat, four heads tall, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
         "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
       },
-      "scale": 0.1654,
-      "cell": 96
+      "scale": 0.185,
+      "cell": 112
     },
     {
       "kind": "sheet",
