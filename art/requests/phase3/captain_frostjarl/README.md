@@ -10,7 +10,7 @@
 
 - 납품 파일: art-inbox 브랜치 `art/inbox/sheet_captain_frostjarl.png` + `art/inbox/NOTES.md`의 「3단계 — 비요른」 절.
 - 화풍 기준(앵커): art-inbox 의 `art/inbox/sheet_captain_blademaster.png`.
-- 요점: 비요른: 금 고리로 묶은 앞 땋은머리 둘, 금발 긴 머리·수염, 뺨 흉터, 투구 없음, 은백 테 청회색 갑옷, 어깨 눈송이 문장, 흰 서리 모피 망토. 무기는 이야기·스킬대로 양손 수염도끼(초상화 등의 칼자루는 그리지 않음 — 주인 확인 권장). 서리는 색으로만, 얼음 빛·입자 없음.
+- 요점: 비요른: 금 고리로 묶은 앞 땋은머리 둘, 금발 긴 머리·수염, 뺨 흉터, 투구 없음, 은백 테 청회색 갑옷, 어깨 눈송이 문장, 흰 서리 모피 망토. 무기는 이야기·스킬대로 양손 수염도끼(주인 확정 2026-11-25 — 초상화 등의 칼자루는 그리지 않음). 서리는 색으로만, 얼음 빛·입자 없음.
 - 생성: `python3 tools/art/portrait_pkgs.py captain tools/art/specs/captains_batch2.json frostjarl` (고칠 때는 spec JSON 을 고치고 다시 실행).
 
 ## Prompt for GPT

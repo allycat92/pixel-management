@@ -10,7 +10,7 @@
 
 - 납품 파일: art-inbox 브랜치 `art/inbox/sheet_captain_warlord.png` + `art/inbox/NOTES.md`의 「3단계 — 가르마크」 절.
 - 화풍 기준(앵커): art-inbox 의 `art/inbox/sheet_captain_blademaster.png`.
-- 요점: 가르마크: 거구(그래도 4등신·같은 배율), 붉은 장발과 땋은 붉은 수염, 코·뺨 흉터, 뿔 달린 철투구, 회색 늑대 모피, 진홍 망토, 사자 걸쇠. 초상화 등의 대검을 무기로(가이드 katana). 스킬명·요청서는 '전쟁 도끼'라 충돌 — 양손 도끼로 바꿀지 주인 확인. 칼날은 몸 바깥, 회색 강철+진한 외곽선.
+- 요점: 가르마크: 거구(그래도 4등신·같은 배율), 붉은 장발과 땋은 붉은 수염, 코·뺨 흉터, 뿔 달린 철투구, 회색 늑대 모피, 진홍 망토, 사자 걸쇠. 무기는 주인 결정(2026-11-25)으로 스킬명대로 양손 전쟁 도끼(가이드 katana 자리) — 초상화 등의 대검은 그리지 않는다. 도끼날은 몸 바깥, 회색 강철+진한 외곽선.
 - 생성: `python3 tools/art/portrait_pkgs.py captain tools/art/specs/captains_batch2.json warlord` (고칠 때는 spec JSON 을 고치고 다시 실행).
 
 ## Prompt for GPT
@@ -19,15 +19,15 @@
 TASK: draw the battle sprite strip of Garmak (가르마크), a mercenary captain of the guild, as ONE new PNG:
 art/inbox/sheet_captain_warlord.png on the art-inbox branch.
 
-CHARACTER: Garmak: huge, broad-shouldered man in his forties, long dark-red hair and a big braided red beard, heavy brows, scar across the nose and cheek, grey iron horned helmet with curved ivory horns and a star emblem, grey wolf-fur mantle, crimson cloak, iron lion-head round clasp, brown leather harness with square buckle, two-handed greatsword with a red-wrapped grip and round pommel (carried on his back in the portrait). Class: 전쟁군주 (warrior). Colours: skin #c68a5c, hair #8c2f2f (red, beard braided), outfit #5a3a1a (brown leather), accent #d6455d (crimson cloak); fur grey-brown ~#8a7a6a, iron ~#8a8a8a.
+CHARACTER: Garmak: huge, broad-shouldered man in his forties, long dark-red hair and a big braided red beard, heavy brows, scar across the nose and cheek, grey iron horned helmet with curved ivory horns and a star emblem, grey wolf-fur mantle, crimson cloak, iron lion-head round clasp, brown leather harness with square buckle, a huge two-handed war axe (broad crescent steel head, long dark haft with a red-wrapped grip and an iron butt cap). Class: 전쟁군주 (warrior). Colours: skin #c68a5c, hair #8c2f2f (red, beard braided), outfit #5a3a1a (brown leather), accent #d6455d (crimson cloak); fur grey-brown ~#8a7a6a, iron ~#8a8a8a.
 Take the face, hair and outfit design from portrait.png (design only; not its painting style).
-NOTES: Weapon follows the PORTRAIT: a heavy two-handed greatsword (red-wrapped grip, round pommel, broad straight blade), not a katana and not an axe (his skill is named '전쟁 도끼'; owner may swap to a two-handed war axe — then keep the same guide) / Blade stays outside the body silhouette on magenta in every pose; give it a neutral grey steel with a dark outline so it reads against the grey fur and red cloak / Bulky and broad (wide chest, thick arms) but still exactly 4 heads tall and the same scale as other captains — not a giant; horned helmet stays on in every pose and the horns are not counted in the height / Fur mantle and crimson cloak kept as large simple shapes; cloak must not cover the sword or sword arm / No rally-horn, banner or effects (his rally skill is drawn by the engine).
+NOTES: Weapon (owner decision): ONE heavy two-handed WAR AXE (broad crescent steel head, long dark haft with a red-wrapped grip) — matching his skill '전쟁 도끼'. Do NOT draw the greatsword from his back in the portrait. The guide katana is a placeholder: the axe head sits where the blade tip is / Axe head stays outside the body silhouette on magenta in every pose; give it a neutral grey steel with a dark outline so it reads against the grey fur and red cloak / Bulky and broad (wide chest, thick arms) but still exactly 4 heads tall and the same scale as other captains — not a giant; horned helmet stays on in every pose and the horns are not counted in the height / Fur mantle and crimson cloak kept as large simple shapes; cloak must not cover the axe or the axe arms / No rally-horn, banner or effects (his rally skill is drawn by the engine).
 
 POSES (match guide_strip.png exactly — pose, limb lengths, proportions, position and size; the mannequin weapon is a placeholder for the real weapon):
-1 idle: two-handed greatsword held diagonally in front, point forward-up, wide low stance.
-2 wind-up: sword raised high over the rear shoulder, weight back, blade clear above and behind the helmet horns.
-3 strike: step-in lunge, sword cut down and forward at full extension.
-4 hit: torso thrown back, weight on the rear leg, head jerked back, sword dropped low.
+1 idle: two-handed war axe held diagonally in front, axe head forward-up, wide low stance.
+2 wind-up: axe raised high over the rear shoulder in both hands, weight back, axe head clear above and behind the helmet horns.
+3 strike: step-in lunge, axe cleaving down and forward at full extension, axe head out in front of the front foot.
+4 hit: torso thrown back, weight on the rear leg, head jerked back, axe dropped low.
 
 FORMAT: 1536x1024 PNG, the same character four times in ONE row (1x4), facing RIGHT, front three-quarter view, light from the upper left.
 4 heads tall, head = 110 px; the crouched idle is about 400 px from top of head to sole (hair, headgear and weapon not counted).
