@@ -22,8 +22,8 @@
 | 쓰는 곳 | **`art-inbox` 브랜치의 `art/inbox/` 만** | 게임 브랜치 `claude/dot-fantasy-management-game-saupju` (그리고 art-inbox 는 읽기만) |
 | 하지 않는 일 | 게임 브랜치에 푸시, `dot_queue.md`·`feedback.md`·`js/`·`assets/`·`tools/` 수정, 시트 등록 | PC 의 파일·프로그램을 직접 만지는 일 (닿지 않는다) |
 
-- 어떤 항목을 PC 가 맡을지(처음부터 그리기 / GPT 납품 손질하기)는 **주인이 정하고**, 클라우드가 `dot_queue.md` 메모 칸에 `담당: PC(Aseprite)` 처럼 적는다.
-  메모에 담당이 없으면 PC 는 위에서부터 `DOT_READY` 를 맡는다.
+- **역할 나눔 (2026-11-25 주인 결정)**: GPT 도트 = 새로 그리기·다시 그리기, PC = 이미 받은 그림을 Aseprite 로 손질(색·외곽선·소품). 클라우드가 손질 항목에 `담당: PC(Aseprite)` 를 붙이고, PC 는 **그 항목만** 한다 (담당 표시가 없는 DOT_READY 는 GPT 몫).
+- PC 세션 지침과 권한 설정은 `tools/aseprite-mcp/pc/` 의 `CLAUDE.local.md`·`settings.local.json` 을 저장소 루트에 복사해 쓴다 (한국어 고정, 허가 요청 최소화).
 - `AGENTS.md` 의 그림 규칙은 그대로다: **NovelAI 그림은 디자인 초안 전용** — 픽셀을 가져오거나 레이어로 넣지 않는다 (`concept.png` 는 눈으로 보는 참고만).
 
 ## 2. 브랜치와 폴더
