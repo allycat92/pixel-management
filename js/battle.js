@@ -48,7 +48,8 @@ const Battle = (() => {
   const MONSTER_STATS = { hp: 110, atk: 12, speed: 27 };
   const RANGED_TPL = { ghost: 'curse', drake: 'fire', demon: 'curse' };
   const HEAL_POWER = 16;
-  const SHOT_COLOR = { arrow: '#e8e4d8', fire: '#ff9a3c', curse: '#b47aff', bolt: '#7fd6ff', dagger: '#e0e8f0', holy: '#fff2a8' };
+  const SLOW_MUL = 0.5;   // 느려짐(거미줄): 이동 속도 배율
+  const SHOT_COLOR = { arrow: '#e8e4d8', fire: '#ff9a3c', curse: '#b47aff', bolt: '#7fd6ff', dagger: '#e0e8f0', holy: '#fff2a8', web: '#e4e4ec' };
 
   // 범용 부대장(외부 용병단 단장, 세력 부대장)이 쓰는 특기
   const GENERIC_SPECIAL = {
@@ -65,6 +66,8 @@ const Battle = (() => {
     if (ud.boss) return [basic, (tpl === 'drake' || tpl === 'demon') ? SK.shot('파멸의 숨결', tpl === 'demon' ? 'curse' : 'fire', 1.6, 70, 7, { aoe: 26, stun: 0.6 })
       : SK.melee('대지 분쇄', 1.8, 7, { aoe: 24, stun: 0.6, range: 18 })];
     if (ud.bigMon) return [basic, SK.melee('포효', 1.1, 9, { aoe: 20, stun: 0.4, range: 16 })];
+    // 거대 거미: 꽁무니에서 거미줄을 뿜어 표적을 잠시 느리게 한다 (주인 요청 2026-11-25)
+    if (ud.mon === '거대 거미') return [basic, SK.shot('거미줄 뿜기', 'web', 0.4, 70, 8, { slow: 2.5 })];
     return [basic];
   }
 
@@ -204,6 +207,51 @@ const Battle = (() => {
     view.flares = view.flares.filter((f) => f.t < 0.1);
     view.puffs.forEach((p) => { p.t += dt; if (p.t > 0) { p.x += p.vx * dt; p.y += p.vy * dt; p.vx *= 0.9; } });
     view.puffs = view.puffs.filter((p) => p.t < p.max);
+  }
+  // ── 거미줄 (직접 짠 도트): 꽁무니에서 표적까지 늘어진 가는 실 + 날아가는 실뭉치, 맞은 몸에 들러붙은 거미줄 ──
+  const WEB = '#e4e4ec', WEB_D = '#a8a8b8';
+  function pxLine(ctx, x0, y0, x1, y1, col, every) {
+    const n = Math.max(1, Math.round(Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0))));
+    for (let i = 0; i <= n; i++) {
+      if (every && i % every) continue;
+      px(ctx, Math.round(x0 + (x1 - x0) * i / n), Math.round(y0 + (y1 - y0) * i / n), 1, 1, col);
+    }
+  }
+  function drawWebShot(ctx, s, X, Y, dx, dy) {
+    const op = ctx.globalCompositeOperation;
+    ctx.globalCompositeOperation = 'source-over';
+    const f = s.from, face = f ? (f.face || 1) : 1;
+    // 꽁무니(몸 뒤쪽 위)에서 나온 실: 등 위로 넘어 휘어 날아간다 — 실은 점선으로 늘어진다
+    const ax = (s.sx * Z) - face * 14, ay = s.sy * Z - LIFT - 4;
+    const mx = (ax + X) / 2, my = Math.min(ay, Y) - 18;
+    ctx.globalAlpha = 0.95;
+    for (let i = 0; i < 12; i++) {
+      const t0 = i / 12, t1 = (i + 1) / 12, q = (t) => [(1 - t) * (1 - t) * ax + 2 * (1 - t) * t * mx + t * t * X, (1 - t) * (1 - t) * ay + 2 * (1 - t) * t * my + t * t * Y];
+      const [x0, y0] = q(t0), [x1, y1] = q(t1);
+      pxLine(ctx, x0, y0, x1, y1, i % 2 ? WEB_D : WEB, 0);
+    }
+    // 실뭉치: 흰 덩이 + 네 갈래 짧은 실
+    ctx.globalAlpha = 1;
+    const x = Math.round(X), y = Math.round(Y);
+    px(ctx, x - 3, y - 2, 6, 4, WEB_D); px(ctx, x - 2, y - 3, 4, 6, WEB_D); px(ctx, x - 2, y - 2, 4, 4, WEB); px(ctx, x - 1, y - 1, 2, 2, '#ffffff');
+    pxLine(ctx, x, y, x - dx * 7 - dy * 3, y - dy * 7 + dx * 3, WEB_D, 0);
+    pxLine(ctx, x, y, x - dx * 7 + dy * 3, y - dy * 7 - dx * 3, WEB_D, 0);
+    pxLine(ctx, x, y, x + dy * 4, y - dx * 4, WEB_D, 0); pxLine(ctx, x, y, x - dy * 4, y + dx * 4, WEB_D, 0);
+    ctx.globalCompositeOperation = op;
+  }
+  function drawWebOn(ctx, x, y, h, left, seed) {
+    const r = Math.max(8, Math.round(h * 0.32)), a0 = (seed % 7) * 0.3;
+    ctx.globalAlpha = left < 0.4 ? left / 0.4 * 0.75 : 0.75;
+    const sp = [];
+    for (let i = 0; i < 6; i++) { const a = a0 + i * Math.PI / 3 + (i % 2) * 0.18; sp.push([Math.cos(a), Math.sin(a) * 0.8, i % 2 ? 0.8 : 1]); }
+    sp.forEach(([c, sn, k]) => pxLine(ctx, x, y, x + c * r * k, y + sn * r * k, WEB, 0));
+    [0.45, 0.8].forEach((rr, j) => {
+      for (let i = 0; i < 6; i++) {
+        const [c0, s0, k0] = sp[i], [c1, s1, k1] = sp[(i + 1) % 6];
+        pxLine(ctx, x + c0 * r * rr * k0, y + s0 * r * rr * k0, x + c1 * r * rr * k1, y + s1 * r * rr * k1, j ? WEB_D : WEB, j ? 2 : 0);
+      }
+    });
+    ctx.globalAlpha = 1;
   }
   function drawSparks(ctx, view) {
     // 섬광: 0~50ms 크게(흰 핵 + 긴 빛줄기), 50~100ms 작게 식은 색
@@ -615,7 +663,7 @@ const Battle = (() => {
             x: cx + ox + (r() - 0.5) * 4, y: clamp(cy + oy + (r() - 0.5) * 4, TOP, BOTTOM),
             hp, maxHp: hp, atk: base.atk * str * ATK_SCALE, healPow: HEAL_POWER * str * ATK_SCALE, speed: base.speed * (0.9 + r() * 0.2),
             skills: skills.map((sk, i) => ({ ...sk, left: i === 0 ? r() * sk.cd : sk.cd * (0.3 + r() * 0.5) })),
-            buffs: [], stunUntil: 0,
+            buffs: [], stunUntil: 0, slowUntil: 0,
             alive: true, fled: false, target: null, retarget: r() * 0.5, face: side === 0 ? 1 : -1,
             moving: false, lunge: 0, flash: 0, downAt: 0, walk: r() * 10,
           };
@@ -713,6 +761,7 @@ const Battle = (() => {
       if (sk.exec && e.hp / e.maxHp < 0.35) d *= 1 + sk.exec;
       dealt += damage(st, e, d, crit && e === t, u);
       if (sk.stun && e.alive) e.stunUntil = Math.max(e.stunUntil, st.t + sk.stun * (e.boss ? 0.3 : e.bigMon ? 0.6 : 1));
+      if (sk.slow && e.alive) e.slowUntil = Math.max(e.slowUntil || 0, st.t + sk.slow * (e.boss ? 0.4 : e.bigMon ? 0.7 : 1));
     });
     const special = sk !== u.skills[0];
     st.fx.push({ kind: 'hit', x: t.x, y: t.y - 8, dir: u.face, melee: !sk.shot, style: sk.shot ? null : meleeStyle(sk), big: crit || special, special, t: 0,
@@ -831,10 +880,11 @@ const Battle = (() => {
       u.flash = Math.max(0, u.flash - DT); u.lunge = Math.max(0, u.lunge - DT);
       u.skills.forEach((sk) => { sk.left -= DT; });
       u.moving = false;
+      const SPD = u.speed * (u.slowUntil > st.t ? SLOW_MUL : 1);   // 거미줄에 걸리면 느리게
       if (u.g.routed) {
         // 자기 진영 쪽 가장자리로 도주
         const dir = u.g.side === 0 && !u.g.flipped ? -1 : 1;
-        u.x += dir * u.speed * 1.25 * DT; u.face = dir; u.moving = true;
+        u.x += dir * SPD * 1.25 * DT; u.face = dir; u.moving = true;
         if (u.x < -12 || u.x > W + 12) u.fled = true;
         continue;
       }
@@ -855,7 +905,7 @@ const Battle = (() => {
           for (const e of live) { if (e.side !== u.side && !e.g.routed) { const d = dist(e, u); if (d < fd) { fd = d; foe = e; } } }
           if (foe && fd > basic.range * 0.9) {
             const dx = foe.x - u.x, dy = foe.y - u.y, d = len2(dx, dy) || 1;
-            u.x += (dx / d) * u.speed * DT; u.y += (dy / d) * u.speed * DT; u.moving = true; u.face = dx >= 0 ? 1 : -1;
+            u.x += (dx / d) * SPD * DT; u.y += (dy / d) * SPD * DT; u.moving = true; u.face = dx >= 0 ? 1 : -1;
           }
         }
         continue;
@@ -897,13 +947,13 @@ const Battle = (() => {
         }
         const ml = len2(mx, my) || 1;
         // 이미 닿은 채 자리를 고쳐 서는 중이면 천천히
-        const v = u.speed * DT * (md > reach ? 1 : 0.5);
+        const v = SPD * DT * (md > reach ? 1 : 0.5);
         const stepLen = Math.min(v, ed || v);
         u.x += (mx / ml) * stepLen; u.y += (my / ml) * stepLen;
         u.moving = stepLen > 0.2;
       } else if (basic.shot && d < reach * 0.45) {
         // 원거리 유닛은 너무 붙으면 물러난다
-        u.x -= (dx / d) * u.speed * 0.6 * DT; u.y -= (dy / d) * u.speed * 0.3 * DT;
+        u.x -= (dx / d) * SPD * 0.6 * DT; u.y -= (dy / d) * SPD * 0.3 * DT;
         u.moving = true;
       }
       if (md <= reach && basic.left <= 0) useSkill(st, u, basic, tg, live);
@@ -1831,6 +1881,8 @@ const Battle = (() => {
           px(ctx, Math.round(X + Math.cos(ang) * 11) - 2, Math.round(top + 2 + Math.sin(ang) * 3) - 2, 4, 4, '#ffe066');
         }
       }
+      // 거미줄에 걸림: 몸통에 들러붙은 거미줄 (남은 시간이 0.4초 아래면 옅어진다)
+      if (u.slowUntil > st.t) drawWebOn(ctx, X, Y - Math.round(S.h * 0.45), S.h, u.slowUntil - st.t, u.webSeed || (u.webSeed = 1 + Math.floor(Math.random() * 7)));
       if (u.g.routed && Math.floor(now / 250) % 2) text(ctx, '!', X, top - 2, 14, '#ffffff');
     }
     // 큰 괴물(1.5배 우두머리·거대 괴물·보스)의 몸이 먼저(뒤쪽에) 그린 아군 단원을 덮으면, 그 괴물 몸 자리 안에서만 단원을 반투명하게
@@ -1904,6 +1956,10 @@ const Battle = (() => {
       }
       const tx = s.to.x * Z, ty = (s.to.y - 9) * Z - LIFT, d = Math.hypot(tx - X, ty - Y) || 1;
       const dx = (tx - X) / d, dy = (ty - Y) / d;
+      if (s.kind === 'web') {
+        drawWebShot(ctx, s, X, Y, dx, dy);
+        return;
+      }
       if (s.kind === 'arrow' || s.kind === 'dagger') {
         ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.globalAlpha = 0.9;
         ctx.beginPath(); ctx.moveTo(X - dx * 12, Y - dy * 12); ctx.lineTo(X, Y); ctx.stroke();
