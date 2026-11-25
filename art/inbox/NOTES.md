@@ -402,3 +402,9 @@ CHECK: RESULT: PASS
 REFERENCES LOADED: portrait_800.jpg, guide_strip.png, guide_1_idle.png, guide_2_windup.png, guide_3_strike.png, guide_4_hit.png, Baren style anchor PNG, art/STYLE.md, latest handoff notes → ok.
 DEVIATIONS: (a) 마네킹 활은 무거운 쇠뇌로 교체. 대기·피격 컷에서는 가이드보다 팔을 앞으로 내밀어 개머리판과 쇠뇌 앞부분을 의상·다리에서 분리했습니다. 이 두 컷은 배치 폭에 맞춰 좌우를 조금 줄였습니다. (b) 초상에 없는 코트 하단과 장화는 갈색 가죽으로 보완. (c) none.
 RISKS AT GAME SIZE: 조준 시 개머리판은 어깨에 붙으며, 가는 시위와 대기/준비에 꽂힌 볼트가 어두운 바닥에서 흐려질 수 있습니다. 스패너는 안쪽에 가려지는 프레임에서 가는 밝은 선으로 남습니다. 96px 칸·0.1654 변환 통과, 로컬 유휴 루프는 기본 대체 동작으로 확인.
+
+## 제안 - 수령 검수와 메모 확인을 같은 커밋에 고정
+
+수령 스크립트가 메모만 있는 제안을 `NOTES.md` 차이로 발견하는데, 개별 PNG를 검수한 뒤에는 `NOTES.md` 전체를 복사하도록 안내합니다 (`tools/art/receive.py:38–58, 240`). 지금도 미검수 PNG 외에 별도 달리기 제안이 같은 파일에 함께 들어 있어, 먼저 PNG 한 장만 처리하면 그 제안이 다음 목록에서 빠질 수 있습니다. 실제 누락이 있었다는 뜻은 아닙니다.
+
+검수를 시작할 때 받은 커밋 SHA를 고정해 PNG·메모·수령 확인에 모두 사용하고, 그 커밋에서 새로 생긴 메모 절을 전부 처리하거나 별도 대기 목록에 남긴 뒤에만 메모 전체를 수령 처리하는 건 어떨까요? 구현 여부와 순서는 클로드 판단에 맡깁니다.
