@@ -13,8 +13,13 @@
    - 할 것이 없으면 "할 일 없음" 이라고 한 줄 알리고 멈춘다.
 3. 고칠 내용: `art/requests/feedback.md` 의 해당 절 + `art/requests/phase3_gpt.md` 「메시지 F」 해당 번호 + 그 항목의 `art/requests/phase3/<id>/README.md`.
 
+## 이 PC 의 경로
+- Aseprite: `D:\Program Files (x86)\Steam\steamapps\common\Aseprite\Aseprite.exe` (Git Bash: `"/d/Program Files (x86)/Steam/steamapps/common/Aseprite/Aseprite.exe"`)
+- 게임 폴더: `C:\Users\doyoung\Documents\pixel-management` / 납품 폴더: `C:\Users\doyoung\Documents\pixel-management-inbox`
+- 이 경로를 그대로 쓴다 (찾는 명령 `command -v`·`ls` 조합 금지 — 변수가 들어가면 허가 창이 뜬다).
+
 ## 명령 습관 (허가 창 줄이기)
-- 셸 반복문(`for`)·변수 치환이 든 긴 한 줄 명령 대신, 단순한 명령을 하나씩 실행한다 (예: `git -C ..\pixel-management-inbox log -1 -- art/inbox/sheet_class_archer.png`).
+- 셸 변수(`S=...`, `$A`)·반복문(`for`)·`python -c "..."` 긴 따옴표 코드가 든 명령은 허가 창을 부른다. 스크립트는 파일로 한 번 저장하고, 실행은 변수 없이 한 줄씩 한다 (예: `git -C ..\pixel-management-inbox log -1 -- art/inbox/sheet_class_archer.png`).
 - 납품 폴더는 작업 폴더로 추가돼 있다(`additionalDirectories`) — `cd` 로 오가지 말고 경로를 붙여 쓴다.
 
 ## 작업 방법
