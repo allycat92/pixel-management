@@ -501,3 +501,10 @@ REFERENCES LOADED: portrait_800.jpg OK; guide_strip.png OK; guide_1_idle.png, gu
 DEVIATIONS: (a) 1번 대기 자세의 장검 뿌리가 허리 의상에 겹침. 현재 초안을 그대로 인계. PC에서 이 자세의 검을 몸 밖으로 옮길 부분. 가이드 방패 대신 빈 주먹과 손목 쇠고리. (b) none. (c) none.
 RISKS AT GAME SIZE: 대기 크기 368px 경고와 96px 타격 자세 +2px 이동. 현재 초안을 보정용으로만 사용; 클로드가 크기/배율을 확인하고 PC 보정이 끝나기 전에는 게임에 등록하지 말 것.
 PROPOSALS: 막힘 답 ab4b3cd에 따른 Aseprite 입력용. 완성본·등록본 아님.
+
+## sheet/captain/shadowqueen - 니클라
+CHECK: RESULT: PASS
+REFERENCES LOADED: portrait_800.jpg OK; guide_strip.png OK; guide_1_idle.png, guide_2_windup.png, guide_3_strike.png, guide_4_hit.png OK; Baren anchor OK.
+DEVIATIONS: (a) 대기 420px(두건 포함) 유지. 1번은 가이드보다 덜 웅크리고, 3번은 망토와 발 간격을 좁히고 단검을 앞으로 비스듬히 내려 몸 밖에 둠. 4번은 앞발을 들고 단검을 뒤로 낮춤. (b) 등에 칼날 대신 칼집 속 보조 손잡이 하나만 남김. (c) none.
+RISKS AT GAME SIZE: 96px 변환에서 단검의 밝은 칼날은 남음. 손잡이·귀걸이는 축소하면 금색 점으로 가까워 보일 수 있고, 어두운 숲에서 짙은 망토의 안쪽 접힌 선은 작아짐. 1번과 3번의 단검 길이와 2번의 두건과 칼날 분리를 실제 전투에서 확인 부탁.
+PROPOSALS: none.
