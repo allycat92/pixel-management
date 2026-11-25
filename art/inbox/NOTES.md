@@ -486,3 +486,10 @@ REFERENCES LOADED: 승인 대기 컷 check_giant-spider_idle.png@555007c OK; con
 DEVIATIONS: (a) 대기 실루엣의 폭 543px와 발 배치를 기준으로 각 자세를 같은 축척으로 처리. 고정 발끝의 윤곽 재래스터화로 일부 발끝은 원본 기준 1–2px 차이, 바닥선은 네 칸 모두 y=461. (b) none. (c) none.
 RISKS AT GAME SIZE: SPOT: #d6455d (눈). 112px 변환에서 빨강은 대기/준비/타격/피격 각각 12/19/17/14px 남음. 작은 눈 일부와 먼 쪽 다리 끝은 어두운 숲에서 겹쳐 읽힐 수 있음. 타격 때 독니가 좁아지고 몸이 전진하는지, 피격 때 +2px 무게중심 보정이 발을 흔들어 보이지 않는지 실제 전투 확인 부탁.
 PROPOSALS: 동일 경로의 임시 시트를 바꿨으며, 게임 등록은 이 SHA 검수 뒤 결정 부탁.
+
+## sheet/captain/beastmaster - 오르가 (PC 보정용 초안, 게임 등록 금지)
+CHECK: RESULT: PASS
+REFERENCES LOADED: portrait_800.jpg OK; guide_strip.png OK; guide_1_idle.png, guide_2_windup.png, guide_3_strike.png, guide_4_hit.png OK; Baren anchor OK.
+DEVIATIONS: (a) 4번 피격 자세의 장궁 아랫부분이 앞쪽 다리와 겹침. 현재 초안을 그대로 인계. PC에서 이 자세의 활만 몸 밖으로 옮길 부분. (b) 초상화의 늑대는 요청대로 생략. (c) none.
+RISKS AT GAME SIZE: 96px 변환에서 4번은 활과 종아리 윤곽이 합쳐짐. PC 보정 완료 전까지 게임에 등록하지 말 것.
+PROPOSALS: 막힘 답 ab4b3cd에 따른 Aseprite 입력용. 완성본·등록본 아님.

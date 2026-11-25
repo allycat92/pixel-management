@@ -18,7 +18,7 @@ Claude Code 가 받아서 확인한 결과는 `art/requests/feedback.md`에 남�
 
 | 누구 | 종류 | id | 할 일 (자세한 것은 그 줄의 요청서) |
 |---|---|---|---|
-| GPT | new | `sheet/captain/beastmaster` | 오르가 — **막힘 답(ab4b3cd)**: 지금 초안을 그대로 납품한다. 피격 자세의 활·다리 겹침은 NOTES 의 DEVIATIONS 에 적으면 PC 가 그 자세의 활만 손질한다 |
+| PC | 손질 | `sheet/captain/beastmaster` | 바탕: art-inbox `fad5a77`. 손보기(막힘 답 ab4b3cd 대로): **4번 피격 자세만** 장궁의 아래 팔이 앞쪽(오른쪽) 다리의 정강이·장화와 겹친다 → 활을 쥔 손을 축으로 활을 시계 방향으로 약 20~25° 돌려 아래 끝이 장화 앞(오른쪽) 마젠타 위로 나오게. 활에 가려졌던 정강이·장화는 이어 칠하고, 시위는 두 끝을 잇는 1px 선 그대로, 활 둘레 1px 어두운 외곽선 유지. 활 길이·모양·손·몸·다른 세 자세는 그대로. 게임 크기에서 활과 종아리가 따로 읽혀야 한다. 같은 이름으로 덮어쓰기 + `aseprite/sheet_captain_beastmaster.aseprite`. 통과하면 클라우드가 등록한다. |
 | GPT | new | `sheet/captain/liberator` | 카토 — **막힘 답(ab4b3cd)**: 지금 초안을 그대로 납품한다. 대기 자세의 장검·의상 겹침은 DEVIATIONS 에 적으면 PC 가 그 자세의 검만 손질한다 |
 | GPT | new | `sheet/captain/shadowqueen` | 니클라 |
 | GPT | new | `sheet/captain/titan` | 우르그 — 체격 large, 칸 112(꾸러미 README 의 CELL BUDGET) |
