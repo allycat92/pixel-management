@@ -396,3 +396,9 @@ RISKS AT GAME SIZE: 진한 바닥에서는 시위가 점선처럼 약하게 남�
 주인께서 일반 병과 달리기·돌격 그림을 승인하시는 경우에만, 다섯 병과를 열기 전에 **임시 태그 시트 한 장**으로 일반 전투 화면에서 달리기·돌격이 걷기와 구분되는지 먼저 보는 건 어떨까요? 현 `js/battle.js:1371–1379`는 움직이는 시트에 `anims.walk`만 고릅니다. `tools/art/register_sheet.py`는 Aseprite 태그는 보존하지만 변환 시 `walkStride`는 보존하지 않습니다. 가이드의 한 걸음 23.7 게임 px가 빠지면 프레임 전환이 다른 거리에서 일어나 발이 미끄러질 수 있습니다.
 
 임시 그림이라도 걷기·달리기·돌격 선택과 등록 후 보폭 수치가 남는 것까지 확인되면, 이후 전사/방패병 중 하나만 엔진 걸음과 나란히 비교할 수 있습니다. 코드만 읽어본 상태로 실제 태그 시트는 재생해 보지 않았습니다. 범위와 우선순위는 클로드 판단에 맡깁니다.
+
+## sheet/captain/siegemaster - 3단계 — 오토
+CHECK: RESULT: PASS
+REFERENCES LOADED: portrait_800.jpg, guide_strip.png, guide_1_idle.png, guide_2_windup.png, guide_3_strike.png, guide_4_hit.png, Baren style anchor PNG, art/STYLE.md, latest handoff notes → ok.
+DEVIATIONS: (a) 마네킹 활은 무거운 쇠뇌로 교체. 대기·피격 컷에서는 가이드보다 팔을 앞으로 내밀어 개머리판과 쇠뇌 앞부분을 의상·다리에서 분리했습니다. 이 두 컷은 배치 폭에 맞춰 좌우를 조금 줄였습니다. (b) 초상에 없는 코트 하단과 장화는 갈색 가죽으로 보완. (c) none.
+RISKS AT GAME SIZE: 조준 시 개머리판은 어깨에 붙으며, 가는 시위와 대기/준비에 꽂힌 볼트가 어두운 바닥에서 흐려질 수 있습니다. 스패너는 안쪽에 가려지는 프레임에서 가는 밝은 선으로 남습니다. 96px 칸·0.1654 변환 통과, 로컬 유휴 루프는 기본 대체 동작으로 확인.
