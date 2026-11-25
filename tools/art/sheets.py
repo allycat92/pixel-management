@@ -25,7 +25,7 @@
   python3 tools/art/sheets.py --realign [--dry-run] [sheet/monster/들늑대 ...]   # 등록된 시트의 공격·피격 칸 발 맞추기만 다시
   옵션: --id ID  --grid CxR  --flip  --height 64 | --scale 0.1654  --cell 96  --colors 40  --work DIR
         --dry-run (manifest 를 건드리지 않음)  --no-register  --aseprite OUT.aseprite  --no-tint
-  요청서 항목의 scale · cell · height · layout(2x2) · tint 를 기본값으로 쓴다 (명령줄 옵션이 우선).
+  요청서 항목의 scale · cell · height · layout(2x2) · tint · spots(눈처럼 작아도 남길 점 색) 를 기본값으로 쓴다 (명령줄 옵션이 우선).
 NovelAI 그림은 거부한다 (주인 결정: NovelAI 는 디자인 초안 전용, 게임 그림은 언제나 GPT 를 거친다):
   PNG 메타데이터의 NovelAI 표시, art/concepts/·art/requests/·drafts/ 안의 파일, nai_*.png 이름.
   --allow-draft = 파이프라인 시험용, 언제나 --dry-run 이라 manifest 에 등록할 수 없다.
@@ -57,6 +57,8 @@ POSES = {1: ['idle'], 2: ['idle', 'strike'], 3: ['idle', 'strike', 'hit'], 4: ['
 DUR = {'idle': 240, 'windup': 150, 'strike': 260, 'hit': 220}
 FILE_RE = re.compile(r'^sheet_(captain|hero|class|monster)_([A-Za-z0-9-]+?)(?:@[A-Za-z0-9-]+)?\.png$')
 KEY_TOL = 34.0               # 열쇠 색으로 볼 RGB 거리 (열쇠 색끼리는 43 이상, 다른 재질과는 그보다 멀게 고른다: art/requests/phase3_gpt.md 메시지 D)
+SPOT_TOL = 40.0              # 점 색(눈 등)으로 볼 RGB 거리 — spot_layer
+SPOT_MIN = 0.3               # 게임 px 하나에서 점 색이 이만큼 덮으면 그 px 를 점 색으로
 KEY_SPECK_R = 0.33           # 열쇠 색 점 지우기: 몸통으로 볼 최소 두께의 절반 (게임 px) — clean_key_specks
 KEY_SPECK_REACH = 0.66       # 몸통에서 이만큼(게임 px) 안의 가는 열쇠 선은 남긴다
 LONE_KEY_N8 = 1              # 게임 해상도: 8 이웃 중 열쇠 픽셀이 이 수 이하인 열쇠 픽셀은 뺀다 (외톨이·두 점짜리 부스러기)
@@ -462,6 +464,36 @@ def snap(rgb, pal):
     return pal[idx].reshape(rgb.shape)
 
 
+def spot_layer(c_rgb, c_a, spots, nw, nh):
+    """점 색(눈·보석처럼 작지만 꼭 보여야 하는 색)이 축소·팔레트에서 사라지지 않게 — 게임 해상도의 점 색 번호(-1 = 없음).
+    원본에서 점 색(거리 SPOT_TOL 안) 픽셀을 찾아, 축소 후 SPOT_MIN 이상 덮인 px 와 덩어리마다 무게중심 px 하나를 점 색으로 둔다."""
+    out = np.full((nh, nw), -1, np.int64)
+    if not len(spots):
+        return out
+    d = np.sqrt(((c_rgb[..., None, :] - spots[None, None]) ** 2).sum(-1))
+    near = (d.min(-1) <= SPOT_TOL) & (c_a >= 0.5)
+    if not near.any():
+        return out
+    which = d.argmin(-1)
+    cov = np.stack([np.asarray(Image.fromarray(((near & (which == i)) * 1.0).astype(np.float32), 'F')
+                               .resize((nw, nh), Image.Resampling.BOX)) for i in range(len(spots))])
+    out[cov.sum(0) >= SPOT_MIN] = cov.argmax(0)[cov.sum(0) >= SPOT_MIN]
+    lab, n = _label(near)
+    H, W = near.shape
+    ys, xs = np.nonzero(lab)
+    ls = lab[ys, xs]
+    cnt = np.bincount(ls, minlength=n + 1)
+    cx = np.bincount(ls, weights=xs + 0.5, minlength=n + 1)
+    cy = np.bincount(ls, weights=ys + 0.5, minlength=n + 1)
+    for k in range(1, n + 1):
+        gx = min(nw - 1, int(cx[k] / cnt[k] * nw / W))
+        gy = min(nh - 1, int(cy[k] / cnt[k] * nh / H))
+        if out[gy, gx] < 0:
+            sel = lab == k
+            out[gy, gx] = int(np.bincount(which[sel], minlength=len(spots)).argmax())
+    return out
+
+
 # ───────── 직업 시트 열쇠 색 (진영 색으로 바꿔 칠할 제복·장식) ─────────
 
 def hex_rgb(h):
@@ -802,6 +834,10 @@ def process(path, sid, a, reqs):
     req_scale = None if (a.scale or a.height) else req.get('scale')
     tint = None if a.no_tint else req.get('tint')
     keys, roles = tint_keys(tint)
+    spot_hex = [h.strip() for h in a.spot.split(',')] if a.spot else list(req.get('spots') or [])
+    spots = np.array([hex_rgb(h) for h in spot_hex], np.float32).reshape(-1, 3)
+    if len(spots):
+        log(f'  점 색 (축소 뒤에도 남김): {", ".join(spot_hex)} (거리 {SPOT_TOL:g} 안)')
     if tint:
         log(f'  열쇠 색: 제복 {", ".join(tint.get("outfit", []))} / 장식 {", ".join(tint.get("accent", []))} (거리 {KEY_TOL:g} 안)')
     expect = a.poses
@@ -839,6 +875,7 @@ def process(path, sid, a, reqs):
     if a.pose_scale:
         pose_scale = {k.strip(): float(v) for k, v in (kv.split('=') for kv in a.pose_scale.split(','))}
     small = []
+    spot_small = []
     for (c_rgb, c_a), klab, nm in zip(crops, klabs, names):
         hh = body_height(c_a) * scale
         if nm != 'idle' and hh < height * 0.55:
@@ -859,6 +896,7 @@ def process(path, sid, a, reqs):
                 # 뺀 점은 둘레의 열쇠 색이 아닌 색으로 (축소 전에: 사슬 갑옷의 푸른 점 → 회색 고리)
                 c_rgb = fill_from_neighbours(c_rgb, drop, (c_a >= 0.5) & (klab < 0))
         s_rgb, s_a = box_resize(c_rgb, c_a, nw, nh)
+        s_sp = spot_layer(c_rgb, c_a, spots, nw, nh)
         mask = s_a > a.alpha
         s_rgb, mask = cleanup(s_rgb, mask)
         s_k = key_resize(klab, c_a, len(keys), nw, nh) if klab is not None else np.full(mask.shape, -1)
@@ -876,6 +914,11 @@ def process(path, sid, a, reqs):
             return False
         x0, y0, x1, y1 = bb
         small.append((s_rgb[y0:y1, x0:x1], mask[y0:y1, x0:x1], s_k[y0:y1, x0:x1]))
+        sp = s_sp[y0:y1, x0:x1].copy()
+        sp[~mask[y0:y1, x0:x1] | (s_k[y0:y1, x0:x1] >= 0)] = -1
+        spot_small.append(sp)
+        if len(spots):
+            log(f'  {nm}: 점 색 {int((sp >= 0).sum())}px')
         if len(keys):
             share = {r: float(np.isin(s_k, [i for i in range(len(roles)) if roles[i] == r]).sum()) / max(1, int(mask.sum()))
                      for r in ('outfit', 'accent')}
@@ -889,16 +932,18 @@ def process(path, sid, a, reqs):
     # 팔레트는 열쇠 색이 아닌 픽셀로만 만든다 (열쇠 색 자리는 비워 둔다). 우연히 열쇠 색과 똑같은 팔레트 색은 1 만큼 비켜서,
     # 열쇠 색이 아닌 픽셀이 전투에서 바꿔 칠해지지 않게 한다.
     rest = np.concatenate([r[m & (k < 0)] for r, m, k in small])
-    pal = build_palette(rest if len(rest) else np.zeros((1, 3), np.float32), max(8, a.colors - len(keys)))
+    pal = build_palette(rest if len(rest) else np.zeros((1, 3), np.float32), max(8, a.colors - len(keys) - len(spots)))
     for kc in keys:
         same = np.all(pal == kc, -1)
         pal[same, 0] = np.where(kc[0] > 0, kc[0] - 1, 1)
     cells = {}
     ref = None
-    for (s_rgb, mask, klab), nm in zip(small, names):
+    for (s_rgb, mask, klab), sp, nm in zip(small, spot_small, names):
         q = snap(s_rgb, pal)
         if len(keys):
             q = apply_keys(q, mask, klab, keys, roles)
+        if len(spots):
+            q[sp >= 0] = spots[sp[sp >= 0]]
         q[~mask] = 0
         cell = place(q, mask, nm, ref)
         if cell is None:
@@ -1041,6 +1086,7 @@ def main():
     ap.add_argument('--no-tint', action='store_true', help='요청서의 열쇠 색(tint)을 쓰지 않는다 (직업 시트를 바꿔 칠하지 않는 그림으로)')
     ap.add_argument('--pose-scale', help='자세별 배율 보정, 예: windup=0.9,strike=0.88 (기본: 요청서의 pose_scale). '
                     'idle 과 같은 배율로 그려지지 않은 자세(몸·머리까지 커진 공격 자세)를 idle 크기에 맞춘다')
+    ap.add_argument('--spot', help='축소 뒤에도 꼭 남길 작은 점 색(눈 등), 예: #d6455d,#f2c94c (기본: 요청서의 spots)')
     ap.add_argument('--keep-key-specks', action='store_true',
                     help='열쇠 색 점 지우기(clean_key_specks · drop_lone_keys)를 끈다 — 비교용')
     ap.add_argument('--work', help='중간 결과·미리보기를 둘 폴더 (기본: 임시 폴더)')

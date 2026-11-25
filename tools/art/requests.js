@@ -422,6 +422,12 @@ const MONSTER_BATCH1 = [
 const MON_POSE_SCALE = {
   '가고일': { windup: 0.9, strike: 0.88 },   // 꼬리 끝 1.05·1.14배, 머리·뿔 1.15~1.3배 (첫 납품 art/inbox/sheet_monster_gargoyle.png)
 };
+// 점 색 (sheets.py spots): 눈처럼 원본에서 몇 px 뿐이라 0.1654 축소·팔레트에서 사라지는 색 — 축소 뒤에도 그 색 그대로 남긴다.
+const MON_SPOTS = {
+  '해골 병사': ['#ff4a3a'],              // 빨간 눈 (PC 손질 ea6fe20)
+  '들늑대': ['#f2c94c', '#b8862a'],      // 호박색 눈 (PC 손질 66aca5a)
+  '가고일': ['#d6455d'],                 // 빨간 눈 (PC 손질 cea8630)
+};
 const MON_HUMANOID = new Set(['해골 병사', '사막 도적', '산적']);   // 사람 골격: 대장과 같은 posekit 가이드 띠
 const MON_KEY = Object.fromEntries(MONSTERS.map(([enemy, key]) => [enemy, key]));
 const MON_PKG = (key) => `art/requests/phase3/monster_${key}`;
@@ -433,7 +439,7 @@ MONSTER_BATCH1.forEach(([enemy, order, layout, cell, seed, size, tags, negExtra]
   const pick = pickOf(`monster_${key}`);
   phase3.push(sheetItem({
     id: `sheet/monster/${enemy}`, file: `sheet_monster_${key}.png`, priority: 4, group: '지역 몬스터 1차', order, after: 'the 9 starter captains (priority 1)', style_anchor: ANCHOR_REF,
-    name: `몬스터 — ${enemy}`, layout, cell, scale: GPT_SCALE, ...(MON_POSE_SCALE[enemy] ? { pose_scale: MON_POSE_SCALE[enemy] } : {}), humanoid: human,
+    name: `몬스터 — ${enemy}`, layout, cell, scale: GPT_SCALE, ...(MON_POSE_SCALE[enemy] ? { pose_scale: MON_POSE_SCALE[enemy] } : {}), ...(MON_SPOTS[enemy] ? { spots: MON_SPOTS[enemy] } : {}), humanoid: human,
     package: MON_PKG(key), readme: `${MON_PKG(key)}/README.md`,
     concept: pick ? `${MON_PKG(key)}/concept.png` : `${MON_PKG(key)}/concept.png (pending: the owner picks a NovelAI draft first)`,
     ...(pick ? { concept_source: `art/concepts/monster_${key}/${pick.file}` } : {}),
