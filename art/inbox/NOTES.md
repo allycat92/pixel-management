@@ -249,3 +249,9 @@
 - `sheet_monster_wolf.png`: 자세·윤곽·크기·위치는 그대로. 눈을 회색에서 호박색으로(#f2c94c 밝은 면 / #b8862a 그늘, 동공·눈 테두리는 검정 그대로) — 대기·준비는 두 눈, 타격은 보이는 한 눈. 피격(울부짖기)은 원래 눈을 감고 있어 홍채가 없으므로 감은 눈 그대로 두었다. 벌린 입 안의 자홍(#5b1958)을 짙은 적갈색(#5a2a24, 어두운 틈 #3e1e1a)으로. 몸 바깥 테두리에 섞여 있던 같은 자홍 번짐 픽셀은 중성 짙은 색(#19191b)으로 정리 — 이제 그림에 자홍·보라가 없다.
 - Aseprite 원본: `aseprite/sheet_monster_wolf.aseprite` (Background = 받은 PNG / touchup 레이어).
 - 검사: `check_delivery.py --layout 2x2` PASS (43색, 키와 최소 거리 207.5, 네 칸 모두 칸 안 최하단 y=461).
+
+## 손질 — 가고일 (Aseprite)
+
+- `sheet_monster_gargoyle.png`: 자세·윤곽·크기·위치는 그대로, 눈만 보라(#652268)에서 빨강 #d6455d 로 (가운데 밝은 점은 그대로). 대기·준비·타격은 보이는 한 눈, 피격도 한 눈(고개를 젖혀 먼 눈은 안 보임). 입 안과 테두리의 같은 보라는 지시 범위 밖이라 그대로 두었다.
+- Aseprite 원본: `aseprite/sheet_monster_gargoyle.aseprite` (Background = 받은 PNG / touchup 레이어).
+- 검사: `check_delivery.py --layout 2x2` PASS (41색, 키와 최소 거리 180.8, 네 칸 모두 칸 안 최하단 y=461).
