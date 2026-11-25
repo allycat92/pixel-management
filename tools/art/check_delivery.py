@@ -19,6 +19,7 @@ Exit code 0 = pass (warnings allowed), 1 = fail, 2 = could not run.
 Only Pillow and the standard library; the Aseprite call uses an argument list (no shell).
 """
 import argparse
+from collections import Counter
 import math
 import os
 import re
@@ -151,6 +152,9 @@ def check_spots(rgb, spots, errors, warns, info):
             warns.append(f"spot {h}: another colour is only {nearest:.0f} away (keep >= 60)")
 
 
+REDRAW_SHARE = 0.30   # a touch-up changes a prop or some colours; above this share of the figure it is a new drawing
+
+
 def compare_base(rgb, base_path, layout, feet, errors, warns, info):
     """Touch-ups: what changed against the received PNG, and which failures were already there."""
     b_err, _, _ = check_png(base_path, layout, feet)
@@ -172,6 +176,11 @@ def compare_base(rgb, base_path, layout, feet, errors, warns, info):
             col += 1; cols[k][1] += 1
     info.append(f"against the base: silhouette changed {sil} px, colour changed {col} px "
                 f"(per pose silhouette/colour: {', '.join(f'{a}/{b}' for a, b in cols)})")
+    figure = sum(1 for p in pixels(base) if p != KEY) or 1
+    if (sil + col) > REDRAW_SHARE * figure:
+        # most of the drawing is new: a failure that the old drawing also had is not "pre-existing", it was drawn again
+        info.append(f"{100 * (sil + col) / figure:.0f}% of the figure differs from the base: treated as a redraw - no failure is excused as pre-existing")
+        return
     old = set(b_err)
     for m in list(errors):
         if m in old:
@@ -281,6 +290,15 @@ def check_png(path, layout, feet, cell=None, scale=None):
     return errors, warns, info
 
 
+def aseprite_runs(exe):
+    """False when the executable is missing or cannot start (a fresh cloud container has the wrapper script but no build)."""
+    try:
+        r = subprocess.run([exe, "--version"], stdin=subprocess.DEVNULL, capture_output=True, timeout=60)
+    except (OSError, subprocess.SubprocessError):
+        return False
+    return r.returncode == 0 and b"seprite" in (r.stdout + r.stderr)
+
+
 def export_aseprite(src, exe, out_png):
     env = dict(os.environ)
     if os.name != "nt":
@@ -307,9 +325,13 @@ def check_layers(src, exe, base, errors, warns, info):
         warns.append(".aseprite layers could not be listed (Aseprite printed nothing): hidden layers were NOT checked")
         return
     rv = subprocess.run([exe, "--batch", "--list-layers", src], stdin=subprocess.DEVNULL, capture_output=True, timeout=120, env=env)
-    visible = {ln.strip() for ln in rv.stdout.decode("utf-8", "replace").splitlines() if ln.strip()}
-    hidden = [n for n in names if n not in visible]
-    info.append(".aseprite layers: " + " / ".join(n + (" (hidden)" if n in hidden else "") for n in names))
+    visible = [ln.strip() for ln in rv.stdout.decode("utf-8", "replace").splitlines() if ln.strip()]
+    # a multiset, not a set: a hidden layer may share its name with a visible one ("touchup" + hidden "touchup")
+    hidden = list((Counter(names) - Counter(visible)).elements())
+    info.append(".aseprite layers: " + " / ".join(names) + (f"  (hidden: {', '.join(hidden)})" if hidden else ""))
+    for n, k in Counter(names).items():
+        if k > 1:
+            errors.append(f'{k} layers are named "{n}": layer names must be unique (the checks address layers by name)')
     odd = [n for n in names if n not in ALLOWED_LAYERS and not n.startswith("touchup")]
     if odd:
         warns.append("layer names outside the agreed set (see art/requests/pc_notes.md): " + ", ".join(odd))
@@ -375,6 +397,19 @@ def main():
     ap.add_argument("--aseprite-exe", default=os.environ.get("ASEPRITE_PATH", "aseprite"),
                     help="Aseprite executable (default: $ASEPRITE_PATH or 'aseprite')")
     a = ap.parse_args()
+    tmp_base = None
+    if a.base_rev and not a.base:
+        # before --export (a typo in the hash must not cost the PNG); git resolves "./name" in the PNG's own folder, so links,
+        # junctions and short paths to the checkout do not matter
+        d = os.path.dirname(os.path.abspath(a.png))
+        blob = subprocess.run(["git", "-C", d, "show", f"{a.base_rev}:./{os.path.basename(a.png)}"], capture_output=True)
+        if blob.returncode != 0:
+            print(f"could not read {os.path.basename(a.png)} at {a.base_rev} (in {d})")
+            return 2
+        fd, tmp_base = tempfile.mkstemp(suffix=".png")
+        with os.fdopen(fd, "wb") as f:
+            f.write(blob.stdout)
+        a.base = tmp_base
     if a.export:
         if not a.aseprite or not os.path.isfile(a.aseprite):
             print("--export needs --aseprite <source>")
@@ -387,19 +422,6 @@ def main():
     if not os.path.isfile(a.png):
         print(f"not found: {a.png}")
         return 2
-    tmp_base = None
-    if a.base_rev and not a.base:
-        d = os.path.dirname(os.path.abspath(a.png))
-        top = subprocess.run(["git", "-C", d, "rev-parse", "--show-toplevel"], capture_output=True).stdout.decode().strip()
-        rel = os.path.relpath(os.path.abspath(a.png), top).replace(os.sep, "/") if top else ""
-        blob = subprocess.run(["git", "-C", d, "show", f"{a.base_rev}:{rel}"], capture_output=True)
-        if not top or blob.returncode != 0:
-            print(f"could not read {rel} at {a.base_rev}")
-            return 2
-        fd, tmp_base = tempfile.mkstemp(suffix=".png")
-        with os.fdopen(fd, "wb") as f:
-            f.write(blob.stdout)
-        a.base = tmp_base
     req = request_item(a.png)
     src_note = ""
     m_idle = re.match(r"check_(.+)_idle\.png$", os.path.basename(a.png))
@@ -413,6 +435,7 @@ def main():
     cell = a.cell or req.get("cell") or 96
     scale = req.get("scale") or 0.1654
     errors, warns, info = check_png(a.png, a.layout, a.feet, cell, scale)
+    unchecked = None
     rgb = Image.open(a.png).convert("RGB")
     spots = [h for h in (a.spot.split(",") if a.spot is not None else (req.get("spots") or [])) if h.strip()]
     if spots:
@@ -425,6 +448,8 @@ def main():
     if a.aseprite:
         if not os.path.isfile(a.aseprite):
             errors.append(f".aseprite not found: {a.aseprite}")
+        elif not aseprite_runs(a.aseprite_exe):
+            unchecked = f"Aseprite could not be run ({a.aseprite_exe}): the .aseprite source and its layers were NOT checked"
         else:
             try:
                 compare_aseprite(a.aseprite, a.aseprite_exe, a.png, errors, info)
@@ -438,10 +463,12 @@ def main():
         print("  WARN: " + m)
     for m in errors:
         print("  FAIL: " + m)
-    print("RESULT: " + ("FAIL" if errors else ("PASS (with warnings)" if warns else "PASS")))
+    if unchecked:
+        print("  NOT CHECKED: " + unchecked)
+    print("RESULT: " + ("FAIL" if errors else ("PASS (with warnings)" if warns else "PASS")) + (" - PNG only, source not checked" if unchecked else ""))
     if tmp_base:
         os.unlink(tmp_base)
-    return 1 if errors else 0
+    return 1 if errors else (2 if unchecked else 0)
 
 
 if __name__ == "__main__":

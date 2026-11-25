@@ -18,6 +18,7 @@ so the Aseprite session only has to deliver the .aseprite. --base DRAFT.aseprite
 Exit code 1 on FAIL.
 """
 import argparse
+from collections import Counter
 import json
 import math
 import os
@@ -57,7 +58,10 @@ def load_aseprite(src, exe, work):
     names = [n.strip() for n in run(exe, '--all-layers', '--list-layers', src).stdout.decode('utf-8', 'replace').splitlines() if n.strip()]
     if not names:
         raise RuntimeError(f'Aseprite listed no layers for {src} (is {exe} an Aseprite executable?)')
-    visible = {n.strip() for n in run(exe, '--list-layers', src).stdout.decode('utf-8', 'replace').splitlines() if n.strip()}
+    visible = [n.strip() for n in run(exe, '--list-layers', src).stdout.decode('utf-8', 'replace').splitlines() if n.strip()]
+    dup = [n for n, k in Counter(names).items() if k > 1]
+    if dup:
+        raise RuntimeError(f'layer names must be unique, more than one layer is named: {", ".join(dup)}')
     data = os.path.join(work, 'data.json')
     run(exe, src, '--sheet', os.path.join(work, 'sheet.png'), '--data', data, '--format', 'json-array')
     with open(data, encoding='utf-8') as f:
@@ -72,7 +76,7 @@ def load_aseprite(src, exe, work):
                 raise RuntimeError(f'Aseprite did not export layer {n} frame {i}: ' + (r.stderr or r.stdout).decode('utf-8', 'replace')[-300:])
             fr[n] = np.asarray(Image.open(p).convert('RGBA'))
         frames.append(fr)
-    return frames, durs, names, [n for n in names if n not in visible]
+    return frames, durs, names, list((Counter(names) - Counter(visible)).elements())
 
 
 def load_dir(src):

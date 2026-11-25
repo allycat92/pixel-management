@@ -1090,9 +1090,9 @@ const Battle = (() => {
     const a = sh && Art.anim(sh.meta, r.atkAnim);
     r.atkDur = a ? Math.max(0.28, Math.min(0.5, a.total / 1000)) : 0.3;
     // 준비 자세를 이미 보여 줬으면(windAt) 타격 칸부터 시작한다 → 맞는 순간(피해·불꽃·멈춤)과 휘두르는 그림이 겹친다.
-    // 미리 보여 주지 못한 공격(특기 등)은 전처럼 준비 칸부터.
+    // 미리 보여 주지 못한 원거리 공격·시전은 전처럼 준비 칸부터 (쏘는 순간이 타격 칸).
     const wShare = a && a.ms && a.ms.length > 1 ? a.ms[0] / a.total : 0.35;
-    // onImpact: 기본 근접 공격이 맞는 틱에 불린 것 — 준비를 미리 못 보여 줬어도 타격 칸부터 (맞은 뒤에 준비 자세가 나오지 않게)
+    // onImpact: 근접 공격(기본·특기)이 맞는 틱에 불린 것 — 준비를 미리 못 보여 줬어도 타격 칸부터 (맞은 뒤에 준비 자세가 나오지 않게)
     const pre = !!onImpact || c - (r.windAt == null ? -9 : r.windAt) < 0.3;
     // 2ms 더 당긴다: 딱 경계에 놓으면 소수 오차로 절반쯤은 준비 칸(149.99ms)이 한 프레임 더 보였고, 타격 멈춤이 그 칸에서 얼었다
     r.atkAt = pre ? c - wShare * r.atkDur - 0.002 : c;
@@ -1657,7 +1657,12 @@ const Battle = (() => {
       }
       if (f.kind === 'skill' && f.type === 'atk') {
         const u = st.units.find((e) => e.alive && (f.look ? e.look === f.look : e.mon === f.mon && Math.abs(e.x - f.x) + Math.abs(e.y - f.y) < 4));
-        if (u) triggerAttack(view, u, f.shot && f.shot !== 'arrow' && f.shot !== 'dagger' ? 'cast' : 'attack');
+        // 근접(shot 없음)은 이 틱에 이미 맞았다 → 타격 칸부터. 여기서 먼저 불리므로 그리기 쪽의 같은 호출은 중복 방지에 걸린다
+        // (예전에는 여기서 '맞는 순간' 표시 없이 불러, 미리 준비 자세를 못 보여 준 근접 공격의 12~21% 가 맞은 뒤에 준비 칸을 보였다)
+        if (u) {
+          triggerAttack(view, u, f.shot && f.shot !== 'arrow' && f.shot !== 'dagger' ? 'cast' : 'attack', !f.shot);
+          if (!f.shot) rsOf(view, u).atkMelee = true;
+        }
       } else if (f.kind === 'cast') {
         const u = nearestUnit(st, f.x, f.y, (e) => e.alive);
         // 근접 특기(돌격·급소 찌르기 등)는 시전 동작이 아니라 뒤따르는 공격 동작을 쓴다

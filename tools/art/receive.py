@@ -16,13 +16,14 @@ It does the steps the reviewer otherwise repeats by hand (and has got wrong by h
   4. sheets.py --dry-run for the new file (and the base), with the scale and cell the registered sheet uses,
      and count the game-size pixels that changed per frame (a touch-up nobody can see changes 0)
   5. check that the commit which last changed the file touched nothing outside art/inbox/
-  6. write review.png: the design reference (portrait / concept) beside the game-size sheet on three floors (dark, sand, snow),
+  6. write review_<stem>.png: the design reference (portrait / concept) beside the game-size sheet on three floors (dark, sand, snow),
      and print how much of the sprite is within +-25 luminance of each floor (it vanishes there)
-Nothing is registered or committed: after reading review.png, run sheets.py <file> yourself (settings come from phase3.json).
+Nothing is registered or committed: after reading it, run sheets.py <file> yourself (settings come from phase3.json).
 """
 import argparse
 import json
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -35,12 +36,18 @@ HEADLESS = os.path.join(ROOT, 'tools', 'art', 'ase_headless.sh')
 
 
 def unreviewed():
-    out = git('diff', '--name-only', 'HEAD', 'origin/art-inbox', '--', 'art/inbox') or ''
-    return [p for p in out.split('\n') if p]
+    """paths under art/inbox that differ between this branch and origin/art-inbox; None when git cannot tell"""
+    if git('rev-parse', '--verify', '-q', 'origin/art-inbox') is None:
+        return None
+    out = git('diff', '--name-only', 'HEAD', 'origin/art-inbox', '--', 'art/inbox')
+    return None if out is None else [p for p in out.split('\n') if p]
 
 
 def list_new():
     files = unreviewed()
+    if files is None:
+        print('CANNOT TELL: origin/art-inbox is not available here (fetch it first) - this is NOT "nothing new"')
+        return 2
     if not files:
         print('nothing new: art/inbox on origin/art-inbox matches this branch')
         return 0
@@ -106,7 +113,7 @@ def review_sheet(sheet, stem, work):
         near = sum(1 for p in px if abs(lum(p) - lum(col)) <= 25) / max(1, len(px))
         near_edge = sum(1 for p in edge if abs(lum(p) - lum(col)) <= 25) / max(1, len(edge))
         shares.append((name, near_edge, near))
-    path = os.path.join(work, 'review.png')
+    path = os.path.join(work, f'review_{stem}.png')   # per file: a reused --work must not show another sheet's review
     out.save(path)
     return path, shares
 
@@ -159,12 +166,17 @@ def notes_spots(stem, item):
 
 
 def dry_run(png, work, extra):
+    # one fresh folder per file: with a reused --work the walk below used to pick up another file's (or an older run's) sheet
+    work = os.path.join(work, os.path.splitext(os.path.basename(png))[0])
+    shutil.rmtree(work, ignore_errors=True)
     r = subprocess.run([sys.executable, os.path.join(ROOT, 'tools', 'art', 'sheets.py'), png, '--dry-run', '--work', work, *extra],
                        capture_output=True)
     out = r.stdout.decode('utf-8', 'replace') + r.stderr.decode('utf-8', 'replace')
     keep = ('주의', '실패', '점 색 ', '배율', 'idle:', 'windup:', 'strike:', 'hit:', '완료', '열쇠 색 픽셀')
     notes = [ln.strip() for ln in out.splitlines() if any(k in ln for k in keep)]
     sheet = None
+    if r.returncode != 0:
+        return None, [], notes + ['sheets.py failed: ' + out.strip().splitlines()[-1][:200] if out.strip() else 'sheets.py failed']
     for d, _, files in os.walk(work):
         for f in files:
             if f.startswith('sheet_') and f.endswith('.png') and 'pose_' not in f and 'preview' not in f:
@@ -216,10 +228,12 @@ def main():
     ap.add_argument('--aseprite-exe', default=os.environ.get('ASEPRITE_PATH') or (HEADLESS if os.path.exists(HEADLESS) else 'aseprite'))
     ap.add_argument('--no-fetch', action='store_true')
     a = ap.parse_args()
-    if not a.no_fetch:
-        git('fetch', '-q', 'origin', 'art-inbox')
+    stale = False
+    if not a.no_fetch and git('fetch', '-q', 'origin', 'art-inbox') is None:
+        stale = True
+        print('FETCH FAILED: origin/art-inbox could not be fetched - everything below is the LAST FETCHED state, new deliveries may be missing')
     if a.list or not a.stem:
-        return list_new()
+        return list_new() or (2 if stale else 0)
     # a name under art/inbox: "sheet_monster_wolf", "guides/walk_base/walk_base_a", "check_sheet_monster_giant-spider_idle"
     rel = a.stem[len('art/inbox/'):] if a.stem.startswith('art/inbox/') else a.stem
     rel = rel[:-4] if rel.endswith('.png') else rel
@@ -242,18 +256,27 @@ def main():
         touched = [p for p in (git('show', '--name-only', '--format=', revs[0]) or '').split('\n') if p]
         outside = [p for p in touched if not p.startswith('art/inbox/')]
         print(f'- commit {revs[0]} touched {len(touched)} path(s)' + (f' — OUTSIDE art/inbox/: {outside}' if outside else ', all under art/inbox/'))
+    # the base of a touch-up or redelivery is the last REVIEWED version = the copy on this branch. (The previous art-inbox commit
+    # may be a delivery nobody looked at: its failures would be excused as "pre-existing" and the frame diff would compare
+    # against it.) --base-rev names another version on purpose (the 바탕 hash of the queue row).
     base = None
-    want = a.base_rev or (revs[1] if len(revs) > 1 else None)
-    if a.base_rev and len(revs) > 1 and not (revs[1].startswith(a.base_rev[:7]) or a.base_rev.startswith(revs[1][:7])):
-        print(f'- BASE MISMATCH: the queue says {a.base_rev}, but the version before this delivery is {revs[1]} '
-              '(someone redelivered in between - the touch-up may sit on old art)')
+    head_blob = git('rev-parse', '-q', '--verify', f'HEAD:{path}')
+    new_blob = git('rev-parse', '-q', '--verify', f'origin/art-inbox:{path}')
+    want = a.base_rev or ('HEAD' if head_blob and head_blob != new_blob else None)
+    if a.base_rev and head_blob:
+        rev_blob = git('rev-parse', '-q', '--verify', f'{a.base_rev}:{path}')
+        if rev_blob != head_blob:
+            print(f'- BASE MISMATCH: the queue says {a.base_rev}, but the reviewed copy on this branch is a different version '
+                  '(someone redelivered in between, or the hash is wrong - the touch-up may sit on old art)')
     if not a.no_base and want:
         base = os.path.join(work, 'base', stem + '.png')
         os.makedirs(os.path.dirname(base), exist_ok=True)
         if show(want, path, base):
-            print(f'- base: version at {want}')
+            print('- base: ' + ('the reviewed copy on this branch' if want == 'HEAD' else f'version at {want}'))
         else:
             base = None
+            if a.base_rev:
+                print(f'- base {a.base_rev} could not be read for {path}: NO base comparison was made')
     ase = os.path.join(work, 'new', stem + '.aseprite')
     # touch-ups keep the source under aseprite/, guides beside the PNG
     has_ase = show('origin/art-inbox', f'art/inbox/{rel}.aseprite', ase) or show('origin/art-inbox', f'art/inbox/aseprite/{stem}.aseprite', ase)
@@ -304,7 +327,7 @@ def main():
         rp, shares = review_sheet(sheet, stem, work)
         print('- silhouette edge within +-25 luminance of the floor (all pixels in brackets): '
               + ', '.join(f'{n} {100 * e:.1f}% ({100 * v:.0f}%)' for n, e, v in shares)
-              + ('   ← the OUTLINE melts into a bright floor: look at review.png'
+              + ('   ← the OUTLINE melts into a bright floor: look at the review sheet'
                  if max(e for n, e, v in shares if n != 'dark') > 0.08 else '')
               + '  (dark: outlines always match a dark floor - judge by eye; the engine adds a rim)')
         print('- review sheet (design reference | game size x3 on dark / sand / snow): ' + rp)

@@ -449,3 +449,10 @@ REFERENCES LOADED: portrait_800.jpg OK; guide_strip.png OK; guide_1_idle.png, gu
 DEVIATIONS: (a) 가이드 카타나 대신 양손 대검. 폭을 맞추려고 몸을 줄이지 않고, 3번만 발 간격을 좁히고 날을 아래로 기울여 다시 그림. 파이프라인 대기 몸 높이 409px. (b) none. (c) none.
 RISKS AT GAME SIZE: 96px 변환에서 대검은 네 자세에서 읽힘. 준비에서 타격으로 넘어갈 때 좁힌 발 간격과 바닥에 가까운 칼끝을 실제 전투에서 확인 부탁. 뺨 흉터는 축소 시 잘 안 보일 수 있음.
 PROPOSALS: none.
+
+## sheet/captain/demonhunter - 모르데카이
+CHECK: RESULT: PASS
+REFERENCES LOADED: portrait_800.jpg OK; guide_strip.png OK; guide_1_idle.png, guide_2_windup.png, guide_3_strike.png, guide_4_hit.png OK; Baren anchor OK.
+DEVIATIONS: (a) 지팡이 대신 십자 무늬 둥근 철퇴. 2번 철퇴를 뒤로 기울여 상단 여백 확보, 3번은 발 간격을 줄이고 뻗는 빈 팔을 굽힘. 4번 앞발을 들고 철퇴를 뒤로 낮춤. 몸 폭을 축소하지 않고 33px 이상 배치 여백 확보. (b) none. (c) none.
+RISKS AT GAME SIZE: 대기 447px로 산출(두건 포함, 철퇴 끝 제외). 96px 변환의 어두운 바닥에서 머리 윤곽과 철퇴 머리는 남으나, 은탄 장식과 손이 포개져 보일 수 있음. 실제 전투에서 피격 무게중심 보정과 함께 확인 부탁.
+PROPOSALS: none.
