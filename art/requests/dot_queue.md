@@ -24,13 +24,12 @@ Claude Code 가 받아서 확인한 결과는 `art/requests/feedback.md`에 남�
 | GPT | new | `sheet/captain/shadowqueen` | 니클라 |
 | GPT | new | `sheet/captain/titan` | 우르그 — 체격 large, 칸 112(꾸러미 README 의 CELL BUDGET) |
 | PC | 손질 | `sheet/captain/bard` | 리코 — 레이피어 날을 밝은 강철색·굵기 2px(원본 약 12px)로 (바탕 `fb47d45`, 그 줄의 메모) |
-| GPT | 검수 | `review/xcheck_03` | 걷기 뼈대 v2 확정판 3문항 (`art/requests/review/xcheck_03/README.md`) — 그림 없음, NOTES 에 OK/FIX 로 답 |
 
 ## 주인에게 물을 것 (모아서 — 답이 없으면 「기본」대로 진행한다)
 
 | # | 질문 | 고를 것 | 기본 | 물은 날 |
 |---|---|---|---|---|
-| 1 | 걷기 그림의 범위 | A: 대장·특별 용병은 4자세 + 엔진 걷기, 그려 주는 것은 일반 병과 5종의 달리기·돌격 4프레임부터 / B: 모든 캐릭터에 걷기 띠 | A | 11-26 |
+| 1 | ~~걷기 그림의 범위~~ | **답 받음 (11-26)**: "걷기만 남기는 건 동의하지 않는다. 전투니까 차라리 뛰기 모션만 있는 게 맞다" → 전투 이동은 달리기. 엔진 기본 걸음을 달리기로, 뼈대는 `run_base`, 그려 줄 프레임도 달리기 | — | 11-26 |
 | 2 | 거대 거미 시안에서 꼭 남길 것 | Claude 가 읽은 여섯 가지(땅높이 옆모습 · 등보다 높은 다리 아치 · 큰 털 배 · 털 실루엣 · 반짝이는 붉은 눈 · 검보라 덩어리)가 맞는지, 빠진 것 | 여섯 가지 그대로 | 11-26 |
 | 3 | 이사벨의 모자 | 초상화의 장교모 유지 / 요청서의 삼각모로 손질 | 유지 | 11-24 |
 | 4 | 뼈대 만드는 방식 | 클라우드가 수치표로 초안을 만들고 PC 가 Aseprite 로 다듬기 (11-25 에는 "PC 가 따로 만들게"였다) | 이 방식으로 | 11-26 |
@@ -84,8 +83,8 @@ GPT 는 `art/requests/GPT_STANDING.md`, PC 는 `tools/aseprite-mcp/pc/CLAUDE.md`
 | `sheet/captain/shadowqueen` | **DOT_READY** | `art/inbox/sheet_captain_shadowqueen.png` | `art/requests/phase3/captain_shadowqueen/README.md` ("Prompt for GPT" 블록) | `art/requests/phase3/captain_shadowqueen/guide_strip.png` (배치·크기 견본), `guide_1_idle.png` ~ `guide_4_hit.png` | 대장 니클라 (후반·late, 가이드 무기 `none`). 디자인 기준 `portrait.png`. 납품 메모: `art/inbox/NOTES.md` 「3단계 — 니클라」. |
 | `sheet/captain/titan` | **DOT_READY** | `art/inbox/sheet_captain_titan.png` | `art/requests/phase3/captain_titan/README.md` ("Prompt for GPT" 블록) | `art/requests/phase3/captain_titan/guide_strip.png` (배치·크기 견본), `guide_1_idle.png` ~ `guide_4_hit.png` | 대장 우르그 (후반·late, 가이드 무기 `katana`). 디자인 기준 `portrait.png`. 납품 메모: `art/inbox/NOTES.md` 「3단계 — 우르그」. 체격 large — 시트 칸 112 필요할 수 있음. |
 | `guide/walk_base` | **ACCEPTED** (2026-11-25 PC 손질 `4feb568` — 클라우드 측정 + GPT 교차 검수 2 통과) | `art/inbox/guides/walk_base/walk_strip.png` (+ `walk_base.aseprite`) | `art/requests/guides/walk_base/README.md` | `art/requests/guides/walk_base/start_guide_walk_0..3.png` (posekit 출발점) | 손보기(교차 검수 2 #3): ②·④ 지나가기에서 **든 발만** 골반 아래쪽으로 앞당긴다 — 원본 약 6~12px(게임 1~2px). 특히 ④의 들린 장화가 디딘 발 뒤에 길게 남아 뒤로 차는 듯 보인다. 들림 높이 22px·디딘 발 위치·몸·팔은 그대로, 팔다리 길이 일정 유지(정강이·넓적다리 레이어). 같은 이름으로 덮어쓰기 |
-| `guide/walk_base` v2 | **GPT 교차 검수 중** (2026-11-26 PC 다듬기 `2c31b96` 수용 — 세 수치를 `walk8.py` 에 넣고 클라우드가 확정판을 다시 구움) | `art/requests/guides/walk_base/v2/walk_base.aseprite` (확정판: 레이어 나뉜 8프레임) · PC 납품 `art/inbox/guides/walk_base/` | `art/requests/guides/walk_base/README.md` + `art/requests/guides/SPEC.md` | `art/requests/review/xcheck_03/` | 걷기 뼈대 v2 — 8프레임. PC 가 고친 것: 지나감 든 발목 (0.13, 0.45) · 뒤로 가는 팔 팔꿈치 30°·어깨 0.92 · 올라섬 뒤꿈치 22°. 클라우드가 더한 것: 모든 프레임 같은 바닥선(`check_skeleton.py` 가 잡은 초안 결함). GPT 3문항 통과하면 ACCEPTED. |
-| `review/xcheck_03` | **DOT_READY** | `art/inbox/NOTES.md` 「교차 검수 3」 (그림 없음) | `art/requests/review/xcheck_03/README.md` | `art/requests/review/xcheck_03/*.png` | 교차 검수 — 걷기 뼈대 v2 확정판 3문항에 OK/FIX 로 답한다. PC 세션은 손대지 않는다. |
+| `guide/walk_base` v2 | **보류 — 참고용** (2026-11-26 주인 결정: 전투 이동은 달리기. PC 다듬기 `2c31b96` 까지 반영한 판은 느려진 유닛의 걸음·참고로 남긴다) | `art/requests/guides/walk_base/v2/walk_base.aseprite` (확정판: 레이어 나뉜 8프레임) · PC 납품 `art/inbox/guides/walk_base/` | `art/requests/guides/walk_base/README.md` + `art/requests/guides/SPEC.md` | `art/requests/review/xcheck_03/` | 걷기 뼈대 v2 — 8프레임. PC 가 고친 것: 지나감 든 발목 (0.13, 0.45) · 뒤로 가는 팔 팔꿈치 30°·어깨 0.92 · 올라섬 뒤꿈치 22°. 클라우드가 더한 것: 모든 프레임 같은 바닥선(`check_skeleton.py` 가 잡은 초안 결함). GPT 3문항 통과하면 ACCEPTED. |
+| `review/xcheck_03` | **보류** (걷기 뼈대 질문 — 달리기 뼈대 초안이 나오면 그 3문항으로 바꿔 다시 올린다. 이미 답했다면 그대로 참고한다) | `art/inbox/NOTES.md` 「교차 검수 3」 (그림 없음) | `art/requests/review/xcheck_03/README.md` | `art/requests/review/xcheck_03/*.png` | 교차 검수 — 걷기 뼈대 v2 확정판 3문항에 OK/FIX 로 답한다. PC 세션은 손대지 않는다. |
 | `review/xcheck_01` | **ACCEPTED** (2026-11-25 `3a04482` 답 받음·반영) | `art/inbox/NOTES.md` 「교차 검수 1」 (그림 없음) | `art/requests/review/xcheck_01/README.md` + `art/requests/phase3_gpt.md` 「메시지 G」 | `art/requests/review/xcheck_01/*.png` | 교차 검수 — 새 전투 효과 4종·애매한 납품 판단 8문항에 OK/FIX 로 답한다. PC 세션은 손대지 않는다. |
 | `review/xcheck_02` | **ACCEPTED** (2026-11-25 `dee1cab` 답 받음·반영) | `art/inbox/NOTES.md` 「교차 검수 2」 (그림 없음) | `art/requests/review/xcheck_02/README.md` + `art/requests/phase3_gpt.md` 「메시지 H」 | `art/requests/review/xcheck_02/walk_review.png` | 걷기 뼈대 시범 5문항에 OK/FIX 로 답한다. |
 
