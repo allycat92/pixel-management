@@ -493,3 +493,11 @@ REFERENCES LOADED: portrait_800.jpg OK; guide_strip.png OK; guide_1_idle.png, gu
 DEVIATIONS: (a) 4번 피격 자세의 장궁 아랫부분이 앞쪽 다리와 겹침. 현재 초안을 그대로 인계. PC에서 이 자세의 활만 몸 밖으로 옮길 부분. (b) 초상화의 늑대는 요청대로 생략. (c) none.
 RISKS AT GAME SIZE: 96px 변환에서 4번은 활과 종아리 윤곽이 합쳐짐. PC 보정 완료 전까지 게임에 등록하지 말 것.
 PROPOSALS: 막힘 답 ab4b3cd에 따른 Aseprite 입력용. 완성본·등록본 아님.
+
+## sheet/captain/liberator - 카토 (PC 보정용 초안, 게임 등록 금지)
+CHECK: RESULT: PASS (with warnings)
+WARN: pose 1 (idle) is 368 px tall with hat and weapon; the other captains are 385-440 px. The game converts every sheet at one scale, so this character will stand shorter than the rest: keep the head at 110 px and the body at guide size - when a wide pose does not fit, change the weapon angle or the stance, never the body size
+REFERENCES LOADED: portrait_800.jpg OK; guide_strip.png OK; guide_1_idle.png, guide_2_windup.png, guide_3_strike.png, guide_4_hit.png OK; Baren anchor OK.
+DEVIATIONS: (a) 1번 대기 자세의 장검 뿌리가 허리 의상에 겹침. 현재 초안을 그대로 인계. PC에서 이 자세의 검을 몸 밖으로 옮길 부분. 가이드 방패 대신 빈 주먹과 손목 쇠고리. (b) none. (c) none.
+RISKS AT GAME SIZE: 대기 크기 368px 경고와 96px 타격 자세 +2px 이동. 현재 초안을 보정용으로만 사용; 클로드가 크기/배율을 확인하고 PC 보정이 끝나기 전에는 게임에 등록하지 말 것.
+PROPOSALS: 막힘 답 ab4b3cd에 따른 Aseprite 입력용. 완성본·등록본 아님.
