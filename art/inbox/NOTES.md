@@ -221,3 +221,9 @@
 - `sheet_class_archer.png`: 자세·윤곽·크기·위치는 그대로. 얼굴 둘레 후드 앞 가장자리를 장식 열쇠 색에서 제복 열쇠 색(#394b78 바탕, #263459 주름 선)으로 바꿨다. 마스크는 어두운 두 단계만(#394b78 바탕, #263459 주름), 눈 틈은 따뜻한 어둠 그대로. 밑단 밖에 흩어져 있던 장식 열쇠 색 점 29개(어깨·팔 외곽선, 활시위 위)를 주변 색(외곽선·시위 색)으로 정리 — 장식 열쇠 색은 이제 상의 밑단에만 있다.
 - Aseprite 원본: `aseprite/sheet_class_archer.aseprite` (original / touchup / touchup_accent_strays 레이어).
 - 검사: `check_delivery.py` PASS (32색, 키와 최소 거리 205.7, 네 자세 최하단 y=870). 열쇠 색 확인 줄: 일곱 열쇠 모두 사용, near-key non-key pixels 0.
+
+## 손질 — 도적 (Aseprite)
+
+- `sheet_class_rogue.png`: 자세·윤곽·크기·위치는 그대로. 입·코 스카프를 장식 열쇠 색에서 제복 열쇠 색 어두운 두 단계로(밝은 면·바탕 → #394b78, 그늘 → #263459). 스카프가 후드 천과 바로 닿는 곳(67px)은 #263459 주름 선으로 갈라 후드와 하나로 보이지 않게 했고, 나머지 둘레는 원래의 따뜻한 어둠 외곽선 그대로. 허리 천 밖에 흩어진 장식 색 점 12개(단검 끝·외곽선)를 주변 색으로 정리 — 장식 열쇠 색은 이제 가는 허리 천에만 있다.
+- Aseprite 원본: `aseprite/sheet_class_rogue.aseprite` (Background = 받은 PNG / touchup 레이어).
+- 검사: `check_delivery.py` PASS (32색, 키와 최소 거리 205.7, 네 자세 최하단 y=870). 열쇠 색 확인 줄: 일곱 열쇠 모두 사용, near-key non-key pixels 0, 얼굴의 장식 열쇠 색 0.
