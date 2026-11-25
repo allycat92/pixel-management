@@ -308,7 +308,7 @@ const CAPTAIN_CLASSES = {
     [SK.heal('순례자의 기도', 1.15, 70, 1.5), SK.melee('맨발의 심판', 1.4, 8, { aoe: 12 })], { str: 0.5 }),
 
   // ── 중반 영입 과제 대상 1 (6) ──
-  spellblade: cap('마검사', 'mage', '검과 마법을 함께 다루는 이단의 기사. 마법사들의 힘을 한데 모은다.', L('#2a2a6a', '#7fd6e8', 'none', 'staff'),
+  spellblade: cap('마검사', 'mage', '검과 마법을 함께 다루는 이단의 기사. 마법사들의 힘을 한데 모은다.', L('#2a2a6a', '#7fd6e8', 'none', 'sword'),
     { name: '마력 공명', power: 0.04, cls: { mage: 0.15 }, types: { magic: 0.2 } },
     [SK.melee('마력검', 1.2, 1.0, { aoe: 8 }), SK.shot('비검', 'bolt', 1.6, 80, 8, { hits: 2 })], { str: 1 }),
   saintknight: cap('성광 기사', 'cleric', '빛의 맹세를 지키는 기사. 그가 있는 한 아무도 버려지지 않는다.', L('#e8e4d8', '#f2c94c', 'helmet', 'mace'),

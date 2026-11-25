@@ -46,24 +46,24 @@
  {
   "key": "spellblade",
   "en": "Cassian (카시안) — Excommunicated Spellblade (마검사, mage captain)",
-  "weapon": "staff",
+  "weapon": "katana",
   "size_class": "normal",
-  "character": "Cassian: tall, elegant man in his thirties, long wavy ash-silver hair to mid-back, stern blue eyes, two thin diagonal scars on the cheek, high-collared dark navy long coat with pale-cyan trim and swirl embroidery on the shoulder cape, small gold four-point star brooch, holds a dark staff topped by a gold-caged pale-cyan diamond crystal (as in the portrait).",
-  "colours": "skin #f5d6b8, hair #c9c2b8 (long), outfit #2a2a6a (dark navy), accent #7fd6e8 (pale cyan trim, crystal); gold fittings ~#d9a441",
+  "character": "Cassian: tall, elegant man in his thirties, long wavy ash-silver hair to mid-back, stern blue eyes, two thin diagonal scars on the cheek, high-collared dark navy long coat with pale-cyan trim and swirl embroidery on the shoulder cape, small gold four-point star brooch; wields a one-handed rune longsword (straight light-steel blade engraved with flat pale-cyan runes, gold cross-guard, dark wrapped grip).",
+  "colours": "skin #f5d6b8, hair #c9c2b8 (long), outfit #2a2a6a (dark navy), accent #7fd6e8 (pale cyan trim, blade runes); gold fittings ~#d9a441, blade steel ~#c8ccd2",
   "notes": [
-   "Weapon follows the PORTRAIT: a dark staff with a gold-caged pale-cyan diamond crystal head (his '마력검' slash is drawn by the engine; the strike pose follows the guide: free hand thrust forward, staff upright behind). The story/prompt mentions a magic sword; owner to confirm — if a sword is wanted instead, use a one-handed longsword with cyan runes and the katana guide.",
-   "Crystal head is a solid pale-cyan gem with a dark outline: NO glow, no blue smoke wisp (the portrait's smoke is omitted), no floating particles or runes.",
-   "Staff head and crystal stay outside the head/hair silhouette on magenta in every pose; long hair is kept as a compact mass behind the shoulders.",
+   "Weapon (owner decision): ONE longsword with flat pale-cyan runes along the blade, gold cross-guard, dark grip long enough for a second hand — NOT the portrait's crystal staff (take only face, hair and coat from portrait.png). Hold it as the guide does (both hands on the grip where the guide shows two hands); the guide's blade marks the sword's position and length.",
+   "Runes are FLAT cyan #7fd6e8 lines on a light neutral-steel blade (~#c8ccd2) with a dark outline: NO glow, no blue smoke, no floating runes or particles (the engine draws the '마력검' slash).",
+   "Blade stays outside the head/hair and coat silhouette on magenta in every pose; long hair is kept as a compact mass behind the shoulders.",
    "Coat is dark navy-blue, not violet; keep any purple highlights blue-shifted and dark (magenta rule), cyan trim crisp so the coat reads on dark terrain.",
    "Cheek scars and the gold star brooch remain visible."
   ],
   "poses": [
-   "1 idle: staff held upright-forward in the near hand, crystal head above and ahead of the shoulder on magenta, free hand low, wide stance.",
-   "2 wind-up: staff raised high in the near hand, crystal head well above the head on magenta, free hand lifted, weight on the back leg, body coiled.",
-   "3 strike: lunge; free arm thrust straight forward, palm open; staff held upright behind in the near hand, crystal head clear of hair and body — NO glow, NO effect.",
-   "4 hit: torso thrown back, weight on the rear leg, head jerked back, staff dropped low and out to the front."
+   "1 idle: low guard stance, sword gripped with both hands at the waist, blade angled up and forward ahead of the body on magenta.",
+   "2 wind-up: sword raised overhead with both hands, blade pointing back behind and above the head on magenta, weight on the back leg.",
+   "3 strike: deep lunge, two-handed down-forward cut with the arms extended, blade angled down and forward in front of the body, tip above knee height — NO trail, NO glow, NO effect.",
+   "4 hit: torso thrown back, weight on the rear leg, head jerked back, free arm flung up, sword hanging low in the near hand pointing down-forward away from the body."
   ],
-  "ko_notes": "카시안: 긴 물결 은발, 뺨의 두 줄 흉터, 남색 하이칼라 코트+하늘색 장식, 금 별 브로치. 초상화·게임 데이터대로 금테 수정 지팡이(가이드 staff). 타격은 가이드대로 빈손을 앞으로 내밀고 지팡이는 뒤에 세움(마력검 베기는 엔진 효과). 이야기·요청서는 '마법검'이라 충돌 — 주인 확인 필요(검이면 katana 가이드). 빛·연기·룬 효과 없음, 보라 대신 짙은 남색."
+  "ko_notes": "카시안: 긴 물결 은발, 뺨의 두 줄 흉터, 남색 하이칼라 코트+하늘색 장식, 금 별 브로치. 무기는 주인 결정(2026-11-25)으로 청록 룬이 새겨진 장검(가이드 katana, 가이드처럼 두 손으로 쥐는 자세) — 초상화의 수정 지팡이는 쓰지 않는다(얼굴·머리·코트만 초상화에서). 룬은 평평한 하늘색 선, 빛·연기·궤적 없음(마력검 베기는 엔진 효과). 칼날은 몸 바깥, 보라 대신 짙은 남색."
  },
  {
   "key": "saintknight",
