@@ -59,6 +59,7 @@ FILE_RE = re.compile(r'^sheet_(captain|hero|class|monster)_([A-Za-z0-9-]+?)(?:@[
 KEY_TOL = 34.0               # 열쇠 색으로 볼 RGB 거리 (열쇠 색끼리는 43 이상, 다른 재질과는 그보다 멀게 고른다: art/requests/phase3_gpt.md 메시지 D)
 SPOT_TOL = 40.0              # 점 색(눈 등)으로 볼 RGB 거리 — spot_layer
 SPOT_MIN = 0.3               # 게임 px 하나에서 점 색이 이만큼 덮으면 그 px 를 점 색으로
+SPOT_BLOB_MIN = 0.08         # 게임 해상도에서 이어진 점 색 덩어리의 덮인 넓이 합이 이보다 작으면 티끌로 보고 버린다 (원본 ~3px)
 KEY_SPECK_R = 0.33           # 열쇠 색 점 지우기: 몸통으로 볼 최소 두께의 절반 (게임 px) — clean_key_specks
 KEY_SPECK_REACH = 0.66       # 몸통에서 이만큼(게임 px) 안의 가는 열쇠 선은 남긴다
 LONE_KEY_N8 = 1              # 게임 해상도: 8 이웃 중 열쇠 픽셀이 이 수 이하인 열쇠 픽셀은 뺀다 (외톨이·두 점짜리 부스러기)
@@ -138,8 +139,8 @@ def _dilate(m, r):
     return out
 
 
-def _label(m):
-    """4-연결 성분 번호 매기기 (작은 격자용, scipy 없이)."""
+def _label(m, diag=False):
+    """4-연결(diag=True 면 8-연결) 성분 번호 매기기 (작은 격자용, scipy 없이)."""
     h, w = m.shape
     lab = np.zeros((h, w), np.int32)
     n = 0
@@ -152,7 +153,10 @@ def _label(m):
         lab[y0, x0] = n
         while stack:
             y, x = stack.pop()
-            for yy, xx in ((y + 1, x), (y - 1, x), (y, x + 1), (y, x - 1)):
+            nb = ((y + 1, x), (y - 1, x), (y, x + 1), (y, x - 1))
+            if diag:
+                nb += ((y + 1, x + 1), (y + 1, x - 1), (y - 1, x + 1), (y - 1, x - 1))
+            for yy, xx in nb:
                 if 0 <= yy < h and 0 <= xx < w and m[yy, xx] and not lab[yy, xx]:
                     lab[yy, xx] = n
                     stack.append((yy, xx))
@@ -417,9 +421,10 @@ WIDE_BREATHE_DEPTH = 0.04    # 그때 몸이 오르내리는 폭 (몸 높이의 
 MAX_SHRINK = 0.85            # 칸에 맞추려고 이보다 더 줄여야 하면 실패 (자세가 잘못 나뉘었거나 여럿이 한 칸에 들어간 것)
 
 
-def place(rgb, mask, label, ref=None):
+def place(rgb, mask, label, ref=None, spot=None):
     """80x80 칸에 발 위치를 맞춰 넣는다. 조금 크면 줄이고, 15% 넘게 줄여야 하면 None (실패).
-    ref: idle 자세의 align_ref (idle 이 아닌 자세의 발 맞추기 — pose_feet_x)."""
+    ref: idle 자세의 align_ref (idle 이 아닌 자세의 발 맞추기 — pose_feet_x).
+    spot: 점 색 자리(>= 0) — 줄일 때 NEAREST 가 건너뛴 줄에 걸려도 점 색이 사라지지 않게 줄인 뒤 다시 찍는다."""
     h, w = mask.shape
     max_w, max_h = CELL - 2, ANCHOR[1] - 2
     if w > max_w or h > max_h:
@@ -429,8 +434,15 @@ def place(rgb, mask, label, ref=None):
             log(f'  실패: {label} 자세가 칸보다 훨씬 커서({w}x{h}) {nw}x{nh} 로 줄여야 한다 — 자세 나누기가 틀렸을 수 있다 (--grid / --poses 로 지정)')
             return None
         log(f'  주의: {label} 자세가 칸보다 커서({w}x{h}) {nw}x{nh} 로 줄였다')
+        sy, sx = np.nonzero(spot >= 0) if spot is not None else (np.zeros(0, int), np.zeros(0, int))
+        scol = rgb[sy, sx].copy()
         rgb = np.asarray(Image.fromarray(rgb.astype(np.uint8)).resize((nw, nh), Image.Resampling.NEAREST)).astype(np.float32)
         mask = np.asarray(Image.fromarray(mask.astype(np.uint8) * 255).resize((nw, nh), Image.Resampling.NEAREST)) > 127
+        if len(sy):
+            ny = np.minimum(nh - 1, (sy * nh // h)).astype(int)
+            nx = np.minimum(nw - 1, (sx * nw // w)).astype(int)
+            rgb[ny, nx] = scol
+            mask[ny, nx] = True
         h, w = mask.shape
     fx = pose_feet_x(mask, ref, label)
     x0 = int(round(ANCHOR[0] - fx))
@@ -466,7 +478,9 @@ def snap(rgb, pal):
 
 def spot_layer(c_rgb, c_a, spots, nw, nh):
     """점 색(눈·보석처럼 작지만 꼭 보여야 하는 색)이 축소·팔레트에서 사라지지 않게 — 게임 해상도의 점 색 번호(-1 = 없음).
-    원본에서 점 색(거리 SPOT_TOL 안) 픽셀을 찾아, 축소 후 SPOT_MIN 이상 덮인 px 와 덩어리마다 무게중심 px 하나를 점 색으로 둔다."""
+    원본에서 점 색(거리 SPOT_TOL 안) 픽셀을 찾아 BOX 축소로 게임 px 마다 덮인 비율을 잰다. SPOT_MIN 이상 덮인 px 는 점 색으로,
+    그 밖에는 게임 해상도에서 8-연결로 이어진 덩어리(원본에서 여러 조각으로 갈라진 눈도 하나로)마다 가장 많이 덮인 px 하나만 —
+    덩어리의 덮인 넓이 합이 SPOT_BLOB_MIN 보다 작으면 티끌로 보고 찍지 않는다."""
     out = np.full((nh, nw), -1, np.int64)
     if not len(spots):
         return out
@@ -477,20 +491,16 @@ def spot_layer(c_rgb, c_a, spots, nw, nh):
     which = d.argmin(-1)
     cov = np.stack([np.asarray(Image.fromarray(((near & (which == i)) * 1.0).astype(np.float32), 'F')
                                .resize((nw, nh), Image.Resampling.BOX)) for i in range(len(spots))])
-    out[cov.sum(0) >= SPOT_MIN] = cov.argmax(0)[cov.sum(0) >= SPOT_MIN]
-    lab, n = _label(near)
-    H, W = near.shape
-    ys, xs = np.nonzero(lab)
-    ls = lab[ys, xs]
-    cnt = np.bincount(ls, minlength=n + 1)
-    cx = np.bincount(ls, weights=xs + 0.5, minlength=n + 1)
-    cy = np.bincount(ls, weights=ys + 0.5, minlength=n + 1)
+    tot = cov.sum(0)
+    best = cov.argmax(0)
+    out[tot >= SPOT_MIN] = best[tot >= SPOT_MIN]
+    lab, n = _label(tot > 1e-6, diag=True)
     for k in range(1, n + 1):
-        gx = min(nw - 1, int(cx[k] / cnt[k] * nw / W))
-        gy = min(nh - 1, int(cy[k] / cnt[k] * nh / H))
-        if out[gy, gx] < 0:
-            sel = lab == k
-            out[gy, gx] = int(np.bincount(which[sel], minlength=len(spots)).argmax())
+        ys, xs = np.nonzero(lab == k)
+        if (out[ys, xs] >= 0).any() or tot[ys, xs].sum() < SPOT_BLOB_MIN:
+            continue
+        t = int(tot[ys, xs].argmax())
+        out[ys[t], xs[t]] = best[ys[t], xs[t]]
     return out
 
 
@@ -834,7 +844,12 @@ def process(path, sid, a, reqs):
     req_scale = None if (a.scale or a.height) else req.get('scale')
     tint = None if a.no_tint else req.get('tint')
     keys, roles = tint_keys(tint)
-    spot_hex = [h.strip() for h in a.spot.split(',')] if a.spot else list(req.get('spots') or [])
+    spot_hex = [h.strip() for h in (a.spot.split(',') if a.spot is not None else (req.get('spots') or []))]
+    spot_hex = [h for h in spot_hex if h]          # --spot '' = 점 색 끄기 (요청서의 spots 도 쓰지 않음)
+    bad = [h for h in spot_hex if not re.fullmatch(r'#?[0-9A-Fa-f]{6}', h)]
+    if bad:
+        log(f'  실패: 점 색은 #rrggbb 이어야 한다: {", ".join(bad)}')
+        return False
     spots = np.array([hex_rgb(h) for h in spot_hex], np.float32).reshape(-1, 3)
     if len(spots):
         log(f'  점 색 (축소 뒤에도 남김): {", ".join(spot_hex)} (거리 {SPOT_TOL:g} 안)')
@@ -945,7 +960,7 @@ def process(path, sid, a, reqs):
         if len(spots):
             q[sp >= 0] = spots[sp[sp >= 0]]
         q[~mask] = 0
-        cell = place(q, mask, nm, ref)
+        cell = place(q, mask, nm, ref, spot=sp if len(spots) else None)
         if cell is None:
             return False
         if nm == 'idle':
@@ -1086,7 +1101,7 @@ def main():
     ap.add_argument('--no-tint', action='store_true', help='요청서의 열쇠 색(tint)을 쓰지 않는다 (직업 시트를 바꿔 칠하지 않는 그림으로)')
     ap.add_argument('--pose-scale', help='자세별 배율 보정, 예: windup=0.9,strike=0.88 (기본: 요청서의 pose_scale). '
                     'idle 과 같은 배율로 그려지지 않은 자세(몸·머리까지 커진 공격 자세)를 idle 크기에 맞춘다')
-    ap.add_argument('--spot', help='축소 뒤에도 꼭 남길 작은 점 색(눈 등), 예: #d6455d,#f2c94c (기본: 요청서의 spots)')
+    ap.add_argument('--spot', help="축소 뒤에도 꼭 남길 작은 점 색(눈 등), 예: #d6455d,#f2c94c (기본: 요청서의 spots; --spot '' 이면 끈다)")
     ap.add_argument('--keep-key-specks', action='store_true',
                     help='열쇠 색 점 지우기(clean_key_specks · drop_lone_keys)를 끈다 — 비교용')
     ap.add_argument('--work', help='중간 결과·미리보기를 둘 폴더 (기본: 임시 폴더)')
