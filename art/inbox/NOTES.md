@@ -479,3 +479,10 @@ PROPOSALS: none.
 - 참고: 없음
 - 검사: `check_delivery.py` RESULT: PASS (42색, 키와 최소 거리 182.6, 네 자세 최하단 y=870) · against the base: silhouette changed 1513 px, colour changed 5171 px (per pose silhouette/colour: 327/1257, 443/1458, 344/1307, 399/1149)
 - 지침 판: 2026-11-26c
+
+## sheet/monster/거대 거미 - 4자세 재작성
+CHECK: RESULT: PASS
+REFERENCES LOADED: 승인 대기 컷 check_giant-spider_idle.png@555007c OK; concept_800.jpg OK; guide_layout.png OK; guide_scale.png OK; 바렌 화풍 앵커 OK.
+DEVIATIONS: (a) 대기 실루엣의 폭 543px와 발 배치를 기준으로 각 자세를 같은 축척으로 처리. 고정 발끝의 윤곽 재래스터화로 일부 발끝은 원본 기준 1–2px 차이, 바닥선은 네 칸 모두 y=461. (b) none. (c) none.
+RISKS AT GAME SIZE: SPOT: #d6455d (눈). 112px 변환에서 빨강은 대기/준비/타격/피격 각각 12/19/17/14px 남음. 작은 눈 일부와 먼 쪽 다리 끝은 어두운 숲에서 겹쳐 읽힐 수 있음. 타격 때 독니가 좁아지고 몸이 전진하는지, 피격 때 +2px 무게중심 보정이 발을 흔들어 보이지 않는지 실제 전투 확인 부탁.
+PROPOSALS: 동일 경로의 임시 시트를 바꿨으며, 게임 등록은 이 SHA 검수 뒤 결정 부탁.

@@ -18,7 +18,6 @@ Claude Code 가 받아서 확인한 결과는 `art/requests/feedback.md`에 남�
 
 | 누구 | 종류 | id | 할 일 (자세한 것은 그 줄의 요청서) |
 |---|---|---|---|
-| GPT | fix | `sheet/monster/거대 거미` | 꾸러미 README 맨 위 **THIS ROUND**: 통과한 대기 컷(`555007c`)을 바탕으로 네 자세, 눈을 선명한 빨강으로·몸 색 차갑게 |
 | GPT | new | `sheet/captain/beastmaster` | 오르가 — **막힘 답(ab4b3cd)**: 지금 초안을 그대로 납품한다. 피격 자세의 활·다리 겹침은 NOTES 의 DEVIATIONS 에 적으면 PC 가 그 자세의 활만 손질한다 |
 | GPT | new | `sheet/captain/liberator` | 카토 — **막힘 답(ab4b3cd)**: 지금 초안을 그대로 납품한다. 대기 자세의 장검·의상 겹침은 DEVIATIONS 에 적으면 PC 가 그 자세의 검만 손질한다 |
 | GPT | new | `sheet/captain/shadowqueen` | 니클라 |
@@ -29,7 +28,7 @@ Claude Code 가 받아서 확인한 결과는 `art/requests/feedback.md`에 남�
 | # | 질문 | 고를 것 | 기본 | 물은 날 |
 |---|---|---|---|---|
 | 1 | ~~걷기 그림의 범위~~ | **답 받음 (11-26)**: "걷기만 남기는 건 동의하지 않는다. 전투니까 차라리 뛰기 모션만 있는 게 맞다" → 전투 이동은 달리기. 엔진 기본 걸음을 달리기로, 뼈대는 `run_base`, 그려 줄 프레임도 달리기 | — | 11-26 |
-| 2 | 거대 거미 시안에서 꼭 남길 것 | Claude 가 읽은 여섯 가지(땅높이 옆모습 · 등보다 높은 다리 아치 · 큰 털 배 · 털 실루엣 · 반짝이는 붉은 눈 · 검보라 덩어리)가 맞는지, 빠진 것 | 여섯 가지 그대로 | 11-26 |
+| 2 | 거대 거미 다시 그리기 2 (11-26 등록) | 시안 옆 게임 크기 그림을 보고: 이대로 / 다리를 시안처럼 더 검게(PC 색 손질) / 다시 그리기. 꼭 남길 것 여섯 가지(땅높이 옆모습 · 등보다 높은 다리 아치 · 큰 털 배 · 털 실루엣 · 붉은 눈 · 검보라 덩어리)도 맞는지 | 이대로 | 11-26 |
 | 3 | ~~이사벨의 모자~~ | **답 받음 (11-26)**: 장교모로 통일 — 초상화·등록 시트가 이미 장교모, 요청서의 삼각모 문구를 고쳤다 | — | 11-24 |
 | 4 | 뼈대 만드는 방식 | 클라우드가 수치표로 초안을 만들고 PC 가 Aseprite 로 다듬기 (11-25 에는 "PC 가 따로 만들게"였다) | 이 방식으로 | 11-26 |
 | 5 | 남은 대장의 무기 | 초상화·스킬 이름·이야기가 다를 때 스킬·이야기 이름을 따를지(지금까지 세 번 모두 그렇게 정하셨다) | 스킬·이야기 이름 | 11-26 |
@@ -48,7 +47,7 @@ GPT 는 `art/requests/GPT_STANDING.md`, PC 는 `tools/aseprite-mcp/pc/CLAUDE.md`
 | `sheet/hero/astel` | **ACCEPTED** (2026-11-25 등록, art-inbox `67fc9a4`) | `art/inbox/sheet_hero_astel.png` | `art/requests/phase3/hero_astel/README.md` ("Prompt for GPT" 블록) | `art/requests/phase3/hero_astel/guide_strip.png` (배치·크기 견본), `guide_1_idle.png` ~ `guide_4_hit.png` | 특별 용병 아스텔. 디자인 기준 `portrait.png`. 납품 메모: `art/inbox/NOTES.md` 「3단계 — 아스텔」 |
 | `sheet/hero/marisol` | **ACCEPTED** (2026-11-25 등록, art-inbox `838857f`) | `art/inbox/sheet_hero_marisol.png` | `art/requests/phase3/hero_marisol/README.md` ("Prompt for GPT" 블록) | `art/requests/phase3/hero_marisol/guide_strip.png` (배치·크기 견본), `guide_1_idle.png` ~ `guide_4_hit.png` | 특별 용병 마리솔. 디자인 기준 `portrait.png`. 납품 메모: `art/inbox/NOTES.md` 「3단계 — 마리솔」 |
 | `sheet/hero/oswin` | **ACCEPTED** (2026-11-25 등록, art-inbox `cd09ed7`) | `art/inbox/sheet_hero_oswin.png` | `art/requests/phase3/hero_oswin/README.md` ("Prompt for GPT" 블록) | `art/requests/phase3/hero_oswin/guide_strip.png` (배치·크기 견본), `guide_1_idle.png` ~ `guide_4_hit.png` | 특별 용병 오스윈. 디자인 기준 `portrait.png`. 납품 메모: `art/inbox/NOTES.md` 「3단계 — 오스윈」 |
-| `sheet/monster/거대 거미` | **NEEDS_FIX** | `art/inbox/sheet_monster_giant-spider.png` | `art/requests/phase3/monster_giant-spider/README.md` 맨 위 **THIS ROUND** (대기 컷 `555007c` 조건부 통과 — 눈을 선명한 빨강으로·몸 색을 차갑게+림 라이트, 나머지 세 자세) | `art/requests/phase3/monster_giant-spider/guide_layout.png` | 다시 그리기 2(주인 피드백): `77c9e8f` 는 시안의 좋은 점이 빠짐(위에서 본 납작한 장난감 거미·회색 다리·매끈한 몸). 시안처럼 땅높이 옆모습·높이 휜 털 많은 검보라 다리·큰 털 배·붉은 눈 무리로 돌아가고, 다리는 디딘 채 몸·독니로 위협→물기. 같은 이름으로 덮어쓰기 (그때까지 지금 것을 임시로 씀) |
+| `sheet/monster/거대 거미` | **ACCEPTED — 주인 확인 대기** (2026-11-26 다시 그리기 2 `455985d` 등록: 붉은 눈·어두운 보라·대기 컷 그대로. 주인이 보고 아니라고 하면 다시 연다) | `art/inbox/sheet_monster_giant-spider.png` | `art/requests/phase3/monster_giant-spider/README.md` 맨 위 **THIS ROUND** (대기 컷 `555007c` 조건부 통과 — 눈을 선명한 빨강으로·몸 색을 차갑게+림 라이트, 나머지 세 자세) | `art/requests/phase3/monster_giant-spider/guide_layout.png` | 다시 그리기 2(주인 피드백): `77c9e8f` 는 시안의 좋은 점이 빠짐(위에서 본 납작한 장난감 거미·회색 다리·매끈한 몸). 시안처럼 땅높이 옆모습·높이 휜 털 많은 검보라 다리·큰 털 배·붉은 눈 무리로 돌아가고, 다리는 디딘 채 몸·독니로 위협→물기. 같은 이름으로 덮어쓰기 (그때까지 지금 것을 임시로 씀) |
 | `sheet/class/archer` | **ACCEPTED** (2026-11-25 PC 손질 `9b72e75` 등록) | `art/inbox/sheet_class_archer.png` | `art/requests/phase3/class_archer/README.md` + `art/requests/phase3_gpt.md` 「메시지 F」 | `art/requests/phase3/class_archer/guide_strip.png` | 손보기: 후드 앞 가장자리 → 제복 열쇠 색, 마스크는 어두운 단계 #263459/#394b78 로 (평평한 판 금지). 메시지 F 2번 + feedback.md 「메시지 F 보충」. 같은 이름으로 덮어쓰기 |
 | `sheet/class/rogue` | **ACCEPTED** (2026-11-25 PC 손질 `a9d92aa` 등록) | `art/inbox/sheet_class_rogue.png` | `art/requests/phase3/class_rogue/README.md` + `art/requests/phase3_gpt.md` 「메시지 F」 | `art/requests/phase3/class_rogue/guide_strip.png` | 손보기: 스카프 → 제복 열쇠 색 어두운 단계 #263459/#394b78 + 외곽선. 메시지 F 3번 + 보충. 같은 이름으로 덮어쓰기 |
 | `sheet/monster/해골 병사` | **ACCEPTED** (2026-11-25 PC 손질 `ea6fe20` 등록) | `art/inbox/sheet_monster_skeleton.png` | `art/requests/phase3/monster_skeleton/README.md` + `art/requests/phase3_gpt.md` 「메시지 F」 | `art/requests/phase3/monster_skeleton/guide_strip.png` | 손보기: 뼈·강철·천 재질 분리, 밝은 빨강 눈. 메시지 F 4번. 같은 이름으로 덮어쓰기 |
@@ -120,7 +119,7 @@ GPT 는 `art/requests/GPT_STANDING.md`, PC 는 `tools/aseprite-mcp/pc/CLAUDE.md`
 | `sheet_captain_bard.png` (리코) | 레이피어 날이 1px 짙은 회색이라 어두운 전장에서 흐리다 → 밝은 강철색(#c8ccd2 근처) 2px(원본 약 12px) | **끝 (`caebb20`)** |
 | `sheet_captain_frostjarl.png` (비요른) | 수염도끼 날이 작아 게임 크기에서 곡괭이처럼 보일 수 있다 → 날을 원본 약 30% 키우기(네 자세) | LATER |
 | `sheet_hero_kai.png` (카이) | 타격 자세에서 시위 당긴 손이 뒤로 빠지는 폭이 작아 준비·타격이 덜 구분된다 | LATER |
-| `sheet_monster_giant-spider.png` | 다시 그리기 2 가 통과하면 피격 자세가 대기와 구분되는지 확인 | 다시 그리기 뒤 |
+| `sheet_monster_giant-spider.png` | 다리가 시안(윤기 나는 거의 검정)보다 밝은 회보라다 → 다리만 몸통 그늘색 쪽으로 어둡게(PC 색 손질, 주인 답 2번에 따라). 피격 자세는 몸이 들려 대기와 구분된다(확인함) | 주인 답 대기 |
 | `sheet_monster_skeleton.png` | 찌르기 자세가 칸 오른쪽 끝에 닿아 2px 밀려 들어간다 (자세를 약간 좁히기) | LATER |
 | `sheet_monster_desert-bandit.png` | 타격 칼끝과 피격 자세 사이가 32px 안(검사 FAIL, 원래부터 — 변환은 정상). 피격 자세를 오른쪽으로 원본 12px | LATER (알려진 FAIL) |
 | 그 밖의 메모 | feedback.md 의 "급하지 않음·다음 손질 때" 줄들(세라핀·그롬·아스텔·오스윈·진·이사벨) — 올리기 전에 게임 화면에서 다시 확인 | 확인 필요 |
