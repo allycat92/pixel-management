@@ -700,3 +700,19 @@ Add a section "3단계 — 거대 거미 다시 그리기 2" to art/inbox/NOTES.
 ```
 웹판: 위 문장 + `art/requests/phase3/monster_giant-spider/` 의 concept.png·guide_layout.png·guide_scale.png 와 바렌 시트 첨부.
 
+## 메시지 I-0 — 거대 거미: 대기 한 컷 먼저 (GPT 제안 수락; 메시지 I 보다 먼저)
+
+```
+Your idle-first proposal for the giant spider is accepted. Before redrawing the four poses, draw ONLY the idle pose.
+READ (branch claude/dot-fantasy-management-game-saupju): art/requests/phase3/monster_giant-spider/concept_800.jpg
+(the owner's NovelAI draft #3, 800 px long side, small enough to load) and README.md in that folder.
+DRAW: art/inbox/check_giant-spider_idle.png on the art-inbox branch - ONE 768x512 PNG, flat #FF00FF, the idle pose alone,
+lowest pixel on y=461, facing right, at the same scale as the 2x2 quadrant (about 540 x 260 px with the legs).
+Keep what the owner liked in the draft: the ground-level side silhouette, legs arching higher than the back, the big hairy abdomen,
+the glossy red eye cluster. Separate the 4 near and 4 far legs as you proposed - stagger the far feet and knees and shade them darker,
+do NOT raise the viewpoint. Add a short section "거대 거미 — 대기 한 컷" to art/inbox/NOTES.md, commit, push art-inbox only, then stop.
+Claude will compare it with the draft at the same size and at game size (~36 px tall); after the owner OKs it, message I continues with the other three poses
+built on that idle (same silhouette and foot positions).
+```
+웹판: 위 문장 + `concept_800.jpg`·`guide_scale.png` 와 바렌 시트 첨부.
+
