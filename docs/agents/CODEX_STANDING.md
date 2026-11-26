@@ -16,6 +16,13 @@ Talk to the owner in Korean, short and plain. Every time you are told "계속" /
    commit with a message starting with the task id, push origin agent/codex.
 6. Tell the owner in Korean, in 2-3 lines: task id, commit hash, the key check results, and anything that blocked you.
 
+7. LOOP (automation, owner decision 2026-11-26) - do not wait for the owner between tasks. Do every ready row of yours, top to
+   bottom (skip a row you already delivered while the lead has not answered it). When none is left, run this and wait:
+     git fetch origin; git show origin/claude/dot-fantasy-management-game-saupju:tools/agents/wait_for_work.py | python - --agent codex
+   (no `python`? use `py -` or `uv run python -`.) It blocks until the lead queues new work or answers your delivery.
+   First output line WORK -> go back to step 1. First line IDLE -> run the same command again. Keep looping until the owner
+   says "멈춰" / stop. Speak to the owner only when you deliver something or are blocked.
+
 Never push to claude/dot-fantasy-management-game-saupju or art-inbox. Never force-push. Never edit assets/ or art/inbox/.
 If the task is unclear or would need a design decision, write "## <id> — 막힘" in your report with the question, push, and stop.
 ```

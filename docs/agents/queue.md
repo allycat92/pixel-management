@@ -7,8 +7,8 @@
 
 | 누구 | id | 상태 | 할 일 (자세한 것은 그 줄의 문서) |
 |---|---|---|---|
-| Codex | `C2-playtest-fixes` | READY | 플레이테스트에서 나온 자잘한 오류 12가지 고치기: `docs/agents/tasks/C2-playtest-fixes.md` |
-| GPT | `Q1-verify-c2` | READY (C2 가 REVIEW 가 된 뒤) | C2 의 수정 12가지를 실제 화면(1280·400 폭)에서 하나씩 확인: 작업 문서 `docs/agents/tasks/C2-playtest-fixes.md` 의 항목 번호대로 통과/미통과와 스크린샷 |
+| Codex | `C2-playtest-fixes` | REVIEW (`94a0fe6`, GPT 의 Q1 확인 대기) | 플레이테스트에서 나온 자잘한 오류 12가지 고치기: `docs/agents/tasks/C2-playtest-fixes.md` |
+| GPT | `Q1-verify-c2` | READY (C2 는 `origin/agent/codex` `94a0fe6` 에 있다 — 그 브랜치를 받아 확인) | C2 의 수정 12가지를 실제 화면(1280·400 폭)에서 하나씩 확인: 작업 문서 `docs/agents/tasks/C2-playtest-fixes.md` 의 항목 번호대로 통과/미통과와 스크린샷 |
 
 ## 끝난 일
 
