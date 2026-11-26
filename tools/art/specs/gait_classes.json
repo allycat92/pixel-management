@@ -1,0 +1,394 @@
+{
+  "version": 1,
+  "about": "Movement (run) class per battle sheet: light | heavy | robe (+ none for non-humanoids). Owner decision 2026-11-26: 달리기(이동)를 경량·중량·로브 세 부류로. Battle movement stays RUNNING: for heavy/robe that means the fastest natural gait for that body, not a slow walk. Frames are drawn over a skeleton/mannequin (PC session); never deform drawn art. Gait class is separate from the hit weight in motion_chars.json hit.sheets (how a body TAKES a blow): e.g. warlord/khan/frostjarl are hit 'heavy' but gait light. Plan + Korean table: docs/plans/2026-11-26_gait_classes.md.",
+  "source": "each sheet's idle cell (frame 0) plus attack/hit cells cropped from assets/art/sheets/*.png and viewed, plus the CHARACTER text in art/requests/phase3/<pkg>/README.md",
+  "owner_quote": "달리기(이동)에 대해 3가지 부류를 정하고 싶어. 경량, 중량, 로브. 펑퍼짐한 천 복장을 입고 뛰는것도 좀 부자연스러울거고, 중장비를 갖추면 당연히 뛰는건 물론이고 몸이 저렇게 땅에서 떨어지거나 몸을 앞으로 기울인 채로 가누기도 어려울테니까.",
+  "rules_of_thumb": {
+    "heavy": "plate armour / full metal or scale / tower shield / very large weapon carried",
+    "robe": "long robes, gowns, cassocks, long cloaks reaching below the knee that hide the knees and thighs",
+    "light": "everything else: leather, cloth to the knee, chain shirt with tabard/gambeson, cloaks or long OPEN coats over trousers where the legs read",
+    "borderline": "entries with a 'borderline' field carry the default in 'gait' and the reason the other class is defensible"
+  },
+  "classes": {
+    "light": {
+      "ko": "경량",
+      "summary": "the accepted run: lean forward, press down in flight, rise a little after the landing is caught, hip nearly level, slight float, no hopping.",
+      "guide": "art/requests/guides/run_base/v2/pose.json",
+      "flight_phase": "short (one cell R4/R8; feet only a few px off the floor)",
+      "torso": "clear forward lean",
+      "hip": "nearly level, slight float",
+      "knee_lift": "normal running knee drive",
+      "arms": "pump opposite to the legs (weapon hand carries the weapon)",
+      "stride_note": "drawn stride 45.5 game px vs ~20 px per code step at 1x -> the planted foot slides ~6-8 px per contact cell (being fixed by another workflow; do not change cadence here)",
+      "who": "leather, cloth to the knee, chain shirt with tabard/gambeson, cloaks or long OPEN coats over trousers where the legs read"
+    },
+    "heavy": {
+      "ko": "중량",
+      "summary": "heavy armour / tower shield / very large weapon: cannot really run. Fastest natural gait for that body = a heavy jog/trudge-run: NO flight phase (one foot always on the ground), torso nearly upright (a few degrees at most), short stride, weight carried and dropped onto each footfall.",
+      "flight_phase": "none - every cell has one foot planted; short double-support at each contact",
+      "torso": "near upright (0-5 deg forward), shoulders roll with the weight, head steady",
+      "hip": "drops visibly at each contact (the weight lands), small rise at mid-stance; no float",
+      "knee_lift": "low (foot clears the ground only a little)",
+      "arms": "held close / carrying shield or weapon; little or no pumping",
+      "stride_game_px": "~20-24 (= about one code step, so the planted foot stays planted)",
+      "feel": "heavy grounded footfalls; slower cadence feel is from the weight drop, not from walking",
+      "who": "plate armour, full metal or scale armour, tower shield, very large weapon worn/carried (giant maul)"
+    },
+    "robe": {
+      "ko": "로브",
+      "summary": "loose long cloth: running in it looks unnatural. Fastest natural gait = a hurried stride/glide: upright, NO flight phase, NO big knee lift; the hem swings and hides most of the leg, only the feet/shins flick out at the hem.",
+      "flight_phase": "none - one foot always on the ground",
+      "torso": "upright or very slight lean; the cloth may lift a little at the hands holding staff/hem",
+      "hip": "smooth, small bob; glide",
+      "knee_lift": "small - the knee pushes the cloth forward as a soft bulge, it never breaks the silhouette",
+      "legs": "drawn mostly as hem shape; the front foot shows at the hem, the back foot peeks behind",
+      "hem": "swings opposite to the stepping leg, trails one cell behind (secondary motion)",
+      "stride_game_px": "~22-28 (stays planted at the code step)",
+      "who": "long robes, gowns, cassocks/robes and long cloaks reaching below the knee that hide the knees and thighs"
+    },
+    "none": {
+      "ko": "해당 없음",
+      "summary": "non-humanoids keep their own movement (quad/bug/hover; gaitType() in js/battle.js). Not part of the three classes."
+    }
+  },
+  "counts": {
+    "heavy": 7,
+    "light": 30,
+    "none": 5,
+    "robe": 10
+  },
+  "sheets": {
+    "sheet/captain/admiral": {
+      "gait": "light",
+      "why": "navy officer's coat to the knee over trousers and tall boots; crossbow (normal size). Legs read clearly in every cell."
+    },
+    "sheet/captain/archmagus": {
+      "gait": "robe",
+      "why": "ankle-length navy robe and mantle with a lavender front panel; only the shoe tips show; slightly stooped old woman."
+    },
+    "sheet/captain/bard": {
+      "gait": "light",
+      "why": "plum frock coat (tails to mid-thigh), trousers, boots, rapier; slim agile duellist."
+    },
+    "sheet/captain/beastmaster": {
+      "gait": "light",
+      "why": "fur mantle over the shoulders only, leather tunic, trousers, boots, longbow."
+    },
+    "sheet/captain/blademaster": {
+      "gait": "light",
+      "why": "fitted tunic, half cape/hip wrap on one side, trousers, boots, katana."
+    },
+    "sheet/captain/demonhunter": {
+      "gait": "robe",
+      "why": "long hooded cloak to mid-shin with a front tabard panel hanging between the legs; knees and thighs hidden in idle/attack.",
+      "borderline": "the cloak is open at the front and wide trousers + boots show below it; a sturdy man with a one-handed mace could also take LIGHT with a swinging hem. Default robe: from mid-thigh to mid-shin the leg is cloth."
+    },
+    "sheet/captain/dragonslayer": {
+      "gait": "heavy",
+      "why": "full dark-crimson dragon-scale armour (scale coat to the knee, layered scale pauldrons) plus a huge two-handed greatsword.",
+      "borderline": "drawn athletic and bare-headed, the scale coat reads lighter than plate; LIGHT is defensible. Default heavy: metal scale over the whole torso and thighs + the largest sword in the cast (owner: heavy equipment cannot lean/fly)."
+    },
+    "sheet/captain/elfwarden": {
+      "gait": "light",
+      "why": "hooded cloak over a fitted tunic, trousers and boots; recurve longbow; tall slender elf."
+    },
+    "sheet/captain/fieldmedic": {
+      "gait": "light",
+      "why": "long field coat open at the front (tails to the calf behind), knee-length red apron, dark trousers and boots; mace.",
+      "borderline": "the coat tails reach the calf; but the front is open and both legs read in every cell. Light with coat-tail swing."
+    },
+    "sheet/captain/fixer": {
+      "gait": "light",
+      "why": "black leather jacket, trousers, boots, dagger; lean agile build."
+    },
+    "sheet/captain/frostjarl": {
+      "gait": "light",
+      "why": "slate-blue 'armoured tunic' drawn as a padded/quilted tunic to mid-thigh, big fur mantle on the shoulders, trousers, fur-trimmed boots, long-hafted axe.",
+      "borderline": "tall broad man with a fur mantle and armoured tunic (hit weight 'heavy' in motion_chars.json); HEAVY is defensible. Default light: no plate, no shield, legs free from the thigh down; the axe is long-hafted but slim."
+    },
+    "sheet/captain/hedgemage": {
+      "gait": "robe",
+      "why": "purple wizard robe to mid-shin with rope belt; thighs and knees hidden, only shins/boots show.",
+      "borderline": "trousers and boots visible below the hem and a cheerful young body; LIGHT with hem swing is possible. Default robe: the robe covers the knees, so a knee-lift run would push through cloth."
+    },
+    "sheet/captain/hexer": {
+      "gait": "robe",
+      "why": "long high-collared coat hanging below the knee (to the ankle behind) with a dark skirt-like lower panel; knees hidden.",
+      "borderline": "it is a coat, open at the front, and dark legs + boots show between the panels; LIGHT is possible. Default robe: from the waist to the shin the silhouette is cloth panels."
+    },
+    "sheet/captain/huntress": {
+      "gait": "light",
+      "why": "hooded tunic, leather vest, trousers, boots, short recurve bow."
+    },
+    "sheet/captain/inquisitorlord": {
+      "gait": "robe",
+      "why": "deep-crimson hooded inquisitor robe to mid-shin with a gold cord; long-hafted mace.",
+      "borderline": "the robe is split at the front and brown trousers + boots show; LIGHT possible. Default robe: he is described and drawn in a robe; the robe hides thighs and knees."
+    },
+    "sheet/captain/ironwall": {
+      "gait": "heavy",
+      "why": "slate-grey plate armour, open steel helmet, tower shield ~2 heads tall on the far arm, morning star."
+    },
+    "sheet/captain/khan": {
+      "gait": "light",
+      "why": "brown steppe coat (deel) to the knee/upper shin, open, over wide trousers and boots; heavy fur collar; composite bow.",
+      "borderline": "the deel hem reaches the upper shin and the fur collar is bulky (hit weight 'heavy'); but the legs read clearly between the coat panels and a nomad archer is a runner. Light with hem swing."
+    },
+    "sheet/captain/lancer": {
+      "gait": "heavy",
+      "why": "polished blue plate armour, steel greaves and sabatons, ornate plumed helmet, surcoat, infantry lance."
+    },
+    "sheet/captain/lightbearer": {
+      "gait": "robe",
+      "why": "layered cream-white robes to the ankle with flame embroidery on the hem; only the shoes show."
+    },
+    "sheet/captain/pilgrim": {
+      "gait": "robe",
+      "why": "beige hooded pilgrim cloak and long navy tunic to the shin, bare feet; long-hafted mace."
+    },
+    "sheet/captain/pirateking": {
+      "gait": "light",
+      "why": "crimson long coat (tails behind), trousers and tall boots fully visible at the front; cutlass.",
+      "borderline": "the coat tails are long, but the front is open and the legs read in every cell. Light with coat-tail swing."
+    },
+    "sheet/captain/runesmith": {
+      "gait": "heavy",
+      "why": "stocky dwarf in leather-and-steel armour with big rounded steel pauldrons and engraved plates, heavy two-handed rune warhammer."
+    },
+    "sheet/captain/saintknight": {
+      "gait": "heavy",
+      "why": "ivory-white plate armour with gold trim, gauntlets, greaves; star-headed mace."
+    },
+    "sheet/captain/shadowlord": {
+      "gait": "light",
+      "why": "hooded cloak to the thigh over a leather tunic, trousers, boots, dagger; wiry."
+    },
+    "sheet/captain/shadowqueen": {
+      "gait": "light",
+      "why": "hood and cloak over a corset, trousers and boots; lithe; long dagger.",
+      "note": "already has a drawn LIGHT run registered (anims.run, run_base/v2) - consistent, keep."
+    },
+    "sheet/captain/siegemaster": {
+      "gait": "light",
+      "why": "long leather coat to the knee, trousers, boots, steel helmet; heavy crossbow carried in the hands.",
+      "borderline": "helmet + heavy crossbow + sturdy build; but no body armour and the legs are free. Light."
+    },
+    "sheet/captain/spellblade": {
+      "gait": "light",
+      "why": "high-collared long coat open at the front, trousers and boots clearly visible; one-handed sword.",
+      "borderline": "coat panels reach the shin; legs read between them. Light with coat-tail swing."
+    },
+    "sheet/captain/tactician": {
+      "gait": "light",
+      "why": "charcoal military coat to the knee, trousers, boots, short cane."
+    },
+    "sheet/captain/titan": {
+      "gait": "heavy",
+      "why": "giant-blooded man with an enormous build carrying a huge two-handed stone maul (head bigger than his own head); leather harness, fur collar.",
+      "borderline": "no metal armour (bare arms, leather), so LIGHT is defensible by the armour rule. Default heavy: rule 'very large weapon' + giant mass - a stone maul that size is carried, not run with."
+    },
+    "sheet/captain/veteran": {
+      "gait": "light",
+      "why": "quilted gambeson over chainmail, helmet, round wooden shield, arming sword; legs in trousers and boots.",
+      "borderline": "chain + shield + helmet is mid-weight; by the rule 'chain shirt with tabard/gambeson = light'. Light."
+    },
+    "sheet/captain/warlord": {
+      "gait": "light",
+      "why": "leather harness, fur mantle and crimson cloak, iron horned helmet; huge two-handed war axe; legs in trousers and boots.",
+      "borderline": "huge man with a huge axe (hit weight 'heavy'); HEAVY is defensible by the large-weapon rule. Default light: no body armour and the axe is drawn about body height with a slim haft (smaller than the titan maul); a berserker charge is a run."
+    },
+    "sheet/captain/windhunter": {
+      "gait": "light",
+      "why": "hooded cloak/mantle over a tunic, trousers, boots, longbow."
+    },
+    "sheet/class/archer": {
+      "gait": "light",
+      "why": "knee-length hooded tunic, leather vest, trousers, boots, short bow."
+    },
+    "sheet/class/cleric": {
+      "gait": "light",
+      "why": "grey chainmail with a knee-length tabard over trousers and boots; one-handed mace; deep cowl.",
+      "borderline": "the tabard reaches the knee and the cowl reads clerical; but it is a chain shirt + tabard with trousers, which the rule puts in light."
+    },
+    "sheet/class/mage": {
+      "gait": "robe",
+      "why": "long robe to the shin with sash; only the boots show; wide pointed hat."
+    },
+    "sheet/class/rogue": {
+      "gait": "light",
+      "why": "leather armour, shoulder cape, trousers, boots, dagger."
+    },
+    "sheet/class/warrior": {
+      "gait": "light",
+      "why": "grey chainmail SHIRT with a knee-length sleeveless tabard, closed great helm, round wooden shield, arming sword; legs in trousers and boots.",
+      "note": "already has a drawn LIGHT run registered (anims.run frames 7-14, run_base/v2) - keep it. Not heavy because the body armour is a chain shirt (no plate, no greaves) and the shield is a round buckler-size wooden shield, not a tower shield; the closed helm alone does not stop a run. Its adv/master lines that wear plate (paladin, guardian, crusader, templar) get HEAVY only when they get their own sheet (class_defaults)."
+    },
+    "sheet/hero/astel": {
+      "gait": "robe",
+      "why": "purple scholar robes with gold embroidery, skirt panels to the shin with a front panel between the legs; staff.",
+      "borderline": "the robe is open and baggy trousers show in the wide idle stance; LIGHT possible. Default robe: described as robes, knees hidden."
+    },
+    "sheet/hero/grom": {
+      "gait": "light",
+      "why": "massive orc arena champion: fur collar, gold champion belt, cloth hip panels, trousers, boots; greatsword.",
+      "borderline": "massive body + greatsword; HEAVY is defensible. Default light: no armour, legs free; a gladiator runs."
+    },
+    "sheet/hero/kai": {
+      "gait": "light",
+      "why": "elf scout: hooded cloak over a tunic, trousers, boots, bow."
+    },
+    "sheet/hero/lyra": {
+      "gait": "light",
+      "why": "hooded masked outlaw: cloak to the thigh, fitted outfit, boots, daggers."
+    },
+    "sheet/hero/marisol": {
+      "gait": "light",
+      "why": "pirate captain: navy coat, trousers, tall boots, bow and pistol."
+    },
+    "sheet/hero/oswin": {
+      "gait": "heavy",
+      "why": "old knight commander in full rusted silver plate armour with greaves and sabatons; longsword; blue cloak."
+    },
+    "sheet/hero/seraphine": {
+      "gait": "robe",
+      "why": "torn white saint robes to the shin with a red sash; only the boots show."
+    },
+    "sheet/monster/가고일": {
+      "gait": "none",
+      "why": "winged stone gargoyle crouching on four limbs; not a humanoid runner (keeps its own movement; ENEMIES tpl 'drake')."
+    },
+    "sheet/monster/거대 거미": {
+      "gait": "none",
+      "why": "giant spider (tpl 'bug' -> quad/multi-leg gait, no jumping)."
+    },
+    "sheet/monster/들늑대": {
+      "gait": "none",
+      "why": "wolf (tpl 'beast' -> quad gait, bounds when running)."
+    },
+    "sheet/monster/망령": {
+      "gait": "none",
+      "why": "wraith (HOVER_MON -> hover, no feet)."
+    },
+    "sheet/monster/사막 도적": {
+      "gait": "light",
+      "why": "humanoid desert bandit: loose robe-tunic to the hip, leather vest, sash, baggy trousers tucked into boots; scimitar.",
+      "borderline": "loose sand-coloured cloth, but the 'robe-tunic' stops at the hip and the baggy trousers are separate per leg. Light."
+    },
+    "sheet/monster/산적": {
+      "gait": "light",
+      "why": "humanoid bandit: leather jerkin, trousers, boots, hand axe, small buckler."
+    },
+    "sheet/monster/하피": {
+      "gait": "none",
+      "why": "harpy with wings and bird legs (HOVER_MON -> hover)."
+    },
+    "sheet/monster/해골 병사": {
+      "gait": "light",
+      "why": "humanoid skeleton: bones, cloth scraps at the hips, open helmet, round wooden shield, sword."
+    }
+  },
+  "pending_packages": {
+    "sheet/captain/liberator": {
+      "gait": "light",
+      "why": "art/requests/phase3/captain_liberator exists but no sheet is registered yet; bare scarred torso, leather gladiator kilt/pants, shackles, one-handed longsword - light (hit weight 'heavy' is about how he takes a blow, not his gait)."
+    }
+  },
+  "class_defaults": {
+    "about": "Defaults for units WITHOUT their own sheet and for commissioning FUTURE sheets. The gait of a unit on screen must follow the sheet actually drawn (Art.sheetFor: art portrait -> monster -> captain -> hero -> class master -> adv -> base). Today every adv/master unit falls back to sheet/class/<base> and must use THAT sheet's gait (e.g. a paladin drawn with the warrior sheet runs light). Lookup when deciding a gait: sheets[<the sheet used>] > class_defaults.master[key] > adv[key] > base[cls]; sheet-less captains use captain_style; enemies use enemy_tpl.",
+    "base": {
+      "warrior": "light",
+      "archer": "light",
+      "mage": "robe",
+      "cleric": "light",
+      "rogue": "light"
+    },
+    "base_why": {
+      "warrior": "sheet/class/warrior: chain shirt + tabard + round shield",
+      "archer": "hooded tunic + trousers",
+      "mage": "robe to the shin (sheet/class/mage)",
+      "cleric": "chain + knee tabard over trousers (sheet/class/cleric)",
+      "rogue": "leather"
+    },
+    "adv": {
+      "paladin": "heavy",
+      "swordmaster": "light",
+      "ranger": "light",
+      "sniper": "light",
+      "elementalist": "robe",
+      "warder": "robe",
+      "highpriest": "robe",
+      "battlepriest": "light",
+      "assassin": "light",
+      "thief": "light"
+    },
+    "adv_why": {
+      "paladin": "성기사: plate is the archetype (outfit #c9ced6 steel) - heavy if its own sheet is drawn in plate",
+      "highpriest": "대사제: vestments (outfit #f2ecd8 cream)",
+      "battlepriest": "전투사제: melee priest in mail - light"
+    },
+    "master": {
+      "guardian": "heavy",
+      "crusader": "heavy",
+      "swordsaint": "light",
+      "berserker": "light",
+      "pathfinder": "light",
+      "beastcaller": "light",
+      "skyarcher": "light",
+      "arbalest": "light",
+      "archmage": "robe",
+      "stormmage": "robe",
+      "sealmaster": "robe",
+      "chronomancer": "robe",
+      "saint": "robe",
+      "oracle": "robe",
+      "inquisitor": "light",
+      "templar": "heavy",
+      "nightblade": "light",
+      "poisoner": "light",
+      "phantom": "light",
+      "smuggler": "light"
+    },
+    "master_why": {
+      "guardian": "수호기사: wall knight, plate (+shield)",
+      "crusader": "성전사: plate crusader",
+      "templar": "성당 기사: plate templar (outfit #d0d8e0 steel)",
+      "inquisitor": "심판관: battle-priest line, mail - light (the captain inquisitorlord is robe because of HIS drawn robe)",
+      "arbalest": "노궁 대장: heavy crossbow but no armour - light (cf. siegemaster)"
+    },
+    "captain_style": {
+      "warrior": "light",
+      "archer": "light",
+      "mage": "robe",
+      "cleric": "light",
+      "rogue": "light"
+    },
+    "captain_style_why": "only for a captain without a sheet; every current captain except liberator has a sheet entry above (which wins)",
+    "hero_class_to_sheet": {
+      "silverscout": "sheet/hero/kai",
+      "exsaint": "sheet/hero/seraphine",
+      "outlaw": "sheet/hero/lyra",
+      "pitchampion": "sheet/hero/grom",
+      "towerheir": "sheet/hero/astel",
+      "corsair": "sheet/hero/marisol",
+      "fallencommander": "sheet/hero/oswin"
+    },
+    "enemy_tpl": {
+      "imp": "light",
+      "brute": "heavy",
+      "demon": "light",
+      "beast": "none",
+      "bug": "none",
+      "ghost": "none",
+      "drake": "none",
+      "slime": "none",
+      "chest": "none"
+    },
+    "enemy_tpl_why": "imp = man-sized humanoids (goblin, bandit, lizardman, skeleton); brute = trolls/orcs/yeti/frost giant king, big heavy bodies (borderline for plain 오크 - a light run is possible); demon = 마족 전사 (light unless drawn armoured).",
+    "enemy_override": {
+      "데스 나이트": "heavy"
+    },
+    "enemy_override_why": {
+      "데스 나이트": "tpl imp, but a death knight is a plate-armoured knight"
+    }
+  }
+}
