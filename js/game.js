@@ -701,10 +701,13 @@ const Game = {
         this.releaseCompany(c.id, '유지비를 받지 못해 계약을 파기했습니다!', 'bad');
       });
       const sorted = s.mercs.filter((m) => m.status !== 'quest' && !this.isCaptain(m)).sort((a, b) => this.wage(b) - this.wage(a)); // 대장은 길드를 떠나지 않는다
+      // 전투 모드: 패배 뒤 한 주(graceUntil)는 주급을 못 받아도 떠나지 않는다 — 급료를 미루고(빚이 되지 않는다) 실망만 한다
+      const grace = s.resolve === 'battle' && s.day <= (s.graceUntil || 0);
       while (s.gold < owed && sorted.length) {
         const m = sorted.shift();
         owed -= this.wage(m);
-        this.removeMerc(m, '주급을 받지 못해 길드를 떠났습니다!', 'bad');
+        if (grace) { this.changeMorale(m, -10); this.log(`${m.name}${josa(m.name, '이', '가')} 급료를 받지 못했지만, 패배 직후라 길드 곁에 남았습니다. (사기 -10)`, 'bad'); }
+        else this.removeMerc(m, '주급을 받지 못해 길드를 떠났습니다!', 'bad');
       }
       // 대장은 떠나지 않는 대신 급료를 미루고 크게 실망한다
       const caps = s.mercs.filter((m) => this.isCaptain(m)).sort((a, b) => this.wage(b) - this.wage(a));
@@ -717,8 +720,8 @@ const Game = {
       s.gold -= owed;
       this.log(`주간 정산: 금화 ${owed} 지급.${s.gold < 0 ? ' 길드가 빚을 지고 있습니다!' : ''}`, s.gold < 0 ? 'bad' : '');
     }
-    // 사기가 바닥난 단원은 떠날 수 있다
-    s.mercs.filter((m) => m.status !== 'quest' && m.morale <= 15 && !this.isCaptain(m)).forEach((m) => {
+    // 사기가 바닥난 단원은 떠날 수 있다 (전투 모드: 패배 뒤 한 주는 떠나지 않는다)
+    if (!(s.resolve === 'battle' && s.day <= (s.graceUntil || 0))) s.mercs.filter((m) => m.status !== 'quest' && m.morale <= 15 && !this.isCaptain(m)).forEach((m) => {
       if (Math.random() < 0.4) this.removeMerc(m, '불만이 쌓여 짐을 싸서 떠났습니다!', 'bad');
     });
     this.weeklyCompanies();

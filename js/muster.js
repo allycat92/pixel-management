@@ -2,7 +2,16 @@
 // 예상(forecast)·판정(judge)·전투(Battle.run)가 모두 이 spec 하나만 읽는다. 여기서는 Math.random 을 쓰지 않고 상태도 바꾸지 않는다.
 // 지금은 '그림자' 단계: 의뢰 결과는 여전히 판정(성공 확률)이 정하고, 능력치 전투는 귀환 때 한 번 돌려 report.shadow 에 적기만 한다.
 // 설계: docs/plans/battle_stats/design.md 5장, 만든 것: stage01_notes.md
+// 3단계(스위치 뒤): Game.RESOLVE === 'battle' 이면 굳힌 편성의 전투가 결과를 정한다 (battleResolve). 기본 'roll' 은 오늘 게임 그대로 — stage3_notes.md
 'use strict';
+
+// 결과를 정하는 방식: 'roll' (기본, 오늘의 성공 확률 판정) | 'battle' (출격 때 굳힌 편성의 능력치 전투).
+// 저장에 남는다(state.resolve). 새 게임은 아무것도 묻지 않고 'roll' 로 시작한다. 시험용: 주소 ?resolve=battle (js/main.js), Game.setResolve('battle').
+Object.defineProperty(Game, 'RESOLVE', {
+  configurable: true,
+  get() { return this.state && this.state.resolve === 'battle' ? 'battle' : 'roll'; },
+  set(v) { this.setResolve(v); },
+});
 
 Object.assign(Game, {
   // 귀환 때 능력치 전투를 그림자로 돌릴지 (저장하지 않는다). 브라우저에서는 끈다 — 아무도 보지 않는 기록 때문에 하루 넘기기가 휴대폰에서
@@ -12,6 +21,26 @@ Object.assign(Game, {
   // 그 판을 그대로 재현해야 하는 회귀 기준(md5)을 전투가 결과를 정하는 단계까지 지키려는 것이다.
   equipGuard: true,
 
+  battleMode() { return !!(this.state && this.state.resolve === 'battle'); },
+  // 전투 모드를 켜거나 끈다. 켤 때 저장마다 하나인 비밀 소금(salt)을 정한다 — 의뢰가 생길 때 전투 시드에 굳혀 넣는다 (예측할 수 없고, 날마다 바뀌지 않는다)
+  setResolve(mode) {
+    const s = this.state;
+    if (!s) return;
+    if (mode === 'battle') {
+      s.resolve = 'battle';
+      if (!s.salt) s.salt = 1 + Math.floor(Math.random() * 0x7ffffffe);
+    } else delete s.resolve;
+  },
+  // 의뢰의 전투 소금: 만들 때 굳힌 c.bseed (없으면 저장의 소금) × 의뢰 번호. 다시 올라온 의뢰(번호가 새것)는 다른 전투가 된다
+  contractSalt(c) { return Stats.mix(c.bseed || (this.state && this.state.salt) || 1, c.id); },
+  // 특별한 전투: 보스, 최종 결전, 특별 용병·대장 이야기의 마지막 장. 전투 모드에서 사망은 여기서만 생긴다 (주인 결정 2)
+  specialBattle(c) {
+    if (c.boss || c.final) return true;
+    if (c.story && HEROES[c.story.hero]) return c.story.ch >= HEROES[c.story.hero].chapters.length - 1;
+    if (c.capStory && CAPTAINS[c.capStory.key]) return c.capStory.ch >= CAPTAINS[c.capStory.key].chapters.length - 1;
+    return false;
+  },
+
   // 편성 규칙은 옛 전투의 plan() (js/battle.js) 과 같다: 양쪽 최대 3부대, 부대마다 3~4명.
   // 다른 점: 적·지원 부대·아군 외형이 저마다 따로 난수를 쓴다 — 누구를 보내든 적 편성은 같다 (다시 굴릴 수 없다).
   // day: 전투 시드에 섞는 날 (기본 오늘. 옛 저장의 출격은 출발한 날)
@@ -20,7 +49,9 @@ Object.assign(Game, {
     const MAX_GROUPS = 3, GROUP_MIN = 3, GROUP_MAX = 4;
     const { own, ext, allMembers } = this.unitParts(units);
     const sc = Stats.scale(c, this.effectiveReq(c));
-    const foeSeed = c.foe || c.id * 7919 + 17;   // 의뢰마다 하나
+    // 전투 모드: 적 편성과 전투 시드가 저장의 소금에서 나온다 (의뢰 번호만으로는 예측할 수 없고, 날짜를 섞지 않아 하루가 지나도 같다)
+    const bm = this.battleMode(), salt = bm ? this.contractSalt(c) : 0;
+    const foeSeed = bm ? Stats.mix(salt, 0xf0e) : c.foe || c.id * 7919 + 17;   // 의뢰마다 하나
     const rInt = (r, a, b) => a + Math.floor(r() * (b - a + 1));
     const rPick = (r, arr) => arr[Math.floor(r() * arr.length)];
     const looksFor = (r, color, n) => Array.from({ length: n }, () => {
@@ -42,7 +73,9 @@ Object.assign(Game, {
           st: { hp: sh.hp, atk: sh.atk, def: sh.def }, mul: sh.mul };
       });
       // 출격 인원이 셋이 안 되면 수습 용병이 머릿수를 채운다: 그 용병단에서 가장 낮은 단원의 레벨 (집에 두고 온 단원 포함)
-      const lowest = Math.max(1, Math.min(...this.members(o.c).concat(o.ms).map((m) => m.level)));
+      // 전투 모드: 대장은 빼고 실제 대원의 레벨만 본다 — 대장 혼자인 용병단에 대장 레벨의 수습이 붙지 않게 (대원이 없으면 1레벨)
+      const kin = bm ? this.members(o.c).concat(o.ms).filter((m) => !this.isCaptain(m)) : this.members(o.c).concat(o.ms);
+      const lowest = kin.length ? Math.max(1, Math.min(...kin.map((m) => m.level))) : 1;
       const r = Stats.rng(Stats.mix(foeSeed, 0xa11, o.c.id));
       looksFor(r, o.c.color, Math.max(0, GROUP_MIN - us.length)).forEach((lk) => us.push({ look: lk, cls: lk.cls, recruit: true, st: Stats.generic(lk.cls, lowest, 'minion', Stats.KN.TRAINEE_K) }));
       groups.push({ side: 0, kind: 'own', companyId: o.c.id, name: o.c.name, color: o.c.color, player: true, cohesion: o.c.cohesion, units: us });
@@ -86,7 +119,9 @@ Object.assign(Game, {
       const mon = (name, lead) => {
         const d = ENEMIES[name] || {}, boss = lead && !!d.boss, big = lead || !!d.big;
         const arch = d.arch || 'grunt', rank = boss ? 'boss' : big ? 'big' : 'minion';
-        return { mon: name, arch, rank, scale: boss ? 3 : big ? 2 : 1, boss, bigMon: big, st: Stats.enemy(arch, sc.lv, rank, sc.k) };
+        const u = { mon: name, arch, rank, scale: boss ? 3 : big ? 2 : 1, boss, bigMon: big, st: Stats.enemy(arch, sc.lv, rank, sc.k) };
+        if (bm) u.sk = Stats.monsterSkills(u);   // 전투 모드: 공격 방식은 틀이 정한다 (주술만 원거리). 예상(forecast)도 이 스킬을 읽는다
+        return u;
       };
       for (let i = 0; i < groupsN; i++) {
         const lead = i === 0 ? c.enemy : (def.boss ? rPick(r, pool) : c.enemy);
@@ -109,7 +144,7 @@ Object.assign(Game, {
       }
     }
     return {
-      v: 1, seed: Stats.mix(foeSeed, day == null ? s.day : day, 0xb7), terrain: PROVINCES[c.province] ? PROVINCES[c.province].terrain : null,
+      v: 1, seed: bm ? Stats.mix(salt, 0xb7) : Stats.mix(foeSeed, day == null ? s.day : day, 0xb7), terrain: PROVINCES[c.province] ? PROVINCES[c.province].terrain : null,
       rule: Stats.ruleOf(c), limit: Stats.KN.LIMIT, lv: sc.lv, k: +sc.k.toFixed(3), need: c.size, heads: this.unitsHeadcount(units), groups,
     };
   },
@@ -151,5 +186,107 @@ Object.assign(Game, {
       if (typeof console !== 'undefined') console.error('[shadow]', e);
       return null;
     }
+  },
+  // ───────── 3단계: 전투가 결과를 정하는 모드 ─────────
+  // 귀환할 때: 굳혀 둔 편성으로 전투를 한 번 돌려 결과를 정한다. 기록과 편성을 report.battle 에 남긴다 — 화면에서 보는 전투가 이 전투다 (Battle.play).
+  // -> { spec, rec, verdict, est, share } 또는 null (전투를 돌릴 수 없으면 옛 판정으로 간다)
+  battleResolve(mission, report, mods) {
+    if (typeof Battle === 'undefined' || !Battle.run) return null;
+    try {
+      let spec = mission.spec || this.muster(mission.contract, mission.units, mission.startDay);
+      const est = mission.est || this.forecast(spec);
+      const traitors = new Set(mission.units.map((u) => this.company(u.companyId)).filter((e) => e && !e.own && e.betrayed).map((e) => e.id));
+      if (traitors.size) spec = { ...spec, groups: spec.groups.map((g) => (g.kind === 'ext' && traitors.has(g.companyId) ? { ...g, betray: true } : g)) };
+      const rec = Battle.run(spec);
+      const verdict = this.judge(spec, rec, mods);
+      const share = Stats.foeShare(spec, rec);
+      report.battle = { v: 1, ver: rec.ver, tab: rec.tab, hash: rec.hash, winner: rec.winner, t: rec.t, end: rec.end,
+        R: est.R, band: est.band, foeShare: +share.toFixed(3), spec };
+      return { spec, rec, verdict, est, share };
+    } catch (e) {
+      if (typeof console !== 'undefined') console.error('[battle]', e);
+      return null;
+    }
+  },
+  // 우리 단원 id → { fate, hp } (편성에 들지 못한 단원은 없다 — 서 있던 것으로 본다)
+  fatesOf(spec, rec) {
+    const out = new Map();
+    Stats.oursOf(spec, rec).forEach((o) => { if (o.id && !o.ext) out.set(o.id, { fate: o.fate, hp: o.hp }); });
+    return out;
+  },
+  // 외부 용병단마다 쓰러진 인원
+  extDownOf(spec, rec) {
+    const out = new Map();
+    Stats.oursOf(spec, rec).forEach((o) => { if (o.ext && o.fate === 1) out.set(o.companyId, (out.get(o.companyId) || 0) + 1); });
+    return out;
+  },
+
+  // 길드 전력 눈금: 가장 강한 직속 용병단(단원 전부)이 별 등급마다 받을 예상 전력비 R. 기준 의뢰는 본거지의 고블린 토벌.
+  // 하루에 한 번 잰다 (단원 수가 바뀌면 다시). -> { companyId, R: [, R1, R2, … R14] }
+  capability() {
+    const s = this.state;
+    const c0 = this._cap;
+    if (c0 && c0.st === s && c0.day === s.day && c0.n === s.mercs.length) return c0;
+    const out = { st: s, day: s.day, n: s.mercs.length, companyId: 0, R: [] };
+    let best = null, bp = -1;
+    this.ownCompanies().forEach((co) => {
+      const ms = this.members(co);
+      if (!ms.length) return;
+      const p = this.ownCompanyPower(co, ms, 'hunt');
+      if (p > bp) { bp = p; best = co; }
+    });
+    if (best) {
+      out.companyId = best.id;
+      const units = [{ companyId: best.id, memberIds: this.members(best).map((m) => m.id) }];
+      const home = PROVINCE_KEYS.find((k) => PROVINCES[k].home) || PROVINCE_KEYS[0];
+      for (let L = 1; L <= LATE_MAX_LEVEL; L++) {
+        const ref = { id: 0, bseed: 0x5eed, foe: 0x5eed, type: 'hunt', cat: 'monster', level: L, size: 3, days: 2, req: Math.round(Stats.nominalReq({ level: L })),
+          province: home, issuer: this.owner(home), target: null, enemy: '고블린' };
+        out.R[L] = Stats.forecast(this.muster(ref, units)).R;
+      }
+    }
+    this._cap = out;
+    return out;
+  },
+  // 전투 모드의 의뢰 별 등급: 길드 전력 눈금에서 예상 단계(BOARD_W 비율)를 하나 뽑아 그 단계에 드는 별을 고른다. 등급이 연 상한을 넘지 않는다.
+  // 적은 별 등급이 정한다 — 용병단을 따라 세지지 않는다. 길드가 크면 같은 별이 쉬워지고, 더 높은 별이 게시판에 오른다.
+  battleLevel(p, bonus = 0) {
+    const r = this.rankIndex(), late = this.lateGame();
+    const cap = clamp(late ? r + 6 : r + 2, 1, this.maxContractLevel());
+    const tab = this.capability();
+    if (!tab.companyId) return null;
+    const w = Stats.KN.BOARD_W;
+    let x = Math.random() * w.reduce((a, b) => a + b, 0), band = 0;
+    for (; band < w.length - 1; band++) { x -= w[band]; if (x <= 0) break; }
+    const levels = [];
+    for (let L = 1; L <= cap; L++) levels.push(L);
+    const inBand = levels.filter((L) => Stats.bandOf(tab.R[L]) === band);
+    let L;
+    if (inBand.length) L = pick(inBand);
+    else {
+      // 그 단계에 드는 별이 없으면 단계 가운데에 가장 가까운 별 (등급 상한이 막으면 상한의 별)
+      const E = Stats.KN.BANDS, mid = [E[0] * 0.85, (E[0] + E[1]) / 2, (E[1] + E[2]) / 2, (E[2] + E[3]) / 2, E[3] * 1.2][band];
+      L = levels.reduce((a, b) => (Math.abs(Math.log(tab.R[b] / mid)) < Math.abs(Math.log(tab.R[a] / mid)) ? b : a), levels[0]);
+    }
+    return clamp(L + bonus, 1, this.maxContractLevel());
+  },
+  // 구호 의뢰: 길드에 대장만 남으면, 대장 혼자서도 이길 만한 쉬운 의뢰를 하나 걸어 둔다 (보수 ×1.5, 5일)
+  reliefCheck() {
+    const s = this.state;
+    if (!s.mercs.length || s.mercs.some((m) => !this.isCaptain(m))) return;
+    if (s.contracts.some((c) => c.relief) || s.missions.some((mi) => mi.contract.relief)) return;
+    const tab = this.capability();
+    if (!tab.companyId) return;
+    const cap = clamp(this.lateGame() ? this.rankIndex() + 6 : this.rankIndex() + 2, 1, this.maxContractLevel());
+    let level = 1;
+    for (let L = 1; L <= cap; L++) if (tab.R[L] >= Stats.KN.BANDS[3]) level = L;
+    const home = PROVINCE_KEYS.find((k) => PROVINCES[k].home) || PROVINCE_KEYS[0];
+    const c = this.makeContract({ province: home, type: 'hunt', issuer: this.owner(home), level, size: 2 });
+    c.relief = true;
+    c.reward = Math.round(c.reward * 1.5);
+    c.expires = s.day + 5;
+    c.title = `구호 의뢰: ${c.title}`;
+    s.contracts.unshift(c);
+    this.log(`길드에 대장만 남았습니다. 왕도에서 손쉬운 구호 의뢰를 맡겼습니다: 「${c.title}」`, 'event');
   },
 });

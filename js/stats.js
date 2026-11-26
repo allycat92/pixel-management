@@ -32,6 +32,21 @@ const Stats = (() => {
     FINAL_REQ: 3000,    // 최종 결전은 요구 전투력을 이 값으로 나눠 배율을 삼는다 (요구 전투력 공식이 다르다)
     LIMIT: 90,          // 전투 시간 제한(초)
     PIERCE: { fire: 0.5, curse: 0.5, holy: 0.5, bolt: 0.3 },   // 투사체별 방어 관통 (화살·단검·근접은 0)
+    // ── 3단계: 전투가 결과를 정하는 모드(Game.RESOLVE === 'battle')에서만 읽는 값. 'roll' 모드에서는 아무 데서도 읽지 않는다 ──
+    // 설명과 근거: docs/plans/battle_stats/stage3_notes.md
+    BOARD_W: [0.04, 0.16, 0.25, 0.30, 0.25],   // 새 의뢰의 예상 단계 비율 (무모 열세 백중 우세 압도): 쉬운 것부터 벅찬 것까지 늘 보이게
+    BOARD_REACH: 1.0,   // 길드 전력 눈금을 재는 용병단: 1 = 가장 강한 용병단
+    LOSS_PAY: 0.1,      // 실패한 의뢰의 기본 보수 비율 (오늘과 같다)
+    LOSS_PAY_SHARE: 0.5,  // + 무찌른 적 전력 비율 × 이 값 (적의 절반을 꺾고 물러나면 보수의 35%)
+    RETREAT_MORALE: 0.5,  // 질서 있게 물러난 실패의 사기 하락 배율 (-6 → -3)
+    GRACE_DAYS: 7,      // 패배 뒤 이 날수 동안은 주급 탈주·불만 탈주가 없다
+    INJ_WIN: 0.6,       // 이긴 전투에서 쓰러진 단원이 다칠 확률 (설계 6장)
+    INJ_LOSE: 0.9,      // 진 전투에서 쓰러진 단원이 다칠 확률
+    INJ_LOW: 0.3,       // 서 있었지만 체력이 25% 아래인 단원의 가벼운 부상 확률 (1~2일)
+    DEATH_P: 0.3,       // 특별한 전투(보스·최종 결전·이야기의 마지막 장)의 대참사에서 쓰러진 단원의 사망 확률 (오늘 값)
+    GUILD_FLOOR: 3,     // 사망으로 길드 인원이 이 아래로 내려가지 않는다
+    EXT_KEEP: 0.5,      // 진 전투에서 쓰러진 외부 용병단원이 돌아올 확률 (최대 EXT_LOST_CAP 명 잃는다, 이기면 잃지 않는다)
+    EXT_LOST_CAP: 2,
   };
   // 능력치 공식의 계수
   const ATK_W = [1, 0.3, 0.1];            // 공격 = 가장 높은 능력치 + 0.3·둘째 + 0.1·셋째
@@ -179,6 +194,19 @@ const Stats = (() => {
     return { hp: Math.round(a.hp * ge(GEAR_EQ.hp) * R.hp * k), atk: +(atkOf(a.str, a.dex, a.int) * ge(GEAR_EQ.atk) * R.atk * k).toFixed(1),
       def: +((DEF_STR * a.str + DEF_HP * a.hp) * ge(GEAR_EQ.def) * R.def * k).toFixed(1) };
   }
+  // 괴물의 공격 방식 (3단계 전투 모드): 그림 틀(tpl)이 아니라 능력치 틀(arch)이 정한다 — 주술(caster)만 원거리.
+  // 옛 방식(js/battle.js monsterSkills)은 그림 틀을 따라 하피·가고일(drake)·마족 전사(demon)가 불·저주를 쏘고, 늪의 마녀(ghost 보스)는 근접이었다.
+  const SHOT_OF_TPL = { ghost: 'curse', drake: 'fire', demon: 'curse' };   // 원거리일 때 투사체 모양만 그림 틀을 따른다
+  function monsterSkills(u) {
+    const d = ENEMIES[u.mon] || {}, tpl = d.tpl, arch = u.arch || d.arch || 'grunt';
+    const shot = SHOT_OF_TPL[tpl] || 'curse';
+    const basic = arch === 'caster' && !u.boss ? SK.shot('공격', shot, 1, 70, 1.4) : SK.melee('공격', 1, 1.0, { range: u.bigMon ? 16 : 11 });
+    if (u.boss) return [basic, arch === 'caster' || tpl === 'drake' || tpl === 'demon' ? SK.shot('파멸의 숨결', shot === 'fire' ? 'fire' : 'curse', 1.6, 70, 7, { aoe: 26, stun: 0.6 })
+      : SK.melee('대지 분쇄', 1.8, 7, { aoe: 24, stun: 0.6, range: 18 })];
+    if (u.bigMon) return [basic, SK.melee('포효', 1.1, 9, { aoe: 20, stun: 0.4, range: 16 })];
+    if (u.mon === '거대 거미') return [basic, SK.shot('거미줄 뿜기', 'web', 0.4, 70, 8, { slow: 2.5 })];
+    return [basic];
+  }
   // 의뢰 갈래 (KIND_K, 표 묶음용)
   const kindOf = (q) => (q.final ? 'final' : q.campaign ? 'campaign' : q.boss ? 'boss' : q.story ? 'story' : q.capStory ? 'capStory' : 'normal');
   const nominalReq = (q) => 24 * Math.pow(1.4, q.level - 1) * 1.175 * (q.boss ? 1.3 : 1);
@@ -267,6 +295,18 @@ const Stats = (() => {
       low: ours.filter((o) => o.fate === 0 && o.hp < 25).length, mvp: best ? best.id : 0 };
   }
 
+  // 무찌른 적 전력 비율 (0~1): 적의 최대 체력 가중, 쓰러진 적은 전부, 서 있거나 달아난 적은 깎인 만큼 (3단계: 실패한 의뢰의 보수)
+  function foeShare(spec, rec) {
+    let tot = 0, gone = 0, i = 0;
+    spec.groups.forEach((g) => g.units.forEach((u) => {
+      const row = rec.units[i++];
+      if (g.side !== 1) return;   // 적 부대만 (배신한 용병단은 편성에서 아군 쪽이라 세지 않는다)
+      const hp = u.st.hp;
+      tot += hp; gone += row[0] === 1 ? hp : hp * (1 - row[1] / 100);
+    }));
+    return tot ? clampN(gone / tot, 0, 1) : 0;
+  }
+
   return { KN, KNOBS, REF, ARCH, RANK, ELV, ARMOR_DEF, BAND_NAMES, rng, mix, raw, parts, sheet, aptOf, aidOf, armorDef, ref, enemy, generic,
-    kindOf, nominalReq, scale, ruleOf, margin, foeKind, bandOf, forecast, oursOf, judge };
+    kindOf, nominalReq, scale, ruleOf, margin, foeKind, bandOf, forecast, oursOf, judge, monsterSkills, foeShare };
 })();

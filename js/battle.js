@@ -3,7 +3,8 @@
 // 의뢰의 결과(대성공/성공/실패/대실패)는 판정에서 정해지고, 전투는 시드를 바꿔 가며 실제로
 // 시뮬레이션해 그 결과가 나오는 판을 찾아 재생한다. 연출을 위해 짜 맞춘 각본은 없다.
 // 능력치 전투(run): 출격 때 굳힌 편성(spec, js/muster.js)의 체력·공격·방어로 한 판을 그대로 돌려 기록을 낸다.
-// 지금은 '그림자'로만 쓴다 — 화면에 재생하는 전투와 의뢰 결과는 위의 옛 방식 그대로다 (docs/plans/battle_stats/stage01_notes.md).
+// 기본(Game.RESOLVE 'roll')에서는 그림자로만 쓴다 — 화면의 전투와 의뢰 결과는 위의 옛 방식 그대로다 (docs/plans/battle_stats/stage01_notes.md).
+// 전투 모드('battle')에서는 이 전투가 결과를 정하고, 화면은 같은 편성으로 같은 판을 재생한다 (stage3_notes.md).
 'use strict';
 
 const Battle = (() => {
@@ -75,6 +76,7 @@ const Battle = (() => {
 
 
   let raf = null;
+  let lastSt = null;   // 마지막으로 재생한 전투 상태 (Battle.last)
 
   // ───────── 시드 난수 ─────────
   function rng(seed) {
@@ -2731,10 +2733,26 @@ const Battle = (() => {
     stop();
     const q = report.quest;
     const won = report.outcome === 'great' || report.outcome === 'success';
-    const groups = plan(report);
-    const seed = report.seed || q.id * 7919 + 17;
-    const found = findBattle(groups, report.outcome, seed);
-    const st = setup(groups, found.bias, found.seed);
+    // 전투 모드(3단계): 결과를 정한 바로 그 전투를 재생한다 — 굳힌 편성(report.battle.spec)으로 같은 setup·step. 찾기(findBattle)는 없다.
+    // 먼저 화면 없이 한 번 돌려 해시를 맞춰 본다: 엔진이 바뀌어 다른 판이 나오는 옛 보고서는 재생하지 않고 바로 보고서로 간다.
+    const real = report.battle && report.battle.spec;
+    if (real) {
+      const rec = run(real);
+      if (rec.ver !== report.battle.ver || rec.hash !== report.battle.hash) {
+        const skip = document.createElement('div');
+        setTimeout(onDone, 0);
+        return skip;
+      }
+    }
+    const groups = real ? real.groups : plan(report);
+    let st;
+    if (real) st = begin(real);
+    else {
+      const seed = report.seed || q.id * 7919 + 17;
+      const found = findBattle(groups, report.outcome, seed);
+      st = setup(groups, found.bias, found.seed);
+    }
+    lastSt = st;   // 시험용: 화면에서 재생한 판의 기록을 판정과 맞춰 볼 수 있게 (Battle.last() → Battle.record)
 
     const cvs = document.createElement('canvas');
     cvs.width = CW; cvs.height = CH; cvs.className = 'battle-canvas';
@@ -2870,5 +2888,5 @@ const Battle = (() => {
 
   function stop() { if (raf) cancelAnimationFrame(raf); raf = null; }
 
-  return { play, stop, plan, simulate, findBattle, VER, setup, step, begin, record, run };
+  return { play, stop, plan, simulate, findBattle, VER, setup, step, begin, record, run, last: () => lastSt };
 })();

@@ -6,6 +6,8 @@ const STAT_NAMES_CAP = {
   monster: '괴물·치안 의뢰 성공', magic: '마법 조사 성공', raid: '습격 성공', siege: '거점 공략 성공',
   counterspy: '방첩 성공', campaign: '대규모 결전 승리', calamity: '재앙 세력 상대 의뢰 성공',
 };
+// 전투 모드(Game.RESOLVE === 'battle'): 확률 대신 출전 화면의 다섯 단어로 적는다 (출격 때 굳힌 예상 mission.est.band 로 센다)
+const STAT_NAMES_CAP_BATTLE = { hardStreak: '예상 「백중」 이하 의뢰 연속 성공', gambles: '예상 「열세」 이하 의뢰 성공', bigGambles: '예상 「무모」 의뢰 성공' };
 
 Object.assign(Game, {
   // s.captains[key] = { status: 'candidate' | 'locked' | 'challenge' | 'pursuing' | 'joined' | 'lost', ch, phase, why }
@@ -32,9 +34,10 @@ Object.assign(Game, {
     if (deaths) t.lastDeath = this.state.day;
     if (!won) { t.streak = 0; t.hardStreak = 0; return; }
     t.streak++;
-    if (mission.chance < 0.8) t.hardStreak = (t.hardStreak || 0) + 1;
-    if (mission.chance < 0.4) t.gambles++;
-    if (mission.chance < 0.25) t.bigGambles++;
+    const est = this.battleMode && this.battleMode() && mission.est;
+    if (est ? est.band <= 2 : mission.chance < 0.8) t.hardStreak = (t.hardStreak || 0) + 1;
+    if (est ? est.band <= 1 : mission.chance < 0.4) t.gambles++;
+    if (est ? est.band === 0 : mission.chance < 0.25) t.bigGambles++;
     if (c.cat === 'monster') t.monster++;
     if (c.type === 'magic') t.magic++;
     if (c.type === 'raid') t.raid++;
@@ -61,7 +64,7 @@ Object.assign(Game, {
       case 'dayMax': return { ok: s.day <= cd.v, dead: s.day > cd.v, text: `${cd.v}일차 안에 (현재 ${s.day}일차)` };
       case 'mercsMax': return { ok: s.mercs.length <= cd.v, text: `길드 인원 ${cd.v}명 이하 (현재 ${s.mercs.length}명)` };
       case 'companies': return { ok: this.ownCompanies().length >= cd.min, text: `직속 용병단 ${cd.min}개 이상 (현재 ${this.ownCompanies().length})` };
-      case 'stat': { const v = t[cd.k] || 0; return { ok: v >= cd.min, text: `${STAT_NAMES_CAP[cd.k]} ${cd.k.endsWith('treak') ? '' : '누적 '}${own(v, cd.min)}` }; }
+      case 'stat': { const v = t[cd.k] || 0; return { ok: v >= cd.min, text: `${(this.battleMode && this.battleMode() && STAT_NAMES_CAP_BATTLE[cd.k]) || STAT_NAMES_CAP[cd.k]} ${cd.k.endsWith('treak') ? '' : '누적 '}${own(v, cd.min)}` }; }
       case 'noDeath': { const v = s.day - (t.lastDeath || 0); return { ok: v >= cd.days, text: `최근 ${cd.days}일간 전사자 없음 (${Math.min(v, cd.days)}/${cd.days}일)` }; }
       case 'adv': { const v = s.mercs.filter((m) => m.adv).length; return { ok: v >= cd.min, text: `상급 이상 대원 ${own(v, cd.min)}` }; }
       case 'masters': { const v = s.mercs.filter((m) => m.master).length; return { ok: v >= cd.min, text: `최상급 대원 ${own(v, cd.min)}` }; }
