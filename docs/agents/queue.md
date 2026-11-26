@@ -7,7 +7,7 @@
 
 | 누구 | id | 상태 | 할 일 (자세한 것은 그 줄의 문서) |
 |---|---|---|---|
-| Codex | `C3-hire-button-when-full` | READY | 숙소가 가득 찼을 때 특별 용병·정예 영입 버튼을 끄고 이유 표시: `docs/agents/tasks/C3-hire-button-when-full.md` |
+| Codex | `C3-hire-button-when-full` | REVIEW | 숙소가 가득 찼을 때 특별 용병·정예 영입 버튼을 끄고 이유 표시: `docs/agents/tasks/C3-hire-button-when-full.md` |
 
 ## 끝난 일
 

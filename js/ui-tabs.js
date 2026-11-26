@@ -577,6 +577,8 @@
 
   T.recruit = (root) => {
     const s = Game.state;
+    const full = Game.bedsUsed() >= Game.capacity();
+    const lodgingHint = () => el('span', { class: 'small warn', text: '숙소가 가득 찼습니다. 숙소를 증축하세요.' });
     // 대원 모집: 직업을 골라 뽑는다
     const vl = Game.veteranLevel();
     root.append(el('div', { class: 'panel-head mt' },
@@ -585,7 +587,6 @@
     root.append(el('div', { class: 'unit-grid' }, Object.entries(CLASSES).map(([cls, C]) => {
       const lv1 = { ...C.base, maxHp: C.base.hp };
       const costN = Game.unitHireCost(cls, false), costV = Game.unitHireCost(cls, true);
-      const full = Game.bedsUsed() >= Game.capacity();
       return el('div', { class: 'card unit-card' },
         el('div', { class: 'card-head' },
           el('div', { class: 'portrait-wrap' }, UI.h.portrait({ cls, skin: '#f2c9a0', hair: '#5a3720' })),
@@ -597,7 +598,8 @@
         el('div', { class: 'small muted', text: `승급: ${PROMOTIONS[cls].map((p) => `${p.name} → ${MASTERS[p.key].map((x) => x.name).join('/')}`).join(' · ')}` }),
         el('div', { class: 'card-foot' },
           el('button', { class: 'btn small', disabled: full || s.gold < costN ? 'disabled' : null, onclick: () => Game.hireUnit(cls, false) }, icon('coin'), ` ${costN} 신병 Lv.1`),
-          el('button', { class: 'btn primary small', disabled: full || s.gold < costV ? 'disabled' : null, onclick: () => Game.hireUnit(cls, true) }, icon('coin'), ` ${costV} 숙련병 Lv.${vl}`)));
+          el('button', { class: 'btn primary small', disabled: full || s.gold < costV ? 'disabled' : null, onclick: () => Game.hireUnit(cls, true) }, icon('coin'), ` ${costV} 숙련병 Lv.${vl}`),
+          full ? lodgingHint() : null));
     })));
 
     root.append(el('div', { class: 'panel-head mt' },
@@ -613,8 +615,9 @@
     const grid = el('div', { class: 'grid' });
     s.recruits.forEach((m) => {
       const cost = Game.hireCost(m);
-      const btn = el('button', { class: 'btn primary small', disabled: s.gold < cost ? 'disabled' : null, onclick: () => Game.hire(m.id) }, icon('coin'), ` ${cost} 영입`);
-      const card = mercCard(m, { recruit: true, actions: [btn] });
+      const noBed = full && !Game.isCaptain(m);
+      const btn = el('button', { class: 'btn primary small', disabled: noBed || s.gold < cost ? 'disabled' : null, onclick: () => Game.hire(m.id) }, icon('coin'), ` ${cost} 영입`);
+      const card = mercCard(m, { recruit: true, actions: [btn, noBed ? lodgingHint() : null] });
       const h = m.hero && HEROES[m.hero];
       const desc = m.elite
         ? el('p', { class: 'small desc hero-desc' }, factionFlag(m.elite, 1), ` ${FACTIONS[m.elite].name} 정예 대원 · ${TRAITS[m.trait].name}: ${TRAITS[m.trait].desc} · 평판이 0 아래로 떨어지면 소환됨`)
