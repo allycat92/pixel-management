@@ -39,3 +39,5 @@
   GPT's standing instruction `art/requests/GPT_STANDING.md`; skeleton guides `art/requests/guides/SPEC.md`.
 - Owner policy: references (including third-party effect libraries or sprites) are for learning only — never ship someone else's
   finished assets or code in the game; generation/editing tools (Aseprite, sprite-gen offline) are fine.
+- Helper agents (Codex = GPT CLI, Antigravity) on the owner's PC: team rules `docs/agents/README.md`, task table `docs/agents/queue.md`,
+  standing instructions `docs/agents/CODEX_STANDING.md` / `ANTIGRAVITY_STANDING.md`. They push only to `agent/<name>`; the cloud reviews and merges.
