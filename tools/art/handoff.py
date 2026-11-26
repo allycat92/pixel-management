@@ -266,9 +266,13 @@ def hit_pose(weight, detail, face=HIT_FACE_EN):
     return f'{HIT_EN[weight]}; {face}; {detail}'
 
 
-# phrases that produced the knee-up comic hit (never in a pose text; "kick" alone is fine: "arm kicks up" = pistol recoil)
+# phrases that produced the knee-up comic hit (never in a request text; "kick" alone is fine: "arm kicks up" = pistol recoil).
+# Knee / leg lifting in both word orders ("front knee lifted", "lifts the front knee", "leg up"); feet are left out on
+# purpose: "bare front foot raised a little for the stamp" (a healer's hold) is a legitimate pose. Keep motion_bible.json
+# rules.banned_pose_re identical (it adds two Korean phrases; node tools/art/requests.js --motion compares them).
 BANNED_POSE_RE = re.compile(r'thrown back|rear (?:leg|bare foot|foot)|knees? (?:up|raised|lifted)|kicked up|'
-                            r'(?:lifted|raised) (?:front )?(?:leg|knee)|(?:leg|knee) (?:lifted|raised)', re.I)
+                            r'\b(?:lift|rais)\w* (?:up )?(?:the |her |his |their |its |one |a )?(?:front |near |far |lead |leading |back )?'
+                            r'(?:leg|knee)s?\b|(?:leg|knee) (?:lifted|raised)|\blegs? up\b', re.I)
 # notes that seal away a weapon / prop of the portrait: allowed only with an `explain` (reason + owner decision source),
 # because such sentences hid Marisol's pistol, Crimson's hook, Astel's book and Kato's chain (motion plan 2026-11-26)
 SEAL_RE = re.compile(r'stays? sheathed|\bsheathed\b|holster|never two|(?:on|from) (?:her|his|their) back|'
@@ -288,11 +292,16 @@ def pose_texts(C):
 
 
 def lint_request(cid, poses, notes=(), explain=''):
-    """→ list of problems: banned hit phrases in any pose text, portrait-weapon seals in the notes without `explain`."""
+    """→ list of problems: banned hit phrases in any pose text or note (fix / keep / weapon_desc / draft notes all reach
+    GPT), portrait-weapon seals in the notes without `explain`."""
     out = []
     for p, t in poses:
         for m in BANNED_POSE_RE.finditer(t):
             out.append(f'{cid}: pose "{p}" contains banned phrase "{m.group(0)}" (knee-up hit wording; use hit_pose())')
+    for n in notes:
+        for m in BANNED_POSE_RE.finditer(n):
+            out.append(f'{cid}: note contains banned phrase "{m.group(0)}" ({n[:90]}...) (knee-up wording; say "back leg" / '
+                       '"back foot", and keep feet and knees on the ground)')
     if not (explain or '').strip():
         for n in notes:
             m = SEAL_RE.search(n)
@@ -563,7 +572,7 @@ CHARS.update({
                         'the draft tabard has no trim: add the accent-key border trim',
                         'the draft\'s ochre-yellow boot cuffs become plain warm brown (nothing yellow on the figure)',
                         'the draft helm is bright polished silver with white glints: neutral mid steel grey, small highlights only',
-                        'the draft\'s rear leg crosses awkwardly behind the front one: legs and stance come ONLY from the guide']),
+                        'the draft\'s back leg crosses awkwardly behind the front one: legs and stance come ONLY from the guide']),
         head=head_fix('the closed helm IS the head: its outline and the mail coif', ', the small top spike extra'),
         weapon_desc=('a plain one-handed arming sword in the near hand and a round wooden shield (the guide shield\'s size) on the far arm; '
                      'the shield FACE is painted with the outfit keys (it shows the faction colour), its rim and boss are plain iron'),
@@ -1772,7 +1781,7 @@ def main():
             notes = C.get('fix', []) + C.get('design', []) + (C['draft']['fix'] if C.get('draft') else [])
         else:
             poses = list(pose_texts(C).items())
-            notes = fixes(C) + C['keep'] + [C['weapon_desc']]
+            notes = fixes(C) + C['keep'] + [C['weapon_desc']] + ([C['draft']['keep']] if C.get('draft') else [])
         bad = lint_request(cid, poses, notes, C.get('explain', ''))
         if bad:
             sys.exit('request lint FAILED (no package written):\n  ' + '\n  '.join(bad))

@@ -1,13 +1,46 @@
 {
   "version": 1,
-  "about": "Per-character motion data for the frame-by-frame sheets: archetype, hit weight, run class, signature (what the character holds and how each skill should look), timing and engine overrides, and the per-character mannequin overrides the PC applies to the archetype's base sequence. Copied into manifest sheet.motion at registration; the engine reads only the manifest. Frame bible: tools/art/specs/motion_bible.json. Plan: docs/plans/2026-11-26_motion_frames.md. Check: node tools/art/requests.js --motion.",
+  "about": "Per-character motion data for the frame-by-frame sheets: archetype, run class, signature (what the character holds and how each skill should look), timing and engine overrides, and the per-character mannequin overrides the PC applies to the archetype's base sequence. Copied into manifest sheet.motion at registration; the engine reads only the manifest. Frame bible: tools/art/specs/motion_bible.json. Plan: docs/plans/2026-11-26_motion_frames.md. Check: node tools/art/requests.js --motion. Hit weight: the hit table below (one source for every sheet).",
   "status_values": {
     "pilot": "in the pilot: mannequin + GPT strips + PC in-betweens + engine",
     "gate1-mannequin": "pilot gate 1 only: mannequin sequence, no GPT strip yet (tests the guide-similarity check or the release/origin path and the tightest budget)",
     "decided-signature": "owner decision recorded; timing / engine / mannequin come when the redraw is scheduled"
   },
+  "hit": {
+    "about": "THE one source of the hit weight (heavy | mid | light) of every sheet listed here; registration copies it into manifest sheet.motion. The request generators keep a copy (tools/art/handoff.py CHARS hit_weight, tools/art/specs/captains_batch2.json hit_weight) and node tools/art/requests.js --motion FAILs when a copy differs or a generator sheet is missing here. motion_bible.json hit.weights.*.users and archetypes.*.hit_default are defaults only, for sheets not listed here. Resolved 2026-11-26 (verifier finding 5): every generator weight checked against the motion audit; where the audit gives a reason it is in 'why' (all agree with the generator), otherwise the generator's value is kept.",
+    "sheets": {
+      "sheet/captain/blademaster": "mid", "sheet/captain/ironwall": "heavy", "sheet/captain/tactician": "light",
+      "sheet/captain/lancer": "mid", "sheet/captain/huntress": "light", "sheet/captain/hedgemage": "light",
+      "sheet/captain/fieldmedic": "mid", "sheet/captain/fixer": "light", "sheet/captain/veteran": "mid",
+      "sheet/class/warrior": "mid", "sheet/class/archer": "light", "sheet/class/cleric": "mid",
+      "sheet/class/mage": "light", "sheet/class/rogue": "light", "sheet/monster/해골 병사": "mid",
+      "sheet/monster/사막 도적": "mid", "sheet/monster/산적": "light", "sheet/captain/windhunter": "light",
+      "sheet/captain/shadowlord": "light", "sheet/captain/spellblade": "mid", "sheet/captain/saintknight": "heavy",
+      "sheet/captain/warlord": "heavy", "sheet/captain/khan": "heavy", "sheet/captain/dragonslayer": "mid",
+      "sheet/captain/demonhunter": "mid", "sheet/captain/bard": "light", "sheet/captain/beastmaster": "mid",
+      "sheet/captain/runesmith": "heavy", "sheet/captain/pilgrim": "mid", "sheet/captain/hexer": "light",
+      "sheet/captain/liberator": "heavy", "sheet/captain/admiral": "mid", "sheet/captain/elfwarden": "light",
+      "sheet/captain/siegemaster": "mid", "sheet/captain/inquisitorlord": "mid", "sheet/captain/pirateking": "light",
+      "sheet/captain/frostjarl": "heavy", "sheet/captain/archmagus": "light", "sheet/captain/lightbearer": "light",
+      "sheet/captain/shadowqueen": "light", "sheet/captain/titan": "heavy", "sheet/hero/marisol": "light"
+    },
+    "why": {
+      "sheet/captain/ironwall": "audit: absorbs the blow behind the shield and keeps her footing",
+      "sheet/captain/saintknight": "audit: braces in her armour and barely gives ground (the healer default would be light)",
+      "sheet/captain/khan": "audit: absorbs it without giving ground (the bow default would be light)",
+      "sheet/captain/frostjarl": "audit: a braced flinch, feet not leaving the ground",
+      "sheet/captain/liberator": "audit: takes it on the raised forearms and shackles, does not flinch",
+      "sheet/captain/pirateking": "audit: staggers back and grimaces (the sword_shield default would be mid)",
+      "sheet/captain/huntress": "audit: a nimble sidestep-stagger",
+      "sheet/captain/lightbearer": "audit: sways back, feet staying down",
+      "sheet/captain/inquisitorlord": "audit: a small, contemptuous recoil - not light; generator mid kept",
+      "sheet/hero/marisol": "pilot data (owner decision d2a73c2 entry); no generator package yet",
+      "others": "the audit gives no hit reason: the generator's value is kept (class cleric, fieldmedic, pilgrim mid although the healer default is light; demonhunter, siegemaster, admiral mid although staff / gun default light; dragonslayer mid although greatweapon default heavy; bard and 산적 light although sword / sword_shield default mid)"
+    }
+  },
   "mannequin_convention": {
     "set": "<base set>__<sheet kind>_<key>, e.g. atk_sword_shield__class_warrior. Request: art/requests/guides/<set>/README.md (cloud); delivery: art/inbox/guides/<set>/<set>.aseprite plus one PNG per frame f<NN>_<name>.png (384x1024 frames, sole line y=870, hip x=192, #FF00FF or transparent).",
+    "frame_files": "NN is the 0-based index of the frame in the archetype's attack sequence (motion_bible.json archetypes.<arch>.attack.frames), two digits: sword_shield = f00_in, f01_hold, f02_swing, f03_contact, f04_follow, f05_recover, f06_settle. One PNG per frame - a strip PNG is not enough. requests.js --motion finds a differently numbered file by its _<name>.png ending (WARN) and WARNs when <set>.aseprite is delivered but frame PNGs are missing.",
     "overrides": "absolute targets in head units for the named frames (posekit conventions, motion_bible.json units). Keys: hip [x, h], lean (rad), tilt (rad), footN / footF [x, h], grip_near / grip_far [x, h] (at() convention, shoulder line 2.40), wa (deg), shield [x, h], note. Frames not named follow the base set.",
     "similarity": "requests.js --motion FAILs when two characters with the same base set carry identical (or no) hold / contact overrides, and - once the PNGs exist - when their hold or contact frames reach alpha IoU > 0.8 at game size."
   },
@@ -15,7 +48,7 @@
     "sheet/class/warrior": {
       "status": "pilot",
       "name": "일반 병과 전사",
-      "arch": "sword_shield", "hit": "mid", "run": "warrior",
+      "arch": "sword_shield", "run": "warrior",
       "signature": {
         "portrait_weapons": ["아밍 소드", "둥근 방패"],
         "in_hand": ["아밍 소드", "둥근 방패"],
@@ -67,7 +100,7 @@
     "sheet/captain/shadowqueen": {
       "status": "pilot",
       "name": "니클라 (밤의 여왕)",
-      "arch": "twin", "hit": "light", "run": "rogue",
+      "arch": "twin", "run": "rogue",
       "signature": {
         "portrait_weapons": ["쌍검(등)"],
         "in_hand": ["쌍검"],
@@ -127,7 +160,7 @@
       "status": "gate1-mannequin",
       "name": "브리긴다 (철벽 수호자)",
       "why_in_pilot": "second sword_shield character (C4): the hardest case for the similarity check because her basic is also a shield move. Mannequin only, no GPT strip in the pilot.",
-      "arch": "sword_shield", "hit": "heavy", "run": "warrior",
+      "arch": "sword_shield", "run": "warrior",
       "signature": {
         "portrait_weapons": ["플랜지 철퇴", "탑 방패"],
         "in_hand": ["플랜지 철퇴", "탑 방패"],
@@ -156,7 +189,7 @@
       "status": "gate1-mannequin",
       "name": "일반 병과 궁수",
       "why_in_pilot": "bow mannequin for gate 1 (critique coverage gap): the release/origin path, the weakest-reading contact, and the tightest budget in the roster (대륙 순찰자 질풍 사격 cd 0.6 -> 510 ms). Mannequin only, no GPT strip in the pilot.",
-      "arch": "bow", "hit": "light", "run": "archer",
+      "arch": "bow", "run": "archer",
       "signature": {
         "portrait_weapons": ["짧은 리커브 활", "화살통(등)"],
         "in_hand": ["짧은 리커브 활"],
@@ -184,7 +217,7 @@
       "status": "decided-signature",
       "name": "카토 (해방 검투사)",
       "decision": "주인 결정 11-26 (d2a73c2, art/requests/feedback.md): 사슬과 주먹으로 싸운다, 장검은 초상화처럼 등에. 다시 그리기는 프레임 방식으로.",
-      "arch": "chain", "hit": "heavy",
+      "arch": "chain",
       "signature": {
         "portrait_weapons": ["끊어진 사슬", "주먹", "장검(등)"],
         "in_hand": ["끊어진 사슬(손목 족쇄)", "주먹"],
@@ -199,7 +232,7 @@
       "status": "decided-signature",
       "name": "마리솔 (해적 선장)",
       "decision": "주인 결정 11-26 (d2a73c2): 권총을 손에(두 스킬이 권총 사격·포격 지원), 활은 등에 멘 소품. 대사는 그대로.",
-      "arch": "gun", "hit": "light",
+      "arch": "gun",
       "signature": {
         "portrait_weapons": ["플린트록 권총", "리커브 활(등)", "화살통(등)"],
         "in_hand": ["플린트록 권총"],
@@ -214,7 +247,7 @@
       "status": "decided-signature",
       "name": "오르가 (야수 조련사)",
       "decision": "주인 결정 11-26 (d2a73c2): 특기 「늑대 떼 돌격」에서 본인은 제자리에서 명령, 엔진이 들늑대 2~3마리를 달려가게 그린다(전투 계산은 그대로).",
-      "arch": "bow", "hit": "mid",
+      "arch": "bow",
       "signature": {
         "portrait_weapons": ["장궁", "화살통(등)", "회색 늑대"],
         "in_hand": ["장궁"],
@@ -223,6 +256,17 @@
         "special": "늑대 떼 돌격 = 본인은 돌진하지 않고 타격(놓기) 자세의 팔을 앞으로 뻗어 무리에게 명령, 들늑대 2~3마리가 대상에게 달려간다",
         "idle": "모피 망토, 활은 낮게, 빈손은 옆에 펴서 늘어뜨림(무리에게 보내는 신호처럼)",
         "hit_face": "찡그리며 어깨로 받는다; 모피 망토가 한 박자 늦게 흔들린다"
+      },
+      "engine": {
+        "specials": {
+          "늑대 떼 돌격": {
+            "mode": "summon_runners",
+            "count": "2-3",
+            "runner": "sheet/monster/들늑대",
+            "body": "release",
+            "note": "owner decision d2a73c2: she does not charge - she stays where she stands and commands with the release pose (bow arm thrown forward); the engine draws 2-3 grey wolves from the 들늑대 sheet running to the target (drawing only). The sim is unchanged: js/classes.js keeps hits 3 and dash, and the sim still moves her (js/battle.js useSkill dash) - how the view shows that move is the engine job's to settle. Not the generic multi-target melee (one contact frame + 50 ms victim stagger)."
+          }
+        }
       }
     }
   }

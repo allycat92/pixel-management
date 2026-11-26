@@ -2,7 +2,7 @@
 
 > 이 문서는 주인 검토용 계획이자 다음 작업의 기준입니다. 데이터는 문서가 아니라 JSON에 있습니다.
 > - 프레임 설계표: `tools/art/specs/motion_bible.json` (계통 × 동작)
-> - 캐릭터별 자료: `tools/art/specs/motion_chars.json` (시운전 캐릭터, 마네킹만 만드는 두 캐릭터, 결정된 무기 세 명)
+> - 캐릭터별 자료: `tools/art/specs/motion_chars.json` (시운전 캐릭터, 마네킹만 만드는 두 캐릭터, 결정된 무기 세 명, 그리고 모든 시트의 피격 무게 표 `hit.sheets` — 피격 무게의 유일한 출처, 5절)
 > - 예산·시그니처 검사기: `node tools/art/requests.js --motion` (FAIL 이 있으면 종료 코드 1, 파일은 쓰지 않음)
 > - 지시가 바뀌면 JSON만 고칩니다. 이 문서의 표는 JSON과 검사기 출력에서 옮긴 것입니다(부록 A).
 
@@ -84,18 +84,18 @@
 - **니클라의 그림자 난무** (`hits:4`, `dash`)
   - 대상은 돌진 전 위치에서 `max(사거리, 30) + 20` 안의 가까운 적 최대 4명입니다(`:832-835`). 적이 1명이면 대상도 1명입니다.
   - 니클라는 첫 대상 앞자리로 옮겨지고(`:838-843`), 고른 대상마다 같은 틱에 `strike`가 불립니다(`:850-853`). **피해는 시간상 한 점**입니다.
-  - 화면의 베기 효과는 대상마다 50ms씩 늦게 그립니다(`view.slashes` `t: -i*0.05`, `:1947`).
+  - 화면의 베기 효과는 대상마다 50ms씩 늦게 그립니다(`js/battle.js`의 대상별 베기 엇갈림 `t: -i*0.05`, `view.slashes`. 그 파일은 다른 작업이 고치는 중이라 줄 번호는 적지 않습니다).
   - 특기 직후 다음 틱(50ms 뒤)에 기본기가 나갈 수 있습니다(`step`: 특기 `:893`, 그다음 기본기 `:898`).
 - **피격 자세의 출처**
   - HEAD에서 "torso thrown back, weight on the rear leg" 문장은 `tools/art/handoff.py` 18곳 + `tools/art/specs/captains_batch2.json` 23곳 = **41곳**입니다(`git show HEAD:… | grep -o`, 2026-11-25). 작업 트리에서는 피격 작업이 이미 바꾸는 중입니다(남은 것은 금지 이유를 적은 주석 1곳).
   - HEAD의 가이드 피격 몸(`handoff.py:77-78` KEY_BODY hit: 엉덩이 −0.46, 기울기 −0.42, tilt −0.30, 앞 무릎 방향 (1.0, −0.3))이 극단적으로 젖혀져 있고, posekit의 hit 몸(`posekit.py:653-654`)도 같습니다.
   - 가이드 자체에서는 두 발이 바닥에 있습니다. GPT가 젖힌 몸통의 균형을 맞추려고 앞다리를 들어 그린 것입니다. 그래서 "앞발 0px"은 지금 가이드에서도 이미 참이고, 검사 기준이 될 수 없습니다(5절).
-  - GPT 쪽 규칙(`art/requests/gpt_handoff_notes.md`)에는 새 피격 규칙이 이미 들어 있습니다(`aa2934a`). 남은 것은 생성기 문장과 가이드입니다.
+  - GPT 쪽 규칙(`art/requests/gpt_handoff_notes.md`)에는 새 피격 규칙이 이미 들어 있습니다(`aa2934a`). 같은 파일의 꾸러미 설명(Key poses)과 `tools/pixelart/README.md`에 남아 있던 옛 문장("torso thrown back, weight on the rear leg")은 11-26에 지우고 그 규칙과 무게별 K1·K2 가이드(`handoff.py --hit-set`)를 가리키게 고쳤습니다.
 - **PC 조사(측정)**
   - 회전은 원본 크기에서 하면 깨끗합니다(새 색 0, 칼 한 덩어리). 게임 크기에서 돌리면 점선처럼 깨집니다.
   - 팔을 돌리면 그 밑이 비어 덧칠이 필요합니다(원본 약 4,050px).
   - GPT 핵심 자세끼리는 실루엣이 40~54%만 겹칩니다. 두 핵심 자세 사이의 프레임은 강체 변형으로 못 만듭니다.
-  - GPT는 마네킹 가이드를 잘 따릅니다(IoU 0.64~0.73). **그래서 가이드가 같으면 그림도 같아집니다.** 지금 48개 꾸러미의 가이드는 7가지뿐이고(md5 9151b29a 13꾸러미, c6c164b9, 7edf3d43, b57c302f 등), 같은 가이드끼리 서로 바꿔 써도 될 만큼 닮았습니다.
+  - GPT는 마네킹 가이드를 잘 따릅니다(IoU 0.64~0.73). **그래서 가이드가 같으면 그림도 같아집니다.** 지금 48개 꾸러미의 가이드 띠(`guide_strip.png`)는 7가지뿐이고(md5 9151b29a 13꾸러미, b57c302f 10, 7edf3d43 10, c6c164b9 8, 1c93fcdf 5, 그리고 한 꾸러미짜리 둘), 같은 가이드끼리 서로 바꿔 써도 될 만큼 닮았습니다. 예: 병과 전사·브리긴다·크림슨 등 b57c302f 10꾸러미의 준비 가이드 `guide_2_windup.png`는 md5 42c9c7a7인 같은 파일이고, 게임 크기 IoU 1.000입니다.
   - 허용된 MCP 도구에는 자유 각도 회전이 없습니다(90/180/270만). 자유 회전은 PC의 Python 스크립트나 주인 손으로 합니다.
   - PC가 지금까지 맡은 가장 큰 손그림 작업은 칼날 색 바꾸기입니다. 게임 크기 손그림 사이 프레임의 품질은 아직 증명되지 않았습니다.
 - **색**: 시트마다 36~40색이 이미 꽉 차 있습니다(중앙값 40). 새 프레임은 등록된 시트의 색에 맞춰 넣습니다. 색인(팔레트) 모드는 PC 손질에서 팔레트가 뒤섞인 전례가 있어 RGB + 색 검사로 갑니다.
@@ -185,14 +185,20 @@
 - **가이드 고침의 판정(C5)**: "앞발 0px"은 지금 가이드에서도 참이라 쓰지 않습니다. 대신 새 K1·K2를 다음 숫자로 잽니다(`handoff.py` `hit_metrics`/`HIT_RULES`, 원본 110px/머리).
   - 몸통 기울기 15° 이하
   - 엉덩이 낮아짐 원본 12~30px
-  - 머리 밀림(맞은 쪽 반대로): 무거움 12~35px, 보통 25~60px, 가벼움 40~90px
+  - 머리 밀림(맞은 쪽 반대로): 무거움 12~35px, 보통 25~60px, 가벼움 40~90px. 게임 크기(×0.1654)로는 무거움 2~6, 보통 4~10, 가벼움 7~15 게임 px(`motion_bible.json` `hit.weights.*.checks.head_dx_game_px`, 검사기가 환산을 확인)
   - 앞발·앞 무릎이 대기 높이보다 올라가지 않음(무릎 1px 이하), 뒷발 미끄러짐 33px 이하(가벼움만)
   - 마지막 프레임이 대기와 12px 넘게 다르지 않음
   - **그리고 버리는 초안 한 장으로 증명합니다**: 새 K1·K2 가이드로 GPT 초안 한 장(또는 주인이 원할 때만 NovelAI 무료 범위 초안 한 장)을 받아 앞발이 들리는지 봅니다. 초안이라 등록하지 않습니다. 가이드 숫자만으로는 "GPT가 균형을 잡으려고 다리를 드는" 문제가 사라졌는지 알 수 없기 때문입니다.
 - **요청 문장 바꾸기**
   - 위 41곳의 문장을 생성기가 `hit` 무게별 문장(`handoff.py` `HIT_EN`)으로 바꿔 냅니다(피격 작업이 진행 중). 내용: 맞은 쪽 반대로 머리·어깨가 튐, 무릎으로 받음, 두 발 바닥, 무기는 쥔 채, 표정(찡그림·눈 감음·이 악묾).
-  - 금지어 검사: thrown back, rear leg / rear foot, knee(s) up·raised·lifted, kicked up, lifted / raised leg(`handoff.py` `BANNED_POSE_RE`와 같은 패턴, 그리고 한국어 "무릎을 들", "몸을 크게 젖")가 나오면 요청서 생성이 실패합니다. **"kick" 하나만은 금지하지 않습니다**(마리솔 권총의 "arm kicks up" 같은 반동 문장이 막히기 때문).
-  - `--motion` 검사기는 같은 패턴(`motion_bible.json` `rules.banned_pose_re`)으로 설계표의 모든 자세 문장과 `motion_chars.json`의 시그니처를 검사합니다. 그래서 설계표에서는 "rear foot" 대신 "back foot"이라고 씁니다.
+  - 금지어 검사: thrown back, rear leg / rear foot, knee(s) up·raised·lifted, kicked up, 그리고 동사가 앞에 오는 무릎·다리 들기("lifts the front knee", "raises her knee", "lifted the near leg", "leg up"; `handoff.py` `BANNED_POSE_RE`, 그리고 한국어 "무릎을 들", "몸을 크게 젖")가 나오면 요청서 생성이 실패합니다. **발은 넣지 않습니다**(아멜리 치유의 "bare front foot raised a little for the stamp"는 맞는 자세). **"kick" 하나만도 금지하지 않습니다**(마리솔 권총의 "arm kicks up" 같은 반동 문장이 막히기 때문). 맞혀야 할 문장 19개·통과해야 할 문장 19개로 시험했습니다(부록 D).
+  - 검사 범위: 자세 문장만이 아니라 GPT에게 가는 다른 글 전부입니다. `handoff.py`는 fix·keep·weapon_desc·초안 keep/fix, `portrait_pkgs.py`는 notes·character·colours도 봅니다(병과 전사 초안 fix의 "rear leg"가 README까지 갔던 일 때문에, 지금은 "back leg").
+  - `--motion` 검사기는 같은 패턴(`motion_bible.json` `rules.banned_pose_re`)으로 설계표의 모든 자세 문장과 `motion_chars.json`의 시그니처를 검사합니다. 설계표 패턴의 영어 부분이 `handoff.py` `BANNED_POSE_RE`와 글자까지 같지 않으면 FAIL입니다(`SEAL_RE`도 같음). 설계표에서는 "rear" 대신 "back"이라고 씁니다(back foot, back heel).
+  - 이미 만든 `art/requests/phase3/*` 꾸러미 README에는 옛 피격 문장("thrown back")이 남아 있지만 **다시 만들지 않습니다**. 다음 요청은 프레임 방식(`requests.js --motion`이 쓸 띠별 요청서)이고, 그동안 GPT에게는 `gpt_handoff_notes.md`의 피격 규칙이 이깁니다.
+- **피격 무게는 한 곳에서 (11-26 정리)**
+  - 시트마다의 무게는 `motion_chars.json` `hit.sheets` 한 표가 유일한 출처입니다. `motion_bible.json`의 `hit.weights.*.users`와 계통 `hit_default`는 표에 없는 시트의 기본값일 뿐입니다. 캐릭터 항목(`chars.<id>`)에는 `hit`를 두지 않습니다(있으면 FAIL).
+  - 요청서 생성기의 사본(`handoff.py` CHARS `hit_weight` 17시트, `captains_batch2.json` `hit_weight` 24시트)이 표와 다르거나 표에 없으면 `--motion`이 FAIL입니다.
+  - 정리 결과(41시트 + 마리솔): 감사가 이유를 댄 곳(무거움: ironwall, saintknight, khan, frostjarl, liberator / 가벼움: pirateking, huntress, lightbearer / inquisitorlord "작은 반동" = 보통)은 모두 생성기 값과 같았고, 나머지는 생성기 값을 그대로 둡니다. 예전 설계표가 다르게 적었던 13시트(보통: class cleric, fieldmedic, pilgrim, inquisitorlord, demonhunter, siegemaster, admiral, dragonslayer / 무거움: saintknight, khan / 가벼움: bard, pirateking, 산적)도 생성기 값입니다. 표 전체는 부록 D.
 - **다시 맞을 때(S3)**: 피격이 시작된 지 200ms 안에 또 맞으면 처음부터 다시 돌지 않고 K1만 그 ms 동안 다시 보인 뒤 이어서 갑니다(무거움은 무시). 길이는 무게별입니다: 무거움 270, 보통 320, 가벼움 340ms. 피격은 대기·달리기·공격의 cut 이후를 끊지만, 공격의 맞는 순간 이전은 끊지 않습니다.
 - **이미 등록된 피격 칸 중 가장 나쁜 것** (무릎을 든 것, 게임 크기 앞발 들림)
   - 11px: 바렌(blademaster), 모르데카이(demonhunter), 지크린데(dragonslayer), 비요른(frostjarl)
@@ -214,7 +220,7 @@
 
 **(2) PC: 마네킹 시퀀스**
 - 할 일: 설계표대로 시퀀스를 짓고 Aseprite에서 재생하며 다듬습니다. 팔다리를 옮기면 관절 점도 같이 옮깁니다.
-- 납품: `art/inbox/guides/<set>/<set>.aseprite` + 프레임마다 PNG `f<NN>_<이름>.png`(384x1024, 바닥 y=870, 엉덩이 x=192). NOTES 「뼈대 — <이름> (Aseprite)」, 커밋 `Add guide <set> (Aseprite)`. 쓴 스크립트도 함께 올립니다(SPEC 1절).
+- 납품: `art/inbox/guides/<set>/<set>.aseprite` + 프레임마다 PNG `f<NN>_<이름>.png`(384x1024, 바닥 y=870, 엉덩이 x=192). **NN은 계통 공격 흐름(`motion_bible.json` `archetypes.<계통>.attack.frames`)에서 0부터 센 두 자리 번호**입니다(검·방패: `f00_in`, `f01_hold`, `f02_swing`, `f03_contact`, `f04_follow`, `f05_recover`, `f06_settle`). 띠 PNG 하나로는 안 됩니다. `requests.js --motion`은 번호가 다른 파일을 `_<이름>.png`로 찾아 쓰며 WARN을 내고, `<set>.aseprite`가 왔는데 프레임 PNG가 빠져 있으면 WARN을 냅니다(조용히 "pending"으로 두지 않음). NOTES 「뼈대 — <이름> (Aseprite)」, 커밋 `Add guide <set> (Aseprite)`. 쓴 스크립트도 함께 올립니다(SPEC 1절).
 - 검사(PC 스스로, 클라우드 재확인): `check_skeleton.py <set>.aseprite --pose <요청의 pose.json> --motion attack|hit|idle|cast`
   - 공통: 뼈 길이 ±2px, 바닥선, 관절 점, 축발이 모든 프레임에서 같은 자리(±3px), 이웃 프레임 변화 8% 이상(멈춤 제외).
   - **계통별 규칙(S8, `motion_bible.json` `checks_by_kind`)**
@@ -321,7 +327,7 @@
     - 돌진 특기는 준비 프레임을 돌진 전 자리에서 보이고, 돌진 잔상이 휘두름 중간을 덮고, 맞는 순간은 새 자리에서 사건 틱에 보입니다.
     - **특기 50ms 뒤에 기본기가 나가면 기본기가 이깁니다**: 기본기는 예측되지 않았으므로 맞는 순간 프레임부터 시작해 특기의 지나침·돌아옴을 대신합니다. 특기의 베기 효과와 피해자 엇갈림은 몸 프레임이 아니라 효과라 계속 돕니다. 이렇게 하면 모든 체력 변화가 자기 틱에 맞는 순간 프레임을 갖습니다.
   - 여러 발 사격(질풍 연사 등): 투사체는 시뮬레이션 물체라 늦출 수 없습니다. 놓기 프레임 한 번 + 부채꼴 효과로 둡니다.
-  - 오르가 「늑대 떼 돌격」: 본인은 돌진하지 않고(위치 그대로) 놓기 자세로 명령, 엔진이 들늑대 시트로 2~3마리를 대상에게 달리게 그립니다(그림만, 전투 계산 그대로).
+  - 오르가 「늑대 떼 돌격」: 본인은 돌진하지 않고(위치 그대로) 놓기 자세로 명령, 엔진이 들늑대 시트로 2~3마리를 대상에게 달리게 그립니다(그림만, 전투 계산 그대로). 자료: `motion_chars.json` 오르가 `engine.specials` 「늑대 떼 돌격」 `{"mode": "summon_runners", "count": "2-3", "runner": "sheet/monster/들늑대", "body": "release"}`. `--motion`은 이 캐릭터별 연출을 보이고, 일반 "여러 명 근접(맞는 순간 하나 + 50ms 엇갈림)" 문구는 쓰지 않습니다. 시뮬레이션은 여전히 `dash`로 그를 첫 대상 앞으로 옮기므로, 그림에서 그 이동을 어떻게 보일지는 엔진 작업이 정합니다.
 - **기존 꾀를 거두는 조건** (시트에 그 프레임이 있을 때만): 공격 `dx`가 있으면 `lungeOf` 곡선 대신 `dx × sheetK`, 피격 `dx`가 있으면 `kickPx` 대신, `anims.run`이 있으면 다리 자르기(`walkTf`) 대신(이미 그렇게 됨), 대기가 4장 이상 그려져 있으면 sprite-gen 숨쉬기 대신. 옛 7칸 시트는 모두 지금 방식 그대로입니다.
 - **지켜야 할 것**: 그림 코드는 `st.r()`을 부르지 않고 `u.*`에 쓰지 않습니다. 그림 쪽 상태는 모두 `r.*`(그림 상태)에 둡니다.
 - **검증 (C7)**
@@ -334,7 +340,7 @@
 - `battle.js`는 지금 다른 작업이 고치는 중이라, 그 작업이 들어간 뒤 그 상태 위에서 고칩니다.
 
 ## 9. 요청서 생성기를 바꾼다 (니클라 같은 일이 반복되지 않게)
-- `motion_chars.json`의 `signature`(캐릭터마다 클라우드가 초상화를 보고 한 번 씀): `portrait_weapons`, `in_hand`, `explain`(둘이 다를 때의 이유와 주인 결정 출처), `basic`, `special`, `idle`, `hit_face`, 그리고 `arch`, `hit`.
+- `motion_chars.json`의 `signature`(캐릭터마다 클라우드가 초상화를 보고 한 번 씀): `portrait_weapons`, `in_hand`, `explain`(둘이 다를 때의 이유와 주인 결정 출처), `basic`, `special`, `idle`, `hit_face`, 그리고 `arch`. 피격 무게는 캐릭터 항목이 아니라 같은 파일의 `hit.sheets` 표에 있습니다(5절).
 - `node tools/art/requests.js --motion` 검사 — **이번에 들어간 것**
   - FAIL
     - 예산: 줄일 수 있는 만큼 줄여도 흐름이나 (앞 시간 + 맞는 순간~cut)이 예산을 넘음, 4배속에서 맞는 순간~cut이 그림 시간 예산을 넘음
@@ -346,7 +352,11 @@
     - 특기 `seq`의 맞는 순간이 하나가 아님, 피해자 엇갈림이 공통 50ms와 다름, `dx` 길이가 프레임 수와 다름
     - 피격 무게별 값이 5절 숫자(기울기, 엉덩이 낮아짐)를 벗어남, 피격 프레임에 발 각도나 무릎 드는 값이 있음
     - 같은 바탕 세트를 쓰는 두 캐릭터의 마네킹 덮어쓰기가 없거나 같음, 그리고 PNG가 오면 준비·맞는 순간 IoU > 0.8
+    - 피격 무게: `handoff.py` CHARS `hit_weight`·`captains_batch2.json` `hit_weight`가 `motion_chars.json` `hit.sheets`와 다르거나 빠짐, 캐릭터 항목에 `hit`가 있음, 무게별 `head_dx_game_px`가 원본 숫자 × 0.1654와 다름
+    - 설계표의 금지어·봉인 패턴 영어 부분이 `handoff.py` `BANNED_POSE_RE`·`SEAL_RE`와 다름(검사기가 python3로 `handoff.py`를 읽음)
+    - 캐릭터별 특기 연출(`engine.specials.<이름>.mode`, 지금은 `summon_runners`)의 몸 프레임·마리 수·달리는 시트가 맞지 않음
   - WARN
+    - 마네킹 `<set>.aseprite`가 왔는데 프레임 PNG `f<NN>_<이름>.png`가 빠짐, 또는 번호가 0부터가 아님(`_<이름>.png`로 찾아 씀)
     - 줄어드는 프레임으로만 예산에 들어감
     - 스킬 이름 낱말(사슬, 족쇄, 갈고리, 방패, 권총, 덫, 망치, 철퇴, 도끼, 활, 쇠뇌, 노궁, 늑대…)과 `in_hand`/`explain`이 어긋남
     - 같은 계통의 다른 캐릭터와 기본기 문장이 80% 넘게 같음(그롬·오스윈 README가 글자까지 같았음)
@@ -432,9 +442,9 @@
   - 5단계(GPT, 보폭이 정해진 뒤): 전사·니클라 S3 → S4 달리기.
   - 6단계(클라우드): 등록, 게임에서 확인, 옛것과 새것을 나란히 놓은 게임 크기 GIF, 주인 검토.
 - **시운전 완료 조건**
-  1. 두 캐릭터 모두 대기(핵심 1 + 숨쉬기), 달리기 8, 공격 7(빠진 droppable 제외), 피격 4가 게임에서 돕니다.
+  1. 두 캐릭터 모두 대기(핵심 1 + 숨쉬기), 달리기 8, 공격 7(빠진 droppable 제외), 피격 4(빠진 droppable K3·K4 제외)가 게임에서 돕니다.
   2. 1배속 리플레이에서 계통별로 "계획한 앞 시간이 다 재생된 맞는 순간"의 비율과 "풀어 버린 준비"의 비율을 재서 보고합니다(목표는 시운전 결과로 정함).
-  3. 피격 가이드 K1·K2가 5절 숫자를 지키고(기울기 ≤ 15°, 엉덩이 낮아짐 12~30px, 무게별 머리 밀림 범위, 앞 무릎이 대기 높이 위로 안 올라감), 버리는 초안 한 장에서 앞발이 들리지 않습니다. 새 피격 칸에서 게임 크기 앞발 들림 2px 이하, 머리 밀림 3~8 게임 px.
+  3. 피격 가이드 K1·K2가 5절 숫자를 지키고(기울기 ≤ 15°, 엉덩이 낮아짐 12~30px, 무게별 머리 밀림 범위, 앞 무릎이 대기 높이 위로 안 올라감), 버리는 초안 한 장에서 앞발이 들리지 않습니다. 새 피격 칸에서 게임 크기 앞발 들림 2px 이하, 머리 밀림은 무게별로 5절 원본 숫자 × 0.1654: 무거움 2~6, 보통 4~10(전사), 가벼움 7~15 게임 px(니클라). 예전의 "3~8 게임 px" 한 범위는 승인된 키와 맞지 않았습니다(무거움 K1 약 2.4, 가벼움 K2 약 13.2).
   4. 니클라 그림자 난무: **적 1명일 때와 4명일 때 모두, 체력이 바뀌는 틱과 맞는 순간 프레임이 같은 틱에 옵니다.** 피해자 반응은 50ms 간격(베기 효과와 같은 상수). 특기 50ms 뒤 기본기가 나가는 경우도 확인합니다(기본기의 맞는 순간이 그 틱에 보임).
   5. 그림 하네스에서 그림 켬·끔의 `st.r()` 호출 수와 결과가 같고, 그림 코드가 `u.*`에 쓰지 않습니다. 기존 800판 불일치 0.
   6. 마네킹 닮음: 전사와 브리긴다의 마네킹이 IoU 0.8 이하(같은 계통 두 캐릭터가 실제로 달라짐을 보임). 활 마네킹이 첫 관문을 통과(가장 약한 맞는 순간인 놓기가 읽힘).
@@ -476,14 +486,14 @@
 - PC 작업 시간, PC가 게임 크기에서 손으로 그린 사이 프레임의 품질, aseprite-mcp의 색인 칠하기는 확인하지 못했습니다.
 - 직업별 runStride는 코드 보폭 식에서 낸 추정입니다(실측 아님). 달리기 작업이 확정합니다.
 - 진영 색칠본 메모리(20~40MB)는 코드로 추정한 값이고 재지 않았습니다. 앞줄 피격 빈도도 재지 않았습니다(평균 0.55회/초만).
-- 피격 관절값은 피격 작업의 작업 트리(미커밋) `posekit.HIT_KEYS`에서 옮겼습니다. 그 작업이 값을 바꾸면 `motion_bible.json` `hit`도 고쳐야 합니다(검사기는 Python 파일을 읽지 않음).
+- 피격 관절값은 `posekit.HIT_KEYS`(5beb7f6)에서 옮겼습니다. 그 값이 바뀌면 `motion_bible.json` `hit`도 고쳐야 합니다(검사기는 posekit 값을 읽지 않습니다. `handoff.py`에서는 시트별 피격 무게와 금지어·봉인 패턴만 python3로 읽어 비교합니다).
 - 마네킹 덮어쓰기 값(머리 단위)은 posekit 기본 자세에서 출발한 제안값입니다. PC가 지어 본 뒤 고칠 수 있고, 닮음은 PNG가 오면 검사기가 실제 IoU로 봅니다.
 - 키아라의 피격은 눈으로 다시 보지 않았습니다.
 - 미리 보기 버퍼 방식은 시험하지 않았습니다.
 - `battle.js`, `check_skeleton.py`, `check_delivery.py`, `add_gait.py`, `receive.py`, `handoff.py`, `posekit.py`는 다른 작업이 고치는 중이라 줄 번호가 바뀔 수 있습니다.
 
 ## 부록 A. 예산 검사기 출력 (요약, 2026-11-25 실행)
-`node tools/art/requests.js --motion` → `motion check: 0 FAIL, 3 WARN`, 종료 코드 0. 전체 출력은 명령으로 다시 볼 수 있습니다.
+`node tools/art/requests.js --motion` → `motion check: 0 FAIL, 3 WARN`, 종료 코드 0. 전체 출력은 명령으로 다시 볼 수 있습니다. 11-26 검증 고침 뒤 다시 돌려도 같은 3 WARN이고, 피격 무게 절(2b, 부록 D)과 무게별 머리 밀림 게임 px 줄이 더해졌습니다.
 
 | 계통 | 가장 짧은 쿨다운 사용자 | cd(초) | 예산 | 4배속 그림 예산 | 앞 시간 / 창 | 합계 (최소) | 결과 |
 |---|---|---|---|---|---|---|---|
@@ -522,3 +532,19 @@
 ## 부록 C. 비평 반영 위치 (2026-11-26 비평, 판정 yes-with-corrections)
 - C1 결정된 행: 1절 표, 10절 · C2 니클라 맞는 순간 하나: 1절, 2절, 8절, 11절 완료 조건 4 · C3 첫 관문 방식: 6절 (2) · C4 캐릭터별 마네킹·IoU FAIL·브리긴다 마네킹: 0절, 3절, 9절, 11절 · C5 피격 판정 숫자·버리는 초안: 5절 · C6 손그림 프레임 droppable·측정, 대기 사이 프레임 없음: 4절, 6절 (4)(5) · C7 엔진 완료 조건·하네스·`u.*` 금지: 8절 · C8 runStride 먼저, 달리기 띠는 뒤: 2절, 4절, 11절
 - S1 계통별 창 ≤ 400, 괴물 쿨다운: 2절, 4절 · S2 배속 변환: 2절, 8절 · S3 다시 맞음: 5절 · S4 색칠·비우기, S9 미리 불러오기: 7절 · S5 니클라 승인 칸: 6절 (3) · S6 병과 전사 디자인: 1절 · S7 `anims.run` 주인: 6절 (6) · S8 계통별 검사 규칙: 6절 (2) · S10 `dx × sheetK`: 7절
+
+## 부록 D. 11-26 검증 결과 고침 (verifier 1~8)
+- 1 완료 조건 3의 머리 밀림 → 무게별 게임 px(11절, `head_dx_game_px`). 2 병과 전사 초안 fix "rear leg" → "back leg", 금지어 검사를 notes·fix·keep·weapon_desc(그리고 `portrait_pkgs`의 character·colours)까지. 3 동사가 앞에 오는 무릎·다리 들기를 금지어에 더함(아래 표). 4 `gpt_handoff_notes.md`·`tools/pixelart/README.md`의 옛 피격 문장 → `aa2934a` 규칙과 K1·K2 가이드, `art/requests/phase3/*`는 다시 만들지 않음(5절). 5 피격 무게 한 표(아래). 6 마네킹 프레임 파일 0부터(6절 (2)). 7 오르가 특기 `summon_runners`(8절). 8 md5(2절), 베기 엇갈림 출처(2절), 완료 조건 1의 K3·K4 droppable, 설계표 "back heel".
+- **피격 무게 표** (`motion_chars.json` `hit.sheets`; `handoff.py` 17 + `captains_batch2.json` 24 = 41시트, 모두 생성기 값과 같음, + 마리솔). 표에 없는 시트(영웅 등)는 계통 `hit_default`.
+
+| 무게 | 수 | 시트 |
+|---|---|---|
+| heavy | 8 | captain/ironwall, captain/saintknight, captain/warlord, captain/khan, captain/runesmith, captain/liberator, captain/frostjarl, captain/titan |
+| mid | 16 | captain/blademaster, captain/lancer, captain/fieldmedic, captain/veteran, class/warrior, class/cleric, monster/해골 병사, monster/사막 도적, captain/spellblade, captain/dragonslayer, captain/demonhunter, captain/beastmaster, captain/pilgrim, captain/admiral, captain/siegemaster, captain/inquisitorlord |
+| light | 18 | captain/tactician, captain/huntress, captain/hedgemage, captain/fixer, class/archer, class/mage, class/rogue, monster/산적, captain/windhunter, captain/shadowlord, captain/bard, captain/hexer, captain/elfwarden, captain/pirateking, captain/archmagus, captain/lightbearer, captain/shadowqueen, hero/marisol |
+
+- **금지어 시험** (`handoff.py` `BANNED_POSE_RE`와 설계표 `rules.banned_pose_re`를 node로 같이 돌림, 19 + 19개, 틀림 0)
+  - 잡아야 함(모두 잡음): torso thrown back, weight on the rear leg, rear bare foot planted, knee raised high, front knee lifted, knees up, one knee kicked up, lifted leg, raised front knee, **lifts the front knee, raises her knee, leg up, legs up high, lifting his leg, raise one knee high, lifted the near leg, raises the front leg to balance, Lifts Her Knee, raising up the front knee**(굵은 것이 새로 잡힘)
+  - 통과해야 함(모두 통과): bare front foot raised a little for the stamp, the bare front foot lifts and the mace head tips forward, arm kicks up with the recoil, weight on the back leg, rear hand behind the hip, mace raised high in the near hand, raises the mace overhead, lifts the bow to aim, both feet flat, knees bend, foot off the ground, hops back on one foot, kneeling archer, knee-length tabard, free hand raised, raised shield, front knee bent, lifts her chin, back heel lifting, the leg stays upright, knees absorb the blow
+  - 발(foot off the ground, hops back on one foot)은 일부러 넣지 않았습니다. 그런 문장은 자세가 아니라 납품 검사(앞발 들림 2px 이하)가 잡습니다.
+- 기본 실행(`node tools/art/requests.js`)의 phase1~3 결과는 고친 뒤에도 바이트 단위로 같습니다(부록 B와 같은 방식, 작업 폴더 사본 두 개).

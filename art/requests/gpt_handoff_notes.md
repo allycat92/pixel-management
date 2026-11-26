@@ -116,8 +116,15 @@ Known inconsistencies in the current drafts (`art/requests/phase3/<id>/concept.p
 - Weapons use the generic posekit mannequin with the closest weapon (per-class / per-character pose kits are deferred);
   the README says what the placeholder becomes (tower shield, mace, cane, lance ...). Fixer's guide draws its one reverse-grip dagger.
 - Key poses: idle is the posekit frame; wind-up / strike / hit mostly come from `KEY_POSES` in `handoff.py`
-  (wind-up = weight back and more upright, strike = step-in lunge with the arms extended, hit = torso thrown back,
-  weight on the rear leg, weapon dropped), so the four poses also differ in the legs and still read at 64 px.
+  (wind-up = weight back and more upright, strike = step-in lunge with the arms extended), so the four poses also differ
+  in the legs and still read at 64 px.
+- Hit: the hit rule at the top of this file (2026-11-26, `aa2934a`) is the only hit description. The guide's hit is the
+  K2-mid key of `posekit.HIT_KEYS` (head and shoulders snap away, knees bend, BOTH feet flat where they stood, torso
+  leaning 15 degrees at most, weapon kept in hand); the K1 (impact) / K2 (deepest point) keys for heavy, mid and light
+  characters come from `python3 tools/art/handoff.py --hit-set DIR`, and each request's hit sentence is built from the
+  sheet's hit weight (`handoff.hit_pose`). Older packages in `art/requests/phase3/` still say "torso thrown back" and are
+  NOT regenerated (the next requests are frame-based, `docs/plans/2026-11-26_motion_frames.md`): where they disagree,
+  the hit rule wins.
 - Branches: every reference is read from `claude/dot-fantasy-management-game-saupju` (it must be pushed first);
   results go ONLY to the `art-inbox` branch (its own older `art/STYLE.md` and requests are not the rules).
 - Order: Baren (anchor, wait for approval) → ironwall, tactician, lancer, huntress, hedgemage, fieldmedic, fixer, veteran

@@ -583,7 +583,11 @@ function motionMain(argv) {
     return r.error ? 2 : 0;
   }
   const BIBLE = JSON.parse(fs.readFileSync(path.join(SPEC, 'motion_bible.json'), 'utf8'));
-  const CHARS = JSON.parse(fs.readFileSync(path.join(SPEC, 'motion_chars.json'), 'utf8')).chars;
+  const MC = JSON.parse(fs.readFileSync(path.join(SPEC, 'motion_chars.json'), 'utf8'));
+  const CHARS = MC.chars;
+  // 피격 무게의 유일한 출처: motion_chars.json hit.sheets. 없는 시트만 계통의 hit_default (motion_bible.json)
+  const HITW = (MC.hit && MC.hit.sheets) || {};
+  const hitOf = (id, arch) => HITW[id] || (BIBLE.archetypes[arch] && BIBLE.archetypes[arch].hit_default);
   const RU = BIBLE.rules;
   const X = vm.runInContext('({ SK, CLASS_SKILLS, PROMOTIONS, MASTERS, CAPTAIN_CLASSES, HERO_CLASSES, HEROES, ENEMIES })', ctx);
   // 괴물 스킬은 js/battle.js 안의 코드 그대로 (줄 번호가 바뀌어도 이름으로 찾는다)
@@ -663,6 +667,17 @@ function motionMain(argv) {
     return { S, best, cd: best.cd, B: 0.9 * best.cd * 1000 - 30 };
   }
 
+  // 캐릭터별 특기 연출 (motion_chars.json engine.specials.<이름>.mode): 일반 문구 대신 이것을 보이고 검사한다
+  const SPECIAL_MODES = ['summon_runners'];
+  function specialModeText(nm, ov, frames) {
+    if (!SPECIAL_MODES.includes(ov.mode)) { fail(`special ${nm}: unknown mode '${ov.mode}' (have ${SPECIAL_MODES.join(', ')})`); return `mode ${ov.mode} (unknown)`; }
+    const pose = ov.body || frames[frames.length - 1].name;
+    if (!frames.some((f) => f.name === pose)) fail(`special ${nm}: body frame '${pose}' is not in the attack sequence`);
+    if (!/^\d+(-\d+)?$/.test(String(ov.count || ''))) fail(`special ${nm}: summon_runners count '${ov.count}' is not N or N-M`);
+    if (!ov.runner || !manifest[ov.runner]) fail(`special ${nm}: runner sheet '${ov.runner}' is not registered in assets/art/manifest.json`);
+    return `summon_runners (motion_chars override): stays put and commands on '${pose}'; the engine runs ${ov.count} ${ov.runner} at the target (view only, sim unchanged)`;
+  }
+
   // 한 시트의 공격 흐름 검사. detail=false 면 한 줄
   function checkAttack(id, arch, ch, detail) {
     const AR = BIBLE.archetypes[arch];
@@ -710,7 +725,9 @@ function motionMain(argv) {
       say(`    >=3x (no anticipation): protected contact..cut ${prot} (min ${r0(protMin)}) vs 4x ${r0(B4)}; post-contact ${post} (min ${r0(postMin)}) is capped at ${r0(B4)} (4x) / ${r0(B3)} (3x)`);
       bu.S.specials.forEach((sp) => {
         const f = sp.sk;
-        const how = f.tgt === 'self' ? `rally: hold '${frames[A.hold].name}' 450 ms` : (f.hits > 1 && !f.shot) ? `multi-target melee: one contact frame, victims +${RU.multi_target_stagger_ms} ms each`
+        const ov = ch && ch.engine && ch.engine.specials && ch.engine.specials[sp.name];
+        const how = ov && ov.mode ? specialModeText(sp.name, ov, frames)
+          : f.tgt === 'self' ? `rally: hold '${frames[A.hold].name}' 450 ms` : (f.hits > 1 && !f.shot) ? `multi-target melee: one contact frame, victims +${RU.multi_target_stagger_ms} ms each`
           : (f.hits > 1 && f.shot) ? 'multi-shot: one release + fan VFX' : f.tgt === 'hurt' ? 'heal cast, faces the target (view-side)' : 'same sequence';
         say(`    special ${sp.name} (${sp.who}, cd ${f.cd}${f.hits > 1 ? `, hits ${f.hits}` : ''}${f.dash ? ', dash' : ''}${f.stun ? `, stun ${f.stun}` : ''}): ${how}`);
       });
@@ -759,6 +776,9 @@ function motionMain(argv) {
     const lean = H.frames.map((f) => f.joints && f.joints.lean).filter((v) => v != null);
     lean.forEach((v) => { if (Math.abs(v) * 180 / Math.PI > H.checks.lean_max_deg + 1e-9) fail(`hit ${w}: lean ${v} rad > ${H.checks.lean_max_deg} deg`); });
     H.frames.forEach((f) => { if (f.joints && (f.joints.faN || f.joints.faF || f.joints.kneeF)) fail(`hit ${w} ${f.name}: foot angle / knee-lift value set (feet stay flat)`); });
+    const gp = H.checks.head_dx_game_px, sp = H.checks.head_dx_src_px;
+    if (!gp || gp[0] !== Math.round(sp[0] * 0.1654) || gp[1] !== Math.round(sp[1] * 0.1654)) fail(`hit ${w}: head_dx_game_px ${JSON.stringify(gp)} != head_dx_src_px x 0.1654 rounded`);
+    else say(`         head displacement ${sp[0]}-${sp[1]} src px = ${gp[0]}-${gp[1]} game px (pilot done-when 3)`);
     const hip0 = BIBLE.hit.idle_reference.hip[1];
     H.frames.slice(0, 2).forEach((f) => {
       if (!f.joints || !f.joints.hip) return;
@@ -768,8 +788,52 @@ function motionMain(argv) {
     });
   });
 
+  // 2b) 피격 무게는 한 곳 (motion_chars.json hit.sheets). 요청서 생성기(handoff.py CHARS, captains_batch2.json)의 사본이
+  //     다르거나 빠져 있으면 FAIL. handoff.py 는 python 으로 읽는다 (금지어·봉인 패턴도 같이 받아 아래에서 비교).
+  say('');
+  say('== 2b. hit weight per sheet (motion_chars.json hit.sheets = the one source; generators must agree)');
+  const py = (() => {
+    const code = ['import json, handoff as h',
+      'print(json.dumps({"w": {cid: C.get("hit_weight", "mid") for cid, C in h.CHARS.items()},',
+      '                  "banned": h.BANNED_POSE_RE.pattern, "seal": h.SEAL_RE.pattern}))'].join('\n');
+    const r = require('child_process').spawnSync('python3', ['-c', code], { cwd: path.join(ROOT, 'tools/art'), encoding: 'utf8' });
+    if (r.status !== 0) { fail(`cannot read tools/art/handoff.py (python3): ${(r.stderr || String(r.error)).trim().split('\n').pop()}`); return null; }
+    return JSON.parse(r.stdout);
+  })();
+  Object.entries(HITW).forEach(([id, w]) => {
+    if (!BIBLE.hit.weights[w]) fail(`hit.sheets ${id}: unknown weight '${w}'`);
+    if (!inArch[id]) warn(`hit.sheets ${id} is in no archetype`);
+  });
+  Object.entries(CHARS).forEach(([id, ch]) => { if (ch.hit != null) fail(`chars.${id}.hit is set - the weight lives only in hit.sheets`); });
+  let p3 = {};
+  try { JSON.parse(fs.readFileSync(path.join(ROOT, 'art/requests/phase3.json'), 'utf8')).items.forEach((it) => { p3[it.file] = it.id; }); } catch (e) { fail('art/requests/phase3.json unreadable (run node tools/art/requests.js)'); }
+  const gen = [];          // [sheet id, weight, source]
+  if (py) Object.entries(py.w).forEach(([cid, w]) => gen.push([p3[`sheet_${cid}.png`] || `?${cid}`, w, `handoff.py CHARS.${cid}`]));
+  JSON.parse(fs.readFileSync(path.join(SPEC, 'captains_batch2.json'), 'utf8')).forEach((S) => gen.push([p3[`sheet_captain_${S.key}.png`] || `?captain_${S.key}`, S.hit_weight || 'mid', `captains_batch2.json ${S.key}`]));
+  let agree = 0;
+  gen.forEach(([id, w, src]) => {
+    if (id.startsWith('?')) fail(`${src}: no phase3.json item for ${id.slice(1)}`);
+    else if (!HITW[id]) fail(`${src} gives ${id} hit '${w}' but motion_chars.json hit.sheets has no entry`);
+    else if (HITW[id] !== w) fail(`${src} gives ${id} hit '${w}', motion_chars.json hit.sheets says '${HITW[id]}'`);
+    else agree++;
+  });
+  say(`  generators: ${gen.length} sheets (handoff.py ${py ? Object.keys(py.w).length : '?'}, captains_batch2.json ${gen.length - (py ? Object.keys(py.w).length : 0)}), ${agree} agree with hit.sheets`);
+  Object.keys(BIBLE.hit.weights).forEach((w) => {
+    const ids = Object.keys(HITW).filter((id) => HITW[id] === w);
+    say(`  ${w.padEnd(6)} ${String(ids.length).padStart(2)}: ${ids.map((id) => id.replace(/^sheet\//, '')).join(', ')}`);
+  });
+  const offDefault = Object.keys(HITW).filter((id) => inArch[id] && inArch[id].every((a) => BIBLE.archetypes[a].hit_default !== HITW[id]));
+  say(`  differ from their archetype's hit_default (fine, the table wins): ${offDefault.map((id) => `${id.replace(/^sheet\//, '')} ${HITW[id]}`).join(', ') || 'none'}`);
+  say('  sheets not in hit.sheets use their archetype hit_default');
+
   // 3) 캐릭터 (motion_chars.json)
   // 금지어·소품 봉인 문장: handoff.py 의 BANNED_POSE_RE / SEAL_RE 와 같은 패턴 (+ 한국어), 대소문자 무시
+  // 설계표의 패턴 = handoff.py 패턴 + '|' + 한국어 낱말들 (영어 부분이 다르면 FAIL: 두 곳이 갈라지지 않게)
+  if (py) [['banned_pose_re', py.banned, 'BANNED_POSE_RE'], ['prop_seal_re', py.seal, 'SEAL_RE']].forEach(([k, pat, nm]) => {
+    const v = RU[k], rest = v.startsWith(pat) ? v.slice(pat.length) : null;
+    if (rest == null || (rest && (!rest.startsWith('|') || rest.slice(1).split('|').some((a) => /[a-z]/i.test(a)))))
+      fail(`motion_bible.json rules.${k} is not handoff.py ${nm} + Korean phrases`);
+  });
   const bannedRe = new RegExp(RU.banned_pose_re, 'ig'), sealRe = new RegExp(RU.prop_seal_re, 'ig');
   const hits = (re, t) => [...new Set(((t || '').match(re) || []).map((x) => x.toLowerCase()))];
   const poseLint = (where, f) => hits(bannedRe, f.pose).forEach((w) => fail(`${where} pose '${f.name}' uses banned wording '${w}'`));
@@ -781,15 +845,16 @@ function motionMain(argv) {
   const core = (s) => s.replace(/\(.*?\)/g, '').trim();
   Object.entries(CHARS).forEach(([id, ch]) => {
     say('');
-    say(`-- ${id} [${ch.status}] ${ch.name || ''}: arch ${ch.arch}, hit ${ch.hit}${ch.run ? `, run ${ch.run}` : ''}`);
+    const hw = hitOf(id, ch.arch);
+    say(`-- ${id} [${ch.status}] ${ch.name || ''}: arch ${ch.arch}, hit ${hw}${HITW[id] ? '' : ' (archetype default)'}${ch.run ? `, run ${ch.run}` : ''}`);
     const AR = BIBLE.archetypes[ch.arch];
     if (!AR) { fail(`unknown arch ${ch.arch}`); return; }
     if (!AR.users.includes(id)) warn(`${id} is not listed in archetype ${ch.arch}.users`);
-    if (!BIBLE.hit.weights[ch.hit]) fail(`unknown hit weight ${ch.hit}`);
+    if (!BIBLE.hit.weights[hw]) fail(`unknown hit weight ${hw}`);
     if (ch.status !== 'decided-signature' && !(BIBLE.run.humanoid.runStride_game_px_est[ch.run])) fail(`unknown run class ${ch.run}`);
     checkAttack(id, ch.arch, ch, true);
-    const H = BIBLE.hit.weights[ch.hit];
-    if (H) say(`    hit (${ch.hit}): ${H.frames.map((f) => `${f.name} ${f.ms}`).join(' · ')}`);
+    const H = BIBLE.hit.weights[hw];
+    if (H) say(`    hit (${hw}): ${H.frames.map((f) => `${f.name} ${f.ms}`).join(' · ')}`);
     // 시그니처
     const sg = ch.signature || {};
     const need = ['portrait_weapons', 'in_hand', 'explain', 'basic', 'special', 'idle', 'hit_face'];
@@ -853,6 +918,26 @@ function motionMain(argv) {
   // 4) 마네킹 닮음 (C4): 같은 바탕 세트를 쓰는 두 캐릭터
   say('');
   say(`== 4. mannequin similarity (same base set; FAIL at IoU > ${RU.guide_similarity_iou_fail} or identical overrides)`);
+  // 납품 이름: art/inbox/guides/<set>/f<NN>_<name>.png, NN = 계통 공격 흐름의 0부터 센 프레임 번호 (f01_hold, f03_contact).
+  // 번호가 다르게 매겨졌으면 _<name>.png 로 찾아 쓰고 WARN. <set>.aseprite 가 왔는데 프레임 PNG 가 빠졌으면 WARN (조용한 pending 금지).
+  const GDIR = path.join(ROOT, 'art/inbox/guides');
+  function framePng(set, k, name) {
+    const dir = path.join(GDIR, set), want = `f${String(k).padStart(2, '0')}_${name}.png`;
+    if (fs.existsSync(path.join(dir, want))) return path.join(dir, want);
+    const alt = fs.existsSync(dir) ? fs.readdirSync(dir).filter((f) => f.endsWith(`_${name}.png`) && /^f\d+_/.test(f)) : [];
+    if (alt.length === 1) { warn(`${set}: ${alt[0]} is not numbered 0-based (expected ${want}); matched by _${name}.png`); return path.join(dir, alt[0]); }
+    if (alt.length > 1) warn(`${set}: ${alt.length} files end in _${name}.png (${alt.join(', ')}); expected ${want}`);
+    return null;
+  }
+  say('  deliveries (art/inbox/guides/<set>/<set>.aseprite + f<NN>_<name>.png, NN 0-based in the archetype attack order):');
+  Object.entries(CHARS).forEach(([id, ch]) => {
+    if (!ch.mannequin || !ch.mannequin.set || !BIBLE.archetypes[ch.arch] || !BIBLE.archetypes[ch.arch].attack) return;
+    const set = ch.mannequin.set, fr = BIBLE.archetypes[ch.arch].attack.frames;
+    const ase = fs.existsSync(path.join(GDIR, set, `${set}.aseprite`));
+    const missing = fr.map((f, k) => (framePng(set, k, f.name) ? null : `f${String(k).padStart(2, '0')}_${f.name}.png`)).filter(Boolean);
+    if (ase && missing.length) warn(`${set}: ${set}.aseprite is delivered but ${missing.length} of ${fr.length} frame PNGs are missing (${missing.join(', ')}); a strip is not enough - one PNG per frame`);
+    else say(`    ${set}: ${ase ? `delivered, ${fr.length} frame PNGs` : missing.length < fr.length ? `no ${set}.aseprite yet, ${fr.length - missing.length} frame PNGs` : 'not delivered yet'}`);
+  });
   const byBase = {};
   Object.entries(CHARS).forEach(([id, ch]) => { if (ch.mannequin && ch.mannequin.base) (byBase[ch.mannequin.base] = byBase[ch.mannequin.base] || []).push(id); });
   let pairs = 0;
@@ -871,8 +956,8 @@ function motionMain(argv) {
           if (!diff.length) fail(`${fn}: overrides differ only in the note`);
         }
         const nn = String(k).padStart(2, '0');
-        const pa = path.join(ROOT, 'art/inbox/guides', a.mannequin.set, `f${nn}_${fn}.png`), pb = path.join(ROOT, 'art/inbox/guides', b.mannequin.set, `f${nn}_${fn}.png`);
-        if (fs.existsSync(pa) && fs.existsSync(pb)) {
+        const pa = framePng(a.mannequin.set, k, fn), pb = framePng(b.mannequin.set, k, fn);
+        if (pa && pb) {
           const r = motionIou(pa, pb, 0.1654);
           if (r.error) fail(`${fn}: ${r.error}`);
           else if (r.iou > RU.guide_similarity_iou_fail) fail(`${fn}: guide IoU ${r.iou.toFixed(3)} > ${RU.guide_similarity_iou_fail} at game size`);

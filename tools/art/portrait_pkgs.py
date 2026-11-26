@@ -17,10 +17,11 @@ Spec file: a JSON list of entries
   {key, en, weapon (bow|staff|none|katana|sword_shield|spear), size_class, hit_weight (heavy|mid|light, default mid),
    character, colours, notes: [...], explain (why a note seals away a portrait weapon / prop, and which owner decision),
    poses: [4 strings, "1 idle: ..." or "idle: ..."], ko_notes}
-Lint (the package is NOT written): a pose with knee-up hit wording (handoff.BANNED_POSE_RE: "thrown back", "rear leg",
-"knee up", "kicked up", "lifted leg" ...), a hit pose without the reaction wording of handoff.hit_pose() (both feet flat on
-the ground + a face change), or a note that seals a portrait weapon ("stays sheathed", "holstered", "never two",
-"on her back" ...; handoff.SEAL_RE) without `explain`.
+Lint (the package is NOT written): a pose, note, character or colours text with knee-up hit wording
+(handoff.BANNED_POSE_RE: "thrown back", "rear leg", "knee up", "kicked up", "lifts the front knee", "leg up" ...),
+a hit pose without the reaction wording of handoff.hit_pose() (both feet flat on the ground + a face change), or a
+note that seals a portrait weapon ("stays sheathed", "holstered", "never two", "on her back" ...; handoff.SEAL_RE)
+without `explain`.
 Names and the delivery file name come from art/requests/phase3.json (sheet/<kind>/<key>).
 
 Safety: a package folder that already exists and was NOT written by this script (e.g. the nine starter
@@ -84,7 +85,10 @@ def lint(S):
     """→ problems of one spec entry (see the module doc)."""
     key = S['key']
     poses = list(zip(['idle', 'wind-up', 'strike', 'hit'], [pose_text(p) for p in S['poses']]))
-    out = h.lint_request(key, poses, S['notes'], S.get('explain', ''))
+    out = h.lint_request(key, poses, S['notes'], S.get('explain', ''))     # banned wording: poses AND notes
+    for fld in ('character', 'colours'):                                     # the other English text that reaches GPT
+        for m in h.BANNED_POSE_RE.finditer(S.get(fld) or ''):
+            out.append(f'{key}: {fld} contains banned phrase "{m.group(0)}" (knee-up wording)')
     w = S.get('hit_weight', 'mid')
     if w not in h.HIT_WEIGHTS:
         out.append(f'{key}: hit_weight {w!r} is not one of {", ".join(h.HIT_WEIGHTS)}')

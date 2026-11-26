@@ -45,8 +45,8 @@
     "guide_follow_iou_min": 0.55,
     "guide_similarity_iou_fail": 0.8,
     "guide_similarity": "two characters' mannequin frames (hold and contact at game size, alpha IoU) above 0.8 = the same template = FAIL (requests.js --motion). Characters sharing a base set must carry different overrides.",
-    "banned_pose_re": "thrown back|rear (?:leg|bare foot|foot)|knees? (?:up|raised|lifted)|kicked up|(?:lifted|raised) (?:front )?(?:leg|knee)|(?:leg|knee) (?:lifted|raised)|무릎을 들|몸을 크게 젖",
-    "banned_source": "same pattern as tools/art/handoff.py BANNED_POSE_RE (hit job, working tree 2026-11-25) plus two Korean phrases; case-insensitive",
+    "banned_pose_re": "thrown back|rear (?:leg|bare foot|foot)|knees? (?:up|raised|lifted)|kicked up|\\b(?:lift|rais)\\w* (?:up )?(?:the |her |his |their |its |one |a )?(?:front |near |far |lead |leading |back )?(?:leg|knee)s?\\b|(?:leg|knee) (?:lifted|raised)|\\blegs? up\\b|무릎을 들|몸을 크게 젖",
+    "banned_source": "the English part is exactly tools/art/handoff.py BANNED_POSE_RE (knee / leg lifting in both word orders, feet left out on purpose), then two Korean phrases; case-insensitive. node tools/art/requests.js --motion FAILs when the two differ.",
     "banned_note": "'kick' alone is NOT banned: recoil wording such as 'arm kicks up' (Marisol's pistol) is legitimate.",
     "prop_seal_re": "stays? sheathed|\\bsheathed\\b|holster|never two|(?:on|from) (?:her|his|their) back|never (?:fired|swung|thrown|used)|prop only|does not float|second weapon|not the portrait|portrait[^.;]*\\b(?:not drawn|do not draw)|(?:do not draw|not drawn)[^.;]*\\bportrait|쏘지 않|휘두르지 않|던지지 않|꺼내지 않|등에 멘",
     "prop_seal_source": "tools/art/handoff.py SEAL_RE plus Korean phrases; case-insensitive",
@@ -113,7 +113,7 @@
     }
   },
   "hit": {
-    "about": "Hit sequences by weight. Reading comes from the silhouette first: head and shoulders snap away and return, knees absorb, feet planted (one stagger step at most for light), weapon kept, face changes (wince / eyes shut / teeth gritted) but a ~10 px face barely reads at 96 px. Heavy characters rock less. Joint values are the hit job's posekit.HIT_KEYS (tools/pixelart/posekit.py, working tree 2026-11-25, not yet committed) and the limits are handoff.py HIT_RULES; posekit / handoff win if they differ - update this copy.",
+    "about": "Hit sequences by weight. Reading comes from the silhouette first: head and shoulders snap away and return, knees absorb, feet planted (one stagger step at most for light), weapon kept, face changes (wince / eyes shut / teeth gritted) but a ~10 px face barely reads at 96 px. Heavy characters rock less. Joint values are the hit job's posekit.HIT_KEYS (tools/pixelart/posekit.py, 5beb7f6) and the limits are handoff.py HIT_RULES; posekit / handoff win if they differ - update this copy.",
     "retrigger_ms": 200,
     "retrigger": "a new hit within 200 ms of the current hit's start does not restart the sequence: it re-shows K1 for its ms and resumes where it was (heavy: ignored). Hits interrupt idle, run and attack frames from cut on; they never interrupt an attack before its contact.",
     "priority": [
@@ -136,7 +136,7 @@
     },
     "weights": {
       "heavy": {
-        "users": "ironwall, titan, frostjarl, grom, liberator, runesmith, big monsters and bosses",
+        "users": "DEFAULT only, for sheets not in motion_chars.json hit.sheets (the one source of a sheet's weight): the archetypes whose hit_default is heavy (greatweapon, chain, big). Typical: braced defenders and big monsters / bosses.",
         "checks": {
           "lean_max_deg": 15,
           "hip_drop_src_px": [
@@ -149,7 +149,9 @@
           "head_dx_src_px": [
             12,
             35
-          ]
+          ],
+          "head_dx_game_px": [2, 6],
+          "head_dx_game_note": "= head_dx_src_px x 0.1654, rounded (pilot done-when 3: measured on the new hit cells at game size)"
         },
         "loop": false,
         "contact": 0,
@@ -212,7 +214,7 @@
         ]
       },
       "mid": {
-        "users": "sword, spear and most melee (class warrior, veteran, lancer, ...), Orga",
+        "users": "DEFAULT only, for sheets not in motion_chars.json hit.sheets (the one source of a sheet's weight): the archetypes whose hit_default is mid (sword_shield, sword, spear, quadruped).",
         "checks": {
           "lean_max_deg": 15,
           "hip_drop_src_px": [
@@ -225,7 +227,9 @@
           "head_dx_src_px": [
             25,
             60
-          ]
+          ],
+          "head_dx_game_px": [4, 10],
+          "head_dx_game_note": "= head_dx_src_px x 0.1654, rounded (pilot done-when 3: measured on the new hit cells at game size)"
         },
         "loop": false,
         "contact": 0,
@@ -299,7 +303,7 @@
         ]
       },
       "light": {
-        "users": "dagger, twin blades, bow, staff, healer (Nikla, class rogue, class archer, class mage, class cleric, Marisol, ...)",
+        "users": "DEFAULT only, for sheets not in motion_chars.json hit.sheets (the one source of a sheet's weight): the archetypes whose hit_default is light (dagger, twin, bow, gun, staff, healer, flyer).",
         "checks": {
           "lean_max_deg": 15,
           "hip_drop_src_px": [
@@ -313,6 +317,8 @@
             40,
             90
           ],
+          "head_dx_game_px": [7, 15],
+          "head_dx_game_note": "= head_dx_src_px x 0.1654, rounded (pilot done-when 3: measured on the new hit cells at game size)",
           "back_foot_slide_max_src_px": 33
         },
         "loop": false,
@@ -386,7 +392,8 @@
     },
     "source": {
       "joints": "tools/pixelart/posekit.py HIT_KEYS (k1_/k2_ heavy|mid|light)",
-      "limits": "tools/art/handoff.py HIT_RULES + hit_metrics (110 px/head)"
+      "limits": "tools/art/handoff.py HIT_RULES + hit_metrics (110 px/head)",
+      "weight_per_sheet": "tools/art/specs/motion_chars.json hit.sheets (the one source; requests.js --motion FAILs when handoff.py CHARS hit_weight or captains_batch2.json hit_weight differ); weights.*.users and archetypes.*.hit_default are defaults for unlisted sheets"
     }
   },
   "idle": {
@@ -677,7 +684,7 @@
             "ms": 50,
             "who": "GPT-key",
             "strip": "S1#2",
-            "pose": "Breakdown: body uncoiling, rear heel lifting; class warrior: the SHIELD CHECK - shield punched forward at face height while the sword still trails low"
+            "pose": "Breakdown: body uncoiling, back heel lifting; class warrior: the SHIELD CHECK - shield punched forward at face height while the sword still trails low"
           },
           {
             "name": "contact",

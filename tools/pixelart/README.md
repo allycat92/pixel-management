@@ -55,8 +55,12 @@ when a weapon would leave the canvas). Deterministic; the fit never depends on `
 - Generate the idle frame first, then reuse its look (same seed / reference image) for the other frames.
 - **GPT handoff packages**: `python3 tools/art/handoff.py` renders the four key-pose guides per character plus
   `guide_strip.png` (the 1536x1024 deliverable layout) into `art/requests/phase3/<id>/` — see `art/requests/gpt_handoff_notes.md`.
-  Its `KEY_POSES` add handoff-only variants of the wind-up / strike / hit frames (weight back, step-in lunge with the arms
-  extended, torso thrown back) and draw the fixer's reverse-grip dagger; posekit's own frames are unchanged.
+  Its `KEY_POSES` add handoff-only variants of the wind-up / strike frames (weight back, step-in lunge with the arms
+  extended) and draw the fixer's reverse-grip dagger; posekit's own idle / walk / attack / cast frames are unchanged.
+  The hit is not a pose variant any more: it is the believable reaction of `posekit.HIT_KEYS` (K1 impact / K2 deepest
+  point for heavy, mid and light; feet flat, knees absorb, head snaps away, lean <= 15 degrees); posekit's `hit_0` and
+  the package guide are K2-mid, and `python3 tools/art/handoff.py --hit-set DIR` draws all six keys per weapon with
+  measurements (GPT hit rule `aa2934a` in `art/requests/gpt_handoff_notes.md`).
 
 Known limits: the figure is a 2D mannequin (no real 3D rotation, so twisting poses are faked by
 moving the shoulders); hair, clothing, capes and smears are left to the model; the eye marks only
