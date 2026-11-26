@@ -116,6 +116,18 @@ end
 spr:saveAs(out)
 '''
 
+# ---------------------------------------------------------------- ARMS: table changes for posekit natural-arms 2 (README 「팔 고침」 2차)
+# the frame keys below replace the table's (None removes the key); "*" = set-level keys
+ARMS_FIX = {"in": {"handN": [0.95, 2.10], "handF": [1.46, 2.40]}, "hold": {"elbN": None, "handN": [0.44, 3.53]}, "swing": {"handF": [1.49, 2.17], "elbF": [0, 1]}, "contact": {"handF": [1.62, 2.18], "elbF": [0, 1]}, "follow": {"handF": [1.64, 2.15], "elbF": [0, 1]}, "recover": {"handF": [1.85, 1.05]}, "settle": {"handN": [1.50, 1.54], "handF": [1.75, 1.12]}}
+_T = globals().get("SET") or globals().get("CFG")
+_T.update(ARMS_FIX.get("*", {}))
+for _f in _T["frames"]:
+    for _k, _v in ARMS_FIX.get(_f["name"], {}).items():
+        if _v is None:
+            _f.pop(_k, None)
+        else:
+            _f[_k] = _v
+# ---------------------------------------------------------------- /ARMS
 if len(sys.argv) == 3:
     repo, out = sys.argv[1:3]
     cfg = SET
@@ -126,6 +138,7 @@ else:
     sys.exit(__doc__)
 sys.path.insert(0, os.path.join(repo, 'tools', 'pixelart'))
 import posekit as pk  # noqa: E402
+assert getattr(pk, 'ARMS_VERSION', '').startswith('posekit natural-arms 2'), 'pull the repo: this table needs posekit natural-arms 2 (tools/pixelart/posekit.py)'  # ARMS
 import walk8 as w8  # noqa: E402
 
 HEAD, SLOT, H, BASE, SCALE = w8.HEAD_PX, w8.SLOT, w8.SH_, w8.BASELINE, w8.SCALE
@@ -178,6 +191,7 @@ def make_pose(f, lift=(0.0, 0.0)):
         dv = (up - hup) * 0.55 * B.hs
         ho = p.get('head_off', (0.0, 0.0))
         p['head_off'] = (ho[0] + dv[0], ho[1] - dv[1])
+    p['arms'] = 'natural'      # ARMS: posekit natural-arms 2 - the elbow bends the anatomical way (SPEC 10.3b)
     p['z'] = f.get('z', {'farfore': 'back'})
     return p
 

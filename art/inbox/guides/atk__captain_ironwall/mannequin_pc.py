@@ -67,6 +67,18 @@ SET = {
     ],
 }
 
+# ---------------------------------------------------------------- ARMS: table changes for posekit natural-arms 2 (README 「팔 고침」 2차)
+# the frame keys below replace the table's (None removes the key); "*" = set-level keys
+ARMS_FIX = {"*": {"pose_defaults": {"toeN": 0.85, "faN": 0, "faF": 0}}, "in": {"handN": [-0.06, 2.24], "handF": [0.68, 2.14]}, "hold": {"handN": [-0.31, 2.20], "handF": [0.46, 2.26]}, "swing": {"handN": [0.20, 2.15], "handF": [0.93, 2.21]}, "contact": {"hip": [0.36, 1.05], "handN": [0.58, 1.98], "handF": [1.34, 2.02], "shield_ang": -8, "wa": 128}, "follow": {"hip": [0.40, 1.12], "handN": [0.64, 2.04], "handF": [1.32, 1.84], "shield_ang": -5, "wa": 128}, "recover": {"handN": [0.28, 2.20], "handF": [1.02, 2.22]}, "settle": {"handN": [0.12, 2.22], "handF": [0.84, 2.15]}}
+_T = globals().get("SET") or globals().get("CFG")
+_T.update(ARMS_FIX.get("*", {}))
+for _f in _T["frames"]:
+    for _k, _v in ARMS_FIX.get(_f["name"], {}).items():
+        if _v is None:
+            _f.pop(_k, None)
+        else:
+            _f[_k] = _v
+# ---------------------------------------------------------------- /ARMS
 args = sys.argv[1:]
 if len(args) == 2:
     repo, out = args
@@ -78,6 +90,7 @@ else:
     sys.exit('usage: mannequin_pc.py REPO [SET.json] OUT_DIR')
 sys.path.insert(0, os.path.join(repo, 'tools', 'pixelart'))
 import posekit as pk  # noqa: E402
+assert getattr(pk, 'ARMS_VERSION', '').startswith('posekit natural-arms 2'), 'pull the repo: this table needs posekit natural-arms 2 (tools/pixelart/posekit.py)'  # ARMS
 import walk8 as w8  # noqa: E402
 
 HEAD, SLOT, H, BASE, SCALE = w8.HEAD_PX, w8.SLOT, w8.SH_, w8.BASELINE, w8.SCALE
@@ -124,6 +137,7 @@ def make_pose(f, lift=(0.0, 0.0)):
         dv = (up - hup) * 0.55 * B.hs
         ho = p.get('head_off', (0.0, 0.0))
         p['head_off'] = (ho[0] + dv[0], ho[1] - dv[1])
+    p['arms'] = 'natural'      # ARMS: posekit natural-arms 2 - the elbow bends the anatomical way (SPEC 10.3b)
     p['z'] = f.get('z', {'farfore': 'back'})
     return p
 

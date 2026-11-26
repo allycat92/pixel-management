@@ -62,6 +62,18 @@ SET = {"set": "atk__class_warrior", "tag": "attack", "x0": 170, "auto_tilt": Tru
             "handN": [0.06, 1.71], "handF": [0.78, 2.07], "wa": 398},
        ]}
 
+# ---------------------------------------------------------------- ARMS: table changes for posekit natural-arms 2 (README 「팔 고침」 2차)
+# the frame keys below replace the table's (None removes the key); "*" = set-level keys
+ARMS_FIX = {"in": {"handN": [0.15, 1.80], "handF": [0.68, 2.18]}, "hold": {"handN": [-0.76, 1.07], "wa": 122, "handF": [0.47, 2.44]}, "swing": {"handN": [-0.08, 1.08]}, "contact": {"elbF": None, "handN": [0.75, 1.36], "handF": [1.24, 2.10]}, "follow": {"elbF": None, "handN": [0.78, 1.80], "handF": [1.30, 1.76]}, "recover": {"handF": [1.00, 2.02]}, "settle": {"handN": [0.26, 1.71], "handF": [0.88, 2.13]}}
+_T = globals().get("SET") or globals().get("CFG")
+_T.update(ARMS_FIX.get("*", {}))
+for _f in _T["frames"]:
+    for _k, _v in ARMS_FIX.get(_f["name"], {}).items():
+        if _v is None:
+            _f.pop(_k, None)
+        else:
+            _f[_k] = _v
+# ---------------------------------------------------------------- /ARMS
 args = sys.argv[1:]
 if len(args) == 2:
     repo, out = args
@@ -73,6 +85,7 @@ else:
     sys.exit(__doc__)
 sys.path.insert(0, os.path.join(repo, 'tools', 'pixelart'))
 import posekit as pk  # noqa: E402
+assert getattr(pk, 'ARMS_VERSION', '').startswith('posekit natural-arms 2'), 'pull the repo: this table needs posekit natural-arms 2 (tools/pixelart/posekit.py)'  # ARMS
 import walk8 as w8  # noqa: E402
 
 HEAD, SLOT, H, BASE, SCALE = w8.HEAD_PX, w8.SLOT, w8.SH_, w8.BASELINE, w8.SCALE
@@ -116,6 +129,7 @@ def make_pose(f, lift=(0.0, 0.0)):
         dv = (up - hup) * 0.55 * B.hs
         ho = p.get('head_off', (0.0, 0.0))
         p['head_off'] = (ho[0] + dv[0], ho[1] - dv[1])
+    p['arms'] = 'natural'      # ARMS: posekit natural-arms 2 - the elbow bends the anatomical way (SPEC 10.3b)
     p['z'] = f.get('z', {'farfore': 'back'})
     return p
 
