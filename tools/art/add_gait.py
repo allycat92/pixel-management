@@ -626,15 +626,19 @@ def best_guide_match(frames, exe=None, stop=None, masks=None):
             continue
         for flip, m in ((False, c), (True, np.ascontiguousarray(c[:, ::-1]))):
             scaled, rots, turned = {}, {}, {}
+            na_m, tilts = float(m.sum()), None
 
-            def turn(deg, h, d, m=m, rots=rots, turned=turned):
+            def rot(deg, m=m, rots=rots):
+                if deg not in rots:
+                    rots[deg] = _rotate(m, deg) if deg else m
+                return rots[deg]
+
+            def turn(deg, h, d, turned=turned):
                 """원본을 deg 도 돌려(h 를 주면 그 다음 높이 h 로 맞춰) d 에 잰 (IoU, 옮김, 높이 맞춤 배율). 높이 맞춤은 돌린 뒤에 한다 —
                 기울어진 채 높이를 맞추면 상자가 커진 만큼 작게 맞는다. 돌리고 맞춘 실루엣은 캐시한다"""
                 key = (h, deg)
                 if key not in turned:
-                    if deg not in rots:
-                        rots[deg] = _rotate(m, deg) if deg else m
-                    r, kr = rots[deg], None
+                    r, kr = rot(deg), None
                     if r is not None and h is not None and r.shape[0] != h:
                         kr = h / r.shape[0]
                         r = _to_height(r, h) if NORM_RANGE[0] <= kr <= NORM_RANGE[1] else None
@@ -645,25 +649,29 @@ def best_guide_match(frames, exe=None, stop=None, masks=None):
             for name, d, nb in drafts:
                 h = d.shape[0]
                 k = h / m.shape[0]
-                fits = NORM_RANGE[0] <= k <= NORM_RANGE[1]          # 높이를 맞춰 볼 수 있는 짝
-                cands = [(None, m, None)]
-                if h != m.shape[0] and fits:
-                    if h not in scaled:
-                        scaled[h] = _to_height(m, h)
-                    cands.append((h, scaled[h], k))
                 start = {}                                       # 돌리기 전 값: None(그대로)·h(높이 맞춤) → (IoU, 옮김, 배율)
-                for kind, mm, kk in cands:
-                    na = float(mm.sum())
-                    if not na or min(na, nb) / max(na, nb) <= max(best[0], floor):
-                        continue
-                    iou, sh_ = aligned_iou(mm, d)
-                    start[kind] = (iou, sh_, kk)
+                if min(na_m, nb) / max(na_m, nb) > max(best[0], floor):    # 그대로 (돌려도 넓이는 같다)
+                    iou, sh_ = aligned_iou(m, d)
+                    start[None] = (iou, sh_, None)
                     if iou > best[0]:
-                        best = (iou, i + 1, name, flip, sh_, kk, 0)
+                        best = (iou, i + 1, name, flip, sh_, None, 0)
                         if stop is not None and iou > stop:
                             return best
-                if fits and h == m.shape[0] and h not in start:   # 높이가 같아도 돌린 뒤엔 달라진다 (크기를 바꾸고 기울인 마네킹):
-                    start[h] = start.get(None) or (*aligned_iou(m, d), None)   # 넓이로 걸러 재지 않은 짝도 여기선 잰다
+                if NORM_RANGE[0] <= k <= NORM_RANGE[1]:          # 높이 맞춤: 넓이는 돌린 상자 높이에 따라 바뀐다 — 돌릴 각도 모두로 넓이 비를 본다
+                    if tilts is None:
+                        tilts = [r.shape[0] for r in (rot(q) for q in range(-ROT_MAX - 1, ROT_MAX + 2)) if r is not None]
+                    if max(min(a, nb) / max(a, nb) for a in (na_m * (h / t) ** 2 for t in tilts)) > max(best[0], floor):
+                        if h == m.shape[0]:
+                            start[h] = start.get(None) or (*aligned_iou(m, d), None)
+                        else:
+                            if h not in scaled:
+                                scaled[h] = _to_height(m, h)
+                            iou, sh_ = aligned_iou(scaled[h], d)
+                            start[h] = (iou, sh_, k)
+                            if iou > best[0]:
+                                best = (iou, i + 1, name, flip, sh_, k, 0)
+                                if stop is not None and iou > stop:
+                                    return best
                 # 기울인 마네킹: 그대로·높이 맞춤 각각, 돌리기 전 IoU 가 ROT_GATE 이상이면 ±ROT_STEP 도 돌려 재고 오르는 쪽으로
                 # ROT_MAX 까지 ROT_STEP 씩 더 돌린다 (내려가면 멈춘다). 찾은 IoU 가 ROT_FINE 이상이면 그 양옆 1도도 잰다.
                 for kind, (iou0, sh0, k0) in start.items():
