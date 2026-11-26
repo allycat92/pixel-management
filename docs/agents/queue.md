@@ -8,7 +8,7 @@
 | 누구 | id | 상태 | 할 일 (자세한 것은 그 줄의 문서) |
 |---|---|---|---|
 | Codex | `C1-walker-yields` | READY | 유닛 밀림 고치기: `docs/agents/tasks/C1-walker-yields.md` |
-| Antigravity | `A1-playtest` | READY | 플레이테스트 한 바퀴와 화면 검수 보고: `docs/agents/tasks/A1-playtest.md` |
+| GPT | `A1-playtest` | READY | 플레이테스트 한 바퀴와 화면 검수 보고: `docs/agents/tasks/A1-playtest.md` (11-26: Antigravity 에서 GPT 로 옮김) |
 
 ## 끝난 일
 

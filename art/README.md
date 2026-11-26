@@ -48,10 +48,10 @@
 | 1. 디자인 초안 | NovelAI (사용자가 원할 때만, 무료 범위) — **초안 전용** | `art/concepts/<id>/` — 주인이 고른 것만 (`selections.json`) |
 | 2. 자세 가이드 | 코드 `tools/pixelart/posekit.py` | 4등신 마네킹, 무기별 프레임 |
 | 3. 꾸러미 | 코드 `python3 tools/art/handoff.py` | `art/requests/phase3/<id>/` — concept · portrait · guide_1..4 · `guide_strip.png` · README(한국어 요약 + GPT용 영어 프롬프트) |
-| 4. 최종 그림 | **GPT 또는 Antigravity** (한 화풍; Antigravity 는 2026-11-26 부터 도트 애니메이션 헤드) | `art/inbox/sheet_<id>.png` → `art-inbox` 브랜치 |
+| 4. 최종 그림 | **Antigravity** (2026-11-26 부터 그림 전담 — 그 전의 그림은 GPT) | `art/inbox/sheet_<id>.png` → `art-inbox` 브랜치 |
 | 5. 후처리 | 코드 `python3 tools/art/sheets.py` | 80×80 칸 시트 + manifest |
 
-- **NovelAI 는 디자인 초안 전용이다 (주인 결정).** 게임에 들어가는 최종 그림은 언제나 GPT 또는 Antigravity 가 그린다(주인 2026-11-26) — NovelAI 로 최종본을 만들거나 시트로 등록하지 않는다.
+- **NovelAI 는 디자인 초안 전용이다 (주인 결정).** 게임에 들어가는 최종 그림은 Antigravity 가 그린다(주인 2026-11-26; 그 전의 그림은 GPT) — NovelAI 로 최종본을 만들거나 시트로 등록하지 않는다.
 - NovelAI 초안끼리는 화풍·비율이 제각각이다 → **디자인(옷·색·무기·흉터)만** 가져오고, 비율은 posekit(4등신), 화풍은 앵커가 정한다.
 - 일반 병과(`class_<key>`)는 한 그림을 서로 다른 여러 사람이 같이 쓰므로 **얼굴이 가려지는 복장** (면갑·후드와 마스크·눌러쓴 모자 챙과 높은 깃·두건과 베일·깊은 후드). 상급 직업은 어울릴 때만.
 - 순서: 바렌(앵커) → 주인 승인 → 나머지 창설 후보 8명 → (선택) 로드릭 기마 → 펠릭스 색 고치기(메시지 C) → 펠릭스 승인 → 일반 병과 5(메시지 D)·1차 몬스터 8(메시지 E) → 납품 검토: 승인 13장 등록, 거대 거미 다시 그리기 + 일곱 장 손보기(메시지 F) → 그 뒤 특별 용병·나머지 몬스터·보스·나머지 대장·상급 직업.
@@ -139,7 +139,7 @@ python3 tools/art/add_gait.py sheet/class/warrior --gait run --remove           
 
 ### NovelAI (사용자가 원할 때만, 디자인 초안 전용)
 `python3 tools/art/novelai.py --only sheet/class/warrior` → `art/concepts/class_warrior/drafts/nai_class_warrior_s21149.png` (한 자세, 마젠타 배경; `drafts/`는 git 에 올리지 않는다).
-**NovelAI 그림은 게임 그림이 되지 않는다** (주인 결정: 최종 그림은 GPT 또는 Antigravity). `novelai.py`는 `art/inbox/`·`assets/`·`art/requests/`에 쓰지 못하고
+**NovelAI 그림은 게임 그림이 되지 않는다** (주인 결정: 최종 그림은 Antigravity). `novelai.py`는 `art/inbox/`·`assets/`·`art/requests/`에 쓰지 못하고
 `sheet_*.png` 이름도 만들지 않는다. `sheets.py`는 NovelAI 그림(PNG 메타데이터 `Software: NovelAI`, `art/concepts/`·`art/requests/`·`drafts/` 안, `nai_*` 이름)을 거부한다
 (`--allow-draft` = 파이프라인 시험용, 언제나 `--dry-run`이라 등록할 수 없다). 주인이 고른 초안만 `art/concepts/<id>/concept_NN.png`로 옮겨 꾸러미의 `concept.png`(디자인 참고)가 된다.
 기본값은 무료 범위(넓이 ≤ 1024×1024, 28 steps, 1장)이고, 더 큰 설정은 `--allow-paid` 없이는 거부한다. 한 번에 `--max` 2장.

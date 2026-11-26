@@ -17,11 +17,13 @@ Claude Code 가 받아서 확인한 결과는 `art/requests/feedback.md`에 남�
 
 ## 지금 차례 (그림 쪽은 이 절만 보면 된다 — 위에서부터)
 
+**2026-11-26 주인 결정: 그림 일은 모두 Antigravity 가 전담한다**(새 그림·동작 프레임·마네킹·Aseprite 손질). 아래 표에서 「누구」가 PC·GPT 로 적힌 옛 줄도 Antigravity 가 한다. GPT 계통은 시험·버그 수정·QA 로 옮겼다(`docs/agents/README.md`).
+
 | 누구 | 종류 | id | 할 일 (자세한 것은 그 줄의 요청서) |
 |---|---|---|---|
-| PC | 뼈대 | `guide/heavy_base` | **중량 이동 마네킹**(주인 11-26: 경량·중량·로브 세 부류 — 중장비는 몸이 뜨거나 앞으로 숙인 채 가누기 어렵다). 클라우드 초안 `art/requests/guides/heavy_base/draft/`(8프레임 101ms, 뜸 없음, 기울기 5°, 디딜 때만 내려앉음, 팔은 방패·무기를 들고 몸 가까이)을 Aseprite 로 다듬는다 — 요청서 `art/requests/guides/heavy_base/README.md`. 검사 `check_skeleton.py --gait heavy`. 납품 `art/inbox/guides/heavy_base/heavy_base.aseprite`. PC 지침 판 2026-11-26f |
-| PC | 뼈대 | `guide/robe_base` | **로브 이동 마네킹** — 긴 천 옷으로 서두르는 잰걸음(뜸 없음, 기울기 7°, 옷자락이 무릎을 가리고 한 박자 늦게 따라온다). 초안 `art/requests/guides/robe_base/draft/`(8프레임 96ms) — 요청서 `art/requests/guides/robe_base/README.md`. 검사 `check_skeleton.py --gait robe`. 납품 `art/inbox/guides/robe_base/robe_base.aseprite` |
-| PC | 보류 | `sheet/captain/liberator` | 카토 — **취소**: 주인 결정(11-26) 사슬과 주먹으로 다시 그린다(장검은 등에). 장검 손질은 하지 않는다 |
+| Antigravity | 뼈대 | `guide/heavy_base` | **중량 이동 마네킹**(주인 11-26: 경량·중량·로브 세 부류 — 중장비는 몸이 뜨거나 앞으로 숙인 채 가누기 어렵다). 클라우드 초안 `art/requests/guides/heavy_base/draft/`(8프레임 101ms, 뜸 없음, 기울기 5°, 디딜 때만 내려앉음, 팔은 방패·무기를 들고 몸 가까이)을 Aseprite 로 다듬는다 — 요청서 `art/requests/guides/heavy_base/README.md`. 검사 `check_skeleton.py --gait heavy`. 납품 `art/inbox/guides/heavy_base/heavy_base.aseprite`. PC 지침 판 2026-11-26f |
+| Antigravity | 뼈대 | `guide/robe_base` | **로브 이동 마네킹** — 긴 천 옷으로 서두르는 잰걸음(뜸 없음, 기울기 7°, 옷자락이 무릎을 가리고 한 박자 늦게 따라온다). 초안 `art/requests/guides/robe_base/draft/`(8프레임 96ms) — 요청서 `art/requests/guides/robe_base/README.md`. 검사 `check_skeleton.py --gait robe`. 납품 `art/inbox/guides/robe_base/robe_base.aseprite` |
+| Antigravity | 보류 | `sheet/captain/liberator` | 카토 — **취소**: 주인 결정(11-26) 사슬과 주먹으로 다시 그린다(장검은 등에). 장검 손질은 하지 않는다 |
 
 ## 주인에게 물을 것 (모아서 — 답이 없으면 「기본」대로 진행한다)
 
@@ -37,6 +39,7 @@ Claude Code 가 받아서 확인한 결과는 `art/requests/feedback.md`에 남�
 | 8 | ~~도트 애니메이션 헤드~~ | **답 받음 (11-26)**: Antigravity 를 도트 애니메이션 헤드로 — 동작 그림의 통과·고침을 Antigravity 가 판정, 최종 그림도 Antigravity 가 그릴 수 있다(「최종 그림은 GPT」 규칙을 「GPT 또는 Antigravity」로). 판정은 art-inbox NOTES 「판정 — id」 절, 대기열은 클라우드가 옮긴다 | — | 11-26 |
 | 9 | ~~전술 문서의 세 질문~~ | **답 받음 (11-26)**: ① 잘 맞는 전술에 **보상**을 주는 방향 ② 출전 화면 약점 경고는 **띄우지 않는다** ③ 전투 고비 자막도 **필요 없다**(동작으로만) | — | 11-26 |
 | 10 | ~~전투가 결과를 정하게~~ | **지시 (11-26)**: "기존의 결과값만 출력하던 방식에서, 유닛의 구체적인 hp와 공격력, 방어력 등의 수치를 이제 본격적으로 설정해서 실제로 전투가 굴러가도록 만들 뼈대를 잡자" → 유닛 수치(HP·공격·방어 등)와 전투 판정 뼈대 설계(`docs/plans/battle_stats/` 예정) | — | 11-26 |
+| 11 | ~~그림 전담~~ | **답 받음 (11-26)**: "antigravity쪽에도 mcp를 설치해뒀어. 거기서 그림작업 포함해서 전담하는게 낫다고 보니까 gpt계통을 테스트나 버그수정, QA작업 위주로 아예 빼줘" → 그림(새 그림·동작·마네킹·Aseprite 손질)은 Antigravity 전담, GPT 계통(GPT·Codex)은 시험·버그 수정·QA | — | 11-26 |
 
 종류: `new` 새 시트 · `fix` 같은 파일을 적힌 만큼만 · `idle-check` 대기 한 자세만 먼저 · `review` 글로만 답(교차 검수) · `뼈대`/`손질` PC 작업.
 GPT 는 `art/requests/GPT_STANDING.md`, PC 는 `tools/aseprite-mcp/pc/CLAUDE.md` 대로 일한다.
@@ -94,8 +97,8 @@ GPT 는 `art/requests/GPT_STANDING.md`, PC 는 `tools/aseprite-mcp/pc/CLAUDE.md`
 | `guide/hit__captain_shadowqueen` | **다시 — 팔 (첫 관문, 주인 11-26)** · 이전 ACCEPTED (2026-11-26 art-inbox `3e7cdc5`, 검사 PASS 경고 0) | `art/inbox/guides/hit__captain_shadowqueen/hit__captain_shadowqueen.aseprite` (+ `mannequin_pc.py`) | `art/requests/guides/hit__captain_shadowqueen/README.md` | 같은 폴더 README 의 표·수치 (초안 없음) | 동작 프레임 시운전(주인 11-26: 마네킹 시퀀스는 PC 하청). 니클라 피격 (4프레임). 받으면 `receive.py guides/hit__captain_shadowqueen/hit__captain_shadowqueen` → `check_skeleton.py --motion` + 유사도 `requests.js --motion --frames` |
 | `guide/atk__captain_ironwall` | **다시 — 팔 (첫 관문, 주인 11-26)** · 이전 ACCEPTED (2026-11-26 art-inbox `3e7cdc5`, 검사 PASS 경고 0) | `art/inbox/guides/atk__captain_ironwall/atk__captain_ironwall.aseprite` (+ `mannequin_pc.py`) | `art/requests/guides/atk__captain_ironwall/README.md` | 같은 폴더 README 의 표·수치 (초안 없음) | 동작 프레임 시운전(주인 11-26: 마네킹 시퀀스는 PC 하청). 아이언월 공격 (철퇴·탑방패 — 전사와 닮지 않게, 1차 관문용). 받으면 `receive.py guides/atk__captain_ironwall/atk__captain_ironwall` → `check_skeleton.py --motion` + 유사도 `requests.js --motion --frames` |
 | `guide/atk__class_archer` | **다시 — 팔 (첫 관문, 주인 11-26)** · 이전 ACCEPTED (2026-11-26 art-inbox `be94c7f`, 검사 PASS 경고 0) | `art/inbox/guides/atk__class_archer/atk__class_archer.aseprite` (+ `mannequin_pc.py`) | `art/requests/guides/atk__class_archer/README.md` | 같은 폴더 README 의 표·수치 (초안 없음) | 동작 프레임 시운전(주인 11-26: 마네킹 시퀀스는 PC 하청). 병과 궁수 공격 (활, 1차 관문용). 받으면 `receive.py guides/atk__class_archer/atk__class_archer` → `check_skeleton.py --motion` + 유사도 `requests.js --motion --frames` |
-| `guide/heavy_base` | **DOT_READY · 담당: PC(Aseprite)** (2026-11-26) | `art/inbox/guides/heavy_base/heavy_base.aseprite` | `art/requests/guides/heavy_base/README.md` | `art/requests/guides/heavy_base/draft/` (초안 — 검사 PASS) | 이동 부류 「중량」의 기준 마네킹. 받으면 `receive.py guides/heavy_base/heavy_base` → 확정판 `heavy_base/v1/`. 중량 7개 시트의 이동 그림이 이 위에 그려진다 |
-| `guide/robe_base` | **DOT_READY · 담당: PC(Aseprite)** (2026-11-26) | `art/inbox/guides/robe_base/robe_base.aseprite` | `art/requests/guides/robe_base/README.md` | `art/requests/guides/robe_base/draft/` (초안 — 검사 PASS) | 이동 부류 「로브」의 기준 마네킹. 로브 10개 시트의 이동 그림이 이 위에 그려진다 |
+| `guide/heavy_base` | **DOT_READY · 담당: Antigravity(Aseprite)** (2026-11-26) | `art/inbox/guides/heavy_base/heavy_base.aseprite` | `art/requests/guides/heavy_base/README.md` | `art/requests/guides/heavy_base/draft/` (초안 — 검사 PASS) | 이동 부류 「중량」의 기준 마네킹. 받으면 `receive.py guides/heavy_base/heavy_base` → 확정판 `heavy_base/v1/`. 중량 7개 시트의 이동 그림이 이 위에 그려진다 |
+| `guide/robe_base` | **DOT_READY · 담당: Antigravity(Aseprite)** (2026-11-26) | `art/inbox/guides/robe_base/robe_base.aseprite` | `art/requests/guides/robe_base/README.md` | `art/requests/guides/robe_base/draft/` (초안 — 검사 PASS) | 이동 부류 「로브」의 기준 마네킹. 로브 10개 시트의 이동 그림이 이 위에 그려진다 |
 | `gait/sheet_class_warrior_run` | **ACCEPTED** (2026-11-26 등록: A `5a6d506` + R5 손질 `40e5058`) | `art/inbox/gait/sheet_class_warrior_run_a.png` + `_b.png` | `art/requests/gait/run__class_warrior/README.md` | `guide_run_a/b.png` (마네킹 v2 그대로), `size_run_a/b.png` (대기 그림과 크기 맞춤) | 주인 11-26: 엔진이 대기 그림을 잘라 비트는 달리기는 찌그러져 보인다 → 마네킹 위 덧그리기. 받으면 `receive.py gait/sheet_class_warrior_run` → `add_gait.py sheet/class/warrior --gait run --pose art/requests/guides/run_base/v2/pose.json` |
 | `gait/sheet_captain_shadowqueen_run` | **ACCEPTED** (2026-11-26 등록, art-inbox `385e278`) | `art/inbox/gait/sheet_captain_shadowqueen_run_a.png` + `_b.png` | `art/requests/gait/run__captain_shadowqueen/README.md` | 위와 같음 | 니클라: 쌍검은 정수, 날은 손에서 뒤아래로, 먼 칼은 몸 뒤(대기 자세와 같은 예외) |
 | `review/xcheck_03` | **보류** (걷기 뼈대 질문 — 달리기 뼈대 초안이 나오면 그 3문항으로 바꿔 다시 올린다. 이미 답했다면 그대로 참고한다) | `art/inbox/NOTES.md` 「교차 검수 3」 (그림 없음) | `art/requests/review/xcheck_03/README.md` | `art/requests/review/xcheck_03/*.png` | 교차 검수 — 걷기 뼈대 v2 확정판 3문항에 OK/FIX 로 답한다. PC 세션은 손대지 않는다. |

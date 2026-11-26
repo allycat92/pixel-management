@@ -9,7 +9,8 @@
 | 이름 | 실행 | 상시 지시문 | 작업 브랜치 | 잘 맡는 일 |
 |---|---|---|---|---|
 | Codex | GPT CLI (`codex`) | `docs/agents/CODEX_STANDING.md` | `agent/codex` | 코드(엔진·도구) 수정, 시험, 측정 |
-| Antigravity | Antigravity CLI | `docs/agents/ANTIGRAVITY_STANDING.md` | `agent/antigravity` (보고) · `art-inbox` 의 `art/inbox/` (그림·판정) | **도트 애니메이션 헤드**(주인 2026-11-26) + 플레이테스트·화면 검수 |
+| Antigravity | Antigravity CLI + aseprite-mcp | `docs/agents/ANTIGRAVITY_STANDING.md` | `art-inbox` 의 `art/inbox/` (그림·판정) · `agent/antigravity` (그 밖의 보고) | **그림 전담 + 도트 애니메이션 헤드**(주인 2026-11-26) |
+| GPT (QA) | GPT (저장소를 읽고 쓰는 세션) | `docs/agents/GPT_QA_STANDING.md` | `agent/gpt-qa` | 플레이테스트·화면 QA·그림 교차 검수 |
 
 ## 공통 규칙 (두 에이전트 모두)
 - **게임 브랜치 `claude/dot-fantasy-management-game-saupju` 에는 절대 푸시하지 않는다.**
@@ -63,10 +64,17 @@
 | 누구 | 맡는 일 |
 |---|---|
 | **클라우드 Claude (총괄 기획)** | 주인과 직접 소통하며 방향을 정리하고 지시한다. 각 에이전트의 보고·피드백을 모아 `docs/agents/STATUS.md` 에 정리한다. 큰 틀의 결정(주인 결정이 필요한 것은 모아서 묻는다)과 **핵심 코딩**(전투 엔진·전술·게임 규칙)을 한다. 밸런싱은 CLI 에게 시험을 시키고 뽑힌 데이터로 판단한다. |
-| **Antigravity** | 도트 애니메이션 헤드(판정·지시 내용·최종 그림 가능) + 플레이테스트·화면 QA |
-| **Codex** | 자잘한 오류 수정, 도구 손질, 시험·측정 돌리기(밸런스 데이터 뽑기 포함) |
-| **GPT (그림)** | 캐릭터 그림(시트·동작 프레임), 교차 검수 |
-| **PC Aseprite 세션** | 마네킹 시퀀스, 받은 그림 손질 |
+| **Antigravity** | **그림 전담**(주인 2026-11-26): 새 그림·동작 프레임·마네킹·Aseprite 손질을 모두 맡는다(자체 aseprite-mcp). 도트 애니메이션 헤드로서 자기 그림의 통과·다시를 스스로 판정한다. |
+| **GPT 계통 — Codex (CLI)** | 버그 수정, 도구 손질, 시험·측정 돌리기(밸런스 데이터 뽑기 포함) |
+| **GPT 계통 — GPT (QA)** | 플레이테스트, 화면 QA, 그림의 교차 검수(눈으로 한 번 더 보기). 그림은 더 그리지 않는다. |
 
 - 클라우드는 에셋 제작·QA·자잘한 수정을 직접 하지 않고 일감으로 내린다(`docs/agents/queue.md`, `art/requests/dot_queue.md`).
 - 에이전트의 보고는 모두 저장소로 온다. 클라우드가 받아 검토하고, 주인에게는 취합한 결과와 결정할 것만 올린다.
+
+## 그림 전담 — Antigravity (주인 결정 2026-11-26, 위 「도트 애니메이션 헤드」 절을 바꾼다)
+주인: "antigravity쪽에도 mcp를 설치해뒀어. 거기서 그림작업 포함해서 전담하는게 낫다고 보니까 gpt계통을 테스트나 버그수정, QA작업 위주로 아예 빼줘."
+- **일감**: `art/requests/dot_queue.md` 「지금 차례」의 그림 줄 전부(누구 칸이 Antigravity·PC·GPT 인 줄 모두). 요청서는 그 줄이 가리키는 README.
+- **만드는 법·납품 규격**은 그대로다 — 마네킹·손질은 `tools/aseprite-mcp/pc/CLAUDE.md` 의 「납품」 절(파일 이름, `.aseprite` 한 개, 자체 검사 명령), 시트·동작 띠는 요청서 README 의 FORMAT·SELF-CHECK. 납품 자리는 `art-inbox` 브랜치의 `art/inbox/`, 메모는 `art/inbox/NOTES.md`.
+- **Aseprite MCP 안전 규칙**(주인의 기존 결정, Antigravity 에도 그대로): 검토를 마친 고정 커밋만 쓰고, 위험 도구 다섯(`run_lua_script`, `audit_animation`, `animation_sanitize`, `start_preview_server`, `stop_preview_server`)은 끈다 — `tools/aseprite-mcp/README.md`. Aseprite 실행 파일은 저장소에 올리지 않는다.
+- **판정**: 납품 메모 끝에 「판정 — id」 절로 스스로 통과·다시를 적는다(게임 속도로 본 것을 근거로). 클라우드는 기술 검사(검사기·규격·마네킹 베끼기)를 하고, 필요하면 GPT(QA)에게 교차 검수를 시킨다. 엇갈리면 주인이 정한다.
+- 플레이테스트·화면 QA 는 이제 GPT(QA)의 일이다(Antigravity 의 A1 은 GPT 로 옮겼다).

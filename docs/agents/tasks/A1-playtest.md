@@ -1,4 +1,4 @@
-# A1 — 플레이테스트 한 바퀴와 화면 검수 (Antigravity)
+# A1 — 플레이테스트 한 바퀴와 화면 검수 (GPT-QA — 2026-11-26 Antigravity 에서 옮김)
 
 ## Why
 주인이 방향은 맞다고 했지만, 비어 있는 부분과 어색한 부분이 많다고 했다. 클라우드는 브라우저 화면을 오래 지켜볼 수 없으니
@@ -38,11 +38,11 @@
    - 심한 정도(막힘 / 거슬림 / 사소함)
 
 ## Deliver
-- 브랜치 `agent/antigravity` 를 `origin/claude/dot-fantasy-management-game-saupju` 에서 갈라 만든다.
+- 브랜치 `agent/gpt-qa` 를 `origin/claude/dot-fantasy-management-game-saupju` 에서 갈라 만든다.
   - 고치지 않는다. 보고만 한다.
   - 코드는 바꾸지 않는다.
-- 보고는 `docs/agents/reports/antigravity.md` 에 새 절 `## A1 — <날짜>` 로 쓴다.
+- 보고는 `docs/agents/reports/gpt-qa.md` 에 새 절 `## A1 — <날짜>` 로 쓴다.
   - 맨 위에 가장 심한 것 5개를 놓는다.
   - 그 아래에 전체 목록을 적는다.
 - 스크린샷은 `docs/agents/reports/shots/A1/` 에 PNG 로 둔다. 한 장 500KB 이하, 모두 합쳐 20장 이하.
-- `agent/antigravity` 를 푸시한다. 자기 브랜치의 `docs/agents/queue.md` 에서 이 줄을 `REVIEW` 로 바꾼다.
+- `agent/gpt-qa` 를 푸시한다. 자기 브랜치의 `docs/agents/queue.md` 에서 이 줄을 `REVIEW` 로 바꾼다.
