@@ -100,7 +100,7 @@ const WorldMap = (() => {
     PROVINCE_KEYS.forEach((k) => {
       const [x, y] = PROVINCES[k].pos;
       const o = s.provinces[k].owner;
-      if (!Game.provinceOpen(k)) drawLock(ctx, x + 9, y + 2);
+      if (!Game.provinceOpen(k)) drawLock(ctx, x + 12, y);
       if (Game.isCapital(k)) drawStar(ctx, x, y - 2);
       const atWarFront = !FACTIONS[o].neutral && Game.warsOf(o).some((f) => Game.reachable(f, o).includes(k));
       if (atWarFront && blink) drawSwords(ctx, x - 9, y - 2);
@@ -134,8 +134,8 @@ const WorldMap = (() => {
       const [x, y] = PROVINCES[k].pos;
       const label = PROVINCES[k].short;
       const w = ctx.measureText(label).width + 4;
-      px(ctx, Math.round(x - w / 2), y + 5, Math.round(w), 10, 'rgba(27,20,32,0.75)');
-      ctx.fillStyle = k === selected ? '#f2c94c' : Game.provinceOpen(k) ? '#efe6d6' : '#a89aa8';
+      px(ctx, Math.round(x - w / 2), y + 5, Math.round(w), 10, '#1b1420');
+      ctx.fillStyle = k === selected ? '#f2c94c' : Game.provinceOpen(k) ? '#efe6d6' : '#ddd1df';
       ctx.fillText(label, x, y + 6);
     });
   }

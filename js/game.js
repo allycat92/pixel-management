@@ -9,6 +9,15 @@ const rand = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
 const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const STORY_EXPIRES = 99999;
+
+function josa(word, withBatchim, withoutBatchim) {
+  const last = String(word).match(/[가-힣0-9](?=[^가-힣0-9]*$)/)?.[0];
+  if (!last) return withoutBatchim;
+  const hasBatchim = /[0-9]/.test(last)
+    ? '013678'.includes(last)
+    : (last.charCodeAt(0) - 0xac00) % 28 !== 0;
+  return hasBatchim ? withBatchim : withoutBatchim;
+}
 const FRIEND_REL = 30, RIVAL_REL = -20;
 // 함께 다니면 사이가 틀어지는 특성 조합
 const TRAIT_CLASH = [['brave', 'coward'], ['greedy', 'diligent'], ['genius', 'lazy']];
@@ -80,6 +89,7 @@ const Game = {
   },
   rank() { return RANKS[this.rankIndex()]; },
   nextRank() { return RANKS[this.rankIndex() + 1] || null; },
+  bedsUsed() { return this.state.mercs.filter((m) => !this.isCaptain(m)).length; },
   capacity() { return 6 + this.state.facilities.dorm * 3; },
   facilityCost(key) {
     const lv = this.state.facilities[key];
@@ -92,7 +102,7 @@ const Game = {
     if (s.gold < cost) return this.toast('금화가 부족합니다.');
     s.gold -= cost;
     s.facilities[key]++;
-    this.log(`${f.name}을(를) ${s.facilities[key]}단계로 증축했습니다. (-${cost} 금화)`, 'good');
+    this.log(`${f.name}${josa(f.name, '을', '를')} ${s.facilities[key]}단계로 증축했습니다. (-${cost} 금화)`, 'good');
     if (key === 'board') this.fillContracts(true);
     if (key === 'forge') this.refreshShop();
     this.emit();
@@ -183,7 +193,7 @@ const Game = {
       this.changeMorale(m, 5);
       const note = this.canPromote(m) ? ' 전직할 수 있습니다!' : this.canMaster(m) ? ' 최상급 직업으로 전직할 수 있습니다!'
         : this.isCaptain(m) && m.level === CAPTAIN_AWAKEN ? ` 지휘가 무르익었습니다! (「${CAPTAIN_CLASSES[m.cap].lead.name}」 효과 ×1.5)` : '';
-      this.log(`${m.name}이(가) 레벨 ${m.level}이 되었습니다!${note}`, 'good');
+      this.log(`${m.name}${josa(m.name, '이', '가')} 레벨 ${m.level}이 되었습니다!${note}`, 'good');
     }
   },
 
@@ -245,7 +255,7 @@ const Game = {
     s.gold -= PROMOTE_COST;
     this.applyPromotion(m, key);
     this.changeMorale(m, 10);
-    this.log(`${m.name}이(가) ${opt.name}(으)로 승급했습니다! 스킬 「${opt.skill}」, 레벨 상한 ${this.levelCap(m)}. (-${PROMOTE_COST} 금화)`, 'good');
+    this.log(`${m.name}${josa(m.name, '이', '가')} ${opt.name}(으)로 승급했습니다! 스킬 「${opt.skill}」, 레벨 상한 ${this.levelCap(m)}. (-${PROMOTE_COST} 금화)`, 'good');
     this.emit();
   },
   promoteMaster(mercId, key) {
@@ -257,7 +267,7 @@ const Game = {
     s.gold -= MASTER_COST;
     this.applyMaster(m, key);
     this.changeMorale(m, 15);
-    this.log(`${m.name}이(가) 최상급 직업 ${mc.name}에 올랐습니다! 스킬 「${mc.skill}」, 레벨 상한 ${this.levelCap(m)}. (-${MASTER_COST} 금화)`, 'good');
+    this.log(`${m.name}${josa(m.name, '이', '가')} 최상급 직업 ${mc.name}에 올랐습니다! 스킬 「${mc.skill}」, 레벨 상한 ${this.levelCap(m)}. (-${MASTER_COST} 금화)`, 'good');
     this.emit();
   },
   applyPromotion(m, key) {
@@ -354,13 +364,13 @@ const Game = {
   hireUnit(cls, veteran) {
     const s = this.state;
     if (!CLASSES[cls]) return;
-    if (s.mercs.length >= this.capacity()) return this.toast('숙소가 가득 찼습니다. 숙소를 증축하세요.');
+    if (this.bedsUsed() >= this.capacity()) return this.toast('숙소가 가득 찼습니다. 숙소를 증축하세요.');
     const cost = this.unitHireCost(cls, veteran);
     if (s.gold < cost) return this.toast('금화가 부족합니다.');
     s.gold -= cost;
     const m = this.makeUnit(cls, veteran ? this.veteranLevel() : 1);
     s.mercs.push(m);
-    this.log(`${veteran ? '숙련' : '신병'} ${CLASSES[cls].name} ${m.name}(Lv.${m.level})을(를) 모집했습니다. 예비 인원으로 대기합니다. (-${cost} 금화)`);
+    this.log(`${veteran ? '숙련' : '신병'} ${CLASSES[cls].name} ${m.name}(Lv.${m.level})${josa(m.name, '을', '를')} 모집했습니다. 예비 인원으로 대기합니다. (-${cost} 금화)`);
     this.emit();
     return m;
   },
@@ -444,7 +454,7 @@ const Game = {
     const s = this.state;
     const m = s.recruits.find((r) => r.id === id);
     if (!m) return;
-    if (s.mercs.length >= this.capacity()) return this.toast('숙소가 가득 찼습니다. 숙소를 증축하세요.');
+    if (!this.isCaptain(m) && this.bedsUsed() >= this.capacity()) return this.toast('숙소가 가득 찼습니다. 숙소를 증축하세요.');
     const cost = this.hireCost(m);
     if (s.gold < cost) return this.toast('금화가 부족합니다.');
     s.gold -= cost;
@@ -453,14 +463,14 @@ const Game = {
     s.mercs.push(m);
     if (m.hero) {
       s.heroes[m.hero].hired = true;
-      this.log(`특별 용병 「${m.title}」 ${m.name}이(가) 길드에 합류했습니다! 함께 의뢰를 완수하면 이야기가 이어집니다. (-${cost} 금화)`, 'good');
+      this.log(`특별 용병 「${m.title}」 ${m.name}${josa(m.name, '이', '가')} 길드에 합류했습니다! 함께 의뢰를 완수하면 이야기가 이어집니다. (-${cost} 금화)`, 'good');
       // 특별 용병의 서사는 영입한 순간부터 시작된다
       s.pendingReports.push({ special: 'dialog', hero: m.hero, title: `${m.title} ${m.name}`, lines: HEROES[m.hero].intro,
         foot: `이야기를 진행할수록 레벨 상한(${HERO_CAPS.join('→')})과 성장률, 고유 스킬이 강해집니다.` });
     } else if (this.isCaptain(m)) {
-      this.log(`용병대장 ${m.name}(${this.className(m)})을(를) 영입했습니다. 용병단을 맡기세요. (-${cost} 금화)`, 'good');
+      this.log(`용병대장 ${m.name}(${this.className(m)})${josa(m.name, '을', '를')} 영입했습니다. 용병단을 맡기세요. (-${cost} 금화)`, 'good');
     } else {
-      this.log(`${this.className(m)} ${m.name}을(를) 고용했습니다. 예비 인원으로 대기합니다. (-${cost} 금화)`);
+      this.log(`${this.className(m)} ${m.name}${josa(m.name, '을', '를')} 고용했습니다. 예비 인원으로 대기합니다. (-${cost} 금화)`);
     }
     this.emit();
   },
@@ -477,7 +487,7 @@ const Game = {
       m.status = 'idle'; m.injury = 0; m.morale = 55; m.companyId = null;
       s.recruits.unshift(m);
     }
-    this.log(`${m.name}이(가) ${reason}`, kind);
+    this.log(`${m.name}${josa(m.name, '이', '가')} ${reason}`, kind);
   },
 
   returnEquipment(m) {
@@ -546,7 +556,7 @@ const Game = {
     s.gold -= price;
     s.shop = s.shop.filter((x) => x.id !== itemId);
     s.inventory.push(it);
-    this.log(`${it.name}을(를) 구입했습니다. (-${price} 금화)`);
+    this.log(`${it.name}${josa(it.name, '을', '를')} 구입했습니다. (-${price} 금화)`);
     this.emit();
   },
 
@@ -557,7 +567,7 @@ const Game = {
     const price = this.sellPrice(it);
     s.gold += price;
     s.inventory = s.inventory.filter((x) => x.id !== itemId);
-    this.log(`${it.name}을(를) 팔았습니다. (+${price} 금화)`);
+    this.log(`${it.name}${josa(it.name, '을', '를')} 팔았습니다. (+${price} 금화)`);
     this.emit();
   },
 
@@ -620,13 +630,13 @@ const Game = {
     s.mercs.forEach((m) => {
       const idleDays = s.day - (m.lastQuest ?? s.day);
       if (m.status !== 'quest') m.fatigue = Math.max(0, m.fatigue - (m.status === 'injured' ? 10 : 15 + s.facilities.dorm * 2));
-      if (m.status !== 'quest' && idleDays > 7) this.changeMorale(m, -2);
+      if (m.status !== 'quest' && idleDays > 7 && (!this.isCaptain(m) || this.company(m.companyId))) this.changeMorale(m, -2);
       else if (m.morale > 80) this.changeMorale(m, -2);
       else if (m.morale > 70) this.changeMorale(m, -1);
       else if (m.morale < 55) this.changeMorale(m, 1);
       if (m.status === 'injured') {
         m.injury -= heal * (m.trait === 'sturdy' ? 1.5 : 1);
-        if (m.injury <= 0) { m.injury = 0; m.status = 'idle'; this.log(`${m.name}이(가) 부상에서 회복했습니다.`); }
+        if (m.injury <= 0) { m.injury = 0; m.status = 'idle'; this.log(`${m.name}${josa(m.name, '이', '가')} 부상에서 회복했습니다.`); }
       } else if (m.status === 'idle' && s.facilities.training > 0) {
         this.gainExp(m, Math.round(s.facilities.training * 5 * (m.trait === 'lazy' ? 0.5 : 1)));
       }
@@ -700,7 +710,7 @@ const Game = {
         const m = caps.shift();
         owed -= this.wage(m);
         this.changeMorale(m, -25);
-        this.log(`용병대장 ${m.name}이(가) 급료를 받지 못했습니다. 떠나지는 않았지만 몹시 실망했습니다. (사기 -25)`, 'bad');
+        this.log(`용병대장 ${m.name}${josa(m.name, '이', '가')} 급료를 받지 못했습니다. 떠나지는 않았지만 몹시 실망했습니다. (사기 -25)`, 'bad');
       }
       s.gold -= owed;
       this.log(`주간 정산: 금화 ${owed} 지급.${s.gold < 0 ? ' 길드가 빚을 지고 있습니다!' : ''}`, s.gold < 0 ? 'bad' : '');

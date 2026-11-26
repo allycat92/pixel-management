@@ -185,8 +185,8 @@ const UI = (() => {
       actions.push(el('button', { class: 'btn small', text: '장비', onclick: () => openEquip(m.id) }));
       actions.push(el('button', { class: 'btn small', text: '이동', onclick: () => openTransfer(m.id) }));
       actions.push(el('button', { class: 'btn small danger', text: '해고',
-        onclick: () => confirmBox(Game.isCaptain(m) ? `용병대장 ${m.name}을(를) 내보낼까요? 대장은 단 한 명뿐인 인물이라 다시는 영입할 수 없습니다.`
-          : `${m.name}을(를) 해고할까요? 장착한 장비는 창고로 돌아옵니다.`, () => Game.dismiss(m.id)) }));
+        onclick: () => confirmBox(Game.isCaptain(m) ? `용병대장 ${m.name}${josa(m.name, '을', '를')} 내보낼까요? 대장은 단 한 명뿐인 인물이라 다시는 영입할 수 없습니다.`
+          : `${m.name}${josa(m.name, '을', '를')} 해고할까요? 장착한 장비는 창고로 돌아옵니다.`, () => Game.dismiss(m.id)) }));
     }
     openModal(el('div', {}, mercCard(m, { actions }),
       el('div', { class: 'modal-actions' }, el('button', { class: 'btn primary', text: '닫기', onclick: closeModal }))));
@@ -457,7 +457,7 @@ const UI = (() => {
   }
 
   // 대화 (한 줄씩 타자기 효과), 마지막에 선택지가 있으면 고르게 한다
-  // 첫 용병대장 선택: 셋 중 하나, 나머지 둘은 영영 떠난다
+  // 첫 용병대장 선택: 한 명을 고르면 다른 후보는 떠난다
   function openStarterChoice() {
     if (!Game.needsStarter()) return finishSlot();
     const cards = STARTER_CAPTAINS.map((k) => {
@@ -471,11 +471,11 @@ const UI = (() => {
         skillList({ actives: CC.acts.map((b) => ({ name: b.name, battle: describeBattle(b) })), passive: { name: CC.lead.name, desc: `지휘: ${CC.lead.desc}`, lead: true } }, { compact: true }),
         el('div', { class: 'small muted', text: `힘 ${CC.base.str} · 민첩 ${CC.base.dex} · 지력 ${CC.base.int} · 체력 ${CC.base.hp}` }),
         el('div', { class: 'small pitch', text: `“${C.pitch[0][1]}”` }),
-        el('button', { class: 'btn primary', onclick: () => { Game.state.reportSlot = null; Game.chooseStarter(k); finishSlot(); } }, `${C.name}와(과) 시작한다`));
+        el('button', { class: 'btn primary', onclick: () => { Game.state.reportSlot = null; Game.chooseStarter(k); finishSlot(); } }, `${C.name}${josa(C.name, '과', '와')} 시작한다`));
     });
     openModal(el('div', {},
       eventArt('start'),
-      el('h2', { text: '첫 용병대장을 고르세요' }),
+      el('h2', { text: `첫 용병대장을 고르세요 (${cards.length}명)` }),
       el('p', { class: 'muted small', text: `용병단을 이끌 대장입니다. 대장은 고유 직업, 액티브 스킬 2개, 지휘(패시브)를 가진 단 한 명뿐인 인물이며, 선택받지 못한 ${STARTER_CAPTAINS.length - 1}명은 다시 만날 수 없습니다. 이후 대장은 길드 등급이 오를 때 공개되는 대장별 영입 과제를 달성해 여러 명을 얻을 수 있습니다.` }),
       el('div', { class: 'starter-choices' }, cards)), true);
   }
@@ -500,9 +500,11 @@ const UI = (() => {
     const next = el('button', { class: 'btn primary' });
     const footer = el('div', { class: 'dialog-foot small' });
     const choiceBox = el('div', { class: 'choice-box' });
+    const portrait = el('div', { class: `dialog-portrait ${h || r.captain ? '' : 'boss'}` }, portraitImg);
 
     function show() {
       const [who, msg] = lines[line];
+      if (r.captain) portrait.hidden = !who;
       speaker.textContent = who || '';
       speaker.style.visibility = who ? 'visible' : 'hidden';
       text.classList.toggle('narration', !who);
@@ -550,7 +552,7 @@ const UI = (() => {
       el('div', { class: 'dialog-title', text: r.title }),
       r.art ? eventArt(r.art) : null,
       el('div', { class: 'dialog-body', onclick: (e) => { if (e.target !== next && choiceDone) advance(); else if (typing) advance(); } },
-        el('div', { class: `dialog-portrait ${h ? '' : 'boss'}` }, portraitImg),
+        portrait,
         el('div', { class: 'dialog-box' }, speaker, text)),
       footer, choiceBox,
       el('div', { class: 'modal-actions' }, next)), true);
@@ -584,7 +586,7 @@ const UI = (() => {
       return el('div', { class: 'report' },
         el('div', { class: 'report-banner good great', text: 'S랭크 달성!' }),
         eventArt('win'),
-        el('p', { text: `${s.day}일 만에 ${s.guildName}이(가) 대륙 최고의 길드가 되었습니다!` }),
+        el('p', { text: `${s.day}일 만에 ${s.guildName}${josa(s.guildName, '이', '가')} 대륙 최고의 길드가 되었습니다!` }),
         el('p', { class: 'muted', text: `완수 ${s.stats.completed} · 실패 ${s.stats.failed} · 전사 ${s.stats.fallen}` }),
         el('p', { class: 'muted small', text: '계속 플레이하며 남은 이야기와 세력의 운명을 지켜볼 수 있습니다.' }),
         el('div', { class: 'modal-actions' }, cont, restart));
@@ -594,8 +596,8 @@ const UI = (() => {
       return el('div', { class: 'report' },
         el('div', { class: 'report-banner good great', text: '대륙의 구원자' }),
         eventArt('savior') || el('div', { class: 'report-members' }, Sprites.clone(Sprites.monster(F.leader, 4, 0), 'big-portrait dead-boss')),
-        el('p', { text: `${s.day}일째, ${s.guildName}의 용병단들이 ${F.leaderTitle} ${F.leader}을(를) 쓰러뜨렸습니다.` }),
-        el('p', { text: `${F.name}은(는) 흩어지고, 살아남은 세력들은 폐허 위에서 다시 일어서기 시작합니다. 사람들은 이 시대를 은빛 늑대의 이름으로 기억할 것입니다.` }),
+        el('p', { text: `${s.day}일째, ${s.guildName}의 용병단들이 ${F.leaderTitle} ${F.leader}${josa(F.leader, '을', '를')} 쓰러뜨렸습니다.` }),
+        el('p', { text: `${F.name}${josa(F.name, '은', '는')} 흩어지고, 살아남은 세력들은 폐허 위에서 다시 일어서기 시작합니다. 사람들은 이 시대를 은빛 늑대의 이름으로 기억할 것입니다.` }),
         el('p', { class: 'muted small', text: `살아남은 세력: ${(r.alive || Game.aliveFactions()).map((f) => FACTIONS[f].name).join(', ') || '없음'} · 이후 한동안 전후 복구 의뢰의 보수가 높아집니다.` }),
         el('div', { class: 'modal-actions' }, cont, restart));
     }
@@ -604,7 +606,7 @@ const UI = (() => {
       return el('div', { class: 'report' },
         el('div', { class: 'report-banner bad disaster', text: '암흑시대' }),
         eventArt('darkness') || el('div', { class: 'report-members' }, Sprites.clone(Sprites.monster(F.leader, 4, 0), 'big-portrait')),
-        el('p', { text: `${F.name}이(가) 대륙의 대부분을 집어삼켰습니다. ${F.leaderTitle} ${F.leader}의 그림자 아래, 길드의 깃발도 꺾였습니다.` }),
+        el('p', { text: `${F.name}${josa(F.name, '이', '가')} 대륙의 대부분을 집어삼켰습니다. ${F.leaderTitle} ${F.leader}의 그림자 아래, 길드의 깃발도 꺾였습니다.` }),
         el('p', { class: 'muted', text: `${s.day}일 동안 버텼습니다. 최고 명성 ${s.rep}` }),
         el('div', { class: 'modal-actions' }, restart));
     }
@@ -612,7 +614,7 @@ const UI = (() => {
       return el('div', { class: 'report' },
         el('div', { class: 'report-banner good great', text: '전설의 길드' }),
         el('div', { class: 'report-members' }, Object.values(BOSSES).map((b) => Sprites.clone(Sprites.monster(b.enemy, 2, 0), 'mini'))),
-        el('p', { text: `${s.day}일째, ${s.guildName}은(는) 대륙의 모든 재앙을 물리쳤습니다.` }),
+        el('p', { text: `${s.day}일째, ${s.guildName}${josa(s.guildName, '은', '는')} 대륙의 모든 재앙을 물리쳤습니다.` }),
         el('p', { text: '음유시인들은 앞으로 수백 년 동안 은빛 늑대의 이야기를 노래할 것입니다.' }),
         el('div', { class: 'modal-actions' }, cont, restart));
     }
@@ -838,7 +840,7 @@ const UI = (() => {
           el('li', { text: '의뢰 결과에 따라 지방의 장악도가 바뀌고, 전쟁 중이면 지방이 다른 세력에게 넘어갑니다. 세계는 길드가 개입하지 않아도 움직입니다.' }),
           el('li', { text: '대규모 결전은 용병단 2~3개를 동시에 보내야 하며(한 의뢰에 최대 3개), 양 진영 중 한쪽만 고를 수 있습니다.' }),
           el('li', { text: '평판이 높은 세력은 혜택을 주고, 적대 세력은 의뢰를 끊고 보복합니다.' }),
-          el('li', { text: '7일마다 주급과 계약 유지비를 냅니다. 빚이 -300을 넘으면 파산합니다. 스페이스바로 다음 날로 넘어갑니다.' }))),
+          el('li', { text: '7일마다 주급과 계약 유지비를 냅니다. 금화가 -300 아래로 떨어지면 파산합니다. 스페이스바로 다음 날로 넘어갑니다.' }))),
       el('div', { class: 'modal-actions' },
         el('button', { class: 'btn danger', text: '새 게임', onclick: () => confirmBox('정말 처음부터 다시 시작할까요? 저장된 진행이 지워집니다.', newGameNow) }),
         el('button', { class: 'btn primary', text: '닫기', onclick: closeModal }))));

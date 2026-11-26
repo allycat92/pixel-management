@@ -7,12 +7,13 @@
 
 | 누구 | id | 상태 | 할 일 (자세한 것은 그 줄의 문서) |
 |---|---|---|---|
-| Codex | `C2-playtest-fixes` | REVIEW (`94a0fe6`, GPT 의 Q1 확인 대기) | 플레이테스트에서 나온 자잘한 오류 12가지 고치기: `docs/agents/tasks/C2-playtest-fixes.md` |
-| GPT | `Q1-verify-c2` | READY (C2 는 `origin/agent/codex` `94a0fe6` 에 있다 — 그 브랜치를 받아 확인) | C2 의 수정 12가지를 실제 화면(1280·400 폭)에서 하나씩 확인: 작업 문서 `docs/agents/tasks/C2-playtest-fixes.md` 의 항목 번호대로 통과/미통과와 스크린샷 |
+| Codex | `C3-hire-button-when-full` | READY | 숙소가 가득 찼을 때 특별 용병·정예 영입 버튼을 끄고 이유 표시: `docs/agents/tasks/C3-hire-button-when-full.md` |
 
 ## 끝난 일
 
 | 누구 | id | 결과 |
 |---|---|---|
+| Codex | `C2-playtest-fixes` | **DONE** (2026-11-26, `94a0fe6` 합침): 플레이테스트 오류 12가지 수정. 승패 재현 불일치 0, 봇 동일 |
+| GPT | `Q1-verify-c2` | **DONE** (2026-11-26, `6ff4afb`): 12항목 모두 1280·400 폭에서 통과. 추가 발견 1건 → C3 |
 | Antigravity | `A1-playtest` | **DONE** (2026-11-26, `b04eb97`): 두 번 주행(76일·109일), 런타임 오류 0. 문제 17가지 — 자잘한 12가지는 C2(Codex), 전투 뭉침·배치는 전술 작업(클라우드), 성장 속도는 밸런싱, 고블린·서리 트롤 화풍은 그림 대기열로 |
 | Codex | `C1-walker-yields` | **DONE** (2026-11-26, `54ac32d` 합침): 서 있는 유닛 밀림 20.07% → 0.04%, 승패 재현 400판 불일치 0, 봇 동일, 전투 길이 +4~10%, 탐색 시간 그대로. GPT 독립 QA(`2d5bd59`) 통과 |

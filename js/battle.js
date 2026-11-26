@@ -926,7 +926,7 @@ const Battle = (() => {
       if (g.betray && !g.flipped && st.t > 7) {
         g.flipped = true; g.side = 1;
         g.units.forEach((u) => { u.side = 1; u.target = null; });
-        st.events.push({ t: st.t, text: `「${g.name}」이(가) 적에게 돌아섰다!`, side: 1 });
+        st.events.push({ t: st.t, text: `「${g.name}」${josa(g.name, '이', '가')} 적에게 돌아섰다!`, side: 1 });
       }
     });
     // 사기: 병력 대부분을 잃거나 대장을 잃고 크게 꺾이면 패주
@@ -2631,14 +2631,15 @@ const Battle = (() => {
   }
 
   // 부대 현황판 (HTML)
-  function rosterRow(g) {
+  function rosterRow(g, name, trainees) {
     const row = document.createElement('div');
     row.className = 'troop';
     const sw = document.createElement('span'); sw.className = 'troop-sw'; sw.style.background = g.color;
-    const nm = document.createElement('span'); nm.className = 'troop-name'; nm.textContent = g.name;
+    const nm = document.createElement('span'); nm.className = 'troop-name'; nm.textContent = name;
     const bar = document.createElement('span'); bar.className = 'troop-bar';
     const fill = document.createElement('i'); bar.append(fill);
     const cnt = document.createElement('span'); cnt.className = 'troop-cnt';
+    if (trainees) nm.textContent += ` (${g.units.length - trainees} + 수습 ${trainees})`;
     row.append(sw, nm, bar, cnt);
     if (g.player) row.classList.add('mine');
     return { row, fill, cnt, nm };
@@ -2676,7 +2677,19 @@ const Battle = (() => {
     const t0 = document.createElement('div'); t0.className = 'troops-title'; t0.textContent = '아군';
     const t1 = document.createElement('div'); t1.className = 'troops-title'; t1.textContent = q.enemy ? '적 (괴물)' : `적 (${FACTIONS[q.target || q.issuer].name})`;
     cols[0].append(t0); cols[1].append(t1);
-    const rows = st.groups.map((g) => { const r = rosterRow(g); cols[g.side].append(r.row); return r; });
+    const enemyNames = new Map();
+    const rows = st.groups.map((g) => {
+      let name = g.name;
+      if (g.side === 1 && st.groups.filter((other) => other.side === 1 && other.name === name).length > 1) {
+        const number = (enemyNames.get(name) || 0) + 1;
+        enemyNames.set(name, number);
+        name += ` ${number}`;
+      }
+      const trainees = groups[g.id].units.filter((u) => u.recruit).length;
+      const r = rosterRow(g, name, trainees);
+      cols[g.side].append(r.row);
+      return r;
+    });
     roster.append(...cols);
 
     const speedBtn = document.createElement('button');
