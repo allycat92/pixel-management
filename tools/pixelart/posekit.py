@@ -116,6 +116,103 @@ def ik(root, target, l1, l2, pref):
     return joint, end, dist - dc
 
 
+# ------------------------------------------------------------------ natural arms (motion mannequins, 2026-11-26)
+# Owner after gate 1: "팔이 어떻게 꺾이는지 좀 봐봐" - chicken-wing elbows (upper arm back behind the torso, forearm folding forward
+# to the belly), elbows flaring forward above a hand that comes back to the belt, forearms crossing in a V. Cause: the elbow side was
+# a fixed WORLD preference (0.25, 1.0) that ties when the hand hangs below the shoulder (lean flips it frame to frame), and hands
+# placed too close to their shoulder for a hanging elbow. A pose with "arms": "natural" (the attack / hit / idle mannequin scripts)
+# takes the anatomical side instead: the character faces +x (y down), so the elbow sits on (-d.y, d.x) of the shoulder -> hand
+# direction d - back when the hand hangs, down when it reaches forward, forward when it is overhead. An explicit elbN / elbF still
+# wins (bow draw, a deliberate raised elbow); check() then reports the arm's class (arm_eval) so a bad override is visible.
+# Poses without "arms" (walk8 / run8 / gait8 / this file's own guides) keep the old preference: their output is byte-identical.
+ARMS_VERSION = 'posekit natural-arms 1 (2026-11-26)'
+ARM_BACK, ARM_BACK_WARN = -0.15, -0.08      # chicken-wing: elbow behind its own shoulder (torso heads) with the forearm running forward
+ARM_FOLD, ARM_FOLD_WARN = 20.0, 35.0        # inner elbow angle (180 = straight): under 20 the hand sits on the shoulder
+ARM_FLARE = 0.15                            # flared: a reversed elbow this far in front of both the shoulder and the hand
+ARM_CROSS = (0.30, -0.05)                   # crossing: elbow this far in front of the shoulder, hand behind it (and not raised:
+                                            # a hand cocked above the shoulder behind the head has its elbow forward - natural)
+ARM_STRAIGHT = 160.0                        # an arm straighter than this has no bend side
+ARM_REV = 0.04                              # reversed only when the elbow is this far (heads) on the wrong side of shoulder -> hand
+HANG_UPPER, HANG_FORE = 0.62, 0.65          # upper arm / forearm + hand (4-head Body) for hang_gap
+
+
+def natural_pref(root, target):
+    """the anatomical elbow side for a right-facing figure (world y-down): (-d.y, d.x) of root -> target"""
+    d = np.asarray(target, float) - np.asarray(root, float)
+    return np.array((-d[1], d[0]))
+
+
+def torso_frame(hip, neck0, torso=1.05):
+    """(rt, up) unit axes of the torso from the hip and the neck point (posekit neck0 = L(0.04, torso)), world y-down"""
+    v = np.asarray(neck0, float) - np.asarray(hip, float)
+    lean = math.atan2(v[0], -v[1]) - math.atan2(0.04, torso)
+    return np.array((math.cos(lean), math.sin(lean))), np.array((math.sin(lean), -math.cos(lean))), lean
+
+
+def arm_eval(S, E, H, hip, neck0, unit=1.0, torso=1.05, allow_draw=False):
+    """classify one arm (shoulder S, elbow E, hand H; world y-down, `unit` = length of one head: 1 in posekit, 110 on the 384x1024 px
+    frames). Torso coordinates: r forward, u up, heads, lean removed. Returns dict(level ok|warn|fail, cls, why, numbers):
+      folded        inner elbow angle < 20 (warn < 35): the hand is on its own shoulder
+      crossing      elbow > 0.30 in front of its shoulder while the hand is behind it and under shoulder + 0.20: the forearm crosses
+                    the chest backwards (the V)
+      flared        reversed hinge with the elbow > 0.15 in front of both the shoulder and the hand (elbow out front above a low hand)
+      draw          reversed hinge, hand at/above the shoulder, elbow behind the hand and not dropped: the bow draw - ok only with
+                    allow_draw (the string arm of a bow), else it is "hyper"
+      hyper         any other reversed hinge (the elbow bends the wrong way)
+      chicken-wing  elbow > 0.15 behind its own shoulder (warn > 0.08) while the forearm runs > 0.35 forward to a hand below the
+                    shoulder + 0.10: the upper arm points back behind the torso and the forearm folds forward again
+    hang_gap = 0.65 - |hand - (shoulder - 0.62 up)|: > 0 means the hand cannot be reached with the elbow hanging under the shoulder
+    (move the hand out / down by about that much)."""
+    rt, up, lean = torso_frame(hip, neck0, torso)
+    hip = np.asarray(hip, float)
+
+    def tc(p):
+        q = np.asarray(p, float) - hip
+        return np.array((q @ rt, q @ up)) / unit
+    s, e, h = tc(S), tc(E), tc(H)
+    dE, dH = e - s, h - s
+    reach = float(np.linalg.norm(dH))
+    a, b = s - e, h - e
+    inner = math.degrees(math.acos(max(-1.0, min(1.0, float(a @ b) / max(1e-9, float(np.linalg.norm(a) * np.linalg.norm(b)))))))
+    n = np.array((dH[1], -dH[0])) / max(reach, 1e-9)
+    side = float(dE @ n)                                   # + = the natural side, heads off the shoulder -> hand line
+    hang = HANG_FORE - float(np.linalg.norm(dH - np.array((0.0, -HANG_UPPER))))
+    num = dict(inner_deg=round(inner, 1), side=round(side, 3), reach=round(reach, 3), hang_gap=round(hang, 3),
+               elbow_back=round(float(dE[0]), 3), S=[round(float(x), 3) for x in s], E=[round(float(x), 3) for x in e],
+               H=[round(float(x), 3) for x in h], lean_deg=round(math.degrees(lean), 1))
+    out = dict(level='ok', cls='natural', why='', **num)
+
+    def res(level, cls, why):
+        out.update(level=level, cls=cls, why=why)
+        return out
+    if inner < ARM_FOLD:
+        return res('fail', 'folded', f'elbow folded to {inner:.0f} deg (min {ARM_FOLD:.0f}): the hand is {reach:.2f} head from its '
+                   f'shoulder - move it out to about 0.45+')
+    if dE[0] > ARM_CROSS[0] and dH[0] < ARM_CROSS[1] and dH[1] < 0.20:
+        return res('fail', 'crossing', f'elbow {dE[0]:+.2f} head in front of its shoulder, hand {dH[0]:+.2f} behind it: the forearm '
+                   'crosses the chest backwards')
+    if side < -ARM_REV and inner < ARM_STRAIGHT:
+        drawn = dH[1] > -0.15 and e[0] < h[0] - 0.20 and dE[1] > -0.30
+        if drawn and allow_draw:
+            return res('ok', 'draw', f'raised elbow {e[0] - h[0]:+.2f} head behind the hand at shoulder height: the bow draw')
+        if e[0] > max(h[0], s[0]) + ARM_FLARE:
+            return res('fail', 'flared', f'elbow out front ({dE[0]:+.2f} head from its shoulder, {e[0] - h[0]:+.2f} ahead of the hand, '
+                       f'{e[1] - h[1]:+.2f} above it): it bends the wrong way; hang_gap {hang:+.2f}')
+        return res('fail', 'hyper', f'elbow bends the wrong way ({side:+.2f} head on the reversed side, inner {inner:.0f} deg)'
+                   + (' - a raised elbow behind the hand is only the string arm of a bow (draw)' if drawn else ''))
+    fwd = h[0] - e[0] > 0.35 and dH[1] < 0.10
+    if fwd and dE[0] < ARM_BACK:
+        return res('fail', 'chicken-wing', f'elbow {-dE[0]:.2f} head behind its shoulder with the forearm running {h[0] - e[0]:.2f} '
+                   f'forward to the hand: hang_gap {hang:+.2f} - move the hand about {max(hang, 0.05):.2f} head forward / down')
+    if fwd and dE[0] < ARM_BACK_WARN:
+        return res('warn', 'chicken-wing', f'elbow {-dE[0]:.2f} head behind its shoulder (borderline, fail at {-ARM_BACK:.2f})')
+    if inner < ARM_FOLD_WARN:
+        return res('warn', 'folded', f'elbow folded to {inner:.0f} deg (under {ARM_FOLD_WARN:.0f}): hand {reach:.2f} head from its shoulder')
+    if side < -ARM_REV:
+        return res('warn', 'hyper', f'almost straight arm ({inner:.0f} deg) bent the wrong way')
+    return out
+
+
 # ------------------------------------------------------------------ shapes (world units)
 # ('cap', a, b, ra, rb) tapered capsule | ('ell', c, rx, ry, ang) | ('poly', pts)
 # ('and', s1, s2) | ('or', s1, s2) | ('line', [pts], w) open polyline of width w
@@ -277,8 +374,8 @@ def solve(pose, B, weapon):
     J['hip'] = hip
     J['lean'] = lean
     sw = pose.get('sw', 1.0)
-    J['SN'] = L(-0.40 * sw, T - 0.05)
-    J['SF'] = L(0.34 * sw, T - 0.07)
+    J['SN'] = L(-0.40 * pose.get('swN', sw), T - 0.05)       # swN / swF: one shoulder's spread only (the archer's bow / draw arm)
+    J['SF'] = L(0.34 * pose.get('swF', sw), T - 0.07)
     hw = pose.get('hipw', 0.17)   # half spacing of the hip joints; a side-on walk uses 0.05 so the legs do not cross into an X
     J['HN'] = L(-hw, 0.0)
     J['HF'] = L(hw, 0.0)
@@ -305,11 +402,17 @@ def solve(pose, B, weapon):
         if spec[0] == 'w':
             return G + d * spec[1]
         return P(spec[1], spec[2])
+    natural = pose.get('arms') == 'natural'
     for side in 'NF':
         spec = pose['hand' + side]
         tgt = hand_target(spec)
-        elb, hand, miss = ik(J['S' + side], tgt, B.upper, B.fore + B.hand,
-                             pose.get('elb' + side, (0.25, 1.0)))
+        if 'elb' + side in pose:
+            pref = pose['elb' + side]
+        elif natural:
+            pref = natural_pref(J['S' + side], tgt)
+        else:
+            pref = (0.25, 1.0)
+        elb, hand, miss = ik(J['S' + side], tgt, B.upper, B.fore + B.hand, pref)
         J['elb' + side], J['hand' + side] = elb, hand
         J['wrist' + side] = elb + norm(hand - elb) * B.fore
         J['miss']['arm' + side] = miss
@@ -915,6 +1018,13 @@ def check(name, J, B, pose):
         planted = pose['foot' + side][1] <= B.ank + 1e-6
         if planted and abs(J['ank' + side][1] + B.ank) > 1e-3:
             msgs.append('foot%s off the baseline' % side)
+    if pose.get('arms') == 'natural':            # motion mannequins: the arm classes of check_skeleton.py --motion
+        for side in 'NF':
+            r = arm_eval(J['S' + side], J['elb' + side], J['hand' + side], J['hip'], J['neck0'], 1.0, B.torso,
+                         allow_draw=pose.get('bow_draw') == side)
+            if r['level'] != 'ok':
+                ov = ' (elb%s override %s)' % (side, list(pose['elb' + side])) if 'elb' + side in pose else ''
+                msgs.append('arm%s %s %s%s: %s' % (side, r['level'].upper(), r['cls'], ov, r['why']))
     return msgs
 
 

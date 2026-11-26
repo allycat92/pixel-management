@@ -102,6 +102,14 @@ WARN: the picture outside x=32-351; neighbouring silhouettes under 8 % at game s
       closer than recover, kinds without rules here (gun, cast, creature); hit: later recovery frames, last frame over 12 px from
       the idle, without --idle the idle reference's hip off x=192 +-3 (the stance is off the idle column); idle: a joint moving
       over 12 px, no motion, neighbours with the same joints.
+ARMS (all three, SPEC 10.3b, posekit.arm_eval in torso coordinates - r forward, u up, heads, lean from the hip dots -> neck dot):
+  FAIL chicken-wing (elbow over 0.15 head behind its own shoulder while the forearm runs over 0.35 forward to a hand below the
+      shoulder + 0.10), crossing (elbow over 0.30 in front of its shoulder, hand behind it), flared (reversed hinge, elbow over 0.15
+      in front of both the shoulder and the hand), hyper (any other reversed hinge - the natural side is (-d.y, d.x) of shoulder ->
+      hand for a right-facing figure; a bow's string arm may draw: raised elbow behind the hand at shoulder height), folded (inner
+      elbow angle under 20 deg). An elbow under 20 % visible (higher layers cover it) only WARNs.
+  WARN chicken-wing 0.08-0.15 head back, inner angle 20-35 deg, an almost straight arm bent the wrong way, an elbow jumping over
+      2 x its hand's move + 40 px (and over 60 px) between neighbouring frames.
 """
 import argparse
 from collections import Counter
@@ -120,6 +128,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 sys.path.insert(0, os.path.join(ROOT, 'tools', 'pixelart'))
 from walk8 import BASELINE, HEAD_PX, JOINTS, SCALE, SLOT, SH_  # noqa: E402
 from run8 import SOLE_BAND, STEP as RUN_STEP  # noqa: E402
+from posekit import ARMS_VERSION, arm_eval  # noqa: E402
 
 HEADLESS = os.path.join(ROOT, 'tools', 'art', 'ase_headless.sh')
 BODY = ('arm_far', 'leg_far', 'leg_near', 'torso', 'head', 'arm_near')          # the layers every set must have
@@ -933,6 +942,9 @@ SHOVE_SLASH_MIN = 25     # deg: when the contact is a shield shove, a blade must
 PAST_FAIL_OVER = 10      # deg over the bible's weapon_past_line_deg maximum: a follow this far past the contact means the contact frame
                          # is still mid-arc (the strike line is crossed a frame late) -> FAIL (bible 25-40 -> over 50 fails)
 HIT_COLUMN_TOL = 3       # hit without --idle: the idle reference's hip x (built on K1's feet) within x=192 +-3, else WARN
+ARM_VIS_R = 10           # px: the elbow's visibility = share of its arm layer's pixels within this radius of the elbow dot that no
+ARM_VIS_MIN = 0.20       # higher layer covers; an elbow showing less than this is hidden -> its arm class is a WARN, not a FAIL
+ARM_JUMP = (2.0, 40.0, 60.0)  # elbow jump between neighbouring frames: over 2 x the hand's move + 40 px and over 60 px -> WARN (side flip)
 
 
 def read_json(path):
@@ -1296,6 +1308,7 @@ def check_motion(frames, durs, names, hidden, tags, bones, spec, idle_ref=None):
     info.append('silhouette change to the next frame at game size: ' + ' '.join(f'{diffs[i]:.0f}%' for i in pairs)
                 + (' (idle: no 8% rule, the loop must close instead)' if motion == 'idle' else
                    f' (hold frame {N[spec["hold"]]} exempt)' if spec['hold'] is not None else ''))
+    arm_rules(meas, frames, names, spec, errors, warns, info)
     if motion == 'attack':
         attack_rules(meas, frames, flats, spec, change, errors, warns, info)
     elif motion == 'hit':
@@ -1305,6 +1318,59 @@ def check_motion(frames, durs, names, hidden, tags, bones, spec, idle_ref=None):
     if all('head' in m for m in meas):
         head_tilt_motion(meas, 'f', warns, info, HIT_HEAD_DRIFT if motion == 'hit' else HEAD_DRIFT)
     return errors, warns, info, clean(meas), flats
+
+
+def arm_rules(meas, frames, names, spec, errors, warns, info):
+    """SPEC 10.3b: how each elbow bends (posekit.arm_eval, torso coordinates from the hip dots and the neck dot). chicken-wing /
+    crossing / flared / hyper (reversed hinge) / folded under 20 deg -> FAIL, borderline -> WARN; an elbow hidden behind higher layers
+    (under 20 % showing) only WARNs. Bow sets: the string arm may draw (raised elbow behind the hand). Elbow jumps -> WARN."""
+    string = None
+    if spec['kind'] == 'bow':
+        d = {s: sorted(g['to_centroid_' + s] for m in meas for g in [m['weapons'].get(ln)] if g)
+             for s in 'NF' for ln in ('weapon_front', 'weapon_back') if any(ln in m['weapons'] for m in meas)}
+        if d.get('N') and d.get('F'):
+            bow = min('NF', key=lambda s: d[s][len(d[s]) // 2])
+            string = 'F' if bow == 'N' else 'N'
+    order = [n for n in names if n not in ('Background', 'joints')]
+    summary = []
+    for i, m in enumerate(meas):
+        J, fr = m['_J'], frames[i]
+        hip = ((J['hipN'][0] + J['hipF'][0]) / 2, (J['hipN'][1] + J['hipF'][1]) / 2)
+        m['arms'] = {}
+        part = []
+        for s, ln in (('N', 'arm_near'), ('F', 'arm_far')):
+            r = arm_eval(J['sho' + s], J['elb' + s], J['hand' + s], hip, J['neck'], HEAD_PX, allow_draw=(s == string))
+            ex, ey = int(round(J['elb' + s][0])), int(round(J['elb' + s][1]))
+            h, w = fr[ln].shape[:2]
+            y0, y1, x0, x1 = max(0, ey - ARM_VIS_R), min(h, ey + ARM_VIS_R + 1), max(0, ex - ARM_VIS_R), min(w, ex + ARM_VIS_R + 1)
+            yy, xx = np.mgrid[y0:y1, x0:x1]
+            disc = (yy - ey) ** 2 + (xx - ex) ** 2 <= ARM_VIS_R ** 2
+            own = (fr[ln][y0:y1, x0:x1, 3] > 0) & disc
+            cover = np.zeros_like(own)
+            for up in order[order.index(ln) + 1:] if ln in order else []:
+                cover |= fr[up][y0:y1, x0:x1, 3] > 0
+            vis = float((own & ~cover).sum()) / max(1, int(own.sum()))
+            r['elbow_visible'] = round(vis, 2)
+            m['arms'][s] = r
+            arm = 'near' if s == 'N' else 'far'
+            nums = (f'inner {r["inner_deg"]:.0f} deg, elbow {r["elbow_back"]:+.2f} head from its shoulder (+ = forward), hinge side '
+                    f'{r["side"]:+.2f}, hang_gap {r["hang_gap"]:+.2f}, elbow {vis:.0%} visible')
+            if r['level'] == 'fail' and vis >= ARM_VIS_MIN:
+                errors.append(f'{m["frame"]}: {arm} arm {r["cls"]} - {r["why"]} ({nums})')
+            elif r['level'] != 'ok':
+                hid = ' (hidden: only a WARN)' if r['level'] == 'fail' else ''
+                warns.append(f'{m["frame"]}: {arm} arm {r["cls"]}{hid} - {r["why"]} ({nums})')
+            part.append(f'{s} {r["inner_deg"]:.0f}/{r["elbow_back"]:+.2f}' + ('' if r['cls'] == 'natural' else ' ' + r['cls']))
+        summary.append(f'{m["frame"].split(" ", 1)[-1]} ' + ', '.join(part))
+    for s in 'NF':
+        for i in range(1, len(meas)):
+            a, b = meas[i - 1]['_J'], meas[i]['_J']
+            de, dh = dist(a['elb' + s], b['elb' + s]), dist(a['hand' + s], b['hand' + s])
+            if de > ARM_JUMP[0] * dh + ARM_JUMP[1] and de > ARM_JUMP[2]:
+                warns.append(f'{meas[i - 1]["frame"]} -> {meas[i]["frame"]}: the {"near" if s == "N" else "far"} elbow jumps {de:.0f} px while '
+                             f'its hand moves {dh:.0f} (a side flip or a re-solved arm - check the in-between)')
+    info.append(f'arms ({ARMS_VERSION}; inner deg / elbow from its shoulder in heads, + = forward' + (f'; bow string arm {string}' if string else '')
+                + '): ' + ' · '.join(summary))
 
 
 def clean(meas):
