@@ -44,7 +44,8 @@ round shield on the FAR arm.
 
 THE RUN (owner's rhythm, already in the mannequin - copy it, do not invent another):
   - Each frame: the legs, the torso lean and the arm swing of that mannequin frame. Joint for joint: hips, knees, ankles, feet,
-    shoulders, elbows. The mannequin's big round head is a placeholder: draw the warrior's own helmeted head on the mannequin's
+    shoulders, elbows (hands: see ARMS - the forearms drop lower than the mannequin's; that is intended, not a deviation).
+    The mannequin's big round head is a placeholder: draw the warrior's own helmeted head on the mannequin's
     neck, at the warrior's own size (as in the sheet).
   - R1 contact (near foot lands a little ahead, knee bent) - R2 catch (body drops onto the foot, lowest) - R3 push-off (stance
     leg extends behind, heel up) - R4 FLIGHT (both feet clearly off the ground, legs scissored, body pressed forward and leaning
@@ -59,8 +60,10 @@ ARMS AND WEAPON:
   - Shield (far arm): held in FRONT of the chest in every frame, face toward the viewer's right as in the sheet. It moves with
     the far arm's rhythm (a little further forward in R6-R8 and R1, pulled in toward the belt in R2-R5) but never swings
     behind the body, and its front rim stays left of x=345 in each slot (keep the elbow bent - do not push it out at arm's
-    length).
-  - Sword (near hand): held LOW, hand between belt and hip height, swinging with the mannequin's near arm (forward in R2-R5,
+    length). In R1, R6, R7, R8 the mannequin's far hand reaches x=322-336, so the shield hand sits about 35-40 px further back
+    (left) than the mannequin's hand in those frames - INTENDED, not a deviation.
+  - Sword (near hand): held LOW: shoulder and elbow follow the mannequin, the forearm drops so the fist sits at about y 670-700 (belt to hip;
+    the mannequin's hand reaches y 590-630 in R2-R5 - dropping it is INTENDED, not a deviation), swinging with the mannequin's near arm (forward in R2-R5,
     back in R6-R8/R1). The blade points BACK and DOWN (about 40-60 deg below horizontal, steeper when the hand is back) so the
     blade trails behind the hand; the tip shows on the magenta background behind the hip/rear thigh. No raised sword, no
     swing, no slash. Never shorten the blade - change its angle instead.

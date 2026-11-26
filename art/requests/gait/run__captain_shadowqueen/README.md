@@ -40,11 +40,12 @@ REFERENCES (load all; if the sheet or the portrait does not load, do not draw - 
 CHARACTER (unchanged from the accepted sheet): lithe woman in her thirties, deep plum-black HOOD and long cloak with crimson trim
 and a gold emblem clasp, long wavy blue-black hair falling out of the hood, tan skin, dark-red eyes, ruby earring and pendant,
 dark corset and trousers with gold-buckled leather belts and a belt pouch, brown boots; TWIN SHORT SWORDS, one in EACH hand
-(straight bright neutral-steel blades about 2 heads long, red-wrapped grips, gold crossguards, round gold pommels).
+(straight bright neutral-steel blades about 1 head long - ~110 px blade, ~150 px with the grip, EXACTLY as long as in the sheet, red-wrapped grips, gold crossguards, round gold pommels).
 
 THE RUN (owner's rhythm, already in the mannequin - copy it, do not invent another):
   - Each frame: the legs, the torso lean and the arm swing of that mannequin frame. Joint for joint: hips, knees, ankles, feet,
-    shoulders, elbows. The mannequin's big round head is a placeholder: draw Nikla's own hooded head on the mannequin's neck,
+    shoulders, elbows (hands: see ARMS - the forearms drop lower than the mannequin's; that is intended, not a deviation).
+    The mannequin's big round head is a placeholder: draw Nikla's own hooded head on the mannequin's neck,
     at her own size (as in the sheet).
   - R1 contact (near foot lands a little ahead, knee bent) - R2 catch (body drops onto the foot, lowest) - R3 push-off (stance
     leg extends behind, heel up) - R4 FLIGHT (both feet clearly off the ground, legs scissored, body pressed forward and leaning
@@ -56,14 +57,16 @@ THE RUN (owner's rhythm, already in the mannequin - copy it, do not invent anoth
     stride; do not shorten it).
 
 ARMS AND WEAPONS:
-  - Both swords in FORWARD grip as in her idle (blade out of the thumb side of the fist), hands LOW (between belt and hip
-    height), swinging with the mannequin's arms (near arm forward in R2-R5, back in R6-R8/R1; far arm the opposite).
+  - Both swords in FORWARD grip as in her idle (blade out of the thumb side of the fist), hands LOW: shoulders and
+    elbows follow the mannequin, the forearm drops so the fist sits at about y 670-700 (belt to hip) - the mannequin's hands
+    reach y 590-630 in R2-R5; dropping them is INTENDED, not a deviation. Swinging with the mannequin's arms (near arm forward in R2-R5, back in R6-R8/R1; far arm the opposite).
   - The blades TRAIL BACK and DOWN from the hands: about 35-45 deg below horizontal while the hand is forward, steeper
     (55-70 deg) while the hand is back. Never point a blade forward, never hold one across the chest or across the other arm,
     and the two blades never overlap each other.
   - Near blade: in front of the body (1 px dark outline); its tip and most of the blade show on the magenta behind her hip /
     rear thigh. It may overlap the near hip or thigh in the forward-swing frames, never the torso.
-  - Far blade: mostly hidden behind her body and cloak, as in the idle; where it shows, only its lower part and tip behind
+  - Far blade: mostly hidden behind her body and cloak, as in the idle (this is an intended exception to the
+    'weapon outside the silhouette' rule - the owner chose this idle); where it shows, only its lower part and tip behind
     her back or rear leg.
   - Never shorten a blade to fit - change its angle or lift the hand a little instead (see FORMAT for the limits).
   - Cloak, hair and coat-tails trail back and lag the body by ONE frame: they lift and stream back most in R1/R5 (right after
