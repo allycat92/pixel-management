@@ -20,7 +20,7 @@
 - NovelAI: `tools/art/novelai.py` may generate images **only when the user asks**, within the free tier
   (area <= 1024x1024, <= 28 steps, 1 image per call, `--max` 2 per run; no `--allow-paid` unless the user says so).
   The token is injected by the cloud proxy (or `NOVELAI_TOKEN` locally); never write it to files or logs.
-  **NovelAI is for design drafts ONLY (owner decision): final game art always goes through GPT (the owner's PC session may refine it in Aseprite — see docs/pc_cloud_protocol.md).** Never request or
+  **NovelAI is for design drafts ONLY (owner decision): final game art always goes through GPT or Antigravity (owner 2026-11-26: Antigravity, the pixel-animation head, may also make finals; the owner's PC session may refine in Aseprite — see docs/pc_cloud_protocol.md, docs/agents/README.md).** Never request or
   register a NovelAI "final": `novelai.py` writes only `art/concepts/<id>/drafts/nai_*.png` (git-ignored) or a scratch
   `--outdir` and refuses `art/inbox/`, `assets/`, `art/requests/`; `sheets.py` refuses NovelAI images
   (`--allow-draft` is a test flag that always implies `--dry-run`).
