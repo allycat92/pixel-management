@@ -176,7 +176,7 @@
       effectPreview(c),
       el('div', { class: 'card-foot' },
         el('span', { class: 'muted small', text: story ? `${story.name} 필수` : weightHint(c.type) }),
-        el('button', { class: 'btn', text: '파견', disabled: free ? null : 'disabled', onclick: () => openDispatch(c) })));
+        el('button', { class: 'btn', text: '파견', 'data-fkey': `dispatch-${c.id}`, disabled: free ? null : 'disabled', onclick: () => openDispatch(c) })));
   }
 
   function weightHint(type) {
@@ -249,14 +249,42 @@
       refresh();
     }
 
+    // 키보드: 하나만 고르는 의뢰는 라디오 묶음(화살표로 이동·선택), 여러 개면 체크박스. Space/Enter 로 켜고 끈다.
+    const single = slots === 1;
+    listBox.setAttribute('role', single ? 'radiogroup' : 'group');
+    listBox.setAttribute('aria-label', single ? '보낼 용병단 (하나)' : `보낼 용병단 (최대 ${slots}개)`);
+    const lockedOf = (co) => !!((!co.own && Game.extRefusal(co, c)) || (co.own && !Game.availableMembers(co).length));
+    const focusKey = (key) => { const t = document.querySelector(`.dispatch [data-fkey="${key}"]`); if (t) t.focus(); };
+    function pickKey(e, co) {
+      if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); if (!lockedOf(co)) { toggle(co); focusKey(`co-${co.id}`); } return; }
+      if (!single) return;
+      const dir = { ArrowDown: 1, ArrowRight: 1, ArrowUp: -1, ArrowLeft: -1 }[e.key];
+      const open = comps.filter((x) => !lockedOf(x));
+      if (!open.length || (!dir && e.key !== 'Home' && e.key !== 'End')) return;
+      e.preventDefault();
+      const i = open.indexOf(co);
+      const target = e.key === 'Home' ? open[0] : e.key === 'End' ? open[open.length - 1] : open[((i < 0 ? 0 : i) + dir + open.length) % open.length];
+      if (!sel.has(target.id)) toggle(target);
+      focusKey(`co-${target.id}`);
+    }
+
     function refresh() {
+      const active = document.activeElement;
+      const keep = active && active.closest && active.closest('.dispatch') && active.dataset.fkey;
+      // 라디오 묶음은 Tab 정지점이 하나: 고른 것, 없으면 첫 번째로 고를 수 있는 것
+      const tabStop = single ? (comps.find((co) => sel.has(co.id) && !lockedOf(co)) || comps.find((co) => !lockedOf(co))) : null;
       listBox.replaceChildren(...comps.map((co) => {
         const refusal = !co.own && Game.extRefusal(co, c);
         const avail = co.own ? Game.availableMembers(co) : null;
         const disabled = refusal || (co.own && !avail.length);
         const on = sel.has(co.id);
         const u = co.own ? { companyId: co.id, memberIds: [...(on ? sel.get(co.id) : defaultMembers(co))] } : { companyId: co.id };
-        return el('div', { class: `pick ${on ? 'on' : ''} ${disabled ? 'locked' : ''}`, onclick: () => { if (!disabled) toggle(co); } },
+        return el('div', { class: `pick ${on ? 'on' : ''} ${disabled ? 'locked' : ''}`,
+          role: single ? 'radio' : 'checkbox', 'aria-checked': on ? 'true' : 'false', 'aria-disabled': disabled ? 'true' : null,
+          tabindex: disabled ? '-1' : single ? (co === tabStop ? '0' : '-1') : '0',
+          'data-fkey': `co-${co.id}`, 'data-autofocus': co === tabStop || (!single && !disabled && co === comps.find((x) => !lockedOf(x))) ? '' : null,
+          onkeydown: (e) => pickKey(e, co),
+          onclick: () => { if (!disabled) toggle(co); } },
           co.own ? companyFlag(co) : Sprites.clone(Sprites.merc(co.captain.look, 2, 0), 'mini'),
           el('div', { class: 'grow' },
             el('div', {}, co.name, co.own ? null : el('span', { class: 'chip small', text: '외부' })),
@@ -270,13 +298,16 @@
       // 선택된 직속 용병단의 출격 단원
       memberBox.replaceChildren(...[...sel.entries()].filter(([, v]) => v !== true).map(([id, set]) => {
         const co = Game.company(id);
+        const labelId = `mp-${c.id}-${id}`;
         return el('div', { class: 'member-pick' },
-          el('div', { class: 'small muted', text: `${co.name} 출격 단원 (눌러서 제외/포함)` }),
-          el('div', { class: 'chips' }, Game.availableMembers(co).map((m) => el('span', {
+          el('div', { class: 'small muted', id: labelId, text: `${co.name} 출격 단원 (눌러서 제외/포함)` }),
+          el('div', { class: 'chips', role: 'group', 'aria-labelledby': labelId }, Game.availableMembers(co).map((m) => el('button', {
+            type: 'button', role: 'checkbox', 'aria-checked': set.has(m.id) ? 'true' : 'false', 'data-fkey': `m-${m.id}`,
             class: `mchip ${set.has(m.id) ? 'on' : ''} ${m.fatigue >= 80 ? 'tired' : ''}`,
             onclick: () => { if (set.has(m.id)) set.delete(m.id); else set.add(m.id); refresh(); },
           }, mini(m.look), `${Game.isCaptain(m) ? '♛' : ''}${m.name}${m.fatigue >= 50 ? ` (${Game.fatigueState(m).label})` : ''}`))));
       }));
+      if (keep && document.activeElement !== active) focusKey(keep);
 
       const us = units();
       const pw = Game.unitsPower(c, us);
@@ -304,7 +335,15 @@
       go.disabled = !us.length || missingHero;
     }
 
-    go.addEventListener('click', () => { const us = units(); UI.closeModal(); Game.dispatch(c.id, us); });
+    go.addEventListener('click', () => {
+      const us = units();
+      UI.closeModal();
+      Game.dispatch(c.id, us);
+      // 키보드: 다른 의뢰의 「파견」이 남아 있으면 그쪽, 없으면 「다음 날」로
+      const a = document.activeElement;
+      if (!a || a.textContent !== '파견') document.getElementById('next-day').focus();
+    });
+    refresh(); // 창을 열기 전에 채워 두어야 첫 컨트롤로 초점이 간다
     UI.openModal(el('div', { class: 'dispatch' },
       el('h2', { text: c.title }),
       el('div', { class: 'parties' }, el('span', { class: 'small muted', text: `${PROVINCES[c.province].name} · ${QUEST_TYPES[c.type].name} · ★${c.level} · 의뢰주` }),
@@ -312,7 +351,6 @@
       el('div', { class: 'small' }, '성공 시: ', effectPreview(c)),
       listBox, memberBox, summary,
       el('div', { class: 'modal-actions' }, el('button', { class: 'btn', text: '취소', onclick: UI.closeModal }), go)));
-    refresh();
   }
   UI.openDispatch = openDispatch;
 

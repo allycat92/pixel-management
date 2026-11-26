@@ -313,8 +313,61 @@ const UI = (() => {
     if (r.special === 'starter') return openStarterChoice();
     if (r.special === 'dialog' || r.special === 'notice') return openDialog(r);
     if (r.special) return openModal(specialReport(r), true);
-    if (s.settings.battle) openModal(Battle.play(r, () => openModal(missionReport(r), true)), true);
-    else openModal(missionReport(r), true);
+    if (s.settings.battle) {
+      // 전투 연출 중에는 상단 막대·소식줄이 이 보고서 이전 값을 보여 준다 (결과를 미리 알리지 않도록)
+      playing = r;
+      openModal(Battle.play(r, () => { playing = null; openModal(missionReport(r), true); renderTop(); }), true);
+      renderTop();
+    } else openModal(missionReport(r), true);
+  }
+
+  // ───────── 결과 미리 보기 방지 ─────────
+  // 판정 직후 금화·명성·일지가 이미 바뀌어 있으므로, 아직 공개하지 않은 의뢰 보고서(연출 중 + 대기 중)의
+  // 몫을 빼서 보여 준다. 게임 상태와 저장은 건드리지 않는다.
+  let playing = null; // 전투 연출 중인 보고서
+  const reportDeltas = new WeakMap(); // 보고서 -> { gold, rep, logs:Set } (판정 전후 차이)
+  function hookResolve() {
+    const orig = Game.resolveMission;
+    if (typeof orig !== 'function' || orig.spoilerHook) return;
+    const wrapped = function (mission) {
+      const s = this.state;
+      const gold = s.gold, rep = s.rep, top = s.log[0];
+      const out = orig.apply(this, arguments);
+      const report = s.pendingReports.find((x) => !x.special && x.quest === mission.contract && !reportDeltas.has(x));
+      if (report) {
+        const cut = top ? s.log.indexOf(top) : s.log.length;
+        reportDeltas.set(report, { gold: s.gold - gold, rep: s.rep - rep, logs: new Set(s.log.slice(0, cut < 0 ? s.log.length : cut)) });
+      }
+      return out;
+    };
+    wrapped.spoilerHook = true;
+    Game.resolveMission = wrapped;
+  }
+  function rankAt(rep) {
+    let idx = 0;
+    RANKS.forEach((r, i) => { if (rep >= r.rep) idx = i; });
+    return idx;
+  }
+  // 상단 막대에 보여 줄 값: { gold, rep, hide:Set(일지 항목) }
+  function shownTop() {
+    const s = Game.state;
+    const out = { gold: s.gold, rep: s.rep, hide: new Set() };
+    if (!s.settings.battle) return out;
+    const unseen = [playing, ...s.pendingReports].filter((r) => r && !r.special && r.quest);
+    if (!unseen.length) return out;
+    unseen.forEach((r) => {
+      const d = reportDeltas.get(r);
+      out.gold -= d ? d.gold : r.gold || 0;
+      out.rep -= d ? d.rep : r.rep || 0;
+      if (d) d.logs.forEach((e) => out.hide.add(e));
+      // 저장에서 불러온 보고서: 결과 줄만 찾아 숨긴다
+      else s.log.forEach((e) => { if (e.day === s.day && e.text.startsWith(`[${r.quest.title}] `) && e.text.includes('! 금화 ')) out.hide.add(e); });
+    });
+    out.rep = Math.max(0, out.rep);
+    if (rankAt(out.rep) !== Game.rankIndex()) {
+      s.log.forEach((e) => { if (e.day === s.day && /^(길드 등급이|활동 범위 확대)/.test(e.text)) out.hide.add(e); });
+    }
+    return out;
   }
 
   function effectLines(r) {
@@ -429,7 +482,10 @@ const UI = (() => {
           lines = res.lines; line = 0; r.foot = res.notes.join(' · ');
           next.style.display = '';
           show();
+          next.focus();
         } }, o.label)));
+      const first = choiceBox.querySelector('button');
+      if (first) first.focus();
     }
     const advance = () => {
       if (typing) { clearInterval(timer); typing = false; text.textContent = lines[line][1]; return; }
@@ -509,18 +565,20 @@ const UI = (() => {
   // ───────── 공통 ─────────
   function renderTop() {
     const s = Game.state;
-    const rank = Game.rank(), next = Game.nextRank();
+    const shown = shownTop();
+    const ri = rankAt(shown.rep);
+    const rank = RANKS[ri], next = RANKS[ri + 1] || null;
     $('#guild-name').textContent = s.guildName;
     $('#day').textContent = `${s.day}일차 (${['월', '화', '수', '목', '금', '토', '일'][(s.day - 1) % 7]}) · 정산까지 ${Game.daysToPayday()}일`;
-    $('#gold').textContent = s.gold;
-    $('#gold').classList.toggle('neg', s.gold < 0);
-    $('#rep').textContent = s.rep;
+    $('#gold').textContent = shown.gold;
+    $('#gold').classList.toggle('neg', shown.gold < 0);
+    $('#rep').textContent = shown.rep;
     $('#rank').textContent = rank.name;
     $('#rank').className = `rank rank-${rank.name}`;
-    const prog = next ? (s.rep - rank.rep) / (next.rep - rank.rep) : 1;
+    const prog = next ? (shown.rep - rank.rep) / (next.rep - rank.rep) : 1;
     $('#rank-bar').style.width = `${prog * 100}%`;
-    $('#rank-next').textContent = next ? `다음 ${next.name}랭크까지 ${next.rep - s.rep}` : '최고 등급!';
-    const latest = s.log[0];
+    $('#rank-next').textContent = next ? `다음 ${next.name}랭크까지 ${next.rep - shown.rep}` : '최고 등급!';
+    const latest = s.log.find((e) => !shown.hide.has(e));
     $('#ticker').textContent = latest ? `[${latest.day}일차] ${latest.text}` : '';
     $('#ticker').className = `ticker ${latest ? latest.kind : ''}`;
     document.querySelectorAll('.tab').forEach((b) => {
@@ -540,29 +598,78 @@ const UI = (() => {
     $('#next-day').disabled = !!s.over;
   }
 
+  // ───────── 키보드 초점 ─────────
+  const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+  const focusables = (root) => [...root.querySelectorAll(FOCUSABLE)].filter((e) => e.getClientRects().length && !e.closest('.hidden'));
+  // 다시 그려도 같은 자리의 컨트롤로 초점을 되돌리기 위한 기록 (data-fkey > id > 같은 순서·같은 글자)
+  function describeFocus(node) {
+    const app = $('#app');
+    if (!node || node === document.body || !app.contains(node)) return null;
+    const list = focusables(app);
+    return { node, fkey: node.dataset.fkey || null, id: node.id || null, text: node.textContent.trim(), idx: list.indexOf(node) };
+  }
+  function restoreFocus(d) {
+    if (!d) return;
+    const app = $('#app');
+    if (d.node.isConnected && d.node.getClientRects().length) { if (document.activeElement !== d.node) d.node.focus({ preventScroll: true }); return; }
+    const list = focusables(app);
+    const byKey = d.fkey && app.querySelector(`[data-fkey="${CSS.escape(d.fkey)}"]`);
+    const byId = d.id && document.getElementById(d.id);
+    const sameText = list.filter((e) => e.textContent.trim() === d.text);
+    const target = (byKey && list.includes(byKey) && byKey) || (byId && list.includes(byId) && byId)
+      || (d.idx >= 0 && list[d.idx] && list[d.idx].textContent.trim() === d.text && list[d.idx])
+      || sameText[0] || (d.idx >= 0 && list[Math.min(d.idx, list.length - 1)]) || null;
+    if (target) target.focus({ preventScroll: true });
+  }
+
   function render() {
     if (!Game.state) return;
+    const fd = modalOpen ? null : describeFocus(document.activeElement);
     renderTop();
     const root = $('#panel');
     const scroll = root.scrollTop;
     root.replaceChildren();
     (tabs[tab] || tabs.companies)(root);
     root.scrollTop = scroll;
+    if (!modalOpen) restoreFocus(fd);
     showReports();
   }
 
+  let opener = null; // 창을 연 컨트롤 (닫으면 초점을 돌려준다)
   function openModal(content, sticky) {
-    modalOpen = true;
     const m = $('#modal');
-    m.querySelector('.modal-body').replaceChildren(content);
+    const body = m.querySelector('.modal-body');
+    if (!modalOpen) opener = describeFocus(document.activeElement);
+    modalOpen = true;
+    body.replaceChildren(content);
+    const title = content.querySelector && content.querySelector('h2, .dialog-title, .report-banner, .battle-head');
+    if (title) body.setAttribute('aria-label', title.textContent.trim());
+    else body.removeAttribute('aria-label');
     m.classList.remove('hidden');
     m.dataset.sticky = sticky ? '1' : '';
+    focusModal();
+  }
+  // 창 안의 첫 컨트롤(또는 data-autofocus)로 초점
+  function focusModal() {
+    const body = $('#modal .modal-body');
+    const list = focusables(body);
+    const target = body.querySelector('[data-autofocus]:not([disabled])') || list[0] || body;
+    target.focus({ preventScroll: target === body });
+  }
+  function hideModal() {
+    modalOpen = false;
+    $('#modal').classList.add('hidden');
+    const d = opener;
+    opener = null;
+    if (d && d.node.isConnected) d.node.focus({ preventScroll: true });
+    return d;
   }
   function closeModal() {
     Battle.stop();
-    modalOpen = false;
-    $('#modal').classList.add('hidden');
+    playing = null;
+    const d = hideModal();
     render();
+    if (!modalOpen) restoreFocus(d);
   }
 
   function confirmBox(text, onYes) {
@@ -570,7 +677,18 @@ const UI = (() => {
       el('p', { text }),
       el('div', { class: 'modal-actions' },
         el('button', { class: 'btn', text: '취소', onclick: closeModal }),
-        el('button', { class: 'btn danger', text: '확인', onclick: () => { modalOpen = false; $('#modal').classList.add('hidden'); onYes(); render(); } }))));
+        el('button', { class: 'btn danger', text: '확인', onclick: () => { const d = hideModal(); onYes(); render(); if (!modalOpen) restoreFocus(d); } }))));
+  }
+
+  // 창이 열려 있으면 Tab/Shift+Tab 이 창 안에서만 돈다
+  function trapTab(e) {
+    const body = $('#modal .modal-body');
+    const list = focusables(body);
+    e.preventDefault();
+    if (!list.length) { body.focus(); return; }
+    const i = list.indexOf(document.activeElement);
+    const nextI = i < 0 ? (e.shiftKey ? list.length - 1 : 0) : (i + (e.shiftKey ? -1 : 1) + list.length) % list.length;
+    list[nextI].focus();
   }
 
   let toastTimer;
@@ -591,7 +709,9 @@ const UI = (() => {
     $('#modal').addEventListener('click', (e) => {
       if (e.target.id === 'modal' && !$('#modal').dataset.sticky) closeModal();
     });
+    hookResolve();
     document.addEventListener('keydown', (e) => {
+      if (e.key === 'Tab' && modalOpen) { trapTab(e); return; }
       if (e.key === 'Escape' && modalOpen && !$('#modal').dataset.sticky) closeModal();
       if (e.key === ' ' && !modalOpen && e.target === document.body) { e.preventDefault(); Game.nextDay(); }
     });
