@@ -21,6 +21,8 @@ Claude Code 가 받아서 확인한 결과는 `art/requests/feedback.md`에 남�
 
 | 누구 | 종류 | id | 할 일 (자세한 것은 그 줄의 요청서) |
 |---|---|---|---|
+| Antigravity | 손질 | `sheet/hero/oswin` | **이미지 생성 없이 Aseprite 만으로 하는 손질** (할당량 막힘 동안, 11-27 클라우드). 오스윈 피격 자세의 들린 무릎이 튀어 보인다 → 무릎을 조금 내려 발이 땅에 더 붙게(나머지 그대로). 바탕 `art/inbox/sheet_hero_oswin.png`. 납품·검사는 `tools/aseprite-mcp/pc/CLAUDE.md` 「납품」의 「손질」 줄. 「판정」 절 포함 |
+| Antigravity | 손질 | `sheet/hero/seraphine` · `sheet/hero/grom` · `sheet/hero/astel` | Aseprite 만으로: 준비 자세가 칸 위쪽에 붙는다(세라핀·그롬 77px, 아스텔 지팡이 87px / 칸 96) → 무기·지팡이 끝을 조금 낮추거나 기울여 몸 포함 75px 안쪽으로(자세 느낌은 그대로). 세 장 각각 같은 이름으로 다시 납품 |
 | Antigravity | DOT_READY | `sheet/captain/liberator/chain-sheet` | 카토 주먹·사슬 시트: 대기 `2391081` 그대로, 준비·접촉·피격 세 컷 추가. [요청서](phase3/captain_liberator/chain_sheet.md). |
 
 수령 완료, 제작 대상 아님: 비요른·카이·해골 병사·사막 도적 (`5520f35`), 고블린·서리 트롤 (`c4cc054`). `C5-art-battle-integration-qa`에서 Codex가 별도 빌드로 반영·실전 확인한다. 최종 등록은 별도다.
