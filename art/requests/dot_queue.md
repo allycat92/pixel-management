@@ -25,6 +25,11 @@ Claude Code 가 받아서 확인한 결과는 `art/requests/feedback.md`에 남�
 | Antigravity | 손질 | `sheet/monster/goblin` | **대비 손질 (C5)**: 어두운 숲 배경에서 어두운 녹색·갈색 몸통의 안쪽 명암과 겹친 실루엣이 읽히지 않는다 → 몸통 중간색을 밝게, 외곽선 안쪽 1px 밝은 테두리, 귀·무기 실루엣을 몸 밖으로. 시트는 이미 게임에 등록됨(`c4cc054`) — 같은 이름으로 다시 납품 |
 | Antigravity | 손질 | `sheet/hero/oswin` | **이미지 생성 없이 Aseprite 만으로 하는 손질** (할당량 막힘 동안, 11-27 클라우드). 오스윈 피격 자세의 들린 무릎이 튀어 보인다 → 무릎을 조금 내려 발이 땅에 더 붙게(나머지 그대로). 바탕 `art/inbox/sheet_hero_oswin.png`. 납품·검사는 `tools/aseprite-mcp/pc/CLAUDE.md` 「납품」의 「손질」 줄. 「판정」 절 포함 |
 | Antigravity | 손질 | `sheet/hero/seraphine` · `sheet/hero/grom` · `sheet/hero/astel` | Aseprite 만으로: 준비 자세가 칸 위쪽에 붙는다(세라핀·그롬 77px, 아스텔 지팡이 87px / 칸 96) → 무기·지팡이 끝을 조금 낮추거나 기울여 몸 포함 75px 안쪽으로(자세 느낌은 그대로). 세 장 각각 같은 이름으로 다시 납품 |
+| Antigravity | new | `gait/sheet_captain_ironwall_run` | **브리긴다 중량 이동 8프레임** — 확정 중량 마네킹(`heavy_base/v1`) 위에 덧그린다. 주인이 기다리는 것(맨 마네킹에 실제 갑옷·탑방패를 입혀 보기). 요청서 `art/requests/gait/heavy__captain_ironwall/README.md`(SELF-CHECK 포함). 납품 `art/inbox/gait/sheet_captain_ironwall_run_a.png` + `_b.png` |
+| Antigravity | new | `gait/sheet_class_mage_run` | 병과 마법사 로브 이동 8프레임 — `robe_base/v1` 위에. 요청서 `art/requests/gait/robe__class_mage/README.md`(옷자락 부피는 대기 그림대로, 마네킹의 좁은 치마는 자리 안내일 뿐) |
+| Antigravity | new | `gait/sheet_class_archer_run` | 병과 궁수 달리기 8프레임 — `run_base/v2` 위에. 요청서 `art/requests/gait/run__class_archer/README.md` |
+| Antigravity | new | `gait/sheet_class_cleric_run` | 병과 성직자 달리기 8프레임. 요청서 `art/requests/gait/run__class_cleric/README.md` |
+| Antigravity | new | `gait/sheet_class_rogue_run` | 병과 도적 달리기 8프레임. 요청서 `art/requests/gait/run__class_rogue/README.md` |
 | Antigravity | DOT_READY | `sheet/captain/liberator/chain-sheet` | 카토 주먹·사슬 시트: 대기 `2391081` 그대로, 준비·접촉·피격 세 컷 추가. [요청서](phase3/captain_liberator/chain_sheet.md). |
 
 수령 완료, 제작 대상 아님: 비요른·카이·해골 병사·사막 도적 (`5520f35`), 고블린·서리 트롤 (`c4cc054`). `C5-art-battle-integration-qa`에서 Codex가 별도 빌드로 반영·실전 확인한다. 최종 등록은 별도다.

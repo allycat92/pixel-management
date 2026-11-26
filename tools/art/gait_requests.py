@@ -223,8 +223,8 @@ CARRY = {
             '(y 760-790) so the knees and boots show below it, face toward the viewer\'s right. It does NOT swing: it moves up and down with the body (lowest in H2/H6) and '
             'at most about 10 px fore-aft. Front edge left of x=345 in every slot. The far forearm stays across the front at chest '
             'height, as in the mannequin.',
-            'Mace (near hand): held ready at the belt/hip with the spiked head UP and a little forward, as in the idle (haft roughly '
-            'upright, head about chest height beside the shield). The near hand follows the mannequin\'s near hand (it moves only '
+            'Mace (near hand): held ready at the belt/hip with the spiked head UP and a little forward, as in the idle (haft about 50 deg from vertical, '
+            'head about chest height beside the shield). The near hand follows the mannequin\'s near hand (it moves only '
             '7-18 px fore-aft); the mace never swings, never hangs down and never crosses the face. Whole mace inside the slot.',
             'The shield may cover part of the torso and the far thigh, never the face; the mace head stays readable beside the '
             'shield edge.',
@@ -246,8 +246,11 @@ CARRY = {
             'belt), the top tilted forward, the crystal above the hat brim. It is CARRIED, not planted: it moves only with the hands '
             '(the mannequin\'s small hand swing, at most ~35 px fore-aft), its lower end never goes below y=840, never touches the '
             'floor and never passes between the feet; the crystal stays inside x<=351 of the slot.',
-            'Robe class: the hands stay close to the body (the mannequin\'s hands are near the waist; here both are on the staff - '
-            'keep them within about 20 px of the mannequin\'s hands).',
+            'Robe class: both hands KEEP THE IDLE\'S GRIP on the staff; the grip rides with the torso and swings at most about 35 px '
+            'fore-aft. The mannequin\'s two separate hand positions do NOT apply to this character (intended, not a deviation).',
+            'Volume: keep the idle\'s robe volume - skirt flaring to about the idle\'s hem width, the capelet, the wide sleeves. The '
+            'mannequin\'s narrow skirt is only a placement guide; drawing it as narrow as the mannequin makes add_gait refuse the '
+            'frames as a mannequin copy. If add_gait still refuses a frame at IoU <= ~0.9, write 막힘 in NOTES - do not distort the drawing.',
         ],
         'cloth': [
             'HEM: the robe hides the knees and thighs in EVERY frame (like the mannequin\'s cloth_front layer); only the boots flick '
@@ -289,7 +292,7 @@ CARRY = {
         'character': 'face hidden in shadow - a deep COWL pulled low over the brow (accent front edge) and a short VEIL of the same '
                      'cloth across the lower face; grey chainmail; knee-length TABARD over the mail with accent border trim and ONE '
                      'plain filled accent disc on the chest (no symbol); a small brown leather book on the belt; dark trousers, '
-                     'brown boots; a one-handed flanged steel MACE with a wooden handle (~1.3 heads, ~140 px) in the NEAR hand.',
+                     'brown boots; a one-handed flanged steel MACE with a wooden handle (about 190 px from pommel to flange tip - keep the sheet\'s length) in the NEAR hand.',
         'carry': [
             'Mace (near hand): held at the LOWER grip with the flanged head UP (haft about 20-45 deg forward of vertical), as in the '
             'idle - the head between chest and shoulder height. The near arm pumps with the mannequin, but the forearm drops so the '
@@ -608,7 +611,8 @@ def write_request(sid, out=None, force=False, date=None, spec=None, man=None):
         f'  - PLANTED FOOT (the rule the class warrior\'s R5 needed a fix for): a foot on the floor never slides in the drawing. From its',
         f'    contact frame on, the SAME boot moves LEFT by exactly step/4 = {q:.1f} px per frame (the mannequin: {rmin:.0f}-{rmax:.0f} px;',
         f'    tolerance 3 px) - the engine moves the unit {q * sc:.1f} game px per frame, so the boot stays still on the ground.',
-        '    Toe tip of the planted boot (its front-most pixel on y=870), x in the 384-px slot:',
+        '    Toe tip of the planted boot = its FRONT-MOST pixel (the toe; on a tapered boot it may sit a few px above y=870, as on the '
+        '    mannequin) = the yellow tick in size_*.png; x in the 384-px slot:',
         *toe_lines,
         *([f'      ({" / ".join(flight)}: flight - no foot on the floor; the next contact lands ahead again)'] if flight else []),
         '    Draw the planted boot once, then copy it from frame to frame and only shift it (lift the heel in the push frame); measure',

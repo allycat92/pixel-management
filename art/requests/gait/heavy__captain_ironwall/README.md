@@ -59,7 +59,7 @@ THE MOVE (owner's three movement classes; heavy: heavy armour / tower shield / v
   - PLANTED FOOT (the rule the class warrior's R5 needed a fix for): a foot on the floor never slides in the drawing. From its
     contact frame on, the SAME boot moves LEFT by exactly step/4 = 35.6 px per frame (the mannequin: 35-36 px;
     tolerance 3 px) - the engine moves the unit 5.9 game px per frame, so the boot stays still on the ground.
-    Toe tip of the planted boot (its front-most pixel on y=870), x in the 384-px slot:
+    Toe tip of the planted boot = its FRONT-MOST pixel (the toe; on a tapered boot it may sit a few px above y=870, as on the     mannequin) = the yellow tick in size_*.png; x in the 384-px slot:
       near foot: H1 x=275 -> H2 x=239 -> H3 x=204 -> H4 x=169  (-> H5 x=133 as the REAR foot, heel up, toe still on the floor)
       far foot: H5 x=280 -> H6 x=244 -> H7 x=209 -> H8 x=173  (-> H1 x=137 as the REAR foot, heel up, toe still on the floor)
     Draw the planted boot once, then copy it from frame to frame and only shift it (lift the heel in the push frame); measure
@@ -67,7 +67,7 @@ THE MOVE (owner's three movement classes; heavy: heavy armour / tower shield / v
 
 ARMS AND WEAPONS:
   - Tower shield (far arm): held UP in front of the chest in EVERY frame, exactly as in the idle: its top edge where the idle has it relative to her helmet and belt (about chin height), its bottom edge about 80-110 px above the floor (y 760-790) so the knees and boots show below it, face toward the viewer's right. It does NOT swing: it moves up and down with the body (lowest in H2/H6) and at most about 10 px fore-aft. Front edge left of x=345 in every slot. The far forearm stays across the front at chest height, as in the mannequin.
-  - Mace (near hand): held ready at the belt/hip with the spiked head UP and a little forward, as in the idle (haft roughly upright, head about chest height beside the shield). The near hand follows the mannequin's near hand (it moves only 7-18 px fore-aft); the mace never swings, never hangs down and never crosses the face. Whole mace inside the slot.
+  - Mace (near hand): held ready at the belt/hip with the spiked head UP and a little forward, as in the idle (haft about 50 deg from vertical, head about chest height beside the shield). The near hand follows the mannequin's near hand (it moves only 7-18 px fore-aft); the mace never swings, never hangs down and never crosses the face. Whole mace inside the slot.
   - The shield may cover part of the torso and the far thigh, never the face; the mace head stays readable beside the shield edge.
   - The braid swings a little behind her back and lags the body by ONE frame; the tabard and tassets sway slightly with each footfall (the weight drop in H2/H6) - no flapping.
   - Face: set and determined, eyes forward, mouth closed; the helmet sits steady.

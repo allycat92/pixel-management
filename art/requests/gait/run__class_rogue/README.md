@@ -57,7 +57,7 @@ THE MOVE (owner's three movement classes; light: the accepted run: lean forward,
   - PLANTED FOOT (the rule the class warrior's R5 needed a fix for): a foot on the floor never slides in the drawing. From its
     contact frame on, the SAME boot moves LEFT by exactly step/4 = 68.8 px per frame (the mannequin: 67-69 px;
     tolerance 3 px) - the engine moves the unit 11.4 game px per frame, so the boot stays still on the ground.
-    Toe tip of the planted boot (its front-most pixel on y=870), x in the 384-px slot:
+    Toe tip of the planted boot = its FRONT-MOST pixel (the toe; on a tapered boot it may sit a few px above y=870, as on the     mannequin) = the yellow tick in size_*.png; x in the 384-px slot:
       near foot: R1 x=290 -> R2 x=222 -> R3 x=155
       far foot: R5 x=295 -> R6 x=227 -> R7 x=158
       (R4 / R8: flight - no foot on the floor; the next contact lands ahead again)

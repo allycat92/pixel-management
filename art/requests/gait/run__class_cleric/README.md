@@ -42,7 +42,7 @@ REFERENCES (load all; if the sheet or a guide does not load, do not draw - write
   - art/requests/guides/run_base/v2/pose.json (the numbers below come from it), art/requests/guides/run_base/v2/run_base_preview.gif (the motion at speed), art/requests/guides/run_base/v2/run_base.aseprite (the mannequin source -
     you may open it as an underlay and draw on your own layers, but the delivered PNGs contain ONLY your drawing).
 
-CHARACTER (unchanged from the accepted sheet): face hidden in shadow - a deep COWL pulled low over the brow (accent front edge) and a short VEIL of the same cloth across the lower face; grey chainmail; knee-length TABARD over the mail with accent border trim and ONE plain filled accent disc on the chest (no symbol); a small brown leather book on the belt; dark trousers, brown boots; a one-handed flanged steel MACE with a wooden handle (~1.3 heads, ~140 px) in the NEAR hand.
+CHARACTER (unchanged from the accepted sheet): face hidden in shadow - a deep COWL pulled low over the brow (accent front edge) and a short VEIL of the same cloth across the lower face; grey chainmail; knee-length TABARD over the mail with accent border trim and ONE plain filled accent disc on the chest (no symbol); a small brown leather book on the belt; dark trousers, brown boots; a one-handed flanged steel MACE with a wooden handle (about 190 px from pommel to flange tip - keep the sheet's length) in the NEAR hand.
 
 THE MOVE (owner's three movement classes; light: the accepted run: lean forward, press down in flight, rise a little after the landing is caught, hip nearly level, slight float, no hopping. It is already in the mannequin - copy it, do not invent another):
   - Each frame: the legs, the torso lean and the arm swing of that mannequin frame. Joint for joint: hips, knees, ankles, feet,
@@ -57,7 +57,7 @@ THE MOVE (owner's three movement classes; light: the accepted run: lean forward,
   - PLANTED FOOT (the rule the class warrior's R5 needed a fix for): a foot on the floor never slides in the drawing. From its
     contact frame on, the SAME boot moves LEFT by exactly step/4 = 68.8 px per frame (the mannequin: 67-69 px;
     tolerance 3 px) - the engine moves the unit 11.4 game px per frame, so the boot stays still on the ground.
-    Toe tip of the planted boot (its front-most pixel on y=870), x in the 384-px slot:
+    Toe tip of the planted boot = its FRONT-MOST pixel (the toe; on a tapered boot it may sit a few px above y=870, as on the     mannequin) = the yellow tick in size_*.png; x in the 384-px slot:
       near foot: R1 x=290 -> R2 x=222 -> R3 x=155
       far foot: R5 x=295 -> R6 x=227 -> R7 x=158
       (R4 / R8: flight - no foot on the floor; the next contact lands ahead again)

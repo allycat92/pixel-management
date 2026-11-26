@@ -57,7 +57,7 @@ THE MOVE (owner's three movement classes; robe: loose long cloth: running in it 
   - PLANTED FOOT (the rule the class warrior's R5 needed a fix for): a foot on the floor never slides in the drawing. From its
     contact frame on, the SAME boot moves LEFT by exactly step/4 = 33.5 px per frame (the mannequin: 33-35 px;
     tolerance 3 px) - the engine moves the unit 5.5 game px per frame, so the boot stays still on the ground.
-    Toe tip of the planted boot (its front-most pixel on y=870), x in the 384-px slot:
+    Toe tip of the planted boot = its FRONT-MOST pixel (the toe; on a tapered boot it may sit a few px above y=870, as on the     mannequin) = the yellow tick in size_*.png; x in the 384-px slot:
       near foot: G1 x=279 -> G2 x=245 -> G3 x=212 -> G4 x=179  (-> G5 x=145 as the REAR foot, heel up, toe still on the floor)
       far foot: G5 x=284 -> G6 x=250 -> G7 x=217 -> G8 x=183  (-> G1 x=148 as the REAR foot, heel up, toe still on the floor)
     Draw the planted boot once, then copy it from frame to frame and only shift it (lift the heel in the push frame); measure
@@ -65,7 +65,8 @@ THE MOVE (owner's three movement classes; robe: loose long cloth: running in it 
 
 ARMS AND WEAPONS:
   - Staff: held diagonally in front of the body with BOTH hands, as in the idle (upper hand at the chest, lower hand at the belt), the top tilted forward, the crystal above the hat brim. It is CARRIED, not planted: it moves only with the hands (the mannequin's small hand swing, at most ~35 px fore-aft), its lower end never goes below y=840, never touches the floor and never passes between the feet; the crystal stays inside x<=351 of the slot.
-  - Robe class: the hands stay close to the body (the mannequin's hands are near the waist; here both are on the staff - keep them within about 20 px of the mannequin's hands).
+  - Robe class: both hands KEEP THE IDLE'S GRIP on the staff; the grip rides with the torso and swings at most about 35 px fore-aft. The mannequin's two separate hand positions do NOT apply to this character (intended, not a deviation).
+  - Volume: keep the idle's robe volume - skirt flaring to about the idle's hem width, the capelet, the wide sleeves. The mannequin's narrow skirt is only a placement guide; drawing it as narrow as the mannequin makes add_gait refuse the frames as a mannequin copy. If add_gait still refuses a frame at IoU <= ~0.9, write 막힘 in NOTES - do not distort the drawing.
   - HEM: the robe hides the knees and thighs in EVERY frame (like the mannequin's cloth_front layer); only the boots flick out at the hem - the front boot ahead of / below the hem at contact, the back boot peeking out behind. The hem is pushed out at once by the stepping leg and falls back ONE FRAME LATE (G2/G6 still keep the contact hem shape). Keep the robe length of the idle: the hem trim's lowest point about y 840-850 at the front (about 20-30 px above the floor), higher at the sides; it never touches y=870.
   - The capelet and the sleeves sway a little and lag one frame; the sash ends trail back.
   - Face: in shadow between the brim and the collar in every frame (no eyes, no skin); the hat stays on and steady.
