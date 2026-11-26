@@ -1111,9 +1111,9 @@ const Battle = (() => {
   //   lean 온몸 기울기(발 기준) · tl 윗몸만 더 숙이기(엉덩이 줄 기준)
   //   duty 한 발이 땅에 붙어 있는 길이(걸음 단위): 1 = 걷기(늘 한 발은 땅), 1 미만 = 걸음마다 (1 - duty) 만큼 두 발이 다 뜬다(달리기)
   const GAITS = {
-    run:    { sl: 0.31, A: 0.095, cap: 0.22, ext: 0.04, lift: 0.09, kick: 0.10, kb: 0.08, wbob: 0, dip: 0.02, air: 0.032, lean: 0.06, tl: 0.17, duty: 0.62 },    // 달리기 (기본 이동) — 주인 11-26: 살짝 앞으로 숙이고 덜 출렁이게 (오르내림 키의 약 5%)
-    charge: { sl: 0.30, A: 0.105, cap: 0.24, ext: 0.05, lift: 0.10, kick: 0.13, kb: 0.10, wbob: 0, dip: 0.024, air: 0.04, lean: 0.08, tl: 0.21, duty: 0.56 },  // 적이 가까울 때 달려들기 (근접)
-    flee:   { sl: 0.36, A: 0.11, cap: 0.24, ext: 0.05, lift: 0.11, kick: 0.14, kb: 0.10, wbob: 0, dip: 0.025, air: 0.045, lean: 0.09, tl: 0.23, duty: 0.54 },  // 도주: 가장 크게
+    run:    { sl: 0.31, A: 0.095, cap: 0.22, ext: 0.04, lift: 0.09, kick: 0.10, kb: 0.08, wbob: 0, dip: 0.016, air: 0.024, lean: 0.07, tl: 0.19, duty: 0.62 },    // 달리기 (기본 이동) — 주인 11-26: 앞으로 숙여 달려나가고, 살짝만 뜬다 (오르내림 키의 약 4%, 깡충거리지 않게)
+    charge: { sl: 0.30, A: 0.105, cap: 0.24, ext: 0.05, lift: 0.10, kick: 0.13, kb: 0.10, wbob: 0, dip: 0.018, air: 0.03, lean: 0.09, tl: 0.23, duty: 0.56 },  // 적이 가까울 때 달려들기 (근접)
+    flee:   { sl: 0.36, A: 0.11, cap: 0.24, ext: 0.05, lift: 0.11, kick: 0.14, kb: 0.10, wbob: 0, dip: 0.02, air: 0.034, lean: 0.10, tl: 0.25, duty: 0.54 },  // 도주: 가장 크게
     trudge: { sl: 0.27, A: 0.08, cap: 0.15, ext: 0, lift: 0.05, kick: 0, kb: 0, wbob: 0.035, dip: 0, air: 0, lean: 0.04, tl: 0.09, duty: 1 },                 // 거미줄에 걸려 무겁게 걷기
     back:   { sl: 0.25, A: 0.07, cap: 0.15, ext: 0, lift: 0.05, kick: 0, kb: 0, wbob: 0.015, dip: 0, air: 0, lean: -0.03, tl: 0, duty: 1 },                  // 적을 보며 뒷걸음
     step:   { sl: 0.25, A: 0.07, cap: 0.15, ext: 0, lift: 0.05, kick: 0, kb: 0, wbob: 0.02, dip: 0, air: 0, lean: 0.02, tl: 0, duty: 1 },                    // 천천히 자리 옮기기 (달릴 빠르기가 안 될 때)
