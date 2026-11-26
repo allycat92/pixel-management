@@ -127,7 +127,7 @@ python3 tools/art/add_gait.py sheet/class/warrior --gait run --remove           
   - 뼈대(마네킹): 경로에 `guides/` 폴더가 있는 파일 (`art/requests/guides/…`, PC 가 넘기는 `art/inbox/guides/<id>/`), 옆에 `pose_measured.json` 이 있는 띠
     (`check_skeleton.py --export`), `joints` 레이어가 있는 `.aseprite` (그 레이어가 보이면 `--allow-draft` 로도 받지 않는다 — 관절 점이 찍힌다).
   - 초안과 같은 실루엣: 어느 프레임이든 클라우드 뼈대 초안(`art/requests/guides/*/v*/` 의 띠, 또는 `layers/` 를 프레임마다 합친 것; joints 제외)과
-    실루엣이 IoU 0.9 넘게 겹치면 거부한다 — joints 레이어를 지운 마네킹, 이름을 바꿔 옮긴 마네킹 띠. 그린 캐릭터는 옷·머리·무기로 실루엣이 달라진다
+    실루엣이 IoU 0.85 넘게 겹치면 거부한다(회전 ±11°·2×2 배치·좌우 뒤집기·크기 ±10%·외곽선까지 맞춰 본다; 실제 그림 58장의 최고 0.72) — joints 레이어를 지운 마네킹, 이름을 바꿔 옮긴 마네킹 띠. 그린 캐릭터는 옷·머리·무기로 실루엣이 달라진다
     (시험: 마네킹 실루엣을 원본 3px 키우면 0.91 로 거부, 6px 키우면 0.83 으로 통과).
 - 실패로 끝나는 그림:
   - 384px 프레임 칸의 테두리(x=0 / 383, y=0 / 1023)에 닿는 프레임 — 띠를 384px 씩 자르면 그림이 잘리거나 옆 자세의 조각이 들어온다 (프레임 번호를 알린다).

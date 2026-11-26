@@ -71,8 +71,7 @@
    레이어 이름·순서·384x1024·8프레임·101ms 는 그대로. 엉덩이 중심(두 엉덩이 점의 가운데)은 모든 프레임에서 x=192 (±1). 아래 「검사 기준」의 실패 항목을 지킨다.
 4. 자체 검사 (이 저장소 폴더에서):
    `python3 tools/art/check_skeleton.py ../pixel-management-inbox/art/inbox/guides/heavy_base/heavy_base.aseprite --gait heavy --pose art/requests/guides/heavy_base/draft/pose.json`
-   (`heavy` 모드는 도구 담당이 아래 「검사 기준」으로 넣는다. 아직 없으면 `--gait walk` 로 공통 항목만 본다 — 그때 초안 그대로의 `WARN` 11줄
-   (프레임 시간 101 ≠ 120 · bob 7 · 엉덩이 순서 · 지나감 무릎 50° · 들린 발 11/13px · 들린 무릎 31/21px · W6 손)은 중량에서 의도한 것이니 무시한다.)
+   (`heavy` 모드가 들어가 있다 — 초안 그대로면 RESULT: PASS 경고 0. `--gait walk` 로 대신 검사하지 않는다.)
 5. 납품: art-inbox `art/inbox/guides/heavy_base/heavy_base.aseprite` **하나**(띠·GIF 는 클라우드가 뽑는다). `art/inbox/` 밖은 건드리지 않는다.
    NOTES 절 「뼈대 — 중량 이동 (Aseprite)」: 바꾼 프레임과 수치(px), 검사 줄, 101ms 로 재생해 본 느낌. 커밋 `Touch up guide heavy_base (Aseprite)`.
    손댈 곳이 없으면 그렇게 적고 초안을 그대로 올려도 된다.
@@ -107,11 +106,11 @@ WARN  프레임 시간        pose.json nominal_ms 101
 WARN  실루엣 차이        이웃 프레임(게임 크기) 8% 이상                              (초안 20~35)
 ```
 - 띠 검사: `check_delivery.py` 를 `--flight-slots` **없이**(모든 칸의 맨 아래 픽셀이 y=870 — 뜬 프레임이 없다). `receive.py` 는 `pose.json` 의 gait 가 `run` 이 아니면 이미 그렇게 한다.
-- `receive.py guides/heavy_base` 는 `draft/` 의 `pose.json` 을 `--pose` 로 넘긴다 — `heavy` 모드가 생기기 전에는 `unknown gait` 로 FAIL 한다(예상된 것).
+- `receive.py guides/heavy_base` 는 `draft/` 의 `pose.json` 을 `--pose` 로 넘겨 `heavy` 모드로 검사한다.
 
 ## 엔진·등록
 - 중량 캐릭터의 이동 프레임은 **`anims.run`** 으로 붙인다(전투 이동 = 달리기 칸; 세 부류 모두 같은 자리). `add_gait.py <시트> --gait run --src … --pose art/requests/guides/heavy_base/draft/pose.json`
-  → `runStride` 23.5 (add_gait 가 "heavy 세트인데 run 로 붙인다" 주의를 한 줄 찍는다 — 의도된 것). 엔진은 이 칸을 디딘 채로(칸마다 ds/4) 넘긴다 — 위 「시간」.
+  → `runStride` 23.5, 시트에 `gait: heavy` 를 적는다. 엔진은 이 칸을 디딘 채로(칸마다 ds/4) 넘긴다 — 위 「시간」.
 - 어느 캐릭터가 중량인지는 이 README 가 정하지 않는다 — **부류 표는 `tools/art/specs/gait_classes.json`**(엔진 표 `js/gait_classes.js` 는 `python3 tools/art/gait_requests.py --js` 로 만든다).
   그 표의 `classes.heavy` 가 이 세트와 같은 수치(기울기 5°, 보폭 23.5, 101ms)를 적는다.
 - 참고: SPEC 7절의 직업별 무기 드는 방식은 이 뼈대 위에 얹는다(방패 아랫단은 바닥에서 100px 이상 — 두 정강이·장화가 보여야 한다).

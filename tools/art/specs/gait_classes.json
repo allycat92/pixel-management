@@ -19,7 +19,7 @@
       "hip": "nearly level, slight float",
       "knee_lift": "normal running knee drive",
       "arms": "pump opposite to the legs (weapon hand carries the weapon)",
-      "stride_note": "drawn stride 45.5 game px vs ~20 px per code step at 1x -> the planted foot slides ~6-8 px per contact cell (being fixed by another workflow; do not change cadence here)",
+      "stride_note": "drawn stride 45.5 game px vs ~20 px per code step at 1x -> the planted foot slides ~6-8 px per contact cell (fixed 2026-11-26 by cadence B in js/battle.js runCells: stance cells consume ds/4 each, so the foot stays planted at 1x/2x; unit speed unchanged - owner chose B only)",
       "who": "leather, cloth to the knee, chain shirt with tabard/gambeson, cloaks or long OPEN coats over trousers where the legs read"
     },
     "heavy": {

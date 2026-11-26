@@ -1176,7 +1176,8 @@ const Battle = (() => {
   const RUN_FLY_MIN = 1 / 8;
   function runCells(u, r, dd, ds, slf) {
     if (r.rq == null) r.rq = (r.rp == null ? r.phase : r.rp) * 4;
-    const C = gaitClassFor(u, r, useArt() && Art.sheetFor(u)), c = ds / 4;
+    // 뜸이 없는 부류(중량·로브): 모든 칸이 ds/4 — 다만 4배속은 걸음 수를 2배속 수준까지만(slf = 보폭×fast 가 더 크면 그만큼 칸을 넓힌다, 그때만 약간 미끄러짐).
+    const C = gaitClassFor(u, r, useArt() && Art.sheetFor(u)), c = C.hop ? ds / 4 : Math.max(ds, slf) / 4;
     const f = C.hop ? (Math.max(slf, ds / 2 + 2 * ds * RUN_FLY_MIN) - ds / 2) / 2 : c;
     if (dd < 0) r.rq += dd / (2 * c + 2 * f) * 4;
     else {
@@ -1244,13 +1245,13 @@ const Battle = (() => {
   //   k·min·max 높이(키 비율, px 한계) · lo 가장 낮은 때 · hi 가장 높은 때(걸음 단위, 0 = 앞발이 닿는 순간) · drop 1 = 높은 데서 가속해 떨어지다 툭 멈춘다(무게가 실림)
   //   sl 몸 높이의 한 걸음 거리(키 비율, 0 = 코드 걸음 r.wp 그대로; 달리는 걸음은 코드 걸음처럼 runSf 만큼 줄인다)
   //   hop 뜨는 때가 있는가 (시트 없는 코드 도트가 뜨는 칸에 솟는다 · 그려진 달리기 칸의 뜸 칸이 거리를 맡는다 — runCells) · dust 디딜 때 먼지 톨
-  // heavy: 마네킹 엉덩이 184/174/182/188(닿음·내려앉음·지남·밀기) → 디딜 때마다 내려앉는다. 경량 달리기의 느낌을 넘지 않게(검증 지적): 닿는 순간의 높이가 가장 높고
+  // heavy: 마네킹(heavy_base 초안 v2) 엉덩이 180/173/178/179.5(닿음·내려앉음·지남·밀기) → 디딜 때마다 내려앉는다. 경량 달리기의 느낌을 넘지 않게(검증 지적): 닿는 순간의 높이가 가장 높고
   //        (그 위로 솟지 않는다) 디딘 뒤 1px 만 툭 내려앉았다(0.22, 가속해 떨어지다 멈춤) 천천히 닿는 높이로 돌아온다 — 키와 상관없이 0..1px.
-  //        한 바퀴 880ms(달리기 640ms) → 걸음이 약 1.35배 길다.
-  // robe:  마네킹 엉덩이 182/180/188/188, 출렁임 작다 → 0..1px 부드럽게. 한 바퀴 720ms → 걸음 약 1.1배.
+  //        보폭 23.5 게임px(키 66 의 0.356), 칸 101ms.
+  // robe:  마네킹(robe_base 초안 v2) 엉덩이 182/180.5/185/185.5, 출렁임 작다 → 0..1px 부드럽게. 보폭 22.2 게임px(0.34), 칸 96ms.
   const GAIT_CLASS = {
     light: { k: 0.02, min: 1, max: 2, lo: 0.12, hi: 0.55, drop: 0, sl: 0, hop: 1, dust: 1 },
-    heavy: { k: 0.02, min: 1, max: 1, lo: 0.22, hi: 1, drop: 1, sl: 0.42, hop: 0, dust: 2 },
+    heavy: { k: 0.02, min: 1, max: 1, lo: 0.22, hi: 1, drop: 1, sl: 0.356, hop: 0, dust: 2 },
     robe:  { k: 0.015, min: 0, max: 1, lo: 0.25, hi: 0.7, drop: 0, sl: 0.34, hop: 0, dust: 1 },
   };
   // 유닛의 이동 부류 (시트가 있으면 그 시트의 것 — 상위 직업이 기본 직업 시트를 빌려 쓰면 그 시트의 부류). 표에 없으면 경량.

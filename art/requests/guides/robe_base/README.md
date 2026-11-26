@@ -75,8 +75,7 @@
    레이어 이름·순서(`cloth_front` 는 torso 와 head 사이)·384x1024·8프레임·96ms 는 그대로. 엉덩이 중심은 모든 프레임에서 x=192 (±1). 아래 「검사 기준」의 실패 항목을 지킨다.
 4. 자체 검사 (이 저장소 폴더에서):
    `python3 tools/art/check_skeleton.py ../pixel-management-inbox/art/inbox/guides/robe_base/robe_base.aseprite --gait robe --pose art/requests/guides/robe_base/draft/pose.json`
-   (`robe` 모드는 도구 담당이 아래 「검사 기준」으로 넣는다. 아직 없으면 `--gait walk` 로 공통 항목만 본다 — 그때 초안 그대로의 `FAIL: W1/W5: step 130.0 px, must be 135-151` 과
-   `WARN` 9줄(프레임 시간 96 ≠ 120 · bob 5 · 지나감 무릎 40° · 들린 발 8/10px · 들린 무릎 24/13px · W6 손)은 로브에서 의도한 것이니 무시한다. 자락은 아직 눈으로 본다.)
+   (`robe` 모드가 들어가 있다 — 초안 그대로면 RESULT: PASS 경고 0. `--gait walk` 로 대신 검사하지 않는다.)
 5. 납품: art-inbox `art/inbox/guides/robe_base/robe_base.aseprite` **하나**. `art/inbox/` 밖은 건드리지 않는다.
    NOTES 절 「뼈대 — 로브 이동 (Aseprite)」: 바꾼 프레임과 수치(px), 자락을 어떻게 다듬었는지, 검사 줄, 96ms 로 재생해 본 느낌. 커밋 `Touch up guide robe_base (Aseprite)`.
 
@@ -113,10 +112,10 @@ WARN  프레임 시간        pose.json nominal_ms 96
 WARN  실루엣 차이        이웃 프레임(게임 크기) 8% 이상                              (초안 12~17)
 ```
 - 띠 검사: `check_delivery.py` 를 `--flight-slots` **없이**(모든 칸의 맨 아래 픽셀이 y=870). `receive.py` 는 `pose.json` 의 gait 가 `run` 이 아니면 이미 그렇게 한다.
-- `receive.py guides/robe_base` 는 `draft/` 의 `pose.json` 을 `--pose` 로 넘긴다 — `robe` 모드가 생기기 전에는 `unknown gait` 로 FAIL 한다(예상된 것).
+- `receive.py guides/robe_base` 는 `draft/` 의 `pose.json` 을 `--pose` 로 넘겨 `robe` 모드로 검사한다.
 
 ## 엔진·등록
 - 로브 캐릭터의 이동 프레임은 **`anims.run`** 으로 붙인다(전투 이동 = 달리기 칸). `add_gait.py <시트> --gait run --src … --pose art/requests/guides/robe_base/draft/pose.json`
-  → `runStride` 22.2 (add_gait 가 "robe 세트인데 run 로 붙인다" 주의를 한 줄 찍는다 — 의도된 것). 엔진은 이 칸을 디딘 채로(칸마다 ds/4) 넘긴다 — 위 「시간」.
+  → `runStride` 22.2 · 시트에 `gait: robe` 를 적는다. 엔진은 이 칸을 디딘 채로(칸마다 ds/4) 넘긴다 — 위 「시간」.
 - 어느 캐릭터가 로브인지는 이 README 가 정하지 않는다 — **부류 표는 `tools/art/specs/gait_classes.json`**(엔진 표 `js/gait_classes.js` 는 `python3 tools/art/gait_requests.py --js` 로 만든다).
   그 표의 `classes.robe` 가 이 세트와 같은 수치(기울기 7°, 보폭 22.2, 96ms)를 적는다. 짧은 튜닉·망토만 걸친 캐릭터는 경량이다(망토는 SPEC 7절대로 `cloth_back` 에서 한 프레임 늦게).
