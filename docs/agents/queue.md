@@ -7,6 +7,7 @@
 
 | 누구 | id | 상태 | 할 일 (자세한 것은 그 줄의 문서) |
 |---|---|---|---|
+| Codex | `C5-art-battle-integration-qa` | READY | 납품 시트 6종을 격리 빌드에 먼저 반영하고 실제 전투 UI에서 확인: `docs/agents/tasks/C5-art-battle-integration-qa.md` |
 | Codex | `C4-shadow-baseline` | READY | 전투 수치 전환 전 기준선 측정(엔진 수정 없음): `docs/agents/tasks/C4-shadow-baseline.md` |
 
 ## 끝난 일
