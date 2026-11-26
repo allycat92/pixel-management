@@ -305,18 +305,44 @@ const UI = (() => {
   }
 
   // ───────── 보고서 ─────────
+  // 보고서·대화·선택지는 플레이어가 끝까지 확인할 때까지 저장의 s.reportSlot 에 남는다 (새로고침하면 그 자리로 돌아온다).
+  // s.reportSlot = { item: 보고서, stage: 'battle'|'report' (의뢰), line: 대화 줄, atChoice, chosen: 고른 선택지, notes }
+  // 대기열 -> 칸 이동과 칸 비우기는 각각 한 번의 저장이라 같은 보고서가 두 번 나오거나 사라지지 않는다.
   function showReports() {
     const s = Game.state;
-    if (modalOpen || !s.pendingReports.length) return;
-    const r = s.pendingReports.shift();
+    if (modalOpen) return;
+    if (!s.reportSlot) {
+      // 옛 저장(첫 대장을 고르다 새로고침해 선택 화면이 사라진 경우) 복구
+      if (Game.needsStarter() && !s.pendingReports.some((x) => x.special === 'starter')) s.pendingReports.unshift({ special: 'starter' });
+      if (!s.pendingReports.length) return;
+      const item = s.pendingReports.shift();
+      s.reportSlot = { item };
+      if (!item.special) s.reportSlot.stage = s.settings.battle ? 'battle' : 'report';
+      Game.save();
+    }
+    presentSlot(s.reportSlot);
+  }
+  // 칸의 보고서를 다 봤다: 비우고 저장한 뒤 다음 보고서로
+  function finishSlot() {
+    Game.state.reportSlot = null;
     Game.save();
+    closeModal();
+  }
+  function presentSlot(slot) {
+    const r = slot.item;
+    if (!r) return finishSlot();
     if (r.special === 'starter') return openStarterChoice();
-    if (r.special === 'dialog' || r.special === 'notice') return openDialog(r);
+    if (r.special === 'dialog' || r.special === 'notice') return openDialog(r, slot);
     if (r.special) return openModal(specialReport(r), true);
-    if (s.settings.battle) {
+    if (slot.stage === 'battle') {
       // 전투 연출 중에는 상단 막대·소식줄이 이 보고서 이전 값을 보여 준다 (결과를 미리 알리지 않도록)
-      playing = r;
-      openModal(Battle.play(r, () => { playing = null; openModal(missionReport(r), true); renderTop(); }), true);
+      openModal(Battle.play(r, () => {
+        if (Game.state.reportSlot !== slot) return;
+        slot.stage = 'report';
+        Game.save();
+        openModal(missionReport(r), true);
+        renderTop();
+      }), true);
       renderTop();
     } else openModal(missionReport(r), true);
   }
@@ -324,7 +350,6 @@ const UI = (() => {
   // ───────── 결과 미리 보기 방지 ─────────
   // 판정 직후 금화·명성·일지가 이미 바뀌어 있으므로, 아직 공개하지 않은 의뢰 보고서(연출 중 + 대기 중)의
   // 몫을 빼서 보여 준다. 게임 상태와 저장은 건드리지 않는다.
-  let playing = null; // 전투 연출 중인 보고서
   // 보고서 -> { before } : 판정 직전 가장 최근 일지 항목 (소식줄은 이것보다 새 줄을 보여 주지 않는다)
   const reportDeltas = new WeakMap();
   function hookResolve() {
@@ -333,9 +358,17 @@ const UI = (() => {
     const wrapped = function (mission) {
       const s = this.state;
       const gold = s.gold, rep = s.rep, before = s.log[0] || null;
+      const queued = new Set(s.pendingReports);
       const out = orig.apply(this, arguments);
       const report = s.pendingReports.find((x) => !x.special && x.quest === mission.contract && !reportDeltas.has(x));
       if (report) {
+        // 판정 중 보고서보다 먼저 쌓인 소식(구원자·세력 멸망·징조 등)은 그 보고서 바로 뒤로: 전투보다 결과가 먼저 보이지 않게
+        const q = s.pendingReports;
+        const early = q.slice(0, q.indexOf(report)).filter((x) => !queued.has(x));
+        if (early.length) {
+          early.forEach((x) => q.splice(q.indexOf(x), 1)); // 같은 배열을 고친다 (다른 곳이 참조를 들고 있을 수 있음)
+          q.splice(q.indexOf(report) + 1, 0, ...early);
+        }
         reportDeltas.set(report, { before });
         // 실제로 바뀐 금화·명성 (명성 0 하한, 이야기 보상 포함). 표시 전용이라 게임 규칙은 읽지 않는다.
         // pendingReports 와 함께 저장되므로 새로 불러와도 정확하다.
@@ -356,6 +389,8 @@ const UI = (() => {
     const s = Game.state;
     const out = { gold: s.gold, rep: s.rep, ticker: s.log[0] || null };
     if (!s.settings.battle) return out;
+    const slot = s.reportSlot;
+    const playing = slot && slot.stage === 'battle' ? slot.item : null; // 전투 연출 중인 보고서
     const unseen = [playing, ...s.pendingReports].filter((r) => r && !r.special && r.quest);
     if (!unseen.length) return out;
     unseen.forEach((r) => {
@@ -416,13 +451,13 @@ const UI = (() => {
       r.share ? el('div', { class: 'small muted', text: `외부 용병단 몫 ${r.share} 금화 지급` }) : null,
       effects.length ? el('div', { class: 'chips' }, effects) : null,
       r.notes.length ? el('div', { class: 'small notes' }, r.notes.map((n) => el('div', { text: `• ${n}` }))) : null,
-      el('div', { class: 'modal-actions' }, el('button', { class: 'btn primary', text: '확인', onclick: closeModal })));
+      el('div', { class: 'modal-actions' }, el('button', { class: 'btn primary', text: '확인', onclick: finishSlot })));
   }
 
   // 대화 (한 줄씩 타자기 효과), 마지막에 선택지가 있으면 고르게 한다
   // 첫 용병대장 선택: 셋 중 하나, 나머지 둘은 영영 떠난다
   function openStarterChoice() {
-    if (!Game.needsStarter()) return closeModal();
+    if (!Game.needsStarter()) return finishSlot();
     const cards = STARTER_CAPTAINS.map((k) => {
       const C = CAPTAINS[k], CC = CAPTAIN_CLASSES[k];
       return el('div', { class: 'promo-card starter-card' },
@@ -434,7 +469,7 @@ const UI = (() => {
         skillList({ actives: CC.acts.map((b) => ({ name: b.name, battle: describeBattle(b) })), passive: { name: CC.lead.name, desc: `지휘: ${CC.lead.desc}`, lead: true } }, { compact: true }),
         el('div', { class: 'small muted', text: `힘 ${CC.base.str} · 민첩 ${CC.base.dex} · 지력 ${CC.base.int} · 체력 ${CC.base.hp}` }),
         el('div', { class: 'small pitch', text: `“${C.pitch[0][1]}”` }),
-        el('button', { class: 'btn primary', onclick: () => { Game.chooseStarter(k); closeModal(); showReports(); } }, `${C.name}와(과) 시작한다`));
+        el('button', { class: 'btn primary', onclick: () => { Game.state.reportSlot = null; Game.chooseStarter(k); finishSlot(); } }, `${C.name}와(과) 시작한다`));
     });
     openModal(el('div', {},
       eventArt('start'),
@@ -443,15 +478,21 @@ const UI = (() => {
       el('div', { class: 'starter-choices' }, cards)), true);
   }
 
-  function openDialog(r) {
+  // slot: 저장되는 진행 칸 (지금 줄, 선택지 화면인지, 고른 선택지). 새로고침하면 그 자리에서 다시 연다.
+  function openDialog(r, slot = {}) {
     const h = r.hero && HEROES[r.hero];
     const calKey = r.enemy && Object.keys(FACTIONS).find((f) => FACTIONS[f].calamity && FACTIONS[f].leader === r.enemy);
     const portraitImg = h
       ? artPortrait(Art.idOf.hero(r.hero), { cls: HERO_CLASSES[h.hcls].style, hcls: h.hcls, ...h.look }, 'big-portrait', 5)
       : r.captain ? artPortrait(Art.idOf.captain(r.captain), { cls: CAPTAIN_CLASSES[r.captain].style, cap: r.captain, ...CAPTAINS[r.captain].look }, 'big-portrait', 5)
       : (calKey && Art.img(Art.idOf.boss(calKey), 'big-portrait art-portrait')) || Sprites.clone(Sprites.monster(r.enemy, 5, 0), 'big-portrait');
-    let lines = r.lines.slice();
+    let lines = r.lines.slice(), foot = r.foot;
     let line = 0, timer = null, typing = false, choiceDone = !r.choice;
+    // 이미 고른 선택지 (효과는 고를 때 한 번만 적용·저장됨): 그 결과 대사부터
+    const chosenOpt = r.choice && slot.chosen != null && HEROES[r.choice.hero].chapters[r.choice.ch].choice.options[slot.chosen];
+    if (chosenOpt) { lines = chosenOpt.after.slice(); foot = (slot.notes || []).join(' · '); choiceDone = true; }
+    line = Math.max(0, Math.min(lines.length - 1, slot.line | 0));
+    const keep = (patch) => { Object.assign(slot, patch); if (Game.state.reportSlot === slot) Game.save(); };
     const speaker = el('div', { class: 'dialog-speaker' });
     const text = el('div', { class: 'dialog-text' });
     const next = el('button', { class: 'btn primary' });
@@ -473,17 +514,22 @@ const UI = (() => {
       }, 26);
       const last = line === lines.length - 1;
       next.textContent = last ? (choiceDone ? '확인' : '선택하기') : '다음 ▶';
-      footer.textContent = last && r.foot ? r.foot : '';
+      footer.textContent = last && foot ? foot : '';
     }
     function showChoice() {
       const ch = HEROES[r.choice.hero].chapters[r.choice.ch].choice;
       next.style.display = 'none';
+      keep({ atChoice: true });
       choiceBox.replaceChildren(el('div', { class: 'choice-prompt', text: ch.prompt }),
         ...ch.options.map((o, i) => el('button', { class: 'btn choice', onclick: () => {
+          if (choiceDone || slot.chosen != null) return;
+          // 고른 기록을 먼저 칸에 적어 두면 applyChoice 의 저장 한 번에 효과와 기록이 함께 남는다 (새로고침해도 한 번만 적용)
+          slot.chosen = i; slot.line = 0; slot.atChoice = false;
           const res = Game.applyChoice(r.choice.hero, r.choice.ch, i);
+          keep({ notes: res.notes });
           choiceDone = true;
           choiceBox.replaceChildren();
-          lines = res.lines; line = 0; r.foot = res.notes.join(' · ');
+          lines = res.lines; line = 0; foot = res.notes.join(' · ');
           next.style.display = '';
           show();
           next.focus();
@@ -493,9 +539,9 @@ const UI = (() => {
     }
     const advance = () => {
       if (typing) { clearInterval(timer); typing = false; text.textContent = lines[line][1]; return; }
-      if (line < lines.length - 1) { line++; show(); return; }
+      if (line < lines.length - 1) { line++; keep({ line }); show(); return; }
       if (!choiceDone) { showChoice(); return; }
-      clearInterval(timer); closeModal();
+      clearInterval(timer); finishSlot();
     };
     next.addEventListener('click', advance);
     openModal(el('div', { class: 'dialog' },
@@ -507,6 +553,8 @@ const UI = (() => {
       footer, choiceBox,
       el('div', { class: 'modal-actions' }, next)), true);
     show();
+    // 선택지 화면에서 새로고침했다: 마지막 줄을 다 보여 주고 바로 선택지로
+    if (!choiceDone && slot.atChoice) { clearInterval(timer); typing = false; text.textContent = lines[line][1]; showChoice(); }
   }
 
   // 특별 보고서도 제목에 먼저 초점 (Enter 연타로 바로 닫히지 않게)
@@ -518,15 +566,17 @@ const UI = (() => {
   }
   function specialReportBody(r) {
     const s = Game.state;
-    const restart = el('button', { class: `btn ${s.over ? 'primary' : 'danger'}`, text: '새 게임', onclick: () => { closeModal(); Game.clearSave(); Game.newGame(); Game.emit(); } });
-    const cont = el('button', { class: 'btn primary', text: '계속하기', onclick: closeModal });
+    // 게임이 끝나지 않았으면 새 게임은 확인을 거친다 (취소하면 이 보고서가 다시 열린다: 아직 칸에 남아 있으므로)
+    const restart = el('button', { class: `btn ${s.over ? 'primary' : 'danger'}`, text: '새 게임',
+      onclick: () => (s.over ? startNewGame() : confirmBox('정말 처음부터 다시 시작할까요? 저장된 진행이 지워집니다.', newGameNow)) });
+    const cont = el('button', { class: 'btn primary', text: '계속하기', onclick: finishSlot });
     if (r.special === 'news') {
       return el('div', { class: 'report news' },
         el('div', { class: 'report-banner news-banner', text: r.title }),
         r.title.endsWith('멸망') ? eventArt('destroyed') : null,
         el('div', { class: 'news-flags' }, r.factions.map((f) => factionFlag(f, 4))),
         el('p', { text: r.text }),
-        el('div', { class: 'modal-actions' }, el('button', { class: 'btn primary', text: '확인', onclick: closeModal })));
+        el('div', { class: 'modal-actions' }, el('button', { class: 'btn primary', text: '확인', onclick: finishSlot })));
     }
     if (r.special === 'win') {
       return el('div', { class: 'report' },
@@ -535,7 +585,7 @@ const UI = (() => {
         el('p', { text: `${s.day}일 만에 ${s.guildName}이(가) 대륙 최고의 길드가 되었습니다!` }),
         el('p', { class: 'muted', text: `완수 ${s.stats.completed} · 실패 ${s.stats.failed} · 전사 ${s.stats.fallen}` }),
         el('p', { class: 'muted small', text: '계속 플레이하며 남은 이야기와 세력의 운명을 지켜볼 수 있습니다.' }),
-        el('div', { class: 'modal-actions' }, restart, cont));
+        el('div', { class: 'modal-actions' }, cont, restart));
     }
     if (r.special === 'savior') {
       const F = FACTIONS[r.calamity];
@@ -545,7 +595,7 @@ const UI = (() => {
         el('p', { text: `${s.day}일째, ${s.guildName}의 용병단들이 ${F.leaderTitle} ${F.leader}을(를) 쓰러뜨렸습니다.` }),
         el('p', { text: `${F.name}은(는) 흩어지고, 살아남은 세력들은 폐허 위에서 다시 일어서기 시작합니다. 사람들은 이 시대를 은빛 늑대의 이름으로 기억할 것입니다.` }),
         el('p', { class: 'muted small', text: `살아남은 세력: ${Game.aliveFactions().map((f) => FACTIONS[f].name).join(', ') || '없음'} · 이후 한동안 전후 복구 의뢰의 보수가 높아집니다.` }),
-        el('div', { class: 'modal-actions' }, restart, cont));
+        el('div', { class: 'modal-actions' }, cont, restart));
     }
     if (r.special === 'darkness') {
       const F = FACTIONS[s.calamity] || FACTIONS.demons;
@@ -562,7 +612,7 @@ const UI = (() => {
         el('div', { class: 'report-members' }, Object.values(BOSSES).map((b) => Sprites.clone(Sprites.monster(b.enemy, 2, 0), 'mini'))),
         el('p', { text: `${s.day}일째, ${s.guildName}은(는) 대륙의 모든 재앙을 물리쳤습니다.` }),
         el('p', { text: '음유시인들은 앞으로 수백 년 동안 은빛 늑대의 이야기를 노래할 것입니다.' }),
-        el('div', { class: 'modal-actions' }, restart, cont));
+        el('div', { class: 'modal-actions' }, cont, restart));
     }
     const msg = r.special === 'bankrupt' ? '빚더미에 올라앉은 길드는 결국 문을 닫았습니다...' : '모든 단원과 계약을 잃고 재기할 자금도 없습니다...';
     return el('div', { class: 'report' },
@@ -697,7 +747,6 @@ const UI = (() => {
   }
   function closeModal() {
     Battle.stop();
-    playing = null;
     const d = hideModal();
     render();
     if (!modalOpen) restoreFocus(d);
@@ -709,6 +758,19 @@ const UI = (() => {
       el('div', { class: 'modal-actions' },
         el('button', { class: 'btn', text: '취소', onclick: closeModal }),
         el('button', { class: 'btn danger', text: '확인', onclick: () => { const d = hideModal(); onYes(); render(); if (!modalOpen) restoreFocus(d); } }))));
+  }
+
+  // 새 게임: 옛 게임의 대기 보고서가 새 게임에서 열리지 않도록 상태를 먼저 바꾸고 나서 그린다
+  function newGameNow() {
+    Battle.stop();
+    Game.clearSave();
+    Game.newGame();
+    Game.emit();
+  }
+  function startNewGame() {
+    const d = hideModal();
+    newGameNow();
+    if (!modalOpen) restoreFocus(d);
   }
 
   // 창이 열려 있으면 Tab/Shift+Tab 이 창 안에서만 돈다
@@ -776,7 +838,7 @@ const UI = (() => {
           el('li', { text: '평판이 높은 세력은 혜택을 주고, 적대 세력은 의뢰를 끊고 보복합니다.' }),
           el('li', { text: '7일마다 주급과 계약 유지비를 냅니다. 빚이 -300을 넘으면 파산합니다. 스페이스바로 다음 날로 넘어갑니다.' }))),
       el('div', { class: 'modal-actions' },
-        el('button', { class: 'btn danger', text: '새 게임', onclick: () => confirmBox('정말 처음부터 다시 시작할까요? 저장된 진행이 지워집니다.', () => { Game.clearSave(); Game.newGame(); Game.emit(); }) }),
+        el('button', { class: 'btn danger', text: '새 게임', onclick: () => confirmBox('정말 처음부터 다시 시작할까요? 저장된 진행이 지워집니다.', newGameNow) }),
         el('button', { class: 'btn primary', text: '닫기', onclick: closeModal }))));
   }
 
