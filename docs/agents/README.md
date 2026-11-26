@@ -58,3 +58,15 @@
 - 폴더는 사용자 홈 아래에 둔다(예: `$HOME\work\pm-codex`, `$HOME\work\pm-antigravity`). `C:\Windows\System32` 아래는 일반 계정에 쓰기 권한이 없어 `git fetch` 가 실패한다.
 - PC Aseprite 세션의 `pixel-management-inbox` 폴더(art-inbox)와도 따로 쓴다.
 - 만드는 법: `git clone -b claude/dot-fantasy-management-game-saupju https://github.com/allycat92/pixel-management.git <폴더>` 를 실행하고, 에이전트를 그 폴더에서 연다.
+
+## 역할 나누기 (주인 결정 2026-11-26 — 클라우드 Claude = 총괄 기획)
+| 누구 | 맡는 일 |
+|---|---|
+| **클라우드 Claude (총괄 기획)** | 주인과 직접 소통하며 방향을 정리하고 지시한다. 각 에이전트의 보고·피드백을 모아 `docs/agents/STATUS.md` 에 정리한다. 큰 틀의 결정(주인 결정이 필요한 것은 모아서 묻는다)과 **핵심 코딩**(전투 엔진·전술·게임 규칙)을 한다. 밸런싱은 CLI 에게 시험을 시키고 뽑힌 데이터로 판단한다. |
+| **Antigravity** | 도트 애니메이션 헤드(판정·지시 내용·최종 그림 가능) + 플레이테스트·화면 QA |
+| **Codex** | 자잘한 오류 수정, 도구 손질, 시험·측정 돌리기(밸런스 데이터 뽑기 포함) |
+| **GPT (그림)** | 캐릭터 그림(시트·동작 프레임), 교차 검수 |
+| **PC Aseprite 세션** | 마네킹 시퀀스, 받은 그림 손질 |
+
+- 클라우드는 에셋 제작·QA·자잘한 수정을 직접 하지 않고 일감으로 내린다(`docs/agents/queue.md`, `art/requests/dot_queue.md`).
+- 에이전트의 보고는 모두 저장소로 온다. 클라우드가 받아 검토하고, 주인에게는 취합한 결과와 결정할 것만 올린다.
