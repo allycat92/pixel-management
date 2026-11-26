@@ -25,7 +25,8 @@ Claude Code 가 받아서 확인한 결과는 `art/requests/feedback.md`에 남�
 | Antigravity | 손질 | `sheet/hero/kai` | 카이의 타격 자세에서 시위 당긴 손이 뒤로 빠지는 폭이 작아 준비·타격이 덜 구분된다 → 타격 자세의 시위 손을 원본 약 25px 더 뒤로(나머지는 그대로). 바탕 `art/inbox/sheet_hero_kai.png`. 납품·검사는 위와 같다 |
 | Antigravity | 손질 | `sheet/monster/skeleton` | 해골 병사의 찌르기 자세가 칸 오른쪽 끝에 닿아 2px 밀려 들어간다 → 자세를 약간 좁혀 칸 안에 들어오게(창끝이 잘리지 않게). 바탕 `art/inbox/sheet_monster_skeleton.png` + `aseprite/sheet_monster_skeleton.aseprite` |
 | Antigravity | 손질 | `sheet/monster/desert-bandit` | 사막 도적: 타격 칼끝과 피격 자세 사이가 32px 안이라 검사 FAIL(원래부터) → 피격 자세만 오른쪽으로 원본 12px. 바탕 `art/inbox/sheet_monster_desert-bandit.png` + `aseprite/...aseprite`. `check_delivery.py` 가 PASS 해야 한다 |
-| Antigravity | 예고 | `sheet/monster/goblin` · `sheet/monster/frost-troll` | 플레이테스트(A1): 코드로 그린 저해상도 고블린·서리 트롤이 시트 유닛 옆에서 화풍이 크게 어긋난다 → 전투 시트로 새로 그린다. 요청서는 클라우드가 만드는 중 — **요청서가 붙기 전에는 그리지 않는다** |
+| Antigravity | DOT_READY | `sheet/monster/goblin` | 고블린 전투 시트 신규 4자세. [요청서](phase3/monster_goblin/README.md). |
+| Antigravity | DOT_READY | `sheet/monster/frost-troll` | 서리 트롤 전투 시트 신규 4자세. [요청서](phase3/monster_frost-troll/README.md). |
 | Antigravity | 보류 | `sheet/captain/liberator` | 카토 — **취소**: 주인 결정(11-26) 사슬과 주먹으로 다시 그린다(장검은 등에). 장검 손질은 하지 않는다 |
 
 ## 주인에게 물을 것 (모아서 — 답이 없으면 「기본」대로 진행한다)
