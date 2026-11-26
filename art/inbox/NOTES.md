@@ -997,3 +997,43 @@ CHANGED: 요청 메모는 4번(피격)을 오른쪽으로 미는 안을 적었�
 결과: 통과
 본 방법: `check_delivery.py` 0오류·0경고 PASS 및 `sheets.py --dry-run` `preview_x4.png` 4자세 정상 분리·변환 확인
 남은 걱정: 3번 자세 자체 폭(452px)은 원래 그대로라 `sheets.py` 변환 시 기존과 동일한 `+3px` 칸 맞춤 안내가 남음(이번 요청은 3·4번 분리 목적이라 자세 변형 없이 위치만 이동함; 필요 시 해골처럼 칼 각도만 살짝 줄일 수 있음)
+
+## sheet/monster/goblin - 고블린 전투 시트 신규 4자세
+CHECK: RESULT: PASS
+- `check_delivery.py art/inbox/sheet_monster_goblin.png --layout 1x4 --cell 96 --aseprite art/inbox/aseprite/sheet_monster_goblin.aseprite`: RESULT: PASS (오류 0, 경고 0)
+- background #FF00FF: 88.4%, figure colours: 38, closest to #FF00FF: distance 197.6
+- pose 1: x 48-323 (w 276), top y=545, lowest pixel y=870 (대기 높이 326px, 요청 310-350px 안)
+- pose 2: x 380-705 (w 326), top y=446, lowest pixel y=870
+- pose 3: x 762-1165 (w 404), top y=547, lowest pixel y=870
+- pose 4: x 1222-1487 (w 266), top y=513, lowest pixel y=870
+- .aseprite export == PNG (pixel-identical), layers: Background
+- `sheets.py art/inbox/sheet_monster_goblin.png --id sheet/monster/goblin --grid 4x1 --scale 0.1654 --cell 96 --dry-run`: 완료 1, 실패 0 — 강제 위치 보정(밀어 넣음)·잘림 0 (idle 46x54px, windup 54x70px, strike 67x54px, hit 43x59px; 시트 384x192, 7칸, 40색)
+CHANGED: `ENEMIES['고블린']` / `MONSTER_TPL.imp` 설계와 `sheet_monster_skeleton`·`sheet_monster_desert-bandit` 화풍(어두운 외곽선·좌상단 광원·38색 경계 명암)에 맞춰 일반 고블린 4자세를 신규 제작.
+- **외형**: 작고 웅크린 탁한 이끼녹색 피부, 좌우로 길게 뻗어 실루엣에서 분리된 뾰족귀, 밝은 황금빛 눈(`#f2c94c` 보존), 닳은 흙갈색 누더기 옷·손발 붕대, 몸 바깥으로 분리된 짧은 옹이 나무 둔기(왕관·장식 없음).
+- **4자세**: P1 대기(무릎 굽힌 웅크림·둔기 옆 준비), P2 준비(뒷발로 무게 이동·둔기 어깨 뒤로 끌어올림), P3 타격(앞발 디디며 둔기 앞으로 휘두름), P4 피격(눈 질끈 감고 입 벌린 찡그림·귀와 상체 뒤로 젖힘·두 발 접지 유지·둔기 아래로 늘어뜨려 공격 오인 방지).
+- 지침 판: 2026-11-26c
+
+## 판정 — sheet/monster/goblin
+결과: 통과
+본 방법: `sheets.py --dry-run` `preview_x4.png` 및 어두운 전장 바닥 위 해골 병사(66px)·서리 트롤(74px)과 나란히 3배 비교(`battlefield_compare_x3.png`) 확인 — 54px 소형 체격·뾰족귀·황금 눈·나무 둔기와 4자세 구분이 뚜렷함
+남은 걱정: 없음
+
+## sheet/monster/frost-troll - 서리 트롤 전투 시트 신규 4자세
+CHECK: RESULT: PASS
+- `check_delivery.py art/inbox/sheet_monster_frost-troll.png --layout 2x2 --cell 96 --aseprite art/inbox/aseprite/sheet_monster_frost-troll.aseprite`: RESULT: PASS (오류 0, 경고 0)
+- background #FF00FF: 78.9%, figure colours: 38, closest to #FF00FF: distance 213.1
+- pose 1 (TL): x 231-535 (w 305), top y=50, lowest pixel y=461 (y=461 in quadrant; 대기 높이 412px, 요청 400-425px 안)
+- pose 2 (TR): x 972-1331 (w 360), top y=40, lowest pixel y=461 (y=461 in quadrant)
+- pose 3 (BL): x 159-567 (w 409), top y=572, lowest pixel y=973 (y=461 in quadrant)
+- pose 4 (BR): x 958-1345 (w 388), top y=559, lowest pixel y=973 (y=461 in quadrant)
+- .aseprite export == PNG (pixel-identical), layers: Background
+- `sheets.py art/inbox/sheet_monster_frost-troll.png --id sheet/monster/frost-troll --grid 2x2 --scale 0.1800 --cell 96 --dry-run`: 완료 1, 실패 0 — 강제 위치 보정(밀어 넣음)·잘림 0 (idle 55x74px, windup 65x76px, strike 74x72px, hit 70x75px; 시트 384x192, 7칸, 40색)
+CHANGED: `ENEMIES['서리 트롤']` / `MONSTER_TPL.brute` (`big: true`) 설계와 기존 몬스터 시트 화풍에 맞춰 서리 트롤 2x2 4자세를 신규 제작.
+- **외형**: 인간형보다 크고 넓은 어깨·긴 맨팔과 거대한 맨주먹, 차가운 얼음빛 청회색 피부(38색·어두운 외곽선), 깊은 청색 눈과 드러난 상아색 아래 송곳니, 낡은 어두운 남청색 허리천(무기·갑옷·뿔·발광 없음).
+- **4자세**: TL 대기(어깨·팔을 낮춰 무게를 바닥에 둔 육중한 자세, 게임 74px), TR 준비(어깨를 틀고 치는 팔을 뒤·위로 끌어올려 힘 모음), BL 타격(거대한 맨주먹을 앞·아래 대각선으로 강하게 내리침 — 주먹이 몸 실루엣에서 완전히 분리되며 팔꿈치 각도를 가다듬어 96px 칸 안 강제 보정 0 달성), BR 피격(상체 뒤로 밀리고 눈 감고 송곳니 드러낸 찡그림·두 발 접지·양팔 비대칭 반동).
+- 지침 판: 2026-11-26c
+
+## 판정 — sheet/monster/frost-troll
+결과: 통과
+본 방법: `sheets.py --dry-run` `preview_x4.png`, 타격 팔꿈치 원본 확대 검수 및 어두운 전장 바닥 위 고블린(54px)·해골 병사(66px)·서리 트롤(74px) 3종 크기 비교 확인 — `big: true` 체격 차이와 4자세 실루엣이 선명함
+남은 걱정: 없음
