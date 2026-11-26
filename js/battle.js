@@ -1207,18 +1207,62 @@ const Battle = (() => {
     return r.bw;
   }
   const isBug = (u) => !!(u.mon && typeof ENEMIES !== 'undefined' && ENEMIES[u.mon] && ENEMIES[u.mon].tpl === 'bug');   // 다족(거미·전갈): 뛰어오르지 않는다
+  // ── 이동 부류 (주인 2026-11-26: "달리기(이동)에 대해 3가지 부류를 정하고 싶어. 경량, 중량, 로브") ──
+  //   light 경량: 확정 달리기(run_base/v2 — 앞으로 기울고, 뜬 동안 누르고, 받아낸 뒤 조금 오른다)
+  //   heavy 중량: 판금·큰 방패·아주 큰 무기 — 뜨는 칸 없이(한 발은 늘 땅) 거의 선 몸으로 무겁게 디디는 달음박질(heavy_base)
+  //   robe  로브: 발목까지 오는 긴 옷 — 뜨지 않고 무릎을 크게 들지 않는 종종걸음·미끄러짐, 옷자락이 다리를 가린다(robe_base)
+  // 그려진 이동 칸은 부류와 상관없이 시트의 anims.run 하나다 (add_gait --gait run; 덧그리는 마네킹만 부류별) — 엔진의 박자 코드는 그대로 쓴다.
+  // 시트의 부류: 시트 meta.gait (add_gait 가 등록할 때 적는다 — 앞으로) → js/gait_classes.js (tools/art/specs/gait_classes.json 에서
+  // `python3 tools/art/gait_requests.py --js` 로 만든 표: 시트별, 시트 없는 유닛은 직업·대장 방식·괴물 틀별) → 경량.
+  // 그려진 칸이 없는 시트는 그림을 바꾸지 않고 몸 전체 높이만 부류대로 오르내린다(glideBob). 값:
+  //   k·min·max 높이(키 비율, px 한계) · lo 가장 낮은 때 · hi 가장 높은 때(걸음 단위, 0 = 앞발이 닿는 순간) · drop 1 = 높은 데서 가속해 떨어지다 툭 멈춘다(무게가 실림)
+  //   sl 몸 높이의 한 걸음 거리(키 비율, 0 = 코드 걸음 r.wp 그대로) · hop 시트 없는 코드 도트가 뜨는 칸에 솟는가 · dust 디딜 때 먼지 톨
+  // heavy: 마네킹 엉덩이 184/174/182/188(닿음·내려앉음·지남·밀기) → 닿은 직후(0.25)에 가장 낮고 밀 때(0.8) 가장 높다, 1..2px. 한 바퀴 880ms(달리기 640ms) → 걸음이 약 1.35배 길다.
+  // robe:  마네킹 엉덩이 182/180/188/188, 출렁임 작다 → 0..1px 부드럽게. 한 바퀴 720ms → 걸음 약 1.1배.
+  const GAIT_CLASS = {
+    light: { k: 0.02, min: 1, max: 2, lo: 0.12, hi: 0.55, drop: 0, sl: 0, hop: 1, dust: 1 },
+    heavy: { k: 0.025, min: 1, max: 2, lo: 0.25, hi: 0.8, drop: 1, sl: 0.42, hop: 0, dust: 2 },
+    robe:  { k: 0.015, min: 0, max: 1, lo: 0.25, hi: 0.7, drop: 0, sl: 0.34, hop: 0, dust: 1 },
+  };
+  // 유닛의 이동 부류 (시트가 있으면 그 시트의 것 — 상위 직업이 기본 직업 시트를 빌려 쓰면 그 시트의 부류). 표에 없으면 경량.
+  function gaitClassOf(u, sh) {
+    if (sh && GAIT_CLASS[sh.meta.gait]) return sh.meta.gait;
+    const T = typeof GAIT_CLASSES !== 'undefined' ? GAIT_CLASSES : null;
+    if (!T) return 'light';
+    const S = T.sheets, lk = u.look || {};
+    if (sh && S[sh.id]) return S[sh.id];
+    // 시트가 없거나(코드 생성 도트) 표에 아직 없는 시트: 시트를 고르는 순서(Art.sheetFor)대로 표를 본다
+    const ids = [u.art && u.art.startsWith('portrait/') ? 'sheet/' + u.art.slice(9) : null, u.mon ? 'sheet/monster/' + u.mon : null,
+      u.capKey ? 'sheet/captain/' + u.capKey : null, u.heroKey ? 'sheet/hero/' + u.heroKey : null, lk.cap ? 'sheet/captain/' + lk.cap : null,
+      T.hero_class_to_sheet[u.cls] || null];
+    for (const id of ids) if (id && S[id]) return S[id];
+    if (u.mon) { const e = typeof ENEMIES !== 'undefined' && ENEMIES[u.mon]; return T.enemy_override[u.mon] || (e && T.enemy_tpl[e.tpl]) || 'light'; }
+    const ck = u.capKey || lk.cap;
+    if (ck && typeof CAPTAIN_CLASSES !== 'undefined' && CAPTAIN_CLASSES[ck]) return T.captain_style[CAPTAIN_CLASSES[ck].style] || 'light';
+    for (const k of [lk.master, lk.adv, u.cls, lk.cls]) { const c = k && (T.master[k] || T.adv[k] || T.base[k]); if (c) return c; }
+    return 'light';
+  }
+  // 부류 값 (유닛마다 한 번, 시트가 바뀌면 — 불러오기가 끝나면 — 다시). 부류가 없는 것(none: 네발·다족·떠 있는 몸)은 경량 값.
+  function gaitClassFor(u, r, sh) {
+    const key = sh ? sh.id : '-';
+    if (r.gcKey !== key) { r.gcKey = key; r.gcls = gaitClassOf(u, sh); }
+    return GAIT_CLASS[r.gcls] || GAIT_CLASS.light;
+  }
   // 걸음 칸이 그려지지 않은 시트의 몸 높이(화면 px, 0 이상 — 발이 땅 아래로 들어가지 않는다).
   // 주인 결정(2026-11-26): 서 있는 그림을 잘라·기울여·꺾어 달리게 하면 찌그러져 보인다 — 달리기·걷기는 뼈대·마네킹 위에 덧그린 칸(시트의 run·walk)이 맡는다.
   // 그 칸이 없는 시트는 그림을 전혀 바꾸지 않고(다리 가르기·기울이기·무릎 꺾기·윗몸 숙이기 없음) 대기 자세 그대로 미끄러지며, 몸 전체만 1px 남짓 오르내린다.
   //   달리기(duty < 1): 주인 박자 — 디딘 직후(받아낸 순간, 걸음의 0.12)에 가장 낮고, 밀어내기 전 디딘 동안(0.55)에 가장 높다. 뜬 동안은 그대로 조금씩 내려온다(살짝 뜬 느낌만).
   //   걷기(duty 1): 디딜 때 낮고 디딘 다리 위에서 높다. 다족(거미·전갈)은 오르내리지 않는다.
   //   높이: 키의 2%(1..2px). 키 66px 전사는 0 또는 1px, 1.5배 우두머리는 0..2px.
-  function glideBob(P, H, g, p, d) {
+  //   이동 부류(C = GAIT_CLASS)마다 높이·때가 다르다: 경량은 위 그대로, 중량은 디딜 때마다 툭 내려앉고(1..2px) 천천히 올라오며, 로브는 0..1px 부드럽게.
+  function glideBob(P, H, g, p, d, C) {
     if (!(g > 0)) return 0;
+    C = C || GAIT_CLASS.light;
     const runK = Math.max(0, Math.min(1, (1 - d) / 0.3));     // 달리는 정도 (걸음 종류가 섞이는 동안 0..1)
-    const A = Math.max(1, Math.min(2, 0.02 * H)), Aw = Math.min(A, P.wbob * H);
-    const LO = 0.12, HI = 0.55, s = (((p - LO) % 1) + 1) % 1, up = HI - LO;
-    const xr = (1 - (s < up ? Math.cos(Math.PI * s / up) : -Math.cos(Math.PI * (s - up) / (1 - up)))) / 2;   // 달리기 0..1 (LO 에서 0, HI 에서 1)
+    const A = Math.max(C.min, Math.min(C.max, C.k * H)), Aw = Math.min(A, P.wbob * H);
+    const LO = C.lo, HI = C.hi, s = (((p - LO) % 1) + 1) % 1, up = HI - LO, t = (s - up) / (1 - up);
+    // 달리기 0..1 (LO 에서 0, HI 에서 1). 내려오기: 부드럽게(cos) 또는 drop — 가속해 떨어지다 가장 낮은 데서 툭 멈춘다
+    const xr = s < up ? (1 - Math.cos(Math.PI * s / up)) / 2 : C.drop ? 1 - t * t : (1 + Math.cos(Math.PI * t)) / 2;
     const xw = (1 - Math.cos(2 * Math.PI * p)) / 2;                                                           // 걷기 0..1
     return Math.max(0, Math.round(g * (runK * A * xr + (1 - runK) * Aw * xw)));
   }
@@ -1235,11 +1279,15 @@ const Battle = (() => {
       return { bob: Math.round(1.5 + 1.5 * Math.sin((ic + r.phase) * 2 * Math.PI / 1.1)) };
     }
     const H = S.h, quad = gt === 'quad', spider = isBug(u);
-    const p = ((r.wp % 1) + 1) % 1;
+    // 이동 부류(두 발 짐승만): 경량은 코드 걸음(r.wp) 그대로, 중량·로브는 몸 높이의 걸음을 간 거리 ÷ 부류의 한 걸음(키 × C.sl × 빠르기)으로 센다
+    // (걸음 수가 경량보다 적다 — 마네킹 박자). 그려진 달리기 칸의 박자(r.rp)와는 상관없다: 그 칸이 있으면 몸 높이를 얹지 않는다.
+    const C = gt === 'biped' ? gaitClassFor(u, r, fr.sheet) : GAIT_CLASS.light;
+    const wq = C.sl > 0 ? (r.walkDist || 0) / Math.max(5, C.sl * H * Math.max(0.85, Math.min(1.4, Math.pow((u.speed || 25) / 25, 0.75)))) + r.phase : r.wp;
+    const p = ((wq % 1) + 1) % 1;
     const d = Math.max(0.4, Math.min(1, P.duty));
     if (!fr.sheet) {
-      // 다족(bug: 거미·전갈)은 뛰어오르지 않고, 네발 짐승(beast)은 반만.
-      if (!((r.gait || 0) > 0) || d >= 1 || p < d || spider) return null;
+      // 다족(bug: 거미·전갈)은 뛰어오르지 않고, 네발 짐승(beast)은 반만. 중량·로브는 뜨는 칸이 없다 (코드 도트의 다리 두 칸은 그대로).
+      if (!C.hop || !((r.gait || 0) > 0) || d >= 1 || p < d || spider) return null;
       const e = u.mon && typeof ENEMIES !== 'undefined' && ENEMIES[u.mon];
       const hop = Math.round(P.air * H * r.gait * (e && e.tpl === 'beast' ? 0.5 : 1) * Math.sin(Math.PI * (p - d) / (1 - d)));
       return hop > 0 ? { bob: hop } : null;
@@ -1248,20 +1296,21 @@ const Battle = (() => {
     if (!fr.walkFx) {
       // 공격·피격·준비 칸: 걷던 몸 높이가 BODY_FADE 에 걸쳐 0으로 내려온다. 그려진 걸음 칸을 쓰는 시트(지금 걸음 종류의 run·walk 칸)는 얹지 않는다.
       if (!fr.act || !(g > 0) || gaitAnimOf(fr.sheet.meta, r.kind)) return null;
-      r.stepI = Math.floor(r.wp);                               // 돌아왔을 때 먼지가 한꺼번에 나지 않게
-      const b = spider ? 0 : glideBob(P, H, g, p, d);
+      r.stepI = Math.floor(wq);                                 // 돌아왔을 때 먼지가 한꺼번에 나지 않게
+      const b = spider ? 0 : glideBob(P, H, g, p, d, C);
       return b ? { bob: b } : null;
     }
     // 발이 땅에 닿는 순간의 먼지: 달려들 때·도주·큰 괴물은 크게, 보통 달리기는 한 톨 (걷는 걸음은 없음). 달리는 네발 짐승은 두 걸음에 한 번(한 도약).
     const runK = Math.max(0, Math.min(1, (1 - d) / 0.3));
-    const stepI = Math.floor(r.wp);
+    // 중량은 디딜 때마다 무게가 실려 두 톨 (C.dust)
+    const stepI = Math.floor(wq);
     if (r.stepI != null && stepI !== r.stepI && g > 0.6 && !(quad && !spider && runK > 0.5 && (stepI & 1))) {
       const big = u.bigMon || u.boss, hard = r.kind === 'charge' || r.kind === 'flee';
       if (big || hard) spawn(view, big ? 4 : 2, X - dir * 5, Y - 1, { sp: [6, 20], life: [0.18, 0.32], color: '#a89a80', size: 2, add: false, rise: -8 });
-      else if (r.kind === 'run') spawn(view, 1, X - dir * 4, Y - 1, { sp: [4, 12], life: [0.12, 0.2], color: '#a89a80', size: 2, add: false, rise: -6 });
+      else if (r.kind === 'run') spawn(view, C.dust, X - dir * 4, Y - 1, { sp: [4, 12], life: [0.12, 0.2], color: '#a89a80', size: 2, add: false, rise: -6 });
     }
     r.stepI = stepI;
-    const b = spider ? 0 : glideBob(P, H, g, p, d);
+    const b = spider ? 0 : glideBob(P, H, g, p, d, C);
     return b ? { bob: b } : null;
   }
   // 공격할 때 몸이 앞뒤로 움직이는 정도(px): 준비 때 살짝 뒤로, 타격 칸이 뜨는 순간 앞으로 뻗고 천천히 돌아온다
