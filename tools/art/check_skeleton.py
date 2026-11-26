@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Measure a walk or run skeleton set (pose guide, not game art) against art/requests/guides/SPEC.md sections 3-6 (run: 5b).
 
-  python3 tools/art/check_skeleton.py SET.aseprite [--pose pose.json] [--base DRAFT.aseprite] [--export DIR] [--gait walk|run]
+  python3 tools/art/check_skeleton.py SET.aseprite [--pose pose.json] [--base DRAFT.aseprite] [--export DIR] [--gait walk|run|heavy|robe]
   python3 tools/art/check_skeleton.py LAYERS_DIR          # W<n>_<layer>.png files as tools/pixelart/walk8.py writes them (no Aseprite needed)
-                                                          # (R<n>_<layer>.png from tools/pixelart/run8.py)
+                                                          # (R<n>_<layer>.png from tools/pixelart/run8.py, H<n>_ / G<n>_ from gait8.py)
 
 The working file is the layered 8-frame .aseprite that walk8.py builds (384x1024 per frame, layers per body part, a hidden
 `joints` layer with one colour-coded 3x3 dot per joint). The Aseprite session plays and refines it; this tool then measures
@@ -44,6 +44,28 @@ WARN: bob over 24 px (no lower bound: the owner's accepted run v4 keeps the hip 
       0-70 px ahead of the hip; neighbouring frames nearly identical at game size;
       strip findings of check_delivery.py (the two strips are built in memory and checked with --flight-slots 4: slot 4 is the
       flight frame and must be 18 px or more above the floor instead of on it).
+
+HEAVY / ROBE sets (the movement classes of tools/art/specs/gait_classes.json; gait "heavy" / "robe" in --pose pose.json, or --gait
+heavy|robe, or H<n>_ / G<n>_ layer files, or a file named heavy_* / robe_*; SPEC section 5c): frames 1 / 5 contact, 2 / 6 down,
+3 / 7 passing, 4 / 8 push (H1-H8 heavy, G1-G8 robe; the stance leg is the near one in 1-4, the far one in 5-8). No flight. The
+shared rules stay (frame duration: pose.json nominal_ms, heavy 101 / robe 96 when no pose.json is given); the thresholds are
+TRUDGE_CHECK below (= the "check" block of the drafts' pose.json and the 검사 기준 of art/requests/guides/heavy_base|robe_base/README.md):
+FAIL: the stance sole not on y=870 in any frame (no flight), both soles not on y=870 at contact (1 / 5), the other sole less than
+      3 px above the floor in 2-4 / 6-8, a pixel below y=870; the planted toe (front end of the sole in rows y=866-870) not
+      retreating by step/4 (+-3 px) per frame over the five frames it is down (1-2-3-4 and the rear foot of 5; 5-6-7-8 and the rear
+      foot of 1), step = toe at contact - toe as the rear foot of the next contact more than 10 px from pose.json step_px; mirror
+      (hip +-1, ankle x +-2, ankle height +-4); lean (hip centre -> neck dot) over 8 deg (heavy) / 10 deg (robe); heavy: the hip at
+      push (4 / 8) more than 1 px above contact (1 / 5); robe: no cloth_front layer or an empty one, its lowest pixel less than
+      38 px above the floor, a knee dot (kneeN / kneeF) not on an opaque cloth_front pixel.
+WARN: heavy: lean outside 4-6 deg, lean range over 2, neck x moving over 8 px, bob outside 4-10 px, sink contact -> down under 4 px,
+      down not the lowest hip of its half (+-1), the other sole outside 3-20 px, passing stance knee outside 35-65 deg, elbows
+      outside 55-115 deg, a hand's fore-aft range (from its shoulder) over 30 px, a hand under 165 px above the floor;
+      robe: lean outside 5-8 deg, lean range over 2, neck over 8 px, bob over 8 px, down not lowest (+-2), the other sole outside
+      3-16 px, hem (lowest cloth_front pixel) outside 38-52 px, hem lag: the front / back edge of cloth_front (in the 20 rows above its
+      bottom) at down more than 4 px from contact, the largest cloth_front change between neighbours at game size under 5 %,
+      elbows outside 60-95 deg, a hand's fore-aft range over 45 px, a hand outside 165-230 px above the floor;
+      both: head drift over 4 px / tilt over 8 deg, neighbouring frames under 8 % at game size, the strip findings of
+      check_delivery.py (no --flight-slots: every pose stands on y=870), a pose.json "check" block that differs from these values.
 
 ATTACK / HIT / IDLE mannequin sequences (SPEC section 10; set id <atk|hit|idle>__<sheet stem without sheet_>):
   python3 tools/art/check_skeleton.py SET.aseprite --motion attack|hit|idle --set <set id> [--idle IDLE_SET.aseprite] [--export DIR]
@@ -146,8 +168,12 @@ def load_aseprite(src, exe, work):
 
 
 def dir_prefix(src):
-    """'R' for a folder of run8.py layer files (R<n>_<layer>.png), else 'W'"""
-    return 'R' if os.path.isdir(src) and os.path.exists(os.path.join(src, 'R1_torso.png')) else 'W'
+    """'R' for a folder of run8.py layer files (R<n>_<layer>.png), 'H' / 'G' for gait8.py heavy / robe layer files, else 'W'"""
+    if os.path.isdir(src):
+        for t in 'RHG':
+            if os.path.exists(os.path.join(src, f'{t}1_torso.png')):
+                return t
+    return 'W'
 
 
 def load_dir(src):
@@ -160,7 +186,7 @@ def load_dir(src):
         frames.append(fr)
         i += 1
     names = [n for n in ORDER if frames and n in frames[0]] + ['joints']
-    return frames, [120 if t == 'W' else 80] * len(frames), ['Background'] + names, ['joints']
+    return frames, [NOMINAL_MS[T_GAIT[t]]] * len(frames), ['Background'] + names, ['joints']
 
 
 def flatten(fr, names):
@@ -221,7 +247,28 @@ RUN = dict(step=RUN_STEP * HEAD_PX, step_tol=14, clear=18, other=12, bob=(0, 24)
 HIP_X_TOL = 1          # the hip centre stays on the frame's centre column x = SLOT / 2 (add_gait.py anchors there)
 HEAD_DRIFT = 4         # px the head may move against the neck dot over the cycle, after its own tilt (both drafts: under 1.1)
 HEAD_TILT = 8          # deg the head's tilt may range over the cycle (max - min; drafts: run 1.0, walk under 5)
-NOMINAL_MS = dict(walk=120, run=80)
+NOMINAL_MS = dict(walk=120, run=80, heavy=101, robe=96)
+GAIT_T = dict(walk='W', run='R', heavy='H', robe='G')     # frame letter per gait (layer files <T><n>_<layer>.png)
+T_GAIT = {v: k for k, v in GAIT_T.items()}
+TRUDGE = ('heavy', 'robe')                               # the no-flight movement classes (SPEC section 5c, gait_classes.json)
+# heavy / robe thresholds: the README 검사 기준 blocks of art/requests/guides/heavy_base|robe_base and CHECK in tools/pixelart/gait8.py
+# (written into the drafts' pose.json as "check"). Drafts: heavy lean 4.8-5.6, bob 7.1, sink 7.1, push -0.5 px against contact,
+# other sole 5-13, passing knee 49-51, elbows 64-104, hand range 18 / 7, hands 177-237 px; robe lean 6.8-7.6, bob 5.0, other
+# sole 5-10, hem 41-46, hem lag 0, cloth change 5-10 %, elbows 72-76, hand range 33 / 36, hands 177-218 px.
+_FRAME_FAILS = dict(one_sole_on_floor_every_frame=True, double_support_frames=[1, 5], stance_on_floor_frames=[2, 3, 4, 6, 7, 8],
+                    other_sole_min_px=3, no_pixel_below_floor=True, toe_retreat_tol_px=3, step_tol_px=10,
+                    mirror_tol_px=dict(hip=1, ankle_x=2, ankle_h=4))
+TRUDGE_CHECK = dict(
+    heavy=dict(fail=dict(_FRAME_FAILS, push_above_contact_max_px=1, lean_max_deg=8),
+               warn=dict(lean_deg=[4, 6], lean_change_max_deg=2, neck_x_move_max_px=8, bob_px=[4, 10], sink_contact_to_down_min_px=4,
+                         down_lowest_tol_px=1, lifted_sole_px=[3, 20], passing_stance_knee_deg=[35, 65], elbow_deg=[55, 115],
+                         hand_fore_aft_range_max_px=30, hand_min_height_px=165, silhouette_change_min_pct=8)),
+    robe=dict(fail=dict(_FRAME_FAILS, lean_max_deg=10, cloth_front_layer=True, hem_min_px=38, knees_in_cloth=True),
+              warn=dict(lean_deg=[5, 8], lean_change_max_deg=2, neck_x_move_max_px=8, bob_px=[0, 8], down_lowest_tol_px=2,
+                        lifted_sole_px=[3, 16], hem_px=[38, 52], hem_lag_tol_px=4, cloth_change_max_pct_min=5, elbow_deg=[60, 95],
+                        hand_fore_aft_range_max_px=45, hand_height_px=[165, 230], silhouette_change_min_pct=8)))
+TRUDGE_STEP = dict(heavy=141.9, robe=134.2)       # step_px of the drafts (used when no pose.json of that gait is given)
+HEM_BAND = 20                                     # robe: the hem's front / back edge = cloth_front x extent in the 20 rows above its bottom
 
 
 def grow1(mask):
@@ -286,9 +333,10 @@ def head_cycle(meas, T, warns, info, drift_max=HEAD_DRIFT):
 def check(frames, durs, names, hidden, bones, gait='walk', want_step=None, nominal_ms=None):
     errors, warns, info, meas = [], [], [], []
     n = len(frames)
-    T = 'R' if gait == 'run' else 'W'
+    T = GAIT_T[gait]
     if n != 8:
-        errors.append(f'{n} frames, a walk cycle is 8 (SPEC section 5)' if gait == 'walk' else f'{n} frames, a run cycle is 8 (SPEC section 5b)')
+        errors.append(f'{n} frames, a walk cycle is 8 (SPEC section 5)' if gait == 'walk' else f'{n} frames, a run cycle is 8 (SPEC section 5b)'
+                      if gait == 'run' else f'{n} frames, a {gait} cycle is 8 (SPEC section 5c)')
     h, w = next(iter(frames[0].values())).shape[:2]
     if (w, h) != (SLOT, SH_):
         errors.append(f'frame canvas {w}x{h}, expected {SLOT}x{SH_}')
@@ -299,6 +347,8 @@ def check(frames, durs, names, hidden, bones, gait='walk', want_step=None, nomin
         errors.append(f'layer "{odd}" is not a SPEC section 4 name')
     for hid in [m for m in hidden if m != 'joints']:
         errors.append(f'layer "{hid}" is hidden: only joints may be hidden (a hidden layer is not in the exported picture)')
+    if gait == 'robe' and 'cloth_front' not in names:
+        errors.append('layer "cloth_front" is missing: a robe set draws the robe on cloth_front (it hides the knees; SPEC section 5c)')
     present = [m for m in names if m in ORDER]
     if present != [m for m in ORDER if m in present]:
         warns.append(f'layer order {present} differs from SPEC section 4 (bottom to top: {" · ".join(m for m in ORDER if m in present)})')
@@ -311,7 +361,7 @@ def check(frames, durs, names, hidden, bones, gait='walk', want_step=None, nomin
     odd_ms = [f'{T}{i + 1} {d}' for i, d in enumerate(durs) if d != want_ms]
     if odd_ms:
         warns.append(f'frame duration differs from pose.json nominal_ms {want_ms} ms: {", ".join(odd_ms)} ms '
-                     f'(add_gait.py takes anims.{gait}.ms from the .aseprite durations)')
+                     f'(add_gait.py takes anims.{"run" if gait in TRUDGE else gait}.ms from the .aseprite durations)')
     flats = []
     for i, fr in enumerate(frames):
         tag = f'{T}{i + 1}'
@@ -365,6 +415,8 @@ def check(frames, durs, names, hidden, bones, gait='walk', want_step=None, nomin
         lows = {ln: int(np.nonzero((fr[ln][..., 3] > 0).any(1))[0].max()) for ln in (stance, swing)}
         if gait == 'run':
             run_frame(m, i, fr, J, hip, lows, stance, swing, errors)
+        elif gait in TRUDGE:
+            trudge_frame(m, i, fr, J, hip, lows, stance, swing, gait, errors)
         else:
             if m['lowest_px'] != BASELINE:
                 errors.append(f'{tag}: lowest pixel at y={m["lowest_px"]}, the planted sole must be on y={BASELINE}')
@@ -379,6 +431,8 @@ def check(frames, durs, names, hidden, bones, gait='walk', want_step=None, nomin
         return errors, warns, info, meas, flats
     if gait == 'run':
         run_cycle(meas, want_step, errors, warns, info)
+    elif gait in TRUDGE:
+        trudge_cycle(meas, frames, gait, want_step, errors, warns, info)
     else:
         walk_cycle(meas, errors, warns, info)
     head_cycle(meas, T, warns, info, RUN['head_drift'] if gait == 'run' else HEAD_DRIFT)
@@ -582,19 +636,236 @@ def run_cycle(meas, want_step, errors, warns, info):
                 + ' '.join(f'R{i + 1} {meas[i]["scissor_px"]:.0f}' for i in (3, 7)) + f' px (must be -{RUN["scissor"]} or less)')
 
 
-def strip_rules(flats, work, errors, warns, info):
+def trudge_frame(m, i, fr, J, hip, lows, stance, swing, gait, errors):
+    """the heavy / robe rules of one frame (SPEC section 5c): every frame stands on its stance foot (no flight), contact (1 / 5) on
+    both feet. Fills m with what trudge_cycle compares between frames"""
+    C = TRUDGE_CHECK[gait]['fail']
+    tag, k = m['frame'], i % 4
+    m['phase'] = ('contact', 'down', 'passing', 'push')[k]
+    side = dict(leg_near='N', leg_far='F')
+    m['sole_height_px'] = {side[ln]: BASELINE - lows[ln] for ln in (stance, swing)}
+    m['ankle_h'] = {s: round(BASELINE - J['ank' + s][1], 1) for s in 'NF'}
+    m['elbow_flex_deg'] = {s: round(knee_flex(J['sho' + s], J['elb' + s], J['hand' + s]), 1) for s in 'NF'}
+    m['hand_from_shoulder_px'] = {s: round(J['hand' + s][0] - J['sho' + s][0], 1) for s in 'NF'}
+    m['hand_h_px'] = {s: round(BASELINE - J['hand' + s][1], 1) for s in 'NF'}
+    m['lean_deg'] = round(math.degrees(math.atan2(J['neck'][0] - hip[0], hip[1] - J['neck'][1])), 1)
+    m['neck_x'] = round(J['neck'][0] - hip[0], 1)
+    m['toe_x'] = {}
+    for ln in (stance, swing):
+        if lows[ln] == BASELINE:
+            band = fr[ln][BASELINE - SOLE_BAND:BASELINE + 1, :, 3] > 0
+            m['toe_x'][side[ln]] = round(float(np.nonzero(band.any(0))[0].max()) - hip[0], 1)
+    if m['lowest_px'] > BASELINE:
+        errors.append(f'{tag}: lowest pixel at y={m["lowest_px"]}, nothing may be below the floor line {BASELINE}')
+    if lows[stance] != BASELINE:
+        errors.append(f'{tag} ({m["phase"]}): the stance leg ({stance}) ends at y={lows[stance]}, not on the floor line {BASELINE} - a {gait} '
+                      'set has no flight: the stance foot stays down in every frame (owner: no leaving the ground)')
+    if k == 0:
+        if lows[swing] != BASELINE:
+            errors.append(f'{tag} (contact): the other leg ({swing}) ends at y={lows[swing]}, both soles must be on y={BASELINE} at contact '
+                          '(double support: the front foot lands while the rear foot is still down)')
+    elif BASELINE - lows[swing] < C['other_sole_min_px']:
+        errors.append(f'{tag} ({m["phase"]}): the other leg ({swing}) is {BASELINE - lows[swing]} px above the floor, it must be lifted '
+                      f'{C["other_sole_min_px"]} px or more (on the floor it reads as a sliding foot)')
+    if gait == 'robe':
+        cloth = fr.get('cloth_front')
+        cm = cloth[..., 3] > 0 if cloth is not None else None
+        if cm is None or not cm.any():
+            errors.append(f'{tag}: the cloth_front layer is empty - a robe set draws the robe on cloth_front in every frame')
+            return
+        ys, xs = np.nonzero(cm)
+        bottom = int(ys.max())
+        m['hem_px'] = BASELINE - bottom
+        band = np.nonzero(cm[max(0, bottom - HEM_BAND):bottom + 1].any(0))[0]
+        m['hem_edges_px'] = [round(float(band.max()) - hip[0], 1), round(float(band.min()) - hip[0], 1)]
+        if m['hem_px'] < C['hem_min_px']:
+            errors.append(f'{tag}: the hem (lowest cloth_front pixel, y={bottom}) is {m["hem_px"]} px above the floor, SPEC asks '
+                          f'{C["hem_min_px"]} or more (the feet must show under the hem)')
+        m['knees_in_cloth'] = {}
+        for s in 'NF':
+            x, y = (int(round(v)) for v in J['knee' + s])
+            inside = bool(0 <= y < cm.shape[0] and 0 <= x < cm.shape[1] and cm[y, x])
+            m['knees_in_cloth'][s] = inside
+            if not inside:
+                errors.append(f'{tag}: the {"near" if s == "N" else "far"} knee dot ({x},{y}) is not on an opaque cloth_front pixel - the robe '
+                              'hides the knees in every frame (a knee out of the cloth is a run, not the robe class)')
+
+
+def trudge_cycle(meas, frames, gait, want_step, errors, warns, info):
+    """the heavy / robe rules that compare frames (SPEC section 5c; thresholds TRUDGE_CHECK)"""
+    C, Wn, T = TRUDGE_CHECK[gait]['fail'], TRUDGE_CHECK[gait]['warn'], GAIT_T[gait]
+    want = float(want_step or TRUDGE_STEP[gait])
+    tol = C['toe_retreat_tol_px']
+    steps = []
+    for half, s in ((0, 'N'), (4, 'F')):
+        seq = [half, half + 1, half + 2, half + 3, (half + 4) % 8]
+        toes = [meas[j]['toe_x'].get(s) for j in seq]
+        if any(t is None for t in toes):
+            continue                                   # a foot that should be down is not: reported per frame
+        step = toes[0] - toes[4]
+        steps.append(step)
+        info.append(f'planted {"near" if s == "N" else "far"} toe x (front of the sole, from the hip): '
+                    + ' -> '.join(f'{T}{j + 1} {x:.0f}' for j, x in zip(seq, toes))
+                    + f' (rear foot) -> step {step:.0f} px (step/4 = {step / 4:.1f})')
+        for k in range(4):
+            d = toes[k] - toes[k + 1]
+            if abs(d - step / 4) > tol:
+                errors.append(f'{T}{seq[k] + 1}->{T}{seq[k + 1] + 1}: planted toe moves back {d:.1f} px, must be {step / 4:.1f} +-{tol} '
+                              '(the body travels step/4 per frame: the foot would slide)')
+        if abs(step - want) > C['step_tol_px']:
+            errors.append(f'{T}{half + 1}-{T}{seq[4] + 1}: step {step:.1f} px (toe at contact - toe as the rear foot of the next contact), '
+                          f'must be {want:.1f} +-{C["step_tol_px"]} (the request; a different stride needs a new runStride and a new request)')
+    if steps:
+        sv = sum(steps) / len(steps)
+        info.append(f'step (body travel per step = the planted toe\'s retreat over four frames): {" / ".join(f"{v:.0f}" for v in steps)} px '
+                    f'(= {sv * SCALE:.1f} game px, the sheet\'s runStride)')
+    mt = C['mirror_tol_px']
+    for k in range(4):
+        a, b = meas[k], meas[k + 4]
+        if abs(a['hip_height_px'] - b['hip_height_px']) > mt['hip']:
+            errors.append(f'{T}{k + 1}/{T}{k + 5}: hip height {a["hip_height_px"]} vs {b["hip_height_px"]} px (mirror halves must match +-{mt["hip"]})')
+        for s, o in (('N', 'F'), ('F', 'N')):
+            if abs(a['ankle_x'][s] - b['ankle_x'][o]) > mt['ankle_x']:
+                errors.append(f'{T}{k + 1}/{T}{k + 5}: ankle x {a["ankle_x"][s]} vs {b["ankle_x"][o]} px (mirror halves must match +-{mt["ankle_x"]})')
+            if abs(a['ankle_h'][s] - b['ankle_h'][o]) > mt['ankle_h']:
+                errors.append(f'{T}{k + 1}/{T}{k + 5}: ankle {a["ankle_h"][s]} vs {b["ankle_h"][o]} px above the floor (mirror halves must match '
+                              f'+-{mt["ankle_h"]})')
+    hips = [m['hip_height_px'] for m in meas]
+    bob = max(hips) - min(hips)
+    info.append('hip height: ' + ' '.join(f'{v:.1f}' for v in hips) + f' -> bob {bob:.1f} px ({bob * SCALE:.1f} game px); '
+                + 'contact -> down ' + ' / '.join(f'{hips[h] - hips[h + 1]:+.1f}' for h in (0, 4)) + ' px, push - contact '
+                + ' / '.join(f'{hips[h + 3] - hips[h]:+.1f}' for h in (0, 4)) + ' px')
+    if gait == 'heavy':
+        for h in (0, 4):
+            up = hips[h + 3] - hips[h]
+            if up > C['push_above_contact_max_px']:
+                errors.append(f'{T}{h + 4} (push): the hip is {up:.1f} px above contact ({T}{h + 1}), SPEC asks {C["push_above_contact_max_px"]} '
+                              'or less - a heavy body does not rise off the push (owner: heavy gear cannot leave the ground; rising is the light run)')
+    leans = [m['lean_deg'] for m in meas]
+    necks = [m['neck_x'] for m in meas]
+    info.append(f'lean {min(leans):.1f}-{max(leans):.1f} deg (range {max(leans) - min(leans):.1f}), neck x {min(necks):.0f}-{max(necks):.0f} px '
+                f'ahead of the hip ({max(necks) - min(necks):.1f})')
+    for m in meas:
+        if m['lean_deg'] > C['lean_max_deg']:
+            errors.append(f'{m["frame"]}: torso lean {m["lean_deg"]:.1f} deg (hip to neck), a {gait} set leans {C["lean_max_deg"]} deg or less '
+                          '(owner: heavy gear / a loose robe cannot be carried leaning forward like the run - that is the light class)')
+        elif not Wn['lean_deg'][0] <= m['lean_deg'] <= Wn['lean_deg'][1]:
+            warns.append(f'{m["frame"]}: torso lean {m["lean_deg"]:.1f} deg (hip to neck), SPEC asks {Wn["lean_deg"][0]}-{Wn["lean_deg"][1]}')
+    if max(leans) - min(leans) > Wn['lean_change_max_deg']:
+        warns.append(f'lean changes by {max(leans) - min(leans):.1f} deg over the cycle, SPEC asks {Wn["lean_change_max_deg"]} or less '
+                     '(the torso holds its lean; more pecks)')
+    if max(necks) - min(necks) > Wn['neck_x_move_max_px']:
+        warns.append(f'the neck travels {max(necks) - min(necks):.1f} px forward and back, SPEC asks {Wn["neck_x_move_max_px"]} or less (the head must not peck)')
+    lo, hi = Wn['bob_px']
+    if not lo <= bob <= hi:
+        warns.append(f'bob {bob:.1f} px, SPEC asks {lo}-{hi}' + (' (heavy: the weight drops at down; less reads as gliding, more as hopping)'
+                                                                 if gait == 'heavy' else ' (robe: a nearly level glide)'))
+    if gait == 'heavy':
+        for h in (0, 4):
+            sink = hips[h] - hips[h + 1]
+            if sink < Wn['sink_contact_to_down_min_px']:
+                warns.append(f'{T}{h + 1}->{T}{h + 2}: the hip sinks {sink:.1f} px from contact to down, SPEC asks {Wn["sink_contact_to_down_min_px"]} '
+                             'or more (the weight drops onto the footfall: that is where the heaviness reads)')
+    for h in (0, 4):
+        hh = hips[h:h + 4]
+        if hh[1] - min(hh) > Wn['down_lowest_tol_px']:
+            warns.append(f'{T}{h + 1}-{T}{h + 4}: hip height {hh} - the hip at down ({T}{h + 2}) is {hh[1] - min(hh):.1f} px above the lowest, SPEC '
+                         f'asks it lowest there (+-{Wn["down_lowest_tol_px"]})')
+    lo, hi = Wn['lifted_sole_px']
+    other = []
+    for i, m in enumerate(meas):
+        if i % 4 == 0:
+            continue
+        o = 'F' if i < 4 else 'N'
+        v = m['sole_height_px'][o]
+        other.append(v)
+        if C['other_sole_min_px'] <= v and not lo <= v <= hi:
+            warns.append(f'{m["frame"]} ({m["phase"]}): the lifted sole is {v} px above the floor, SPEC asks {lo}-{hi} (more lifts the knee like a run)')
+    info.append('lifted sole (the other foot, frames 2-4 / 6-8): ' + ' '.join(str(v) for v in other) + ' px')
+    if gait == 'heavy':
+        lo, hi = Wn['passing_stance_knee_deg']
+        for i, s in ((2, 'N'), (6, 'F')):
+            v = meas[i]['knee_flex_deg'][s]
+            if not lo <= v <= hi:
+                warns.append(f'{T}{i + 1} (passing): the stance knee is bent {v:.0f} deg, SPEC asks {lo}-{hi} (less is a walk\'s straight leg, '
+                             'more a crouch)')
+    el = [m['elbow_flex_deg'][s] for m in meas for s in 'NF']
+    lo, hi = Wn['elbow_deg']
+    for m in meas:
+        for s in 'NF':
+            v = m['elbow_flex_deg'][s]
+            if not lo <= v <= hi:
+                warns.append(f'{m["frame"]}: the {"near" if s == "N" else "far"} elbow is bent {v:.0f} deg, SPEC asks {lo}-{hi} (arms held close)')
+    rng = {s: max(m['hand_from_shoulder_px'][s] for m in meas) - min(m['hand_from_shoulder_px'][s] for m in meas) for s in 'NF'}
+    hh = {s: [m['hand_h_px'][s] for m in meas] for s in 'NF'}
+    info.append(f'elbows {min(el):.0f}-{max(el):.0f} deg; hand fore-aft range (from its shoulder) near {rng["N"]:.1f} / far {rng["F"]:.1f} px; '
+                f'hand height near {min(hh["N"]):.0f}-{max(hh["N"]):.0f} / far {min(hh["F"]):.0f}-{max(hh["F"]):.0f} px')
+    for s in 'NF':
+        if rng[s] > Wn['hand_fore_aft_range_max_px']:
+            warns.append(f'the {"near" if s == "N" else "far"} hand swings {rng[s]:.1f} px fore and aft (from its shoulder), SPEC asks '
+                         f'{Wn["hand_fore_aft_range_max_px"]} or less (arms held close: a big pump is the light run)')
+        lo, hi = Wn['hand_height_px'] if 'hand_height_px' in Wn else (Wn['hand_min_height_px'], None)
+        bad = [f'{m["frame"]} {m["hand_h_px"][s]:.0f}' for m in meas if m['hand_h_px'][s] < lo or (hi is not None and m['hand_h_px'][s] > hi)]
+        if bad:
+            warns.append(f'the {"near" if s == "N" else "far"} hand is at {", ".join(bad)} px above the floor, SPEC asks '
+                         + (f'{lo}-{hi} (near the waist)' if hi is not None else f'{lo} or more (belt height or above)'))
+    if gait == 'robe':
+        hem = [m.get('hem_px') for m in meas]
+        if all(v is not None for v in hem):
+            lo, hi = Wn['hem_px']
+            info.append('hem (lowest cloth_front pixel above the floor): ' + ' '.join(str(v) for v in hem) + ' px; front / back edge from the hip: '
+                        + ' '.join(f'{m["frame"]} {m["hem_edges_px"][0]:.0f}/{m["hem_edges_px"][1]:.0f}' for m in meas))
+            for m in meas:
+                if m['hem_px'] >= TRUDGE_CHECK['robe']['fail']['hem_min_px'] and not lo <= m['hem_px'] <= hi:
+                    warns.append(f'{m["frame"]}: the hem is {m["hem_px"]} px above the floor, SPEC asks {lo}-{hi} (higher shows the knees\' shins)')
+            for h in (0, 4):
+                c, d = meas[h]['hem_edges_px'], meas[h + 1]['hem_edges_px']
+                lag = max(abs(c[0] - d[0]), abs(c[1] - d[1]))
+                if lag > Wn['hem_lag_tol_px']:
+                    warns.append(f'{T}{h + 2} (down): the hem edges are {d[0]:.0f}/{d[1]:.0f} px from the hip, at contact {c[0]:.0f}/{c[1]:.0f} - SPEC '
+                                 f'asks the down hem within +-{Wn["hem_lag_tol_px"]} px of the contact shape (the cloth falls back a frame late)')
+            small = []
+            for fr in frames:
+                cm = fr['cloth_front'][..., 3] > 0
+                h_, w_ = cm.shape
+                im = Image.fromarray((cm * 255).astype(np.uint8)).resize((round(w_ * SCALE), round(h_ * SCALE)), Image.BOX)
+                small.append(np.asarray(im) >= 128)
+            ch = [100.0 * (small[i] ^ small[(i + 1) % 8]).sum() / max(1, (small[i] | small[(i + 1) % 8]).sum()) for i in range(8)]
+            info.append('cloth_front change to the next frame at game size: ' + ' '.join(f'{v:.0f}%' for v in ch))
+            if max(ch) < Wn['cloth_change_max_pct_min']:
+                warns.append(f'the cloth_front changes by {max(ch):.0f}% at most between neighbouring frames at game size, SPEC asks '
+                             f'{Wn["cloth_change_max_pct_min"]}% or more somewhere (a robe that does not swing reads as a sliding statue)')
+
+
+def check_block_diff(gait, block):
+    """pose.json "check" (the draft's copy of CHECK in gait8.py) against TRUDGE_CHECK -> the keys that differ"""
+    if not isinstance(block, dict):
+        return []
+    want = TRUDGE_CHECK[gait]
+    out = []
+    for part in ('fail', 'warn'):
+        got = {k: v for k, v in (block.get(part) or {}).items() if k != 'frame_ms'}
+        for k in sorted(set(got) | set(want[part])):
+            if got.get(k) != want[part].get(k):
+                out.append(f'{part}.{k} {got.get(k)!r} (checker {want[part].get(k)!r})')
+    return out
+
+
+def strip_rules(flats, work, errors, warns, info, flight=(4,)):
     """run sets: the two strips against tools/art/check_delivery.py (size, flat key colour, colour distance, gaps, four poses),
-    with pose 4 as the flight frame (check_delivery --flight-slots 4: 18 px or more above y=870 instead of on it)"""
+    with pose 4 as the flight frame (check_delivery --flight-slots 4: 18 px or more above y=870 instead of on it).
+    heavy / robe sets: flight=() - every pose stands on y=870"""
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
     import check_delivery
     os.makedirs(work, exist_ok=True)
+    label = 'check_delivery' + (' --flight-slots ' + ','.join(str(f) for f in flight) if flight else '')
     for k, s in enumerate('ab'):
         path = os.path.join(work, f'strip_{s}.png')
         Image.fromarray(np.concatenate([flats[k * 4 + j][0] for j in range(4)], axis=1), 'RGB').save(path)
-        e, w_, inf = check_delivery.check_png(path, '1x4', None, flight=(4,))
-        errors += [f'strip {s} (check_delivery --flight-slots 4): {msg}' for msg in e]
-        warns += [f'strip {s} (check_delivery --flight-slots 4): {msg}' for msg in w_]
-        info += [f'strip {s} (check_delivery --flight-slots 4): {msg}' for msg in inf if '(flight)' in msg]
+        e, w_, inf = check_delivery.check_png(path, '1x4', None, flight=tuple(flight))
+        errors += [f'strip {s} ({label}): {msg}' for msg in e]
+        warns += [f'strip {s} ({label}): {msg}' for msg in w_]
+        info += [f'strip {s} ({label}): {msg}' for msg in inf if '(flight)' in msg]
 
 
 def export(flats, durs, out, name):
@@ -1503,8 +1774,9 @@ def main(argv=None):
     ap.add_argument('--base', help='the draft .aseprite (or layers folder) this was refined from: list what changed')
     ap.add_argument('--export', help='write <set>_a.png, <set>_b.png, <set>_preview.gif and pose_measured.json here')
     ap.add_argument('--name', help='set name for --export (default: the file name)')
-    ap.add_argument('--gait', choices=('walk', 'run'), help='which rules to apply. Default: "gait" of --pose pose.json, else run for a folder '
-                                                            'of R<n>_ files or a file named run_*, else walk')
+    ap.add_argument('--gait', choices=('walk', 'run') + TRUDGE, help='which rules to apply. Default: "gait" of --pose pose.json, else run / heavy / '
+                                                                    'robe for a folder of R<n>_ / H<n>_ / G<n>_ files or a file named run_* / '
+                                                                    'heavy_* / robe_*, else walk')
     ap.add_argument('--aseprite-exe', default=os.environ.get('ASEPRITE_PATH') or (HEADLESS if os.path.exists(HEADLESS) else 'aseprite'))
     ap.add_argument('--motion', choices=('attack', 'hit', 'idle'), help='measure an attack / hit / idle mannequin sequence (SPEC section 10) '
                     'against tools/art/specs/motion_bible.json + motion_chars.json. Default: from a set id / file name atk__ / hit__ / idle__')
@@ -1527,9 +1799,10 @@ def main(argv=None):
             print(f'FAIL: --gait {a.gait} and --motion {motion}: a set is either a walk / run cycle or an attack / hit / idle sequence')
             return 1
         return main_motion(a, motion, bones)
-    gait = a.gait or request.get('gait') or ('run' if dir_prefix(a.src) == 'R' or os.path.basename(os.path.normpath(a.src)).startswith('run_') else 'walk')
-    if gait not in ('walk', 'run'):
-        print(f'FAIL: {a.pose}: unknown gait "{gait}" (walk or run)')
+    named = next((g for g in ('run',) + TRUDGE if os.path.basename(os.path.normpath(a.src)).startswith(g + '_')), None)
+    gait = a.gait or request.get('gait') or (T_GAIT[dir_prefix(a.src)] if dir_prefix(a.src) != 'W' else named or 'walk')
+    if gait not in GAIT_T:
+        print(f'FAIL: {a.pose}: unknown gait "{gait}" (walk, run, heavy or robe)')
         return 1
     with tempfile.TemporaryDirectory(prefix='skeleton-') as tmp:
         def load(src, sub):
@@ -1540,18 +1813,23 @@ def main(argv=None):
             print(f'FAIL: cannot read {a.src}: {e}')
             return 1
         errors, warns, info, meas, flats = check(frames, durs, names, hidden, bones, gait,
-                                                 request.get('step_px') if request.get('gait') == 'run' else None,
+                                                 request.get('step_px') if request.get('gait') == gait != 'walk' else None,
                                                  request.get('nominal_ms') if request.get('gait', 'walk') == gait else None)
-        if gait == 'run' and len(flats) == 8 and all(m is not None for m in meas):
-            strip_rules(flats, os.path.join(tmp, 'strips'), errors, warns, info)
+        if gait in ('run',) + TRUDGE and len(flats) == 8 and all(m is not None for m in meas):
+            strip_rules(flats, os.path.join(tmp, 'strips'), errors, warns, info, (4,) if gait == 'run' else ())
+        if gait in TRUDGE and request.get('gait') == gait:
+            diff = check_block_diff(gait, request.get('check'))
+            if diff:
+                warns.append(f'{a.pose}: its "check" block differs from the thresholds this checker applies (TRUDGE_CHECK; the checker\'s '
+                             'values are used - change tools/art/check_skeleton.py and CHECK in tools/pixelart/gait8.py together): ' + '; '.join(diff))
         name = a.name or os.path.splitext(os.path.basename(os.path.normpath(a.src)))[0]
-        print(f'# skeleton {name}' + (' (run)' if gait == 'run' else ''))
+        print(f'# skeleton {name}' + (f' ({gait})' if gait != 'walk' else ''))
         for ln in info:
             print('- ' + ln)
         if a.base:
             try:
                 print('- changed against the draft:')
-                for ln in compare(frames, load(a.base, 'base')[0], warns, 'R' if gait == 'run' else 'W'):
+                for ln in compare(frames, load(a.base, 'base')[0], warns, GAIT_T[gait]):
                     print('    ' + ln)
             except (RuntimeError, OSError, ValueError, subprocess.SubprocessError) as e:
                 warns.append(f'could not read the draft {a.base}: {e}')
@@ -1567,7 +1845,8 @@ def main(argv=None):
                 f.write('\n')
             print(f'- exported strips, preview and pose_measured.json to {a.export} ' + (
                 '(run check_delivery.py on the two strips)' if gait == 'walk' else
-                '(the strip rules of check_delivery.py are applied above; on its own run it with --flight-slots 4)'))
+                '(the strip rules of check_delivery.py are applied above; on its own run it with --flight-slots 4)' if gait == 'run' else
+                '(the strip rules of check_delivery.py are applied above; on its own run it without --flight-slots)'))
         print('RESULT: ' + ('FAIL' if errors else 'PASS' + (f' ({len(warns)} warning(s))' if warns else '')))
     return 1 if errors else 0
 
