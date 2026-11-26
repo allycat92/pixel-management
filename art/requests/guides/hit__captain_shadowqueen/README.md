@@ -54,7 +54,7 @@
 | K3 | 14 | 33 | −0.2° | −1.0 | −16 | 26 |
 | K4 | 3 | 6 | −5.7° | −1.0 | −2 | 6 (12 이하) |
 
-**K2 를 `HIT_KEYS` 에서 고친 이유**: `k2_light` 의 엉덩이 (−0.22, 1.15) 를 니클라의 좁은 발에 그대로 세우면 앞 무릎이 대기보다 3.6px 올라가 검사 FAIL(무릎 1px 이하)이다.
+**K2 를 `HIT_KEYS` 에서 고친 이유**: `k2_light` 의 엉덩이 (−0.22, 1.15) 를 니클라의 좁은 발에 그대로 세우면 앞 무릎이 대기보다 3px 올라가(검사 +3.0, 엉덩이 내려감 28·머리 밀림 80) 검사 FAIL(무릎 1px 이하)이다.
 엉덩이를 (−0.12, 1.17) 로 옮기면 무릎은 대기보다 1px 내려가고(검사 −1.0), 머리 밀림 69px·엉덩이 내려감 26px 로 가벼운 무게의 범위 안이다. 클라우드가 이 값을 `motion_chars.json`(니클라 피격 덮어쓰기)에 적는다.
 **이 표는 출발점이다** — 재생해 보며 고쳐도 되지만 「검사가 FAIL 로 잡는 것」은 지키고, 바꾼 값은 NOTES 에 px 로 적는다.
 
@@ -67,7 +67,7 @@
 ## 시작하는 법 (PC 가 고른다)
 1. **스크립트(권장)**: `tools/pixelart/posekit.py` 를 불러 `pk.HIT_KEYS['k1_light']` 를 그대로(발만 이 세트의 값으로), K2·K3·K4 는 위 표대로 넣고,
    `pk.build(pose, B, 'none')` + `tools/pixelart/walk8.py`(`draw`, `frame_layers`, `floor_row`)로 부위 레이어 + `joints` 점을 쓴다. 포즈 키: `hip`, `lean`, `tilt`, `head_off`, `footN=(x, 0.12)`, `footF=(0.37, 0.12)`,
-   `handN=('p', x, h)`, `handF=('p', x, h)`, `faN=faF=0`(발 각도 없음 — 가장 안전하다. 검사는 발 각도가 아니라 **발목**을 본다: 뒤꿈치를 들어 발목이 대기 높이에서 3px 넘게 움직이면 FAIL. posekit 시험(전사 K2 뒷발): `faN=12` 는 통과, `faN=15` 는 발목 +4px 로 FAIL. 뒤꿈치를 들 때는 발끝을 선 자리에 그대로 둔다). x=0 이 192px 이라 그대로 쓰면 된다. 칼 두 자루는 스크립트에서 그린다.
+   `handN=('p', x, h)`, `handF=('p', x, h)`, `faN=faF=0`(발 각도 없음 — 가장 안전하다. 검사는 발 각도가 아니라 **발목**을 본다: 뒤꿈치를 들어 발목이 대기 높이에서 3px 넘게 움직이면 FAIL. posekit 시험(K2 뒷발, 전사·니클라 같음): `faN=12`·`13` 은 통과, `faN=14`·`15` 는 발목 +4px 로 FAIL. 뒤꿈치를 들 때는 발끝을 선 자리에 그대로 둔다). x=0 이 192px 이라 그대로 쓰면 된다. 칼 두 자루는 스크립트에서 그린다.
    K1·K2 의 생김새를 미리 보려면: `uv run --no-project --with pillow --with numpy python tools/art/handoff.py --hit-set ~/Documents/pm-pc-scratch/hit_set`
    → `~/Documents/pm-pc-scratch/hit_set/katana/guide_hit_k1_light.png`, `guide_hit_k2_light.png`(posekit 몸, 원래 넓은 발 — 참고만, 납품에 넣지 않는다).
    실행 예: `uv run --no-project --with pillow --with numpy python ~/Documents/pm-pc-scratch/mannequin_pc.py . ~/Documents/pm-pc-scratch/hit__captain_shadowqueen`. 조립은 걷기 v2 때처럼 aseprite-mcp 도구로(프레임 시간·`hit` 태그·`joints` 숨김).

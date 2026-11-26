@@ -64,7 +64,7 @@ K1·K2 는 `posekit.HIT_KEYS` `k1_mid`·`k2_mid` 그대로(`handoff.py --hit-set
 ## 시작하는 법 (PC 가 고른다)
 1. **스크립트(권장)**: `tools/pixelart/posekit.py` 를 불러 `pk.HIT_KEYS['k1_mid']`, `pk.HIT_KEYS['k2_mid']` 를 그대로 쓰고(발만 이 세트의 −0.90 / +0.80 으로),
    `pk.build(pose, B, 'none')` + `tools/pixelart/walk8.py`(`draw`, `frame_layers`, `floor_row`)로 부위 레이어 + `joints` 점을 쓴다. 포즈 키: `hip`, `lean`, `tilt`, `head_off`, `footN=(−0.90, 0.12)`, `footF=(0.80, 0.12)`,
-   `handN=('p', x, h)`, `handF=('p', x, h)`, `faN=faF=0`(발 각도 없음 — 가장 안전하다. 검사는 발 각도가 아니라 **발목**을 본다: 뒤꿈치를 들어 발목이 대기 높이에서 3px 넘게 움직이면 FAIL. posekit 시험(전사 K2 뒷발): `faN=12` 는 통과, `faN=15` 는 발목 +4px 로 FAIL. 뒤꿈치를 들 때는 발끝을 선 자리에 그대로 둔다). `frame_layers` 가 x=0 을 192px 에 두므로 그대로 쓰면 된다. 칼·방패는 스크립트에서 그린다.
+   `handN=('p', x, h)`, `handF=('p', x, h)`, `faN=faF=0`(발 각도 없음 — 가장 안전하다. 검사는 발 각도가 아니라 **발목**을 본다: 뒤꿈치를 들어 발목이 대기 높이에서 3px 넘게 움직이면 FAIL. posekit 시험(K2 뒷발, 전사·니클라 같음): `faN=12`·`13` 은 통과, `faN=14`·`15` 는 발목 +4px 로 FAIL. 뒤꿈치를 들 때는 발끝을 선 자리에 그대로 둔다). `frame_layers` 가 x=0 을 192px 에 두므로 그대로 쓰면 된다. 칼·방패는 스크립트에서 그린다.
    K1·K2 의 생김새를 미리 보려면: `uv run --no-project --with pillow --with numpy python tools/art/handoff.py --hit-set ~/Documents/pm-pc-scratch/hit_set`
    → `~/Documents/pm-pc-scratch/hit_set/sword_shield/guide_hit_k1_mid.png`, `guide_hit_k2_mid.png`, `hit_overview.png`(posekit 몸, 원래 넓은 발). 참고만 — 납품에 넣지 않는다.
    실행 예: `uv run --no-project --with pillow --with numpy python ~/Documents/pm-pc-scratch/mannequin_pc.py . ~/Documents/pm-pc-scratch/hit__class_warrior`. 조립은 걷기 v2 때처럼 aseprite-mcp 도구로(프레임 시간·`hit` 태그·`joints` 숨김).

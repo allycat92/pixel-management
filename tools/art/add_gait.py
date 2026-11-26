@@ -40,7 +40,7 @@
   IoU 0.9 넘게 겹치는 원본 (joints 레이어를 지운 마네킹, 이름을 바꾸거나 몇 px 옮기거나 뒤집은 마네킹) — 모두 거부한다. 크기를 바꾼
   마네킹도 잡도록 원본 프레임을 뼈대 프레임의 그림 상자 높이로 맞춰(가로세로 비 유지) 한 번 더 잰다 (높이 비 0.5..2 안에서).
   기울인 마네킹도 잡도록 그대로 잰 IoU 가 0.5 이상인 짝은 원본을 발바닥 가운데로 ±2도부터 2도씩 ±8도까지 IoU 가 오르는 쪽으로 돌려
-  (바닥에 다시 세워) 더 잰다 (±9도 안의 기울기).
+  (바닥에 다시 세워; 높이를 맞춰 보는 짝은 돌린 뒤 높이를 맞춰) 더 잰다 (±9도 안의 기울기, 크기를 바꾸고 기울인 것도).
   비교하는 뼈대: 클라우드 초안 art/requests/guides/*/v*/ (띠, 레이어를 합친 것)·art/requests/guides/*/ 의 띠, PC 가 넘긴 마네킹
   art/inbox/guides/** 의 .aseprite (내보내 파일 해시로 ~/.cache/pixel-management/guide_masks/ 에 캐시)와 띠 — 작업 트리의 것과
   origin/art-inbox 의 것(git show 로 읽는다: 아직 이 브랜치에 들이지 않은 마네킹도), --extra-guides 폴더. joints 레이어가 보이는 .aseprite 는 --allow-draft 로도 받지 않는다 (관절 점이 찍힌다).
@@ -612,7 +612,8 @@ def best_guide_match(frames, exe=None, stop=None, masks=None):
     → (IoU, 프레임 번호, 뼈대 이름, 뒤집었나, (dx, dy), 높이 맞춤 배율 또는 None, 돌린 각도(도) 또는 0). 원본 그대로 한 번, 원본을 그
     뼈대 프레임의 그림 상자 높이로 맞춰(가로세로 비 유지, 높이 비 NORM_RANGE 안) 한 번 잰다 — 크기를 바꾼 마네킹. 그렇게 잰 IoU 가
     ROT_GATE 이상인 짝은 원본을 ±ROT_STEP 도 돌려(발바닥 가운데로, 바닥에 다시 세워) 더 재고, IoU 가 오르는 쪽으로 ROT_MAX 까지
-    ROT_STEP 씩 더 돌리고, 그렇게 찾은 IoU 가 ROT_FINE 이상이면 그 양옆 1도도 잰다 — 기울인 마네킹 (±9도 안).
+    ROT_STEP 씩 더 돌리고, 그렇게 찾은 IoU 가 ROT_FINE 이상이면 그 양옆 1도도 잰다 — 기울인 마네킹 (±9도 안; 높이를 맞춘 짝은 원본을
+    돌린 뒤에 높이를 맞춘다 — 크기를 바꾸고 기울인 마네킹).
     넓이 비가 지금까지의 최고보다 낮은 짝은 재지 않는다 (IoU ≤ 넓이 비). stop 을 주면 그보다 높은 짝을 찾는 대로 멈추고, 넓이 비가 stop
     이하인 짝도 재지 않는다 (판정만 필요할 때 — 돌려주는 값은 stop 이하일 수 있다).
     masks: frames 대신 이미 실루엣으로 만든 bool 배열들 (sheets.py 가 split_poses 로 자세를 나눈 그림)."""
@@ -624,49 +625,68 @@ def best_guide_match(frames, exe=None, stop=None, masks=None):
         if c is None:
             continue
         for flip, m in ((False, c), (True, np.ascontiguousarray(c[:, ::-1]))):
-            scaled, turned = {}, {}
+            scaled, rots, turned = {}, {}, {}
+
+            def turn(deg, h, d, m=m, rots=rots, turned=turned):
+                """원본을 deg 도 돌려(h 를 주면 그 다음 높이 h 로 맞춰) d 에 잰 (IoU, 옮김, 높이 맞춤 배율). 높이 맞춤은 돌린 뒤에 한다 —
+                기울어진 채 높이를 맞추면 상자가 커진 만큼 작게 맞는다. 돌리고 맞춘 실루엣은 캐시한다"""
+                key = (h, deg)
+                if key not in turned:
+                    if deg not in rots:
+                        rots[deg] = _rotate(m, deg) if deg else m
+                    r, kr = rots[deg], None
+                    if r is not None and h is not None and r.shape[0] != h:
+                        kr = h / r.shape[0]
+                        r = _to_height(r, h) if NORM_RANGE[0] <= kr <= NORM_RANGE[1] else None
+                    turned[key] = (r, kr)
+                r, kr = turned[key]
+                return (*aligned_iou(r, d), kr) if r is not None else (0.0, (0, 0), kr)
+
             for name, d, nb in drafts:
-                cands = [(m, None)]
-                k = d.shape[0] / m.shape[0]
-                if d.shape[0] != m.shape[0] and NORM_RANGE[0] <= k <= NORM_RANGE[1]:
-                    if d.shape[0] not in scaled:
-                        scaled[d.shape[0]] = _to_height(m, d.shape[0])
-                    cands.append((scaled[d.shape[0]], k))
-                for mm, kk in cands:
+                h = d.shape[0]
+                k = h / m.shape[0]
+                fits = NORM_RANGE[0] <= k <= NORM_RANGE[1]          # 높이를 맞춰 볼 수 있는 짝
+                cands = [(None, m, None)]
+                if h != m.shape[0] and fits:
+                    if h not in scaled:
+                        scaled[h] = _to_height(m, h)
+                    cands.append((h, scaled[h], k))
+                start = {}                                       # 돌리기 전 값: None(그대로)·h(높이 맞춤) → (IoU, 옮김, 배율)
+                for kind, mm, kk in cands:
                     na = float(mm.sum())
                     if not na or min(na, nb) / max(na, nb) <= max(best[0], floor):
                         continue
                     iou, sh_ = aligned_iou(mm, d)
+                    start[kind] = (iou, sh_, kk)
                     if iou > best[0]:
                         best = (iou, i + 1, name, flip, sh_, kk, 0)
                         if stop is not None and iou > stop:
                             return best
-                    if iou < ROT_GATE:
+                if fits and h == m.shape[0] and h not in start:   # 높이가 같아도 돌린 뒤엔 달라진다 (크기를 바꾸고 기울인 마네킹):
+                    start[h] = start.get(None) or (*aligned_iou(m, d), None)   # 넓이로 걸러 재지 않은 짝도 여기선 잰다
+                # 기울인 마네킹: 그대로·높이 맞춤 각각, 돌리기 전 IoU 가 ROT_GATE 이상이면 ±ROT_STEP 도 돌려 재고 오르는 쪽으로
+                # ROT_MAX 까지 ROT_STEP 씩 더 돌린다 (내려가면 멈춘다). 찾은 IoU 가 ROT_FINE 이상이면 그 양옆 1도도 잰다.
+                for kind, (iou0, sh0, k0) in start.items():
+                    if iou0 < ROT_GATE:
                         continue
-
-                    def turn(deg, mm=mm, kk=kk):              # 원본을 deg 도 돌려 잰 IoU (돌린 실루엣은 높이 맞춤마다 캐시)
-                        key = (mm.shape[0] if kk else None, deg)
-                        if key not in turned:
-                            turned[key] = _rotate(mm, deg)
-                        return aligned_iou(turned[key], d) if turned[key] is not None else (0.0, (0, 0))
-                    got = {0: (iou, sh_)}
-                    got.update({deg: turn(deg) for deg in (ROT_STEP, -ROT_STEP)})
+                    got = {0: (iou0, sh0, k0)}
+                    got.update({deg: turn(deg, kind, d) for deg in (ROT_STEP, -ROT_STEP)})
                     at = max(got, key=lambda q: got[q][0])
-                    if at:                                     # 오르는 쪽으로 ROT_MAX 까지 (내려가면 멈춘다)
+                    if at:
                         sgn = 1 if at > 0 else -1
                         while abs(at) + ROT_STEP <= ROT_MAX:
                             nxt = at + sgn * ROT_STEP
-                            got[nxt] = turn(nxt)
+                            got[nxt] = turn(nxt, kind, d)
                             if got[nxt][0] <= got[at][0]:
                                 break
                             at = nxt
-                    if got[at][0] >= ROT_FINE:                 # 가까우면 그 사이 1도도 (남는 기울기 ≤ 0.5도)
+                    if got[at][0] >= ROT_FINE:
                         for nxt in (at - 1, at + 1):
                             if nxt not in got and abs(nxt) <= ROT_MAX + 1:
-                                got[nxt] = turn(nxt)
-                    for deg, (iou, sh_) in got.items():
+                                got[nxt] = turn(nxt, kind, d)
+                    for deg, (iou, sh_, kr) in got.items():
                         if iou > best[0]:
-                            best = (iou, i + 1, name, flip, sh_, kk, deg)
+                            best = (iou, i + 1, name, flip, sh_, kr, deg)
                     if stop is not None and best[0] > stop:
                         return best
     return best
