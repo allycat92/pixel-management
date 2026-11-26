@@ -20,6 +20,8 @@ const D = vm.runInContext('({ CAPTAINS, CAPTAIN_CLASSES, HEROES, HERO_CLASSES, F
 //        → 4절의 마네킹 닮음에 쓸 프레임: receive.py 가 납품 .aseprite 에서 뽑은 frames/ 폴더(pose_measured.json 의 set)
 //          또는 <set>.aseprite (헤드리스 Aseprite 로 여기서 뽑는다). 없으면 art/inbox/guides/<set>/<set>.aseprite 를 뽑고,
 //          그것도 없으면 receive.py 가 받아서 뽑아 둔 <git common dir>/art-received/<set>/ ($ART_RECEIVED_DIR) 를 읽는다.
+//          이 브랜치의 .aseprite 와 받아 둔 프레임의 art-inbox 판(pose_measured.json art_inbox 의 blob)이 다르면 art-inbox 에서 더 새 쪽을
+//          재고(받아 둔 프레임이 새 판이면 그것) 어느 쪽을 쟀는지 WARN 으로 알린다.
 //          art-inbox 에 있는데 받은 프레임이 없으면 "not delivered yet" 이 아니라 WARN (닮음을 재지 못함)
 //   node tools/art/requests.js --motion-iou A.png B.png → 두 그림의 게임 크기(0.1654배) 실루엣 IoU
 if (process.argv.includes('--motion') || process.argv.includes('--motion-iou')) {
@@ -972,13 +974,40 @@ function motionMain(argv) {
     const now = inboxRev(set), rev = pm.art_inbox || null;
     return { dir, rev, now, stale: !!(now && rev && !now.startsWith(rev) && !rev.startsWith(now)) };
   }
-  // set -> { files: [frame k -> png path], from: 출처 } | { error } | null (납품 없음)
+  // the branch's .aseprite against the frames receive.py kept: when the received art-inbox revision holds a different .aseprite blob,
+  // -> { newer: the received revision is the newer one on art-inbox, branchRev: the art-inbox revision of the branch blob or null }
+  const inboxPath = (set) => `art/inbox/guides/${set}/${set}.aseprite`;
+  function branchVsReceived(set, file, rv) {
+    if (!rv || !rv.rev) return null;
+    const mine = gitOut(['hash-object', file]), theirs = gitOut(['rev-parse', `${rv.rev}:${inboxPath(set)}`]);
+    if (!mine || !theirs || mine === theirs) return null;
+    const revs = (gitOut(['log', '--format=%h', 'origin/art-inbox', '--', inboxPath(set)]) || '').split('\n').filter(Boolean);
+    const iR = revs.findIndex((r) => r.startsWith(rv.rev) || rv.rev.startsWith(r));
+    const iB = revs.findIndex((r) => gitOut(['rev-parse', `${r}:${inboxPath(set)}`]) === mine);
+    return { newer: iR >= 0 && (iB < 0 || iR < iB), branchRev: iB >= 0 ? revs[iB] : null };
+  }
+  // set -> { files: [frame k -> png path], from: 출처, pick?: 어느 쪽을 쟀나 } | { error } | null (납품 없음)
   function framesOf(set) {
     if (set in frameCache) return frameCache[set];
-    let src = given[set] || null, rcv = null;
-    if (!src && fs.existsSync(path.join(GDIR, set, `${set}.aseprite`))) src = path.join(GDIR, set, `${set}.aseprite`);
+    let src = given[set] || null, rcv = null, pick = null;
+    const branchFile = path.join(GDIR, set, `${set}.aseprite`);
+    if (!src && fs.existsSync(branchFile)) {
+      src = branchFile;
+      const rv = receivedOf(set), d = branchVsReceived(set, branchFile, rv);
+      if (d && d.newer) {
+        rcv = rv; src = rv.dir;
+        pick = `the frames receive.py kept (${rv.dir}) are of art-inbox ${rv.rev}, NEWER than this branch's ${inboxPath(set)} (` +
+          (d.branchRev ? `art-inbox ${d.branchRev}` : 'a blob that is on no art-inbox revision') + `) - measured the RECEIVED frames (art-inbox ${rv.rev}); ` +
+          `check the delivery out once judged (git checkout origin/art-inbox -- ${inboxPath(set)})`;
+      } else if (d) {
+        pick = `the frames receive.py kept (${rv.dir}) are of art-inbox ${rv.rev}, this branch's ${inboxPath(set)} is ` +
+          (d.branchRev ? `art-inbox ${d.branchRev} (newer)` : 'a blob that is on no art-inbox revision') + ` - measured the BRANCH .aseprite; ` +
+          `run python3 tools/art/receive.py guides/${set}/${set} again to refresh the received frames`;
+      }
+    }
     if (!src && (rcv = receivedOf(set))) src = rcv.dir;
     if (!src) return (frameCache[set] = null);
+    const done = (o) => (frameCache[set] = pick ? { ...o, pick } : o);
     let dir = src, from = path.relative(ROOT, src).startsWith('..') ? src : path.relative(ROOT, src);
     if (/\.aseprite$/i.test(src)) {
       dir = path.join(tmpRoot, set);
@@ -988,19 +1017,19 @@ function motionMain(argv) {
       const r = require('child_process').spawnSync(asepriteExe, ['--batch', src, '--save-as', path.join(dir, 'f{frame}.png')], { env, stdio: ['ignore', 'pipe', 'pipe'], timeout: 300000 });
       if (r.error || r.status) {
         const rv = given[set] ? null : receivedOf(set);
-        if (!rv) return (frameCache[set] = { error: `cannot export ${from} with ${asepriteExe}: ${r.error ? r.error.message : String(r.stderr || r.stdout).trim().slice(-200)}`, from });
+        if (!rv) return done({ error: `cannot export ${from} with ${asepriteExe}: ${r.error ? r.error.message : String(r.stderr || r.stdout).trim().slice(-200)}`, from });
         rcv = rv; dir = rv.dir; from = rv.dir;   // 이 브랜치의 .aseprite 를 못 뽑으면 receive.py 가 뽑아 둔 프레임으로
       } else {
       const files = fs.readdirSync(dir).map((f) => /^f(\d+)\.png$/.exec(f)).filter(Boolean).sort((a, b) => +a[1] - +b[1]).map((m) => path.join(dir, m[0]));
       if (!files.length && fs.existsSync(path.join(dir, 'f.png'))) files.push(path.join(dir, 'f.png'));
-      return (frameCache[set] = { files, from: `${from} (exported here, visible layers)` });
+      return done({ files, from: `${from} (exported here, visible layers)` });
       }
     }
     const byK = [];
     fs.readdirSync(dir).forEach((f) => { const m = /^f(\d\d)(?:_.*)?\.png$/.exec(f); if (m) byK[+m[1]] = path.join(dir, f); });
-    if (!byK.length) return (frameCache[set] = { error: `${from}: no f<NN>_<name>.png frames`, from });
+    if (!byK.length) return done({ error: `${from}: no f<NN>_<name>.png frames`, from });
     const note = rcv ? ` (frames received by receive.py from art-inbox ${rcv.rev || '?'}${fs.existsSync(path.join(GDIR, set, `${set}.aseprite`)) ? '' : ', not checked out on this branch yet'})` : ' (frames exported by the cloud)';
-    return (frameCache[set] = { files: byK, from: `${from}${note}`, rcv });
+    return done({ files: byK, from: `${from}${note}`, rcv });
   }
   say(`  deliveries (art/inbox/guides/<set>/<set>.aseprite; the cloud exports the frames - --frames DIR, else the .aseprite on this branch exported here, else the frames receive.py kept in ${RECV ? path.relative(ROOT, RECV).startsWith('..') ? RECV : path.relative(ROOT, RECV) : '(no git dir: none)'}/<set>/):`);
   Object.entries(CHARS).forEach(([id, ch]) => {
@@ -1015,6 +1044,7 @@ function motionMain(argv) {
       if (rev) warn(`${set}: delivered on art-inbox ${rev} but not received here - hold / contact IoU NOT measured; run python3 tools/art/receive.py guides/${set}/${set} (or --frames DIR)`);
       else say(`    ${set}: not delivered yet`);
     } else if (F.rcv && F.rcv.stale) warn(`${set}: the received frames are of art-inbox ${F.rcv.rev}, art-inbox now has ${F.rcv.now} - run python3 tools/art/receive.py guides/${set}/${set} again (measured below on the OLD frames)`);
+    if (F && F.pick) warn(`${set}: ${F.pick}`);
     if (!F) { /* above */ } else if (F.error) fail(`${set}: ${F.error} - delivered but hold / contact IoU cannot be measured (headless Aseprite: tools/art/ase_headless.sh / ASEPRITE_PATH, or --frames <receive.py frames/>)`);
     else if (F.files.filter(Boolean).length !== n) warn(`${set}: ${F.files.filter(Boolean).length} frames in ${F.from}, the ${ch.arch} attack has ${n} - frames matched by index`);
     else say(`    ${set}: ${n} frames from ${F.from}`);

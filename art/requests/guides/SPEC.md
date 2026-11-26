@@ -21,7 +21,8 @@ PC 가 스크립트로 자세를 만들었다면 그 스크립트·수치도 같
 
 ## 2. 세트 이름과 파일
 - 요청: `art/requests/guides/<set>/README.md` · 납품: art-inbox `art/inbox/guides/<set>/`
-- `<set>` = `run_base`, `run_<class>` (전투 이동의 기본), `walk_base`, `walk_<class>` (참고·둔화용)
+- `<set>` = `run_base`, `run_<class>` (전투 이동의 기본), `walk_base`, `walk_<class>` (참고·둔화용),
+  `heavy_base` · `robe_base` (이동 부류 중량·로브의 전투 이동 — 5c절; 어느 시트가 어느 부류인지는 `tools/art/specs/gait_classes.json`)
   (class = warrior | archer | mage | cleric | rogue), 대장 전용은 `run_<captain key>` / `walk_<captain key>`
 - 공격·피격·대기 마네킹 시퀀스는 캐릭터마다: `<동작>__<시트 stem 에서 sheet_ 를 뺀 것>`, 동작 = `atk` | `hit` | `idle`
   (예: `atk__class_warrior`, `atk__captain_ironwall`, `hit__captain_shadowqueen`, `idle__class_warrior`). 파일·좌표·검사는 10절 — 아래 두 줄(8프레임, 엉덩이 x=192 고정)은 걷기·달리기 이야기다
@@ -104,6 +105,40 @@ Background(#FF00FF) · cloth_back(망토) · weapon_back · arm_far · shield ·
 - 띠의 테두리 때문에 한 프레임의 그림은 x=32~351 안에 둔다(각 띠의 1번 칸 왼쪽·4번 칸 오른쪽에 마젠타 32px). v2 는 58~351(먼 팔 끝이 한계)
 - 기준 수치표: `tools/pixelart/run8.py` (걷기와 같은 도우미를 `walk8.py` 에서 가져다 쓴다. v2: posekit 경고 0, `check_skeleton.py` PASS 경고 0 / v1 초안: PASS, 경고 1 — 오르내림 37.5px)
 
+## 5c. 중량·로브: 8프레임 — 뜨지 않는 전투 이동 (`heavy_base` · `robe_base`, 주인 결정 2026-11-26)
+주인: "달리기(이동)에 대해 3가지 부류를 정하고 싶어. 경량, 중량, 로브. 펑퍼짐한 천 복장을 입고 뛰는것도 좀 부자연스러울거고, 중장비를 갖추면 당연히 뛰는건
+물론이고 몸이 저렇게 땅에서 떨어지거나 몸을 앞으로 기울인 채로 가누기도 어려울테니까." → 경량 = 5b절의 달리기. **중량·로브는 그 몸으로 낼 수 있는 가장 빠른
+걸음**(느긋한 산책이 아니다): **뜨는 프레임이 없다**(모든 프레임에서 디딘 발이 y=870, 닿음에서는 두 발 모두), **상체를 크게 숙이지 않는다**, 보폭이 짧다.
+부류 표·수치의 출처: `tools/art/specs/gait_classes.json` 의 `classes.heavy` / `classes.robe`. 세트의 README(`heavy_base/README.md` · `robe_base/README.md`)가 프레임별 수치와
+「검사 기준」을 적고, 같은 값이 초안 `draft/pose.json` 의 `check` 에 있다(만든 곳 `tools/pixelart/gait8.py` 의 `STYLES` · `CHECK`). 마네킹·캔버스·바닥 줄·레이어·관절 점·뼈 길이는 걷기와 같다.
+
+| 프레임 | 이름 | 내용 (H = 중량, G = 로브; 디딘 다리 = 1~4 가까운 쪽, 5~8 먼 쪽) |
+|---|---|---|
+| H1·G1 | 닿음 | 앞발이 발바닥 전체로 닿고 뒷발은 아직 발끝으로 땅에 — **두 발 모두 y=870** |
+| H2·G2 | 내려앉음 | 엉덩이가 그 반쪽에서 가장 낮다(중량: 여기서 무게가 떨어진다, 닿음보다 4px 이상 아래). 뒷발이 낮게 들린다(바닥 위 3px 이상) |
+| H3·G3 | 지나감 | 디딘 발이 엉덩이 아래, 든 발이 낮게 앞으로 지나간다(중량 3~20px · 로브 3~16px — 무릎을 들면 경량이다) |
+| H4·G4 | 밀어냄 | 디딘 발의 뒤꿈치가 들리고 발끝은 제자리. 중량은 엉덩이가 닿음보다 1px 넘게 오르지 않는다(솟으면 경량) |
+| H5~H8·G5~G8 | 반대쪽 | 좌우 바꿈: 엉덩이 ±1px, 발목 x ±2px, 발목 높이 ±4px |
+
+- 한 걸음 = 디딘 발의 발끝이 땅에 있는 다섯 프레임(닿음 → 내려앉음 → 지나감 → 밀어냄 → 다음 닿음의 뒷발) 동안 물러난 거리. 프레임마다 그 1/4 (±3px).
+  초안: 중량 141.9px(게임 23.5), 로브 134.2px(게임 22.2). `pose.json` 의 `step_px` 에서 ±10px 밖이면 실패
+- 기울기(엉덩이 중심 → 목 점): 중량 5° (4~6, **8° 넘으면 실패**), 로브 7° (5~8, **10° 넘으면 실패**). 한 바퀴 변화 2° 이하, 목 점 앞뒤 이동 8px 이하
+- 오르내림: 중량 4~10px(초안 7), 로브 8px 이하(초안 5). 팔: 몸 가까이 — 중량 팔꿈치 55~115°, 한 손의 앞뒤 이동 30px 이하, 두 손 바닥 위 165px 이상;
+  로브 팔꿈치 60~95°, 앞뒤 이동 45px 이하, 손 높이 165~230px
+- 로브만: `cloth_front` 레이어(로브 자락)가 **모든 프레임에 있고**, 자락 맨 아래가 바닥 위 38px 이상(발이 보인다; 경고 범위 38~52), **두 무릎 점이 모든 프레임에서
+  `cloth_front` 의 불투명 픽셀 위**(무릎이 천 밖으로 나오면 경량이다). 자락은 디딤에 바로 밀려 나가고 한 프레임 늦게 돌아온다(내려앉음의 앞·뒤 끝이 닿음과 ±4px — 경고),
+  이웃 프레임 사이 자락 변화의 최댓값 5% 이상(경고 — 흔들리지 않는 로브는 미끄러지는 조각상이다)
+- 시간: 한 칸 = 그려진 보폭의 1/4 을 유닛 빠르기(1배속 약 58 게임 px/초)로 가는 시간 — 중량 101ms, 로브 96ms(`pose.json` 의 `nominal_ms`; 다르면 경고).
+  엔진은 이 칸을 디딘 채로 넘긴다(칸마다 보폭/4 — 주인 결정 "그대로 둠 (B만)": 빠르기는 두고 박자만 맞춘다)
+- 검사: `python3 tools/art/check_skeleton.py <set>.aseprite --gait heavy|robe --pose art/requests/guides/<set>/draft/pose.json`
+  (`--gait` 는 `pose.json` 의 `"gait"`, `H<n>_` / `G<n>_` 레이어 파일 폴더, `heavy_` / `robe_` 로 시작하는 파일 이름에서도 정해진다). 실패·경고의 전체 목록은 세트 README 「검사 기준」,
+  띠는 `check_delivery.py` 를 `--flight-slots` **없이**(모든 칸이 y=870 에 선다). 초안 두 벌 모두 PASS, 경고 0.
+  `pose.json` 의 `check` 가 검사기의 값과 다르면 경고한다(검사기는 자기 값을 쓴다 — 두 곳을 같이 고친다)
+- 등록: 중량·로브의 이동 칸도 `anims.run` 이다(전투 이동 = run 칸). `add_gait.py <시트> --gait run --pose art/requests/guides/heavy_base/…/pose.json` 은 `pose.json` 의 `gait` 로
+  시트의 이동 부류 `sheet.gait`(light / heavy / robe)를 쓰고, 엔진(`js/battle.js` `gaitClassOf`)은 그것을 부류 표보다 먼저 본다. `receive.py gait/<시트>_run` 은 부류 표에서
+  그 시트의 부류를 읽어 경량은 `run_base`(v2, `--flight-slots 4`), 중량·로브는 `heavy_base` / `robe_base`(가장 새 `v<n>/`, 없으면 `draft/`, 뜬 칸 없음)로 잰다
+- 마네킹 막기: `add_gait.py`·`sheets.py` 는 `art/requests/guides/*/` 아래 모든 하위 폴더(`v<n>/`, `draft/`)의 띠·레이어와도 견준다(자리를 맞춘 실루엣 IoU > 0.85) — 중량·로브 초안을 그대로·뒤집어·바닥을 옮겨 낸 것도 거부된다
+
 ## 6. 검수: 자동으로 재는 것 / 사람·GPT 가 보는 것
 자동(클라우드, `pose.json` 또는 joints 레이어 + 띠): **실패** — 뼈 길이(넓적다리·정강이 89.65px, 위팔 68.2, 아래팔+손 71.5)가 어느 프레임에서든 ±2px 밖 ·
 머리 110 ±2 아님 · 디딘 발바닥이 y=870 아님 / 든 발이 그 아래 · 디딘 발 x 가 프레임마다 일정하게 물러나지 않음(±3px) · 한 걸음 135~151px 밖 ·
@@ -163,6 +198,7 @@ R(i+4) 가 R(i) 의 좌우 바꿈이 아님. **경고** — 오르내림 24px �
   `runStride` = 한 걸음에 가는 게임 px (= `pose.json` 의 `run_stride_game_px`, `run_base` 는 45.5; n 프레임 = 두 걸음). 걷기의 `anims.walk` / `walkStride` 와 같은 모양이다.
   전투 이동(달리기·돌격·도주)은 `anims.run` 을 쓴다(주인 결정 2026-11-26). `anims.walk` 는 그 밖의 걷는 걸음(둔화·뒷걸음·달릴 빠르기가 안 되는 느린 자리 옮기기)에 쓴다.
   맞붙은 채 잔걸음에는 둘 다 쓰지 않는다
+- 중량·로브 시트도 이동 칸은 `anims.run` 이고, 시트의 `sheet.gait`(`add_gait.py` 가 `pose.json` 의 `gait` 로 쓴다: run → light, heavy, robe)가 그 칸을 어떻게 넘길지 정한다 — 5c절
 - 달리기 칸의 박자: 엔진은 그려진 달리기 칸을 **코드 달리기와 같은 박자**로 넘긴다 — 한 걸음 = min(`runStride` × 그리는 배율, 코드 달리기의 보폭) (`js/battle.js`).
   그래서 그려진 보폭(`run_base` 45.5px)이 실제 땅 위 이동(1배속 전사의 보폭 약 20px)보다 길어도 되고, **게임 크기에서 디딘 발이 조금 미끄러지는 것은 예상된 것이다**
   (칸마다 (`runStride` × 배율 − 보폭) / 4). 그려진 보폭이 더 짧으면 그 보폭대로 넘긴다(발이 붙고 걸음이 빨라진다)

@@ -31,8 +31,9 @@ NovelAI 그림은 거부한다 (주인 결정: NovelAI 는 디자인 초안 전�
   --allow-draft = 파이프라인 시험용, 언제나 --dry-run 이라 manifest 에 등록할 수 없다.
 뼈대(마네킹) 그림도 거부한다 (마네킹은 PC 가 만드는 자세 가이드, 게임 그림이 아니다 — add_gait.py 와 같은 규칙): 경로에 guides 폴더,
   옆에 pose_measured.json (check_skeleton --export / receive.py 가 마네킹에서 뽑은 프레임), 또는 어느 자세(좌우로 뒤집은 것도)의 실루엣이
-  뼈대 프레임(art/requests/guides/ 초안, art/inbox/guides/ 와 origin/art-inbox 의 PC 마네킹)과 그림 상자의 아래 가운데를 맞추고
-  ±24px 더 찾아(그림 높이를 뼈대 프레임에 맞춘 것도, 발바닥 가운데로 ±2..8도 돌려 바닥에 다시 세운 것도) IoU > 0.9. 높이 1024·너비 384 의
+  뼈대 프레임(art/requests/guides/ 초안 — 세트 아래 모든 하위 폴더 v<n>/·draft/ 의 띠와 레이어, art/inbox/guides/ 와 origin/art-inbox 의
+  PC 마네킹)과 그림 상자의 아래 가운데를 맞추고
+  ±24px 더 찾아(그림 높이를 뼈대 프레임에 맞춘 것도, 발바닥 가운데로 ±2..8도 돌려 바닥에 다시 세운 것도) IoU > 0.85 (add_gait.DRAFT_IOU). 높이 1024·너비 384 의
   배수인 그림은 384 칸으로 한 번, split_poses 로 나눈 자세로 한 번 재어 높은 쪽을, 그 밖의 그림은 나눈 자세로 잰다.
   --allow-draft 로만 (언제나 --dry-run) 처리한다.
 달리기·걷기 프레임은 tools/art/add_gait.py 가 등록된 시트에 붙인다 (이 파일의 shrink_pose · paint_pose 를 같이 쓴다).
@@ -113,8 +114,9 @@ def mannequin_reason(path, exe=None):
     """뼈대(마네킹) 그림으로 보이면 그 이유, 아니면 None (add_gait.py 의 마네킹 막기를 시트 원본에도):
     - 경로에 guides 폴더 (art/requests/guides/<id>/…, art/inbox/guides/<id>/…)
     - 옆에 pose_measured.json (check_skeleton.py --export · receive.py 가 마네킹 .aseprite 에서 뽑은 프레임 png)
-    - 어느 자세(또는 좌우로 뒤집은 것)의 실루엣이 뼈대 프레임과 자리를 맞춰(크기를 뼈대 프레임의 그림 높이로 맞춘 것도, 기울인 것도) IoU > 0.9
-      (add_gait.best_guide_match / draft_masks: 클라우드 초안, 작업 트리와 origin/art-inbox 의 art/inbox/guides/ 마네킹).
+    - 어느 자세(또는 좌우로 뒤집은 것)의 실루엣이 뼈대 프레임과 자리를 맞춰(크기를 뼈대 프레임의 그림 높이로 맞춘 것도, 기울인 것도) IoU > 0.85 (add_gait.DRAFT_IOU)
+      (add_gait.best_guide_match / draft_masks: 클라우드 초안 art/requests/guides/*/<v<n>|draft|…>/, 작업 트리와 origin/art-inbox 의
+      art/inbox/guides/ 마네킹).
       뼈대 규격(높이 1024, 너비 384 의 배수)의 그림은 384 칸으로도, split_poses 로 나눈 자세로도 잰다 — 한 칸 안에 자세 여럿을
       작게 넣은 그림(384x1024 에 2x2 격자)도 잡는다.
     Aseprite 가 없어 마네킹 .aseprite 를 비교 대상으로 읽지 못하면 그 이유를 돌려준다 (비교 없이 받지 않는다)."""

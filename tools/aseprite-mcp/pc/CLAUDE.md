@@ -1,7 +1,8 @@
 # PC 세션 지침 — pixel-management 도트 손질·뼈대 담당 (Aseprite)
 
-지침 판: 2026-11-26e  (보고할 때 이 판을 함께 말한다 — 클라우드가 PC 가 낡은 지침으로 일하는지 알 수 있다)
-이번 판에서 바뀐 것: 동작 마네킹(공격 `atk__`·피격 `hit__`·대기 `idle__` 세트)의 납품 = `<세트>.aseprite` 하나, 프레임 수는 요청서 표대로(공격 7·피격 4), 검사는 `check_skeleton.py --motion`.
+지침 판: 2026-11-26f  (보고할 때 이 판을 함께 말한다 — 클라우드가 PC 가 낡은 지침으로 일하는지 알 수 있다)
+이번 판에서 바뀐 것: 이동 부류 중량·로브 뼈대(`heavy_base`·`robe_base`)의 검사는 `check_skeleton.py` 의 중량·로브 모드다(아래 「납품」 1. 걷기·달리기·중량·로브 줄) — 요청서 README 의 "`--gait walk` 로 공통 항목만" 은 이제 쓰지 않는다.
+(26e: 동작 마네킹 `atk__`·`hit__`·`idle__` 의 납품 = `<세트>.aseprite` 하나, 검사는 `check_skeleton.py --motion`.)
 요청서만 보고 묻지 않고 끝낸다(주인 2026-11-26). (26d: 마네킹 시퀀스를 PC 가 만든다, 이동 프레임 자리 `art/inbox/gait/`.)
 
 **모든 답변·질문·보고는 한국어로 한다.** 영어 문서를 읽더라도 주인에게는 한국어로 말한다. 짧고 쉽게.
@@ -56,15 +57,16 @@
    - **뼈대**는 바탕 해시가 없고 검사 도구가 다르다(요청서 README 의 「자체 검사」에 그대로 적혀 있다):
      - 동작 세트(`atk__`·`hit__`·`idle__`): `uv run --no-project --with pillow --with numpy python tools/art/check_skeleton.py ../pixel-management-inbox/art/inbox/guides/<세트>/<세트>.aseprite --motion <attack|hit|idle> --set <세트>`
        첫 줄 `# skeleton <세트> (<동작>)`. `unrecognized arguments: --motion` 이면 `git pull` 후 다시, 그래도면 멈추고 알린다.
-     - 걷기·달리기(초안이 있는 세트): `uv run --no-project --with pillow --with numpy python tools/art/check_skeleton.py ../pixel-management-inbox/art/inbox/guides/<id>/<id>.aseprite --pose art/requests/guides/<id>/<초안 폴더>/pose.json --base art/requests/guides/<id>/<초안 폴더>/<id>.aseprite`
-       출발점은 요청서의 초안 `.aseprite` 를 납품 폴더로 복사한 것.
+     - 걷기·달리기·중량·로브(초안이 있는 세트): `uv run --no-project --with pillow --with numpy python tools/art/check_skeleton.py ../pixel-management-inbox/art/inbox/guides/<id>/<id>.aseprite --pose art/requests/guides/<id>/<초안 폴더>/pose.json --base art/requests/guides/<id>/<초안 폴더>/<id>.aseprite`
+       출발점은 요청서의 초안 `.aseprite` 를 납품 폴더로 복사한 것. 모드는 `pose.json` 의 `gait` 가 정한다 — 첫 줄 `# skeleton <id> (run|heavy|robe)`(걷기는 괄호 없음).
+       중량·로브(`heavy_base`·`robe_base`, 초안 폴더 `draft`)에서 `unknown gait` 가 나오면 `git pull` 후 다시, 그래도면 멈추고 알린다.
      - 어느 쪽이든 팔다리를 옮기면 `joints` 레이어의 관절 점도 같이 옮기고, `FAIL` 이 있으면 푸시하지 않는다. `RESULT` 줄과 측정 줄을 NOTES 에 옮긴다.
 2. `art/inbox/NOTES.md` 에 절을 붙인다 (제목과 줄 순서: `pc_notes.md` 맨 아래).
 3. `git -C ../pixel-management-inbox status` 로 `art/inbox/` 안만 바뀌었는지 확인 → `add art/inbox` → `commit -m "<위 표의 첫 줄>"` → `pull --rebase origin art-inbox` → `push origin art-inbox`.
    - `pull --rebase` 가 충돌로 멈추면: NOTES.md 뿐이면 양쪽 절을 모두 남기고 `rebase --continue`.
      (`art/inbox/.gitattributes` 의 합치기 설정 덕에 NOTES.md 는 대개 저절로 합쳐진다.)
      **PNG·.aseprite 가 충돌하면 풀지 않는다** — `rebase --abort` 하고 "○○ 파일을 다른 쪽이 먼저 바꿨음" 이라고 알리고 멈춘다.
-4. 주인에게 한국어로 한 줄 보고 ("○○ 손질 올림, 커밋 abc1234, 지침 판 2026-11-26e") 후 다음 항목.
+4. 주인에게 한국어로 한 줄 보고 ("○○ 손질 올림, 커밋 abc1234, 지침 판 2026-11-26f") 후 다음 항목.
 
 ## 하지 않는 것
 - 게임 브랜치(이 폴더) 커밋·푸시, `art/inbox/` 밖 수정, dot_queue.md·feedback.md·pc_notes.md 수정 (클라우드가 바꾼다).

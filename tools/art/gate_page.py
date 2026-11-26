@@ -36,7 +36,11 @@ What the page does (docs/plans/2026-11-26_motion_frames.md section 6 (2) "첫 �
     decoy answer)". PASS when at least 5 paired sessions took part and >= 80 % of them (4 of 5) picked the contact frame or a
     neighbour on the planned play AND >= 80 % picked the moved side on the decoy (they read the silhouette, not the beat); fewer
     than 5 paired sessions is FAIL "not enough paired sessions" (the picks are listed). A set without a decoy (--no-decoy, or a
-    one-frame set) counts planned answers as before. Blobs are counted once per session id: the same blob pasted twice is one viewer.
+    one-frame set) counts planned answers as before. Blobs are counted once per session id AND once per trials content: the same
+    blob pasted twice, or pasted again with its session id (or viewer) edited, is one viewer.
+  - the page id is a hash of the sets (id, ms, contact, frames); a --no-decoy page adds "-nodecoy" to it, so its blobs never count
+    on a gate-1 page (with decoys) made from the same sets and the other way round, and every verdict of a --no-decoy page says
+    "no decoys - not a gate-1 result" (it measures only whether the contact frame is found, not whether the silhouette is read).
 Exit code 1 when a set cannot be read.
 """
 import argparse
@@ -549,15 +553,19 @@ th,td{border-bottom:1px solid var(--line);padding:5px 6px;text-align:left;vertic
   function score() {
     var blobs = parseBlobs($('pasted').value), other = blobs.filter(function (b) { return b.page !== D.page; }).length;
     // one viewer (session) counts once: the same blob pasted twice is not two viewers
+    // (by session id AND by the trials themselves: a copied blob with an edited session id / viewer is still one viewer - the random
+    // order, decoy timing factors and picks of two real sessions never match)
     var seen = {}, dup = 0;
     blobs = blobs.filter(function (b) {
       if (b.page !== D.page) return false;
-      var k = b.session || JSON.stringify(b.trials);
-      if (seen[k]) { dup++; return false; }
-      seen[k] = true; return true;
+      var ks = ['T:' + JSON.stringify(b.trials)];
+      if (b.session) ks.push('S:' + b.session);
+      if (ks.some(function (k) { return seen[k]; })) { dup++; return false; }
+      ks.forEach(function (k) { seen[k] = true; }); return true;
     });
     $('scoremsg').textContent = blobs.length + '명(회) 결과' + (other ? ', 다른 페이지의 결과 ' + other + '개는 뺌' : '') +
-      (dup ? ', 같은 세션을 두 번 붙인 결과 ' + dup + '개는 뺌' : '');
+      (dup ? ', 같은 세션(또는 같은 답)을 두 번 붙인 결과 ' + dup + '개는 뺌' : '') +
+      (D.decoy ? '' : ' — no decoys - not a gate-1 result (속임 판 없는 페이지: 첫 관문 결과가 아님)');
     if (!blobs.length) { $('verdict').innerHTML = ''; return; }
     var html = '<table><tr><th>세트</th><th>보는 사람</th><th>계획대로: 맞는 순간 ±1</th><th>속임 판: 옮긴 쪽</th><th>판정</th></tr>';
     var hitR = function (t) { return Math.abs(t.pick - t.expected) <= 1; };
@@ -590,6 +598,7 @@ th,td{border-bottom:1px solid var(--line);padding:5px 6px;text-align:left;vertic
         else if (k >= 0.8 * n && (m === 0 || kd >= 0.8 * m)) verdict = '<b class="ok">PASS</b>';
         else verdict = '<b class="bad">FAIL</b> — ' + (k < 0.8 * n ? '맞는 순간이 읽히지 않음' : '속임 판에서 박자를 따라감');
       }
+      if (!D.decoy) verdict += ' <span class="muted">(no decoys - not a gate-1 result: 속임 판 없는 페이지)</span>';
       if (skipped.length) verdict += '<br><span class="muted">' + skipped.join('<br>') + '</span>';
       html += '<tr><td>' + esc(s.id) + '<br><span class="muted">맞는 순간 ' + (s.contact + 1) + '번 (' + esc(s.names[s.contact]) + ')</span></td><td>' + n +
         '</td><td>' + k + ' / ' + n + '</td><td>' + (m ? kd + ' / ' + m : '-') + '</td><td>' + verdict + '</td></tr>';
@@ -636,7 +645,9 @@ def main(argv=None):
                   + f', source {s["source"]}')
             for n in s['notes']:
                 print(f'  WARN: {n}')
-    page_id = hashlib.sha1(json.dumps([[s['id'], s['ms'], s['contact'], s['frames']] for s in sets]).encode()).hexdigest()[:10]
+    # a --no-decoy page never shares its id with the gate-1 page of the same sets (blobs are matched on the page id)
+    page_id = hashlib.sha1(json.dumps([[s['id'], s['ms'], s['contact'], s['frames']] for s in sets]).encode()).hexdigest()[:10] \
+        + ('-nodecoy' if a.no_decoy else '')
     data = dict(page=page_id, made=__import__('datetime').date.today().isoformat(), zoom=a.zoom, stripZoom=max(1, a.zoom - 1), speed=a.speed,
                 reps=max(1, a.reps),
                 decoy=not a.no_decoy, scale=a.scale,

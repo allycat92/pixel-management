@@ -41,7 +41,7 @@
 게임에 들어가는 그림만 받는다: 초안 자리(art/concepts/, art/requests/, drafts/, nai_*)의 파일은 sheets.py 와 같은 규칙으로, 뼈대(마네킹)는
   — 경로에 guides 폴더가 있는 파일(art/inbox/guides/<id>/ 포함), 옆에 pose_measured.json 이 있는 띠(check_skeleton --export), joints 레이어가 있는
   .aseprite, 어느 프레임(또는 좌우로 뒤집은 것)의 실루엣이 뼈대 프레임과 자리를 맞춰(그림 상자의 아래 가운데를 맞추고 x, y ±24px 를 더 찾아)
-  IoU 0.9 넘게 겹치는 원본 (joints 레이어를 지운 마네킹, 이름을 바꾸거나 몇 px 옮기거나 뒤집은 마네킹) — 모두 거부한다. 크기를 바꾼
+  IoU 0.85 넘게 겹치는 원본 (joints 레이어를 지운 마네킹, 이름을 바꾸거나 몇 px 옮기거나 뒤집은 마네킹) — 모두 거부한다. 크기를 바꾼
   마네킹도 잡도록 원본 프레임을 뼈대 프레임의 그림 상자 높이로 맞춰(가로세로 비 유지) 한 번 더 잰다 (높이 비 0.5..4 안에서 — 작게 줄여 격자로 넣은 마네킹도).
   기울인 마네킹도 잡도록 그대로 잰 IoU 가 0.5 이상인 짝은 원본을 발바닥 가운데로 ±2도부터 2도씩 ±8도까지 IoU 가 오르는 쪽으로 돌려
   (바닥에 다시 세워; 높이를 맞춰 보는 짝은 돌린 뒤 높이를 맞춰) 더 잰다 (±9도 안의 기울기, 크기를 바꾸고 기울인 것도).
@@ -375,7 +375,9 @@ def command_for(sid, gait, rec):
 
 GUIDES = os.path.join(ROOT, 'art', 'requests', 'guides')
 INBOX_GUIDES = os.path.join(ROOT, 'art', 'inbox', 'guides')
-DRAFT_IOU = 0.9              # 원본 프레임의 실루엣이 뼈대(마네킹)의 한 프레임과 이만큼 겹치면 마네킹으로 본다
+DRAFT_IOU = 0.85             # 원본 프레임의 실루엣이 뼈대(마네킹)의 한 프레임과 이만큼 겹치면 마네킹으로 본다
+                             # (2026-11-26 0.9 → 0.85: 그린 그림 57장 — GPT 시트 53 + 그린 달리기 띠 4 — 의 가장 높은 값 0.720, 여유 0.13;
+                             #  윤곽 덧칠·가늘게·고르지 않은 확대로 0.85~0.9 에 머물던 마네킹 편집도 거부된다)
 DRAFT_SEARCH = 24            # 맞춘 뒤 x, y 로 더 찾아보는 범위 (원본 px)
 EXTRA_GUIDES = []            # 비교에 더할 폴더 (receive.py 가 origin/art-inbox 의 art/inbox/guides/ 를 꺼내 둔 곳; --extra-guides)
 INBOX_REF = 'origin/art-inbox'   # 이 ref 의 art/inbox/guides/** 도 비교한다 (git show; 작업 트리에 아직 없는 PC 마네킹)
@@ -718,7 +720,7 @@ def match_words(dx, dy, flip, k, deg):
 def draft_match(p, exe):
     """원본의 어느 프레임(또는 좌우로 뒤집은 것)이 뼈대(마네킹) 프레임과 자리를 맞춰 실루엣 IoU > DRAFT_IOU 로 겹치면 그 이유, 아니면 None.
     joints 레이어를 지운 마네킹, 이름을 바꾼 마네킹 띠, 몇 px 옮기거나 뒤집은 마네킹도 잡는다
-    (그린 캐릭터는 옷·머리·무기로 실루엣이 달라진다 — 등록된 시트의 GPT 원본은 자리를 맞춰도 0.9 에 한참 못 미친다)."""
+    (그린 캐릭터는 옷·머리·무기로 실루엣이 달라진다 — 등록된 시트의 GPT 원본은 자리를 맞춰도 0.72 이하)."""
     try:
         if p.lower().endswith(('.aseprite', '.ase')):
             frames = frames_from_aseprite(p, exe)[0]
@@ -743,7 +745,7 @@ def guide_reason(p, exe):
     - 옆에 pose_measured.json (check_skeleton.py --export 가 마네킹에서 뽑은 띠)
     - joints 레이어가 있는 .aseprite (관절 점 레이어 = 뼈대 작업 파일)
     - 어느 프레임(또는 뒤집은 것)의 실루엣이 뼈대 프레임(draft_masks: 클라우드 초안 + PC 가 넘긴 art/inbox/guides/ 마네킹)과
-      자리를 맞춰 IoU > 0.9 (joints 레이어를 지운 마네킹, 이름을 바꾸거나 옮기거나 뒤집거나 크기를 바꾸거나 ±9도 안으로 기울인 마네킹)"""
+      자리를 맞춰 IoU > 0.85 (joints 레이어를 지운 마네킹, 이름을 바꾸거나 옮기거나 뒤집거나 크기를 바꾸거나 ±9도 안으로 기울인 마네킹)"""
     real = os.path.realpath(p)
     if 'guides' in real.split(os.sep)[:-1]:
         return 'guides/ 폴더 안의 파일 = 뼈대 가이드'

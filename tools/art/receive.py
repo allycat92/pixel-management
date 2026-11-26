@@ -21,16 +21,21 @@ It does the steps the reviewer otherwise repeats by hand (and has got wrong by h
 Nothing is registered or committed: after reading it, run sheets.py <file> yourself (settings come from phase3.json).
 
 Two kinds of delivery are not base sheets and never go to sheets.py:
-  guides/<set>/<set>.aseprite     a skeleton (mannequin) from the PC: check_skeleton.py with the request's pose.json and draft, strips
-                                  exported and checked (run sets: check_delivery --flight-slots 4, the flight frame R4 / R8 is in the air)
+  guides/<set>/<set>.aseprite     a skeleton (mannequin) from the PC: check_skeleton.py with the request's pose.json and draft (the
+                                  newest v<n>/ of the set, else its draft/), strips exported and checked (run sets: check_delivery
+                                  --flight-slots 4, the flight frame R4 / R8 is in the air; heavy / robe sets and walks: no flight slot)
   gait/<sheet stem>_<run|walk>.aseprite, gait/<sheet stem>_<run|walk>_a.png + _b.png
-                                  final gait frames for a registered sheet: strips checked (run: --flight-slots 4), the .aseprite checked
+                                  final gait frames for a registered sheet. The run frames follow the sheet's movement class
+                                  (tools/art/specs/gait_classes.json sheets.<id>.gait): light -> guides/run_base (newest v<n>/: v2),
+                                  heavy -> guides/heavy_base, robe -> guides/robe_base (newest v<n>/, else draft/); only a light run has
+                                  a flight frame. Strips checked (light run: --flight-slots 4), the .aseprite checked
                                   for a mannequin (add_gait guide_reason: joints layer, or a frame whose silhouette matches a skeleton
-                                  frame at IoU > 0.9 after alignment - bottom-centre + a +-24 px search, mirrored too - against the cloud
+                                  frame at IoU > 0.85 after alignment - bottom-centre + a +-24 px search, mirrored too - against the cloud
                                   drafts, art/inbox/guides/ here AND the mannequins on origin/art-inbox - add_gait reads those itself with
                                   git, and receive also passes its extracted copy as --extra-guides; a refusal names the matched mannequin)
-                                  and its export compared with the PNGs, then add_gait.py --dry-run (stride from guides/<gait>_<class> or
-                                  <gait>_base); the register command is printed only when everything passed
+                                  and its export compared with the PNGs, then add_gait.py --dry-run (stride from guides/<gait>_<sheet>,
+                                  else the class's base set above; walk: walk_base); the register command is printed only when everything
+                                  passed
   guides/<motion>__<stem>/<motion>__<stem>.aseprite   (motion = atk | hit | idle; stem = the sheet png stem without 'sheet_')
                                   a per-character motion mannequin from the PC (docs/plans/2026-11-26_motion_frames.md): the .aseprite
                                   is the whole delivery (plus mannequin_pc.py when the PC built it with a script: it is checked out with
@@ -231,9 +236,10 @@ def dry_run(png, work, extra):
 
 
 def version_key(d):
-    """v2 < v10 (folder names of request drafts)"""
+    """draft < v2 < v10 (folder names of request drafts): the newest v<n>/ wins, a folder with another name (draft/: a cloud draft
+    the PC has not touched up yet) only when there is no v<n>/"""
     m = re.match(r'v(\d+)$', d)
-    return (0, int(m.group(1)), d) if m else (1, 0, d)
+    return (1, int(m.group(1)), d) if m else (0, 0, d)
 
 
 def latest_pose(set_name):
@@ -679,10 +685,28 @@ def motion_skeleton(rel, name, work, exe, tip):
 GAIT_RE = re.compile(r'^gait/(sheet_[^/]+?)_(run|walk)(?:_([ab]))?(?:\.aseprite)?$')
 
 
-def gait_pose(sheet, gait):
-    """the request whose stride the gait frames follow: guides/<gait>_<sheet without 'sheet_'>, <gait>_<last name part>, else <gait>_base"""
+GAIT_CLASSES = os.path.join(ROOT, 'tools', 'art', 'specs', 'gait_classes.json')
+CLASS_BASE = {'light': 'run_base', 'heavy': 'heavy_base', 'robe': 'robe_base'}   # movement class -> the mannequin set of its run frames
+
+
+def gait_class(sheet):
+    """the sheet's movement class from tools/art/specs/gait_classes.json (sheets.<sheet id>.gait: light / heavy / robe / none), or None"""
     body = sheet[len('sheet_'):]
-    for set_name in (f'{gait}_{body}', f'{gait}_{body.split("_")[-1]}', f'{gait}_base'):
+    sid = 'sheet/' + body.replace('_', '/', 1)
+    try:
+        with open(GAIT_CLASSES, encoding='utf-8') as f:
+            return ((json.load(f).get('sheets') or {}).get(sid) or {}).get('gait')
+    except (OSError, ValueError):
+        return None
+
+
+def gait_pose(sheet, gait):
+    """the request whose stride (and, for run, whose movement class) the gait frames follow: guides/<gait>_<sheet without 'sheet_'>,
+    <gait>_<last name part>, else - run - the base set of the sheet's class in gait_classes.json (light run_base, heavy heavy_base,
+    robe robe_base; newest v<n>/, else draft/) or - walk - walk_base"""
+    body = sheet[len('sheet_'):]
+    base = CLASS_BASE.get(gait_class(sheet) or 'light', 'run_base') if gait == 'run' else f'{gait}_base'
+    for set_name in (f'{gait}_{body}', f'{gait}_{body.split("_")[-1]}', base):
         p, d = latest_pose(set_name)
         if p:
             return p, d
@@ -761,7 +785,19 @@ def gait_delivery(rel, work, exe, tip):
     if ('_a.png' in got) != ('_b.png' in got):
         print('  FAIL: only one strip delivered - a gait set is _a.png (frames 1-4) AND _b.png (frames 5-8)')
         rc = 1
-    flight = ['--flight-slots', '4'] if gait == 'run' else []
+    cls = gait_class(sheet)
+    pose_path, pose = gait_pose(sheet, gait)
+    # only the light run has a flight frame (slot 4 in the air); heavy / robe run frames stand on y=870 in every slot
+    lifted = gait == 'run' and (pose.get('gait') == 'run' if pose_path else cls not in ('heavy', 'robe'))
+    flight = ['--flight-slots', '4'] if lifted else []
+    if gait == 'run':
+        print(f'- movement class (tools/art/specs/gait_classes.json): {cls or "not in the table (light)"} -> mannequin '
+              + (os.path.relpath(pose_path, ROOT) if pose_path else 'none found')
+              + (f' (gait {pose.get("gait")})' if pose_path else '')
+              + ('; strips checked with --flight-slots 4 (the light run is in the air in slot 4)' if flight else
+                 '; strips checked without --flight-slots (no flight: every slot stands on y=870)'))
+        if pose_path and cls in CLASS_BASE and pose.get('gait') != ('run' if cls == 'light' else cls):
+            print(f'  WARN: {sheet} is {cls} in gait_classes.json but the request it follows is a {pose.get("gait")} set')
     _, item = sheet_args(sheet)
     cellarg = ['--cell', str(item['cell'])] if item.get('cell') else []
     strips = [got[s] for s in ('_a.png', '_b.png') if s in got]
@@ -799,7 +835,6 @@ def gait_delivery(rel, work, exe, tip):
                 strips = exp
     for p in strips:
         rc = strip_check(p, os.path.basename(p) + (' (--flight-slots 4)' if flight else ''), flight + cellarg) or rc
-    pose_path, pose = gait_pose(sheet, gait)
     src = [got['_a.png'], got['_b.png']] if '_a.png' in got and '_b.png' in got else ([got['.aseprite']] if '.aseprite' in got else [])
     if src:
         cmd = [sys.executable, os.path.join(ROOT, 'tools', 'art', 'add_gait.py'), sheet, '--gait', gait, '--src', *src,
