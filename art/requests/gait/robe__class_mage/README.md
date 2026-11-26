@@ -105,6 +105,7 @@ DELIVERY: commit only the two PNGs under art/inbox/gait/ and add to art/inbox/NO
   결과: 통과 | 고침 | 다시   (your own verdict as animation head: natural? in character? does the contact frame read?)
   본 방법: (game 1x/4x, the preview GIF, frames - what you looked at)
   고칠 점: (who - Antigravity/cloud - what, with frame numbers; "없음" if it passes)
+  남은 걱정: (what the QA cross-check should look at; "없음" if none)
   캐릭터 메모: (direction for this character's next motions; omit if none)
 Push to art-inbox only. Do not touch files outside art/inbox/. Then stop.
 ```

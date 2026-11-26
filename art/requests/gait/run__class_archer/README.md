@@ -49,7 +49,7 @@ THE MOVE (owner's three movement classes; light: the accepted run: lean forward,
     shoulders, elbows (hands: see ARMS - where the text moves a hand, that is intended, not a deviation).
     The mannequin's big round head is a placeholder: draw the character's own head on the mannequin's neck, at its own size
     (as in the sheet).
-  - R1 contact (near foot lands a little ahead, knee bent) - R2 catch (body drops onto the foot, lowest) - R3 push-off (stance leg extends behind, heel up) - R4 FLIGHT (both feet clearly off the ground, legs scissored, body pressed forward and leaning the most). R5-R8 = the same with the far foot.
+  - R1 contact (near foot lands a little ahead, knee bent) - R2 catch (the hips drop onto the foot: lowest hips, but the torso straightens, so the head top is the HIGHEST of the cycle - see Height) - R3 push-off (stance leg extends behind, heel up) - R4 FLIGHT (both feet clearly off the ground, legs scissored, body pressed forward and leaning the most). R5-R8 = the same with the far foot.
   - The hips stay nearly level: the top of the head stays within about 10 px of the same height in all 8 frames. NO hopping, no bouncing up and down.
   - Lean forward (hip to neck): R1/R5 24, R2/R6 19.4, R3/R7 29.1, R4/R8 31.4 deg.
   - Height: the mannequin's head top is at y=453/450/457/459 in R1 R2 R3 R4 (the same in R5 R6 R7 R8): R1 +0, R2 -3, R3 +4, R4 +6 px from R1 (+ = lower) - move your head top by the same amounts (bob 9 px).
@@ -68,7 +68,7 @@ ARMS AND WEAPONS:
   - Bow (far hand): carried LOW in the far hand, roughly upright with the string toward the body, as in the idle. It moves with the far arm (forward in R6-R8/R1, back toward the hip in R2-R5) but stays in front of the far hip/thigh: never behind the body, never above the shoulder, no arrow nocked. Its lower tip stays above y=852 in R4/R8 and its front edge left of x=345.
   - Near hand: an empty gloved fist pumping with the mannequin's near arm; the forearm may drop to belt height as in the idle - intended, not a deviation.
   - Quiver: fixed on the back, fletchings above the near shoulder; it bounces at most a few px with the body, no arrow falls out.
-  - The hood and the tunic skirt trail back and lag the body by ONE frame: they lift most in R1/R5 (right after the flight) and settle in R3/R7. The hood stays UP and the mask on.
+  - The hood and the tunic skirt trail back and lag the body by ONE frame: they lift most in R1/R5 (right after the flight) and settle in R3/R7. The hood stays UP and the mask on (the mask in the dark outfit keys, as in the sheet).
   - Face: in shadow (hood + mask) in every frame, as in the idle.
 
 MUST NOT CHANGE: outfit, colours, proportions, headgear, weapon and shield shapes and sizes, and the SCALE of the accepted
@@ -107,6 +107,7 @@ DELIVERY: commit only the two PNGs under art/inbox/gait/ and add to art/inbox/NO
   결과: 통과 | 고침 | 다시   (your own verdict as animation head: natural? in character? does the contact frame read?)
   본 방법: (game 1x/4x, the preview GIF, frames - what you looked at)
   고칠 점: (who - Antigravity/cloud - what, with frame numbers; "없음" if it passes)
+  남은 걱정: (what the QA cross-check should look at; "없음" if none)
   캐릭터 메모: (direction for this character's next motions; omit if none)
 Push to art-inbox only. Do not touch files outside art/inbox/. Then stop.
 ```

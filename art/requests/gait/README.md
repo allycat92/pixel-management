@@ -54,11 +54,16 @@ python3 tools/art/gait_requests.py --write sheet/<kind>/<key> [sheet/... ...]
 ```
 - 시트의 부류(`gait_classes.json`) → 그 부류의 확정 마네킹(`pose.json`)의 숫자로 README 를 쓰고, `tools/art/run_request_guides.py` 가 그림 넷을 만든다.
   대기 자세의 x 범위·앵커 열·배율은 등록된 시트(`assets/art/manifest.json`)와 원본(`art/inbox/<stem>.png`)·요청서 배율(`art/requests/phase3.json`)에서 잰다 — 캐릭터마다 손으로 적는 표가 없다.
-- 손에 든 것·천·얼굴 문장은 `tools/art/gait_requests.py` 의 `CARRY` 표(시트 id 마다)에서 온다. 표에 없는 시트는 phase3 꾸러미 README 의 CHARACTER 줄 + 부류 기본 문장으로 만들고
-  「검토」를 알린다 → 대기 그림을 보고 CARRY 에 적은 뒤 `--force` 로 다시 만든다.
-- 이미 있는 폴더는 `--force` 없이 건드리지 않는다. `--out <폴더>` 는 시험용(목록을 고치지 않는다). 이 목록만 다시 쓰기: `python3 tools/art/gait_requests.py --index`.
+- 손에 든 것·천·얼굴 문장은 `tools/art/gait_requests.py` 의 `CARRY` 표(시트 id 마다)에서 온다(중량은 방패를 가슴 앞에 세운 채, 로브는 옷자락이 한 칸 늦고 무릎을 가림).
+  표에 없는 시트는 phase3 꾸러미 README 의 CHARACTER 줄(없으면 phase3.json 의 prompt) + 부류 기본 문장으로 만들고 README 와 출력에 「검토」를 단다
+  → 대기 그림을 보고 CARRY 에 적은 뒤 `--force` 로 다시 만든다. 「검토」가 달린 요청은 대기열에 올리지 않는다.
+- 이미 있는 폴더는 `--force` 없이 건드리지 않는다. 손으로 쓴 요청(`run__class_warrior`, `run__captain_shadowqueen`)은 `--force` 로도 덮어쓰지 않는다.
+  `--out <폴더>` 는 시험용(목록을 고치지 않는다). 이 목록만 다시 쓰기: `python3 tools/art/gait_requests.py --index`.
+- 같은 입력이면 같은 파일이 나온다(README 의 날짜는 `--date`, 기본 오늘). 검사: `python3 tools/art/gait_requests.py --check` — 분류·엔진 표에 더해 요청 폴더마다
+  README 가 가리키는 파일이 있는지, `--write` 로 만든 폴더의 `guide_*` 가 지금 부류 마네킹 띠와 바이트까지 같은지 본다.
 - 만든 뒤: 그림 넷을 눈으로 본다(같은 배율, 발이 바닥 줄 위) → `art/requests/dot_queue.md` 「지금 차례」에 줄을 올린다(클라우드).
-- 마네킹만 바꿔 다시: `python3 tools/art/run_request_guides.py <시트> --force` (그림만). 잰 값만 보기: `--info`.
+- 마네킹이 새 판(v<n>)이 되면: `python3 tools/art/gait_requests.py --write <시트> --force` (README 의 숫자와 그림을 함께 — `--check` 가 옛 가이드를 잡는다).
+  그림만 다시: `python3 tools/art/run_request_guides.py <시트> --force`. 잰 값만 보기: `python3 tools/art/run_request_guides.py <시트> --info`.
 
 ## 받는 쪽 (클라우드)
 

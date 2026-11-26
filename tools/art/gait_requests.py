@@ -8,7 +8,8 @@
 분류의 원본은 tools/art/specs/gait_classes.json (시트마다 light / heavy / robe / none). 이 도구는
   (기본)    부류마다 아직 그려진 이동 칸이 없는(또는 다른 부류 마네킹으로 그려진) 시트와, 그 요청 폴더·마네킹·납품 이름·붙이는 명령을 보여 준다.
   --js      엔진이 읽는 표 js/gait_classes.js 를 다시 만든다 (index.html 이 battle.js 보다 먼저 싣는다).
-  --check   js/gait_classes.js 가 JSON 과 같은지, JSON 이 등록된 전투 시트를 빠짐없이 덮는지 본다 (다르면 종료 코드 1).
+  --check   js/gait_classes.js 가 JSON 과 같은지, JSON 이 등록된 전투 시트를 빠짐없이 덮는지, art/requests/gait/ 의 요청 폴더가
+            가리키는 파일이 있고 (--write 로 만든 폴더는) 가이드가 부류 마네킹 띠와 같은지 본다 (다르면 종료 코드 1).
   --json    현황을 JSON 으로.
   --write <시트 id...>  시트마다 요청 폴더 하나를 통째로 만든다 (README + guide_<p>_a/b.png + size_<p>_a/b.png, p = run/heavy/robe):
             부류(gait_classes.json) → 그 부류의 확정 마네킹(pose.json 의 기울기·오르내림·뜸 여부·보폭·디딘 발 자리),
@@ -158,6 +159,52 @@ def check(spec, man):
     return errs
 
 
+PATH_RE = re.compile(r'(?<![\w/])((?:art|tools|assets|docs|js)/[\w./-]+\.(?:png|json|gif|aseprite|md|py|jpg|js))')
+
+
+def check_requests(spec, man):
+    """art/requests/gait/*__*/: 머리 줄의 시트가 등록·분류되어 있고, README 가 가리키는 파일이 있고(납품 art/inbox/gait/ 는 빼고),
+    --write 로 만든 폴더는 guide_<p>_a/b.png 가 지금 부류 마네킹 띠와 바이트까지 같고 size_<p>_a/b.png 가 있는지 본다."""
+    import filecmp
+    errs = []
+    for d in sorted(glob.glob(os.path.join(ROOT, 'art', 'requests', 'gait', '*__*', 'README.md'))):
+        folder = os.path.dirname(d)
+        name = rel(folder)
+        text = open(d, encoding='utf-8').read()
+        m = re.match(r'#\s*(.+?)\s*·\s*`(sheet/[^`]+)`', text.split('\n', 1)[0])
+        if not m:
+            errs.append(f'{name}/README.md: 첫 줄에 「제목 · `sheet/...`」가 없다')
+            continue
+        sid = m.group(2)
+        cls = (spec['sheets'].get(sid) or {}).get('gait')
+        if sid not in man:
+            errs.append(f'{name}: {sid} 가 등록되어 있지 않다')
+        if cls not in CLASSES:
+            errs.append(f'{name}: {sid} 의 부류 {cls!r} 는 그린 이동 칸을 받지 않는다')
+            continue
+        for ref in sorted(set(PATH_RE.findall(text))):
+            if not ref.startswith('art/inbox/gait/') and not os.path.exists(os.path.join(ROOT, ref)):
+                errs.append(f'{name}/README.md: 없는 파일 {ref}')
+        if 'gait_requests.py --write' not in text.split('\n', 3)[2]:
+            continue                                   # 손으로 쓴 요청 (run__class_warrior, run__captain_shadowqueen)
+        want = os.path.basename(folder).split('__', 1)[0]
+        if want != REQ_PREFIX[cls]:
+            errs.append(f'{name}: 폴더 머리 {want}__ 인데 {sid} 는 {cls} ({REQ_PREFIX[cls]}__)')
+            continue
+        g, _ = guide_of(cls, spec)
+        pose = load(g)
+        for h in 'ab':
+            gp = os.path.join(folder, f'guide_{REQ_PREFIX[cls]}_{h}.png')
+            src = os.path.join(ROOT, os.path.dirname(g), f'{pose["set"]}_{h}.png')
+            if not os.path.exists(gp) or not filecmp.cmp(gp, src, shallow=False):
+                errs.append(f'{name}: guide_{REQ_PREFIX[cls]}_{h}.png 가 {rel(src)} 와 다르다 — gait_requests.py --write {sid} --force')
+            if not os.path.exists(os.path.join(folder, f'size_{REQ_PREFIX[cls]}_{h}.png')):
+                errs.append(f'{name}: size_{REQ_PREFIX[cls]}_{h}.png 가 없다')
+        if g not in text:
+            errs.append(f'{name}/README.md: 부류 마네킹 {g} 를 가리키지 않는다 — --force 로 다시 만들 것')
+    return errs
+
+
 # ───────── --write: 요청 폴더 만들기 ─────────
 # 캐릭터가 이동하는 동안 손에 든 것·천·얼굴 (phase3 꾸러미 README 의 CHARACTER 줄과 승인된 대기 그림을 보고 적었다).
 # title = 한국어 제목, name = 프롬프트의 이름, character = 영어 CHARACTER, carry = ARMS AND WEAPONS 줄들, cloth = 천·머리의 늦음,
@@ -185,7 +232,7 @@ CARRY = {
         'cloth': ['The braid swings a little behind her back and lags the body by ONE frame; the tabard and tassets sway slightly '
                   'with each footfall (the weight drop in H2/H6) - no flapping.'],
         'face': 'Face: set and determined, eyes forward, mouth closed; the helmet sits steady.',
-        'ko': '탑 방패는 먼 팔에 **가슴 앞에 세운 채**(위 끝 어깨 높이 — 흔들지 않고 몸과 함께만 오르내림), 철퇴는 가까운 손에 '
+        'ko': '탑 방패는 먼 팔에 **가슴 앞에 세운 채**(위 끝 턱 높이, 아래 끝 y 760~790 — 흔들지 않고 몸과 함께만 오르내림), 철퇴는 가까운 손에 '
               '**허리 높이로, 머리를 위로** 쥔다 — 휘두르지 않는다. 땋은 머리·타바드는 한 칸 늦게 조금 흔들린다.',
     },
     'sheet/class/mage': {
@@ -232,7 +279,7 @@ CARRY = {
             'falls out.',
         ],
         'cloth': ['The hood and the tunic skirt trail back and lag the body by ONE frame: they lift most in R1/R5 (right after the '
-                  'flight) and settle in R3/R7. The hood stays UP and the mask on.'],
+                  'flight) and settle in R3/R7. The hood stays UP and the mask on (the mask in the dark outfit keys, as in the sheet).'],
         'face': 'Face: in shadow (hood + mask) in every frame, as in the idle.',
         'ko': '활은 **먼 손에 낮게, 몸 앞에 세워** 들고(화살은 메기지 않는다) 먼 팔과 함께 흔든다. 가까운 손은 빈 주먹으로 흔든다. '
               '화살통은 등에 붙어 있다. 후드·튜닉 자락은 한 칸 늦게 뒤로.',
@@ -271,7 +318,7 @@ CARRY = {
             'Far hand: an empty fist (the idle\'s guard hand) pumping with the mannequin\'s far arm, elbow bent.',
         ],
         'cloth': ['The shoulder cape and the hood point trail back and lag the body by ONE frame (they lift most in R1/R5 and settle '
-                  'in R3/R7); the sash ends flick back; the scarf stays over the mouth and nose.'],
+                  'in R3/R7); the sash ends flick back; the scarf stays over the mouth and nose (in the dark outfit keys, as in the sheet).'],
         'face': 'Face: in shadow under the hood in every frame (at most two small eye glints), scarf on.',
         'ko': '단검은 가까운 손에 **역수(칼날이 팔뚝을 따라 뒤로)** 그대로 쥐고 팔과 함께 흔든다 — 바로 쥐기로 바꾸지 않는다. '
               '먼 손은 빈 주먹으로 흔든다. 어깨 망토·후드 끝은 한 칸 늦게 뒤로.',
@@ -363,23 +410,29 @@ def write_request(sid, out=None, force=False, date=None, spec=None, man=None):
     short = stem[len('sheet_'):]
     p = REQ_PREFIX[cls]
     folder = out or os.path.join(ROOT, 'art', 'requests', 'gait', f'{p}__{short}')
-    if os.path.exists(os.path.join(folder, 'README.md')) and not force:
-        raise rg.Fail(f'{rel(folder)}/README.md 가 이미 있다 (그려 받은 요청일 수 있다) — 다시 만들려면 --force')
+    old = os.path.join(folder, 'README.md')
+    if os.path.exists(old):
+        if not force:
+            raise rg.Fail(f'{rel(folder)}/README.md 가 이미 있다 (그려 받은 요청일 수 있다) — 다시 만들려면 --force')
+        if 'gait_requests.py --write' not in open(old, encoding='utf-8').read():
+            raise rg.Fail(f'{rel(folder)}/README.md 는 손으로 쓴 요청이다 (run__class_warrior 같은 본보기) — --force 로도 덮어쓰지 않는다')
     geo = rg.build(sid, folder, cls, man, force=True)
     pose = load(geo['pose'])
     frames = pose['frames']
     item = phase3_item(sid)
     pkg = item.get('package') or geo.get('package')
+    if not pkg and os.path.isdir(os.path.join(ROOT, 'art', 'requests', 'phase3', short)):
+        pkg = f'art/requests/phase3/{short}'        # 꾸러미 칸이 없는 phase3 항목 (특별 용병 등)
     c = CARRY.get(sid)
     generic = c is None
     if generic:
         ch = character_line(pkg)
-        c = {'title': f'{item.get("name", sid)} 이동', 'name': item.get('name', sid), 'refs': [],
-             'character': ch or '(no CHARACTER line found - describe the idle of the accepted sheet)',
+        c = {'title': f'{item.get("name", sid)} 이동', 'name': item.get('name', sid), 'refs': ['portrait.png'],
+             'character': ch or (re.sub(r'^Battle sprite of\s*', '', item.get('prompt', '')).split(' Design,')[0].strip()
+                                 or '(no CHARACTER line found - describe the idle of the accepted sheet)'),
              'carry': GENERIC_CARRY[cls], 'cloth': GENERIC_CLOTH[cls], 'face': 'Face: exactly as in the idle in every frame.',
              'ko': '(CARRY 표에 없음 — 부류 기본 문장. 손에 든 것·천을 확인하고 tools/art/gait_requests.py 의 CARRY 에 적은 뒤 다시 만들 것)'}
     gdir = os.path.dirname(geo['pose'])
-    L = [f['frame'][0] for f in frames][0]
     fa = ' '.join(f['frame'] for f in frames[:4])
     fb = ' '.join(f['frame'] for f in frames[4:])
     flight = [f['frame'] for f in frames if f.get('phase') == 'flight']
@@ -435,16 +488,20 @@ def write_request(sid, out=None, force=False, date=None, spec=None, man=None):
         colours.append(f'SPOT COLOURS (tiny must-show colours, keep them exactly): {", ".join(item["spots"])}.')
     lean = pairs(frames, 'lean_deg')
     move_word = 'RUN' if cls == 'light' else ('HEAVY TRUDGE (fast, purposeful)' if cls == 'heavy' else 'ROBE GLIDE (hurried, purposeful)')
+    lifted = [f.get('other_sole_height_px') for f in frames if f.get('other_sole_height_px')]
+    lift = f'{min(lifted)}-{max(lifted)}' if lifted else '5-13'
+    catch_head = (', but the torso straightens, so the head top is the HIGHEST of the cycle - see Height'
+                  if tops[1] == min(tops) else '')
     phase_lines = {
-        'light': [f'  - {frames[0]["frame"]} contact (near foot lands a little ahead, knee bent) - {frames[1]["frame"]} catch (body drops onto '
-                  f'the foot, lowest) - {frames[2]["frame"]} push-off (stance leg extends behind, heel up) - {frames[3]["frame"]} FLIGHT (both '
+        'light': [f'  - {frames[0]["frame"]} contact (near foot lands a little ahead, knee bent) - {frames[1]["frame"]} catch (the hips drop '
+                  f'onto the foot: lowest hips{catch_head}) - {frames[2]["frame"]} push-off (stance leg extends behind, heel up) - {frames[3]["frame"]} FLIGHT (both '
                   f'feet clearly off the ground, legs scissored, body pressed forward and leaning the most). {frames[4]["frame"]}-'
                   f'{frames[7]["frame"]} = the same with the far foot.',
                   f'  - The hips stay nearly level: the top of the head stays within about 10 px of the same height in all 8 frames. NO '
                   'hopping, no bouncing up and down.'],
         'heavy': [f'  - {frames[0]["frame"]} contact (BOTH feet on the floor: the near foot lands ahead, the far foot still behind, heel '
                   f'up) - {frames[1]["frame"]} down (the weight drops onto the near foot: lowest frame, knees bent most) - '
-                  f'{frames[2]["frame"]} passing (the far foot swings low past the standing foot, only 5-13 px off the floor) - '
+                  f'{frames[2]["frame"]} passing (the far foot swings low past the standing foot, only {lift} px off the floor) - '
                   f'{frames[3]["frame"]} push (the standing heel lifts, the body rises back). {frames[4]["frame"]}-{frames[7]["frame"]} = '
                   'the same with the far foot.',
                   f'  - NO FLIGHT: one sole is on y=870 in EVERY frame (both in {frames[0]["frame"]}/{frames[4]["frame"]}). The torso is '
@@ -452,7 +509,7 @@ def write_request(sid, out=None, force=False, date=None, spec=None, man=None):
                   'up slowly (the push is never higher than the contact). Knees low, stride short - heavy, grounded footfalls at a '
                   'quick cadence, not a stroll.'],
         'robe': [f'  - {frames[0]["frame"]} contact (BOTH feet on the floor under the hem) - {frames[1]["frame"]} down (a small settle '
-                 f'onto the near foot) - {frames[2]["frame"]} passing (the far foot slides past just above the floor, 5-10 px) - '
+                 f'onto the near foot) - {frames[2]["frame"]} passing (the far foot slides past just above the floor, {lift} px) - '
                  f'{frames[3]["frame"]} push. {frames[4]["frame"]}-{frames[7]["frame"]} = the same with the far foot.',
                  f'  - NO FLIGHT, no big knee lift: one sole is on y=870 in EVERY frame (both in {frames[0]["frame"]}/'
                  f'{frames[4]["frame"]}). A smooth, nearly level glide with a small forward lean and short quick steps - hurried, '
@@ -542,8 +599,11 @@ def write_request(sid, out=None, force=False, date=None, spec=None, man=None):
         '    (as in the sheet).',
         *phase_lines,
         f'  - Lean forward (hip to neck): {lean} deg.',
-        f'  - Height: the mannequin\'s head top is at y={"/".join(str(t) for t in tops[:4])} in {fa} (the same in {fb}): '
-        f'{dtop} px from {frames[0]["frame"]} (+ = lower) - move your head top by the same amounts (bob {bob} px).',
+        (f'  - Height: the mannequin\'s head top is at y={"/".join(str(t) for t in tops[:4])} in {fa} (the same in {fb}): '
+         if tops[:4] == tops[4:] else
+         f'  - Height: the mannequin\'s head top is at y={"/".join(str(t) for t in tops[:4])} in {fa} and '
+         f'{"/".join(str(t) for t in tops[4:])} in {fb}: ')
+        + f'{dtop} px from {frames[0]["frame"]} (+ = lower) - move your head top by the same amounts (bob {bob} px).',
         f'  - Stride: one step = {step:g} source px = {step * sc:.1f} game px; 8 frames = two steps, {ms} ms a frame in the game.',
         f'  - PLANTED FOOT (the rule the class warrior\'s R5 needed a fix for): a foot on the floor never slides in the drawing. From its',
         f'    contact frame on, the SAME boot moves LEFT by exactly step/4 = {q:.1f} px per frame (the mannequin: {rmin:.0f}-{rmax:.0f} px;',
@@ -591,6 +651,7 @@ def write_request(sid, out=None, force=False, date=None, spec=None, man=None):
         '  결과: 통과 | 고침 | 다시   (your own verdict as animation head: natural? in character? does the contact frame read?)',
         '  본 방법: (game 1x/4x, the preview GIF, frames - what you looked at)',
         '  고칠 점: (who - Antigravity/cloud - what, with frame numbers; "없음" if it passes)',
+        '  남은 걱정: (what the QA cross-check should look at; "없음" if none)',
         '  캐릭터 메모: (direction for this character\'s next motions; omit if none)',
         'Push to art-inbox only. Do not touch files outside art/inbox/. Then stop.',
     ]
@@ -693,9 +754,12 @@ def main():
         return 0
     if a.check:
         errs = check(spec, man)
+        rq = check_requests(spec, man)
+        errs += rq
         for e in errs:
             print('FAIL', e)
-        print('RESULT:', 'FAIL' if errs else 'PASS', f'({len(spec["sheets"])} 시트 분류, {JS_OUT} 동기)')
+        nreq = len(glob.glob(os.path.join(ROOT, 'art', 'requests', 'gait', '*__*', 'README.md')))
+        print('RESULT:', 'FAIL' if errs else 'PASS', f'({len(spec["sheets"])} 시트 분류, {JS_OUT} 동기, 이동 요청 폴더 {nreq})')
         return 1 if errs else 0
     rows = status(spec, man)
     if a.json:

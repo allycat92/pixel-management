@@ -270,13 +270,13 @@ def build(sid, outdir, cls=None, man=None, force=False):
         im = Image.fromarray(canvas)
         d = ImageDraw.Draw(im)
         d.rectangle([0, 300, SLOT - 1, 1023], outline=(255, 255, 255), width=3)
-        dashed_v(d, HIP, 345, 925, (255, 255, 255), dash=8, gap=8, w=1)
+        dashed_v(d, HIP, 362, 882, (255, 255, 255), dash=8, gap=8, w=1)
         for s in range(4):
             x0 = SLOT + s * SLOT
             d.rectangle([x0, 300, x0 + SLOT - 1, 1023], outline=(60, 0, 60), width=1)
-            dashed_v(d, x0 + BAND, 345, 925, (150, 60, 150), dash=4, gap=8, w=1)
-            dashed_v(d, x0 + SLOT - 1 - BAND, 345, 925, (150, 60, 150), dash=4, gap=8, w=1)
-            dashed_v(d, x0 + HIP, 345, 925, (255, 255, 255), dash=8, gap=8, w=1)
+            dashed_v(d, x0 + BAND, 362, 882, (150, 60, 150), dash=4, gap=8, w=1)
+            dashed_v(d, x0 + SLOT - 1 - BAND, 362, 882, (150, 60, 150), dash=4, gap=8, w=1)
+            dashed_v(d, x0 + HIP, 362, 882, (255, 255, 255), dash=8, gap=8, w=1)
             if s < len(frs) and frs[s].get('phase') == 'flight':
                 d.line([(x0 + 40, FLIGHT_LINE), (x0 + 344, FLIGHT_LINE)], fill=(255, 255, 0), width=1)
         dashed_h(d, 0, W, FLOOR + 1, (255, 255, 255), dash=14, gap=8, w=2)

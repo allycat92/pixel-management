@@ -49,7 +49,7 @@ THE MOVE (owner's three movement classes; light: the accepted run: lean forward,
     shoulders, elbows (hands: see ARMS - where the text moves a hand, that is intended, not a deviation).
     The mannequin's big round head is a placeholder: draw the character's own head on the mannequin's neck, at its own size
     (as in the sheet).
-  - R1 contact (near foot lands a little ahead, knee bent) - R2 catch (body drops onto the foot, lowest) - R3 push-off (stance leg extends behind, heel up) - R4 FLIGHT (both feet clearly off the ground, legs scissored, body pressed forward and leaning the most). R5-R8 = the same with the far foot.
+  - R1 contact (near foot lands a little ahead, knee bent) - R2 catch (the hips drop onto the foot: lowest hips, but the torso straightens, so the head top is the HIGHEST of the cycle - see Height) - R3 push-off (stance leg extends behind, heel up) - R4 FLIGHT (both feet clearly off the ground, legs scissored, body pressed forward and leaning the most). R5-R8 = the same with the far foot.
   - The hips stay nearly level: the top of the head stays within about 10 px of the same height in all 8 frames. NO hopping, no bouncing up and down.
   - Lean forward (hip to neck): R1/R5 24, R2/R6 19.4, R3/R7 29.1, R4/R8 31.4 deg.
   - Height: the mannequin's head top is at y=453/450/457/459 in R1 R2 R3 R4 (the same in R5 R6 R7 R8): R1 +0, R2 -3, R3 +4, R4 +6 px from R1 (+ = lower) - move your head top by the same amounts (bob 9 px).
@@ -67,7 +67,7 @@ THE MOVE (owner's three movement classes; light: the accepted run: lean forward,
 ARMS AND WEAPONS:
   - Dagger (near hand): REVERSE grip in EVERY frame, as in the idle - the blade lies back along the outside of the forearm, so when the near arm pumps forward (R2-R5) the blade trails behind the fist, and when the arm swings back (R6-R8/R1) it points back and a little down behind the hip. Never a forward grip, never pointing at the viewer or across the body; 1 px dark outline, the blade on the magenta where possible.
   - Far hand: an empty fist (the idle's guard hand) pumping with the mannequin's far arm, elbow bent.
-  - The shoulder cape and the hood point trail back and lag the body by ONE frame (they lift most in R1/R5 and settle in R3/R7); the sash ends flick back; the scarf stays over the mouth and nose.
+  - The shoulder cape and the hood point trail back and lag the body by ONE frame (they lift most in R1/R5 and settle in R3/R7); the sash ends flick back; the scarf stays over the mouth and nose (in the dark outfit keys, as in the sheet).
   - Face: in shadow under the hood in every frame (at most two small eye glints), scarf on.
 
 MUST NOT CHANGE: outfit, colours, proportions, headgear, weapon and shield shapes and sizes, and the SCALE of the accepted
@@ -106,6 +106,7 @@ DELIVERY: commit only the two PNGs under art/inbox/gait/ and add to art/inbox/NO
   결과: 통과 | 고침 | 다시   (your own verdict as animation head: natural? in character? does the contact frame read?)
   본 방법: (game 1x/4x, the preview GIF, frames - what you looked at)
   고칠 점: (who - Antigravity/cloud - what, with frame numbers; "없음" if it passes)
+  남은 걱정: (what the QA cross-check should look at; "없음" if none)
   캐릭터 메모: (direction for this character's next motions; omit if none)
 Push to art-inbox only. Do not touch files outside art/inbox/. Then stop.
 ```

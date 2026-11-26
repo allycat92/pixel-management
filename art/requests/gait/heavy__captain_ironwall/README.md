@@ -18,7 +18,7 @@
 
 - 부류: **중량** — slate-grey plate armour, open steel helmet, tower shield ~2 heads tall on the far arm, morning star. (tools/art/specs/gait_classes.json)
 - 납품: art-inbox `art/inbox/gait/sheet_captain_ironwall_run_a.png` (H1~H4) + `art/inbox/gait/sheet_captain_ironwall_run_b.png` (H5~H8) + `art/inbox/NOTES.md` 절 「gait/sheet_captain_ironwall_run - 브리긴다 이동 (중량)」 + 「## 판정 — gait/sheet_captain_ironwall_run」. 파일 이름은 부류와 상관없이 `_run_` (엔진의 `anims.run`).
-- 팔·무기: 탑 방패는 먼 팔에 **가슴 앞에 세운 채**(위 끝 어깨 높이 — 흔들지 않고 몸과 함께만 오르내림), 철퇴는 가까운 손에 **허리 높이로, 머리를 위로** 쥔다 — 휘두르지 않는다. 땋은 머리·타바드는 한 칸 늦게 조금 흔들린다.
+- 팔·무기: 탑 방패는 먼 팔에 **가슴 앞에 세운 채**(위 끝 턱 높이, 아래 끝 y 760~790 — 흔들지 않고 몸과 함께만 오르내림), 철퇴는 가까운 손에 **허리 높이로, 머리를 위로** 쥔다 — 휘두르지 않는다. 땋은 머리·타바드는 한 칸 늦게 조금 흔들린다.
 - 디딘 발: 한 걸음 원본 142.5px(게임 23.6px) → 디딘 발은 칸마다 **정확히 35.6px**(±3, 게임 5.9px) 뒤로 — 발끝 x 는 Prompt 의 PLANTED FOOT 표. (병과 전사 R5 는 디딘 발이 30px 앞에 그려져 한 번 고쳤다.)
 - 클라우드가 받은 뒤: `python3 tools/art/receive.py gait/sheet_captain_ironwall_run` (검사 + `add_gait.py --dry-run`) → 미리보기를 보고 `add_gait.py` 로 붙인다 (`--pose art/requests/guides/heavy_base/v1/pose.json`).
 
@@ -107,6 +107,7 @@ DELIVERY: commit only the two PNGs under art/inbox/gait/ and add to art/inbox/NO
   결과: 통과 | 고침 | 다시   (your own verdict as animation head: natural? in character? does the contact frame read?)
   본 방법: (game 1x/4x, the preview GIF, frames - what you looked at)
   고칠 점: (who - Antigravity/cloud - what, with frame numbers; "없음" if it passes)
+  남은 걱정: (what the QA cross-check should look at; "없음" if none)
   캐릭터 메모: (direction for this character's next motions; omit if none)
 Push to art-inbox only. Do not touch files outside art/inbox/. Then stop.
 ```
