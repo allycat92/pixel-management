@@ -121,7 +121,7 @@ const QUEST_TYPES = {
   },
   envoy: {
     cat: 'diplomacy', name: '사절 호위', icon: 'star', weights: { str: 0.9, dex: 0.9, int: 1.0, hp: 0.15 },
-    titles: ['{t}와(과)의 강화 사절 호위', '{p} 회담장 경호', '{t}행 밀사 호위'],
+    titles: ['{t}{tWith}의 강화 사절 호위', '{p} 회담장 경호', '{t}행 밀사 호위'],
   },
   battle: {
     cat: 'campaign', name: '결전', icon: 'sword', weights: { str: 1.1, dex: 0.8, int: 0.8, hp: 0.2 },

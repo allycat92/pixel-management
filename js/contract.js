@@ -90,7 +90,9 @@ Object.assign(Game, {
     const days = opts.days || this.travelDays(p) + (level > 5 ? 1 : 0);
     const title = opts.title || pick(t.titles)
       .replace('{e}', enemy || '').replace('{p}', pick(PROVINCES[p].places))
-      .replace('{t}', target ? FACTIONS[target].short : '').replace('{i}', FACTIONS[issuer].short);
+      .replace('{t}', target ? FACTIONS[target].short : '')
+      .replace('{tWith}', target ? josa(FACTIONS[target].short, '과', '와') : '')
+      .replace('{i}', FACTIONS[issuer].short);
     // 권장 인원이 용병단 크기에 맞춰 줄었으므로(옛 4~6명 → 2~4명) 요구 전투력은 옛 인원 기준(×1.25)으로 매긴다
     const req = Math.round(24 * Math.pow(1.4, level - 1) * (0.9 + Math.random() * 0.2) * (0.8 + Math.min(size * 1.25, 6) * 0.1));
     // 금화는 전쟁에서 나온다: 전쟁 의뢰 ×1.5, 평시 분쟁 ×0.7, 외교 ×0.6, 괴물·치안 ×0.3
@@ -222,7 +224,7 @@ Object.assign(Game, {
       offered++;
     });
     if (offered) {
-      this.log(`⚔ 대규모 결전 임박: 「${PROVINCES[p].name}」에서 ${FACTIONS[attacker].name}과(와) ${FACTIONS[defender].name}이(가) 맞붙습니다. 양측이 용병단을 모집합니다! (5일 내 결정)`, 'event');
+      this.log(`⚔ 대규모 결전 임박: 「${PROVINCES[p].name}」에서 ${FACTIONS[attacker].name}${josa(FACTIONS[attacker].name, '과', '와')} ${FACTIONS[defender].name}${josa(FACTIONS[defender].name, '이', '가')} 맞붙습니다. 양측이 용병단을 모집합니다! (5일 내 결정)`, 'event');
     }
   },
 
@@ -340,8 +342,8 @@ Object.assign(Game, {
         if (e.loyalty < 25 && Math.random() < 0.35) {
           chance -= 0.25;
           e.loyalty = 0;
-          report.notes.push(`「${e.name}」이(가) 전투 도중 적에게 돌아섰습니다!`);
-          this.log(`배신! 「${e.name}」이(가) 결전 도중 ${FACTIONS[c.target].name} 편으로 돌아섰습니다.`, 'bad');
+          report.notes.push(`「${e.name}」${josa(e.name, '이', '가')} 전투 도중 적에게 돌아섰습니다!`);
+          this.log(`배신! 「${e.name}」${josa(e.name, '이', '가')} 결전 도중 ${FACTIONS[c.target].name} 편으로 돌아섰습니다.`, 'bad');
           e.betrayed = true;
         }
       });
@@ -428,15 +430,15 @@ Object.assign(Game, {
         const before = this.rel(a, b);
         const d = this.traitsClash(a, b) ? -6 : (outcome === 'great' ? 8 : won ? 5 : 3) * (a.companyId === b.companyId ? 1 : 0.5);
         this.addRel(a, b, d);
-        if (before < FRIEND_REL && this.rel(a, b) >= FRIEND_REL) this.log(`${a.name}와(과) ${b.name}이(가) 전우가 되었습니다!`, 'good');
-        if (before > RIVAL_REL && this.rel(a, b) <= RIVAL_REL) this.log(`${a.name}와(과) ${b.name}의 사이가 틀어졌습니다.`, 'bad');
+        if (before < FRIEND_REL && this.rel(a, b) >= FRIEND_REL) this.log(`${a.name}${josa(a.name, '과', '와')} ${b.name}${josa(b.name, '이', '가')} 전우가 되었습니다!`, 'good');
+        if (before > RIVAL_REL && this.rel(a, b) <= RIVAL_REL) this.log(`${a.name}${josa(a.name, '과', '와')} ${b.name}의 사이가 틀어졌습니다.`, 'bad');
       }
     }
     dead.forEach((r) => {
       s.mercs.forEach((m) => {
         const grief = (m.rel && m.rel[r.id]) >= FRIEND_REL;
         this.changeMorale(m, grief ? -25 : -8);
-        if (grief) this.log(`${m.name}이(가) 전우 ${r.name}의 죽음에 깊이 슬퍼합니다.`, 'bad');
+        if (grief) this.log(`${m.name}${josa(m.name, '이', '가')} 전우 ${r.name}의 죽음에 깊이 슬퍼합니다.`, 'bad');
       });
     });
     // 용병단 기록과 결속도
@@ -448,7 +450,7 @@ Object.assign(Game, {
       // 옛 저장에서 출격 중이던 큰 용병단은 귀환 후 정원에 맞춘다
       const moved = this.trimCompany(o.c);
       if (moved.length) {
-        const note = `편제 개편: 「${o.c.name}」의 ${moved.map((m) => m.name).join(', ')}이(가) 예비 인원으로 옮겨졌습니다.`;
+        const note = `편제 개편: 「${o.c.name}」의 ${moved.map((m) => m.name).join(', ')}${josa(moved.map((m) => m.name).join(', '), '이', '가')} 예비 인원으로 옮겨졌습니다.`;
         report.notes.push(note);
         this.log(note, 'event');
       }
@@ -486,7 +488,7 @@ Object.assign(Game, {
       if (won) this.completeStory(c.story);
       else if (!s.heroes[c.story.hero].dead) {
         s.contracts.unshift({ ...c, id: s.nextId++ });
-        this.log(`「${c.title}」은(는) 다시 도전할 수 있습니다.`);
+        this.log(`「${c.title}」${josa(c.title, '은', '는')} 다시 도전할 수 있습니다.`);
       }
     }
   },
@@ -636,8 +638,8 @@ Object.assign(Game, {
       c.reward = Math.round(c.reward * 1.5);
       c.rep *= 2;
       s.contracts.unshift(c);
-      this.log(`${m.name}의 개인 의뢰 「${ch.title}」이(가) 올라왔습니다!`, 'event');
-      s.pendingReports.push({ special: 'dialog', hero: m.hero, title: `개인 의뢰: ${ch.title}`, lines: ch.before, foot: `${m.name}이(가) 속한 용병단을 보내야 합니다.` });
+      this.log(`${m.name}의 개인 의뢰 「${ch.title}」${josa(ch.title, '이', '가')} 올라왔습니다!`, 'event');
+      s.pendingReports.push({ special: 'dialog', hero: m.hero, title: `개인 의뢰: ${ch.title}`, lines: ch.before, foot: `${m.name}${josa(m.name, '이', '가')} 속한 용병단을 보내야 합니다.` });
     });
   },
 
@@ -708,7 +710,7 @@ Object.assign(Game, {
       c.rep *= 3;
       c.expires = STORY_EXPIRES;
       s.contracts.unshift(c);
-      this.log(`재앙 출현! 「${PROVINCES[p].name}」에 「${b.name}」이(가) 나타났습니다.`, 'event');
+      this.log(`재앙 출현! 「${PROVINCES[p].name}」에 「${b.name}」${josa(b.name, '이', '가')} 나타났습니다.`, 'event');
       s.pendingReports.push({ special: 'notice', enemy: b.enemy, title: `재앙 출현: ${b.name}`, lines: [[null, b.intro]], foot: '의뢰 목록에 토벌 의뢰가 올라왔습니다. 마감은 없습니다.' });
     });
   },

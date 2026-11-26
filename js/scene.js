@@ -249,11 +249,11 @@ const Scene = (() => {
     // 의뢰 중 인원 표시
     const away = Game.state.mercs.filter((m) => m.status === 'quest').length;
     if (away) {
-      px(ctx, 4, H - 12, 78, 10, 'rgba(27,20,32,0.7)');
+      px(ctx, 4, 4, 78, 10, '#1b1420');
       ctx.fillStyle = '#f2c94c';
       ctx.font = '8px Galmuri11, monospace';
       ctx.textBaseline = 'top';
-      ctx.fillText(`의뢰 수행 중: ${away}명`, 7, H - 11);
+      ctx.fillText(`의뢰 수행 중: ${away}명`, 7, 5);
     }
   }
 

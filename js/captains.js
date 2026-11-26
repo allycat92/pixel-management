@@ -95,7 +95,7 @@ Object.assign(Game, {
     s.mercs.push(m);
     const co = this.ownCompanies()[0];
     if (co) { m.companyId = co.id; co.leaderId = m.id; }
-    this.log(`${CAPTAINS[key].title} ${m.name}이(가) 첫 용병대장이 되었습니다. 다른 후보 ${STARTER_CAPTAINS.length - 1}명은 각자의 길을 찾아 떠났습니다.`, 'good');
+    this.log(`${CAPTAINS[key].title} ${m.name}${josa(m.name, '이', '가')} 첫 용병대장이 되었습니다. 다른 후보 ${STARTER_CAPTAINS.length - 1}명은 각자의 길을 찾아 떠났습니다.`, 'good');
     this.emit();
   },
 
@@ -120,7 +120,7 @@ Object.assign(Game, {
       const ch = this.challengeOf(key);
       if (ch.ok) {
         cs.status = 'pursuing';
-        this.log(`영입 과제 「${ch.name}」 달성! ${CAPTAINS[key].title} ${CAPTAINS[key].name}이(가) 길드를 찾아왔습니다. 영입 의뢰를 완수하면 합류합니다.`, 'good');
+        this.log(`영입 과제 「${ch.name}」 달성! ${CAPTAINS[key].title} ${CAPTAINS[key].name}${josa(CAPTAINS[key].name, '이', '가')} 길드를 찾아왔습니다. 영입 의뢰를 완수하면 합류합니다.`, 'good');
         s.pendingReports.push({ special: 'dialog', captain: key, title: `${CAPTAINS[key].title} ${CAPTAINS[key].name}`, lines: CAPTAINS[key].intro,
           foot: `영입 과제 「${ch.name}」 달성 — 영입 의뢰가 의뢰 목록에 올라옵니다.` });
       } else if (ch.dead) {
@@ -148,7 +148,7 @@ Object.assign(Game, {
       c.reward = Math.round(c.reward * 1.3);
       c.rep *= 2;
       s.contracts.unshift(c);
-      this.log(`영입 의뢰 「${ch.title}」 (${C.name} ${cs.ch + 1}/${C.chapters.length}장)이(가) 올라왔습니다.`, 'event');
+      this.log(`영입 의뢰 「${ch.title}」 (${C.name} ${cs.ch + 1}/${C.chapters.length}장)이 올라왔습니다.`, 'event');
       s.pendingReports.push({ special: 'dialog', captain: key, title: `영입 의뢰: ${ch.title}`, lines: ch.before, foot: '아무 용병단이나 보낼 수 있습니다. 마감은 없습니다.' });
     });
   },
@@ -169,7 +169,7 @@ Object.assign(Game, {
     const m = this.makeNamedCaptain(key, level);
     cs.status = 'joined';
     s.mercs.push(m);
-    this.log(`용병대장 ${C.title} ${m.name}(${this.className(m)}, Lv.${m.level})이(가) 길드에 합류했습니다! 용병단을 맡기세요.`, 'good');
+    this.log(`용병대장 ${C.title} ${m.name}(${this.className(m)}, Lv.${m.level})${josa(m.name, '이', '가')} 길드에 합류했습니다! 용병단을 맡기세요.`, 'good');
     s.pendingReports.push({ special: 'dialog', captain: key, title: `${C.title} ${C.name} 합류`, lines: [...before, ...C.join],
       foot: `예비 인원으로 대기합니다. 대장 자리가 빈 용병단에 배속하거나, 용병단을 새로 창설하세요.` });
   },
