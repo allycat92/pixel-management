@@ -22,7 +22,7 @@ let seed = seed0;
 while (stats.reports < N && seed < seed0 + 50) {
   let taken = 0, seen = 0;
   run(seed++, 400, 'all', {
-    script,
+    script, shadow: false,   // 옛 재생 경로(findBattle)만 본다: 그림자 능력치 전투는 tools/sim/shadow.js 가 본다
     onReport(report, G, ctx) {
       seen++;
       if (stats.reports >= N || taken >= PER_GAME || seen % 4) return; // 네 번째 보고서마다 하나씩

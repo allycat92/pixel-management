@@ -38,11 +38,7 @@ const UI = (() => {
   const factionFlag = (f, scale = 2) => Sprites.clone(Sprites.flag(FACTIONS[f].color, FACTIONS[f].accent, scale, FACTION_MARK[f] || 0), 'flag');
   const factionTag = (f) => el('span', { class: 'ftag', style: `--fc:${FACTIONS[f].color}` }, factionFlag(f, 1), FACTIONS[f].short);
 
-  function soldierLook(f, i) {
-    const sd = FACTIONS[f].soldier || FACTIONS.crown.soldier;
-    const cls = sd.classes[i % sd.classes.length];
-    return { cls, skin: sd.skins[i % sd.skins.length], hair: sd.hairs[(i * 7) % sd.hairs.length], longHair: i % 3 === 1, tint: { outfit: FACTIONS[f].color, accent: FACTIONS[f].accent } };
-  }
+  const soldierLook = factionSoldierLook;   // js/world.js (출격 편성도 같은 규칙을 쓴다)
 
   function statusLabel(m) {
     if (m.status === 'quest') {
@@ -118,6 +114,17 @@ const UI = (() => {
       el('span', { class: `cond ${ms.cls}`, title: `사기 ${m.morale}/100`, text: `${ms.label} ${m.morale}` }));
   }
 
+  // 전투 능력치 (js/stats.js): 능력치·장비에 개인 컨디션(특성 × 사기 × 피로)을 곱한 체력·공격, 그리고 방어.
+  // 전우·지휘·의뢰 적성은 출격할 때 더해진다.
+  function battleLine(m) {
+    const sh = Stats.sheet(m), p = sh.parts;
+    const num = (label, v) => el('span', { class: 'bs' }, el('span', { class: 'muted', text: label }), el('b', { text: Math.round(v) }));
+    return el('div', { class: 'battle-line small', title: '전투 능력치: 능력치와 장비에 컨디션을 곱한 값입니다. 방어에는 컨디션이 붙지 않습니다.' },
+      el('span', { class: 'bs-title', text: '전투' }), num('체력', sh.hp), num('공격', sh.atk), num('방어', sh.def),
+      el('span', { class: `chip cond-chip ${sh.mul > 1.001 ? 'good' : sh.mul < 0.999 ? 'bad' : ''}`,
+        title: `컨디션 = 특성·직업 ×${p.trait.toFixed(2)} · 사기 ×${p.morale.toFixed(2)} · 피로 ×${p.fatigue.toFixed(2)}`, text: `컨디션 ×${sh.mul.toFixed(2)}` }));
+  }
+
   function equipRow(m) {
     return el('div', { class: 'equip-row' }, ['weapon', 'armor', 'trinket'].map((slot) => {
       const it = m.equip && m.equip[slot];
@@ -156,6 +163,7 @@ const UI = (() => {
         statBar('민첩', m.dex, Game.equipBonus(m, 'dex'), statMax, 'f-dex'),
         statBar('지력', m.int, Game.equipBonus(m, 'int'), statMax, 'f-int'),
         statBar('체력', m.maxHp, Game.equipBonus(m, 'maxHp'), hpMax, 'f-hp')),
+      battleLine(m),
       opts.recruit ? null : el('div', { class: 'exp' },
         el('div', { class: 'bar thin' }, el('div', { class: 'bar-fill f-exp', style: `width:${(m.exp / Game.expToNext(m)) * 100}%` })),
         el('span', { class: Game.atCap(m) ? 'warn' : '', text: Game.atCap(m)

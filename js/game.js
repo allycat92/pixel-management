@@ -594,6 +594,7 @@ const Game = {
     const m = s.mercs.find((x) => x.id === mercId);
     const it = s.inventory.find((x) => x.id === itemId);
     if (!m || !it) return;
+    if (m.status === 'quest' && this.equipGuard !== false) return;   // 출격 중인 단원의 장비는 못 바꾼다: 전투 입력은 출격 때 굳는다 (js/muster.js)
     if (m.equip[it.slot]) s.inventory.push(m.equip[it.slot]);
     m.equip[it.slot] = it;
     s.inventory = s.inventory.filter((x) => x.id !== itemId);
@@ -603,6 +604,7 @@ const Game = {
   unequip(mercId, slot) {
     const m = this.state.mercs.find((x) => x.id === mercId);
     if (!m || !m.equip[slot]) return;
+    if (m.status === 'quest' && this.equipGuard !== false) return;
     this.state.inventory.push(m.equip[slot]);
     m.equip[slot] = null;
     this.emit();

@@ -312,6 +312,8 @@ Object.assign(Game, {
     const days = this.contractDays(c, units);
     s.contracts = s.contracts.filter((x) => x.id !== contractId && (!c.campaign || !x.campaign || x.campaign.id !== c.campaign.id));
     const mission = { id: s.nextId++, contract: c, units: units.map((u) => ({ ...u })), startDay: s.day, returnDay: s.day + days, chance };
+    // 전투 입력을 지금(출격 피로가 붙기 전) 굳혀 둔다: mission.spec, mission.est (js/muster.js). 아직은 그림자 — 결과는 chance 가 정한다.
+    if (this.freezeMission) this.freezeMission(mission, c, units);
     s.missions.push(mission);
     own.forEach((o) => { o.c.missionId = mission.id; });
     ext.forEach((e) => {
@@ -359,6 +361,8 @@ Object.assign(Game, {
     const won = outcome === 'great' || outcome === 'success';
     report.outcome = outcome;
     report.seed = rand(1, 1e9); // 전투 연출용 시드
+    // 그림자 전투: 굳혀 둔 편성으로 능력치 전투를 한 번 돌려 report.shadow 에 적는다 (결과·화면·난수와 무관, js/muster.js)
+    if (this.shadowResolve) this.shadowResolve(mission, report, mods);
 
     // 금화: 외부 용병단 몫을 전력 비율대로 떼어 준다
     if (won) {

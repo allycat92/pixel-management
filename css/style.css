@@ -370,6 +370,11 @@ h3 { font-size: 14px; margin: 8px 0; }
 .skill.awake { background: #8a6210; color: #fff4b0; border-color: var(--gold); }
 .cond-line { display: grid; grid-template-columns: auto 1fr auto auto auto; align-items: center; gap: 6px; }
 .cond-bar { min-width: 40px; }
+.battle-line { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 10px; padding-top: 3px; border-top: 1px solid var(--line); }
+.battle-line .bs { display: inline-flex; align-items: baseline; gap: 4px; }
+.battle-line .bs b { color: var(--ink); font-weight: normal; }
+.battle-line .bs-title { color: var(--gold); }
+.battle-line .cond-chip { margin-left: auto; cursor: help; }
 .cond { font-size: 11px; padding: 0 4px; border: 1px solid var(--shadow); background: #241b29; }
 .f-fresh { color: var(--good); } .bar-fill.f-fresh { background: #7ed37e; }
 .f-tired { color: var(--gold); } .bar-fill.f-tired { background: #f2c94c; }

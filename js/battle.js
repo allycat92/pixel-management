@@ -2,6 +2,8 @@
 // 용병대장 1 + 대원 2~3으로 이루어진 부대가 양쪽 최대 3개씩(3vs3) 전장에서 스스로 판단해 싸운다.
 // 의뢰의 결과(대성공/성공/실패/대실패)는 판정에서 정해지고, 전투는 시드를 바꿔 가며 실제로
 // 시뮬레이션해 그 결과가 나오는 판을 찾아 재생한다. 연출을 위해 짜 맞춘 각본은 없다.
+// 능력치 전투(run): 출격 때 굳힌 편성(spec, js/muster.js)의 체력·공격·방어로 한 판을 그대로 돌려 기록을 낸다.
+// 지금은 '그림자'로만 쓴다 — 화면에 재생하는 전투와 의뢰 결과는 위의 옛 방식 그대로다 (docs/plans/battle_stats/stage01_notes.md).
 'use strict';
 
 const Battle = (() => {
@@ -625,7 +627,8 @@ const Battle = (() => {
 
   // ───────── 시뮬레이션 ─────────
   // groups: plan() 결과, bias: 적 강도 배율, seed: 전투 난수
-  function setup(groups, bias, seed) {
+  // real: 능력치 전투일 때의 편성(spec). 유닛마다 굳혀 둔 st { hp, atk, def } 를 그대로 쓰고 강도(str)·bias 는 쓰지 않는다.
+  function setup(groups, bias, seed, real) {
     const r = rng(seed);
     const units = [];
     const gs = groups.map((g, gi) => ({ ...g, id: gi, side: g.side, units: [], routed: false, captain: null, flipped: false }));
@@ -652,7 +655,9 @@ const Battle = (() => {
           let str = ud.str * (side === 1 ? bias : 1);
           if (captain) str *= 1.15;
           if (ud.doomed) str *= 0.6;
-          const hp = base.hp * str * (captain && !ud.mon ? 1.6 : 1) * (ud.unique ? 1.15 : 1);
+          const S = real ? ud.st : null;
+          if (S && ud.mon && Stats.ARCH[ud.arch]) base.speed = Stats.ARCH[ud.arch].speed;   // 괴물의 속도는 틀이 정한다
+          const hp = S ? S.hp : base.hp * str * (captain && !ud.mon ? 1.6 : 1) * (ud.unique ? 1.15 : 1);
           // 대형: 대장이 뒤 가운데, 대원 둘이 앞 위아래, 셋째는 맨 앞 (큰 도트끼리 겹치지 않는 간격: SEP_X·SEP_Y 타원 밖)
           const fwd = side === 0 ? 1 : -1;
           const SLOT = [[-8, 0], [10, -10], [10, 10], [28, 0]];
@@ -661,7 +666,9 @@ const Battle = (() => {
           const unit = {
             g, side, captain, ...ud,
             x: cx + ox + (r() - 0.5) * 4, y: clamp(cy + oy + (r() - 0.5) * 4, TOP, BOTTOM),
-            hp, maxHp: hp, atk: base.atk * str * ATK_SCALE, healPow: HEAL_POWER * str * ATK_SCALE, speed: base.speed * (0.9 + r() * 0.2),
+            hp, maxHp: hp, atk: S ? S.atk : base.atk * str * ATK_SCALE, def: S ? S.def : 0,
+            healPow: S ? S.atk * Stats.KN.HEAL_K : HEAL_POWER * str * ATK_SCALE, speed: base.speed * (0.9 + r() * 0.2),
+            dealt: 0, taken: 0, healed: 0, kills: 0,   // 전투 기록용 (계산에는 쓰지 않는다)
             skills: skills.map((sk, i) => ({ ...sk, left: i === 0 ? r() * sk.cd : sk.cd * (0.3 + r() * 0.5) })),
             buffs: [], stunUntil: 0, slowUntil: 0,
             alive: true, fled: false, target: null, retarget: r() * 0.5, face: side === 0 ? 1 : -1,
@@ -675,7 +682,8 @@ const Battle = (() => {
         g.captain = g.units[0];
       });
     });
-    return { r, units, groups: gs, shots: [], fx: [], t: 0, over: false, winner: null, endT: 0, events: [], cutins: [] };
+    return { r, units, groups: gs, shots: [], fx: [], t: 0, over: false, winner: null, endT: 0, events: [], cutins: [],
+      real: !!real, rule: real ? real.rule || 'field' : null, limit: real && real.limit ? real.limit : MAX_TIME, end: null };
   }
 
   const groupAlive = (g) => g.units.filter((u) => u.alive && !u.fled);
@@ -798,6 +806,8 @@ const Battle = (() => {
   function damage(st, target, dmg, crit, src) {
     if (!target.alive) return 0;
     dmg *= defMul(target, st.t);
+    if (src) src.dealt += min(dmg, target.hp);
+    target.taken += dmg;
     target.hp -= dmg;
     target.flash = 0.18;
     st.fx.push({ kind: 'pop', x: target.x, y: target.y - 18, text: String(Math.round(dmg)), crit, ally: target.side === 0,
@@ -806,6 +816,7 @@ const Battle = (() => {
       target.alive = false;
       target.hp = 0;
       target.downAt = st.t;
+      if (src) src.kills++;
       if (target.captain) st.events.push({ t: st.t, text: `${target.g.name}의 대장이 쓰러졌다!`, side: target.side });
     }
     return dmg;
@@ -815,12 +826,18 @@ const Battle = (() => {
   function strike(st, u, t, sk) {
     if (!t.alive) return;
     const crit = st.r() < 0.1;
-    const base = u.atk * atkMul(u, st.t) * sk.dmg * (0.85 + st.r() * 0.3) * (crit ? 1.7 : 1);
+    const A = u.atk * atkMul(u, st.t);
+    const base = A * sk.dmg * (0.85 + st.r() * 0.3) * (crit ? 1.7 : 1);
     const victims = sk.aoe ? st.units.filter((e) => e.alive && !e.fled && e.side !== u.side && dist(e, t) <= sk.aoe + sizeOf(e)) : [t];
     if (!victims.includes(t)) victims.push(t);
     let dealt = 0;
     victims.forEach((e) => {
       let d = base * (e === t ? 1 : 0.7);
+      // 능력치 전투: 비율 방어 — K · 공격 / (공격 + 방어 × (1 - 관통)). 방어가 높아도 피해가 0 이 되지는 않는다.
+      if (st.real) {
+        const pierce = sk.pierce != null ? sk.pierce : (Stats.KN.PIERCE[sk.shot] || 0);
+        d *= Stats.KN.K * A / (A + e.def * (1 - pierce));
+      }
       if (sk.exec && e.hp / e.maxHp < 0.35) d *= 1 + sk.exec;
       dealt += damage(st, e, d, crit && e === t, u);
       if (sk.stun && e.alive) e.stunUntil = max(e.stunUntil, st.t + sk.stun * (e.boss ? 0.3 : e.bigMon ? 0.6 : 1));
@@ -841,7 +858,9 @@ const Battle = (() => {
     const list = sk.aoe ? st.units.filter((a) => a.alive && !a.fled && a.side === u.side && dist(a, t) <= sk.aoe) : [t];
     list.forEach((a) => {
       if (!a.alive) return;
+      const before = a.hp;
       a.hp = min(a.maxHp, a.hp + u.healPow * sk.heal * (0.9 + st.r() * 0.2));
+      u.healed += a.hp - before;
       st.fx.push({ kind: 'heal', x: a.x, y: a.y - 14, t: 0, named: !!a.named });
       if (sk.buff) addBuff(st, a, sk.buff);
     });
@@ -921,17 +940,32 @@ const Battle = (() => {
   function step(st) {
     const { r, units } = st;
     st.t += DT;
+    // 능력치 전투는 결판이 난 뒤로 아무것도 더 정하지 않는다 (배신·패주 판정도 멈춘다): 결판 순간의 기록이 화면 유지 시간 동안 바뀌지 않게
+    const done = st.real && st.over;
     // 배신: 충성도가 바닥난 외부 용병단이 전투 도중 적으로 돌아선다
     st.groups.forEach((g) => {
-      if (g.betray && !g.flipped && st.t > 7) {
+      if (g.betray && !g.flipped && st.t > 7 && !done) {
         g.flipped = true; g.side = 1;
         g.units.forEach((u) => { u.side = 1; u.target = null; });
         st.events.push({ t: st.t, text: `「${g.name}」${josa(g.name, '이', '가')} 적에게 돌아섰다!`, side: 1 });
       }
     });
+    // 후퇴 (능력치 전투, 우리 쪽만): 우리 단원의 절반이 쓰러지고 남은 체력이 적의 절반에 못 미치면, 서 있는 아군이 모두 물러난다.
+    // 진 싸움에서 끝까지 버티다 다 쓰러지지 않게 하는 최소한의 규칙 — 패배로 끝난다 (end: 'retreat').
+    if (st.real && !st.over && !st.end && Stats.KN.RETREAT) {
+      let n = 0, dn = 0, hpA = 0, hpB = 0;
+      for (const u of units) {
+        if ((u.g.kind === 'own' || u.g.kind === 'ext') && !u.g.betray && !u.recruit) { n++; if (!u.alive) dn++; }
+        if (u.alive && !u.fled && !u.g.routed) { if (u.side === 0) hpA += u.hp; else hpB += u.hp; }
+      }
+      if (n && dn / n >= Stats.KN.RETREAT_DOWN && hpA < Stats.KN.RETREAT_RATIO * hpB) {
+        st.end = 'retreat';
+        st.groups.forEach((g) => { if (g.side === 0) g.routed = true; });
+      }
+    }
     // 사기: 병력 대부분을 잃거나 대장을 잃고 크게 꺾이면 패주
     st.groups.forEach((g) => {
-      if (g.routed) return;
+      if (g.routed || done) return;
       const alive = groupAlive(g).length, n = g.units.length;
       if (!alive) { g.routed = true; return; }
       if (alive / n < 0.3 || (!g.captain.alive && alive / n < 0.55)) {
@@ -1082,7 +1116,8 @@ const Battle = (() => {
       const dd = len2(tx - s.x, ty - s.y);
       const stepLen = s.speed * DT;
       if (dd <= stepLen) {
-        if (s.heal) mend(st, s.from, s.to, s.sk);
+        if (st.real && st.over) { /* 능력치 전투: 결판이 난 뒤에 닿는 투사체는 아무 일도 하지 않는다 (기록이 바뀌지 않게) */ }
+        else if (s.heal) mend(st, s.from, s.to, s.sk);
         else strike(st, s.from, s.to, s.sk);
         st.shots.splice(i, 1);
       } else {
@@ -1092,9 +1127,12 @@ const Battle = (() => {
     // 결판
     if (!st.over) {
       const a = sideActive(st, 0), b = sideActive(st, 1);
-      if (!a || !b || st.t >= MAX_TIME) {
+      if (!a || !b || st.t >= st.limit) {
         st.over = true; st.endT = st.t;
-        if (a && b) {
+        if (a && b && st.real) {
+          // 능력치 전투의 시간 제한: 버티는 의뢰(hold)는 끝까지 서 있으면 승리, 그 밖(field)은 적을 못 무너뜨렸으면 패배
+          st.winner = st.rule === 'hold' ? 0 : 1; st.end = 'time';
+        } else if (a && b) {
           const hpOf = (side) => units.filter((u) => u.side === side && u.alive && !u.fled).reduce((sum, u) => sum + u.hp, 0);
           st.winner = hpOf(0) >= hpOf(1) ? 0 : 1;
         } else st.winner = a ? 0 : 1;
@@ -1143,6 +1181,43 @@ const Battle = (() => {
       bias = sqrt(lo * hi);
     }
     return best;
+  }
+
+  // ───────── 능력치 전투 (그림자) ─────────
+  // spec(js/muster.js 가 출격 때 굳힌 편성) 하나로 한 판을 끝까지 돌린다. 같은 spec 이면 언제나 같은 기록이 나온다.
+  // 전투 계산을 바꾸면 VER 을 올린다. 편성 밖에서 읽는 표(스킬·속도·조정값)는 tab 요약값으로 따로 지킨다.
+  const VER = 1;
+  const fnv = (h, v) => { for (let i = 0; i < 4; i++) { h ^= (v >>> (i * 8)) & 0xff; h = Math.imul(h, 0x01000193) >>> 0; } return h; };
+  let tabCache = null;
+  function tablesDigest() {
+    if (tabCache != null) return tabCache;
+    const K = Stats.KN;
+    const src = JSON.stringify([VER, DT, CLASS_STATS, MONSTER_STATS.speed, RANGED_TPL, GENERIC_SPECIAL, SLOW_MUL,
+      Object.keys(CLASS_SKILLS).map((k) => CLASS_SKILLS[k].b), Object.keys(ENEMIES).map((k) => [k, ENEMIES[k].tpl]),
+      Object.keys(Stats.ARCH).map((k) => [k, Stats.ARCH[k].speed]), K.K, K.HEAL_K, K.PIERCE, K.RETREAT, K.RETREAT_DOWN, K.RETREAT_RATIO]);
+    let h = 0x811c9dc5;
+    for (let i = 0; i < src.length; i++) { h ^= src.charCodeAt(i) & 0xff; h = Math.imul(h, 0x01000193) >>> 0; h ^= src.charCodeAt(i) >>> 8; h = Math.imul(h, 0x01000193) >>> 0; }
+    return (tabCache = h);
+  }
+  const begin = (spec) => setup(spec.groups, 1, spec.seed, spec);
+  const END_CODE = { wipe: 1, rout: 2, retreat: 3, time: 4 };
+  // 결판이 난 상태 → 기록. units 는 편성 순서대로 한 줄씩 [결말, 체력%, 쓰러진 틱, 준 피해, 받은 피해, 처치, 치유] (모두 정수)
+  // 결말: 0 무사, 1 쓰러짐, 2 물러남(도주했거나 부대가 패주). hash 는 판정이 읽는 값을 모두 덮는다 (승패·끝난 틱·끝난 까닭·줄 전부).
+  function record(st) {
+    const rows = [];
+    st.groups.forEach((g) => g.units.forEach((u) => rows.push([
+      !u.alive ? 1 : (u.fled || g.routed) ? 2 : 0, Math.round(100 * max(0, u.hp) / u.maxHp), u.alive ? 0 : Math.round(u.downAt / DT),
+      Math.round(u.dealt), Math.round(u.taken), u.kills, Math.round(u.healed)])));
+    const ticks = Math.round(st.endT / DT);
+    const end = st.end || (st.units.some((u) => u.side !== st.winner && u.alive) ? 'rout' : 'wipe');
+    let h = fnv(fnv(fnv(0x811c9dc5, st.winner), ticks), END_CODE[end]);
+    rows.forEach((row) => row.forEach((v) => { h = fnv(h, v); }));
+    return { ver: VER, tab: tablesDigest(), winner: st.winner, t: +st.endT.toFixed(2), ticks, end, units: rows, hash: h };
+  }
+  function run(spec) {
+    const st = begin(spec);
+    while (!st.over) step(st);
+    return record(st);
   }
 
   // ───────── 그리기 ─────────
@@ -2788,5 +2863,5 @@ const Battle = (() => {
 
   function stop() { if (raf) cancelAnimationFrame(raf); raf = null; }
 
-  return { play, stop, plan, simulate, findBattle };
+  return { play, stop, plan, simulate, findBattle, VER, setup, step, begin, record, run };
 })();

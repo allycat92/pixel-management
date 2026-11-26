@@ -4,6 +4,7 @@
 //   SIM_ROOT=/path/to/other/checkout node tools/sim/bot.js ...   (다른 체크아웃의 js/ 로 비교)
 //   SIM_SEED=1 (기본) — 판마다 seed+i 로 Math.random 을 고정해 재현 가능하게 돌린다.
 //   SIM_JSON=1 — 요약 대신 판별 결과를 JSON 으로 출력
+//   SIM_SHADOW=0 — 귀환 때의 그림자 능력치 전투(js/muster.js shadowResolve)를 돌리지 않는다 (10배쯤 빠르다. 결과는 같아야 한다)
 // 게임 스크립트(js/*.js)를 vm 으로 읽어 들이고, UI·그림 없이 Game 만 돌린다.
 'use strict';
 const fs = require('fs');
@@ -11,15 +12,20 @@ const path = require('path');
 const vm = require('vm');
 
 const ROOT = process.env.SIM_ROOT || path.resolve(__dirname, '..', '..');
-const FILES = ['data.js', 'classes.js', 'world.js', 'content.js', 'game.js', 'company.js', 'faction.js', 'contract.js', 'captains.js'];
+const FILES = ['data.js', 'classes.js', 'world.js', 'content.js', 'game.js', 'company.js', 'faction.js', 'contract.js', 'captains.js', 'stats.js', 'muster.js']
+  .filter((f) => fs.existsSync(path.join(ROOT, 'js', f)));   // 능력치 표가 생기기 전의 체크아웃(SIM_ROOT)도 돌릴 수 있게
+const HAS_STATS = FILES.includes('stats.js');
 // extra: 뒤에 덧붙일 파일(예: battle.js), prelude: 앞에 둘 코드(예: UI 대역)
 function makeScript(extra = [], prelude = '') {
   const src = prelude + '\n' + [...FILES, ...extra].map((f) => fs.readFileSync(path.join(ROOT, 'js', f), 'utf8')).join('\n')
     + '\nthis.Game=Game;this.PROMOTIONS=PROMOTIONS;this.PROMOTE_COST=PROMOTE_COST;this.STARTER_CAPTAINS=STARTER_CAPTAINS;this.MASTERS=MASTERS;this.FACILITIES=FACILITIES;'
+    + (HAS_STATS ? 'this.Stats=Stats;' : '')
     + (extra.includes('battle.js') ? 'this.Battle=Battle;' : '');
   return new vm.Script(src, { filename: 'game-bundle.js' });
 }
 let SCRIPT = null;
+// 기본 봇은 게임과 똑같이 그림자 전투까지 돌린다 (battle.js 는 그림 없이도 읽힌다): 그림자가 게임의 난수·상태를 건드리지 않는지 md5 로 지킨다.
+const SHADOW = HAS_STATS && process.env.SIM_SHADOW !== '0';
 
 function mulberry(seed) {
   let a = seed >>> 0;
@@ -35,16 +41,23 @@ function mulberry(seed) {
 const CHECK_DAYS = [30, 60, 120, 180, 240, 300, 365];
 
 // opts.script: makeScript() 결과, opts.onReport(report, Game, ctx): 의뢰 보고서가 나올 때마다
+// opts.shadow: false 면 그림자 전투를 끈다 (true 면 SIM_SHADOW=0 이어도 켠다), opts.equipGuard: true 면 출격 중 장비 잠금을 켠다
+// opts.onStart(Game, ctx): 새 게임을 만든 직후, opts.onOffer(contract, units, chance, Game, ctx): 봇이 의뢰 하나를 저울질할 때마다 (보내기 전)
 function run(seed, days, mode, opts = {}) {
   const rnd = mulberry(seed);
   const M = Object.create(Math);
   M.random = rnd;
   const ctx = { localStorage: { setItem() {}, getItem() { return null; }, removeItem() {} }, console, Math: M };
   vm.createContext(ctx);
-  (opts.script || (SCRIPT = SCRIPT || makeScript())).runInContext(ctx);
+  (opts.script || (SCRIPT = SCRIPT || makeScript(SHADOW ? ['battle.js'] : []))).runInContext(ctx);
   const G = ctx.Game;
+  // 옛 봇은 출격 중인 단원에게도 장비를 갈아 끼운다. 그 판을 그대로 재현해야 md5 기준이 유지되므로 장비 잠금(js/muster.js)을 끈다.
+  // opts.equipGuard: true 면 실제 게임처럼 잠근다 (결과가 기준과 달라진다).
+  G.equipGuard = !!opts.equipGuard;
+  if (opts.shadow === false || (opts.shadow == null && !SHADOW)) G.shadowBattle = false;
   const coin = () => (rnd() < 0.5 ? 0 : 1);
   G.newGame();
+  if (opts.onStart) opts.onStart(G, ctx);
   G.state.pendingReports = [];
   G.chooseStarter(ctx.STARTER_CAPTAINS[Math.floor(rnd() * 3)]);
   const s = G.state;
@@ -124,6 +137,7 @@ function run(seed, days, mode, opts = {}) {
         units = sorted.slice(0, c.campaign ? c.campaign.slots : 1).map((x) => x.u);
       }
       const ch = G.successChance(c, units);
+      if (opts.onOffer) opts.onOffer(c, units, ch, G, ctx);
       if (ch >= (c.campaign ? 0.55 : 0.6)) {
         const before = s.missions.length;
         G.dispatch(c.id, units);
