@@ -4,7 +4,8 @@
 //   SIM_ROOT=/path/to/other/checkout node tools/sim/bot.js ...   (다른 체크아웃의 js/ 로 비교)
 //   SIM_SEED=1 (기본) — 판마다 seed+i 로 Math.random 을 고정해 재현 가능하게 돌린다.
 //   SIM_JSON=1 — 요약 대신 판별 결과를 JSON 으로 출력
-//   SIM_SHADOW=0 — 귀환 때의 그림자 능력치 전투(js/muster.js shadowResolve)를 돌리지 않는다 (10배쯤 빠르다. 결과는 같아야 한다)
+//   SIM_SHADOW=1 — 귀환 때의 그림자 능력치 전투(js/muster.js shadowResolve)도 돌린다 (14배쯤 느리다. 결과는 같아야 한다 — 그림자가 게임을
+//                  건드리지 않는지 보는 시험. 기본은 끔: 일상 검사(md5)를 빠르게. 측정은 tools/sim/shadow.js)
 // 게임 스크립트(js/*.js)를 vm 으로 읽어 들이고, UI·그림 없이 Game 만 돌린다.
 'use strict';
 const fs = require('fs');
@@ -25,7 +26,7 @@ function makeScript(extra = [], prelude = '') {
 }
 let SCRIPT = null;
 // 기본 봇은 게임과 똑같이 그림자 전투까지 돌린다 (battle.js 는 그림 없이도 읽힌다): 그림자가 게임의 난수·상태를 건드리지 않는지 md5 로 지킨다.
-const SHADOW = HAS_STATS && process.env.SIM_SHADOW !== '0';
+const SHADOW = HAS_STATS && process.env.SIM_SHADOW === '1';
 
 function mulberry(seed) {
   let a = seed >>> 0;
@@ -41,7 +42,7 @@ function mulberry(seed) {
 const CHECK_DAYS = [30, 60, 120, 180, 240, 300, 365];
 
 // opts.script: makeScript() 결과, opts.onReport(report, Game, ctx): 의뢰 보고서가 나올 때마다
-// opts.shadow: false 면 그림자 전투를 끈다 (true 면 SIM_SHADOW=0 이어도 켠다), opts.equipGuard: true 면 출격 중 장비 잠금을 켠다
+// opts.shadow: false 면 그림자 전투를 끈다 (true 면 SIM_SHADOW 가 꺼져 있어도 켠다), opts.equipGuard: true 면 출격 중 장비 잠금을 켠다
 // opts.onStart(Game, ctx): 새 게임을 만든 직후, opts.onOffer(contract, units, chance, Game, ctx): 봇이 의뢰 하나를 저울질할 때마다 (보내기 전)
 function run(seed, days, mode, opts = {}) {
   const rnd = mulberry(seed);

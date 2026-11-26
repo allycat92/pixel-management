@@ -119,3 +119,16 @@ screen, recruitment counters on `est`, replay from the spec. `mission.chance` an
 - Special contracts at the defaults: story 7%, boss 38%, captain story 38%, campaign 46% shadow wins.
 - Retreat: 38% of defeats keep half of ours standing (target 60%).
 - Trainees keyed to the company's lowest level give a lone high-level captain two strong fill-ins. Not measured.
+
+## Verification (2026-11-27) and lead decisions
+All acceptance items re-run independently: sim 400 miss=0, bot md5 identical with and without the shadow battle, determinism 0 violations
+in 2,150 battles, enemy roster independent of the party in 6,013 alternative parties, purity (no Math.random, no state change), old save
+loads and resolves, browser 1280/400 ok. Non-blocking findings and what the lead decided:
+1. Shadow battle cost on "next day" (phone: up to ~0.5 s/day) -> **off in the browser** (`shadowBattle: typeof window === 'undefined'`);
+   the spec is still frozen at dispatch. Tools turn it on.
+2. Bot check 14x slower -> `SIM_SHADOW` now **opt-in** (`SIM_SHADOW=1`); purity is guarded by `shadow.js --check` and the opt-in md5.
+3. shadow.js knob validation, 6. `tab` digest caching / monster skill constants -> Codex task C6.
+4. Captain-only company gets fill-ins at the captain's level (rare: 32/1,483 missions), 5. predictable seed that changes daily,
+   7. monster attack mode follows the sprite template, not the archetype -> **stage 3/4 design items for the lead** (fill-in rule, per-save
+   seed salt fixed at contract creation, archetype-driven attack mode + forecast).
+Smaller: save grows ~4.5 KB per mission in flight; the card shows two 체력 numbers (attribute vs battle) - rename the battle row label in stage 4.

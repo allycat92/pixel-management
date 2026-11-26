@@ -1,41 +1,67 @@
-# 직업별 달리기 요청 (GPT 가 마네킹 위에 덧그림)
+# 이동 요청 — 부류 마네킹 위에 프레임마다 덧그리기 (그림: Antigravity)
 
 **왜 (주인 2026-11-26)**: "달리기를 실제 캐릭터 그래픽에 적용할때 캐릭터가 찌그러져 보여. 아마 스탠딩 원화(혹은 기준 에셋)를 조작하는것보다는
 스켈레톤 혹은 마네킹 기준으로 덧그리게 하는게 확실할걸. 그러려고 스프라이트식으로 하자고 한거고"
-→ 대기 그림을 잘라 기울이는 코드 달리기 대신, 확정 달리기 마네킹 `art/requests/guides/run_base/v2/` (8프레임 x 80ms) 위에 캐릭터를 프레임마다 그린다.
+→ 대기 그림을 잘라 기울이는 코드 이동 대신, 시트의 **이동 부류 마네킹** 8프레임 위에 캐릭터를 프레임마다 그린다. 그린 그림은 찌그러뜨리지 않는다.
+그림은 Antigravity 가 그린다(주인 2026-11-26: 그림 전담 — `docs/agents/README.md` 「그림 전담」). 요청서 README 의 Prompt 블록이 Antigravity 에게 가는 글이다.
 
 ## 이동 부류 세 가지 (주인 2026-11-26)
 > "달리기(이동)에 대해 3가지 부류를 정하고 싶어. 경량, 중량, 로브. 펑퍼짐한 천 복장을 입고 뛰는것도 좀 부자연스러울거고,
 > 중장비를 갖추면 당연히 뛰는건 물론이고 몸이 저렇게 땅에서 떨어지거나 몸을 앞으로 기울인 채로 가누기도 어려울테니까."
 
-세 부류 모두 **그 몸이 낼 수 있는 가장 빠른 이동**이다(전투 이동은 달리기 — 산책이 아니다). 캐릭터는 늘 **부류의 마네킹 위에 프레임마다 덧그린다**(대기 그림을 조작하지 않는다).
-시트마다 부류 하나 — 원본 `tools/art/specs/gait_classes.json` (경량 30 · 중량 7 · 로브 10 · 해당 없음 5, 시트마다 까닭과 경계 사례). 현황: `python3 tools/art/gait_requests.py`.
+세 부류 모두 **그 몸이 낼 수 있는 가장 빠른 이동**이다(전투 이동은 달리기 — 산책이 아니다). 시트마다 부류 하나 — 원본 `tools/art/specs/gait_classes.json`
+(시트마다 까닭과 경계 사례). 현황: `python3 tools/art/gait_requests.py`.
 
-| 부류 | 몸 | 덧그리는 마네킹 | 요청 폴더 | 느낌 |
+| 부류 | 몸 | 덧그리는 마네킹 (확정) | 요청 폴더 | 느낌 |
 |---|---|---|---|---|
-| **경량** light | 가죽·천(무릎까지)·사슬 셔츠+겉옷, 다리가 보이는 망토·열린 긴 외투 | `art/requests/guides/run_base/v2/` (R1~R8, 80ms, 한 걸음 게임 45.5px) **확정** | `run__<시트>/` | 앞으로 기울고, 뜬 동안 누르고, 받아낸 뒤 조금 오른다. 엉덩이는 거의 수평, 살짝 뜬 느낌, 깡충거리지 않는다 |
-| **중량** heavy | 판금·온몸 금속·비늘 갑옷, 탑 방패, 아주 큰 무기를 든 몸 | `art/requests/guides/heavy_base/` (H1~H8, 110ms, 한 걸음 22.0px) **초안 `draft/` — PC 확정(`v1/`) 기다림** | `heavy__<시트>/` | 뜨는 칸이 없다(늘 한 발은 땅), 몸은 거의 선다, 디딜 때마다 무게로 가라앉는다, 무릎을 낮게, 보폭 짧게 |
-| **로브** robe | 무릎 아래까지 오는 긴 로브·사제복·긴 망토로 무릎·허벅지가 가려진 몸 | `art/requests/guides/robe_base/` (G1~G8, 90ms, 한 걸음 24.0px, `cloth_front` 옷자락 레이어) **초안 `draft/` — PC 확정(`v1/`) 기다림** | `robe__<시트>/` | 서서 서두르는 종종걸음·미끄러짐, 뜨지 않음, 무릎은 옷 속에서 살짝 밀 뿐, 옷자락이 한 칸 늦게 흔들리며 다리를 가린다 |
+| **경량** light | 가죽·천(무릎까지)·사슬 셔츠+겉옷, 다리가 보이는 망토·열린 긴 외투 | `art/requests/guides/run_base/v2/` R1~R8, 80ms, 한 걸음 원본 275px = 게임 45.5px, 뜸 R4·R8 | `run__<시트>/` | 앞으로 기울고, 뜬 동안 누르고, 받아낸 뒤 조금 오른다. 엉덩이는 거의 수평, 깡충거리지 않는다 |
+| **중량** heavy | 판금·온몸 금속·비늘 갑옷, 탑 방패, 아주 큰 무기를 든 몸 | `art/requests/guides/heavy_base/v1/` H1~H8, 101ms, 한 걸음 142.5px = 게임 23.6px | `heavy__<시트>/` | 뜨는 칸이 없다(늘 한 발은 땅, H1·H5 두 발), 몸은 거의 선다(5도), 디딜 때(H2·H6) 무게로 가라앉는다, 무릎 낮게, 보폭 짧게 |
+| **로브** robe | 무릎 아래까지 오는 긴 로브·사제복·긴 망토로 무릎·허벅지가 가려진 몸 | `art/requests/guides/robe_base/v1/` G1~G8, 96ms, 한 걸음 134.2px = 게임 22.2px, `cloth_front` 옷자락 레이어 | `robe__<시트>/` | 서두르는 미끄럼 걸음, 뜨지 않음(G1·G5 두 발), 7도 기울기, 옷자락이 한 칸 늦게 흔들리며 무릎을 늘 가린다 |
 | 해당 없음 none | 네발·다족·떠 있는 몸 (들늑대·거대 거미·가고일·망령·하피) | — (엔진의 quad·hover 움직임) | — | — |
 
 - **엔진에는 부류와 상관없이 시트의 `anims.run` 한 줄로 붙는다**: 납품 `art/inbox/gait/<시트 png 이름>_run_a.png` + `_b.png`,
   붙이기 `add_gait.py <시트 id> --gait run --src … --pose <부류 마네킹 pose.json>` (`gait_requests.py --json` 에 시트마다 명령). 요청 폴더 머리(`run__`/`heavy__`/`robe__`)는 사람이 부류를 알아보라고 붙인 것이다.
-- 엔진(`js/battle.js` `gaitClassOf`)은 시트 `meta.gait` → `js/gait_classes.js`(JSON 에서 `python3 tools/art/gait_requests.py --js` 로 만든 표) → 경량 순으로 부류를 안다.
-  그려진 칸이 아직 없는 시트는 그림을 바꾸지 않고 몸 전체만 부류대로 오르내린다: 경량 0..1px(지금 그대로) · 중량 디딜 때마다 1..2px 툭 내려앉고 천천히 올라오며 걸음 수는 약 3/4 · 로브 0..1px 부드럽게.
-- 중량·로브의 그려진 보폭(22~24px)은 코드 걸음(1배속 약 20px)과 거의 같아 디딘 발이 붙어 있다(칸마다 약 0.4~0.9px). 경량(45.5px)은 칸마다 약 6px 미끄러진다 — 다른 작업이 고치는 중.
-- 중량·로브 요청은 마네킹이 확정(`v1/`)된 뒤에 만든다. 첫 요청은 주인이 경량 두 캐릭터를 본 뒤.
+- 엔진(`js/battle.js` `gaitClassOf`)은 시트 `meta.gait`(add_gait 가 pose.json 에서 적는다) → `js/gait_classes.js` → 경량 순으로 부류를 안다.
+  그려진 칸이 없는 시트는 그림을 바꾸지 않고 몸 전체만 부류대로 오르내린다.
+- **디딘 발 규칙** (병과 전사 R5 를 한 번 고친 까닭): 엔진은 디딘 칸마다 유닛을 한 걸음의 1/4 만큼 나아가게 한다. 그래서 그림에서도 땅에 디딘 발은
+  **칸마다 정확히 step/4 만큼 왼쪽으로**(경량 68.8px · 중량 35.6px · 로브 33.5px, ±3) 옮겨 그려야 게임에서 발이 땅에 붙어 있다. 요청서마다 칸 좌표의 발끝 x 표가 있고,
+  `size_*.png` 에 노란 눈금으로 찍혀 있다. (전사 R5 는 디딘 발이 R1 보다 약 30px 앞에 그려져 R5→R6 에서 게임 5px 미끄러졌다 → 발 x 297 → 265 로 고침.)
 
 ## 요청 목록
 
-| 요청 | 시트 | 납품 (art-inbox) | 상태 |
-|---|---|---|---|
-| [`run__class_warrior/`](run__class_warrior/README.md) | `sheet/class/warrior` (방패 앞, 칼 낮게 뒤로) | `art/inbox/gait/sheet_class_warrior_run_a.png` + `_b.png` | 요청 2026-11-26 |
-| [`run__captain_shadowqueen/`](run__captain_shadowqueen/README.md) | `sheet/captain/shadowqueen` 니클라 (쌍검 낮게 뒤로, 망토·머리 늦게 따라옴) | `art/inbox/gait/sheet_captain_shadowqueen_run_a.png` + `_b.png` | 요청 2026-11-26 |
+<!-- index:start (gait_requests.py --index) -->
+| 요청 | 시트 | 부류 · 마네킹 | 납품 (art-inbox) | 상태 |
+|---|---|---|---|---|
+| [`heavy__captain_ironwall/`](heavy__captain_ironwall/README.md) | `sheet/captain/ironwall` 브리긴다 이동 (중량) | 중량 · `art/requests/guides/heavy_base/v1` | `art/inbox/gait/sheet_captain_ironwall_run_a.png` + `_b.png` | 요청 |
+| [`robe__class_mage/`](robe__class_mage/README.md) | `sheet/class/mage` 병과 마법사 이동 (로브) | 로브 · `art/requests/guides/robe_base/v1` | `art/inbox/gait/sheet_class_mage_run_a.png` + `_b.png` | 요청 |
+| [`run__captain_shadowqueen/`](run__captain_shadowqueen/README.md) | `sheet/captain/shadowqueen` 니클라 달리기 | 경량 · `art/requests/guides/run_base/v2` | `art/inbox/gait/sheet_captain_shadowqueen_run_a.png` + `_b.png` | 그려짐 · 등록 |
+| [`run__class_archer/`](run__class_archer/README.md) | `sheet/class/archer` 병과 궁수 달리기 | 경량 · `art/requests/guides/run_base/v2` | `art/inbox/gait/sheet_class_archer_run_a.png` + `_b.png` | 요청 |
+| [`run__class_cleric/`](run__class_cleric/README.md) | `sheet/class/cleric` 병과 성직자 달리기 | 경량 · `art/requests/guides/run_base/v2` | `art/inbox/gait/sheet_class_cleric_run_a.png` + `_b.png` | 요청 |
+| [`run__class_rogue/`](run__class_rogue/README.md) | `sheet/class/rogue` 병과 도적 달리기 | 경량 · `art/requests/guides/run_base/v2` | `art/inbox/gait/sheet_class_rogue_run_a.png` + `_b.png` | 요청 |
+| [`run__class_warrior/`](run__class_warrior/README.md) | `sheet/class/warrior` 병과 전사 달리기 | 경량 · `art/requests/guides/run_base/v2` | `art/inbox/gait/sheet_class_warrior_run_a.png` + `_b.png` | 그려짐 · 등록 |
+<!-- index:end -->
 
-폴더마다 같은 구성: `README.md` (한국어 머리말 + 「Prompt for GPT」 영어 블록), `guide_run_a.png` / `guide_run_b.png` (= `run_base/v2/run_base_a.png` / `_b.png` 사본, 자세·자리 가이드),
-`size_run_a.png` / `size_run_b.png` (읽기용 1920x1024: 왼쪽 = 승인된 대기 자세를 흐리게 + 마네킹 R1/R5 하늘색 윤곽, 같은 배율 · 오른쪽 = 마네킹 4칸 + 바닥 줄 y=870·엉덩이 열 x=192·x=32/351 선).
+`--write` 로 만든 폴더의 구성: `README.md` (한국어 머리말 + 「Prompt for Antigravity」 영어 블록: 참고 그림, CHARACTER, THE MOVE — 기울기·머리 높이·보폭·디딘 발끝 x 표,
+ARMS AND WEAPONS, 색, FORMAT, SELF-CHECK, 납품 메모와 「판정」 절), `guide_<p>_a.png` / `guide_<p>_b.png` (= 부류 마네킹 띠 사본, 자세·자리 가이드),
+`size_<p>_a.png` / `size_<p>_b.png` (읽기용 1920x1024: 왼쪽 = 승인된 대기 자세를 게임처럼 앵커 열을 x=192 에 두고 흐리게 + 마네킹 첫 칸 하늘색 윤곽, 같은 배율 ·
+오른쪽 = 마네킹 4칸 + 바닥 줄 y=870 · 엉덩이 열 x=192 · x=32/351 선 · 디딘 발끝 눈금 · 경량의 뜸 줄 y=852). `<p>` = `run` / `heavy` / `robe`.
+처음 두 요청(`run__class_warrior`, `run__captain_shadowqueen`)은 손으로 쓴 것이라 「Prompt for GPT」이고 그림 이름이 `guide_run_*` 이다 — 이미 그려져 등록되었으니 다시 만들지 않는다.
 
-받는 쪽 (클라우드): `python3 tools/art/receive.py gait/<시트 png 이름>_run` → 미리보기 확인 →
-`python3 tools/art/add_gait.py <시트 id> --gait run --src <..._run_a.png> <..._run_b.png> --pose art/requests/guides/run_base/v2/pose.json`
-(규격·검사: `tools/art/add_gait.py --help`, `art/requests/guides/SPEC.md` 5b절. 마네킹 픽셀은 `add_gait.py` 가 거부한다).
-첫 두 캐릭터의 결과를 주인이 본 뒤 다른 시트로 넓힌다.
+## 더 만드는 법 (명령 하나)
+
+```
+python3 tools/art/gait_requests.py --write sheet/<kind>/<key> [sheet/... ...]
+```
+- 시트의 부류(`gait_classes.json`) → 그 부류의 확정 마네킹(`pose.json`)의 숫자로 README 를 쓰고, `tools/art/run_request_guides.py` 가 그림 넷을 만든다.
+  대기 자세의 x 범위·앵커 열·배율은 등록된 시트(`assets/art/manifest.json`)와 원본(`art/inbox/<stem>.png`)·요청서 배율(`art/requests/phase3.json`)에서 잰다 — 캐릭터마다 손으로 적는 표가 없다.
+- 손에 든 것·천·얼굴 문장은 `tools/art/gait_requests.py` 의 `CARRY` 표(시트 id 마다)에서 온다. 표에 없는 시트는 phase3 꾸러미 README 의 CHARACTER 줄 + 부류 기본 문장으로 만들고
+  「검토」를 알린다 → 대기 그림을 보고 CARRY 에 적은 뒤 `--force` 로 다시 만든다.
+- 이미 있는 폴더는 `--force` 없이 건드리지 않는다. `--out <폴더>` 는 시험용(목록을 고치지 않는다). 이 목록만 다시 쓰기: `python3 tools/art/gait_requests.py --index`.
+- 만든 뒤: 그림 넷을 눈으로 본다(같은 배율, 발이 바닥 줄 위) → `art/requests/dot_queue.md` 「지금 차례」에 줄을 올린다(클라우드).
+- 마네킹만 바꿔 다시: `python3 tools/art/run_request_guides.py <시트> --force` (그림만). 잰 값만 보기: `--info`.
+
+## 받는 쪽 (클라우드)
+
+`python3 tools/art/receive.py gait/<시트 png 이름>_run` → 부류에 맞는 마네킹으로 검사(경량만 `--flight-slots 4`) + `add_gait.py --dry-run` → 미리보기 확인 →
+`python3 tools/art/add_gait.py <시트 id> --gait run --src <..._run_a.png> <..._run_b.png> --pose <부류 마네킹 pose.json>`
+(규격·검사: `tools/art/add_gait.py --help`, `art/requests/guides/SPEC.md` 5b절. 마네킹 픽셀 — 이름을 바꾸거나 옮기거나 뒤집은 것도 — 은 `add_gait.py` 가 거부한다.)

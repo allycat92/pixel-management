@@ -8,12 +8,13 @@
 | 누구 | id | 상태 | 할 일 (자세한 것은 그 줄의 문서) |
 |---|---|---|---|
 | Codex | `C5-art-battle-integration-qa` | REVIEW | 납품 시트 6종을 격리 빌드에 먼저 반영하고 실제 전투 UI에서 확인: `docs/agents/tasks/C5-art-battle-integration-qa.md` |
-| Codex | `C4-shadow-baseline` | REVIEW | 전투 수치 전환 전 기준선 측정(엔진 수정 없음): `docs/agents/tasks/C4-shadow-baseline.md` |
+| Codex | `C6-shadow-sweep-tooling` | READY | 그림자 측정 도구 손질(노브 검사·digest·표 이름·문서): `docs/agents/tasks/C6-shadow-sweep-tooling.md` |
 
 ## 끝난 일
 
 | 누구 | id | 결과 |
 |---|---|---|
+| Codex | `C4-shadow-baseline` | **DONE** (2026-11-27, `9bc62b9`): 전환 전 기준선 — 전투 재현 400판×2 불일치 0, 봇 12판×365일×2: 모두 S 등급, 파산 0, 평균 S 도달 73·69일, 365일 금화 4.7만·5.2만, 수락 의뢰 표시 성공률 95.5·95.9%. 전환 뒤 같은 시드로 비교한다 (대리 총괄이 배정) |
 | Codex | `C3-hire-button-when-full` | **DONE** (2026-11-27, `8afbfcb` 합침): 숙소가 가득 차면 특별 용병·정예 영입 버튼을 끄고 이유 표시. GPT 가 두 화면 폭에서 확인 |
 | Codex | `C2-playtest-fixes` | **DONE** (2026-11-26, `94a0fe6` 합침): 플레이테스트 오류 12가지 수정. 승패 재현 불일치 0, 봇 동일 |
 | GPT | `Q1-verify-c2` | **DONE** (2026-11-26, `6ff4afb`): 12항목 모두 1280·400 폭에서 통과. 추가 발견 1건 → C3 |

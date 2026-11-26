@@ -5,7 +5,9 @@
 'use strict';
 
 Object.assign(Game, {
-  shadowBattle: true,     // 귀환 때 능력치 전투를 그림자로 돌릴지 (도구가 끌 수 있다. 저장하지 않는다)
+  // 귀환 때 능력치 전투를 그림자로 돌릴지 (저장하지 않는다). 브라우저에서는 끈다 — 아무도 보지 않는 기록 때문에 하루 넘기기가 휴대폰에서
+  // 0.5초까지 늘었다(0~1단계 검증). 측정 도구(tools/sim/shadow.js, bot.js 의 SIM_SHADOW=1)만 켠다. 편성 굳히기(muster)는 늘 한다.
+  shadowBattle: typeof window === 'undefined',
   // 출격 중인 단원의 장비 잠금 (Game.equip / unequip). 봇(tools/sim/bot.js)만 끈다: 옛 봇은 출격 중인 단원에게도 장비를 갈아 끼우므로,
   // 그 판을 그대로 재현해야 하는 회귀 기준(md5)을 전투가 결과를 정하는 단계까지 지키려는 것이다.
   equipGuard: true,
