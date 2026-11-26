@@ -1163,6 +1163,30 @@ const Battle = (() => {
     if (!sh || !sh.meta.anims[name]) return 0;
     return (sh.meta[name + 'Stride'] || 0) * sheetK(u, sh);
   }
+  // 그려진 달리기 칸(8칸 = 두 걸음: R1 닿음 · R2 디딤 · R3 밀기 · R4 뜸, R5..R8 반대 발)을 간 거리로 넘긴다 (r.rq = 지금 칸 위치 0..8, 소수).
+  // 주인 결정(2026-11-26, 그려진 달리기의 발 미끄러짐 — "그대로 둠 (B만)"): 유닛의 빠르기는 그대로 두고 칸의 박자만 고친다.
+  //   경량(뜨는 때가 있다, GAIT_CLASS.hop): 디딘 칸 R1·R2(R5·R6)는 칸마다 그려진 보폭의 1/4(ds/4) — 그림 속 디딘 발이 뒤로 가는 만큼이라 발이 땅에 붙는다.
+  //     밀기·뜸 R3·R4(R7·R8)가 한 걸음의 나머지를 나눠 맡는다: 칸마다 f = (S − ds/2)/2, 한 걸음 S = max(코드 보폭 × 배속 규칙, ds/2 + 2 × ds/8)
+  //     (뜨는 칸도 적어도 ds/8 거리를 맡아 2배속에서도 보인다). 걸음 수 = 빠르기 ÷ S — 그려진 보폭이 코드 보폭보다 길면 그만큼 적게 디딘다.
+  //   중량·로브(뜨는 때가 없다 — 늘 한 발이 땅에): 모든 칸이 ds/4 (발이 붙는다; 그 부류의 runStride 는 약 22~24px).
+  //   뒤로 가면(r.fwd < 0) 칸 너비를 고르게 (한 걸음 거리 ÷ 4).
+  // ds = drawnStrideOf(u, 'run') (화면 px, 배율 포함), slf = 코드 달리기 보폭 strideOf × 배속 규칙(4배속 2).
+  const RUN_FLY_MIN = 1 / 8;
+  function runCells(u, r, dd, ds, slf) {
+    if (r.rq == null) r.rq = (r.rp == null ? r.phase : r.rp) * 4;
+    const C = gaitClassFor(u, r, useArt() && Art.sheetFor(u)), c = ds / 4;
+    const f = C.hop ? (Math.max(slf, ds / 2 + 2 * ds * RUN_FLY_MIN) - ds / 2) / 2 : c;
+    if (dd < 0) r.rq += dd / (2 * c + 2 * f) * 4;
+    else {
+      let left = dd;
+      for (let g = 0; left > 1e-9 && g < 64; g++) {
+        const fl = Math.floor(r.rq), wj = (((fl % 4) + 4) % 4) < 2 ? c : f;
+        const room = (fl + 1 - r.rq) * wj;
+        if (left < room) { r.rq += left / wj; left = 0; } else { r.rq = fl + 1; left -= room; }
+      }
+    }
+    r.rq = ((r.rq % 8) + 8) % 8;
+  }
   // 유닛이 화면에서 실제로 움직인 만큼 걸음을 나아가게 하고(시계가 아니라 거리), 걷는 정도(gait 0..1)를 부드럽게 올리고 내린다.
   // 한두 틱짜리 자리 밀림은 걸음으로 치지 않는다(세 틱 이상 이어져야 걷기 시작) — 난전에서 걸음이 깜빡이지 않게.
   function gaitUpdate(view, st, u, r, H, face) {
@@ -1187,10 +1211,10 @@ const Battle = (() => {
       const sl = strideOf(u, r, H);
       r.wp += dd / (sl * fast);
       r.walkDist = (r.walkDist || 0) + dd / fast;              // 그려진 걷기 칸이 쓰는 거리 (같은 배속 규칙)
-      // 그려진 달리기 칸의 걸음(pose): 한 걸음 = min(시트 보폭 × 배율, 위의 보폭) — 같은 배속 규칙. 시트 보폭이 더 길면(run_base 45.5px 대 약 20px)
-      // 코드 걸음과 같은 박자(1배속 초당 약 3걸음)로 돌고 발이 미끄러진다(pose 의 주석). 시트 보폭이 없으면 위의 보폭 그대로.
+      // 그려진 달리기 칸의 걸음(pose): 시트 보폭(runStride × 배율)이 있으면 칸마다 간 거리로 넘긴다(runCells, r.rq). 없으면 위의 보폭(r.rp).
       const ds = drawnStrideOf(u, 'run');
-      r.rp = (r.rp == null ? r.phase : r.rp) + dd / ((ds > 0 ? Math.min(ds, sl) : sl) * fast);
+      if (ds > 0) runCells(u, r, dd, ds, sl * fast);
+      else r.rp = (r.rp == null ? r.phase : r.rp) + dd / (sl * fast);
     }
     r.gT = st.t;
     const want = u.alive && r.run >= 3 && c - r.moveC < Math.max(0.11, dtc * 1.5);
@@ -1216,13 +1240,15 @@ const Battle = (() => {
   // `python3 tools/art/gait_requests.py --js` 로 만든 표: 시트별, 시트 없는 유닛은 직업·대장 방식·괴물 틀별) → 경량.
   // 그려진 칸이 없는 시트는 그림을 바꾸지 않고 몸 전체 높이만 부류대로 오르내린다(glideBob). 값:
   //   k·min·max 높이(키 비율, px 한계) · lo 가장 낮은 때 · hi 가장 높은 때(걸음 단위, 0 = 앞발이 닿는 순간) · drop 1 = 높은 데서 가속해 떨어지다 툭 멈춘다(무게가 실림)
-  //   sl 몸 높이의 한 걸음 거리(키 비율, 0 = 코드 걸음 r.wp 그대로) · hop 시트 없는 코드 도트가 뜨는 칸에 솟는가 · dust 디딜 때 먼지 톨
-  // heavy: 마네킹 엉덩이 184/174/182/188(닿음·내려앉음·지남·밀기) → 내려앉음(0.22)에 가장 낮고 밀기 끝(0.92)에 가장 높다, 1..2px. 1px 칸에서도 툭 떨어져 보이게
-  //        떨어지기는 닿는 순간을 사이에 둔 걸음의 0.3 안에 몰고(가속), 올라오기는 0.7 에 걸쳐 천천히. 한 바퀴 880ms(달리기 640ms) → 걸음이 약 1.35배 길다.
+  //   sl 몸 높이의 한 걸음 거리(키 비율, 0 = 코드 걸음 r.wp 그대로; 달리는 걸음은 코드 걸음처럼 runSf 만큼 줄인다)
+  //   hop 뜨는 때가 있는가 (시트 없는 코드 도트가 뜨는 칸에 솟는다 · 그려진 달리기 칸의 뜸 칸이 거리를 맡는다 — runCells) · dust 디딜 때 먼지 톨
+  // heavy: 마네킹 엉덩이 184/174/182/188(닿음·내려앉음·지남·밀기) → 디딜 때마다 내려앉는다. 경량 달리기의 느낌을 넘지 않게(검증 지적): 닿는 순간의 높이가 가장 높고
+  //        (그 위로 솟지 않는다) 디딘 뒤 1px 만 툭 내려앉았다(0.22, 가속해 떨어지다 멈춤) 천천히 닿는 높이로 돌아온다 — 키와 상관없이 0..1px.
+  //        한 바퀴 880ms(달리기 640ms) → 걸음이 약 1.35배 길다.
   // robe:  마네킹 엉덩이 182/180/188/188, 출렁임 작다 → 0..1px 부드럽게. 한 바퀴 720ms → 걸음 약 1.1배.
   const GAIT_CLASS = {
     light: { k: 0.02, min: 1, max: 2, lo: 0.12, hi: 0.55, drop: 0, sl: 0, hop: 1, dust: 1 },
-    heavy: { k: 0.025, min: 1, max: 2, lo: 0.22, hi: 0.92, drop: 1, sl: 0.42, hop: 0, dust: 2 },
+    heavy: { k: 0.02, min: 1, max: 1, lo: 0.22, hi: 1, drop: 1, sl: 0.42, hop: 0, dust: 2 },
     robe:  { k: 0.015, min: 0, max: 1, lo: 0.25, hi: 0.7, drop: 0, sl: 0.34, hop: 0, dust: 1 },
   };
   // 유닛의 이동 부류 (시트가 있으면 그 시트의 것 — 상위 직업이 기본 직업 시트를 빌려 쓰면 그 시트의 부류). 표에 없으면 경량.
@@ -1280,10 +1306,17 @@ const Battle = (() => {
       return { bob: Math.round(1.5 + 1.5 * Math.sin((ic + r.phase) * 2 * Math.PI / 1.1)) };
     }
     const H = S.h, quad = gt === 'quad', spider = isBug(u);
-    // 이동 부류(두 발 짐승만): 경량은 코드 걸음(r.wp) 그대로, 중량·로브는 몸 높이의 걸음을 간 거리 ÷ 부류의 한 걸음(키 × C.sl × 빠르기)으로 센다
-    // (걸음 수가 경량보다 적다 — 마네킹 박자). 그려진 달리기 칸의 박자(r.rp)와는 상관없다: 그 칸이 있으면 몸 높이를 얹지 않는다.
+    // 이동 부류(두 발 짐승만): 경량은 코드 걸음(r.wp) 그대로, 중량·로브는 몸 높이의 걸음을 간 거리 ÷ 부류의 한 걸음(키 × C.sl × 빠르기 × runSf)으로 센다
+    // (걸음 수가 경량보다 적다 — 마네킹 박자; 느리게 다가가면 경량처럼 보폭이 줄어 초당 걸음 수가 그대로). 한 걸음 거리가 runSf 로 바뀌므로 걸음은 쌓아 센다(r.cwq).
+    // 그려진 달리기 칸의 박자(r.rq)와는 상관없다: 그 칸이 있으면 몸 높이를 얹지 않는다.
     const C = gt === 'biped' ? gaitClassFor(u, r, fr.sheet) : GAIT_CLASS.light;
-    const wq = C.sl > 0 ? (r.walkDist || 0) / Math.max(5, C.sl * H * Math.max(0.85, Math.min(1.4, Math.pow((u.speed || 25) / 25, 0.75)))) + r.phase : r.wp;
+    let wq = r.wp;
+    if (C.sl > 0) {
+      const wd = r.walkDist || 0, csl = Math.max(5, C.sl * H * Math.max(0.85, Math.min(1.4, Math.pow((u.speed || 25) / 25, 0.75))) * runSf(r));
+      if (r.cwq == null) r.cwq = wd / csl + r.phase;
+      else r.cwq += (wd - r.cwD) / csl;
+      r.cwD = wd; wq = r.cwq;
+    }
     const p = ((wq % 1) + 1) % 1;
     const d = Math.max(0.4, Math.min(1, P.duty));
     if (!fr.sheet) {
@@ -1465,11 +1498,9 @@ const Battle = (() => {
         const a = m.anims[ga], n = a.to - a.from + 1;
         let q;
         if (ga === 'run') {
-          // 달리기 칸: gaitUpdate 의 r.rp — 한 걸음 = min(runStride × 그리는 배율, 코드 달리기 보폭 strideOf), 4배속 규칙도 같다.
-          // 그래서 코드 달리기와 같은 박자(1배속 초당 약 2.6~3.4걸음: 8칸이면 칸 하나 약 75~95ms, 그려진 80ms 와 비슷)로 돈다. 대가: 그려진 보폭이 더 길면 디딘 발이 땅 위에서
-          // 뒤로 미끄러진다 — 칸마다 (runStride×배율 − 보폭)/4. run_base(45.5px) 를 보폭 약 20px 인 전사에 붙이면 칸마다 약 6px, 디딘 동안(R1→R3) 약 13px.
-          // 4배속은 코드 걸음처럼 걸음 수가 2배속 수준이라 한 걸음에 약 40px 를 가므로 칸마다 약 2px 만 미끄러진다 (측정: 1배속 칸마다 몸 4.8px, 4배속 9.3px). 그려진 보폭이 더 짧으면 그 보폭대로(발이 붙는다, 걸음이 빨라진다).
-          q = (r.rp == null ? r.phase : r.rp) * n / 2;
+          // 달리기 칸: 시트 보폭(runStride)이 있으면 gaitUpdate 의 r.rq (runCells — 디딘 칸은 그려진 보폭대로 넘겨 발이 땅에 붙고, 뜨는 칸이 나머지 거리를 맡는다).
+          // 시트 보폭이 없으면 r.rp (한 걸음 = 코드 달리기 보폭 strideOf, 4배속 규칙도 같다).
+          q = m.runStride > 0 && r.rq != null ? r.rq * n / 8 : (r.rp == null ? r.phase : r.rp) * n / 2;
         } else {
           // 걷기 칸: 간 거리 ÷ (walkStride × 그리는 배율), 없으면 키에서 어림한다 (28.5%; r.sh 는 이미 배율을 곱한 키)
           const k = sheetK(u, sh), hh = r.sh || m.cell[1] * 0.7 * k;

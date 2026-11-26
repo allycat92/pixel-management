@@ -55,36 +55,51 @@ FLOOR = run8.FLOOR
 # arms: (upper-arm deg from straight down, + = forward; elbow flex deg) - angles in the picture (walk8.swing_arms).
 # *_ST = the arm on the side of the stance leg, *_SW = the arm of the other side; ARM_* near arm, FAR_* far arm.
 # The arms lag the legs by one frame (extremes at `down`, crossing between passing and push).
+GAME_SPEED = 58.0      # unit speed in battle (canvas = game px per second at 1x speed; warrior-class units, measured)
+# The game plays drawn heavy / robe cells PLANTED: one step = the drawn stride (shorter than the code stride), so the body moves
+# stride/4 per cell and a cell lasts stride/4 / GAME_SPEED seconds (js/battle.js gaitUpdate r.rp). `game_ms` is that time; the
+# drafts are timed and tuned at it (a slower unit or a 1.5x boss sheet stretches every cell by the same factor).
+
+
+def game_ms(step):
+    """ms per cell in the game at GAME_SPEED for a stride of `step` heads (rounded to whole ms)"""
+    return round(step * HEAD_PX * SCALE / 4 / GAME_SPEED * 1000)
+
+
 STYLES = {
     'heavy': dict(
-        tag='H', name='heavy_base', ms=110, step=1.21,          # 133 px = 22.0 game px per step; 8 x 110 = 880 ms a cycle, 136 steps a minute
-        HIP=[1.63, 1.54, 1.62, 1.67],                            # sinks onto the landing leg (push -> contact -> down: -5.5, -10 px), rises on the push: bob 14 px
-        LEAN=[0.11, 0.13, 0.11, 0.10],                           # measured 8-9.6 deg (hip -> neck dot): upright under the armour, a little more over the sinking leg
-        TILT=[-0.04, -0.05, -0.04, -0.035],                      # the head stays level
-        SHW=[1.03, 1.04, 1.0, 0.98],
-        CONTACT=0.45,                                            # ankle of the landing foot ahead of the hip (50 px): mid-stance is under the hip
-        LAND=0, PUSH=14, REAR=28,                                # foot angles (deg, + = heel up): lands flat (a stomp), push heel lift, rear foot at contact
-        # the other leg after contact: ankle x, ankle h, foot angle (deg; + = toe down)
-        SWING=[(-0.54, 0.40, 42), (0.02, 0.34, 16), (0.33, 0.19, -4)],
-        ARM_ST=[(-10, 50), (-13, 56), (-4, 46), (6, 48)],       # arms held close: small swing (+-13 deg), hands at the belt; elbows fold
-        ARM_SW=[(10, 50), (13, 56), (4, 46), (-6, 48)],         # more at down and open a frame later (the hands sink late: the weight)
-        FAR_ST=[(-16, 56), (-18, 62), (-10, 50), (-2, 52)],     # the far shoulder is drawn 0.7 heads ahead: its arm swings further back
-        FAR_SW=[(0, 56), (3, 62), (-5, 50), (-12, 52)],
+        tag='H', name='heavy_base', step=1.29,                   # 141.9 px = 23.5 game px per step -> 101 ms a cell in the game (8 cells 808 ms, 149 steps a minute)
+        HIP=[1.60, 1.535, 1.58, 1.595],                          # the weight drops ONLY at down (-7 px), then the hip comes back up slowly; the push is never above contact: bob 7 px
+        LEAN=[0.05, 0.06, 0.05, 0.045],                          # measured 4.7-5.6 deg (hip -> neck dot): the armour keeps the body upright - 5 deg (4-6)
+        TILT=[-0.02, -0.025, -0.02, -0.015],                     # the head stays level
+        SHW=[1.02, 1.03, 1.0, 0.99],
+        CONTACT=0.42,                                            # ankle of the landing foot ahead of the hip (46 px): short reach, mid-stance under the hip
+        LAND=0, PUSH=12, REAR=24,                                # foot angles (deg, + = heel up): lands flat (a stomp), push heel lift, rear foot at contact
+        # the other leg after contact: ankle x, ankle h, foot angle (deg; + = toe down) - shuffled low, the boot barely clears the floor
+        SWING=[(-0.56, 0.31, 34), (-0.04, 0.27, 12), (0.33, 0.165, -4)],
+        # arms held close and HIGH as if a shield is carried in front (far arm, forearm across the front) and a weapon at the side
+        # (near arm, hand at the belt, forearm forward): they ride with the body, swing only +-4-6 deg, the elbows fold a little
+        # more at down (the hands sink with the weight)
+        ARM_ST=[(-6, 70), (-5, 64), (-2, 68), (2, 72)],
+        ARM_SW=[(4, 70), (5, 64), (2, 68), (-4, 72)],
+        FAR_ST=[(-2, 104), (-1, 98), (2, 102), (4, 104)],       # the far (shield) arm: elbow at the side, forearm across the front, rising a little
+        FAR_SW=[(5, 104), (4, 98), (1, 102), (-2, 104)],
         robe=False,
     ),
     'robe': dict(
-        tag='G', name='robe_base', ms=90, step=1.32,            # 145 px = 24.0 game px per step; 8 x 90 = 720 ms a cycle, 167 steps a minute
-        HIP=[1.615, 1.605, 1.665, 1.67],                         # nearly level (7 px): a glide, lowest at down, highest passing / push
-        LEAN=[0.08, 0.09, 0.07, 0.07],                           # measured 6.2-7.3 deg (hip -> neck dot): upright
-        TILT=[-0.03, -0.035, -0.025, -0.025],
-        SHW=[1.06, 1.08, 0.97, 0.98],
-        CONTACT=0.50,
+        tag='G', name='robe_base', step=1.22,                    # 134.2 px = 22.2 game px per step -> 96 ms a cell in the game (8 cells 768 ms, 156 steps a minute)
+        HIP=[1.62, 1.605, 1.645, 1.65],                          # nearly level (5 px): a glide, lowest at down, highest passing / push
+        LEAN=[0.085, 0.095, 0.08, 0.08],                         # measured 6.6-7.5 deg (hip -> neck dot): a small hurrying lean - 7 deg (5-8)
+        TILT=[-0.035, -0.04, -0.03, -0.03],
+        SHW=[1.04, 1.05, 0.98, 0.99],
+        CONTACT=0.46,
         LAND=0, PUSH=12, REAR=24,
-        SWING=[(-0.60, 0.33, 30), (-0.04, 0.23, 8), (0.36, 0.165, -6)],   # the foot barely leaves the floor: knees hidden, only the toes show
-        ARM_ST=[(-22, 58), (-26, 62), (-8, 60), (12, 58)],      # hurried, compact pump (+-26 deg), elbows 58-64
-        ARM_SW=[(22, 58), (26, 62), (8, 60), (-12, 58)],
-        FAR_ST=[(-28, 56), (-32, 60), (-14, 58), (2, 56)],
-        FAR_SW=[(6, 60), (10, 64), (-4, 60), (-20, 56)],
+        SWING=[(-0.58, 0.31, 28), (-0.04, 0.22, 8), (0.34, 0.165, -6)],   # the foot barely leaves the floor: knees hidden, only the toes show
+        # arms close: the hands stay near the waist (a staff / the hem held), elbows folded 70-78 deg, swing +-6-12 deg
+        ARM_ST=[(-10, 72), (-12, 76), (-4, 74), (6, 72)],
+        ARM_SW=[(8, 72), (10, 76), (4, 74), (-8, 72)],
+        FAR_ST=[(-16, 72), (-18, 76), (-10, 74), (-2, 72)],
+        FAR_SW=[(2, 72), (4, 76), (-4, 74), (-12, 72)],
         robe=True,
     ),
 }
@@ -373,6 +388,7 @@ def main(argv=None):
     a = ap.parse_args(argv)
     S = STYLES[a.style]
     name, step, tag = a.name or S['name'], a.step or S['step'], S['tag']
+    ms = game_ms(step)
     os.makedirs(a.out, exist_ok=True)
     B = pk.Body(4.0)
     oy = w8.floor_row(B, 1.30)                     # the walk / run floor row: every set stands on the same canvas line
@@ -380,7 +396,7 @@ def main(argv=None):
     solved = solve_all(S, B, step, oy, dx)
     layers = LAYERS_ROBE if S['robe'] else w8.LAYERS
     warns = [f'{tag}{i + 1}: {m}' for i, (p, J, _) in enumerate(solved) for m in pk.check(f'{tag}{i + 1}', J, B, p)]
-    flats = export(a.out, name, tag, solved, oy, layers, S['ms'], a.aseprite)
+    flats = export(a.out, name, tag, solved, oy, layers, ms, a.aseprite)
     key = np.array(pk.BG, np.uint8)
     frames = []
     for i, ((p, J, parts), flat) in enumerate(zip(solved, flats)):
@@ -421,9 +437,10 @@ def main(argv=None):
                             retreat_px=[round(seq[j] - seq[j + 1], 1) for j in range(4)]))
     leans = [f['lean_deg'] for f in frames]
     info = dict(set=name, gait=a.style, movement_class=a.style, head_px=HEAD_PX, baseline=BASELINE, scale=SCALE, frames_per_cycle=8,
-                nominal_ms=S['ms'], step_px=round(step * HEAD_PX, 1), run_stride_game_px=round(step * HEAD_PX * SCALE, 1),
-                speed_at_nominal_ms_game_px_s=round(step * HEAD_PX * SCALE / (4 * S['ms'] / 1000), 1),
-                steps_per_minute=round(60000 / (4 * S['ms']), 1),
+                nominal_ms=ms, game_ms_basis=f'stride/4 per cell at {GAME_SPEED:g} game px/s (unit speed at 1x; the game plays heavy / robe cells planted)',
+                step_px=round(step * HEAD_PX, 1), run_stride_game_px=round(step * HEAD_PX * SCALE, 1),
+                speed_at_nominal_ms_game_px_s=round(step * HEAD_PX * SCALE / (4 * ms / 1000), 1),
+                steps_per_minute=round(60000 / (4 * ms), 1),
                 bob_px=round(max(hips) - min(hips), 1), sink_contact_to_down_px=round(hips[0] - hips[1], 1),
                 lean_deg=[min(leans), max(leans)], planted_toes=st_toes,
                 other_foot_max_px=max(f['other_sole_height_px'] for f in frames if f['phase'] != 'contact'),
@@ -433,11 +450,12 @@ def main(argv=None):
         json.dump(info, f, ensure_ascii=False, indent=1)
         f.write('\n')
     if a.compare:
+        lms = game_ms(run8.STEP)                   # the light run planted the same way (owner's option B: unit speed kept, cadence from the drawn stride)
         total = compare(os.path.join(a.out, f'{name}_vs_run.gif'),
-                        [(f'light {run8.MS}', flats_of(a.compare), run8.MS, run8.STEP * HEAD_PX), (f'{a.style} {S["ms"]}', flats, S['ms'], step * HEAD_PX)])
+                        [(f'light {lms}', flats_of(a.compare), lms, run8.STEP * HEAD_PX), (f'{a.style} {ms}', flats, ms, step * HEAD_PX)])
         print(f'compare gif loop {total} ms')
     print(f'{name}: step {info["step_px"]} px ({info["run_stride_game_px"]} game px), bob {info["bob_px"]} px '
-          f'(sink {info["sink_contact_to_down_px"]}), lean {info["lean_deg"][0]}-{info["lean_deg"][1]} deg, {S["ms"]} ms/frame, '
+          f'(sink {info["sink_contact_to_down_px"]}), lean {info["lean_deg"][0]}-{info["lean_deg"][1]} deg, {ms} ms/frame, '
           f'posekit warnings {len(warns)} -> {a.out}')
     for w in warns:
         print('  ' + w)
