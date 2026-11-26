@@ -108,6 +108,43 @@ STYLES = {
         robe=True,
     ),
 }
+# Thresholds for tools/art/check_skeleton.py --gait heavy|robe --pose pose.json (written into pose.json "check"; the tools
+# session implements them). Pixel values on the 384x1024 source frame; hip = centre of the two hip dots, height above y=870;
+# lean = hip centre -> neck dot; soles = lowest pixel of the leg_near / leg_far layers; frames 1-8 = H1-H8 / G1-G8
+# (1/5 contact, 2/6 down, 3/7 passing, 4/8 push). FAIL = the structure of the gait, WARN = the feel (fix or explain in NOTES).
+_FRAME_FAILS = dict(
+    one_sole_on_floor_every_frame=True,          # no flight: in every frame the stance leg's lowest pixel is on y=870
+    double_support_frames=[1, 5],                # contact: BOTH soles on y=870
+    stance_on_floor_frames=[2, 3, 4, 6, 7, 8],   # the stance sole on y=870 (stance = near in 1-4, far in 5-8)
+    other_sole_min_px=3,                         # frames 2-4 / 6-8: the other sole at least this far above the floor
+    no_pixel_below_floor=True,
+    toe_retreat_tol_px=3,                        # planted toe (front end of the sole within 4 rows of the floor) retreats step/4 +- this
+                                                 # per frame through contact -> down -> passing -> push -> next contact (rear foot)
+    step_tol_px=10,                              # step = toe at contact - toe as the rear foot of the next contact, vs pose.json step_px
+    mirror_tol_px=dict(hip=1, ankle_x=2, ankle_h=4),   # frame i+4 = frame i with the legs swapped
+)
+CHECK = {
+    'heavy': dict(
+        fail=dict(_FRAME_FAILS, push_above_contact_max_px=1,     # push hip (4/8) never more than 1 px above contact (1/5): no rise, no hop
+                  lean_max_deg=8),                               # a run's forward lean is what the owner ruled out
+        warn=dict(lean_deg=[4, 6], lean_change_max_deg=2, neck_x_move_max_px=8,
+                  bob_px=[4, 10], sink_contact_to_down_min_px=4, down_lowest_tol_px=1,
+                  lifted_sole_px=[3, 20], passing_stance_knee_deg=[35, 65], elbow_deg=[55, 115],
+                  hand_fore_aft_range_max_px=30, hand_min_height_px=165, silhouette_change_min_pct=8),
+    ),
+    'robe': dict(
+        fail=dict(_FRAME_FAILS, lean_max_deg=10,
+                  cloth_front_layer=True,                        # the layer exists and is not empty in any frame
+                  hem_min_px=38,                                 # lowest cloth_front pixel at least 38 px above y=870 (SPEC 7: the toes show)
+                  knees_in_cloth=True),                          # kneeN and kneeF dots on opaque cloth_front pixels in every frame
+        warn=dict(lean_deg=[5, 8], lean_change_max_deg=2, neck_x_move_max_px=8,
+                  bob_px=[0, 8], down_lowest_tol_px=2,
+                  lifted_sole_px=[3, 16], hem_px=[38, 52],
+                  hem_lag_tol_px=4,              # down (2/6): front / back edge of cloth_front within 20 rows above its bottom = contact (1/5) +- 4
+                  cloth_change_max_pct_min=5,    # the largest cloth_front change between neighbours at game size over the cycle >= 5%
+                  elbow_deg=[60, 95], hand_fore_aft_range_max_px=45, hand_height_px=[165, 230], silhouette_change_min_pct=8),
+    ),
+}
 PHASES = ('contact', 'down', 'passing', 'push')
 
 # robe hem (cloth_front): one length of cloth hanging from the waist; its bottom is HEM_LEN below the hip of the PREVIOUS frame
@@ -478,6 +515,7 @@ def main(argv=None):
                 lean_deg=[min(leans), max(leans)], planted_toes=st_toes,
                 other_foot_max_px=max(f['other_sole_height_px'] for f in frames if f['phase'] != 'contact'),
                 heel_up_ankle_shift_px={k: round(v * HEAD_PX, 1) for k, v in dx.items()},
+                check=dict(CHECK[a.style], warn=dict(CHECK[a.style]['warn'], frame_ms=ms)),
                 bones_px=w8.bones_px(B), posekit_warnings=warns, frames=frames)
     with open(os.path.join(a.out, 'pose.json'), 'w', encoding='utf-8') as f:
         json.dump(info, f, ensure_ascii=False, indent=1)
