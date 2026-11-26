@@ -21,6 +21,8 @@ Claude Code 가 받아서 확인한 결과는 `art/requests/feedback.md`에 남�
 
 | 누구 | 종류 | id | 할 일 (자세한 것은 그 줄의 요청서) |
 |---|---|---|---|
+| Antigravity | 손질 | `sheet/monster/desert-bandit` | **다시 (Codex 게임 반영 QA C5, 11-27)**: 접촉 칸에서 몸을 3px 밀어 넣어 발이 앵커에서 벗어나고, 피격 칸 발 맞춤이 발바닥 기준 −12px. 공격 자세 폭과 디딘 발을 다른 칸과 같은 자리(y=870, 같은 x)에 맞춘다. 바탕은 납품한 `5520f35` 판. 지금 게임에는 예전 그림이 남아 있다 |
+| Antigravity | 손질 | `sheet/monster/goblin` | **대비 손질 (C5)**: 어두운 숲 배경에서 어두운 녹색·갈색 몸통의 안쪽 명암과 겹친 실루엣이 읽히지 않는다 → 몸통 중간색을 밝게, 외곽선 안쪽 1px 밝은 테두리, 귀·무기 실루엣을 몸 밖으로. 시트는 이미 게임에 등록됨(`c4cc054`) — 같은 이름으로 다시 납품 |
 | Antigravity | 손질 | `sheet/hero/oswin` | **이미지 생성 없이 Aseprite 만으로 하는 손질** (할당량 막힘 동안, 11-27 클라우드). 오스윈 피격 자세의 들린 무릎이 튀어 보인다 → 무릎을 조금 내려 발이 땅에 더 붙게(나머지 그대로). 바탕 `art/inbox/sheet_hero_oswin.png`. 납품·검사는 `tools/aseprite-mcp/pc/CLAUDE.md` 「납품」의 「손질」 줄. 「판정」 절 포함 |
 | Antigravity | 손질 | `sheet/hero/seraphine` · `sheet/hero/grom` · `sheet/hero/astel` | Aseprite 만으로: 준비 자세가 칸 위쪽에 붙는다(세라핀·그롬 77px, 아스텔 지팡이 87px / 칸 96) → 무기·지팡이 끝을 조금 낮추거나 기울여 몸 포함 75px 안쪽으로(자세 느낌은 그대로). 세 장 각각 같은 이름으로 다시 납품 |
 | Antigravity | DOT_READY | `sheet/captain/liberator/chain-sheet` | 카토 주먹·사슬 시트: 대기 `2391081` 그대로, 준비·접촉·피격 세 컷 추가. [요청서](phase3/captain_liberator/chain_sheet.md). |
