@@ -2,6 +2,8 @@
 'use strict';
 
 const relKey = (a, b) => (a < b ? `${a}|${b}` : `${b}|${a}`);
+// 패권국 수도: 길드가 낀 결전은 장악도가 이 값 이하일 때만 수도를 넘긴다 (그 위면 장악도만 이만큼 깎인다)
+const CAPITAL_FALL_AT = 40;
 
 Object.assign(Game, {
   initWorld() {
@@ -183,6 +185,8 @@ Object.assign(Game, {
   isCapital(p) { return Object.entries(CAPITALS).some(([f, c]) => c === p && this.owner(p) === f); },
   // 패권국의 수도는 길드가 개입하거나 재앙이 쳐들어오지 않는 한 함락되지 않는다
   isGuardedCapital(p, attacker) { return this.isCapital(p) && FACTIONS[this.owner(p)].hegemon && !this.isCalamity(attacker); },
+  // 길드가 낀 결전(공략전 승리·방어전 패배)도 패권국 수도는 장악도 40 초과면 함락되지 않고 장악도만 -40 (양쪽 같은 규칙)
+  capitalHolds(p, attacker) { return this.isGuardedCapital(p, attacker) && this.state.provinces[p].control > CAPITAL_FALL_AT; },
   provinceOpen(p) { return PROVINCES[p].tier <= this.rankIndex(); },
   // a 세력과 b 세력이 맞닿은 지방 (a 소유 지방 중 b와 인접한 곳)
   frontOf(a, b) {
@@ -397,7 +401,10 @@ Object.assign(Game, {
     if (s.calamity) {
       s.factions[s.calamity].mod += 0.3;
       const victims = this.warsOf(s.calamity).filter((f) => this.reachable(s.calamity, f).length);
-      if (victims.length && Math.random() < 0.85) press(s.calamity, pick(victims), this.war(s.calamity, pick(victims)));
+      if (victims.length && Math.random() < 0.85) {
+        const v = pick(victims); // 덮칠 세력을 한 번만 뽑아 지방 압박과 전황 점수에 같이 쓴다
+        press(s.calamity, v, this.war(s.calamity, v));
+      }
       if (this.provincesOf(s.calamity).length >= CALAMITY_DARKNESS && !s.over) {
         s.over = 'darkness';
         s.pendingReports.push({ special: 'darkness' });

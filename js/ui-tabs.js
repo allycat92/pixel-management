@@ -127,6 +127,14 @@
   }
 
   // ───────── 의뢰 ─────────
+  // 결전의 판돈: 패권국 수도는 지금 장악도가 40 초과면 이기거나(공략) 져도(방어) 장악도만 -40 (실제 판정과 같은 규칙)
+  function campaignStakes(c) {
+    const name = PROVINCES[c.province].name;
+    const attack = c.campaign.side === 'attack';
+    const [verb, fall] = attack ? ['승리 시', '점령'] : ['패배 시', '함락'];
+    if (Game.capitalHolds(c.province, attack ? c.issuer : c.target)) return `${verb} ${name} 장악도 -${CAPITAL_FALL_AT} · 수도 유지 (${CAPITAL_FALL_AT} 이하에서 ${fall})`;
+    return `${verb} ${name} ${fall}`;
+  }
   function effectPreview(c) {
     const kind = c.cat === 'monster' ? 'monster' : c.type;
     const eff = CONTRACT_EFFECTS[kind].win;
@@ -134,7 +142,7 @@
     if (eff.issuer && !FACTIONS[c.issuer].neutral) parts.push(el('span', { class: 'chip good' }, factionFlag(c.issuer, 1), ` ${FACTIONS[c.issuer].short} ${signed(eff.issuer)}`));
     if (eff.target && c.target) parts.push(el('span', { class: 'chip bad' }, factionFlag(c.target, 1), ` ${FACTIONS[c.target].short} ${signed(eff.target)}`));
     if (c.final) parts.push(el('span', { class: 'chip warn', text: `승리 시 ${FACTIONS[c.target].leader} 토벌 — 재앙 종식` }));
-    else if (c.type === 'battle' && c.campaign) parts.push(el('span', { class: 'chip warn', text: c.campaign.side === 'attack' ? `승리 시 ${PROVINCES[c.province].name} 점령` : `패배 시 ${PROVINCES[c.province].name} 함락` }));
+    else if (c.type === 'battle' && c.campaign) parts.push(el('span', { class: 'chip warn', text: campaignStakes(c) }));
     else if (eff.control) parts.push(el('span', { class: 'chip', text: `장악도 ${signed(eff.control)}` }));
     if (eff.relation) parts.push(el('span', { class: 'chip good', text: '양 세력 관계 개선' }));
     if (c.type === 'sabotage') parts.push(el('span', { class: 'chip warn', text: '정체 노출 위험' }));

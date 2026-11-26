@@ -360,6 +360,8 @@ const UI = (() => {
       const gold = s.gold, rep = s.rep, before = s.log[0] || null;
       const queued = new Set(s.pendingReports);
       const out = orig.apply(this, arguments);
+      // 구원자 화면의 「살아남은 세력」은 쌓인 그 순간의 명단으로 고정한다 (같은 날 뒤이은 판정의 세력 멸망이 앞당겨 보이지 않게)
+      s.pendingReports.forEach((x) => { if (x.special === 'savior' && !queued.has(x) && !x.alive) x.alive = Game.aliveFactions(); });
       const report = s.pendingReports.find((x) => !x.special && x.quest === mission.contract && !reportDeltas.has(x));
       if (report) {
         // 판정 중 보고서보다 먼저 쌓인 소식(구원자·세력 멸망·징조 등)은 그 보고서 바로 뒤로: 전투보다 결과가 먼저 보이지 않게
@@ -594,7 +596,7 @@ const UI = (() => {
         eventArt('savior') || el('div', { class: 'report-members' }, Sprites.clone(Sprites.monster(F.leader, 4, 0), 'big-portrait dead-boss')),
         el('p', { text: `${s.day}일째, ${s.guildName}의 용병단들이 ${F.leaderTitle} ${F.leader}을(를) 쓰러뜨렸습니다.` }),
         el('p', { text: `${F.name}은(는) 흩어지고, 살아남은 세력들은 폐허 위에서 다시 일어서기 시작합니다. 사람들은 이 시대를 은빛 늑대의 이름으로 기억할 것입니다.` }),
-        el('p', { class: 'muted small', text: `살아남은 세력: ${Game.aliveFactions().map((f) => FACTIONS[f].name).join(', ') || '없음'} · 이후 한동안 전후 복구 의뢰의 보수가 높아집니다.` }),
+        el('p', { class: 'muted small', text: `살아남은 세력: ${(r.alive || Game.aliveFactions()).map((f) => FACTIONS[f].name).join(', ') || '없음'} · 이후 한동안 전후 복구 의뢰의 보수가 높아집니다.` }),
         el('div', { class: 'modal-actions' }, cont, restart));
     }
     if (r.special === 'darkness') {

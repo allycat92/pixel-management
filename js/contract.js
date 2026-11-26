@@ -518,14 +518,22 @@ Object.assign(Game, {
       if (won && cp.side === 'attack') {
         if (this.owner(p) === c.target && this.atWar(c.issuer, c.target)) {
           // 패권국의 수도는 장악도를 40 이하로 떨어뜨려 둔 뒤에야 결전으로 함락시킬 수 있다
-          if (this.isGuardedCapital(p, c.issuer) && this.state.provinces[p].control > 40) {
-            this.changeControl(p, -40, null, report.control);
-            report.notes.push(`${FACTIONS[c.target].name}의 수도는 함락되지 않았지만 크게 흔들렸습니다. (장악도 40 이하에서 결전에 이기면 함락)`);
+          if (this.capitalHolds(p, c.issuer)) {
+            this.changeControl(p, -CAPITAL_FALL_AT, null, report.control);
+            report.notes.push(`${FACTIONS[c.target].name}의 수도는 함락되지 않았지만 크게 흔들렸습니다. (장악도 ${CAPITAL_FALL_AT} 이하에서 결전에 이기면 함락)`);
           } else this.transferProvince(p, c.issuer);
         }
       }
       else if (won && cp.side === 'defend') this.changeControl(p, 40, null, report.control);
-      else if (!won && cp.side === 'defend') { if (this.owner(p) === c.issuer && this.atWar(c.issuer, c.target)) this.transferProvince(p, c.target); }
+      else if (!won && cp.side === 'defend') {
+        if (this.owner(p) === c.issuer && this.atWar(c.issuer, c.target)) {
+          // 방어전에 져도 같은 보호: 패권국 수도는 장악도 40 초과면 장악도만 -40, 40 이하에서 지면 함락
+          if (this.capitalHolds(p, c.target)) {
+            this.changeControl(p, -CAPITAL_FALL_AT, null, report.control);
+            report.notes.push(`${FACTIONS[c.issuer].name}의 수도는 버텼지만 크게 흔들렸습니다. (장악도 ${CAPITAL_FALL_AT} 이하에서 결전에 지면 함락)`);
+          } else this.transferProvince(p, c.target);
+        }
+      }
       else this.changeControl(p, 15, null, report.control);
       scoreFor(eff.score);
       if (w) w.weariness += 10;
