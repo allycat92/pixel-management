@@ -97,26 +97,45 @@ python3 tools/art/sheets.py art/inbox/sheet_captain_lancer.png --scale 0.1654 --
 - `process.py`는 `sheet/*` 등 자기가 만들지 않은 manifest 항목을 건드리지 않는다.
 
 ### 달리기·걷기 프레임 붙이기 (`tools/art/add_gait.py`)
-전투에서 유닛은 달린다 (주인 결정 2026-11-26) — 그려 온 **달리기(run)** 프레임을 이미 등록된 시트에 붙인다. 걷기(walk, 둔화용)도 같은 방법이다.
+전투에서 유닛은 달린다 (주인 결정 2026-11-26) — 그려 온 **달리기(run)** 프레임을 이미 등록된 시트에 붙인다. **걷기(walk)** 도 같은 방법이다:
+걷기 칸은 걷는 걸음 — 거미줄에 걸려 무겁게 걷기(trudge)·뒷걸음(back)·밀리거나 아주 느리게 옮겨질 때의 한 발짝(step) — 에 쓰인다 (`js/battle.js`; 둔화된 유닛만이 아니다).
+최종 프레임은 `art/inbox/gait/<시트 png 이름>_<gait>` 로 들어온다: `gait/sheet_class_warrior_run.aseprite` 또는 `gait/sheet_class_warrior_run_a.png` + `_b.png`
+(`python3 tools/art/receive.py gait/sheet_class_warrior_run` 이 검사하고 `--dry-run` 까지 돌린다. 인자 없는 `sheets.py` 는 `art/inbox/sheet_*.png` 만 보고 `gait/` 안으로 들어가지 않는다).
 ```
-python3 tools/art/add_gait.py sheet/class/warrior --gait run --src art/inbox/gait/run_warrior_a.png art/inbox/gait/run_warrior_b.png \
+python3 tools/art/add_gait.py sheet/class/warrior --gait run \
+        --src art/inbox/gait/sheet_class_warrior_run_a.png art/inbox/gait/sheet_class_warrior_run_b.png \
         --pose art/requests/guides/run_base/v1/pose.json            # 한 걸음 = pose.json 의 step_px x 시트 배율 (run_base 275px → 45.5)
-python3 tools/art/add_gait.py sheet_class_warrior --gait run --src art/inbox/gait/run_warrior.aseprite --stride 45.5 --ms 80
-python3 tools/art/add_gait.py sheet/class/warrior --gait run --src ... --dry-run --work /tmp/gait   # 새 png · 등록될 항목 · 미리보기만
+python3 tools/art/add_gait.py sheet_class_warrior --gait run --src art/inbox/gait/sheet_class_warrior_run.aseprite --stride 45.5 --ms 80
+python3 tools/art/add_gait.py sheet/class/warrior --gait walk --src art/inbox/gait/sheet_class_warrior_walk_a.png art/inbox/gait/sheet_class_warrior_walk_b.png \
+        --pose art/requests/guides/walk_base/v2/pose.json
+python3 tools/art/add_gait.py sheet/class/warrior --gait run --src ... --pose ... --dry-run --work /tmp/gait   # 새 png · 등록될 항목 · 미리보기만
 python3 tools/art/add_gait.py sheet/class/warrior --gait run --remove                              # 다시 뺀다
 ```
 - 원본은 `art/requests/guides/SPEC.md` 의 프레임 규격: 한 프레임 384×1024, 띠 `_a.png`(1~4번)·`_b.png`(5~8번) 또는 프레임이 든 `.aseprite` 하나(보이는 레이어만).
-  **모든 프레임에서 엉덩이 중심 x=192, 바닥 줄 y=870.** 파일 이름은 `sheet_` 로 시작하지 않게 한다 (인자 없는 `sheets.py` 가 `art/inbox/sheet_*.png` 를 시트로 처리한다).
+  **모든 프레임에서 엉덩이 중심 x=192, 바닥 줄 y=870.** 납품된 파일 옆에는 pose.json 이 없으므로 `--pose <요청의 pose.json>` 또는 `--stride` 를 꼭 준다.
 - 변환은 그 시트를 만들 때와 같다 (`sheets.py` 의 함수 `matte`·`shrink_pose`·`outline`·`paint_pose` 를 그대로 부른다: 요청서의 scale, 키 제거, 열쇠 색·점 색).
   팔레트는 등록된 시트의 기본 칸에 있는 색을 쓴다 — 이동 칸에 새 색이 생기지 않는다.
 - 자리 맞춤은 맨 아래 픽셀이 아니라 **바닥 줄 y=870 → anchor y, x=192 → anchor x** (달리기의 뜬 프레임이 바닥에 내려앉지 않고, 프레임마다 몸이 흔들리지 않는다).
-  바닥 줄·가운데 열이 다른 그림이면 `--floor` / `--center` (모든 프레임에 같은 값). 칸에 안 들어가는 프레임은 줄이지 않고 몇 px 넘는지 알리며 실패한다.
+  바닥 줄·가운데 열이 다른 그림이면 `--floor` / `--center` (모든 프레임에 같은 값).
 - 결과: 시트 png 아래에 새 줄(기본 7칸의 픽셀은 그대로, 줄 순서는 run → walk), manifest 의 `sheet` 에 `frames` 추가 · `anims.run = {from, to, ms}` ·
   `runStride`(한 걸음의 게임 px, n 프레임 = 두 걸음) · `gaits.run`(원본·바닥 줄·걸음 기록). 걷기는 `anims.walk` / `walkStride` / `gaits.walk`. `js/art.js` 는 그대로 읽는다.
 - **기본 시트를 다시 등록해도 잃지 않는다**: `register_sheet.py`(= `sheets.py` 의 마지막 단계)가 `gaits` 기록을 새 항목에 옮기고 `add_gait.py <id> --reattach` 로
   기록된 원본에서 다시 변환해 붙인다 (새 팔레트·새 칸 크기로). 원본이 없으면 `!!! 경고` 와 다시 붙일 명령을 찍고 기록만 남긴다 (그동안 게임은 그 시트를 이동 칸 없이 그린다).
   그래서 붙인 원본은 `art/inbox/` 에 그대로 둔다. `sheets.py --realign` 은 이동 칸을 밀지 않는다.
-- 뼈대 가이드·초안(`art/requests/`, `art/concepts/`, `drafts/`, `nai_*`)은 `sheets.py` 와 같은 규칙으로 거부한다. `--allow-draft` 는 시험용이고 언제나 `--dry-run`.
+- 거부하는 원본 (게임 그림이 아니다 — `--allow-draft` 는 시험용이고 언제나 `--dry-run`):
+  - 초안 자리: `art/requests/`, `art/concepts/`, `drafts/`, `nai_*`, NovelAI 메타데이터 (`sheets.py` 와 같은 규칙).
+  - 뼈대(마네킹): 경로에 `guides/` 폴더가 있는 파일 (`art/requests/guides/…`, PC 가 넘기는 `art/inbox/guides/<id>/`), 옆에 `pose_measured.json` 이 있는 띠
+    (`check_skeleton.py --export`), `joints` 레이어가 있는 `.aseprite` (그 레이어가 보이면 `--allow-draft` 로도 받지 않는다 — 관절 점이 찍힌다).
+  - 초안과 같은 실루엣: 어느 프레임이든 클라우드 뼈대 초안(`art/requests/guides/*/v*/` 의 띠, 또는 `layers/` 를 프레임마다 합친 것; joints 제외)과
+    실루엣이 IoU 0.9 넘게 겹치면 거부한다 — joints 레이어를 지운 마네킹, 이름을 바꿔 옮긴 마네킹 띠. 그린 캐릭터는 옷·머리·무기로 실루엣이 달라진다
+    (시험: 마네킹 실루엣을 원본 3px 키우면 0.91 로 거부, 6px 키우면 0.83 으로 통과).
+- 실패로 끝나는 그림:
+  - 384px 프레임 칸의 테두리(x=0 / 383, y=0 / 1023)에 닿는 프레임 — 띠를 384px 씩 자르면 그림이 잘리거나 옆 자세의 조각이 들어온다 (프레임 번호를 알린다).
+  - 바닥 줄 아래로 내려가는 프레임 (게임 px 로 1px 이상; 발이 땅에 묻힌다). 일부러 그런 것이면 `--allow-below` (기록에 남아 다시 붙일 때도 쓴다).
+  - 칸에 안 들어가는 프레임 — 줄이거나 밀지 않고 몇 px 넘는지 알린다.
+- `receive.py gait/<시트 png 이름>_<gait>` 의 검사: 띠마다 `check_delivery.py` (run 은 `--flight-slots 4`: 4번 칸 = 뜬 프레임, 바닥 줄 위 18px 이상),
+  `.aseprite` 가 있으면 마네킹 검사(위의 joints 레이어·초안 실루엣)와 PNG = `.aseprite` 내보내기 비교, 그다음 `add_gait.py --dry-run`.
+  등록 명령(`register after judging: …`)은 **모든 검사가 통과했을 때만** 찍힌다.
 
 ### NovelAI (사용자가 원할 때만, 디자인 초안 전용)
 `python3 tools/art/novelai.py --only sheet/class/warrior` → `art/concepts/class_warrior/drafts/nai_class_warrior_s21149.png` (한 자세, 마젠타 배경; `drafts/`는 git 에 올리지 않는다).

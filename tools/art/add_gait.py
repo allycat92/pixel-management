@@ -36,7 +36,8 @@
 
 게임에 들어가는 그림만 받는다: 초안 자리(art/concepts/, art/requests/, drafts/, nai_*)의 파일은 sheets.py 와 같은 규칙으로, 뼈대(마네킹)는
   — 경로에 guides 폴더가 있는 파일(art/inbox/guides/<id>/ 포함), 옆에 pose_measured.json 이 있는 띠(check_skeleton --export), joints 레이어가 있는
-  .aseprite — 모두 거부한다. joints 레이어가 보이는 .aseprite 는 --allow-draft 로도 받지 않는다 (관절 점이 찍힌다).
+  .aseprite, 어느 프레임의 실루엣이 클라우드 뼈대 초안(art/requests/guides/*/v*/ 의 띠 또는 레이어를 합친 것)과 IoU 0.9 넘게 겹치는 원본
+  (joints 레이어를 지운 마네킹, 이름을 바꾼 마네킹 띠) — 모두 거부한다. joints 레이어가 보이는 .aseprite 는 --allow-draft 로도 받지 않는다 (관절 점이 찍힌다).
   --allow-draft = 파이프라인 시험용, 언제나 --dry-run.
 실패로 끝나는 그림: 384px 프레임의 테두리에 닿는 프레임 (띠가 잘리거나 옆 자세가 넘어온 것 — 프레임 번호를 알린다),
   바닥 줄 아래로 내려가는 프레임 (--allow-below 를 주면 받고 기록에 남긴다), 칸에 들어가지 않는 프레임.
@@ -46,6 +47,7 @@
 """
 import argparse
 import copy
+import glob
 import json
 import os
 import shlex
@@ -358,11 +360,94 @@ def command_for(sid, gait, rec):
     return ' '.join(shlex.quote(c) for c in cmd)
 
 
+GUIDES = os.path.join(ROOT, 'art', 'requests', 'guides')
+DRAFT_IOU = 0.9              # 원본 프레임의 실루엣이 클라우드 뼈대 초안의 한 프레임과 이만큼 겹치면 마네킹으로 본다
+_DRAFT_MASKS = None
+
+
+def frame_mask(arr):
+    """한 프레임(RGBA)의 실루엣: 배경 키(#FF00FF 등 테두리 색)나 투명을 뺀 곳 — 보이는 레이어를 모두 합친 모양"""
+    if arr.shape[-1] == 3:
+        arr = np.dstack([arr, np.full(arr.shape[:2], 255, np.uint8)])
+    return sh.matte(np.ascontiguousarray(arr))[1] > 0.5
+
+
+def draft_masks():
+    """클라우드가 만든 뼈대 초안(art/requests/guides/<set>/v<n>/)의 프레임 실루엣 → [(이름, mask)].
+    띠 png(<set>_a.png / _b.png: 높이 1024, 너비 384 의 배수)와 layers/ 의 레이어 png 를 프레임마다 합친 것(joints 제외) 둘 다."""
+    global _DRAFT_MASKS
+    if _DRAFT_MASKS is not None:
+        return _DRAFT_MASKS
+    out = []
+    for vdir in sorted(glob.glob(os.path.join(GUIDES, '*', 'v*'))):
+        if not os.path.isdir(vdir):
+            continue
+        for png in sorted(glob.glob(os.path.join(vdir, '*.png'))):
+            try:
+                arr = np.asarray(Image.open(png).convert('RGBA'))
+            except OSError:
+                continue
+            if arr.shape[0] != 1024 or arr.shape[1] % SLOT:
+                continue                                   # 리뷰 그림·미리보기
+            for k in range(arr.shape[1] // SLOT):
+                out.append((f'{rel(png)} 의 {k + 1}번 프레임', frame_mask(arr[:, k * SLOT:(k + 1) * SLOT])))
+        groups = {}
+        for png in sorted(glob.glob(os.path.join(vdir, 'layers', '*_*.png'))):
+            fr, layer = os.path.basename(png)[:-4].split('_', 1)
+            if layer != 'joints':
+                groups.setdefault(fr, []).append(png)
+        for fr, pngs in sorted(groups.items()):
+            m = None
+            for png in pngs:
+                a = np.asarray(Image.open(png).convert('RGBA'))[..., 3] > 0
+                m = a if m is None else (m | a) if m.shape == a.shape else m
+            if m is not None and m.shape[1] == SLOT:
+                out.append((f'{rel(os.path.join(vdir, "layers"))}/{fr}_*', m))
+    _DRAFT_MASKS = out
+    return out
+
+
+def draft_match(p, exe):
+    """원본의 어느 프레임이 클라우드 뼈대 초안의 프레임과 실루엣이 IoU > DRAFT_IOU 로 겹치면 그 이유, 아니면 None.
+    joints 레이어를 지운 마네킹, 이름을 바꾼 마네킹 띠도 잡는다 (그린 캐릭터는 옷·머리·무기로 실루엣이 달라진다)."""
+    try:
+        if p.lower().endswith(('.aseprite', '.ase')):
+            frames = frames_from_aseprite(p, exe)[0]
+        else:
+            arr = np.asarray(Image.open(p).convert('RGBA'))
+            if arr.shape[1] % SLOT:
+                return None                                # load_frames 가 규격 오류로 실패시킨다
+            frames = [arr[:, k * SLOT:(k + 1) * SLOT] for k in range(arr.shape[1] // SLOT)]
+    except OSError:
+        return None
+    drafts = draft_masks()
+    best = (0.0, None, None)
+    for i, fr in enumerate(frames):
+        m = frame_mask(fr)
+        if not m.any():
+            continue
+        for name, d in drafts:
+            if d.shape != m.shape:
+                continue
+            inter = int(np.count_nonzero(m & d))
+            if not inter:
+                continue
+            iou = inter / int(np.count_nonzero(m | d))
+            if iou > best[0]:
+                best = (iou, i + 1, name)
+    if best[0] > DRAFT_IOU:
+        return (f'{best[1]}번 프레임의 실루엣이 클라우드 뼈대 초안과 겹친다 — {best[2]}, IoU {best[0]:.3f} > {DRAFT_IOU} '
+                '= 마네킹 (joints 레이어를 지웠거나 이름을 바꾼 것)')
+    return None
+
+
 def guide_reason(p, exe):
     """뼈대 가이드(마네킹)로 보이면 그 이유, 아니면 None. 마네킹은 PC 가 만드는 자세 가이드이고 게임 프레임이 되지 않는다:
     - 경로에 guides 폴더 (art/requests/guides/<id>/…, PC 가 넘기는 art/inbox/guides/<id>/<id>.aseprite)
     - 옆에 pose_measured.json (check_skeleton.py --export 가 마네킹에서 뽑은 띠)
-    - joints 레이어가 있는 .aseprite (관절 점 레이어 = 뼈대 작업 파일)"""
+    - joints 레이어가 있는 .aseprite (관절 점 레이어 = 뼈대 작업 파일)
+    - 어느 프레임의 실루엣이 클라우드 뼈대 초안(art/requests/guides/*/v*/ 의 띠·레이어)의 프레임과 IoU > 0.9
+      (joints 레이어를 지운 마네킹, 이름을 바꿔 옮긴 마네킹 띠)"""
     real = os.path.realpath(p)
     if 'guides' in real.split(os.sep)[:-1]:
         return 'guides/ 폴더 안의 파일 = 뼈대 가이드'
@@ -374,7 +459,7 @@ def guide_reason(p, exe):
             if 'joints' in visible:
                 raise Fail(f'{p}: joints 레이어가 보인다 — 관절 점이 프레임에 그대로 찍힌다. 이 파일은 뼈대(마네킹)이고 게임 프레임이 아니다')
             return 'joints 레이어가 있는 .aseprite = 뼈대 작업 파일(마네킹)'
-    return None
+    return draft_match(p, exe)
 
 
 def draft_guard(src, allow, exe=None):
@@ -576,7 +661,7 @@ def reattach(sid, man, a):
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument('sheet', help='manifest id (sheet/class/warrior) 또는 등록된 시트 png 이름 (sheet_class_warrior)')
-    ap.add_argument('--gait', choices=GAITS, help='run (전투 이동의 기본) | walk (둔화용)')
+    ap.add_argument('--gait', choices=GAITS, help='run (전투 이동의 기본) | walk (느린 걸음: 터벅터벅·뒷걸음·한 발짝)')
     ap.add_argument('--src', nargs='+', help='띠 png 들 (프레임 순서대로: <set>_a.png <set>_b.png) 또는 .aseprite 하나')
     ap.add_argument('--stride', type=float, help='한 걸음에 가는 게임 px (n 프레임 = 두 걸음). 없으면 --pose 의 step_px x 시트 배율')
     ap.add_argument('--pose', help='그 세트의 pose.json (step_px, nominal_ms). 기본: 원본 옆의 pose.json')

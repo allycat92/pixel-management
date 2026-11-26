@@ -17,7 +17,9 @@ FAIL: canvas/frames/layers wrong, the joints layer not hidden, a joint dot missi
 WARN: bob outside 12-16 px or in the wrong order, passing knee bent more than 15 deg, lifted foot outside 30-36 px,
       forward hand less than 20 px outside the torso, neighbouring frames nearly identical at game size, the head moving more than
       4 px against the neck dot across the frames (a tilt about the neck is allowed: the drift is what is left after the head's own
-      rotation), a frame duration that differs from pose.json nominal_ms (walk 120, run 80 when no pose.json is given).
+      rotation), the head's tilt ranging over more than 8 deg across the frames (a nod; for a nearly round head, whose shape gives no
+      rotation, the angle of its centre around the neck dot is the tilt), a frame duration that differs from pose.json nominal_ms
+      (walk 120, run 80 when no pose.json is given).
 --export DIR writes the strips (<set>_a.png, <set>_b.png), the game-size preview GIF and pose_measured.json from the file,
 so the Aseprite session only has to deliver the .aseprite. --base DRAFT.aseprite lists what was changed per frame and layer.
 Exit code 1 on FAIL.
@@ -174,6 +176,7 @@ RUN = dict(step=RUN_STEP * HEAD_PX, step_tol=14, clear=18, other=12, bob=(32, 46
            neck=12, push_flex=30, down_flex=(35, 65), land=(0, 70), scissor=110)
 HIP_X_TOL = 1          # the hip centre stays on the frame's centre column x = SLOT / 2 (add_gait.py anchors there)
 HEAD_DRIFT = 4         # px the head may move against the neck dot over the cycle, after its own tilt (both drafts: under 1.1)
+HEAD_TILT = 8          # deg the head's tilt may range over the cycle (max - min; drafts: run 1.0, walk under 5)
 NOMINAL_MS = dict(walk=120, run=80)
 
 
@@ -202,9 +205,10 @@ def head_pose(head_mask, neck):
 
 
 def head_cycle(meas, T, warns, info):
-    """the head against the neck dot over the cycle. A tilt about the neck is allowed: the head's own rotation (from its shape)
-    is taken out, the rest is drift (a head that pecks or slides on the neck). A nearly round head gives no usable rotation:
-    then only the distance from the neck is compared."""
+    """the head against the neck dot over the cycle. A small tilt about the neck is allowed: the head's own rotation (from its
+    shape) is taken out, the rest is drift (a head that pecks or slides on the neck); the tilt itself may range over HEAD_TILT deg
+    (more is a nod). A nearly round head gives no usable rotation: then the drift is the change of its distance from the neck and
+    the tilt is the angle of its centre around the neck dot (so a round head cannot slide round the neck unseen)."""
     hp = [m.get('head') for m in meas]
     if any(h is None for h in hp):
         return
@@ -213,16 +217,26 @@ def head_cycle(meas, T, warns, info):
     round_head = min(h[2] for h in hp) < 1.08
     drift, tilts = [], []
     for (cx, cy), th, _ in hp:
-        dt = 0.0 if round_head else (th - th0 + math.pi / 2) % math.pi - math.pi / 2
+        if round_head:
+            dt = (math.atan2(cy, cx) - math.atan2(c0y, c0x) + math.pi) % (2 * math.pi) - math.pi
+        else:
+            dt = (th - th0 + math.pi / 2) % math.pi - math.pi / 2
         tilts.append(math.degrees(dt))
         px, py = c0x * math.cos(dt) - c0y * math.sin(dt), c0x * math.sin(dt) + c0y * math.cos(dt)
         drift.append(abs(math.hypot(cx, cy) - math.hypot(c0x, c0y)) if round_head else math.hypot(cx - px, cy - py))
-    info.append('head against the neck dot (after its own tilt' + (', round head: distance only' if round_head else '') + '): drift '
-                + ' '.join(f'{d:.1f}' for d in drift) + f' px, tilt {min(tilts):+.1f}..{max(tilts):+.1f} deg from {T}1')
+    span = max(tilts) - min(tilts)
+    info.append('head against the neck dot (after its own tilt' + (', round head: distance, tilt = angle around the neck' if round_head else '')
+                + '): drift ' + ' '.join(f'{d:.1f}' for d in drift) + f' px, tilt {min(tilts):+.1f}..{max(tilts):+.1f} deg from {T}1'
+                + f' (range {span:.1f}, SPEC asks {HEAD_TILT} or less)')
     for i, d in enumerate(drift):
         if d > HEAD_DRIFT:
             warns.append(f'{T}{i + 1}: the head layer sits {d:.1f} px off its {T}1 place against the neck dot (after its tilt), SPEC asks '
                          f'{HEAD_DRIFT} or less - the head pecks or slides on the neck (move it with the torso, or tilt it about the neck)')
+    if span > HEAD_TILT:
+        lo, hi = tilts.index(min(tilts)), tilts.index(max(tilts))
+        warns.append(f'the head tilts over {span:.1f} deg across the frames ({T}{lo + 1} {tilts[lo]:+.1f}, {T}{hi + 1} {tilts[hi]:+.1f} deg from {T}1'
+                     + (', round head: angle of its centre around the neck dot' if round_head else '')
+                     + f'), SPEC asks {HEAD_TILT} or less - the head nods (keep it near level, it moves with the torso)')
 
 
 def check(frames, durs, names, hidden, bones, gait='walk', want_step=None, nominal_ms=None):

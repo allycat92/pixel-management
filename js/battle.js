@@ -1130,12 +1130,12 @@ const Battle = (() => {
     const e = ENEMIES[u.mon];
     return e && QUAD_TPL[e.tpl] ? 'quad' : 'biped';
   }
+  const RESEAT_NEAR = 1.5;                                        // 느리게 몰리는 근접 유닛을 reseat 로 치는 거리 (사거리 배수, + BODY)
   function gaitKind(st, u, r) {
     const slow = u.slowUntil > st.t;                           // 거미줄: 뛰지 못한다
     if (u.g.routed) return slow ? 'trudge' : 'flee';
-    let k = 'run';
+    let k = 'run', fd = Infinity;
     if (u.skills && isMelee(u)) {
-      let fd = Infinity;
       for (const e of st.units) if (e.alive && !e.fled && e.side !== u.side) { const d = meleeDist(e, u) - sizeOf(e); if (d < fd) fd = d; }
       // 맞붙은 채 밀려나는 것은 뒷걸음이 아니라 자리 고치기다 (뒷걸음으로 치면 걸음이 거꾸로 돌고 준비 자세도 빠졌다)
       if (fd <= (u.reach || 11) * 1.3 + BODY) return 'reseat';
@@ -1148,14 +1148,18 @@ const Battle = (() => {
     // (달리기 → 걷기는 0.4 아래, 걷기 → 달리기는 0.5 위: 경계에서 오락가락하지 않게)
     const vr = r.vr == null ? 1 : r.vr;
     r.slowMove = !u.moving || vr < (r.slowMove ? 0.5 : 0.4);
+    // 적 가까이(사거리 RESEAT_NEAR 배 안)에서 전투 계산이 아주 느리게 모는 근접 유닛은 막혀서 자리를 찾는 중이다: 걷지 않고 자리 고치기(reseat) 잔걸음
+    if (r.slowMove && u.moving && fd <= (u.reach || 11) * RESEAT_NEAR + BODY) return 'reseat';
     return r.slowMove ? 'step' : k;
   }
   // 한 걸음 거리(px): 걸음 종류의 값 × 키. 빠른 유닛은 걸음 수보다 보폭이 먼저 늘어난다 (도적이 종종걸음 치지 않게).
   // 달리는 걸음(run·charge·flee)은 실제 빠르기 ÷ 제 빠르기(r.vr, 0.55..1)만큼 보폭을 줄인다: 느리게 다가가도 초당 걸음 수가 그대로다
   // (vr 0.55 이상이면 그대로, 0.4..0.55 에서는 조금 느려진다).
   // 측정(1배속 화면): 전사 62px/초·키 66px → 달리기 초당 약 3걸음.
-  const strideOf = (u, r, H) => Math.max(5, r.gp.sl * H * Math.max(0.85, Math.min(1.4, Math.pow((u.speed || 25) / 25, 0.75)))
-    * (RUN_KIND[r.kind] ? Math.max(0.55, Math.min(1, r.vr == null ? 1 : r.vr)) : 1));
+  // 그 비율(runSf)은 walkTf 의 발 폭(A·ext·kb)에도 같이 곱한다 — 디딘 발이 뒤로 가는 거리(2A)가 몸이 디딘 동안 가는 거리(duty × 보폭)와 같아야
+  // 발이 땅에 붙는다 (곱하지 않으면 느린 달리기에서 디딘 발이 5~16px 뒤로 미끄러졌다).
+  const runSf = (r) => RUN_KIND[r.kind] ? Math.max(0.55, Math.min(1, r.vr == null ? 1 : r.vr)) : 1;
+  const strideOf = (u, r, H) => Math.max(5, r.gp.sl * H * Math.max(0.85, Math.min(1.4, Math.pow((u.speed || 25) / 25, 0.75))) * runSf(r));
   // 시트에 그려진 걸음 칸의 한 걸음 거리(화면 px): 시트의 runStride / walkStride(시트 px) × 그리는 배율(sheetK — 우두머리 1.5배). 없으면 0.
   function drawnStrideOf(u, name) {
     const sh = useArt() && Art.sheetFor(u);
@@ -1328,9 +1332,10 @@ const Battle = (() => {
       else if (r.kind === 'run') spawn(view, 1, X - dir * 4, Y - 1, { sp: [4, 12], life: [0.12, 0.2], color: '#a89a80', size: 2, add: false, rise: -6 });
     }
     r.stepI = stepI;
+    const sf = runSf(r);                                        // 느린 달리기의 보폭 비율 (strideOf 와 같다): 발 폭에도 곱한다
     if (quad) {
       // 걷는 걸음(거미는 늘 이쪽): 앞뒤 반이 번갈아 조금씩
-      const A = Math.min(0.05 * H, stance * 0.15) * g, liftW = Math.max(1, 0.06 * H) * g;
+      const A = Math.min(0.05 * H, stance * 0.15) * g * sf, liftW = Math.max(1, 0.06 * H) * g;
       const foot = (ph) => ph < 1 ? [(1 - 2 * ph) * A, 0] : [-Math.cos((ph - 1) * Math.PI) * A, Math.sin((ph - 1) * Math.PI) * liftW];
       const [oF, lF] = foot(p2), [oB, lB] = foot((p2 + 1) % 2);
       const wk = spider ? 1 : 1 - runK, bk = 1 - wk;
@@ -1342,7 +1347,7 @@ const Battle = (() => {
         // 달리는 네발 짐승: 몸은 통째로 기울고(pitch), 다리는 뜰 때 앞·뒤로 뻗었다가 디디며 몸 아래로 모인다.
         const q = p2 / 2, c = Math.max(6, stance * 0.4);
         pitch = qb.rise / c;                                    // 앞쪽 발이 rise 만큼 들리는 기울기
-        const Aq = Math.min(0.10 * H, stance * 0.14) * g * bk, sw = Math.cos(2 * Math.PI * (q - 0.47));
+        const Aq = Math.min(0.10 * H, stance * 0.14) * g * bk * sf, sw = Math.cos(2 * Math.PI * (q - 0.47));
         xF += Aq * sw; xB -= Aq * sw;
         const tq = Math.max(1, P.lift * H) * g * bk;
         if (q >= 0.35) tB += tq * Math.sin(Math.PI * (q - 0.35) / 0.65);                      // 뒷다리: 차고 난 뒤 접어 올린다
@@ -1354,9 +1359,10 @@ const Battle = (() => {
         legs: { cut, R: fwd > 0 ? F : B, L: fwd > 0 ? B : F, right: Math.round(fwd > 0 ? tF : tB), left: Math.round(fwd > 0 ? tB : tF) } };
     }
     // 발이 앞뒤로 가는 폭: 걸음 종류의 값에서, 옷자락이 덮은 만큼 줄이고, 그려진 두 발 벌림에 견준 한계(cap) 안에서
-    const A = Math.min(P.A * sk * H, stance * P.cap) * g;
-    const ext = Math.min(P.ext * sk * H, A) * g;                // 그려진 자세보다 더 뻗는 양 (앞발은 앞으로, 뒷발은 뒤로)
-    const liftMax = Math.max(2, P.lift * H) * (0.5 + 0.5 * sk) * g, kick = P.kick * H * sk * g, kb = P.kb * H * sk * g;
+    // 느린 달리기는 보폭(strideOf)과 같은 비율(sf)로 발 폭도 줄인다 — 디딘 발이 땅에 붙게
+    const A0 = Math.min(P.A * sk * H, stance * P.cap) * g, A = A0 * sf;
+    const ext = Math.min(P.ext * sk * H, A0) * g * sf;          // 그려진 자세보다 더 뻗는 양 (앞발은 앞으로, 뒷발은 뒤로)
+    const liftMax = Math.max(2, P.lift * H) * (0.5 + 0.5 * sk) * g, kick = P.kick * H * sk * g, kb = P.kb * H * sk * g * sf;
     // 발 하나의 한 바퀴(두 걸음): 0..d 디딘 채 뒤로(+A → -A, 땅과 같은 빠르기), d..2 들어서 — 뒤로 차올리고 → 몸 아래를 지나 → 앞으로 뻗어 내린다
     const foot = (ph) => {
       if (ph < d) return [A - 2 * A * ph / d, 0];

@@ -24,8 +24,10 @@ Two kinds of delivery are not base sheets and never go to sheets.py:
   guides/<set>/<set>.aseprite     a skeleton (mannequin) from the PC: check_skeleton.py with the request's pose.json and draft, strips
                                   exported and checked (run sets: check_delivery --flight-slots 4, the flight frame R4 / R8 is in the air)
   gait/<sheet stem>_<run|walk>.aseprite, gait/<sheet stem>_<run|walk>_a.png + _b.png
-                                  final gait frames for a registered sheet: strips checked (run: --flight-slots 4), the .aseprite export
-                                  compared with the PNGs, then add_gait.py --dry-run (stride from guides/<gait>_<class> or <gait>_base)
+                                  final gait frames for a registered sheet: strips checked (run: --flight-slots 4), the .aseprite checked
+                                  for a mannequin (add_gait guide_reason: joints layer, frames matching a cloud skeleton draft) and its
+                                  export compared with the PNGs, then add_gait.py --dry-run (stride from guides/<gait>_<class> or
+                                  <gait>_base); the register command is printed only when everything passed
   python3 tools/art/receive.py guides/run_base/run_base
   python3 tools/art/receive.py gait/sheet_class_warrior_run
 """
@@ -368,6 +370,19 @@ def gait_delivery(rel, work, exe, tip):
     cellarg = ['--cell', str(item['cell'])] if item.get('cell') else []
     strips = [got[s] for s in ('_a.png', '_b.png') if s in got]
     if '.aseprite' in got:
+        # the dry run below reads the PNG strips when both are there, so the .aseprite itself is checked for a mannequin here
+        # (joints layer, or frames that match a cloud skeleton draft: a mannequin with its joints layer deleted)
+        sys.path.insert(0, os.path.join(ROOT, 'tools', 'art'))
+        import add_gait
+        try:
+            why = add_gait.guide_reason(got['.aseprite'], exe)
+        except add_gait.Fail as e:
+            why = str(e)
+        if why:
+            print(f'  FAIL: {stem}.aseprite is a skeleton (mannequin), not game frames: {why}')
+            rc = 1
+        else:
+            print(f'- {stem}.aseprite: no joints layer, no frame matches a skeleton draft under art/requests/guides/*/v*/')
         exp, n, problem = export_ase_strips(got['.aseprite'], exe, os.path.join(out, 'from_aseprite'), stem)
         if problem:
             print(f'  FAIL: {stem}.aseprite: {problem}')
@@ -402,7 +417,9 @@ def gait_delivery(rel, work, exe, tip):
             if ln.strip() and '원본 창' not in ln:
                 print('    ' + ln.strip()[:300])
         rc = rc or r.returncode
-        if not r.returncode:
+        if rc:
+            print('- NOT ready to register: fix the FAIL lines above and deliver again')
+        else:
             print(f'- register after judging (copy the files in first): python3 tools/art/add_gait.py {sheet} --gait {gait} --src art/inbox/gait/'
                   + (f'{stem}_a.png art/inbox/gait/{stem}_b.png' if len(src) == 2 else f'{stem}.aseprite')
                   + (f' --pose {os.path.relpath(pose_path, ROOT)}' if pose_path else ' --stride <game px>'))
