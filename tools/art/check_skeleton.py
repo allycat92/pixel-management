@@ -129,7 +129,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 sys.path.insert(0, os.path.join(ROOT, 'tools', 'pixelart'))
 from walk8 import BASELINE, HEAD_PX, JOINTS, SCALE, SLOT, SH_  # noqa: E402
 from run8 import SOLE_BAND, STEP as RUN_STEP  # noqa: E402
-from posekit import ARMS_VERSION, arm_eval  # noqa: E402
+from posekit import ARMS_VERSION, FACE_U, FACE_V, arm_eval, face_uv, seg_in_face  # noqa: E402
 
 HEADLESS = os.path.join(ROOT, 'tools', 'art', 'ase_headless.sh')
 BODY = ('arm_far', 'leg_far', 'leg_near', 'torso', 'head', 'arm_near')          # the layers every set must have
@@ -946,6 +946,9 @@ HIT_COLUMN_TOL = 3       # hit without --idle: the idle reference's hip x (built
 ARM_VIS_R = 10           # px: the elbow's visibility = share of its arm layer's pixels within this radius of the elbow dot that no
 ARM_VIS_MIN = 0.20       # higher layer covers; an elbow showing less than this is hidden -> its arm class is a WARN, not a FAIL
 ARM_JUMP = (2.0, 40.0, 60.0)  # elbow jump between neighbouring frames: over 2 x the hand's move + 40 px and over 60 px -> WARN (side flip)
+ARM_FACE = (0.03, 0.10)  # share of the face (head-layer pixels in the face box) under the near arm layer: over 3 % WARN, over 10 % FAIL
+ARM_HS = 1.0 / 1.09      # head drawing scale (posekit Body.hs): the face box is FACE_U x FACE_V x this, in heads from the head centre
+SHOULDER_DRIFT = 0.10    # heads: a shoulder dot moving over this between neighbouring frames in torso coordinates (lean removed) -> WARN
 
 
 def read_json(path):
@@ -1361,7 +1364,24 @@ def arm_rules(meas, frames, names, spec, errors, warns, info):
             elif r['level'] != 'ok':
                 hid = ' (hidden: only a WARN)' if r['level'] == 'fail' else ''
                 warns.append(f'{m["frame"]}: {arm} arm {r["cls"]}{hid} - {r["why"]} ({nums})')
-            part.append(f'{s} {r["inner_deg"]:.0f}/{r["elbow_back"]:+.2f}' + ('' if r['cls'] == 'natural' else ' ' + r['cls']))
+            part.append(f'{s} {r["inner_deg"]:.0f}/{r["hinge_deg"]:+.0f}/{r["elbow_back"]:+.2f}' + ('' if r['cls'] == 'natural' else ' ' + r['cls']))
+        face = face_cover(fr, J, ln_near='arm_near')
+        m['face'] = face
+        if face is not None:
+            cov, seg, far_in = face['near_cover'], face['near_forearm_in'], face['far_hand_in']
+            what = (f'{cov:.0%} of the face under the near arm, forearm (elbow -> hand dots) {seg:.0%} inside the face box')
+            if (cov > ARM_FACE[1] or seg > 0) and string == 'N':
+                warns.append(f'{m["frame"]}: the near (bow string) hand at the face - {what}: an anchor at the jaw / ear is the draw, '
+                             'the forearm must not run across the eyes')
+            elif cov > ARM_FACE[1] or seg > 0:
+                errors.append(f'{m["frame"]}: near arm crosses the face - {what}: keep the near arm below the chin or behind the ear; '
+                              'a weapon cocked behind the head takes the elbow back / down under the hand (SPEC 10.3b)')
+            elif cov > ARM_FACE[0]:
+                warns.append(f'{m["frame"]}: near arm over the face - {what}')
+            if far_in:
+                warns.append(f'{m["frame"]}: far hand behind the face (its weapon / shield hidden behind the head): move it out in front '
+                             'of or below the face')
+            part.append(f'face {cov:.0%}')
         summary.append(f'{m["frame"].split(" ", 1)[-1]} ' + ', '.join(part))
     for s in 'NF':
         for i in range(1, len(meas)):
@@ -1370,8 +1390,47 @@ def arm_rules(meas, frames, names, spec, errors, warns, info):
             if de > ARM_JUMP[0] * dh + ARM_JUMP[1] and de > ARM_JUMP[2]:
                 warns.append(f'{meas[i - 1]["frame"]} -> {meas[i]["frame"]}: the {"near" if s == "N" else "far"} elbow jumps {de:.0f} px while '
                              f'its hand moves {dh:.0f} (a side flip or a re-solved arm - check the in-between)')
-    info.append(f'arms ({ARMS_VERSION}; inner deg / elbow from its shoulder in heads, + = forward' + (f'; bow string arm {string}' if string else '')
+    for s in 'NF':                       # the shoulder dots sit still on the torso (posekit L(-0.40, T-0.05) / L(0.34, T-0.07))
+        tcs = []
+        for m in meas:
+            J = m['_J']
+            hip = ((J['hipN'][0] + J['hipF'][0]) / 2, (J['hipN'][1] + J['hipF'][1]) / 2)
+            r = arm_eval(J['sho' + s], J['elb' + s], J['hand' + s], hip, J['neck'], HEAD_PX)
+            tcs.append(np.array(r['S']))
+        for i in range(1, len(meas)):
+            dd = float(np.linalg.norm(tcs[i] - tcs[i - 1]))
+            if dd > SHOULDER_DRIFT:
+                warns.append(f'{meas[i - 1]["frame"]} -> {meas[i]["frame"]}: the {"near" if s == "N" else "far"} shoulder dot moves '
+                             f'{dd * HEAD_PX:.0f} px on the torso (lean removed; max {SHOULDER_DRIFT * HEAD_PX:.0f}) - the shoulder '
+                             'slides on a torso that does not turn (posekit swN / swF / sw)')
+    info.append(f'arms ({ARMS_VERSION}; inner deg / hinge deg (+ = the natural side) / elbow from its shoulder in heads, + = forward' + (f'; bow string arm {string}' if string else '')
                 + '): ' + ' · '.join(summary))
+
+
+def face_cover(fr, J, ln_near='arm_near'):
+    """the face against the arms (SPEC 10.3b): face box = FACE_U x FACE_V (x ARM_HS heads) from the head layer's centre, up = neck dot
+    -> that centre. near_cover = share of the head-layer pixels inside the box that the near arm layer covers; near_forearm_in =
+    share of the near forearm (elbow -> hand dots) inside the box; far_hand_in = the far hand dot inside the box (hidden behind it)."""
+    if 'head' not in fr or ln_near not in fr:
+        return None
+    head = fr['head'][..., 3] > 0
+    ys, xs = np.nonzero(head)
+    if not len(xs):
+        return None
+    C = np.array((xs.mean(), ys.mean()))
+    up = C - np.asarray(J['neck'], float)
+    if np.linalg.norm(up) < 1:
+        return None
+    k = ARM_HS * HEAD_PX
+    o = face_uv(C, C, up)                                    # (0, 0); the two axes from face_uv on unit offsets
+    fu, fv = face_uv(C + (1, 0), C, up) - o, face_uv(C + (0, 1), C, up) - o
+    uv = (np.outer(xs - C[0], fu) + np.outer(ys - C[1], fv)) / k
+    inside = (uv[:, 0] >= FACE_U[0]) & (uv[:, 0] <= FACE_U[1]) & (uv[:, 1] >= FACE_V[0]) & (uv[:, 1] <= FACE_V[1])
+    fy, fx = ys[inside], xs[inside]
+    cov = float((fr[ln_near][fy, fx, 3] > 0).mean()) if len(fx) else 0.0
+    seg = seg_in_face(J['elbN'], J['handN'], C, up, k)
+    far = seg_in_face(J['handF'], J['handF'], C, up, k) > 0
+    return dict(near_cover=round(cov, 3), near_forearm_in=round(seg, 3), far_hand_in=bool(far))
 
 
 def clean(meas):

@@ -1111,6 +1111,8 @@ def check(name, J, B, pose):
                 ov = ' (elb%s override %s)' % (side, list(pose['elb' + side])) if 'elb' + side in pose else ''
                 msgs.append('arm%s %s %s%s: %s' % (side, r['level'].upper(), r['cls'], ov, r['why']))
         for level, side, why in arm_face(J, B.hs):
+            if side == pose.get('bow_draw') and level == 'fail':
+                level, why = 'warn', 'the bow string hand at the face (an anchor at the jaw / ear is the draw): ' + why
             msgs.append('arm%s %s face: %s' % (side, level.upper(), why))
     return msgs
 
