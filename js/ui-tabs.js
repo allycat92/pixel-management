@@ -256,7 +256,8 @@
     const lockedOf = (co) => !!((!co.own && Game.extRefusal(co, c)) || (co.own && !Game.availableMembers(co).length));
     const focusKey = (key) => { const t = document.querySelector(`.dispatch [data-fkey="${key}"]`); if (t) t.focus(); };
     function pickKey(e, co) {
-      if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); if (!lockedOf(co)) { toggle(co); focusKey(`co-${co.id}`); } return; }
+      // 라디오는 키보드로 해제되지 않는다 (이미 고른 것은 그대로). 체크박스는 켜고 끈다. 마우스 클릭은 그대로 토글.
+      if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); if (!lockedOf(co) && !(single && sel.has(co.id))) { toggle(co); focusKey(`co-${co.id}`); } return; }
       if (!single) return;
       const dir = { ArrowDown: 1, ArrowRight: 1, ArrowUp: -1, ArrowLeft: -1 }[e.key];
       const open = comps.filter((x) => !lockedOf(x));
@@ -291,7 +292,7 @@
             el('div', { class: `small ${refusal ? 'bad' : 'muted'}`, text: refusal || (co.own
               ? `출격 가능 ${avail.length}/${Game.members(co).length}명 · 결속도 ${co.cohesion}`
               : `${co.size}명 · 충성도 ${co.loyalty} · 몫 ${co.share}%${co.sympathy === c.target && c.target ? ' · 동조 세력 공격(충성도 하락)' : ''}`) })),
-          el('b', { class: 'power', text: Game.unitsPower(c, [u]) }));
+          el('b', { class: 'power' }, el('span', { class: 'sr-only', text: '전력 ' }), String(Game.unitsPower(c, [u]))));
       }));
       if (!comps.length) listBox.append(el('div', { class: 'muted small', text: '대기 중인 용병단이 없습니다.' }));
 

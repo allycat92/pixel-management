@@ -325,18 +325,21 @@ const UI = (() => {
   // 판정 직후 금화·명성·일지가 이미 바뀌어 있으므로, 아직 공개하지 않은 의뢰 보고서(연출 중 + 대기 중)의
   // 몫을 빼서 보여 준다. 게임 상태와 저장은 건드리지 않는다.
   let playing = null; // 전투 연출 중인 보고서
-  const reportDeltas = new WeakMap(); // 보고서 -> { gold, rep, logs:Set } (판정 전후 차이)
+  // 보고서 -> { before } : 판정 직전 가장 최근 일지 항목 (소식줄은 이것보다 새 줄을 보여 주지 않는다)
+  const reportDeltas = new WeakMap();
   function hookResolve() {
     const orig = Game.resolveMission;
     if (typeof orig !== 'function' || orig.spoilerHook) return;
     const wrapped = function (mission) {
       const s = this.state;
-      const gold = s.gold, rep = s.rep, top = s.log[0];
+      const gold = s.gold, rep = s.rep, before = s.log[0] || null;
       const out = orig.apply(this, arguments);
       const report = s.pendingReports.find((x) => !x.special && x.quest === mission.contract && !reportDeltas.has(x));
       if (report) {
-        const cut = top ? s.log.indexOf(top) : s.log.length;
-        reportDeltas.set(report, { gold: s.gold - gold, rep: s.rep - rep, logs: new Set(s.log.slice(0, cut < 0 ? s.log.length : cut)) });
+        reportDeltas.set(report, { before });
+        // 실제로 바뀐 금화·명성 (명성 0 하한, 이야기 보상 포함). 표시 전용이라 게임 규칙은 읽지 않는다.
+        // pendingReports 와 함께 저장되므로 새로 불러와도 정확하다.
+        report.shownDelta = { gold: s.gold - gold, rep: s.rep - rep };
       }
       return out;
     };
@@ -348,24 +351,24 @@ const UI = (() => {
     RANKS.forEach((r, i) => { if (rep >= r.rep) idx = i; });
     return idx;
   }
-  // 상단 막대에 보여 줄 값: { gold, rep, hide:Set(일지 항목) }
+  // 상단 막대에 보여 줄 값: { gold, rep, ticker(일지 항목 | null) }
   function shownTop() {
     const s = Game.state;
-    const out = { gold: s.gold, rep: s.rep, hide: new Set() };
+    const out = { gold: s.gold, rep: s.rep, ticker: s.log[0] || null };
     if (!s.settings.battle) return out;
     const unseen = [playing, ...s.pendingReports].filter((r) => r && !r.special && r.quest);
     if (!unseen.length) return out;
     unseen.forEach((r) => {
-      const d = reportDeltas.get(r);
-      out.gold -= d ? d.gold : r.gold || 0;
-      out.rep -= d ? d.rep : r.rep || 0;
-      if (d) d.logs.forEach((e) => out.hide.add(e));
-      // 저장에서 불러온 보고서: 결과 줄만 찾아 숨긴다
-      else s.log.forEach((e) => { if (e.day === s.day && e.text.startsWith(`[${r.quest.title}] `) && e.text.includes('! 금화 ')) out.hide.add(e); });
+      const d = r.shownDelta || { gold: r.gold || 0, rep: r.rep || 0 };
+      out.gold -= d.gold || 0;
+      out.rep -= d.rep || 0;
     });
     out.rep = Math.max(0, out.rep);
-    if (rankAt(out.rep) !== Game.rankIndex()) {
-      s.log.forEach((e) => { if (e.day === s.day && /^(길드 등급이|활동 범위 확대)/.test(e.text)) out.hide.add(e); });
+    // 소식줄: 가장 먼저 판정된 미공개 보고서의 판정 직전 줄. 기록이 없는 보고서(저장에서 불러옴)가 있으면 오늘 줄은 모두 숨긴다.
+    const first = reportDeltas.get(unseen[0]);
+    out.ticker = first ? first.before : null;
+    if (!first || unseen.some((r) => !reportDeltas.has(r))) {
+      if (!out.ticker || out.ticker.day >= s.day) out.ticker = s.log.find((e) => e.day < s.day) || null;
     }
     return out;
   }
@@ -402,7 +405,8 @@ const UI = (() => {
     });
     const effects = effectLines(r);
     return el('div', { class: 'report' },
-      el('div', { class: `report-banner ${good ? 'good' : 'bad'} ${r.outcome}`, text: titles[r.outcome] }),
+      // 첫 초점은 제목(확인 버튼이 아니라): 「결과 보기」에서 Enter 를 두 번 눌러도 보고서가 바로 닫히지 않는다
+      el('div', { class: `report-banner ${good ? 'good' : 'bad'} ${r.outcome}`, text: titles[r.outcome], tabindex: '-1', 'data-autofocus': '' }),
       el('h3', { text: c.title }),
       el('div', { class: 'small muted', text: `${PROVINCES[c.province].name} · 의뢰주 ${FACTIONS[c.issuer].name}${c.target ? ` · 대상 ${FACTIONS[c.target].name}` : ''}` }),
       members,
@@ -505,7 +509,14 @@ const UI = (() => {
     show();
   }
 
+  // 특별 보고서도 제목에 먼저 초점 (Enter 연타로 바로 닫히지 않게)
   function specialReport(r) {
+    const node = specialReportBody(r);
+    const banner = node.querySelector('.report-banner');
+    if (banner) { banner.tabIndex = -1; banner.dataset.autofocus = ''; }
+    return node;
+  }
+  function specialReportBody(r) {
     const s = Game.state;
     const restart = el('button', { class: `btn ${s.over ? 'primary' : 'danger'}`, text: '새 게임', onclick: () => { closeModal(); Game.clearSave(); Game.newGame(); Game.emit(); } });
     const cont = el('button', { class: 'btn primary', text: '계속하기', onclick: closeModal });
@@ -578,7 +589,7 @@ const UI = (() => {
     const prog = next ? (shown.rep - rank.rep) / (next.rep - rank.rep) : 1;
     $('#rank-bar').style.width = `${prog * 100}%`;
     $('#rank-next').textContent = next ? `다음 ${next.name}랭크까지 ${next.rep - shown.rep}` : '최고 등급!';
-    const latest = s.log.find((e) => !shown.hide.has(e));
+    const latest = shown.ticker;
     $('#ticker').textContent = latest ? `[${latest.day}일차] ${latest.text}` : '';
     $('#ticker').className = `ticker ${latest ? latest.kind : ''}`;
     document.querySelectorAll('.tab').forEach((b) => {
@@ -642,12 +653,32 @@ const UI = (() => {
     if (!modalOpen) opener = describeFocus(document.activeElement);
     modalOpen = true;
     body.replaceChildren(content);
-    const title = content.querySelector && content.querySelector('h2, .dialog-title, .report-banner, .battle-head');
-    if (title) body.setAttribute('aria-label', title.textContent.trim());
-    else body.removeAttribute('aria-label');
+    nameDialog(body, content);
     m.classList.remove('hidden');
     m.dataset.sticky = sticky ? '1' : '';
     focusModal();
+  }
+  // 화면 읽기용 창 이름: 제목이 있으면 aria-labelledby, 없으면 첫 글(문단·이름)로 aria-label
+  let titleSeq = 0;
+  function nameDialog(body, content) {
+    body.removeAttribute('aria-label');
+    body.removeAttribute('aria-labelledby');
+    if (!content || !content.querySelector) return;
+    const title = content.querySelector('h2, .dialog-title, .report-banner, .battle-head, h3');
+    // 전투 제목은 초 단위 시계가 붙어 바뀌므로 시계를 뺀 글을 고정 이름으로
+    const clock = title && title.querySelector('.battle-timer');
+    if (clock) {
+      const text = [...title.childNodes].filter((n) => n !== clock).map((n) => n.textContent).join('').trim();
+      if (text) { body.setAttribute('aria-label', text); return; }
+    }
+    if (title && title.textContent.trim()) {
+      if (!title.id) title.id = `modal-title-${++titleSeq}`;
+      body.setAttribute('aria-labelledby', title.id);
+      return;
+    }
+    const first = content.querySelector('p, .name, h4') || content;
+    const text = first.textContent.replace(/\s+/g, ' ').trim();
+    if (text) body.setAttribute('aria-label', text.length > 80 ? `${text.slice(0, 79)}…` : text);
   }
   // 창 안의 첫 컨트롤(또는 data-autofocus)로 초점
   function focusModal() {
