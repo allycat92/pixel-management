@@ -1,0 +1,78 @@
+atk__class_warrior: 0 arms short of margin
+  f00 in       N natural  inner  81.8 hinge  +50.6 rise +0.09 elbow +0.00 vis 100% OK
+  f00 in       F natural  inner  38.2 hinge  +75.2 rise +0.53 elbow +0.02 vis 21% OK
+  f01 hold     N natural  inner 177.3 hinge   +1.4 rise -0.65 elbow -0.04 vis 100% OK
+  f01 hold     F natural  inner  38.8 hinge  +74.4 rise +0.65 elbow +0.39 vis 100% OK
+  f02 swing    N natural  inner 147.7 hinge  +16.6 rise -0.55 elbow -0.00 vis 100% OK
+  f02 swing    F natural  inner  79.8 hinge  +51.3 rise +0.64 elbow +0.60 vis 100% OK
+  f03 contact  N natural  inner 118.9 hinge  +31.0 rise -0.14 elbow +0.18 vis 100% OK
+  f03 contact  F natural  inner  30.9 hinge  +79.1 rise +0.64 elbow +0.36 vis 100% OK
+  f04 follow   N natural  inner  58.9 hinge  +63.0 rise +0.36 elbow +0.03 vis 100% OK
+  f04 follow   F natural  inner  30.1 hinge  +79.0 rise +0.56 elbow -0.01 vis 11% OK
+  f05 recover  N natural  inner  86.2 hinge  +48.3 rise +0.03 elbow -0.02 vis 100% OK
+  f05 recover  F natural  inner  39.6 hinge  +74.4 rise +0.51 elbow +0.01 vis 16% OK
+  f06 settle   N natural  inner  91.3 hinge  +45.6 rise -0.03 elbow -0.01 vis 100% OK
+  f06 settle   F natural  inner  46.7 hinge  +70.0 rise +0.46 elbow +0.01 vis 7% OK
+atk__captain_ironwall: 0 arms short of margin
+  f00 in       N natural  inner  36.7 hinge  +75.6 rise +0.62 elbow +0.20 vis 100% OK
+  f00 in       F natural  inner  39.0 hinge  +74.2 rise +0.54 elbow +0.06 vis 43% OK
+  f01 hold     N natural  inner  34.7 hinge  +77.5 rise +0.65 elbow +0.38 vis 100% OK
+  f01 hold     F natural  inner  38.7 hinge  +74.8 rise +0.65 elbow +0.43 vis 53% OK
+  f02 swing    N natural  inner  37.5 hinge  +74.5 rise +0.62 elbow +0.22 vis 100% OK
+  f02 swing    F natural  inner  38.3 hinge  +74.6 rise +0.65 elbow +0.42 vis 53% OK
+  f03 contact  N cocked   inner  32.3 hinge  -79.0 rise +0.61 elbow -0.15 vis 100% OK
+  f03 contact  F natural  inner  37.7 hinge  +74.9 rise +0.64 elbow +0.27 vis 100% OK
+  f04 follow   N cocked   inner  31.0 hinge  -80.0 rise +0.62 elbow -0.13 vis 100% OK
+  f04 follow   F natural  inner  34.0 hinge  +78.0 rise +0.54 elbow +0.01 vis 13% OK
+  f05 recover  N natural  inner  38.6 hinge  +74.0 rise +0.62 elbow +0.23 vis 100% OK
+  f05 recover  F natural  inner  37.8 hinge  +74.4 rise +0.65 elbow +0.34 vis 54% OK
+  f06 settle   N natural  inner  39.0 hinge  +74.1 rise +0.58 elbow +0.15 vis 100% OK
+  f06 settle   F natural  inner  38.7 hinge  +73.5 rise +0.54 elbow +0.06 vis 50% OK
+atk__captain_shadowqueen: 0 arms short of margin
+  f00 in       N natural  inner  66.2 hinge  +58.6 rise +0.35 elbow +0.10 vis 100% OK
+  f00 in       F natural  inner  39.7 hinge  +74.2 rise +0.63 elbow +0.25 vis 100% OK
+  f01 hold     N natural  inner 153.4 hinge  +13.6 rise +0.65 elbow +0.22 vis 100% OK
+  f01 hold     F natural  inner 148.2 hinge  +16.2 rise +0.65 elbow +0.34 vis 100% OK
+  f02 swing    N natural  inner  80.4 hinge  +51.3 rise +0.43 elbow +0.33 vis 100% OK
+  f02 swing    F cocked   inner  31.7 hinge  -79.2 rise +0.63 elbow -0.45 vis 0% OK
+  f03 contact  N natural  inner  80.6 hinge  +51.8 rise +0.29 elbow +0.18 vis 100% OK
+  f03 contact  F cocked   inner  35.2 hinge  -77.0 rise +0.66 elbow -0.35 vis 0% OK
+  f04 follow   N natural  inner  67.5 hinge  +58.2 rise +0.44 elbow +0.21 vis 100% OK
+  f04 follow   F cocked   inner  39.3 hinge  -73.0 rise +0.63 elbow -0.29 vis 0% OK
+  f05 recover  N natural  inner  90.5 hinge  +46.0 rise -0.01 elbow -0.00 vis 100% OK
+  f05 recover  F natural  inner 128.1 hinge  +26.5 rise -0.52 elbow -0.17 vis 0% OK
+  f06 settle   N natural  inner 104.6 hinge  +38.8 rise -0.17 elbow -0.01 vis 100% OK
+  f06 settle   F natural  inner 139.9 hinge  +20.4 rise -0.58 elbow -0.15 vis 0% OK
+atk__class_archer: 0 arms short of margin
+  f00 nock     N natural  inner  83.5 hinge  +50.3 rise +0.32 elbow +0.23 vis 100% OK
+  f00 nock     F natural  inner 131.5 hinge  +24.8 rise -0.15 elbow +0.29 vis 8% OK
+  f01 raise    N natural  inner  40.7 hinge  +73.1 rise +0.59 elbow +0.17 vis 100% OK
+  f01 raise    F natural  inner  69.6 hinge  +57.3 rise +0.39 elbow +0.18 vis 0% OK
+  f02 hold     N draw     inner  46.0 hinge  -70.6 rise -0.08 elbow -0.38 vis 100% OK
+  f02 hold     F natural  inner 151.8 hinge  +14.4 rise +0.28 elbow +0.62 vis 100% OK
+  f03 release  N draw     inner  43.5 hinge  -71.1 rise +0.51 elbow -0.61 vis 100% OK
+  f03 release  F natural  inner 170.4 hinge   +4.9 rise +0.15 elbow +0.62 vis 100% OK
+  f04 follow   N cocked   inner  30.4 hinge  -80.0 rise +0.62 elbow -0.45 vis 100% OK
+  f04 follow   F natural  inner 170.5 hinge   +4.9 rise +0.13 elbow +0.62 vis 100% OK
+  f05 lower    N natural  inner  58.4 hinge  +63.7 rise +0.34 elbow -0.01 vis 100% OK
+  f05 lower    F natural  inner  87.6 hinge  +47.5 rise +0.36 elbow +0.33 vis 24% OK
+  f06 settle   N natural  inner  97.1 hinge  +42.7 rise -0.11 elbow -0.03 vis 100% OK
+  f06 settle   F natural  inner 103.3 hinge  +39.4 rise +0.11 elbow +0.24 vis 0% OK
+hit__class_warrior: 0 arms short of margin
+  f00 K1 impact N natural  inner  94.0 hinge  +44.3 rise -0.05 elbow -0.01 vis 100% OK
+  f00 K1 impact F natural  inner  39.0 hinge  +73.9 rise +0.60 elbow +0.17 vis 50% OK
+  f01 K2 peak  N natural  inner  57.8 hinge  +63.7 rise +0.32 elbow -0.03 vis 100% OK
+  f01 K2 peak  F natural  inner  39.5 hinge  +73.5 rise +0.50 elbow +0.01 vis 16% OK
+  f02 K3 recover N natural  inner  93.9 hinge  +44.4 rise -0.06 elbow -0.02 vis 100% OK
+  f02 K3 recover F natural  inner  37.6 hinge  +74.9 rise +0.51 elbow -0.00 vis 6% OK
+  f03 K4 settle N natural  inner  92.3 hinge  +44.8 rise -0.05 elbow -0.02 vis 100% OK
+  f03 K4 settle F natural  inner  47.6 hinge  +69.0 rise +0.43 elbow -0.01 vis 5% OK
+hit__captain_shadowqueen: 0 arms short of margin
+  f00 K1 impact N natural  inner 110.7 hinge  +35.4 rise -0.15 elbow +0.08 vis 100% OK
+  f00 K1 impact F natural  inner 100.5 hinge  +41.1 rise -0.14 elbow -0.02 vis 1% OK
+  f01 K2 stagger N natural  inner  94.3 hinge  +44.2 rise -0.08 elbow -0.03 vis 100% OK
+  f01 K2 stagger F natural  inner  87.9 hinge  +47.5 rise -0.00 elbow -0.03 vis 1% OK
+  f02 K3 recover N natural  inner 104.7 hinge  +38.7 rise -0.15 elbow +0.01 vis 100% OK
+  f02 K3 recover F natural  inner 113.1 hinge  +34.1 rise -0.27 elbow -0.01 vis 10% OK
+  f03 K4 settle N natural  inner 113.0 hinge  +34.4 rise -0.19 elbow +0.07 vis 100% OK
+  f03 K4 settle F natural  inner 110.7 hinge  +35.6 rise -0.26 elbow -0.03 vis 3% OK

@@ -1,0 +1,353 @@
+motion check (node tools/art/requests.js --motion) - ms are game-clock ms; 1x real = ms / 1.3
+budget = 0.9 x shortest basic cd x 1000 - 30; elastic frames shrink to 40 %; prediction window cap 400 ms
+
+== 1. archetypes (shortest-cd user in detail, then every user)
+
+-- sword_shield (sword (or mace / cutlass) and shield); window 300 ms; shortest-cd user sheet/captain/pirateking
+    basics (1): 커틀러스 0.75
+    shortest basic cd 0.75 s = 커틀러스 (pirateking)
+    budget 0.9 x 0.75 x 1000 - 30 = 645 ms game clock (1x real 496 ms); view budget 3x 430, 4x 323 (x min(2,s)/s)
+    attack  in 70ed · hold 160e · swing 50 · [contact 70] · follow 90 · | recover 90 · settle 70ed
+            (e elastic to 40 %, d droppable, [ ] contact, | cut)
+    lead 280 (min 142) / window 300    total 600 (min 420) / budget 645    lead+protected 440 (min 302)
+    >=3x (no anticipation): protected contact..cut 160 (min 160) vs 4x 323; post-contact 320 (min 278) is capped at 323 (4x) / 430 (3x)
+    special 갈고리 사슬 (pirateking, cd 8, hits 2, stun 0.6): multi-shot: one release + fan VFX
+    budget / window: OK
+  sheet/class/warrior            cd 0.80 (피의 난무, berserker)  budget 690  4x 345 | lead 280/300 (min 142)  total 600 (min 420)  OK
+  sheet/captain/ironwall         cd 1.00 (방패 밀치기, ironwall)  budget 870  4x 435 | lead 290/300 (min 146)  total 610 (min 424)  OK
+  sheet/captain/veteran          cd 1.00 (노련한 일격, veteran)  budget 870  4x 435 | lead 280/300 (min 142)  total 600 (min 420)  OK
+  sheet/captain/pirateking       cd 0.75 (커틀러스, pirateking)  budget 645  4x 323 | lead 280/300 (min 142)  total 600 (min 420)  OK
+  sheet/monster/해골 병사            cd 1.00 (공격, unit)  budget 870  4x 435 | lead 280/300 (min 142)  total 600 (min 420)  OK
+  sheet/monster/산적               cd 1.00 (공격, unit)  budget 870  4x 435 | lead 280/300 (min 142)  total 600 (min 420)  OK
+
+-- sword (one- or two-handed sword / katana / rune sword / rapier); window 300 ms; shortest-cd user sheet/captain/bard
+    basics (1): 춤추는 검 0.7
+    shortest basic cd 0.7 s = 춤추는 검 (bard)
+    budget 0.9 x 0.7 x 1000 - 30 = 600 ms game clock (1x real 462 ms); view budget 3x 400, 4x 300 (x min(2,s)/s)
+    attack  in 70ed · hold 180e · swing 40 · [contact 60] · follow 120 · | recover 90 · settle 70ed
+            (e elastic to 40 %, d droppable, [ ] contact, | cut)
+    lead 290 (min 140) / window 300    total 630 (min 438) / budget 600    lead+protected 470 (min 320)
+    >=3x (no anticipation): protected contact..cut 180 (min 180) vs 4x 300; post-contact 340 (min 298) is capped at 300 (4x) / 400 (3x)
+    special 전투의 노래 (bard, cd 12): rally: hold 'hold' 450 ms
+    WARN total 630 fits budget 600 only with elastic frames (min 438)
+  sheet/captain/blademaster      cd 0.90 (참격, blademaster)  budget 780  4x 390 | lead 290/300 (min 140)  total 630 (min 438)  OK
+  sheet/captain/spellblade       cd 1.00 (마력검, spellblade)  budget 870  4x 435 | lead 290/300 (min 140)  total 630 (min 438)  OK
+  sheet/hero/oswin               cd 1.00 (기사의 검, oswin)  budget 870  4x 435 | lead 290/300 (min 140)  total 630 (min 438)  OK
+  sheet/captain/bard             cd 0.70 (춤추는 검, bard)  budget 600  4x 300 | lead 290/300 (min 140)  total 630 (min 438)  WARN
+    WARN sheet/captain/bard: total 630 fits budget 600 only with elastic frames (min 438)
+  sheet/monster/사막 도적            cd 1.00 (공격, unit)  budget 870  4x 435 | lead 290/300 (min 140)  total 630 (min 438)  OK
+
+-- greatweapon (hammer, axe, greatsword); window 360 ms; shortest-cd user sheet/hero/grom
+    basics (1): 투기장 일격 0.95
+    shortest basic cd 0.95 s = 투기장 일격 (grom)
+    budget 0.9 x 0.95 x 1000 - 30 = 825 ms game clock (1x real 635 ms); view budget 3x 550, 4x 413 (x min(2,s)/s)
+    attack  lift 80ed · hold 220e · drop 50 · [contact 80] · follow 130 · | recover 100 · settle 80ed
+            (e elastic to 40 %, d droppable, [ ] contact, | cut)
+    lead 350 (min 170) / window 360    total 740 (min 512) / budget 825    lead+protected 560 (min 380)
+    >=3x (no anticipation): protected contact..cut 210 (min 210) vs 4x 413; post-contact 390 (min 342) is capped at 413 (4x) / 550 (3x)
+    special 피의 함성 (grom, cd 9): same sequence
+    budget / window: OK
+  sheet/captain/titan            cd 1.15 (거인의 주먹, titan)  budget 1005  4x 503 | lead 350/360 (min 170)  total 740 (min 512)  OK
+  sheet/captain/warlord          cd 1.00 (전쟁 도끼, warlord)  budget 870  4x 435 | lead 350/360 (min 170)  total 740 (min 512)  OK
+  sheet/captain/runesmith        cd 1.05 (룬 망치, runesmith)  budget 915  4x 458 | lead 350/360 (min 170)  total 740 (min 512)  OK
+  sheet/captain/frostjarl        cd 1.05 (서리 도끼, frostjarl)  budget 915  4x 458 | lead 350/360 (min 170)  total 740 (min 512)  OK
+  sheet/hero/grom                cd 0.95 (투기장 일격, grom)  budget 825  4x 413 | lead 350/360 (min 170)  total 740 (min 512)  OK
+  sheet/captain/dragonslayer     cd 1.00 (용살검, dragonslayer)  budget 870  4x 435 | lead 350/360 (min 170)  total 740 (min 512)  OK
+
+-- dagger (dagger (stab, slash or throw)); window 200 ms; shortest-cd user sheet/class/rogue
+    basics (7): 기습 0.75 | 암살 0.8 | 그림자 처형 0.8 | 맹독 단검 0.9 shot:dagger | 날치기 0.7 shot:dagger | 황금 손 0.7 shot:dagger | 연막탄 1.6 shot:dagger
+    shortest basic cd 0.7 s = 날치기 (thief)
+    budget 0.9 x 0.7 x 1000 - 30 = 600 ms game clock (1x real 462 ms); view budget 3x 400, 4x 300 (x min(2,s)/s)
+    attack  dip 60ed · hold 90e · [contact 60] · follow 80 · | recover 70 · settle 60ed
+            (e elastic to 40 %, d droppable, [ ] contact, | cut)
+    lead 150 (min 60) / window 200    total 420 (min 294) / budget 600    lead+protected 290 (min 200)
+    >=3x (no anticipation): protected contact..cut 140 (min 140) vs 4x 300; post-contact 270 (min 234) is capped at 300 (4x) / 400 (3x)
+    special 급소 찌르기 (rogue (generic leader), cd 8, dash): same sequence
+    budget / window: OK
+  sheet/class/rogue              cd 0.70 (날치기, thief)  budget 600  4x 300 | lead 150/200 (min 60)  total 420 (min 294)  OK
+  sheet/captain/fixer            cd 0.70 (짧은 칼, fixer)  budget 600  4x 300 | lead 150/200 (min 60)  total 420 (min 294)  OK
+  sheet/captain/shadowlord       cd 0.70 (뒷골목 칼질, shadowlord)  budget 600  4x 300 | lead 150/200 (min 60)  total 420 (min 294)  OK
+  sheet/hero/lyra                cd 0.70 (가면의 칼날, lyra)  budget 600  4x 300 | lead 150/200 (min 60)  total 420 (min 294)  OK
+
+-- twin (twin blades (Nikla)); window 250 ms; shortest-cd user sheet/captain/shadowqueen
+    basics (1): 밤의 칼날 0.65
+    shortest basic cd 0.65 s = 밤의 칼날 (shadowqueen)
+    budget 0.9 x 0.65 x 1000 - 30 = 555 ms game clock (1x real 427 ms); view budget 3x 370, 4x 278 (x min(2,s)/s)
+    attack  in 60ed · hold 110e · swing 50 · [contact 60] · follow 80 · | recover 80 · settle 60ed
+            (e elastic to 40 %, d droppable, [ ] contact, | cut)
+    lead 220 (min 118) / window 250    total 500 (min 362) / budget 555    lead+protected 360 (min 258)
+    >=3x (no anticipation): protected contact..cut 140 (min 140) vs 4x 278; post-contact 280 (min 244) is capped at 278 (4x) / 370 (3x)
+    special 그림자 난무 (shadowqueen, cd 8, hits 4, dash): multi-target melee: one contact frame, victims +50 ms each
+    budget / window: OK
+  sheet/captain/shadowqueen      cd 0.65 (밤의 칼날, shadowqueen)  budget 555  4x 278 | lead 220/250 (min 118)  total 500 (min 362)  OK
+
+-- spear (spear / lance); window 300 ms; shortest-cd user sheet/captain/lancer
+    basics (1): 창 찌르기 1
+    shortest basic cd 1 s = 창 찌르기 (lancer)
+    budget 0.9 x 1 x 1000 - 30 = 870 ms game clock (1x real 669 ms); view budget 3x 580, 4x 435 (x min(2,s)/s)
+    attack  draw 80ed · hold 170e · swing 40 · [contact 70] · follow 80 · | recover 90 · settle 70ed
+            (e elastic to 40 %, d droppable, [ ] contact, | cut)
+    lead 290 (min 140) / window 300    total 600 (min 408) / budget 870    lead+protected 440 (min 290)
+    >=3x (no anticipation): protected contact..cut 150 (min 150) vs 4x 435; post-contact 310 (min 268) is capped at 435 (4x) / 580 (3x)
+    special 랜스 차지 (lancer, cd 9, dash, stun 0.5): same sequence
+    budget / window: OK
+  sheet/captain/lancer           cd 1.00 (창 찌르기, lancer)  budget 870  4x 435 | lead 290/300 (min 140)  total 600 (min 408)  OK
+
+-- bow (bow); window 400 ms; shortest-cd user sheet/class/archer
+    basics (7): 조준 사격 1.25 shot:arrow | 속사 0.7 shot:arrow | 질풍 사격 0.6 shot:arrow | 사냥개 풀기 0.9 shot:arrow | 급소 사격 1.8 shot:arrow | 천리안 1.8 shot:arrow | 관통 노궁 2 shot:bolt
+    shortest basic cd 0.6 s = 질풍 사격 (pathfinder)
+    budget 0.9 x 0.6 x 1000 - 30 = 510 ms game clock (1x real 392 ms); view budget 3x 340, 4x 255 (x min(2,s)/s)
+    attack  nock 80ed · raise 80 · hold 200e · [release 60] · follow 110 · | lower 100e · settle 70ed
+            (e elastic to 40 %, d droppable, [ ] contact, | cut)
+    lead 360 (min 192) / window 400    total 700 (min 430) / budget 510    lead+protected 530 (min 362)
+    >=3x (no anticipation): protected contact..cut 170 (min 170) vs 4x 255; post-contact 340 (min 238) is capped at 255 (4x) / 340 (3x)
+    special 일제 사격 (archer (generic leader), cd 8, hits 3): multi-shot: one release + fan VFX
+    WARN total 700 fits budget 510 only with elastic frames (min 430)
+    WARN lead + protected 530 fits only compressed (min 362)
+  sheet/class/archer             cd 0.60 (질풍 사격, pathfinder)  budget 510  4x 255 | lead 360/400 (min 192)  total 700 (min 430)  WARN
+    WARN sheet/class/archer: total 700 fits budget 510 only with elastic frames (min 430)
+    WARN sheet/class/archer: lead + protected 530 fits only compressed (min 362)
+  sheet/hero/kai                 cd 1.10 (은빛 화살, kai)  budget 960  4x 480 | lead 360/400 (min 192)  total 700 (min 430)  OK
+  sheet/captain/elfwarden        cd 1.10 (은잎 화살, elfwarden)  budget 960  4x 480 | lead 360/400 (min 192)  total 700 (min 430)  OK
+  sheet/captain/windhunter       cd 1.10 (바람 화살, windhunter)  budget 960  4x 480 | lead 360/400 (min 192)  total 700 (min 430)  OK
+  sheet/captain/khan             cd 1.00 (기마 사격, khan)  budget 870  4x 435 | lead 360/400 (min 192)  total 700 (min 430)  OK
+  sheet/captain/huntress         cd 1.15 (사냥 화살, huntress)  budget 1005  4x 503 | lead 360/400 (min 192)  total 700 (min 430)  OK
+  sheet/captain/beastmaster      cd 1.10 (조련사의 활, beastmaster)  budget 960  4x 480 | lead 360/400 (min 192)  total 700 (min 430)  OK
+
+-- gun (crossbow / pistol); window 320 ms; shortest-cd user sheet/hero/marisol
+    basics (1): 권총 사격 1.2 shot:bolt
+    shortest basic cd 1.2 s = 권총 사격 (marisol)
+    budget 0.9 x 1.2 x 1000 - 30 = 1050 ms game clock (1x real 808 ms); view budget 3x 700, 4x 525 (x min(2,s)/s)
+    attack  shoulder 90ed · hold 220e · [fire 60] · recoil 100 · | lower 110e · reload 150e · settle 80ed
+            (e elastic to 40 %, d droppable, [ ] contact, | cut)
+    lead 310 (min 124) / window 320    total 810 (min 420) / budget 1050    lead+protected 470 (min 284)
+    >=3x (no anticipation): protected contact..cut 160 (min 160) vs 4x 525; post-contact 500 (min 296) is capped at 525 (4x) / 700 (3x)
+    special 포격 지원 (marisol, cd 10, stun 0.5): same sequence
+    budget / window: OK
+  sheet/captain/siegemaster      cd 1.50 (쇠뇌, siegemaster)  budget 1320  4x 660 | lead 310/320 (min 124)  total 810 (min 420)  OK
+  sheet/captain/admiral          cd 1.30 (석궁 사격, admiral)  budget 1140  4x 570 | lead 310/320 (min 124)  total 810 (min 420)  OK
+  sheet/hero/marisol             cd 1.20 (권총 사격, marisol)  budget 1050  4x 525 | lead 310/320 (min 124)  total 810 (min 420)  OK
+
+-- staff (staff / focus caster (attack = cast)); window 400 ms; shortest-cd user sheet/captain/demonhunter
+    basics (1): 은탄 1.2 shot:bolt
+    shortest basic cd 1.2 s = 은탄 (demonhunter)
+    budget 0.9 x 1.2 x 1000 - 30 = 1050 ms game clock (1x real 808 ms); view budget 3x 700, 4x 525 (x min(2,s)/s)
+    attack  gather0 90ed · gather1 100 · hold 160e · thrust 50 · [release 80] · | hold_release 200e · settle 120ed
+            (e elastic to 40 %, d droppable, [ ] contact, | cut)
+    lead 400 (min 250) / window 400    total 800 (min 458) / budget 1050    lead+protected 480 (min 330)
+    >=3x (no anticipation): protected contact..cut 80 (min 80) vs 4x 525; post-contact 400 (min 208) is capped at 525 (4x) / 700 (3x)
+    special 퇴마의 빛 (demonhunter, cd 10): heal cast, faces the target (view-side)
+    budget / window: OK
+  sheet/class/mage               cd 1.60 (연쇄 번개, stormmage)  budget 1410  4x 705 | lead 400/400 (min 250)  total 800 (min 458)  OK
+  sheet/captain/hedgemage        cd 1.70 (불씨, hedgemage)  budget 1500  4x 750 | lead 400/400 (min 250)  total 800 (min 458)  OK
+  sheet/captain/archmagus        cd 1.60 (비전 광선, archmagus)  budget 1410  4x 705 | lead 400/400 (min 250)  total 800 (min 458)  OK
+  sheet/captain/hexer            cd 1.60 (저주탄, hexer)  budget 1410  4x 705 | lead 400/400 (min 250)  total 800 (min 458)  OK
+  sheet/hero/astel               cd 1.70 (비전 화살, astel)  budget 1500  4x 750 | lead 400/400 (min 250)  total 800 (min 458)  OK
+  sheet/captain/tactician        cd 1.40 (지휘 사격, tactician)  budget 1230  4x 615 | lead 400/400 (min 250)  total 800 (min 458)  OK
+  sheet/captain/inquisitorlord   cd 1.60 (정화, inquisitorlord)  budget 1410  4x 705 | lead 400/400 (min 250)  total 800 (min 458)  OK
+  sheet/captain/demonhunter      cd 1.20 (은탄, demonhunter)  budget 1050  4x 525 | lead 400/400 (min 250)  total 800 (min 458)  OK
+
+-- healer (healer cast (attack = cast; the class cleric sheet also serves mace basics)); window 320 ms; shortest-cd user sheet/class/cleric
+    basics (7): 치유 1.6 heal | 부활의 기도 1.8 heal | 기적 1.8 heal | 예언의 빛 1.6 heal | 신성 강타 1 | 심판의 철퇴 1 | 빛의 방패 1
+    shortest basic cd 1 s = 신성 강타 (battlepriest)
+    budget 0.9 x 1 x 1000 - 30 = 870 ms game clock (1x real 669 ms); view budget 3x 580, 4x 435 (x min(2,s)/s)
+    attack  turn 110ed · hold 200e · [release 80] · hold_release 220e · | lower 110 · settle 90ed
+            (e elastic to 40 %, d droppable, [ ] contact, | cut)
+    lead 310 (min 124) / window 320    total 810 (min 438) / budget 870    lead+protected 610 (min 292)
+    >=3x (no anticipation): protected contact..cut 300 (min 168) vs 4x 435; post-contact 500 (min 314) is capped at 435 (4x) / 580 (3x)
+    special 집단 치유 (cleric (generic leader), cd 10): heal cast, faces the target (view-side)
+    budget / window: OK
+  sheet/class/cleric             cd 1.00 (신성 강타, battlepriest)  budget 870  4x 435 | lead 310/320 (min 124)  total 810 (min 438)  OK
+  sheet/captain/fieldmedic       cd 1.40 (응급 처치, fieldmedic)  budget 1230  4x 615 | lead 310/320 (min 124)  total 810 (min 438)  OK
+  sheet/hero/seraphine           cd 1.50 (들판의 기도, seraphine)  budget 1320  4x 660 | lead 310/320 (min 124)  total 810 (min 438)  OK
+  sheet/captain/lightbearer      cd 1.40 (빛의 숨결, lightbearer)  budget 1230  4x 615 | lead 310/320 (min 124)  total 810 (min 438)  OK
+  sheet/captain/pilgrim          cd 1.50 (순례자의 기도, pilgrim)  budget 1320  4x 660 | lead 310/320 (min 124)  total 810 (min 438)  OK
+  sheet/captain/saintknight      cd 1.50 (빛의 손길, saintknight)  budget 1320  4x 660 | lead 310/320 (min 124)  total 810 (min 438)  OK
+
+-- chain (unarmed / chain (Kato)); window 320 ms; shortest-cd user sheet/captain/liberator
+    basics (1): 사슬 휘두르기 0.95
+    shortest basic cd 0.95 s = 사슬 휘두르기 (liberator)
+    budget 0.9 x 0.95 x 1000 - 30 = 825 ms game clock (1x real 635 ms); view budget 3x 550, 4x 413 (x min(2,s)/s)
+    attack  in 70ed · hold 190e · swing 50 · [contact 70] · follow 100 · | recover 90 · settle 70ed
+            (e elastic to 40 %, d droppable, [ ] contact, | cut)
+    lead 310 (min 154) / window 320    total 640 (min 442) / budget 825    lead+protected 480 (min 324)
+    >=3x (no anticipation): protected contact..cut 170 (min 170) vs 4x 413; post-contact 330 (min 288) is capped at 413 (4x) / 550 (3x)
+    special 족쇄 부수기 (liberator, cd 8, stun 0.8): same sequence
+    budget / window: OK
+  sheet/captain/liberator        cd 0.95 (사슬 휘두르기, liberator)  budget 825  4x 413 | lead 310/320 (min 154)  total 640 (min 442)  OK
+
+-- quadruped (quadruped (wolf, spider, hellhound)); window 300 ms; shortest-cd user sheet/monster/들늑대
+    basics (2): 공격 1 | 공격 1
+    shortest basic cd 1 s = 공격 (unit)
+    budget 0.9 x 1 x 1000 - 30 = 870 ms game clock (1x real 669 ms); view budget 3x 580, 4x 435 (x min(2,s)/s)
+    attack  crouch 90ed · hold 150e · lunge 50 · [bite 70] · | recoil 100 · settle 80ed
+            (e elastic to 40 %, d droppable, [ ] contact, | cut)
+    lead 290 (min 146) / window 300    total 540 (min 348) / budget 870    lead+protected 360 (min 216)
+    >=3x (no anticipation): protected contact..cut 70 (min 70) vs 4x 435; post-contact 250 (min 202) is capped at 435 (4x) / 580 (3x)
+    special 포효 (group lead, cd 9, stun 0.4): same sequence
+    budget / window: OK
+  sheet/monster/들늑대              cd 1.00 (공격, unit)  budget 870  4x 435 | lead 290/300 (min 146)  total 540 (min 348)  OK
+  sheet/monster/거대 거미            cd 1.00 (공격, unit)  budget 870  4x 435 | lead 290/300 (min 146)  total 540 (min 348)  OK
+
+-- flyer (flyer (harpy, gargoyle, wraith)); window 300 ms; shortest-cd user sheet/monster/하피
+    basics (2): 공격 1.4 shot:fire | 공격 1.4 shot:fire
+    shortest basic cd 1.4 s = 공격 (unit)
+    budget 0.9 x 1.4 x 1000 - 30 = 1230 ms game clock (1x real 946 ms); view budget 3x 820, 4x 615 (x min(2,s)/s)
+    attack  rise 90ed · hold 150e · dive 50 · [claw 70] · | rebound 100 · settle 90ed
+            (e elastic to 40 %, d droppable, [ ] contact, | cut)
+    lead 290 (min 146) / window 300    total 550 (min 352) / budget 1230    lead+protected 360 (min 216)
+    >=3x (no anticipation): protected contact..cut 70 (min 70) vs 4x 615; post-contact 260 (min 206) is capped at 615 (4x) / 820 (3x)
+    special 포효 (group lead, cd 9, stun 0.4): same sequence
+    budget / window: OK
+  sheet/monster/하피               cd 1.40 (공격, unit)  budget 1230  4x 615 | lead 290/300 (min 146)  total 550 (min 352)  OK
+  sheet/monster/가고일              cd 1.40 (공격, unit)  budget 1230  4x 615 | lead 290/300 (min 146)  total 550 (min 352)  OK
+  sheet/monster/망령               cd 1.40 (공격, unit)  budget 1230  4x 615 | lead 290/300 (min 146)  total 550 (min 352)  OK
+
+-- big (big monster / boss (sheet drawn 1.5x)); window 400 ms; shortest-cd user sheet/monster/고블린 왕
+    basics (1): 공격 1
+    shortest basic cd 1 s = 공격 (boss)
+    budget 0.9 x 1 x 1000 - 30 = 870 ms game clock (1x real 669 ms); view budget 3x 580, 4x 435 (x min(2,s)/s)
+    attack  lift 80ed · hold 260e · drop 60 · [contact 100] · follow 140 · | recover 110e · settle 90ed
+            (e elastic to 40 %, d droppable, [ ] contact, | cut)
+    lead 400 (min 196) / window 400    total 840 (min 516) / budget 870    lead+protected 640 (min 436)
+    >=3x (no anticipation): protected contact..cut 240 (min 240) vs 4x 435; post-contact 440 (min 320) is capped at 435 (4x) / 580 (3x)
+    special 대지 분쇄 (boss, cd 7, stun 0.6): same sequence
+    budget / window: OK
+  sheet/monster/고블린 왕            cd 1.00 (공격, boss)  budget 870  4x 435 | lead 400/400 (min 196)  total 840 (min 516)  OK
+  sheet/monster/거미 여왕            cd 1.00 (공격, boss)  budget 870  4x 435 | lead 400/400 (min 196)  total 840 (min 516)  OK
+  sheet/monster/늪의 마녀            cd 1.00 (공격, boss)  budget 870  4x 435 | lead 400/400 (min 196)  total 840 (min 516)  OK
+  sheet/monster/모래 폭군            cd 1.00 (공격, boss)  budget 870  4x 435 | lead 400/400 (min 196)  total 840 (min 516)  OK
+  sheet/monster/서리 거인 왕          cd 1.00 (공격, boss)  budget 870  4x 435 | lead 400/400 (min 196)  total 840 (min 516)  OK
+  sheet/monster/마왕 베르녹스          cd 1.00 (공격, boss)  budget 870  4x 435 | lead 400/400 (min 196)  total 840 (min 516)  OK
+  sheet/monster/고룡 이그니스          cd 1.00 (공격, boss)  budget 870  4x 435 | lead 400/400 (min 196)  total 840 (min 516)  OK
+  sheet/monster/숲 트롤             cd 1.00 (공격, unit)  budget 870  4x 435 | lead 400/400 (min 196)  total 840 (min 516)  OK
+  sheet/monster/서리 트롤            cd 1.00 (공격, unit)  budget 870  4x 435 | lead 400/400 (min 196)  total 840 (min 516)  OK
+  sheet/monster/설인               cd 1.00 (공격, unit)  budget 870  4x 435 | lead 400/400 (min 196)  total 840 (min 516)  OK
+  sheet/monster/전갈 거인            cd 1.00 (공격, unit)  budget 870  4x 435 | lead 400/400 (min 196)  total 840 (min 516)  OK
+  sheet/monster/와이번              cd 1.40 (공격, unit)  budget 1230  4x 615 | lead 400/400 (min 196)  total 840 (min 516)  OK
+  sheet/monster/리치의 망령           cd 1.40 (공격, unit)  budget 1230  4x 615 | lead 400/400 (min 196)  total 840 (min 516)  OK
+
+  registered sheets: 52, all in an archetype
+
+== 2. hit sequences by weight (retrigger: no restart within 200 ms)
+  heavy  K1 brace 80 · K2 hold 110 · K3 settle 80ed = 270 (min 222)
+         head displacement 12-35 src px = 2-6 game px (pilot done-when 3)
+  mid    K1 impact 70 · K2 peak 100 · K3 recover 80ed · K4 settle 70ed = 320 (min 230)
+         head displacement 25-60 src px = 4-10 game px (pilot done-when 3)
+  light  K1 impact 60 · K2 stagger 110 · K3 recover 90ed · K4 settle 80ed = 340 (min 238)
+         head displacement 40-90 src px = 7-15 game px (pilot done-when 3)
+
+== 2b. hit weight per sheet (motion_chars.json hit.sheets = the one source; generators must agree)
+  generators: 41 sheets (handoff.py 17, captains_batch2.json 24), 41 agree with hit.sheets
+  heavy   8: captain/ironwall, captain/saintknight, captain/warlord, captain/khan, captain/runesmith, captain/liberator, captain/frostjarl, captain/titan
+  mid    16: captain/blademaster, captain/lancer, captain/fieldmedic, captain/veteran, class/warrior, class/cleric, monster/해골 병사, monster/사막 도적, captain/spellblade, captain/dragonslayer, captain/demonhunter, captain/beastmaster, captain/pilgrim, captain/admiral, captain/siegemaster, captain/inquisitorlord
+  light  18: captain/tactician, captain/huntress, captain/hedgemage, captain/fixer, class/archer, class/mage, class/rogue, monster/산적, captain/windhunter, captain/shadowlord, captain/bard, captain/hexer, captain/elfwarden, captain/pirateking, captain/archmagus, captain/lightbearer, captain/shadowqueen, hero/marisol
+  differ from their archetype's hit_default (fine, the table wins): captain/ironwall heavy, captain/fieldmedic mid, class/cleric mid, monster/산적 light, captain/saintknight heavy, captain/khan heavy, captain/dragonslayer mid, captain/demonhunter mid, captain/bard light, captain/beastmaster mid, captain/pilgrim mid, captain/admiral mid, captain/siegemaster mid, captain/inquisitorlord mid, captain/pirateking light
+  sheets not in hit.sheets use their archetype hit_default
+
+== 3. characters (tools/art/specs/motion_chars.json)
+
+-- sheet/class/warrior [pilot] 일반 병과 전사: arch sword_shield, hit mid, run warrior
+    basics (7): 방패 치기 1 | 심판의 방패 1 | 불굴의 성벽 1 | 성전의 철퇴 1 | 일섬 0.9 | 천검 0.9 | 피의 난무 0.8
+    shortest basic cd 0.8 s = 피의 난무 (berserker)
+    budget 0.9 x 0.8 x 1000 - 30 = 690 ms game clock (1x real 531 ms); view budget 3x 460, 4x 345 (x min(2,s)/s)
+    attack  in 70ed · hold 160e · swing 50 · [contact 70] · follow 90 · | recover 90 · settle 70ed
+            (e elastic to 40 %, d droppable, [ ] contact, | cut)
+    lead 280 (min 142) / window 300    total 600 (min 420) / budget 690    lead+protected 440 (min 302)
+    >=3x (no anticipation): protected contact..cut 160 (min 160) vs 4x 345; post-contact 320 (min 278) is capped at 345 (4x) / 460 (3x)
+    special 돌격 (warrior (generic leader), cd 9, dash, stun 0.4): same sequence
+    budget / window: OK
+    hit (mid): K1 impact 70 · K2 peak 100 · K3 recover 80 · K4 settle 70
+    special 돌격: seq in > hold > swing > contact > follow > recover > settle - one contact frame
+    mannequin atk__class_warrior: overrides hold, swing, contact, follow; pivot rear (footN) planted in every frame +-3 src px
+
+-- sheet/captain/shadowqueen [pilot] 니클라 (밤의 여왕): arch twin, hit light, run rogue
+    basics (1): 밤의 칼날 0.65
+    shortest basic cd 0.65 s = 밤의 칼날 (shadowqueen)
+    budget 0.9 x 0.65 x 1000 - 30 = 555 ms game clock (1x real 427 ms); view budget 3x 370, 4x 278 (x min(2,s)/s)
+    attack  in 60ed · hold 110e · swing 50 · [contact 60] · follow 80 · | recover 80 · settle 60ed
+            (e elastic to 40 %, d droppable, [ ] contact, | cut)
+    lead 220 (min 118) / window 250    total 500 (min 362) / budget 555    lead+protected 360 (min 258)
+    >=3x (no anticipation): protected contact..cut 140 (min 140) vs 4x 278; post-contact 280 (min 244) is capped at 278 (4x) / 370 (3x)
+    special 그림자 난무 (shadowqueen, cd 8, hits 4, dash): multi-target melee: one contact frame, victims +50 ms each
+    budget / window: OK
+    hit (light): K1 impact 60 · K2 stagger 110 · K3 recover 90 · K4 settle 80
+    special 그림자 난무: seq in > hold > swing > contact > follow > recover > settle - one contact frame
+    mannequin atk__captain_shadowqueen: overrides hold, swing, contact, follow; pivot front (footF) from the swing frame on - as in the accepted strike; rear before
+
+-- sheet/captain/ironwall [gate1-mannequin] 브리긴다 (철벽 수호자): arch sword_shield, hit heavy, run warrior
+    basics (1): 방패 밀치기 1
+    shortest basic cd 1 s = 방패 밀치기 (ironwall)
+    budget 0.9 x 1 x 1000 - 30 = 870 ms game clock (1x real 669 ms); view budget 3x 580, 4x 435 (x min(2,s)/s)
+    attack  in 70ed · hold 170e · swing 50 · [contact 80] · follow 80 · | recover 90 · settle 70ed
+            (e elastic to 40 %, d droppable, [ ] contact, | cut)
+    lead 290 (min 146) / window 300    total 610 (min 424) / budget 870    lead+protected 450 (min 306)
+    >=3x (no anticipation): protected contact..cut 160 (min 160) vs 4x 435; post-contact 320 (min 278) is capped at 435 (4x) / 580 (3x)
+    special 철벽 방진 (ironwall, cd 12): rally: hold 'hold' 450 ms
+    budget / window: OK
+    hit (heavy): K1 brace 80 · K2 hold 110 · K3 settle 80
+    mannequin atk__captain_ironwall: overrides hold, swing, contact, follow; pivot rear (footN); the front foot steps +0.15 head on contact
+
+-- sheet/class/archer [gate1-mannequin] 일반 병과 궁수: arch bow, hit light, run archer
+    basics (7): 조준 사격 1.25 shot:arrow | 속사 0.7 shot:arrow | 질풍 사격 0.6 shot:arrow | 사냥개 풀기 0.9 shot:arrow | 급소 사격 1.8 shot:arrow | 천리안 1.8 shot:arrow | 관통 노궁 2 shot:bolt
+    shortest basic cd 0.6 s = 질풍 사격 (pathfinder)
+    budget 0.9 x 0.6 x 1000 - 30 = 510 ms game clock (1x real 392 ms); view budget 3x 340, 4x 255 (x min(2,s)/s)
+    attack  nock 80ed · raise 80 · hold 200e · [release 60] · follow 110 · | lower 100e · settle 70ed
+            (e elastic to 40 %, d droppable, [ ] contact, | cut)
+    lead 360 (min 192) / window 400    total 700 (min 430) / budget 510    lead+protected 530 (min 362)
+    >=3x (no anticipation): protected contact..cut 170 (min 170) vs 4x 255; post-contact 340 (min 238) is capped at 255 (4x) / 340 (3x)
+    special 일제 사격 (archer (generic leader), cd 8, hits 3): multi-shot: one release + fan VFX
+    WARN total 700 fits budget 510 only with elastic frames (min 430)
+    WARN lead + protected 530 fits only compressed (min 362)
+    hit (light): K1 impact 60 · K2 stagger 110 · K3 recover 90 · K4 settle 80
+    mannequin atk__class_archer: overrides hold, release; pivot both planted (upright archer)
+
+-- sheet/captain/liberator [decided-signature] 카토 (해방 검투사): arch chain, hit heavy
+    basics (1): 사슬 휘두르기 0.95
+    shortest basic cd 0.95 s = 사슬 휘두르기 (liberator)
+    budget 0.9 x 0.95 x 1000 - 30 = 825 ms game clock (1x real 635 ms); view budget 3x 550, 4x 413 (x min(2,s)/s)
+    attack  in 70ed · hold 190e · swing 50 · [contact 70] · follow 100 · | recover 90 · settle 70ed
+            (e elastic to 40 %, d droppable, [ ] contact, | cut)
+    lead 310 (min 154) / window 320    total 640 (min 442) / budget 825    lead+protected 480 (min 324)
+    >=3x (no anticipation): protected contact..cut 170 (min 170) vs 4x 413; post-contact 330 (min 288) is capped at 413 (4x) / 550 (3x)
+    special 족쇄 부수기 (liberator, cd 8, stun 0.8): same sequence
+    budget / window: OK
+    hit (heavy): K1 brace 80 · K2 hold 110 · K3 settle 80
+
+-- sheet/hero/marisol [decided-signature] 마리솔 (해적 선장): arch gun, hit light
+    basics (1): 권총 사격 1.2 shot:bolt
+    shortest basic cd 1.2 s = 권총 사격 (marisol)
+    budget 0.9 x 1.2 x 1000 - 30 = 1050 ms game clock (1x real 808 ms); view budget 3x 700, 4x 525 (x min(2,s)/s)
+    attack  shoulder 90ed · hold 220e · [fire 60] · recoil 100 · | lower 110e · reload 150e · settle 80ed
+            (e elastic to 40 %, d droppable, [ ] contact, | cut)
+    lead 310 (min 124) / window 320    total 810 (min 420) / budget 1050    lead+protected 470 (min 284)
+    >=3x (no anticipation): protected contact..cut 160 (min 160) vs 4x 525; post-contact 500 (min 296) is capped at 525 (4x) / 700 (3x)
+    special 포격 지원 (marisol, cd 10, stun 0.5): same sequence
+    budget / window: OK
+    hit (light): K1 impact 60 · K2 stagger 110 · K3 recover 90 · K4 settle 80
+
+-- sheet/captain/beastmaster [decided-signature] 오르가 (야수 조련사): arch bow, hit mid
+    basics (1): 조련사의 활 1.1 shot:arrow
+    shortest basic cd 1.1 s = 조련사의 활 (beastmaster)
+    budget 0.9 x 1.1 x 1000 - 30 = 960 ms game clock (1x real 738 ms); view budget 3x 640, 4x 480 (x min(2,s)/s)
+    attack  nock 80ed · raise 80 · hold 200e · [release 60] · follow 110 · | lower 100e · settle 70ed
+            (e elastic to 40 %, d droppable, [ ] contact, | cut)
+    lead 360 (min 192) / window 400    total 700 (min 430) / budget 960    lead+protected 530 (min 362)
+    >=3x (no anticipation): protected contact..cut 170 (min 170) vs 4x 480; post-contact 340 (min 238) is capped at 480 (4x) / 640 (3x)
+    special 늑대 떼 돌격 (beastmaster, cd 9, hits 3, dash): summon_runners (motion_chars override): stays put and commands on 'release'; the engine runs 2-3 sheet/monster/들늑대 at the target (view only, sim unchanged)
+    budget / window: OK
+    hit (mid): K1 impact 70 · K2 peak 100 · K3 recover 80 · K4 settle 70
+
+== 4. mannequin similarity (same archetype; hold + contact frames, silhouette IoU aligned (bottom-centre, +-4 game px), game size; FAIL at IoU > 0.8 or identical overrides)
+  deliveries (art/inbox/guides/<set>/<set>.aseprite; the cloud exports the frames - --frames DIR, else the .aseprite on this branch exported here, else the frames receive.py kept in .git/art-received/<set>/):
+    atk__class_warrior: 7 frames from /tmp/claude-0/-home-user-pixel-management/e0835d66-bd95-539c-bed6-4bd85f4f7ab9/scratchpad/armsfix/rebake2/atk__class_warrior/out/atk__class_warrior.aseprite (exported here, visible layers)
+    atk__captain_shadowqueen: 7 frames from /tmp/claude-0/-home-user-pixel-management/e0835d66-bd95-539c-bed6-4bd85f4f7ab9/scratchpad/armsfix/rebake2/atk__captain_shadowqueen/out/atk__captain_shadowqueen.aseprite (exported here, visible layers)
+    atk__captain_ironwall: 7 frames from /tmp/claude-0/-home-user-pixel-management/e0835d66-bd95-539c-bed6-4bd85f4f7ab9/scratchpad/armsfix/rebake2/atk__captain_ironwall/out/atk__captain_ironwall.aseprite (exported here, visible layers)
+    atk__class_archer: 7 frames from /tmp/claude-0/-home-user-pixel-management/e0835d66-bd95-539c-bed6-4bd85f4f7ab9/scratchpad/armsfix/rebake2/atk__class_archer/out/atk__class_archer.aseprite (exported here, visible layers)
+  sword_shield: atk__class_warrior vs atk__captain_ironwall
+    hold: overrides differ in hip, lean, tilt, footN, footF, shield, grip_near, wa
+    hold: IoU 0.772 (aligned: bottom-centre + best of +-4 game px (3,-2), game size x0.1654 / x0.1654; f01 hold) <= 0.8 - OK
+    contact: overrides differ in hip, footN, footF, shield, grip_near, wa
+    contact: IoU 0.759 (aligned: bottom-centre + best of +-4 game px (-1,-2), game size x0.1654 / x0.1654; f03 contact) <= 0.8 - OK
+
+motion check: 0 FAIL, 3 WARN

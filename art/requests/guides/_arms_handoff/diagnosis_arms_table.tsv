@@ -1,0 +1,73 @@
+set	frame	arm	class	cause	elbow_deg	hinge	pref	pref_margin	dR	dU	hang_gap	reach	E_torso	H_torso	alt_elbow_torso	arm_vis	elbow_vis
+atk__class_warrior	in	N	chicken-wing	hand	54.7	ok	default(0.25,1.0)	0.03	0.19	-0.55	0.45	0.46	(-0.85, 0.57)	(-0.21, 0.45)	(0.22, 0.94)	1.0	1.0
+atk__class_warrior	in	F	natural	-	32.4	ok	default(0.25,1.0)	0.87	0.35	-0.08	0.01	0.28	(0.33, 0.36)	(0.69, 0.9)	(0.59, 1.55)	0.07	0.14
+atk__class_warrior	hold	N	crossing+flared	hand+IK side	55.5	REV	default(0.25,1.0)	-0.39	-0.07	-0.59	0.57	0.47	(0.13, 0.67)	(-0.47, 0.41)	(-0.99, 0.8)	1.0	1.0
+atk__class_warrior	hold	F	natural	-	36.1	ok	default(0.25,1.0)	0.99	0.37	0.15	-0.2	0.31	(0.71, 0.48)	(0.71, 1.13)	(0.25, 1.59)	0.27	1.0
+atk__class_warrior	swing	N	flared	hand+IK side	71.9	REV	default(0.25,1.0)	-0.13	0.2	-0.72	0.43	0.59	(0.19, 0.8)	(-0.2, 0.28)	(-0.8, 0.53)	1.0	1.0
+atk__class_warrior	swing	F	natural	-	79.4	ok	default(0.25,1.0)	0.97	0.64	0.5	-0.64	0.64	(0.94, 0.84)	(0.98, 1.48)	(0.34, 1.6)	0.5	1.0
+atk__class_warrior	contact	N	natural	-	95.4	ok	default(0.25,1.0)	0.37	0.76	-0.55	-0.11	0.74	(-0.29, 0.39)	(0.36, 0.45)	(0.22, 1.08)	1.0	1.0
+atk__class_warrior	contact	F	chicken-wing(above-behind)+hyper	PC override elbF	28.7	REV	[-0.5, -1.0]	-0.97	0.16	0.27	-0.25	0.25	(-0.14, 1.38)	(0.5, 1.25)	(0.91, 0.75)	0.07	0.36
+atk__class_warrior	follow	N	natural	-	55.0	ok	default(0.25,1.0)	0.42	0.52	-0.28	0.03	0.46	(-0.44, 0.38)	(0.12, 0.72)	(0.1, 1.37)	1.0	1.0
+atk__class_warrior	follow	F	hyper(hidden)	PC override elbF	22.8	REV	[-0.5, -1.0]	-0.57	-0.06	0.24	-0.21	0.2	(-0.27, 0.87)	(0.28, 1.22)	(0.92, 1.19)	0.0	0.0
+atk__class_warrior	recover	N	natural	-	86.8	ok	default(0.25,1.0)	0.38	0.63	-0.6	0.02	0.69	(-0.42, 0.38)	(0.23, 0.4)	(0.22, 1.05)	1.0	1.0
+atk__class_warrior	recover	F	hyper(hidden)	hand	9.1	ok	default(0.25,1.0)	0.71	0.1	-0.04	0.06	0.08	(0.01, 0.46)	(0.44, 0.94)	(0.43, 1.59)	0.0	0.0
+atk__class_warrior	settle	N	chicken-wing(mild)	hand	77.4	ok	default(0.25,1.0)	0.25	0.43	-0.67	0.22	0.63	(-0.61, 0.42)	(0.03, 0.33)	(0.22, 0.96)	1.0	1.0
+atk__class_warrior	settle	F	natural	-	41.1	ok	default(0.25,1.0)	0.65	0.38	-0.23	0.11	0.35	(0.19, 0.38)	(0.72, 0.75)	(0.8, 1.4)	0.04	0.0
+hit__class_warrior	K1 impact	N	chicken-wing(mild)	hand	78.9	ok	default(0.25,1.0)	0.34	0.45	-0.67	0.2	0.64	(-0.59, 0.41)	(0.05, 0.33)	(0.22, 0.96)	1.0	1.0
+hit__class_warrior	K1 impact	F	natural	-	30.0	ok	default(0.25,1.0)	0.97	0.33	0.0	-0.05	0.26	(0.45, 0.37)	(0.67, 0.98)	(0.45, 1.59)	0.1	0.58
+hit__class_warrior	K2 peak	N	chicken-wing	hand	50.2	ok	default(0.25,1.0)	0.21	0.21	-0.5	0.41	0.43	(-0.84, 0.56)	(-0.19, 0.5)	(0.22, 1.01)	1.0	1.0
+hit__class_warrior	K2 peak	F	natural	-	37.5	ok	default(0.25,1.0)	0.89	0.39	-0.11	0.01	0.32	(0.33, 0.36)	(0.73, 0.87)	(0.65, 1.51)	0.08	0.15
+hit__class_warrior	K3 recover	N	chicken-wing	hand	72.7	ok	default(0.25,1.0)	0.25	0.38	-0.65	0.27	0.59	(-0.66, 0.44)	(-0.02, 0.35)	(0.22, 0.95)	1.0	1.0
+hit__class_warrior	K3 recover	F	natural	-	33.6	ok	default(0.25,1.0)	0.73	0.33	-0.17	0.09	0.29	(0.18, 0.38)	(0.67, 0.81)	(0.74, 1.46)	0.02	0.0
+hit__class_warrior	K4 settle	N	chicken-wing(mild)	hand	77.7	ok	default(0.25,1.0)	0.26	0.44	-0.67	0.21	0.63	(-0.61, 0.42)	(0.04, 0.33)	(0.22, 0.96)	1.0	1.0
+hit__class_warrior	K4 settle	F	natural	-	41.3	ok	default(0.25,1.0)	0.64	0.38	-0.24	0.11	0.35	(0.18, 0.38)	(0.72, 0.74)	(0.81, 1.39)	0.04	0.0
+atk__captain_shadowqueen	in	N	natural	-	42.3	ok	default(0.25,1.0)	1.0	0.45	0.09	-0.19	0.36	(-0.1, 0.46)	(0.05, 1.09)	(-0.33, 1.62)	1.0	1.0
+atk__captain_shadowqueen	in	F	hyper	hand	7.7	REV	default(0.25,1.0)	-0.94	-0.09	0.01	0.01	0.07	(0.44, 0.37)	(0.25, 0.99)	(0.57, 1.56)	0.27	0.65
+atk__captain_shadowqueen	hold	N	natural	-	162.9	REV	[-1, 0.2]	-0.97	0.17	1.24	-1.22	0.99	(-0.41, 1.62)	(-0.23, 2.24)	(-0.22, 1.59)	1.0	1.0
+atk__captain_shadowqueen	hold	F	natural	-	148.1	ok	[1, 0.2]	1.0	0.34	1.17	-1.17	0.96	(0.67, 1.5)	(0.68, 2.15)	(0.34, 1.6)	0.86	1.0
+atk__captain_shadowqueen	swing	N	natural	-	80.8	ok	default(0.25,1.0)	0.73	0.82	-0.1	-0.32	0.65	(-0.07, 0.47)	(0.42, 0.9)	(0.05, 1.43)	1.0	1.0
+atk__captain_shadowqueen	swing	F	flared+hyper	hand	12.3	ok	default(0.25,1.0)	0.87	0.06	0.13	-0.1	0.11	(0.87, 0.66)	(0.4, 1.11)	(-0.25, 1.17)	0.53	0.99
+atk__captain_shadowqueen	contact	N	natural	-	80.6	ok	default(0.25,1.0)	0.69	0.77	-0.29	-0.19	0.65	(-0.21, 0.41)	(0.37, 0.71)	(0.13, 1.31)	1.0	1.0
+atk__captain_shadowqueen	contact	F	hyper(hidden)	hand+IK side	23.6	REV	default(0.25,1.0)	-0.27	-0.17	0.2	-0.19	0.21	(-0.16, 0.62)	(0.17, 1.18)	(0.77, 1.43)	0.1	0.0
+atk__captain_shadowqueen	follow	N	natural	-	68.5	ok	default(0.25,1.0)	0.76	0.7	-0.16	-0.19	0.56	(-0.19, 0.42)	(0.3, 0.84)	(0.04, 1.44)	1.0	1.0
+atk__captain_shadowqueen	follow	F	hyper(hidden)	hand+IK side	17.1	REV	default(0.25,1.0)	-0.78	-0.19	0.04	-0.04	0.15	(0.23, 0.37)	(0.15, 1.02)	(0.46, 1.59)	0.04	0.0
+atk__captain_shadowqueen	recover	N	natural	-	91.2	ok	default(0.25,1.0)	0.43	0.66	-0.63	-0.01	0.71	(-0.39, 0.38)	(0.26, 0.37)	(0.22, 1.02)	1.0	1.0
+atk__captain_shadowqueen	recover	F	flared	IK side+hand	38.7	REV	default(0.25,1.0)	-0.45	-0.04	-0.42	0.45	0.33	(0.92, 0.75)	(0.3, 0.56)	(-0.27, 0.88)	0.61	1.0
+atk__captain_shadowqueen	settle	N	chicken-wing(mild)	hand	83.6	ok	default(0.25,1.0)	0.27	0.45	-0.72	0.19	0.67	(-0.59, 0.41)	(0.05, 0.28)	(0.21, 0.91)	1.0	1.0
+atk__captain_shadowqueen	settle	F	flared	IK side+hand	59.5	REV	default(0.25,1.0)	-0.36	-0.05	-0.63	0.6	0.5	(0.86, 0.65)	(0.29, 0.35)	(-0.23, 0.74)	0.64	1.0
+hit__captain_shadowqueen	K1 impact	N	natural	-	110.2	ok	default(0.25,1.0)	0.54	0.71	-0.76	-0.07	0.82	(-0.32, 0.39)	(0.31, 0.24)	(0.21, 0.88)	1.0	1.0
+hit__captain_shadowqueen	K1 impact	F	chicken-wing(hidden)	hand	65.5	ok	default(0.25,1.0)	0.05	0.16	-0.67	0.48	0.54	(-0.11, 0.55)	(0.5, 0.31)	(0.93, 0.8)	0.16	0.0
+hit__captain_shadowqueen	K2 stagger	N	natural	-	94.5	ok	default(0.25,1.0)	0.59	0.62	-0.7	0.02	0.73	(-0.43, 0.38)	(0.22, 0.3)	(0.22, 0.95)	1.0	1.0
+hit__captain_shadowqueen	K2 stagger	F	chicken-wing(hidden)	hand	57.8	ok	default(0.25,1.0)	0.14	0.14	-0.6	0.51	0.48	(-0.14, 0.58)	(0.48, 0.38)	(0.94, 0.84)	0.16	0.0
+hit__captain_shadowqueen	K3 recover	N	natural	-	104.4	ok	default(0.25,1.0)	0.47	0.65	-0.77	-0.02	0.79	(-0.39, 0.38)	(0.25, 0.23)	(0.21, 0.88)	1.0	1.0
+hit__captain_shadowqueen	K3 recover	F	flared	IK side(tie)+hand	65.4	REV	default(0.25,1.0)	-0.02	0.13	-0.67	0.51	0.54	(0.92, 0.77)	(0.47, 0.31)	(-0.12, 0.57)	0.79	1.0
+hit__captain_shadowqueen	K4 settle	N	natural	-	111.7	ok	default(0.25,1.0)	0.39	0.68	-0.8	-0.05	0.83	(-0.34, 0.38)	(0.28, 0.2)	(0.2, 0.84)	1.0	1.0
+hit__captain_shadowqueen	K4 settle	F	flared	IK side+hand	68.4	REV	default(0.25,1.0)	-0.12	0.13	-0.7	0.5	0.56	(0.92, 0.75)	(0.47, 0.28)	(-0.11, 0.56)	0.79	1.0
+atk__captain_ironwall	in	N	natural	-	41.1	ok	default(0.25,1.0)	0.79	0.42	-0.15	0.02	0.35	(-0.42, 0.38)	(0.02, 0.85)	(-0.03, 1.5)	1.0	1.0
+atk__captain_ironwall	in	F	hyper(hidden)	hand	14.1	ok	[-0.3, 1.0]	0.99	0.15	-0.06	0.07	0.13	(0.08, 0.42)	(0.49, 0.92)	(0.53, 1.57)	0.0	0.0
+atk__captain_ironwall	hold	N	hyper(tight fold)	hand	19.4	ok	default(0.25,1.0)	1.0	0.2	0.08	-0.08	0.17	(-0.16, 0.43)	(-0.2, 1.08)	(-0.6, 1.59)	1.0	1.0
+atk__captain_ironwall	hold	F	natural	-	29.0	ok	[-0.3, 1.0]	0.82	0.29	0.13	-0.15	0.25	(0.68, 0.46)	(0.63, 1.11)	(0.18, 1.58)	0.12	0.5
+atk__captain_ironwall	swing	N	hyper	hand+IK side	18.8	REV	default(0.25,1.0)	-1.0	-0.2	-0.08	0.07	0.17	(-0.18, 0.42)	(-0.6, 0.92)	(-0.65, 1.57)	1.0	1.0
+atk__captain_ironwall	swing	F	natural	-	20.6	ok	[-0.3, 1.0]	0.86	0.21	0.1	-0.1	0.18	(0.64, 0.44)	(0.55, 1.08)	(0.1, 1.55)	0.1	0.52
+atk__captain_ironwall	contact	N	hyper(reversed bend)	hand+IK side	53.7	REV	default(0.25,1.0)	-0.97	-0.55	-0.18	-0.05	0.45	(-0.47, 0.38)	(-0.95, 0.82)	(-0.82, 1.46)	1.0	1.0
+atk__captain_ironwall	contact	F	natural	-	35.0	ok	[-0.3, 1.0]	0.76	0.28	0.26	-0.27	0.3	(0.85, 0.63)	(0.62, 1.24)	(0.04, 1.52)	0.17	0.5
+atk__captain_ironwall	follow	N	hyper(reversed bend)	hand+IK side	54.2	REV	default(0.25,1.0)	-0.99	-0.52	-0.25	0.01	0.46	(-0.39, 0.38)	(-0.92, 0.75)	(-0.87, 1.4)	1.0	1.0
+atk__captain_ironwall	follow	F	hyper(hidden)	hand	7.0	ok	[-0.3, 1.0]	0.74	0.06	-0.05	0.08	0.07	(-0.18, 0.64)	(0.4, 0.93)	(0.57, 1.56)	0.0	0.0
+atk__captain_ironwall	recover	N	flared+crossing	IK side+hand	25.7	REV	default(0.25,1.0)	-0.82	-0.14	-0.25	0.25	0.22	(0.09, 0.62)	(-0.54, 0.75)	(-0.97, 1.25)	1.0	1.0
+atk__captain_ironwall	recover	F	hyper	hand	8.3	ok	[-0.3, 1.0]	0.78	0.08	0.05	-0.02	0.08	(0.54, 0.39)	(0.42, 1.03)	(-0.11, 1.41)	0.1	0.5
+atk__captain_ironwall	settle	N	natural	-	36.8	ok	default(0.25,1.0)	0.93	0.4	-0.01	-0.08	0.32	(-0.27, 0.39)	(0.0, 0.99)	(-0.23, 1.59)	1.0	1.0
+atk__captain_ironwall	settle	F	hyper(hidden)	hand	11.2	ok	[-0.3, 1.0]	0.73	0.07	-0.1	0.13	0.1	(-0.21, 0.69)	(0.41, 0.88)	(0.79, 1.41)	0.0	0.0
+atk__class_archer	nock	N	natural	-	94.9	ok	default(0.25,1.0)	0.69	0.82	-0.45	-0.19	0.74	(-0.22, 0.41)	(0.42, 0.55)	(0.2, 1.16)	1.0	1.0
+atk__class_archer	nock	F	chicken-wing(hidden)	hand	56.1	ok	default(0.25,1.0)	0.01	0.19	-0.57	0.45	0.47	(-0.11, 0.55)	(0.53, 0.41)	(0.96, 0.9)	0.1	0.0
+atk__class_archer	raise	N	natural	-	48.2	ok	default(0.25,1.0)	0.87	0.51	-0.12	-0.06	0.41	(-0.16, 0.39)	(0.27, 0.88)	(0.11, 1.51)	1.0	1.0
+atk__class_archer	raise	F	natural	-	56.3	ok	default(0.25,1.0)	0.81	0.57	-0.2	-0.06	0.47	(0.27, 0.36)	(0.77, 0.78)	(0.64, 1.42)	0.21	0.0
+atk__class_archer	hold	N	shoulder drift (elbow ok)	PC override swN 0.2	33.3	REV	[-1.0, -0.3]	-0.95	0.2	0.3	-0.29	0.29	(-0.51, 1.45)	(0.12, 1.3)	(0.49, 0.77)	1.0	1.0
+atk__class_archer	hold	F	natural	-	152.0	ok	default(0.25,1.0)	1.0	1.21	0.25	-0.84	0.97	(0.69, 0.95)	(1.28, 1.23)	(0.63, 1.25)	0.51	0.94
+atk__class_archer	release	N	natural	-	34.1	REV	[-1.0, -0.3]	-0.9	-0.05	0.37	-0.34	0.29	(-1.02, 1.05)	(-0.45, 1.37)	(0.18, 1.22)	1.0	1.0
+atk__class_archer	release	F	natural	-	159.7	ok	default(0.25,1.0)	1.0	1.23	0.19	-0.82	0.98	(0.73, 0.96)	(1.34, 1.17)	(0.69, 1.18)	0.6	1.0
+atk__class_archer	follow	N	natural	-	30.4	REV	[-1.0, -0.3]	-0.7	-0.15	0.3	-0.28	0.26	(-0.99, 0.82)	(-0.55, 1.3)	(0.09, 1.37)	1.0	1.0
+atk__class_archer	follow	F	natural	-	159.6	ok	default(0.25,1.0)	0.99	1.24	0.14	-0.8	0.98	(0.72, 0.94)	(1.34, 1.12)	(0.7, 1.16)	0.59	1.0
+atk__class_archer	lower	N	chicken-wing	hand	36.2	ok	default(0.25,1.0)	0.37	0.24	-0.31	0.26	0.31	(-0.79, 0.52)	(-0.16, 0.69)	(0.17, 1.25)	1.0	1.0
+atk__class_archer	lower	F	natural	-	72.2	ok	default(0.25,1.0)	0.88	0.74	-0.16	-0.22	0.59	(0.43, 0.4)	(0.94, 0.82)	(0.66, 1.41)	0.37	0.57
+atk__class_archer	settle	N	chicken-wing	hand	73.4	ok	default(0.25,1.0)	0.15	0.33	-0.68	0.31	0.6	(-0.7, 0.46)	(-0.07, 0.32)	(0.21, 0.9)	1.0	1.0
+atk__class_archer	settle	F	chicken-wing(hidden)	hand	55.7	ok	default(0.25,1.0)	0.1	0.23	-0.54	0.41	0.47	(-0.07, 0.51)	(0.57, 0.44)	(0.96, 0.96)	0.14	0.0

@@ -21,6 +21,7 @@ Claude Code 가 받아서 확인한 결과는 `art/requests/feedback.md`에 남�
 
 | 누구 | 종류 | id | 할 일 (자세한 것은 그 줄의 요청서) |
 |---|---|---|---|
+| Antigravity | 다시 | `guide/atk__class_warrior` · `atk__captain_shadowqueen` · `atk__captain_ironwall` · `atk__class_archer` · `hit__class_warrior` · `hit__captain_shadowqueen` | **마네킹 여섯 세트의 팔 다시**(첫 관문, 주인: "팔이 어떻게 꺾이는지 좀 봐봐"). 클라우드가 하던 고침을 넘긴다 — **먼저 `art/requests/guides/_arms_handoff/HANDOFF.md` 를 읽는다**(문제·원인·중간 작업물·지켜야 할 동작 설계). 한 세트씩 같은 이름으로 다시 납품하고 「판정」을 적는다 |
 | Antigravity | 뼈대 | `guide/heavy_base` | **중량 이동 마네킹**(주인 11-26: 경량·중량·로브 세 부류 — 중장비는 몸이 뜨거나 앞으로 숙인 채 가누기 어렵다). 클라우드 초안 `art/requests/guides/heavy_base/draft/`(8프레임 101ms, 뜸 없음, 기울기 5°, 디딜 때만 내려앉음, 팔은 방패·무기를 들고 몸 가까이)을 Aseprite 로 다듬는다 — 요청서 `art/requests/guides/heavy_base/README.md`. 검사 `check_skeleton.py --gait heavy`. 납품 `art/inbox/guides/heavy_base/heavy_base.aseprite`. PC 지침 판 2026-11-26f |
 | Antigravity | 뼈대 | `guide/robe_base` | **로브 이동 마네킹** — 긴 천 옷으로 서두르는 잰걸음(뜸 없음, 기울기 7°, 옷자락이 무릎을 가리고 한 박자 늦게 따라온다). 초안 `art/requests/guides/robe_base/draft/`(8프레임 96ms) — 요청서 `art/requests/guides/robe_base/README.md`. 검사 `check_skeleton.py --gait robe`. 납품 `art/inbox/guides/robe_base/robe_base.aseprite` |
 | Antigravity | 예고 | `sheet/monster/goblin` · `sheet/monster/frost-troll` | 플레이테스트(A1): 코드로 그린 저해상도 고블린·서리 트롤이 시트 유닛 옆에서 화풍이 크게 어긋난다 → 전투 시트로 새로 그린다. 요청서는 클라우드가 만드는 중 — **요청서가 붙기 전에는 그리지 않는다** |
