@@ -23,7 +23,7 @@
   - 남이 만든 완성 에셋이나 코드는 게임에 넣지 않는다.
   - 토큰이나 개인정보는 파일·로그에 남기지 않는다.
 - `assets/` 는 고치지 않는다. 그림 등록은 클라우드가 한다(Antigravity 의 그림·판정은 `art-inbox` 의 `art/inbox/` 로만).
-- 전투 코드(`js/battle.js`)를 바꾸면 아래 두 시험을 반드시 돌리고, 결과 줄을 보고에 붙인다.
+- 전투 코드(`js/battle.js`, `js/stats.js`, `js/muster.js`)를 바꾸면 아래 시험을 반드시 돌리고, 결과 줄을 보고에 붙인다. 능력치 전투(그림자)를 건드렸으면 `SIM_SHADOW=1 node tools/sim/bot.js 6 200` 의 md5 도 같아야 하고 `node tools/sim/shadow.js 6 200 --check` 가 0 이어야 한다.
   - `node tools/sim/battle.js 100`
   - `node tools/sim/bot.js`
 - 보고와 질문은 한국어로 짧게 쓴다. 코드 주석은 주변 코드의 말을 따른다.
