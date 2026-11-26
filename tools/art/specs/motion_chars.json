@@ -80,8 +80,8 @@
         "set": "atk__class_warrior",
         "base": "atk_sword_shield",
         "pivot_foot": "rear (footN) planted in every frame +-3 src px",
-        "grip": "sword in the near hand, blade low; round shield on the far forearm, elbow ~90 deg",
-        "lean": {"hold": 0.12, "contact": 0.22},
+        "grip": "sword in the near hand - low behind the hip at the hold with the blade raised up-back, dropped back-down at the swing, cutting low-forward at the contact; round shield on the far forearm, elbow ~90 deg",
+        "lean": {"hold": 0.04, "contact": 0.32},
         "overrides": {
           "hold": {"hip": [-0.3, 1.32], "lean": 0.04, "tilt": 0.02, "footN": [-0.9, 0.12], "footF": [0.8, 0.12], "shield": [0.45, 2.45], "grip_near": [-0.75, 1.78], "wa": 120, "note": "weight back behind the raised round shield (head behind the feet's mid-point), sword hand low behind the hip, blade raised up-back clear of the body (README atk__class_warrior 2026-11-26e)"},
           "swing": {"hip": [0.0, 1.24], "lean": 0.16, "tilt": 0.08, "footN": [-0.9, 0.12], "footF": [0.8, 0.12], "shield": [0.95, 2.66], "grip_near": [-0.15, 1.66], "wa": 250, "note": "SHIELD CHECK: shield punched forward at face height with the shoulder behind it, sword dropped back-down and trailing; pivot heel may lift (toe stays)"},
@@ -141,7 +141,7 @@
         "fit_to_accepted": "the PC measures hip x/height and the planted foot on the accepted source strips (art/inbox/sheet_captain_shadowqueen.png on art-inbox: idle e4df48d, X wind-up aa0687e #2, strike 0cc6046 #3) and builds the mannequin so that its rest / hold / swing frames overlay those cells; new frames (in, contact, follow, recover, settle) continue from them",
         "pivot_foot": "front (footF) from the swing frame on - as in the accepted strike; rear before",
         "grip": "a blade in each hand, forward grip; X crossing at one point only (as accepted)",
-        "lean": {"hold": -0.05, "contact": 0.30},
+        "lean": {"hold": -0.10, "contact": 0.20},
         "overrides": {
           "hold": {"fit": "accepted cell #2 (X wind-up, aa0687e)", "hip": [0.42, 1.34], "lean": -0.1, "tilt": -0.05, "footN": [-0.48, 0.12], "footF": [1.27, 0.12], "grip_near": [0.42, 3.41], "grip_far": [0.57, 3.41], "wa": 50, "wa_far": 130, "note": "X crossed above the head (one crossing point), upright and leaning back 6 deg so the head is behind the feet; stance ~1.76 head as in the accepted cell (x: idle hip column = 0, README x - 0.48; wa_far = the far blade)"},
           "swing": {"fit": "accepted cell #3 (low scissor strike, 0cc6046)", "hip": [0.47, 1.12], "lean": 0.22, "tilt": 0.11, "footN": [-0.48, 0.12], "footF": [1.47, 0.12], "grip_near": [1.14, 2.08], "grip_far": [1.18, 2.33], "wa": -30, "wa_far": 10, "note": "front foot steps +0.20 and becomes the pivot; blades come down forward"},
@@ -180,7 +180,7 @@
         "base": "atk_sword_shield",
         "pivot_foot": "rear (footN); the front foot steps +0.15 head on contact",
         "grip": "mace in the near hand, kept cocked behind; tall tower shield on the far arm, its lower rim >= 100 src px above the floor",
-        "lean": {"hold": 0.20, "contact": 0.26},
+        "lean": {"hold": 0.10, "contact": 0.32},
         "overrides": {
           "hold": {"hip": [-0.36, 1.16], "lean": 0.1, "tilt": 0.05, "footN": [-0.8, 0.12], "footF": [0.95, 0.12], "shield": [0.38, 2.39], "grip_near": [-0.45, 2.44], "wa": 140, "note": "deep crouch with the shoulder dropped into the tower shield, weight back (head behind the feet's mid-point); mace cocked back at head height, not overhead (README atk__captain_ironwall 2026-11-26e)"},
           "swing": {"hip": [0.0, 1.2], "lean": 0.2, "tilt": 0.1, "footN": [-0.8, 0.12], "footF": [1.02, 0.12], "shield": [0.75, 2.37], "grip_near": [-0.4, 2.37], "wa": 140, "note": "body uncoils, shield starts forward, front foot slides; mace unchanged"},

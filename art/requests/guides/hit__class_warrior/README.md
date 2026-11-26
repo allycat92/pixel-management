@@ -16,7 +16,7 @@
 - 레이어(아래 → 위): `Background` · `arm_far` · `shield` · `leg_far` · `leg_near` · `torso` · `head` · `weapon_front` · `arm_near` · `joints`(숨김). 소품은 공격 세트(`atk__class_warrior`)와 같다:
   칼(가까운 손, 손 점에서 칼끝 0.85 머리, 손잡이 0.22 뒤), 둥근 방패(먼 팔, 0.68 x 0.90 머리 타원). 이 밖의 이름은 FAIL, 숨김은 `joints` 하나.
 - **프레임 4개, 표 순서대로, 프레임 시간 = 표의 ms**. 태그 `hit` 하나가 1~4 전체(프레임별 태그는 표의 이름 그대로만 — `K1 impact` 처럼 공백 포함).
-- **세계 좌표, 두 발은 4프레임 내내 그 자리**: 앞발(`leg_far`)과 뒷발(`leg_near`) 모두 ±3px, 발바닥 평평히 y=870(발목 높이 ±3px — 뒤꿈치·발끝 들기 없음). 그림 전체 x=32~351 안.
+- **세계 좌표, 두 발은 4프레임 내내 그 자리**: 앞발(`leg_far`)과 뒷발(`leg_near`) 모두 ±3px, 발바닥 평평히 y=870(발목 높이 ±3px — 발목을 3px 넘게 올리는 뒤꿈치·발끝 들기는 FAIL). 그림 전체 x=32~351 안.
 - **K3·K4 는 마네킹에서 빼지 않는다**: 최종 그림에서 "뺄 수 있는(droppable)" 프레임이지만, 마네킹은 4프레임 모두 있어야 검사가 돈다(프레임 수가 다르면 FAIL).
 
 ## 프레임 표 (피격 보통 무게 `hit.weights.mid`)
@@ -43,14 +43,15 @@
 | K4 settle | (−0.01, 1.38) = (191, 718) | +0.07 (+4°) | −0.01 | (0, 0) | (+0.05, 1.71) = (198, 682) · 36° | (+0.76, 2.07) = (276, 642) |
 
 K1·K2 는 `posekit.HIT_KEYS` `k1_mid`·`k2_mid` 그대로(`handoff.py --hit-set` 의 K1·K2 가이드와 같은 몸), K3·K4 는 클라우드가 K2 와 대기 사이에 둔 값이다.
-클라우드가 posekit 몸에 세워 잰 값(대기 기준, 원본 px; 2026-11-26e 에 이 표 그대로 `.aseprite` 를 지어 지금 검사기에 돌려 **PASS, 경고 0** 을 확인 — 스크래치에서만, 초안으로 주지 않는다):
+이 표 그대로 지은 `.aseprite`(posekit 몸, 스크래치에서만 — 초안으로 주지 않는다)를 지금 검사기에 돌려 나온 값 — **PASS, 경고 0**(2026-11-26 다시 잼). 앞 넷은 검사기의 `hit (against the idle; hip drop / head away / lean back / front knee rise / back foot slide)` 줄 그대로(대기 기준, 원본 px), 마지막 칸은 같은 기준 대기에서 잰 관절 거리.
+뒤로 젖힘의 음수는 앞으로 숙음이다 — 검사기는 엉덩이 → 목 **점**으로 재므로 위 표의 기울기보다 약 2° 앞으로 나온다(K1 기울기 0.00 → −2.2°).
 
 | 프레임 | 엉덩이 내려감 (12~30) | 머리가 밀린 거리 (25~60, 게임 4~10px) | 뒤로 젖힘 (15° 이하) | 앞 무릎 올라감 (1px 이하) | 대기에서 가장 먼 관절 |
 |---|---|---|---|---|---|
-| K1 | 14.3 | 32.0 (게임 5.3) | 0.0° | −0.1 | 23 |
-| K2 | 20.9 | 45.7 (게임 7.6) | 3.4° | 0.0 | 36 |
-| K3 | 9.9 | 19.0 | −1.7° | −0.1 | 15 |
-| K4 | 2.2 | 3.6 | −4.0° | 0.0 | 3 (12 이하) |
+| K1 | 14 | 32 (게임 5.3) | −2.2° | 0.0 | 23 |
+| K2 | 21 | 46 (게임 7.6) | 1.2° | 0.0 | 36 |
+| K3 | 10 | 19 | −3.7° | 0.0 | 16 |
+| K4 | 2 | 4 | −5.9° | 0.0 | 4 (12 이하) |
 
 **이 표는 출발점이다** — 재생해 보며 고쳐도 되지만 「검사가 FAIL 로 잡는 것」은 지키고, 바꾼 값은 NOTES 에 px 로 적는다.
 
@@ -63,7 +64,7 @@ K1·K2 는 `posekit.HIT_KEYS` `k1_mid`·`k2_mid` 그대로(`handoff.py --hit-set
 ## 시작하는 법 (PC 가 고른다)
 1. **스크립트(권장)**: `tools/pixelart/posekit.py` 를 불러 `pk.HIT_KEYS['k1_mid']`, `pk.HIT_KEYS['k2_mid']` 를 그대로 쓰고(발만 이 세트의 −0.90 / +0.80 으로),
    `pk.build(pose, B, 'none')` + `tools/pixelart/walk8.py`(`draw`, `frame_layers`, `floor_row`)로 부위 레이어 + `joints` 점을 쓴다. 포즈 키: `hip`, `lean`, `tilt`, `head_off`, `footN=(−0.90, 0.12)`, `footF=(0.80, 0.12)`,
-   `handN=('p', x, h)`, `handF=('p', x, h)`, `faN=faF=0`(발 각도 없음 — 넣으면 뒤꿈치가 들려 FAIL). `frame_layers` 가 x=0 을 192px 에 두므로 그대로 쓰면 된다. 칼·방패는 스크립트에서 그린다.
+   `handN=('p', x, h)`, `handF=('p', x, h)`, `faN=faF=0`(발 각도 없음 — 가장 안전하다. 검사는 발 각도가 아니라 **발목**을 본다: 뒤꿈치를 들어 발목이 대기 높이에서 3px 넘게 움직이면 FAIL. posekit 시험(전사 K2 뒷발): `faN=12` 는 통과, `faN=15` 는 발목 +4px 로 FAIL. 뒤꿈치를 들 때는 발끝을 선 자리에 그대로 둔다). `frame_layers` 가 x=0 을 192px 에 두므로 그대로 쓰면 된다. 칼·방패는 스크립트에서 그린다.
    K1·K2 의 생김새를 미리 보려면: `uv run --no-project --with pillow --with numpy python tools/art/handoff.py --hit-set ~/Documents/pm-pc-scratch/hit_set`
    → `~/Documents/pm-pc-scratch/hit_set/sword_shield/guide_hit_k1_mid.png`, `guide_hit_k2_mid.png`, `hit_overview.png`(posekit 몸, 원래 넓은 발). 참고만 — 납품에 넣지 않는다.
    실행 예: `uv run --no-project --with pillow --with numpy python ~/Documents/pm-pc-scratch/mannequin_pc.py . ~/Documents/pm-pc-scratch/hit__class_warrior`. 조립은 걷기 v2 때처럼 aseprite-mcp 도구로(프레임 시간·`hit` 태그·`joints` 숨김).

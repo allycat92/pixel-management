@@ -31,12 +31,16 @@ FAIL: R1-R3 / R5-R7: the supporting sole not on y=870, a pixel below it, or the 
       feet down is a walk); R4 / R8: lowest pixel less than 18 px above the floor (no flight); the planted toe (front end of the
       supporting sole) not retreating by step/4 (+-3 px) per stance frame, where step = 2 x (toe R1 - toe R3) is the distance the
       body travels per step; step more than 14 px from the request (pose.json step_px, default 275); R(i+4) not the mirror of
-      R(i) (hip height +-1, ankle x +-2, ankle y +-4); hip not lowest at down or not highest in flight; R4 / R8: the leg that
+      R(i) (hip height +-1, ankle x +-2, ankle y +-4); R4 / R8: the leg that
       just pushed off (near in R4, far in R8) not trailing the other one by 110 px or more (ankle x - scissored legs, the right
       leg behind); the arm of the pushing leg BEHIND the other one at push-off / flight (arms pumping the wrong way).
-WARN: bob outside 32-46 px; elbow flex outside 60-125 deg in any frame; the arm of the pushing leg less than 60 px ahead of
-      the other one at push-off / flight (hand x from its shoulder); lean outside 14-26 deg, lean range over 5 deg or the neck
-      travelling more than 12 px (pecking); push-off knee bent more than 30 deg; down knee outside 35-65 deg; landing foot not
+WARN: bob over 24 px (no lower bound: the owner's accepted run v4 keeps the hip nearly level, 5.5 px - "only a slight float, no
+      hopping"); the hip at down more than 2 px above the lowest hip of its half (the landing is caught at down; the hip need not
+      be highest in flight - v4 presses forward there); elbow flex outside 60-125 deg in any frame; the arm of the pushing leg less
+      than 60 px ahead of the other one at push-off / flight (hand x from its shoulder); lean outside 18-32 deg (v4: 19-31, most
+      in flight), lean range over 14 deg (v4: 12 - it rises a little once the landing is caught) or the neck travelling more than
+      26 px (v4: 22; more is pecking); the head more than 8 px off its R1 place against the neck dot (walk 4: v4 keeps the head
+      level while the torso pitches, 7.2 px in flight); push-off knee bent more than 30 deg; down knee outside 35-65 deg; landing foot not
       0-70 px ahead of the hip; neighbouring frames nearly identical at game size;
       strip findings of check_delivery.py (the two strips are built in memory and checked with --flight-slots 4: slot 4 is the
       flight frame and must be 18 px or more above the floor instead of on it).
@@ -206,11 +210,14 @@ def knee_flex(hip, knee, ank):
     return 180 - math.degrees(math.acos(max(-1.0, min(1.0, c))))
 
 
-# run sets (SPEC section 5b). Numbers from the run_base v1 draft: step 275 px, bob 37.4 px, flight clearance 37-41 px,
-# elbows 80-110 deg, lean 18.2-20.5 deg, push-off knee 16-18 deg, down knee 51-53 deg, landing ankle 40 px ahead of the hip,
-# flight ankles 176 px apart with the pushing leg behind
-RUN = dict(step=RUN_STEP * HEAD_PX, step_tol=14, clear=18, other=12, bob=(32, 46), elbow=(60, 125), pump=60, lean=(14, 26), lean_range=5,
-           neck=12, push_flex=30, down_flex=(35, 65), land=(0, 70), scissor=110)
+# run sets (SPEC section 5b). Step, clearance, elbows, knees, landing and scissor from the run_base v1 draft (step 275 px, flight
+# clearance 37-41 px, elbows 80-110 deg, push-off knee 16-18 deg, down knee 51-53 deg, landing ankle 40 px ahead of the hip,
+# flight ankles 176 px apart). Bob, lean, lean range, neck, head drift and the hip order from the owner's accepted run v4
+# (run_base/v2, PC a94de43; owner 2026-11-26: press forward and lean most in flight, rise a little once the landing is caught,
+# hip nearly level, only a slight float, no hopping): bob 5.5 px, lean 19.3-31.2 deg (range 11.9), neck 38-60 px (22),
+# head drift up to 7.2 px, hip 180 178 182 184
+RUN = dict(step=RUN_STEP * HEAD_PX, step_tol=14, clear=18, other=12, bob=(0, 24), elbow=(60, 125), pump=60, lean=(18, 32), lean_range=14,
+           neck=26, head_drift=8, down_low=2, push_flex=30, down_flex=(35, 65), land=(0, 70), scissor=110)
 HIP_X_TOL = 1          # the hip centre stays on the frame's centre column x = SLOT / 2 (add_gait.py anchors there)
 HEAD_DRIFT = 4         # px the head may move against the neck dot over the cycle, after its own tilt (both drafts: under 1.1)
 HEAD_TILT = 8          # deg the head's tilt may range over the cycle (max - min; drafts: run 1.0, walk under 5)
@@ -241,7 +248,7 @@ def head_pose(head_mask, neck):
     return (float(xs.mean()) - neck[0], float(ys.mean()) - neck[1]), 0.5 * math.atan2(2 * b, a - c), hi / max(lo, 1e-6)
 
 
-def head_cycle(meas, T, warns, info):
+def head_cycle(meas, T, warns, info, drift_max=HEAD_DRIFT):
     """the head against the neck dot over the cycle. A small tilt about the neck is allowed: the head's own rotation (from its
     shape) is taken out, the rest is drift (a head that pecks or slides on the neck); the tilt itself may range over HEAD_TILT deg
     (more is a nod). A nearly round head gives no usable rotation: then the drift is the change of its distance from the neck and
@@ -266,9 +273,9 @@ def head_cycle(meas, T, warns, info):
                 + '): drift ' + ' '.join(f'{d:.1f}' for d in drift) + f' px, tilt {min(tilts):+.1f}..{max(tilts):+.1f} deg from {T}1'
                 + f' (range {span:.1f}, SPEC asks {HEAD_TILT} or less)')
     for i, d in enumerate(drift):
-        if d > HEAD_DRIFT:
+        if d > drift_max:
             warns.append(f'{T}{i + 1}: the head layer sits {d:.1f} px off its {T}1 place against the neck dot (after its tilt), SPEC asks '
-                         f'{HEAD_DRIFT} or less - the head pecks or slides on the neck (move it with the torso, or tilt it about the neck)')
+                         f'{drift_max} or less - the head pecks or slides on the neck (move it with the torso, or tilt it about the neck)')
     if span > HEAD_TILT:
         lo, hi = tilts.index(min(tilts)), tilts.index(max(tilts))
         warns.append(f'the head tilts over {span:.1f} deg across the frames ({T}{lo + 1} {tilts[lo]:+.1f}, {T}{hi + 1} {tilts[hi]:+.1f} deg from {T}1'
@@ -374,7 +381,7 @@ def check(frames, durs, names, hidden, bones, gait='walk', want_step=None, nomin
         run_cycle(meas, want_step, errors, warns, info)
     else:
         walk_cycle(meas, errors, warns, info)
-    head_cycle(meas, T, warns, info)
+    head_cycle(meas, T, warns, info, RUN['head_drift'] if gait == 'run' else HEAD_DRIFT)
     # neighbouring frames at game size
     small = []
     for _, mask in flats:
@@ -516,11 +523,13 @@ def run_cycle(meas, want_step, errors, warns, info):
     bob = max(hips) - min(hips)
     info.append('hip height: ' + ' '.join(f'{v:.0f}' for v in hips) + f' -> bob {bob:.1f} px ({bob * SCALE:.1f} game px)')
     if not RUN['bob'][0] <= bob <= RUN['bob'][1]:
-        warns.append(f'bob {bob:.1f} px, SPEC asks {RUN["bob"][0]}-{RUN["bob"][1]} (about 9% of the height: less reads as a fast walk, more as jumping)')
+        warns.append(f'bob {bob:.1f} px, SPEC asks {RUN["bob"][1]} or less (owner: the hip nearly level, only a slight float, no hopping - '
+                     'the drive is in the lean, not in the hip)')
     for half in (0, 4):
         hh = hips[half:half + 4]
-        if hh.index(min(hh)) != 1 or hh.index(max(hh)) != 3:
-            errors.append(f'R{half + 1}-R{half + 4}: the hip must be lowest at down and highest in flight, got {hh}')
+        if hh[1] - min(hh) > RUN['down_low']:
+            warns.append(f'R{half + 1}-R{half + 4}: hip height {hh} - the hip at down (R{half + 2}) is {hh[1] - min(hh):.0f} px above the lowest, '
+                         f'SPEC asks it lowest there (+-{RUN["down_low"]}): the landing is caught at down (it need not be highest in flight)')
     clear = [meas[i].get('clearance_px') for i in (3, 7)]
     info.append(f'flight clearance (lowest pixel above the floor): R4 {clear[0]} px, R8 {clear[1]} px; other foot in the stance frames: '
                 + ' '.join(str(meas[i]['sole_height_px']['F' if i < 4 else 'N']) for i in (0, 1, 2, 4, 5, 6)) + ' px')
@@ -534,10 +543,12 @@ def run_cycle(meas, want_step, errors, warns, info):
                 warns.append(f'{m["frame"]}: the {"near" if s == "N" else "far"} elbow is bent {v:.0f} deg, a run keeps it at '
                              f'{RUN["elbow"][0]}-{RUN["elbow"][1]} (near 90) all the way round')
         if not RUN['lean'][0] <= m['lean_deg'] <= RUN['lean'][1]:
-            warns.append(f'{m["frame"]}: torso lean {m["lean_deg"]:.1f} deg (hip to neck), SPEC asks {RUN["lean"][0]}-{RUN["lean"][1]} (the walk has 8-11)')
+            warns.append(f'{m["frame"]}: torso lean {m["lean_deg"]:.1f} deg (hip to neck), SPEC asks {RUN["lean"][0]}-{RUN["lean"][1]} '
+                         '(owner: press forward, leaning most in flight; the walk has 8-11)')
     leans = [m['lean_deg'] for m in meas]
     if max(leans) - min(leans) > RUN['lean_range']:
-        warns.append(f'lean changes by {max(leans) - min(leans):.1f} deg over the cycle, SPEC asks {RUN["lean_range"]} or less (the head must not peck)')
+        warns.append(f'lean changes by {max(leans) - min(leans):.1f} deg over the cycle, SPEC asks {RUN["lean_range"]} or less '
+                     '(it rises a little once the landing is caught and leans most in flight, but more pecks the head)')
     necks = [m['neck_x'] for m in meas]
     if max(necks) - min(necks) > RUN['neck']:
         warns.append(f'the neck travels {max(necks) - min(necks):.0f} px forward and back, SPEC asks {RUN["neck"]} or less (the head must not peck)')

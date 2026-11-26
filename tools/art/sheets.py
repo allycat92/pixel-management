@@ -131,18 +131,26 @@ def mannequin_reason(path, exe=None):
         arr = np.asarray(Image.open(path).convert('RGBA'))
     except OSError:
         return None
-    readings = []                                                  # (이름, frames, masks) — 차례로 재어 가장 높은 쪽
-    if arr.shape[0] == 1024 and arr.shape[1] % ag.SLOT == 0:      # 뼈대 규격의 띠: 384 칸 그대로 (add_gait 와 같은 자르기)
-        readings.append(('384px 칸', [arr[:, k * ag.SLOT:(k + 1) * ag.SLOT] for k in range(arr.shape[1] // ag.SLOT)], None))
-    alpha = matte(arr)[1]                                          # 모든 그림: 자세를 나눠 실루엣으로 (규격 띠도 — 칸에 자세가 있는지 모른다)
+    alpha = matte(arr)[1]                                          # 모든 그림: 자세를 나눠 실루엣으로
     g = globals()
     say, g['log'] = g['log'], (lambda *a_: None)                    # 자세 나누기 기록은 처리 때 한 번만
     try:
         wide = arr.shape[1] >= 1.3 * arr.shape[0]
-        parts = split_poses(alpha, None, 4 if wide else None, guess=wide)
+        parts = [m & (alpha > 0.5) for m in split_poses(alpha, None, 4 if wide else None, guess=wide)]
     finally:
         g['log'] = say
-    readings.append(('나눈 자세', None, [m & (alpha > 0.5) for m in parts]))
+    readings = [('나눈 자세', None, parts)]                         # (이름, frames, masks) — 차례로 재어 가장 높은 쪽
+    if arr.shape[0] == 1024 and arr.shape[1] % ag.SLOT == 0:      # 뼈대 규격의 띠: 384 칸 그대로 (add_gait 와 같은 자르기)도 잰다
+        n = arr.shape[1] // ag.SLOT
+        slots = set()
+        for m in parts:
+            cols = np.flatnonzero(m.any(0))
+            if len(cols) and cols[0] // ag.SLOT == cols[-1] // ag.SLOT:
+                slots.add(cols[0] // ag.SLOT)
+        sits = len(parts) == n and len(slots) == n                 # 자세가 칸마다 하나씩 칸 안에 있다 → 두 읽기가 같은 자세라 한 번만
+        readings.insert(0, ('384px 칸', [arr[:, k * ag.SLOT:(k + 1) * ag.SLOT] for k in range(n)], None))
+        if sits:
+            readings.pop()
     best = None
     try:
         for how, frames, masks in readings:
