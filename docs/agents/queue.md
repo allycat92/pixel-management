@@ -7,7 +7,7 @@
 
 | 누구 | id | 상태 | 할 일 (자세한 것은 그 줄의 문서) |
 |---|---|---|---|
-| Codex | `C7-forecast-calibration` | READY | 예상 다섯 단계를 실제 승률에 맞추는 측정(주인: 우세 85~90%, 백중 반반): `docs/agents/tasks/C7-forecast-calibration.md` |
+| Codex | `C7-forecast-calibration` | REVIEW | 예상 다섯 단계를 실제 승률에 맞추는 측정(주인: 우세 85~90%, 백중 반반): `docs/agents/tasks/C7-forecast-calibration.md` |
 
 ## 끝난 일
 
