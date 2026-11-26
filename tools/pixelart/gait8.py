@@ -76,7 +76,7 @@ STYLES = {
         CONTACT=0.42,                                            # ankle of the landing foot ahead of the hip (46 px): short reach, mid-stance under the hip
         LAND=0, PUSH=12, REAR=24,                                # foot angles (deg, + = heel up): lands flat (a stomp), push heel lift, rear foot at contact
         # the other leg after contact: ankle x, ankle h, foot angle (deg; + = toe down) - shuffled low, the boot barely clears the floor
-        SWING=[(-0.56, 0.31, 34), (-0.04, 0.27, 12), (0.33, 0.165, -4)],
+        SWING=[(-0.56, 0.34, 34), (-0.04, 0.27, 12), (0.33, 0.165, -4)],
         # arms held close and HIGH as if a shield is carried in front (far arm, forearm across the front) and a weapon at the side
         # (near arm, hand at the belt, forearm forward): they ride with the body, swing only +-4-6 deg, the elbows fold a little
         # more at down (the hands sink with the weight)
