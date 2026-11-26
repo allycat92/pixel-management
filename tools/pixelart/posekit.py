@@ -155,6 +155,7 @@ HANG_UPPER, HANG_FORE = 0.62, 0.65          # upper arm / forearm + hand (4-head
 FACE_U, FACE_V = (-0.02, 0.46), (-0.10, 0.56)  # the face: head units (x head scale hs) from the head centre C, u forward, v down -
                                             # ear at u -0.15, eyes v 0.16, nose u 0.41, chin v 0.55 (head_parts)
 FACE_PAD = 0.08                             # arm_face: the arm's capsule radius around its bones (upper 0.14-0.115, fore 0.115-0.09)
+FAR_HEAD = 0.45                             # arm_face: a far hand this close (x hs) to the head centre is hidden behind the skull
 
 
 def natural_pref(root, target):
@@ -282,8 +283,8 @@ def seg_in_face(a, b, C, up, hs, pad=0.0, steps=40):
 
 def arm_face(J, hs, near_over_head=True):
     """the arms against the face (posekit joints, heads): the NEAR arm is drawn over the head, so its upper arm or forearm (bone +
-    FACE_PAD) inside the face box is a FAIL - the arm crosses the face; the FAR hand inside the face box only WARNs (the far arm is
-    behind the head: its hand and weapon are hidden behind the face). Returns [(level, side, why)]."""
+    FACE_PAD) inside the face box is a FAIL - the arm crosses the face; the FAR hand inside the face box or within FAR_HEAD of the head
+    centre only WARNs (the far arm is behind the head: its hand and weapon are hidden there). Returns [(level, side, why)]."""
     up = np.asarray(J['C'], float) - np.asarray(J['neck0'], float)
     out = []
     if near_over_head:
@@ -293,8 +294,13 @@ def arm_face(J, hs, near_over_head=True):
                 out.append(('fail', 'N', f'near {bone} crosses the face ({f:.0%} of it inside the face box): keep the near arm '
                             'below the chin or behind the ear - a cocked weapon takes the elbow back / down (elbN)'))
                 break
-    if seg_in_face(J['handF'], J['handF'], J['C'], up, hs, 0.0) > 0:
-        out.append(('warn', 'F', 'far hand behind the face (hidden with its weapon / shield): move it out in front of or below the face'))
+    e_uv, h_uv = face_uv(J['elbN'], J['C'], up) / hs, face_uv(J['handN'], J['C'], up) / hs
+    if near_over_head and not out and float(np.linalg.norm(np.asarray(J['elbN']) - J['C'])) < FAR_HEAD * hs + 0.05 \
+            and -0.20 <= e_uv[1] <= 0.45 and h_uv[0] < e_uv[0] - 0.30:
+        out.append(('fail', 'N', 'near arm wraps the head: the elbow sits on the head at eye / ear height with the forearm running back '
+                    'from it (reads as shielding the face) - a cocked weapon takes the elbow back / down under the hand (elbN)'))
+    if seg_in_face(J['handF'], J['handF'], J['C'], up, hs, 0.0) > 0 or float(np.linalg.norm(np.asarray(J['handF']) - J['C'])) < FAR_HEAD * hs:
+        out.append(('warn', 'F', 'far hand behind the head (hidden with its weapon / shield): move it out in front of or below the head'))
     return out
 
 

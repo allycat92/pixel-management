@@ -104,13 +104,23 @@ WARN: the picture outside x=32-351; neighbouring silhouettes under 8 % at game s
       over 12 px, no motion, neighbours with the same joints.
 ARMS (all three, SPEC 10.3b, posekit.arm_eval in torso coordinates - r forward, u up, heads, lean from the hip dots -> neck dot):
   FAIL chicken-wing (elbow over 0.15 head behind its own shoulder, bent under 115 deg, while the forearm runs over 0.35 forward
-      to a hand below the shoulder + 0.10), crossing (elbow over 0.30 in front of its shoulder, hand behind it), flared (reversed hinge, elbow over 0.15
-      in front of both the shoulder and the hand), hyper (any other reversed hinge - the natural side is (-d.y, d.x) of shoulder ->
-      hand for a right-facing figure; a bow's string arm may draw: raised elbow behind the hand at shoulder height), folded (inner
-      elbow angle under 20 deg). An elbow under 20 % visible (higher layers cover it) only WARNs.
-  WARN chicken-wing 0.08-0.15 head back, inner angle 20-35 deg, an almost straight arm bent the wrong way, tucked (a hand over 0.10
-      above its shoulder wrapped over 0.35 back under a higher elbow - behind the neck), an elbow jumping over 2 x its hand's move +
-      40 px (and over 60 px) between neighbouring frames.
+      to a hand below the shoulder + 0.10 - not when the hand sits on its own hip: akimbo), crossing (elbow over 0.30 in front of its
+      shoulder, hand behind it), flared (reversed hinge, elbow over 0.15 in front of both the shoulder and the hand), hyper (any other
+      reversed hinge - the natural side is (-d.y, d.x) of shoulder -> hand for a right-facing figure. Allowed reversed hinges: a bow's
+      string arm drawing (raised elbow behind the hand at shoulder height); cocked - the forearm rising over 0.30 to a hand at / above
+      its shoulder with the elbow not over 0.10 in front of the shoulder (a weapon cocked back); cross - a hand over 0.25 behind its
+      shoulder but over the torso with the elbow ahead of it (the far hand across the chest)), folded (inner elbow angle under
+      20 deg), the near arm across the face (the near arm layer covers over 10 % of the face - head-layer pixels in the box u -0.02..
+      0.46, v -0.10..0.56 x 0.92 heads from the head centre, up = neck dot -> head centre - or the near forearm's elbow -> hand dots
+      cross that box; the bow string hand at the jaw only WARNs), the near arm wrapping the head (its elbow dot on the head layer at
+      face height v -0.20..0.45 with the hand over 0.30 behind it - the upper arm across the ear / jaw, the forearm back behind the
+      head). An elbow under 20 % visible (higher layers cover it) only WARNs.
+  WARN chicken-wing 0.08-0.15 head back, inner angle 20-35 deg (not when the forearm rises over 0.40 to the hand: a shield or guard
+      held up), an almost straight arm bent the wrong way, tucked (a hand over 0.10 above its shoulder wrapped over 0.35 back under a
+      higher elbow - behind the neck), an elbow jumping over 2 x its hand's move + 40 px (and over 60 px) between neighbouring frames,
+      the near arm over 3-10 % of the face, the far hand dot under the head layer or in the face box (its weapon / shield hidden behind the head), a
+      shoulder dot moving over 0.10 head (11 px) on the torso between neighbouring frames (torso coordinates, lean removed: posekit
+      keeps the shoulders fixed on the torso unless swN / swF / sw changes - keep them constant over a set).
 """
 import argparse
 from collections import Counter
@@ -948,6 +958,7 @@ ARM_VIS_MIN = 0.20       # higher layer covers; an elbow showing less than this 
 ARM_JUMP = (2.0, 40.0, 60.0)  # elbow jump between neighbouring frames: over 2 x the hand's move + 40 px and over 60 px -> WARN (side flip)
 ARM_FACE = (0.03, 0.10)  # share of the face (head-layer pixels in the face box) under the near arm layer: over 3 % WARN, over 10 % FAIL
 ARM_HS = 1.0 / 1.09      # head drawing scale (posekit Body.hs): the face box is FACE_U x FACE_V x this, in heads from the head centre
+ARM_WRAP = (-0.20, 0.45, 0.30)  # elbow on the head layer between face v -0.20 and 0.45 with the hand over 0.30 (face u) behind it -> FAIL
 SHOULDER_DRIFT = 0.10    # heads: a shoulder dot moving over this between neighbouring frames in torso coordinates (lean removed) -> WARN
 
 
@@ -1370,6 +1381,10 @@ def arm_rules(meas, frames, names, spec, errors, warns, info):
         if face is not None:
             cov, seg, far_in = face['near_cover'], face['near_forearm_in'], face['far_hand_in']
             what = (f'{cov:.0%} of the face under the near arm, forearm (elbow -> hand dots) {seg:.0%} inside the face box')
+            if face['near_elbow_wraps'] and string != 'N':
+                errors.append(f'{m["frame"]}: near arm wraps the head - the elbow sits on the head at eye / ear height with the forearm '
+                              'running back from it (the arm reads as shielding the face): a weapon cocked behind the head takes the '
+                              'elbow back / down under the hand (SPEC 10.3b)')
             if (cov > ARM_FACE[1] or seg > 0) and string == 'N':
                 warns.append(f'{m["frame"]}: the near (bow string) hand at the face - {what}: an anchor at the jaw / ear is the draw, '
                              'the forearm must not run across the eyes')
@@ -1379,8 +1394,8 @@ def arm_rules(meas, frames, names, spec, errors, warns, info):
             elif cov > ARM_FACE[0]:
                 warns.append(f'{m["frame"]}: near arm over the face - {what}')
             if far_in:
-                warns.append(f'{m["frame"]}: far hand behind the face (its weapon / shield hidden behind the head): move it out in front '
-                             'of or below the face')
+                warns.append(f'{m["frame"]}: far hand behind the head (its weapon / shield hidden behind the head or face): move it out '
+                             'in front of or below the head')
             part.append(f'face {cov:.0%}')
         summary.append(f'{m["frame"].split(" ", 1)[-1]} ' + ', '.join(part))
     for s in 'NF':
@@ -1410,7 +1425,8 @@ def arm_rules(meas, frames, names, spec, errors, warns, info):
 def face_cover(fr, J, ln_near='arm_near'):
     """the face against the arms (SPEC 10.3b): face box = FACE_U x FACE_V (x ARM_HS heads) from the head layer's centre, up = neck dot
     -> that centre. near_cover = share of the head-layer pixels inside the box that the near arm layer covers; near_forearm_in =
-    share of the near forearm (elbow -> hand dots) inside the box; far_hand_in = the far hand dot inside the box (hidden behind it)."""
+    share of the near forearm (elbow -> hand dots) inside the box; far_hand_in = the far hand dot under the head layer or inside the
+    box (the far arm is drawn behind the head: its hand and weapon / shield are hidden there)."""
     if 'head' not in fr or ln_near not in fr:
         return None
     head = fr['head'][..., 3] > 0
@@ -1429,8 +1445,14 @@ def face_cover(fr, J, ln_near='arm_near'):
     fy, fx = ys[inside], xs[inside]
     cov = float((fr[ln_near][fy, fx, 3] > 0).mean()) if len(fx) else 0.0
     seg = seg_in_face(J['elbN'], J['handN'], C, up, k)
-    far = seg_in_face(J['handF'], J['handF'], C, up, k) > 0
-    return dict(near_cover=round(cov, 3), near_forearm_in=round(seg, 3), far_hand_in=bool(far))
+    hx, hy = int(round(J['handF'][0])), int(round(J['handF'][1]))
+    hh, hw = head.shape
+    far = bool(head[max(0, hy - 2):min(hh, hy + 3), max(0, hx - 2):min(hw, hx + 3)].any()) or seg_in_face(J['handF'], J['handF'], C, up, k) > 0
+    ex, ey = int(round(J['elbN'][0])), int(round(J['elbN'][1]))
+    e_uv, h_uv = face_uv(J['elbN'], C, up) / k, face_uv(J['handN'], C, up) / k
+    wrap = bool(head[min(hh - 1, max(0, ey)), min(hw - 1, max(0, ex))]) and ARM_WRAP[0] <= e_uv[1] <= ARM_WRAP[1] \
+        and h_uv[0] < e_uv[0] - ARM_WRAP[2]
+    return dict(near_cover=round(cov, 3), near_forearm_in=round(seg, 3), far_hand_in=far, near_elbow_wraps=wrap)
 
 
 def clean(meas):
