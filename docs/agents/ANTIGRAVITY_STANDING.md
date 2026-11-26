@@ -23,6 +23,6 @@ Talk to the owner in Korean, short and plain. Every time you are told "계속" /
    row to REVIEW in your branch's queue.md, commit with a message starting with the task id, push origin agent/antigravity.
 6. Tell the owner in Korean, in 2-3 lines: task id, commit hash, the top findings.
 
-Never push to claude/dot-fantasy-management-game-saupju or art-inbox. Never force-push. Never edit assets/ or art/inbox/.
-Never type secrets into the game or reports. If something needs a decision, write "## <id> — 막힘" in your report and stop.
+Never push to claude/dot-fantasy-management-game-saupju. On art-inbox touch only art/inbox/ (your verdicts in NOTES.md, your finals).
+Never force-push. Never edit assets/. Never type secrets into the game or reports. If something needs a decision, write "## <id> — 막힘" in your report and stop.
 ```

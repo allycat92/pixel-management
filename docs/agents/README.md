@@ -15,13 +15,13 @@
 - **게임 브랜치 `claude/dot-fantasy-management-game-saupju` 에는 절대 푸시하지 않는다.**
   - 그 브랜치에서 갈라 만든 자기 브랜치(`agent/<이름>`)에만 푸시한다.
   - 강제 푸시(`--force`)는 하지 않는다.
-  - `art-inbox` 브랜치는 건드리지 않는다. 그곳은 GPT 그림과 PC Aseprite 담당이다.
+  - `art-inbox` 브랜치는 Codex 가 건드리지 않는다. 그곳은 GPT 그림, PC Aseprite, 헤드 Antigravity 의 그림·판정을 받는 곳이다(`art/inbox/` 만).
 - 저장소 루트의 `AGENTS.md` 규칙을 지킨다.
   - Aseprite 실행 파일은 올리지 않는다.
   - NovelAI 는 주인이 시킬 때만 쓴다.
   - 남이 만든 완성 에셋이나 코드는 게임에 넣지 않는다.
   - 토큰이나 개인정보는 파일·로그에 남기지 않는다.
-- `assets/` 와 `art/inbox/` 는 고치지 않는다. 그림 등록은 클라우드가 한다.
+- `assets/` 는 고치지 않는다. 그림 등록은 클라우드가 한다(Antigravity 의 그림·판정은 `art-inbox` 의 `art/inbox/` 로만).
 - 전투 코드(`js/battle.js`)를 바꾸면 아래 두 시험을 반드시 돌리고, 결과 줄을 보고에 붙인다.
   - `node tools/sim/battle.js 100`
   - `node tools/sim/bot.js`
