@@ -583,3 +583,13 @@ PROPOSALS: none.
 - 참고: 없음
 - 검사: `check_delivery.py` RESULT: PASS (39색, 키와 최소 거리 182.8, 네 자세 최하단 y=870, 4번 x 1167-1502) · against the base: silhouette changed 386 px, colour changed 898 px (per pose silhouette/colour: 0/0, 0/0, 0/0, 386/898)
 - 지침 판: 2026-11-26d
+
+## 손질 — 오르가 피격 자세의 활 3판: 허벅지를 제 굵기로 (Aseprite)
+
+- 바꾼 것: 주인 확인 "흰 시위를 지우고 보면 허벅지와 다리 사이에 이어지는 부분 없이 마젠타뿐" → 받은 그림에서 앞다리 허벅지(코트 밑 바지, 끝이 (1383,787) 에서 뾰족하게 끝남)와 무릎·정강이·장화가 떨어져 있었다. 2판(`3f5a7d2`)은 위쪽만 가늘게 이어 아래에 마젠타 틈이 남았다.
+  → 바탕 `fad5a77` 에서 다시 만듦: 허벅지 윗선 (1404,753)→(1440,767), 아랫선 (1381,787)→(1407,812)(무릎 뒤 외곽선과 만남), 두 선 사이를 모두 바지 그늘색 5가지로 채우고 2px 외곽선. 2판의 안쪽 선 두 개는 없앰. 활(손 아래 약 12px 부터)과 시위는 허벅지 뒤로, 아랫선 아래로 활 끝과 시위 끝만 보인다. 활의 각도·길이·모양·위치·손은 그대로. 새 색 0.
+- 게임 크기(0.1654), 시위를 지운 그림과 그대로인 그림 둘 다에서 바지 → 허벅지 → 무릎 → 정강이 → 장화가 끊기지 않고 이어 읽힌다.
+- 레이어: `aseprite/sheet_captain_beastmaster.aseprite` Background(받은 그림) / touchup(바꾼 픽셀만, 지우기 없음). 내보내기 = PNG 픽셀 단위 일치.
+- 참고: 없음
+- 검사: `check_delivery.py` RESULT: PASS (39색, 키와 최소 거리 182.8, 네 자세 최하단 y=870, 4번 x 1167-1502) · against the base: silhouette changed 583 px, colour changed 994 px (per pose silhouette/colour: 0/0, 0/0, 0/0, 583/994)
+- 지침 판: 2026-11-26d
