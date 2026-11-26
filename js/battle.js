@@ -1111,9 +1111,9 @@ const Battle = (() => {
   //   lean 온몸 기울기(발 기준) · tl 윗몸만 더 숙이기(엉덩이 줄 기준)
   //   duty 한 발이 땅에 붙어 있는 길이(걸음 단위): 1 = 걷기(늘 한 발은 땅), 1 미만 = 걸음마다 (1 - duty) 만큼 두 발이 다 뜬다(달리기)
   const GAITS = {
-    run:    { sl: 0.31, A: 0.095, cap: 0.22, ext: 0.04, lift: 0.09, kick: 0.10, kb: 0.08, wbob: 0, dip: 0.016, air: 0.024, lean: 0.07, tl: 0.19, duty: 0.62 },    // 달리기 (기본 이동) — 주인 11-26: 앞으로 숙여 달려나가고, 살짝만 뜬다 (오르내림 키의 약 4%, 깡충거리지 않게)
-    charge: { sl: 0.30, A: 0.105, cap: 0.24, ext: 0.05, lift: 0.10, kick: 0.13, kb: 0.10, wbob: 0, dip: 0.018, air: 0.03, lean: 0.09, tl: 0.23, duty: 0.56 },  // 적이 가까울 때 달려들기 (근접)
-    flee:   { sl: 0.36, A: 0.11, cap: 0.24, ext: 0.05, lift: 0.11, kick: 0.14, kb: 0.10, wbob: 0, dip: 0.02, air: 0.034, lean: 0.10, tl: 0.25, duty: 0.54 },  // 도주: 가장 크게
+    run:    { sl: 0.31, A: 0.095, cap: 0.22, ext: 0.04, lift: 0.09, kick: 0.10, kb: 0.08, wbob: 0, dip: 0.004, air: 0.01, lean: 0.07, tl: 0.21, duty: 0.62 },     // 달리기 (기본 이동) — 주인 11-26: 엉덩이는 거의 평평, 뜬 순간 숙여 눌리고 디딘 뒤 일어선다 (leanK)
+    charge: { sl: 0.30, A: 0.105, cap: 0.24, ext: 0.05, lift: 0.10, kick: 0.13, kb: 0.10, wbob: 0, dip: 0.005, air: 0.012, lean: 0.09, tl: 0.25, duty: 0.56 },  // 적이 가까울 때 달려들기 (근접)
+    flee:   { sl: 0.36, A: 0.11, cap: 0.24, ext: 0.05, lift: 0.11, kick: 0.14, kb: 0.10, wbob: 0, dip: 0.006, air: 0.014, lean: 0.10, tl: 0.27, duty: 0.54 },  // 도주: 가장 크게
     trudge: { sl: 0.27, A: 0.08, cap: 0.15, ext: 0, lift: 0.05, kick: 0, kb: 0, wbob: 0.035, dip: 0, air: 0, lean: 0.04, tl: 0.09, duty: 1 },                 // 거미줄에 걸려 무겁게 걷기
     back:   { sl: 0.25, A: 0.07, cap: 0.15, ext: 0, lift: 0.05, kick: 0, kb: 0, wbob: 0.015, dip: 0, air: 0, lean: -0.03, tl: 0, duty: 1 },                  // 적을 보며 뒷걸음
     step:   { sl: 0.25, A: 0.07, cap: 0.15, ext: 0, lift: 0.05, kick: 0, kb: 0, wbob: 0.02, dip: 0, air: 0, lean: 0.02, tl: 0, duty: 1 },                    // 천천히 자리 옮기기 (달릴 빠르기가 안 될 때)
@@ -1263,6 +1263,14 @@ const Battle = (() => {
     r.bw = r.bw == null ? want : want > r.bw ? Math.min(want, r.bw + dt / BODY_FADE) : Math.max(want, r.bw - dt / BODY_FADE);
     return r.bw;
   }
+  // 달리는 몸의 숙임 박자 (주인 11-26, PC 달리기 마네킹 4판 a94de43): 뜬 순간 앞으로 숙여 눌리고, 디뎌 몸을 가눈 뒤 살짝 일어선다.
+  // 마네킹 기울기 R1 닿음 24° → R2 가누기 19° → R3 밀어냄 29° → R4 뜸 31° 를 기준값(약 25°)에 대한 배율로 옮긴 것. 걷기(d >= 1)는 1.
+  function leanK(p, d) {
+    if (d >= 1) return 1;
+    if (p < d) { const s = p / d; return s < 0.35 ? 0.92 - 0.2 * (s / 0.35) : 0.72 + 0.46 * ((s - 0.35) / 0.65); }
+    const f = (p - d) / (1 - d);
+    return 1.18 + 0.12 * Math.sin(Math.PI * f) - 0.26 * f;
+  }
   // 이족 몸 높이: 걷기는 디딘 다리 위에서 높고, 달리기는 디디는 동안 가라앉았다가(dip) 두 발이 다 뜬 동안 솟는다(air)
   function bipedBody(P, H, g, p, d) {
     const flying = d < 1 && p >= d, fl = flying ? Math.sin(Math.PI * (p - d) / (1 - d)) : 0;
@@ -1309,7 +1317,7 @@ const Battle = (() => {
           return { bob: Math.round(b.bob), lean: -dir * Math.max(0, P.lean) * 0.6 * g * (spider ? 0 : 1) };
         }
         // 윗몸 숙이기(tl)는 온몸 기울기로 옮겨 얹는다 (옷자락 시트와 같은 0.6 비율) — 머리 자리가 걸음 변형 때와 가깝게
-        return { bob: bipedBody(P, H, g, p, d).bob, lean: -dir * (P.lean + P.tl * 0.6) * g };
+        return { bob: bipedBody(P, H, g, p, d).bob, lean: -dir * (P.lean + P.tl * 0.6) * g * leanK(p, d) };
       }
       // 시트가 없는 코드 생성 도트: 다리는 두 칸 그림이 맡는다(걸음에 맞춰 바뀐다 — pose). 달릴 때 두 발이 다 뜨는 구간에만 몸이 통째로 떠오른다.
       // 다족(bug: 거미·전갈)은 뛰어오르지 않고, 네발 짐승(beast)은 반만.
@@ -1394,8 +1402,8 @@ const Battle = (() => {
     const xF = Math.min(ext, oF - (A - ext)), xB = Math.max(-ext, oB + (A - ext));
     const F = leg(xF, hF, -xF), B = leg(xB, hB, xB);
     // 윗몸 숙이기는 엉덩이 줄에서 꺾인다: 그 줄을 가로지르는 긴 것(방패·로브·지팡이)이 있는 시트는 꺾지 않고 온몸을 기울인다
-    const tlK = sk * sk;
-    return { bob, lean: -dir * (P.lean + P.tl * (1 - tlK) * 0.6) * g, tl: -dir * P.tl * tlK * g,
+    const tlK = sk * sk, lk = leanK(p, d);
+    return { bob, lean: -dir * (P.lean + P.tl * (1 - tlK) * 0.6) * g * lk, tl: -dir * P.tl * tlK * g * lk,
       legs: { cut, knee: 1, R: fwd > 0 ? F : B, L: fwd > 0 ? B : F, right: Math.round(fwd > 0 ? hFa : hBa), left: Math.round(fwd > 0 ? hBa : hFa) } };
   }
   // 공격할 때 몸이 앞뒤로 움직이는 정도(px): 준비 때 살짝 뒤로, 타격 칸이 뜨는 순간 앞으로 뻗고 천천히 돌아온다

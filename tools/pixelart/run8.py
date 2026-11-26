@@ -41,11 +41,11 @@ FLOOR = (46, 58, 46)                            # battle floor colour of the rev
 SOLE_BAND = 4                                   # rows above the floor line in which the front end of the planted sole is measured
 
 # per half cycle: index 0 contact, 1 down, 2 push-off, 3 flight   (head units; x forward, h above the floor)
-# 2026-11-26: tables below = the PC Aseprite session's refinement (art-inbox 14c9788, eca075a, f34777f: the owner asked for a forward-leaning run
-# that drives ahead with only a slight float, no hopping); re-baking reproduces the delivery pixel for pixel
-HIP = [1.60, 1.575, 1.725, 1.735]                 # hip joint height: lowest at down, highest in flight (bob ~0.16 heads = about 4% of the height, owner 2026-11-26)
-LEAN = [0.38, 0.40, 0.38, 0.36]                # torso lean forward (rad) - the walk has 0.10-0.15
-TILT = [-0.13, -0.13, -0.13, -0.11]            # head tilt (rad): the head stays level while the torso leans
+# 2026-11-26: tables below = the PC Aseprite session's refinement (art-inbox 14c9788, eca075a, f34777f, a94de43: the owner asked for a run that
+# drives ahead: the body presses forward (leans most) in flight and rises a little once the landing is caught; the hip stays nearly level); re-baking reproduces the delivery pixel for pixel
+HIP = [1.60, 1.585, 1.62, 1.635]                  # hip joint height: lowest at down, highest in flight (nearly level - the press is in the lean, owner 2026-11-26)
+LEAN = [0.38, 0.30, 0.47, 0.51]                # torso lean forward (rad) - the walk has 0.10-0.15
+TILT = [-0.13, -0.10, -0.155, -0.17]           # head tilt (rad): the head stays level while the torso leans
 SHW = [1.06, 1.00, 0.95, 0.94]                 # shoulder width factor while the near leg is the stance leg (mirrored for the far half)
 # arms: (upper-arm deg from straight down, + = forward; elbow flex deg), elbows near 90 deg all the way round.
 # Opposite to the legs: the stance leg goes back from contact to flight while the arm of that side comes forward; the extremes
@@ -56,13 +56,13 @@ ARM_SW = [(8, 104), (-32, 88), (-54, 82), (-58, 80)]
 # 384 px frame (the strip needs 32 px of magenta at its right border) and the forearm would stick out in front of the chest in
 # five frames of eight. So the far arm swings further back, and going forward its upper arm stops at the vertical while the
 # elbow folds more (the fist comes up in front of the chest).
-FAR_ST = [(-50, 82), (-8, 100), (9, 121), (12, 121)] 
+FAR_ST = [(-50, 82), (-8, 100), (-2, 123), (-4, 124)]
 FAR_SW = [(-6, 112), (-44, 92), (-62, 84), (-66, 80)]
 CONTACT = 0.5636                                  # ankle x of the landing foot ahead of the hip (heads)
-PUSH = 28                                       # heel lift at push-off (deg)
+PUSH = 12                                       # heel lift at push-off (deg)
 # the leg that is not on the floor: ankle x, ankle h, foot angle (deg; + = toe down)
 SWING = [(-0.85, 1.24, 135), (-0.57, 1.31, 140), (0.16, 0.70, 15)]
-FLIGHT = ((-0.98, 0.64, 75), (0.84, 0.42, -15))  # R4: the leg that just pushed off (trailing) / the leg reaching for the next contact
+FLIGHT = ((-0.98, 0.64, 75), (0.86, 0.34, -12))  # R4: the leg that just pushed off (trailing) / the leg reaching for the next contact
 
 
 def roll(fa):
