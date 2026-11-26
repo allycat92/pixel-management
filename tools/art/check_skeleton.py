@@ -103,8 +103,8 @@ WARN: the picture outside x=32-351; neighbouring silhouettes under 8 % at game s
       the idle, without --idle the idle reference's hip off x=192 +-3 (the stance is off the idle column); idle: a joint moving
       over 12 px, no motion, neighbours with the same joints.
 ARMS (all three, SPEC 10.3b, posekit.arm_eval in torso coordinates - r forward, u up, heads, lean from the hip dots -> neck dot):
-  FAIL chicken-wing (elbow over 0.15 head behind its own shoulder while the forearm runs over 0.35 forward to a hand below the
-      shoulder + 0.10), crossing (elbow over 0.30 in front of its shoulder, hand behind it), flared (reversed hinge, elbow over 0.15
+  FAIL chicken-wing (elbow over 0.15 head behind its own shoulder, bent under 115 deg, while the forearm runs over 0.35 forward
+      to a hand below the shoulder + 0.10), crossing (elbow over 0.30 in front of its shoulder, hand behind it), flared (reversed hinge, elbow over 0.15
       in front of both the shoulder and the hand), hyper (any other reversed hinge - the natural side is (-d.y, d.x) of shoulder ->
       hand for a right-facing figure; a bow's string arm may draw: raised elbow behind the hand at shoulder height), folded (inner
       elbow angle under 20 deg). An elbow under 20 % visible (higher layers cover it) only WARNs.

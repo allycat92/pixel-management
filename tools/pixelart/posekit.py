@@ -127,6 +127,7 @@ def ik(root, target, l1, l2, pref):
 # Poses without "arms" (walk8 / run8 / gait8 / this file's own guides) keep the old preference: their output is byte-identical.
 ARMS_VERSION = 'posekit natural-arms 1 (2026-11-26)'
 ARM_BACK, ARM_BACK_WARN = -0.15, -0.08      # chicken-wing: elbow behind its own shoulder (torso heads) with the forearm running forward
+ARM_WING_BENT = 115.0                       # ... and the elbow bent under this (a straighter arm hanging a little back is relaxed)
 ARM_FOLD, ARM_FOLD_WARN = 20.0, 35.0        # inner elbow angle (180 = straight): under 20 the hand sits on the shoulder
 ARM_FLARE = 0.15                            # flared: a reversed elbow this far in front of both the shoulder and the hand
 ARM_CROSS = (0.30, -0.05)                   # crossing: elbow this far in front of the shoulder, hand behind it (and not raised:
@@ -159,8 +160,8 @@ def arm_eval(S, E, H, hip, neck0, unit=1.0, torso=1.05, allow_draw=False):
       draw          reversed hinge, hand at/above the shoulder, elbow behind the hand and not dropped: the bow draw - ok only with
                     allow_draw (the string arm of a bow), else it is "hyper"
       hyper         any other reversed hinge (the elbow bends the wrong way)
-      chicken-wing  elbow > 0.15 behind its own shoulder (warn > 0.08) while the forearm runs > 0.35 forward to a hand below the
-                    shoulder + 0.10: the upper arm points back behind the torso and the forearm folds forward again
+      chicken-wing  elbow > 0.15 behind its own shoulder (warn > 0.08), bent under 115 deg, while the forearm runs > 0.35 forward
+                    to a hand below the shoulder + 0.10: the upper arm points back behind the torso and the forearm folds forward again
     hang_gap = 0.65 - |hand - (shoulder - 0.62 up)|: > 0 means the hand cannot be reached with the elbow hanging under the shoulder
     (move the hand out / down by about that much)."""
     rt, up, lean = torso_frame(hip, neck0, torso)
@@ -200,7 +201,7 @@ def arm_eval(S, E, H, hip, neck0, unit=1.0, torso=1.05, allow_draw=False):
                        f'{e[1] - h[1]:+.2f} above it): it bends the wrong way; hang_gap {hang:+.2f}')
         return res('fail', 'hyper', f'elbow bends the wrong way ({side:+.2f} head on the reversed side, inner {inner:.0f} deg)'
                    + (' - a raised elbow behind the hand is only the string arm of a bow (draw)' if drawn else ''))
-    fwd = h[0] - e[0] > 0.35 and dH[1] < 0.10
+    fwd = h[0] - e[0] > 0.35 and dH[1] < 0.10 and inner < ARM_WING_BENT
     if fwd and dE[0] < ARM_BACK:
         return res('fail', 'chicken-wing', f'elbow {-dE[0]:.2f} head behind its shoulder with the forearm running {h[0] - e[0]:.2f} '
                    f'forward to the hand: hang_gap {hang:+.2f} - move the hand about {max(hang, 0.05):.2f} head forward / down')
