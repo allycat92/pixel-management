@@ -1037,3 +1037,24 @@ CHANGED: `ENEMIES['서리 트롤']` / `MONSTER_TPL.brute` (`big: true`) 설계�
 결과: 통과
 본 방법: `sheets.py --dry-run` `preview_x4.png`, 타격 팔꿈치 원본 확대 검수 및 어두운 전장 바닥 위 고블린(54px)·해골 병사(66px)·서리 트롤(74px) 3종 크기 비교 확인 — `big: true` 체격 차이와 4자세 실루엣이 선명함
 남은 걱정: 없음
+
+## sheet/captain/liberator/idle-redraw - 카토 새 디자인 대기 1컷 (쇠사슬과 주먹, 장검은 등에)
+CHECK: RESULT: PASS
+- `check_delivery.py art/inbox/check_sheet_captain_liberator_idle.png --layout 1x1 --cell 112 --aseprite art/inbox/aseprite/check_sheet_captain_liberator_idle.aseprite`: RESULT: PASS (오류 0, 경고 0)
+- canvas: 384x1024, background #FF00FF: 83.3%, figure colours: 38, closest to #FF00FF: distance 198.9
+- pose 1: x 51-332 (w 282, 좌우 여백 51px ≥ 32px), top y=451 (머리 꼭대기~발바닥 몸 높이 402px, 칼자루 끝 포함 420px), lowest pixel y=870
+- .aseprite export == PNG (pixel-identical), layers: Background
+REFERENCES LOADED:
+- `art/requests/phase3/captain_liberator/portrait_800.jpg` (디자인 기준: 민머리·두피/뺨 흉터·짧은 수염·근육질 맨상체·가슴 대각 가죽 띠와 사각 쇠버클·어깨 와인색 천·양손목 굵은 쇠 족쇄와 끊어진 사슬·등 뒤 장검 자루)
+- `assets/art/sheets/sheet_captain_blademaster.png` 및 `art/inbox/sheet_captain_blademaster.png` (화풍·외곽·4등신 기준)
+- `art/requests/phase3/captain_liberator/guide_1_idle.png` (4등신 체격·발 기준 y=870 참고; 마네킹의 든 검·방패는 제외)
+CHANGED: 주인 11-26 결정(쇠사슬과 주먹, 장검은 등에)에 따라 기존 `sheet_captain_liberator.png`는 건드리지 않고 새 대기 1컷 시안(`check_sheet_captain_liberator_idle.png` + `.aseprite`)을 신규 작성.
+- **빈 주먹 가드**: 방패·손에 든 무기 없이 두 맨주먹을 검투사 가드로 쥐고, 앞(오른쪽) 주먹을 마젠타 바깥으로 명확히 분리해 1×에서도 주먹 실루엣이 바로 읽히게 함.
+- **양손목 쇠 족쇄·끊어진 사슬**: 밝은 은회색 쇠 족쇄와 굵은 사슬 고리(앞손 4고리·뒷손 3고리)를 아래로 길게 늘어뜨려 주먹·갈색 몸통과 뭉치지 않고 따로 읽히도록 배치.
+- **등 뒤 장검**: 초상화와 같은 와인색 손잡이·둥근 쇠 폼멜·십자 코등이를 뒷어깨 위로, 칼집 끝을 반대편 허리 뒤로 대각선 배치해 등에 멘 고정 소품임이 한눈에 읽히게 함.
+- 지침 판: 2026-11-26c
+
+## 판정 — sheet/captain/liberator/idle-redraw
+결과: 통과
+본 방법: 원본 384×1024 검수 + `scale 0.18`·칸 112 기준 1×(51×76px) 및 4× 어두운 전장 바닥 위 바렌·비요른과 나란히 비교 확인 — 주먹·쇠사슬·등 뒤 장검 세 요소가 1×에서도 각각 또렷하게 분리되어 읽힘
+남은 걱정: ① `0.18` 배율에서는 몸 높이 402px가 약 72px(칼자루 포함 76px)로 바렌(64px)·비요른(67px)보다 머리 반 개가량 크게 서므로, 4자세 본 제작 때 덩치 큰 검투사 컨셉으로 0.18을 유지할지 일반 대장 키에 맞춰 0.1654를 쓸지 등록 배율만 확정하면 됨 ② 앞손목에서 늘어지는 사슬 고리가 1×에서 폭 2~3px 수준이므로, 본 공격·피격 프레임 제작 시에도 사슬이 1px 실선으로 얇아지지 않게 현재 굵기를 유지할 것
