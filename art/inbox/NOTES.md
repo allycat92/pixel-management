@@ -672,3 +672,10 @@ CHECK: A — RESULT: PASS. B — RESULT: PASS. add_gait.py --dry-run: sheet/clas
 REFERENCES LOADED: guide_run_a.png -> ok; guide_run_b.png -> ok; size_run_a.png -> ok; size_run_b.png -> ok; sheet_class_warrior.png -> ok; concept_800.jpg -> ok; 바렌 앵커 -> ok.
 DEVIATIONS: (a) 발바닥 y는 가이드와 일치. 발바닥 하단 중심의 x 차이는 R1 +8, R2 0, R3 −13, R4 −1, R5 +33, R6 0, R7 −29, R8 +8px(오른쪽 +); R8 투구 상단 y=440이라 다른 컷보다 약 9~13px 높음. 관절을 픽셀 단위로 일치시키지는 못함. (b) 닫힌 면갑·청색 제복·청록 트림·둥근 방패 유지. 투구 외곽과 사슬갑옷의 밝은 면 배치는 대기 시트와 다소 다름. 7개 치환색은 승인 원본의 정확한 RGB를 사용함. (c) 칼은 낮게 뒤로, 방패는 가슴 앞에 유지. 방패·칼 손의 전후 폭이 가이드보다 작고 장비 각도가 한 주기 동안 비슷함.
 RISKS AT GAME SIZE: 80ms 루프에서 특히 R5/R7 접지 때 미끄러져 보이는지, R1–R4와 R5–R8의 앞·뒤 다리 교대가 구분되는지, 세력 치환색을 적용한 뒤 방패 띠와 제복이 함께 읽히는지 확인 부탁드립니다.
+
+## gait/sheet_captain_shadowqueen_run - 니클라 달리기
+CHECK: A — RESULT: PASS. B — RESULT: PASS. add_gait.py --dry-run: sheet/captain/shadowqueen: 시트 384x384, 15칸 — idle(4), attack(2), hit(1), run(8); runStride 45.5
+다시 붙이는 명령: python3 tools/art/add_gait.py sheet/captain/shadowqueen --gait run --src art/inbox/gait/sheet_captain_shadowqueen_run_a.png art/inbox/gait/sheet_captain_shadowqueen_run_b.png --pose art/requests/guides/run_base/v2/pose.json --ms 80
+REFERENCES LOADED: guide_run_a.png -> ok; guide_run_b.png -> ok; size_run_a.png -> ok; size_run_b.png -> ok; sheet_captain_shadowqueen.png -> ok; portrait_800.jpg -> ok; 바렌 앵커 -> ok.
+DEVIATIONS: (a) 발바닥 y는 가이드와 일치. 발바닥 하단 중심의 x 차이는 R1 +5, R2 0, R3 −13, R4 +8, R5 +6, R6 0, R7 −16, R8 −7px(오른쪽 +). R5/R6 후드 상단 y=444, R4 y=457로 전체 높이 변화 13px. 관절을 픽셀 단위로 일치시키지는 못함. (b) 후드·망토의 문양, 머리카락 덩어리와 금장 하이라이트 배치는 대기 시트와 조금 다름. 승인 시트의 39개 실제 캐릭터 색 사용. (c) 수정한 R1–R4의 가까운 칼은 뒤·아래로 향하지만 R2–R4에서 가이드보다 눕고, 망토 끝과 닿아 보이는 컷이 있음. 먼 칼은 한 손에 남아 있으나 R2/R3 일부는 거의 가려짐. 근·원거리 칼날 길이와 망토의 정확히 한 컷 지연은 단정할 수 없음.
+RISKS AT GAME SIZE: 검 끝이 망토, 뒷부츠와 겹쳐 한 자루처럼 읽히는지(R2/R3와 R5/R6), R4에서 R5로 넘어갈 때 후드 높이가 튀는지, 루비와 눈이 배경에 묻히는지 확인 부탁드립니다.
