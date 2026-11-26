@@ -56,3 +56,19 @@ findBattle avg 32.0 ms, max 283 ms
 `SIM_JSON=1` 봇 6회 × 200일 JSON의 전후 MD5는 `ddfdfe7b437fbe9fcf25f166ba542fce`로 동일했다. 기본 `node tools/sim/bot.js`도 실행했다. 12회 × 365일, S등급 12회, 파산 0회, 완료 / 실패 / 전사 632 / 33 / 0.
 
 Chrome 1280×900과 400×800에서 최신 게임 브랜치 `9a30986`과 수정본을 비교했다. 최종 결전, 예비 대장 및 대화는 테스트 저장 상태를 구성해 재현했다. 수정 후 검증 중 브라우저 콘솔 오류는 0건이었다. 파비콘 캡처는 브라우저 탭 대신 리소스 응답 화면이다. [전후 화면](shots/C2/)은 모두 500 KB 미만이다.
+
+## C3 — 2026-11-27
+
+- 숙소가 차면 일반 대원·특별 용병·세력 정예의 모집 버튼을 끄고 버튼 옆에 「숙소가 가득 찼습니다. 숙소를 증축하세요.」를 표시한다. 대장에게는 숙소 제한을 적용하지 않는다.
+- 1280px와 400px의 Chrome 테스트 저장 상태에서 카이와 엘프 정예를 확인했다. 6/6에서 비활성 및 안내 표시, 5/6에서 활성 및 안내 숨김, 금화 0에서 비활성이었다. 콘솔 오류 0건. [화면 캡처](shots/C3/)
+- 봇 6회 × 200일 JSON의 MD5는 기준과 동일한 `ddfdfe7b437fbe9fcf25f166ba542fce`였다. 기준 브랜치와 봇 입력 파일이 동일함을 확인했다.
+
+```text
+reports 100 × 4 outcomes = 400 findBattle calls (game seeds 1..3)
+win/lose mismatches: 0
+soft misses (great with >25% loss / disaster with <50% loss): 0
+  great    n=100 miss=0 soft=0 avg 20.6 ms, battle 19.9 s
+  success  n=100 miss=0 soft=0 avg 77.4 ms, battle 31.5 s
+  fail     n=100 miss=0 soft=0 avg 21.5 ms, battle 25.5 s
+  disaster n=100 miss=0 soft=0 avg 18.5 ms, battle 22.5 s
+```
