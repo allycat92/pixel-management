@@ -1063,3 +1063,73 @@ CHANGED: 주인 11-26 결정(쇠사슬과 주먹, 장검은 등에)에 따라 �
 - 원인: 신규 3자세(준비·접촉·피격) 원화 제작 중 `image-generator` 모델 할당량 초과(`HTTP 429 RESOURCE_EXHAUSTED`, 약 4시간 6분 뒤 초기화)가 발생함.
 - 자체 확인: 승인된 대기 1컷(`2391081`)을 파츠 분할·변형해 3자세를 임시 조립해 보았으나, 타격 팔·어깨 이음새와 사슬 질감이 대기 컷의 수작업 도트 품질에 크게 못 미쳐 애니메이션 헤드 기준으로 납품 보류(반려)함.
 - 다음 조치: ① 약 4시간 뒤 할당량 초기화 후 재개하거나, ② 그사이 이미지 생성이 필요 없는 Aseprite 손질·마네킹·기존 시트 교정 일감이 있으면 먼저 올려 주시면 바로 작업 가능함.
+
+## sheet/hero/oswin - 피격(4번) 들린 무릎 낮춤 손질 (Aseprite)
+CHECK: RESULT: PASS
+- `check_delivery.py sheet_hero_oswin.png --aseprite aseprite/sheet_hero_oswin.aseprite --base <cd09ed7>`: RESULT: PASS (오류 0, 경고 0; RGB 저장으로 기존 P모드 경고도 해소)
+- background #FF00FF: 84.1%, figure colours: 39, closest to #FF00FF: 185.5
+- pose 1: x 32-329 (w 298), pose 2: x 362-694 (w 333), pose 3: x 727-1142 (w 416), pose 4: x 1175-1490 (w 316), lowest pixel y=870
+- against the base: silhouette changed 5542 px, colour changed 6980 px (per pose silhouette/colour: 0/0, 0/0, 0/0, 5542/6980)
+- .aseprite export == PNG (pixel-identical), layers: Background / original_ref  (hidden: original_ref), hidden layer original_ref == base PNG
+- `sheets.py --dry-run`: 완료 1, 실패 0 (idle 49x70, windup 55x78, strike 69x62, hit 52x67, 시트 384x192, 40색)
+CHANGED: 바탕 `art-inbox` `cd09ed7`(RGB 변환 후 유지)에서 1~3번 자세는 0px 변경, 4번(피격) 자세의 높게 들려 있던 앞쪽(오른쪽) 다리만 손질:
+- 고관절 아래 허벅지·무릎갑을 시계 방향(+26°)으로 내려 튀어 보이던 무릎 높이를 약 18px 낮추고, 정강이·장화를 내려진 무릎에 자연스럽게 이어 앞발 바닥이 `y=822`(지상 48px 위) → `y=866`(지상 4px 위)으로 땅에 가깝게 닿도록 정리. 허리 갑주 치마(tasset)와 다리 사이 어두운 이음새 및 39색 팔레트 유지.
+- 참고: 없음
+- 지침 판: 2026-11-26f
+
+## 판정 — sheet/hero/oswin
+결과: 통과
+본 방법: P4 1:1 원본 전후 비교 및 0.1654×(4배) `preview_x4.png` 확인 — 들린 무릎이 차분하게 내려와 비틀거리는 피격 발디딤으로 읽힘
+남은 걱정: 없음
+
+## sheet/hero/seraphine - 준비(2번) 철퇴 낮춰 칸 75px 안 맞춤 (Aseprite)
+CHECK: RESULT: PASS
+- `check_delivery.py sheet_hero_seraphine.png --aseprite aseprite/sheet_hero_seraphine.aseprite --base <6505e61>`: RESULT: PASS (오류 0, 경고 0)
+- background #FF00FF: 82.7%, figure colours: 39, closest to #FF00FF: 183.3
+- pose 1: x 32-304 (w 273), pose 2: x 377-657 (w 281, top y=408→429), pose 3: x 690-1147 (w 458), pose 4: x 1204-1486 (w 283), lowest pixel y=870
+- against the base: silhouette changed 2436 px, colour changed 2822 px (per pose silhouette/colour: 40/0, 2396/2822, 0/0, 0/0 — x<384 변화분 40px은 P2 철퇴 손잡이 끝 좌표)
+- .aseprite export == PNG (pixel-identical), layers: Background / original_ref  (hidden: original_ref), hidden layer original_ref == base PNG
+- `sheets.py --dry-run`: 완료 1, 실패 0 — **`windup: 46x73px`** (77px → 73px, 칸 96 내 75px 이하 달성)
+CHANGED: 바탕 `art-inbox` `6505e61`에서 1·3·4번 자세는 그대로 두고 2번(준비) 자세의 오른손+플랜지 철퇴만 약 12px 아래로 내리고 시계 방향(+10°)으로 살짝 눕혀 베일과 부딪히지 않고 전체 높이를 463px → 442px(게임 73px ≤ 75px)로 낮춤. 내려온 손목과 흰 소매 자락 이음새를 자연스럽게 잇고, 기존 39색 팔레트 유지.
+- 참고: 없음
+- 지침 판: 2026-11-26f
+
+## 판정 — sheet/hero/seraphine
+결과: 통과
+본 방법: P2 1:1 원본 전후 비교 + `sheets.py --dry-run` `preview_x4.png` (windup 46×73px) 확인 — 준비 자세 느낌 그대로 칸 상단 여백 확보
+남은 걱정: 없음
+
+## sheet/hero/grom - 준비(2번) 대검 기울여 칸 75px 안 맞춤 (Aseprite)
+CHECK: RESULT: PASS
+- `check_delivery.py sheet_hero_grom.png --aseprite aseprite/sheet_hero_grom.aseprite --base <7a86b4a>`: RESULT: PASS (오류 0, 경고 0)
+- background #FF00FF: 82.7%, figure colours: 40, closest to #FF00FF: 181.7
+- pose 1: x 32-327 (w 296), pose 2: x 363-713 (w 351, top y=407→438), pose 3: x 746-1175 (w 430), pose 4: x 1209-1503 (w 295), lowest pixel y=870
+- against the base: silhouette changed 7652 px, colour changed 7110 px (per pose silhouette/colour: 709/0, 6943/7110, 0/0, 0/0 — x<384 변화분 709px은 P2 검끝 이동분, P1 x≤327은 0px)
+- .aseprite export == PNG (pixel-identical), layers: Background / original_ref  (hidden: original_ref), hidden layer original_ref == base PNG
+- `sheets.py --dry-run`: 완료 1, 실패 0 — **`windup: 58x72px`** (77px → 72px, 칸 96 내 75px 이하 달성)
+CHANGED: 바탕 `art-inbox` `7a86b4a`에서 1·3·4번 자세는 그대로 두고 2번(준비) 자세의 양손+양손 대검을 반시계 방향(-7.5°)으로 기울이고 P1과의 최소 여백(36px ≥ 32px) 유지를 위해 검 길이 폭만 5% 이내로 다듬어 높이를 464px → 433px(게임 72px ≤ 75px)로 낮춤. 머리 위로 검을 쥔 양팔 자세·레게머리·기존 40색 팔레트 그대로 유지.
+- 참고: 없음
+- 지침 판: 2026-11-26f
+
+## 판정 — sheet/hero/grom
+결과: 통과
+본 방법: P2 1:1 원본 전후 비교 + `sheets.py --dry-run` `preview_x4.png` (windup 58×72px) 확인 — 매끄러운 칼날과 머리 위 준비 실루엣 유지
+남은 걱정: 없음
+
+## sheet/hero/astel - 준비(2번) 지팡이 낮춰 칸 75px 안 맞춤 (Aseprite)
+CHECK: RESULT: PASS
+- `check_delivery.py sheet_hero_astel.png --aseprite aseprite/sheet_hero_astel.aseprite --base <67fc9a4>`: RESULT: PASS (오류 0, 경고 0)
+- background #FF00FF: 81.6%, figure colours: 39, closest to #FF00FF: 179.6
+- pose 1: x 32-333 (w 302), pose 2: x 367-670 (w 304, top y=347→422), pose 3: x 718-1104 (w 387), pose 4: x 1137-1503 (w 367), lowest pixel y=870
+- against the base: silhouette changed 9822 px, colour changed 3040 px (per pose silhouette/colour: 597/0, 9225/3040, 0/0, 0/0 — x<384 변화분 597px은 P2 지팡이 고리 기울임분, P1 x≤333은 0px)
+- .aseprite export == PNG (pixel-identical), layers: Background / original_ref  (hidden: original_ref), hidden layer original_ref == base PNG
+- `sheets.py --dry-run`: 완료 1, 실패 0 — **`windup: 50x74px`** (87px → 74px, 칸 96 내 75px 이하 달성)
+CHANGED: 바탕 `art-inbox` `67fc9a4`에서 1·3·4번 자세는 그대로 두고 2번(준비) 자세의 오른손과 지팡이만 손질:
+- 지나치게 높던 위쪽 나무 막대 구간을 약 42px 줄이고 손+지팡이 전체를 뒤(-17°)·아래(17px)로 기울여(P1과 여백 34px ≥ 32px 유지) 고리 보석 장식과 자세 느낌은 그대로 두면서도 최고점 `y=347` → `y=422`(게임 **74px ≤ 75px**)로 낮춤. 지팡이에 가려졌던 은발 뒷머리와 보라 로브 소매 자리는 주변 색으로 이어 39색 팔레트를 지킴.
+- 참고: 없음
+- 지침 판: 2026-11-26f
+
+## 판정 — sheet/hero/astel
+결과: 통과
+본 방법: P2 1:1 원본 전후 비교 + `sheets.py --dry-run` `preview_x4.png` (windup 50×74px) 확인 — 지팡이 고리 보석·안경·마도서와 시전 준비 자세가 96px 칸에 여유 있게 들어옴
+남은 걱정: 없음
