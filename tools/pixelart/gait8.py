@@ -7,12 +7,15 @@
 Owner decision 2026-11-26: battle movement comes in three classes - LIGHT (the accepted run, run8.py / run_base v2), HEAVY and
 ROBE: "펑퍼짐한 천 복장을 입고 뛰는것도 좀 부자연스러울거고, 중장비를 갖추면 당연히 뛰는건 물론이고 몸이 저렇게 땅에서 떨어지거나
 몸을 앞으로 기울인 채로 가누기도 어려울테니까." Battle movement is still the fastest natural gait of that body (not a stroll), but:
-  heavy  heavy armour / big shield: NO flight (one foot always down, both at contact), torso nearly upright (8-9 deg), knees stay
-         bent (a grounded jog, not a walk: the leg never straightens at passing), the hip SINKS onto the landing leg (the weight),
-         short stride, low foot clearance, arms held close (they carry the shield / weapon) and their hands drop a frame late.
-  robe   long loose cloth: NO flight, upright (6-7 deg), the knees barely lift (the hem hides them), short hurried steps at a
-         quick cadence, the hip nearly level (a glide), a hem (cloth_front layer) pushed by the leading leg whose edges fall back
-         one frame late.
+  heavy  heavy armour / big shield: a heavy, purposeful, fast trudge. NO flight (one foot always down, both at contact), torso
+         upright (lean 5 deg, 4-6), knees stay bent, the weight drops ONLY at down (bob 7 px) and the push never rises above
+         contact, short stride (23.5 game px), low foot clearance, arms held close and high (shield in front, weapon at the
+         side): they swing only a few degrees.
+  robe   long loose cloth: a hurried, purposeful glide. NO flight, small forward lean (7 deg, 5-8), the knees barely lift (the
+         hem hides them), short quick steps (22.2 game px), the hip nearly level, hands near the waist / staff, a hem
+         (cloth_front layer) pushed by the leading leg whose edges fall back one frame late.
+Timing: the game plays heavy / robe cells PLANTED (js/battle.js runCells: every cell = stride/4 of travel), so at the unit speed
+GAME_SPEED (58 game px/s at 1x) a cell lasts stride/4 / 58 s: heavy 101 ms, robe 96 ms. The drafts are timed and judged at that.
 Same mannequin, canvas, floor row, joints and layer files as walk8.py / run8.py (384x1024 per frame, hip centre x=192, floor
 y=870, head 110 px); the helpers are imported from walk8.py / run8.py, only the pose tables differ (those files are not changed).
 
@@ -25,12 +28,14 @@ Frames (tag H for heavy, G for robe - "glide"; near = the character's right leg,
 The body travels step/4 per frame, so the TOE (front end) of a planted sole retreats by exactly step/4 per frame through the five
 frames it is down (contact, down, passing, push, and as the rear foot of the next contact): `toe_shift` solves the heel-up frames.
 
-Writes the same files as run8.py: <name>_a.png / _b.png (1x4 strips, #FF00FF), <name>_preview.gif (game size x4, nominal ms),
-<name>_review.png, pose.json (gait "heavy" / "robe", step_px, run_stride_game_px, nominal_ms, per-frame measurements and the
-proposed check thresholds), layers/<tag><n>_<layer>.png and, with --aseprite, <name>.aseprite (8 frames x nominal ms; robe adds a
-cloth_front layer between torso and head). --compare RUN_DIR (a run8.py output, e.g. art/requests/guides/run_base/v2) also writes
-<name>_vs_run.gif: the light run and this set side by side at game size x4, each at its own nominal ms, in place (top) and
-travelling over the floor by step/4 per frame (bottom - a planted foot that slides shows here).
+Writes the same files as run8.py: <name>_a.png / _b.png (1x4 strips, #FF00FF), <name>_preview.gif (game size x4, game ms),
+<name>_review.png, pose.json (gait "heavy" / "robe", step_px, run_stride_game_px, nominal_ms = the game ms, per-frame
+measurements and "check": the thresholds for tools/art/check_skeleton.py --gait heavy|robe, CHECK below),
+layers/<tag><n>_<layer>.png and, with --aseprite, <name>.aseprite (8 frames x game ms; robe adds a cloth_front layer between
+torso and head). --compare RUN_DIR (a run8.py output, e.g. art/requests/guides/run_base/v2) also writes <name>_vs_run.gif: the
+light run and this set side by side at game size x4, each cell held as long as the GAME holds it (light: runCells option B,
+contact/down 196 ms, push/flight 98 ms; this set: game ms), in place (top) and travelling over the floor by each cell's travel
+(bottom - a planted foot that slides shows here).
 """
 import argparse
 import json
@@ -319,17 +324,49 @@ def export(out, name, tag, solved, oy, layers, ms, aseprite):
     return flats
 
 
+LIGHT_CODE_STRIDE = 0.31 * 66        # the code run stride of a warrior-size unit at 1x (js/battle.js GAITS.run.sl x height 66 px), game px
+
+
+def planted_cells(step):
+    """the game's cell schedule of a heavy / robe set: 8 x (ms, travel in source px) - every cell stride/4 (the feet stay planted)"""
+    return [(game_ms(step), step * HEAD_PX / 4)] * 8
+
+
+def light_cells(step=None):
+    """the game's cell schedule of the drawn LIGHT run (js/battle.js runCells, owner's option B: unit speed kept, cadence fixed):
+    contact / down cells R1 R2 (R5 R6) at stride/4 each (the planted foot stays put), push / flight R3 R4 (R7 R8) share the rest of
+    a step S = max(code stride, stride/2 + 2 x stride/8)"""
+    ds = (step or run8.STEP) * HEAD_PX * SCALE
+    S = max(LIGHT_CODE_STRIDE, ds / 2 + 2 * ds / 8)
+    f = (S - ds / 2) / 2
+    half = [ds / 4, ds / 4, f, f]
+    return [(round(g / GAME_SPEED * 1000), g / SCALE) for g in half + half]
+
+
 def compare(path, sets, travel_w=200):
     """the comparison GIF: per set a column at game size (x4 nearest) in place, and below all of them one lane each travelling
-    over a ticked floor by step/4 per frame. Each set runs at its own nominal ms on one timeline (10 ms ticks); the loop is the
-    least common multiple of the cycles when that is under 8 s"""
-    cells = [[game_cell(f) for f in flats] for _, flats, _, _ in sets]
+    over a ticked floor. sets = (label, flats, cells) with cells = 8 x (ms, travel in source px) as the GAME plays them
+    (`planted_cells`, `light_cells`): each set runs on one timeline (10 ms ticks) and its lane advances by the cell's travel when
+    the cell starts (a planted foot that slides shows here). The loop is the least common multiple of the cycles when that is
+    under 8 s, else 4 cycles of the longest one"""
+    cells = [[game_cell(f) for f in flats] for _, flats, _ in sets]
     cw, ch = cells[0][0].size
-    cycles = [8 * ms for _, _, ms, _ in sets]
+    cycles = [sum(m for m, _ in sch) for _, _, sch in sets]
     total = 1
     for c in cycles:
         total = total * c // math.gcd(total, c)
     total = total if total <= 8000 else max(cycles) * 4
+
+    def at(sch, cyc, t):
+        """(cell index, travel in source px before it) at time t"""
+        n, tc = divmod(t, cyc)
+        dist = n * sum(d for _, d in sch)
+        for i, (m, d) in enumerate(sch):
+            if tc < m:
+                return i, dist
+            tc -= m
+            dist += d
+        return 7, dist
     top_w = (cw + 40) * len(sets)
     W = max(top_w, travel_w)
     lane_h = ch + 2
@@ -338,18 +375,14 @@ def compare(path, sets, travel_w=200):
     for t in range(0, total, 10):
         img = Image.new('RGB', (W, H), FLOOR)
         d = ImageDraw.Draw(img)
-        for k, (lab, _, ms, step) in enumerate(sets):
-            n = t // ms
+        for k, (lab, _, sch) in enumerate(sets):
+            i, dist = at(sch, cycles[k], t)
             x0 = k * (cw + 40) + (W - top_w) // 2 + 20
-            img.paste(cells[k][n % 8], (x0, 12))
+            img.paste(cells[k][i], (x0, 12))
             d.text((x0 - 12, 1), lab, fill=(225, 225, 205))
-        for k, (lab, _, ms, step) in enumerate(sets):
-            n = t // ms
             y = 12 + ch + 4 + k * (lane_h + 10)
-            dpx = step / 4 * SCALE
-            span = W - cw
-            x = (n * dpx) % span
-            img.paste(cells[k][n % 8], (int(math.floor(x)), y))
+            x = (dist * SCALE) % (W - cw)
+            img.paste(cells[k][i], (int(math.floor(x)), y))
             fy = y + ch - 28 * SCALE                                     # the floor row (y=870) inside the cell
             for tx in range(0, W, 8):
                 d.point((tx, int(fy) + 1), fill=(120, 140, 110))
@@ -450,9 +483,9 @@ def main(argv=None):
         json.dump(info, f, ensure_ascii=False, indent=1)
         f.write('\n')
     if a.compare:
-        lms = game_ms(run8.STEP)                   # the light run planted the same way (owner's option B: unit speed kept, cadence from the drawn stride)
+        lc = light_cells()                         # the light run as the game plays it (option B): contact/down vs push/flight cells
         total = compare(os.path.join(a.out, f'{name}_vs_run.gif'),
-                        [(f'light {lms}', flats_of(a.compare), lms, run8.STEP * HEAD_PX), (f'{a.style} {ms}', flats, ms, step * HEAD_PX)])
+                        [(f'light {lc[0][0]}/{lc[2][0]}', flats_of(a.compare), lc), (f'{a.style} {ms}', flats, planted_cells(step))])
         print(f'compare gif loop {total} ms')
     print(f'{name}: step {info["step_px"]} px ({info["run_stride_game_px"]} game px), bob {info["bob_px"]} px '
           f'(sink {info["sink_contact_to_down_px"]}), lean {info["lean_deg"][0]}-{info["lean_deg"][1]} deg, {ms} ms/frame, '
