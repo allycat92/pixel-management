@@ -40,12 +40,42 @@ WARN: bob outside 32-46 px; elbow flex outside 60-125 deg in any frame; the arm 
       0-70 px ahead of the hip; neighbouring frames nearly identical at game size;
       strip findings of check_delivery.py (the two strips are built in memory and checked with --flight-slots 4: slot 4 is the
       flight frame and must be 18 px or more above the floor instead of on it).
+
+ATTACK / HIT / IDLE mannequin sequences (SPEC section 10; set id <atk|hit|idle>__<sheet stem without sheet_>):
+  python3 tools/art/check_skeleton.py SET.aseprite --motion attack|hit|idle --set <set id> [--idle IDLE_SET.aseprite] [--export DIR]
+The frames, ms, contact / hold / cut and the numbers come from tools/art/specs/motion_bible.json (the set's archetype, hit weight or
+idle) and motion_chars.json (timing.ms, hit.sheets, mannequin.pivot_foot). The frames are in world coordinates: floor y=870, the
+planted foot stays put, the hip moves (only an idle set's rest frame is pinned to hip x=192). --motion defaults from a set id /
+file name starting atk__ / hit__ / idle__. --export writes f<NN>_<name>.png per frame, <set>_preview.gif and pose_measured.json.
+FAIL (all): frame count, durations or tags (one tag named after the motion over all frames; a tag named after a bible frame on that
+      frame) differ from the bible, the shared layer / dot / bone / crisp-edge rules, both feet off y=870 in a frame, the picture
+      touching the frame edge, neighbouring frames that are pixel copies (idle: WARN).
+  attack: the pivot foot (pivot_foot; default: at least one foot) moving more than 3 px; melee: the head (from the ankles' mid-point)
+      not behind at the hold and ahead at the contact or travelling under 100 px, the hip under 55 px; no contact on the contact
+      frame (a blade turning one way swing -> contact -> follow, or the tip / shield face at its unique furthest reach); a cut turning
+      under 120 deg hold -> follow, a thrust tip under 165 px; swing -> contact silhouette change under 15 %; recover not closer to
+      the first frame than the follow. bow: draw length (bow hand - string hand) under 100 px at the hold or not longest there, the
+      release moving the string hand under 60 px back or not being its biggest move back.
+  hit: a foot off y=870, an ankle more than 3 px off the idle height, the front foot moved, the back foot moved (light: 0..-33 px),
+      the front knee more than 1 px above the idle, lean back over 15 deg; at K1 / K2 a hip drop outside 12-30 px or a head
+      displacement outside the weight's band (heavy 12-35, mid 25-60, light 40-90 px), K2 not deeper than K1; the frame after the
+      peak not closer to the idle. The idle is the bible's idle_reference on the posekit mannequin standing on K1's feet (--idle:
+      the rest frame of the character's idle set).
+  idle: the rest hip off x=192 +-1, a foot moving more than 2 px, a loop that does not close (last -> first more than the biggest
+      step + 1 px or twice the first step + 1 px; silhouette the same + 2 %).
+WARN: the picture outside x=32-351; neighbouring silhouettes under 8 % at game size (pairs with the hold frame and idle exempt); the
+      head tilting over 8 deg against the torso (round head: by angle) or drifting over 4 px on the neck (hit 10); attack: follow-through
+      outside 25-40 deg past the contact (or the hip falling back), contact -> follow over 35 %, weapon under 60 % clear of the body
+      or its tip within 33 px of it, a shield shove under 55 px, the bow hand moving at the release, a leaning archer, settle not
+      closer than recover, kinds without rules here (gun, cast, creature); hit: later recovery frames, last frame over 12 px from
+      the idle; idle: a joint moving over 12 px, no motion, neighbours with the same joints.
 """
 import argparse
 from collections import Counter
 import json
 import math
 import os
+import re
 import subprocess
 import sys
 import tempfile
@@ -591,6 +621,790 @@ def compare(frames, base, warns, T='W'):
     return lines
 
 
+# ───────── attack / hit / idle mannequin sets (SPEC section 10; motion_bible.json + motion_chars.json) ─────────
+# A set id is <motion prefix>__<sheet stem without 'sheet_'>: atk__class_warrior, hit__captain_shadowqueen, idle__class_warrior.
+# The frames are in WORLD coordinates: the floor is y=870 in every frame and the planted feet stay where they stand, the hip
+# moves (it is not pinned to x=192 as in the walk / run cycles; an idle set's rest frame defines the column, hip x=192).
+SPECS = os.path.join(ROOT, 'tools', 'art', 'specs')
+MOTION_PREFIX = dict(attack='atk', hit='hit', idle='idle')
+PREFIX_MOTION = {v: k for k, v in MOTION_PREFIX.items()}
+MOTION_KINDS = ('melee_swing', 'melee_thrust', 'bow')     # checks_by_kind entries with kind rules here (gun / cast / creature: common rules only)
+EDGE_BAND = 32           # the picture stays inside x=32..351 of its frame (the strips keep 32 px of magenta at the borders)
+PIVOT_TOL = 3            # px a planted foot may move (motion_bible checks_by_kind pivot_foot_tol_src_px)
+FEET_FLAT_TOL = 3        # hit: ankle height within +-3 px of the idle's (feet_flat "soles at y=870 +-3, no foot angle")
+HIT_HEAD_DRIFT = 10      # hit: the head may move against the neck by HIT_KEYS head_off (up to 0.05 head = 5.5 px) plus HEAD_DRIFT
+IDLE_MOVE = 12           # idle: a breathing frame moves 1-2 game px (= 12 src px) at most
+CHAIN = ('hipN', 'hipF', 'kneeN', 'kneeF', 'ankN', 'ankF', 'shoN', 'shoF', 'elbN', 'elbF', 'handN', 'handF', 'neck')
+BODY_JOINTS = ('hipN', 'hipF', 'kneeN', 'kneeF', 'ankN', 'ankF', 'shoN', 'shoF', 'neck')
+WEAPON_LAYERS = ('weapon_front', 'weapon_back', 'shield')
+
+
+def read_json(path):
+    with open(path, encoding='utf-8') as f:
+        return json.load(f)
+
+
+def parse_pivot(text, names):
+    """motion_chars.json mannequin.pivot_foot -> [(side 'N'|'F'|'NF', first frame index, last frame index)] or None (no rule:
+    at least one foot fixed through the whole sequence). 'rear (footN) ...', 'front (footF) from the swing frame on - ...; rear
+    before', 'both planted ...'."""
+    if not text:
+        return None
+    t = text.lower()
+    n = len(names)
+    if t.startswith('both'):
+        return [('NF', 0, n - 1)]
+    m = re.match(r'\s*(rear|front)\b[^;]*?\(foot([nf])\)', t)
+    if not m:
+        return None
+    side = m.group(2).upper()
+    other = 'F' if side == 'N' else 'N'
+    f = re.search(r'from the (\w+) frame on', t)
+    if f and f.group(1) in names:
+        k = names.index(f.group(1))
+        spans = [(side, k, n - 1)]
+        if k > 0 and re.search(r'\b(rear|front) before\b', t):
+            spans.insert(0, (other, 0, k - 1))
+        return spans
+    return [(side, 0, n - 1)]
+
+
+def motion_spec(motion, set_id, bible_path, chars_path):
+    """the bible entry a set is checked against -> (spec dict, problems). spec: motion, set, sheet, arch, kind, weight, names, ms,
+    contact, hold, cut, loop, keys (frames with joint targets), checks, pivot, char"""
+    problems = []
+    m = re.match(r'^(atk|hit|idle)__(.+)$', set_id or '')
+    if not m:
+        return None, [f'set id "{set_id}" is not <atk|hit|idle>__<sheet stem without sheet_> (e.g. atk__class_warrior; SPEC section 10)']
+    if PREFIX_MOTION[m.group(1)] != motion:
+        problems.append(f'set id "{set_id}" is a {PREFIX_MOTION[m.group(1)]} set but --motion is {motion}')
+    stem = m.group(2)
+    if '_' not in stem:
+        return None, problems + [f'set id "{set_id}": "{stem}" is not a sheet stem <kind>_<key> (class_warrior, captain_ironwall)']
+    kind_, key = stem.split('_', 1)
+    sheet = f'sheet/{kind_}/{key}'
+    bible, chars = read_json(bible_path), read_json(chars_path)
+    char = chars.get('chars', {}).get(sheet)
+    arch = char.get('arch') if char else None
+    if not arch:
+        arch = next((a for a, v in bible['archetypes'].items() if sheet in v.get('users', [])), None)
+    if not arch or arch not in bible['archetypes']:
+        return None, problems + [f'{sheet}: no archetype (not in motion_chars.json chars and in no motion_bible.json archetypes.*.users)']
+    A = bible['archetypes'][arch]
+    spec = dict(motion=motion, set=set_id, sheet=sheet, arch=arch, char=char, kind=None, weight=None, checks={}, pivot=None, keys=[])
+    if motion == 'attack':
+        if 'attack' not in A:
+            return None, problems + [f'archetype {arch} has no attack sequence in motion_bible.json']
+        E = A['attack']
+        spec['kind'] = A.get('checks')
+        spec['checks'] = bible.get('checks_by_kind', {}).get(spec['kind'], {})
+        over = ((char or {}).get('timing') or {}).get('ms') or {}
+        spec['ms'] = [over.get(f['name'], f['ms']) for f in E['frames']]
+        spec['contact'], spec['hold'], spec['cut'] = E.get('contact'), E.get('hold'), E.get('cut')
+        if char and (char.get('mannequin') or {}).get('pivot_foot'):
+            spec['pivot'] = parse_pivot(char['mannequin']['pivot_foot'], [f['name'] for f in E['frames']])
+    elif motion == 'hit':
+        w = chars.get('hit', {}).get('sheets', {}).get(sheet) or A.get('hit_default')
+        if w not in bible['hit']['weights']:
+            return None, problems + [f'{sheet}: no hit weight (motion_chars.json hit.sheets or archetype hit_default)']
+        E = bible['hit']['weights'][w]
+        spec['weight'], spec['checks'] = w, E['checks']
+        spec['ms'] = [f['ms'] for f in E['frames']]
+        spec['contact'], spec['cut'] = E.get('contact'), E.get('cut')
+        spec['hold'] = next((i for i, f in enumerate(E['frames']) if f['name'].endswith(' hold')), None)
+        spec['keys'] = [i for i, f in enumerate(E['frames']) if 'joints' in f and 'hip' in f['joints']]
+        spec['idle_reference'] = bible['hit']['idle_reference']
+    else:
+        E = bible['idle']['flyer' if arch == 'flyer' else 'humanoid']
+        spec['ms'] = [f['ms'] for f in E['frames']]
+        spec['contact'] = spec['hold'] = spec['cut'] = None
+    spec['names'] = [f['name'] for f in E['frames']]
+    spec['loop'] = bool(E.get('loop'))
+    spec['exempt'] = list(bible['rules'].get('neighbour_exempt', ['idle', 'hold']))
+    spec['neighbour_min'] = 100.0 * bible['rules'].get('neighbour_silhouette_change_min', 0.08)
+    return spec, problems
+
+
+def load_tags(src, exe, work):
+    """-> [(name, from, to)] frame tags of an .aseprite (0-based, inclusive)"""
+    os.makedirs(work, exist_ok=True)
+    data = os.path.join(work, 'tags.json')
+    run(exe, src, '--list-tags', '--sheet', os.path.join(work, 'tags.png'), '--data', data, '--format', 'json-array')
+    with open(data, encoding='utf-8') as f:
+        return [(t['name'], int(t['from']), int(t['to'])) for t in json.load(f).get('meta', {}).get('frameTags', [])]
+
+
+def weapon_geom(fr, J):
+    """per weapon layer present: pixel count, front-most x, distances from each hand dot -> filled into tip / angle later"""
+    out = {}
+    for ln in WEAPON_LAYERS:
+        if ln not in fr:
+            continue
+        ys, xs = np.nonzero(fr[ln][..., 3] > 0)
+        if not len(xs):
+            continue
+        g = dict(n=int(len(xs)), front=int(xs.max()), low=int(ys.max()))
+        for s in 'NF':
+            d = np.hypot(xs - J['hand' + s][0], ys - J['hand' + s][1])
+            g['near_' + s] = float(d.min())
+            k = int(d.argmax())
+            g['tip_' + s] = (int(xs[k]), int(ys[k]))
+        out[ln] = g
+    return out
+
+
+def grow(mask, r):
+    for _ in range(r):
+        mask = grow1(mask)
+    return mask
+
+
+def unwrap(angles):
+    out = [angles[0]]
+    for a in angles[1:]:
+        out.append(out[-1] + ((a - out[-1] + 180) % 360 - 180))
+    return out
+
+
+def joint_dist(a, b, keys=CHAIN):
+    return sum(dist(a[k], b[k]) for k in keys) / len(keys)
+
+
+def build_idle_ref(ankN_x, ankF_x, ir):
+    """the idle of motion_bible.json hit.idle_reference (hip (0, 1.40) head, lean 0.08, feet -1.10 / 1.00) built on the posekit
+    mannequin with its feet where the hit set's K1 feet stand (a hit's K1 keeps the idle stance), measured like a set frame.
+    -> {joints, hip, hip_h, head}"""
+    import posekit as pk
+    import walk8
+    B = pk.Body(4.0)
+    oy = walk8.floor_row(B, 1.30)
+    fN, fF = ir.get('footN', -1.10), ir.get('footF', 1.00)
+    width = (ankF_x - ankN_x) / HEAD_PX
+    s = width / (fF - fN) if fF != fN else 1.0
+    feet = (fN * s, fF * s)                                   # the set's stance, the hip at the bible's fraction between the feet
+
+    def make(lift):
+        return dict(hip=tuple(ir.get('hip', (0.0, 1.40))), lean=ir.get('lean', 0.08), tilt=0.0, footN=(feet[0], B.ank + lift[0]),
+                    footF=(feet[1], B.ank + lift[1]), toeN=0.85, faN=0, faF=0, handN=('p', -0.45, 1.05), handF=('p', 0.40, 1.05),
+                    elbN=(-0.3, 1.0), elbF=(0.3, 1.0))
+    _, J, parts = walk8.settle(make, B, oy, ('N', 'F'), 2, 'idle reference')
+    layers, _ = walk8.frame_layers(parts, J, oy)
+    dx = ankN_x - (SLOT / 2 + feet[0] * HEAD_PX)
+    D, _ = dots(np.asarray(layers['joints']))
+    D = {k: (v[0] + dx, v[1]) for k, v in D.items()}
+    head = np.asarray(layers['head'])[..., 3] > 0
+    ys, xs = np.nonzero(head)
+    hip = ((D['hipN'][0] + D['hipF'][0]) / 2, (D['hipN'][1] + D['hipF'][1]) / 2)
+    return dict(joints=D, hip=hip, hip_h=BASELINE - hip[1], head=(float(xs.mean()) + dx, float(ys.mean())), source='posekit idle_reference')
+
+
+def frame_ref(fr, names, label):
+    """an idle reference from the rest frame of an idle set (--idle): {joints, hip, hip_h, head}"""
+    D, bad = dots(fr['joints'])
+    if bad:
+        raise RuntimeError(f'{label}: ' + '; '.join(bad))
+    ys, xs = np.nonzero(fr['head'][..., 3] > 0)
+    hip = ((D['hipN'][0] + D['hipF'][0]) / 2, (D['hipN'][1] + D['hipF'][1]) / 2)
+    return dict(joints=D, hip=hip, hip_h=BASELINE - hip[1], head=(float(xs.mean()), float(ys.mean())), source=label)
+
+
+def head_tilt_motion(meas, T, warns, info, drift_max):
+    """the head against the neck over the sequence (SPEC 6: tilt range <= 8 deg, round head by angle) - relative to the torso,
+    because an attack or a hit turns the whole torso on purpose: the head's own rotation minus the torso's (hip -> neck) rotation.
+    The drift is what is left after the head's own rotation (as in head_cycle)."""
+    hp = [(tuple(m['head']['from_neck_px']), m['head']['axis_rad'], m['head']['elongation']) for m in meas]
+    (c0x, c0y), th0, _ = hp[0]
+    round_head = min(h[2] for h in hp) < 1.08
+    tilts, drift = [], []
+    for m, ((cx, cy), th, _) in zip(meas, hp):
+        if round_head:
+            dt = (math.atan2(cy, cx) - math.atan2(c0y, c0x) + math.pi) % (2 * math.pi) - math.pi
+        else:
+            dt = (th - th0 + math.pi / 2) % math.pi - math.pi / 2
+        px, py = c0x * math.cos(dt) - c0y * math.sin(dt), c0x * math.sin(dt) + c0y * math.cos(dt)
+        drift.append(abs(math.hypot(cx, cy) - math.hypot(c0x, c0y)) if round_head else math.hypot(cx - px, cy - py))
+        tilts.append(math.degrees(dt) - (m['lean_deg'] - meas[0]['lean_deg']))
+    span = max(tilts) - min(tilts)
+    info.append('head against the torso (its own rotation minus the hip->neck rotation' + (', round head: angle around the neck' if round_head else '')
+                + f'): tilt {min(tilts):+.1f}..{max(tilts):+.1f} deg from {meas[0]["frame"]} (range {span:.1f}, SPEC asks {HEAD_TILT} or less); '
+                'drift ' + ' '.join(f'{d:.1f}' for d in drift) + ' px')
+    if span > HEAD_TILT:
+        lo, hi = tilts.index(min(tilts)), tilts.index(max(tilts))
+        warns.append(f'the head tilts over {span:.1f} deg against the torso ({meas[lo]["frame"]} {tilts[lo]:+.1f}, {meas[hi]["frame"]} {tilts[hi]:+.1f} deg'
+                     + (', round head: angle of its centre around the neck dot' if round_head else '')
+                     + f'), SPEC asks {HEAD_TILT} or less - the head nods on the neck (turn it with the torso)')
+    for m, d in zip(meas, drift):
+        if d > drift_max:
+            warns.append(f'{m["frame"]}: the head layer sits {d:.1f} px off its {meas[0]["frame"]} place against the neck dot (after its tilt), '
+                         f'{drift_max} or less - the head slides on the neck')
+
+
+def check_motion(frames, durs, names, hidden, tags, bones, spec, idle_ref=None):
+    """SPEC section 10: one attack / hit / idle mannequin sequence against its motion_bible.json entry"""
+    errors, warns, info, meas = [], [], [], []
+    motion, N = spec['motion'], spec['names']
+    n, want_n = len(frames), len(N)
+    lab = [f'f{i:02d} {N[i]}' if i < want_n else f'f{i:02d}' for i in range(n)]
+    info.append(f'{motion} set {spec["set"]}: {spec["sheet"]}, archetype {spec["arch"]}' + (f', kind {spec["kind"]}' if spec['kind'] else '')
+                + (f', hit weight {spec["weight"]}' if spec['weight'] else '') + '; frames ' + ' · '.join(f'{nm} {ms}' for nm, ms in zip(N, spec['ms']))
+                + ' ms' + (f'; contact {N[spec["contact"]]}' if spec['contact'] is not None else '') + (f', hold {N[spec["hold"]]}' if spec['hold'] is not None else '')
+                + (f', cut {N[spec["cut"]]}' if spec['cut'] is not None else ''))
+    if n != want_n:
+        errors.append(f'{n} frames, the {motion} sequence of {spec["arch"] if motion == "attack" else spec["weight"] or "idle"} has {want_n} '
+                      f'({", ".join(N)}) - one Aseprite frame per sequence frame, in this order')
+    h, w = next(iter(frames[0].values())).shape[:2]
+    if (w, h) != (SLOT, SH_):
+        errors.append(f'frame canvas {w}x{h}, expected {SLOT}x{SH_}')
+    info.append(f'{n} frames, {w}x{h}, durations {durs} ms, layers: {" · ".join(names)}, tags: '
+                + (', '.join(f'{t} {a + 1}-{b + 1}' for t, a, b in tags) or 'none'))
+    for miss in [m for m in BODY + ('joints',) if m not in names]:
+        errors.append(f'layer "{miss}" is missing')
+    for odd in [m for m in names if m not in ORDER + ('Background', 'joints')]:
+        errors.append(f'layer "{odd}" is not a SPEC section 4 name')
+    for hid in [m for m in hidden if m != 'joints']:
+        errors.append(f'layer "{hid}" is hidden: only joints may be hidden (a hidden layer is not in the exported picture)')
+    present = [m for m in names if m in ORDER]
+    if present != [m for m in ORDER if m in present]:
+        warns.append(f'layer order {present} differs from SPEC section 4 (bottom to top: {" · ".join(m for m in ORDER if m in present)})')
+    # tags: one tag named after the motion over the whole sequence; a tag named after a bible frame must sit on that frame
+    whole = [t for t in tags if t[0] == motion]
+    if not whole:
+        errors.append(f'no frame tag "{motion}" - the sequence carries one tag named after its motion, frames 1-{want_n}'
+                      + (f' (found: {", ".join(t[0] for t in tags)})' if tags else ''))
+    elif (whole[0][1], whole[0][2]) != (0, n - 1):
+        errors.append(f'tag "{motion}" covers frames {whole[0][1] + 1}-{whole[0][2] + 1}, it must cover the whole sequence 1-{n}')
+    for t, a, b in tags:
+        if t == motion:
+            continue
+        if t in N:
+            if (a, b) != (N.index(t), N.index(t)):
+                errors.append(f'tag "{t}" sits on frames {a + 1}-{b + 1}, the bible puts {t} on frame {N.index(t) + 1} (wrong frame order?)')
+        else:
+            warns.append(f'tag "{t}" is neither the motion ("{motion}") nor a frame name of the bible ({", ".join(N)})')
+    if errors:
+        return errors, warns, info, meas, []
+    if 'joints' not in hidden:
+        errors.append('layer "joints" is visible: hide it (the dots would be in the exported frames)')
+    odd_ms = [f'{lab[i]} {d} (bible {spec["ms"][i]})' for i, d in enumerate(durs) if d != spec['ms'][i]]
+    if odd_ms:
+        errors.append('frame durations differ from the bible (+ the character\'s timing.ms): ' + ', '.join(odd_ms)
+                      + ' ms - the engine plays these ms; a change is proposed in NOTES, not made in the file')
+    flats = []
+    for i, fr in enumerate(frames):
+        tag = lab[i]
+        for ln in names:
+            if ln in ('Background', 'joints'):
+                continue
+            al = fr[ln][..., 3]
+            soft = int(((al > 0) & (al < 255)).sum())
+            if soft:
+                errors.append(f'{tag} {ln}: {soft} half-transparent pixels (edges must be crisp)')
+        if 'Background' in fr and not np.all(fr['Background'][..., :3] == np.array(KEY, np.uint8)):
+            errors.append(f'{tag}: Background is not pure #FF00FF')
+        rgb, mask = flatten(fr, names)
+        flats.append((rgb, mask))
+        J, bad = dots(fr['joints'])
+        errors += [f'{tag}: {b}' for b in bad]
+        if bad:
+            meas.append(None)
+            continue
+        for jn, layer in PART_OF.items():
+            if not near_opaque(fr[layer], *J[jn]):
+                errors.append(f'{tag}: joint dot {jn} at ({J[jn][0]:.0f},{J[jn][1]:.0f}) is not on the {layer} layer '
+                              '(the limb was moved without its dot, or the dot without the limb)')
+        m = dict(frame=tag, name=N[i] if i < want_n else None, ms=durs[i], joints={k: [round(v[0], 1), round(v[1], 1)] for k, v in J.items()})
+        m['_J'] = J
+        hip = ((J['hipN'][0] + J['hipF'][0]) / 2, (J['hipN'][1] + J['hipF'][1]) / 2)
+        m['hip'] = (round(hip[0], 1), round(hip[1], 1))
+        m['hip_height_px'] = round(BASELINE - hip[1], 1)
+        m['lean_deg'] = round(math.degrees(math.atan2(J['neck'][0] - hip[0], hip[1] - J['neck'][1])), 1)
+        head = fr['head'][..., 3] > 0
+        hp = head_pose(head, J['neck'])
+        if hp is None:
+            errors.append(f'{tag}: the head layer is empty')
+        else:
+            ys_, xs_ = np.nonzero(head)
+            m['head'] = dict(from_neck_px=[round(hp[0][0], 2), round(hp[0][1], 2)], axis_rad=round(hp[1], 4), elongation=round(hp[2], 3),
+                             centre=[round(float(xs_.mean()), 1), round(float(ys_.mean()), 1)])
+            if not (grow1(head) & (fr['torso'][..., 3] > 0)).any():
+                errors.append(f'{tag}: the head layer does not touch the torso layer (a detached head: move it back onto the neck)')
+        m['bones_px'] = {}
+        for bone, a, b in BONES:
+            for s in 'NF':
+                d = dist(J[a + s], J[b + s])
+                m['bones_px'][bone + s] = round(d, 1)
+                if abs(d - bones[bone]) > 2:
+                    errors.append(f'{tag}: {bone} ({"near" if s == "N" else "far"}) is {d:.1f} px, must be {bones[bone]} +-2')
+        m['knee_flex_deg'] = {s: round(knee_flex(J['hip' + s], J['knee' + s], J['ank' + s]), 1) for s in 'NF'}
+        ys = np.nonzero(mask.any(1))[0]
+        xs = np.nonzero(mask.any(0))[0]
+        m['lowest_px'], m['top_px'], m['x_range'] = int(ys.max()), int(ys.min()), [int(xs.min()), int(xs.max())]
+        m['leg_low'] = {s: int(np.nonzero((fr[ln][..., 3] > 0).any(1))[0].max()) for s, ln in (('N', 'leg_near'), ('F', 'leg_far'))}
+        if m['lowest_px'] > BASELINE:
+            errors.append(f'{tag}: lowest pixel at y={m["lowest_px"]}, nothing may be below the floor line {BASELINE}')
+        if BASELINE not in m['leg_low'].values():
+            errors.append(f'{tag}: no foot on the floor line y={BASELINE} (legs end at near {m["leg_low"]["N"]} / far {m["leg_low"]["F"]}) - '
+                          f'a {motion} never leaves the ground: the planted foot stays on y={BASELINE}')
+        if xs.min() == 0 or xs.max() == w - 1 or ys.min() == 0:
+            errors.append(f'{tag}: the picture touches the frame edge (x {xs.min()}-{xs.max()}, top {ys.min()}) - it is cut off; '
+                          'change how the weapon is held, never the scale (SPEC section 3)')
+        elif xs.min() < EDGE_BAND or xs.max() > w - 1 - EDGE_BAND:
+            warns.append(f'{tag}: the picture spans x={xs.min()}-{xs.max()}, keep it inside {EDGE_BAND}-{w - 1 - EDGE_BAND} '
+                         '(the GPT strip keeps 32 px of magenta at its borders)')
+        m['weapons'] = weapon_geom(fr, J)
+        meas.append(m)
+    if any(m is None for m in meas) or n != want_n:
+        return errors, warns, info, clean(meas), flats
+    # neighbouring frames: pixel copies, silhouette change at game size
+    small = []
+    for _, mask in flats:
+        im = Image.fromarray((mask * 255).astype(np.uint8)).resize((round(w * SCALE), round(h * SCALE)), Image.BOX)
+        small.append(np.asarray(im) >= 128)
+
+    def change(i, j):
+        a, b = small[i], small[j]
+        return 100.0 * (a ^ b).sum() / max(1, (a | b).sum())
+    pairs = list(range(n - 1)) + ([n - 1] if spec['loop'] else [])
+    diffs = {}
+    for i in pairs:
+        j = (i + 1) % n
+        diffs[i] = change(i, j)
+        same = all(np.array_equal(frames[i][ln], frames[j][ln]) for ln in names if ln != 'Background')
+        if same and motion != 'idle':
+            errors.append(f'{lab[i]} -> {lab[j]}: the two frames are pixel copies - every frame of the sequence is its own pose '
+                          '(a longer hold is a longer duration, not a second frame)')
+        exempt = motion == 'idle' or (spec['hold'] is not None and spec['hold'] in (i, j))
+        if not exempt and diffs[i] < spec['neighbour_min']:
+            warns.append(f'{lab[i]} -> {lab[j]}: silhouettes differ by {diffs[i]:.0f}% at game size (under {spec["neighbour_min"]:.0f}%: the frame adds nothing)')
+    info.append('silhouette change to the next frame at game size: ' + ' '.join(f'{diffs[i]:.0f}%' for i in pairs)
+                + (' (idle: no 8% rule, the loop must close instead)' if motion == 'idle' else
+                   f' (hold frame {N[spec["hold"]]} exempt)' if spec['hold'] is not None else ''))
+    if motion == 'attack':
+        attack_rules(meas, frames, flats, spec, change, errors, warns, info)
+    elif motion == 'hit':
+        hit_rules(meas, spec, idle_ref, errors, warns, info)
+    else:
+        idle_rules(meas, spec, change, errors, warns, info)
+    if all('head' in m for m in meas):
+        head_tilt_motion(meas, 'f', warns, info, HIT_HEAD_DRIFT if motion == 'hit' else HEAD_DRIFT)
+    return errors, warns, info, clean(meas), flats
+
+
+def clean(meas):
+    return [None if m is None else {k: v for k, v in m.items() if not k.startswith('_')} for m in meas]
+
+
+def foot_spans(meas, spans, errors, info, lab):
+    """the planted foot (SPEC 8: at least one foot stays put; motion_chars pivot_foot names which, and from which frame)"""
+    def fixed(side, a, b):
+        J0 = meas[a]['_J']['ank' + side]
+        worst = max(max(abs(meas[k]['_J']['ank' + side][0] - J0[0]), abs(meas[k]['_J']['ank' + side][1] - J0[1])) for k in range(a, b + 1))
+        floor = all(meas[k]['leg_low'][side] == BASELINE for k in range(a, b + 1))
+        return worst, floor
+    n = len(meas)
+    if spans is None:
+        res = {s: fixed(s, 0, n - 1) for s in 'NF'}
+        ok = [s for s, (wst, fl) in res.items() if wst <= PIVOT_TOL and fl]
+        info.append('planted foot (no pivot_foot in motion_chars.json: at least one foot fixed): ' + ', '.join(
+            f'{"near" if s == "N" else "far"} ankle moves up to {res[s][0]:.1f} px' + ('' if res[s][1] else ', leaves the floor') for s in 'NF'))
+        if not ok:
+            errors.append(f'no foot stays put through the sequence (near ankle moves {res["N"][0]:.1f} px, far {res["F"][0]:.1f} px; '
+                          f'+-{PIVOT_TOL} and on y={BASELINE} in every frame) - SPEC 8: at least one foot is the pivot, the engine moves the body')
+        return
+    for sides, a, b in spans:
+        for s in sides:
+            wst, fl = fixed(s, a, b)
+            nm = 'near (back)' if s == 'N' else 'far (front)'
+            info.append(f'pivot foot {nm} {lab[a]}..{lab[b]}: ankle moves up to {wst:.1f} px' + ('' if fl else ', leaves the floor'))
+            if wst > PIVOT_TOL or not fl:
+                errors.append(f'the pivot foot ({nm}, motion_chars.json pivot_foot) ' + (f'moves {wst:.1f} px' if wst > PIVOT_TOL else 'leaves the floor')
+                              + f' between {lab[a]} and {lab[b]} - it stays put (+-{PIVOT_TOL} px, sole on y={BASELINE})')
+
+
+def attack_rules(meas, frames, flats, spec, change, errors, warns, info):
+    """SPEC 8 + motion_bible.json checks_by_kind: anticipation reads, one contact frame, follow-through, recovery"""
+    C, H, K = spec['contact'], spec['hold'], spec['checks']
+    n = len(meas)
+    lab = [m['frame'] for m in meas]
+    foot_spans(meas, spec['pivot'], errors, info, lab)
+    kind = spec['kind']
+    if kind not in MOTION_KINDS:
+        warns.append(f'kind "{kind}" (archetype {spec["arch"]}): only the common rules are measured here - its own rules '
+                     f'({", ".join(k for k in K if k not in ("note",))}) are not implemented yet (checks_by_kind.{kind})')
+        recover_rule(meas, C, errors, warns, info)
+        return
+    # which hand holds which weapon layer: the hand dot closest to the layer, over the whole sequence
+    grips = {}
+    for ln in WEAPON_LAYERS:
+        ds = [(m['weapons'][ln]['near_N'], m['weapons'][ln]['near_F']) for m in meas if ln in m['weapons']]
+        if len(ds) == n:
+            grips[ln] = 'N' if np.median([d[0] for d in ds]) <= np.median([d[1] for d in ds]) else 'F'
+    for m in meas:
+        for ln, s in grips.items():
+            g = m['weapons'][ln]
+            hx, hy = m['_J']['hand' + s]
+            g['grip'], g['tip'] = s, g['tip_' + s]
+            g['angle'] = math.degrees(math.atan2(-(g['tip'][1] - hy), g['tip'][0] - hx))
+    if grips:
+        info.append('weapon layers: ' + ', '.join(f'{ln} in the {"near" if s == "N" else "far"} hand' for ln, s in grips.items()))
+    if kind == 'bow':
+        bow_rules(meas, spec, grips, errors, warns, info)
+        recover_rule(meas, C, errors, warns, info)
+        return
+    blades = [ln for ln in grips if ln != 'shield']
+    if not blades and 'shield' not in grips:
+        errors.append('no weapon layer (weapon_front / weapon_back / shield) in every frame - the contact is measured on the weapon')
+        return
+    # anticipation: head x from the feet's mid-point flips sign hold -> contact and travels; the hip travels
+    hx = [m['head']['centre'][0] - (m['_J']['ankN'][0] + m['_J']['ankF'][0]) / 2 for m in meas]
+    hipx = [m['hip'][0] for m in meas]
+    info.append('head x from the mid-point of the ankles: ' + ' '.join(f'{v:+.0f}' for v in hx) + ' px; hip x: ' + ' '.join(f'{v:.0f}' for v in hipx))
+    if K.get('head_x_sign_flip'):
+        if not (hx[H] < 0 < hx[C]):
+            errors.append(f'anticipation: the head is {hx[H]:+.0f} px from the feet\'s mid-point at {lab[H]} and {hx[C]:+.0f} px at {lab[C]} - '
+                          'SPEC 8: behind the feet at the hold (weight back), ahead of them at the contact (the direction reverses)')
+        tr = hx[C] - hx[H]
+        if tr < K.get('head_x_travel_min_src_px', 100):
+            errors.append(f'anticipation: the head travels {tr:.0f} px from {lab[H]} to {lab[C]}, SPEC 8 asks {K.get("head_x_travel_min_src_px", 100)} or more')
+    if K.get('hip_travel_min_src_px'):
+        tr = hipx[C] - hipx[H]
+        if tr < K['hip_travel_min_src_px']:
+            errors.append(f'anticipation: the hip travels {tr:.0f} px from {lab[H]} to {lab[C]}, SPEC 8 asks {K["hip_travel_min_src_px"]} or more')
+    # contact: a blade crossing its strike line, or the furthest reach (thrust tip / shield face) - on the contact frame only
+    F = C + 1 if C + 1 < n else None
+    found, how = [], []
+    for ln in blades:
+        ang = unwrap([m['weapons'][ln]['angle'] for m in meas])
+        tipx = [m['weapons'][ln]['tip'][0] for m in meas]
+        info.append(f'{ln}: angle ' + ' '.join(f'{a:.0f}' for a in ang) + ' deg; tip x ' + ' '.join(str(t) for t in tipx))
+        if kind == 'melee_swing' and F is not None and C >= 1:
+            s1, s2 = ang[C] - ang[C - 1], ang[F] - ang[C]
+            if s1 * s2 > 0 and abs(s1) >= 10:
+                found.append(('cross', ln, ang, s1, s2))
+        if max(tipx) - sorted(tipx)[-2] >= 2 and tipx.index(max(tipx)) == C:
+            found.append(('reach', ln, tipx))
+        how.append(f'{ln} reach peaks at {lab[tipx.index(max(tipx))]}')
+    if 'shield' in grips:
+        sx = [m['weapons']['shield']['front'] for m in meas]
+        info.append('shield front x ' + ' '.join(str(v) for v in sx))
+        if max(sx) - sorted(sx)[-2] >= 2 and sx.index(max(sx)) == C:
+            found.append(('shove', 'shield', sx))
+        how.append(f'shield reach peaks at {lab[sx.index(max(sx))]}')
+    if kind == 'melee_thrust':
+        found = [f for f in found if f[0] == 'reach']
+    if not found:
+        errors.append(f'no contact at {lab[C]}: ' + ('a blade must cross its strike line there (swing -> contact -> follow turning one way) or '
+                      if kind == 'melee_swing' else '') + 'the tip / shield face must reach furthest there (' + '; '.join(how)
+                      + ') - the contact frame reads on its own (an unpredicted attack starts at it)')
+    else:
+        info.append('contact at ' + lab[C] + ': ' + ', '.join(f'{f[1]} ' + {'cross': 'crosses its strike line', 'reach': 'tip at its furthest reach',
+                                                                           'shove': 'face at its furthest reach'}[f[0]] for f in found))
+    cross = [f for f in found if f[0] == 'cross']
+    if kind == 'melee_swing':
+        if cross or not [f for f in found if f[0] == 'shove']:
+            best = 0.0
+            for ln in blades:
+                ang = unwrap([m['weapons'][ln]['angle'] for m in meas])
+                if F is not None:
+                    best = max(best, abs(ang[F] - ang[H]))
+            info.append(f'weapon angle change {lab[H]} -> {lab[F] if F is not None else "?"}: {best:.0f} deg (SPEC 8 slash: 120 or more)')
+            if best < 120:
+                errors.append(f'the weapon turns {best:.0f} deg from {lab[H]} to {lab[F] if F is not None else "the follow"}, SPEC 8 asks 120 or more for a '
+                              'cut (wind it further back at the hold or carry it further through)')
+        else:
+            sx = [m['weapons']['shield']['front'] for m in meas]
+            if sx[C] - sx[H] < K.get('hip_travel_min_src_px', 55):
+                warns.append(f'shield shove: the shield face travels {sx[C] - sx[H]} px from {lab[H]} to {lab[C]}, at least the hip travel '
+                             f'({K.get("hip_travel_min_src_px", 55)}) so the shove reads')
+    if kind == 'melee_thrust':
+        best = max((meas[C]['weapons'][ln]['tip'][0] - meas[H]['weapons'][ln]['tip'][0] for ln in blades), default=0)
+        if best < K.get('tip_travel_min_src_px', 165):
+            errors.append(f'thrust: the tip travels {best} px from {lab[H]} to {lab[C]}, SPEC 8 asks {K.get("tip_travel_min_src_px", 165)} or more')
+    # follow-through passes the contact line
+    if F is not None:
+        if cross:
+            _, ln, ang, s1, s2 = cross[0]
+            past = abs(ang[F] - ang[C])
+            info.append(f'follow-through: {ln} {past:.0f} deg past the contact (bible 25-40)')
+            if not 25 <= past <= 40:
+                warns.append(f'{lab[F]}: the weapon is {past:.0f} deg past its contact angle, the bible asks 25-40 (follow-through past the line)')
+        else:
+            dx = meas[F]['hip'][0] - meas[C]['hip'][0]
+            info.append(f'follow-through: hip {dx:+.0f} px from the contact (bible +0.08 head = +9)')
+            if dx < 0:
+                warns.append(f'{lab[F]}: the hip moves {dx:.0f} px back from the contact - the follow-through carries the body on past the contact line '
+                             '(bible: hips +0.08 head forward)')
+    if C >= 1 and K.get('swing_to_contact_change_min') is not None:
+        ch = change(C - 1, C)
+        if ch < 100 * K['swing_to_contact_change_min']:
+            errors.append(f'{lab[C - 1]} -> {lab[C]}: the silhouette changes {ch:.0f}% at game size, the bible asks {100 * K["swing_to_contact_change_min"]:.0f}% '
+                          'or more (the contact must read as a new shape)')
+    if F is not None and K.get('contact_to_follow_change_max') is not None:
+        ch = change(C, F)
+        if ch > 100 * K['contact_to_follow_change_max']:
+            warns.append(f'{lab[C]} -> {lab[F]}: the silhouette changes {ch:.0f}% at game size, the bible asks {100 * K["contact_to_follow_change_max"]:.0f}% '
+                         'or less (the follow continues the contact shape)')
+    weapon_outside(meas, frames, flats, spec, blades, warns)
+    recover_rule(meas, C, errors, warns, info)
+
+
+def weapon_outside(meas, frames, flats, spec, blades, warns):
+    """SPEC 8: at the hold and the contact >= 60 % of the weapon over magenta, the tip >= 33 px outside the body"""
+    if spec['kind'] != 'melee_swing':
+        return
+    body_layers = [ln for ln in BODY]
+    for i in (spec['hold'], spec['contact']):
+        fr = frames[i]
+        body = np.zeros(fr['torso'].shape[:2], bool)
+        for ln in body_layers:
+            body |= fr[ln][..., 3] > 0
+        near = None
+        for ln in blades:
+            wpx = fr[ln][..., 3] > 0
+            free = 100.0 * (wpx & ~body).sum() / max(1, wpx.sum())
+            tx, ty = meas[i]['weapons'][ln]['tip']
+            if near is None:
+                near = grow(body, 33)
+            if free < 60:
+                warns.append(f'{meas[i]["frame"]}: only {free:.0f}% of {ln} is clear of the body, SPEC 8 asks 60% or more (the weapon reads outside the silhouette)')
+            if near[ty, tx]:
+                warns.append(f'{meas[i]["frame"]}: the {ln} tip ({tx},{ty}) is within 33 px of the body, SPEC 8 asks 33 or more outside')
+
+
+def bow_rules(meas, spec, grips, errors, warns, info):
+    """SPEC 8 bow exception: upright, no head flip; the wind-up is the draw length, the release throws the string hand back"""
+    C, H, K = spec['contact'], spec['hold'], spec['checks']
+    lab = [m['frame'] for m in meas]
+    bows = [ln for ln in grips if ln != 'shield']
+    if not bows:
+        errors.append('bow set without a weapon layer holding the bow (weapon_front / weapon_back)')
+        return
+    bh = grips[bows[0]]
+    dh = 'N' if bh == 'F' else 'F'
+    dx = [m['_J']['hand' + dh][0] for m in meas]
+    bx = [m['_J']['hand' + bh] for m in meas]
+    info.append(f'bow in the {"near" if bh == "N" else "far"} hand; draw hand x ' + ' '.join(f'{v:.0f}' for v in dx)
+                + '; draw length (bow hand - draw hand) ' + ' '.join(f'{b[0] - d:.0f}' for b, d in zip(bx, dx)))
+    draw = [b[0] - d for b, d in zip(bx, dx)]
+    need = K.get('draw_hand_travel_min_src_px', 100)
+    if draw[H] < need:
+        errors.append(f'draw: the string hand is {draw[H]:.0f} px behind the bow hand at {lab[H]}, SPEC 8 bow asks {need} or more - the wind-up '
+                      'of a bow is the draw length (the string hand travels from the string at the bow to the cheek)')
+    if H and max(draw[:H]) >= draw[H]:
+        errors.append(f'draw: the draw is already {max(draw[:H]):.0f} px at {lab[draw[:H].index(max(draw[:H]))]}, not longest at the hold '
+                      f'({lab[H]} {draw[H]:.0f} px) - the string comes back through the nock / raise frames into the full draw')
+    back = dx[H] - dx[C]
+    if back < K.get('release_hand_travel_min_src_px', 60):
+        errors.append(f'release: the string hand moves {back:.0f} px back from {lab[H]} to {lab[C]}, the bible asks '
+                      f'{K.get("release_hand_travel_min_src_px", 60)} or more (the release is the weakest-reading contact)')
+    jumps = [dx[k] - dx[k + 1] for k in range(len(dx) - 1)]
+    if jumps.index(max(jumps)) != C - 1:
+        errors.append(f'the string hand\'s biggest move back is {lab[jumps.index(max(jumps))]} -> {lab[jumps.index(max(jumps)) + 1]}, '
+                      f'not into the release ({lab[C]}) - the contact frame is the release')
+    hold_bow = dist(bx[H], bx[C])
+    if hold_bow > 6:
+        warns.append(f'{lab[C]}: the bow hand moves {hold_bow:.0f} px from {lab[H]}, the bow arm holds through the release (6 or less)')
+    lean = [m['lean_deg'] for m in meas]
+    if max(abs(v) for v in lean[H:C + 1]) > 10:
+        warns.append(f'the archer leans {max(abs(v) for v in lean[H:C + 1]):.0f} deg at the hold / release, SPEC 8 bow: upright (draw to the cheek standing)')
+
+
+def recover_rule(meas, C, errors, warns, info):
+    """after the follow-through every frame comes back toward the first one (the idle the attack started from)"""
+    n = len(meas)
+    ref = meas[0]['_J']
+    d = [joint_dist(m['_J'], ref) for m in meas]
+    info.append('mean joint distance from ' + meas[0]['frame'] + ': ' + ' '.join(f'{v:.0f}' for v in d) + ' px')
+    for k in range(C + 2, n):
+        if d[k] >= d[k - 1]:
+            msg = (f'{meas[k]["frame"]}: {d[k]:.0f} px from {meas[0]["frame"]}, {meas[k - 1]["frame"]} was {d[k - 1]:.0f} - after the follow-through '
+                   'every frame returns toward the guard')
+            (errors if k == C + 2 else warns).append(msg)
+
+
+def hit_rules(meas, spec, ref, errors, warns, info):
+    """posekit HIT_KEYS / handoff HIT_RULES / motion_bible hit.weights.<w>.checks: feet planted, knees absorb, head snaps away"""
+    K, keys, w = spec['checks'], spec['keys'], spec['weight']
+    lab = [m['frame'] for m in meas]
+    J0 = meas[0]['_J']
+    if ref is None:
+        ref = build_idle_ref(J0['ankN'][0], J0['ankF'][0], spec['idle_reference'])
+    R = ref['joints']
+    info.append(f'idle reference: {ref["source"]} - hip height {ref["hip_h"]:.1f} px, head centre x {ref["head"][0]:.1f}, '
+                f'ankles near {R["ankN"][0]:.0f} / far {R["ankF"][0]:.0f}')
+    lo, hi = K['head_dx_src_px']
+    rows = []
+    for i, m in enumerate(meas):
+        J = m['_J']
+        r = dict(lean_back=-m['lean_deg'], drop=ref['hip_h'] - m['hip_height_px'], head_dx=m['head']['centre'][0] - ref['head'][0],
+                 knee_rise=R['kneeF'][1] - J['kneeF'][1], front_move=J['ankF'][0] - R['ankF'][0], slide=J['ankN'][0] - R['ankN'][0],
+                 ank_dy={s: J['ank' + s][1] - R['ank' + s][1] for s in 'NF'})
+        m['hit'] = {k: (round(v, 1) if not isinstance(v, dict) else {s: round(x, 1) for s, x in v.items()}) for k, v in r.items()}
+        rows.append(r)
+        t = lab[i]
+        if m['leg_low']['F'] != BASELINE:
+            errors.append(f'{t}: the front foot (leg_far) ends at y={m["leg_low"]["F"]}, it stays flat on y={BASELINE} - front-foot lift is 0 in a hit')
+        if m['leg_low']['N'] != BASELINE:
+            errors.append(f'{t}: the back foot (leg_near) ends at y={m["leg_low"]["N"]}, both feet stay on y={BASELINE} (a light hit slides it, never lifts it)')
+        for s in 'NF':
+            if abs(r['ank_dy'][s]) > FEET_FLAT_TOL:
+                errors.append(f'{t}: the {"back" if s == "N" else "front"} ankle is {-r["ank_dy"][s]:+.0f} px off the idle ankle height - feet flat '
+                              f'(+-{FEET_FLAT_TOL}, no heel or toe raised)')
+        if abs(r['front_move']) > PIVOT_TOL:
+            errors.append(f'{t}: the front foot moved {r["front_move"]:+.0f} px from where the idle stands it - it stays put (+-{PIVOT_TOL})')
+        slide_max = K.get('back_foot_slide_max_src_px')
+        if slide_max:
+            if not -slide_max - PIVOT_TOL <= r['slide'] <= PIVOT_TOL:
+                errors.append(f'{t}: the back foot slid {r["slide"]:+.0f} px, a light hit allows one short step back of {slide_max} px (0.3 head) at most')
+        elif abs(r['slide']) > PIVOT_TOL:
+            errors.append(f'{t}: the back foot moved {r["slide"]:+.0f} px - a {w} hit keeps both feet where they stood (only light slides it)')
+        if r['knee_rise'] > K.get('knee_rise_max_src_px', 1):
+            errors.append(f'{t}: the front knee is {r["knee_rise"]:.1f} px above its idle height, {K.get("knee_rise_max_src_px", 1)} at most '
+                          '(a knee-up hit reads as comic; the knees bend DOWN to absorb the blow)')
+        if r['lean_back'] > K.get('lean_max_deg', 15):
+            errors.append(f'{t}: the torso leans back {r["lean_back"]:.1f} deg (hip to neck), {K.get("lean_max_deg", 15)} at most - the head and '
+                          'shoulders snap away, the body is not thrown back')
+    for i in keys:
+        r, t = rows[i], lab[i]
+        if not K['hip_drop_src_px'][0] <= r['drop'] <= K['hip_drop_src_px'][1]:
+            errors.append(f'{t}: the hip drops {r["drop"]:.1f} px below the idle, the bible asks {K["hip_drop_src_px"][0]}-{K["hip_drop_src_px"][1]} '
+                          '(the knees absorb the blow)')
+        if not lo <= -r['head_dx'] <= hi:
+            errors.append(f'{t}: the head moves {-r["head_dx"]:+.1f} px away from the blow (centre of the head layer against the idle), '
+                          f'a {w} hit asks {lo}-{hi} ({round(lo * SCALE)}-{round(hi * SCALE)} game px)')
+    if len(keys) >= 2:
+        a, b = keys[0], keys[1]
+        if rows[b]['drop'] < rows[a]['drop'] - 1 or -rows[b]['head_dx'] < -rows[a]['head_dx'] - 1:
+            errors.append(f'{lab[b]} is not the deepest point: hip drop {rows[a]["drop"]:.0f} -> {rows[b]["drop"]:.0f} px, head away '
+                          f'{-rows[a]["head_dx"]:.0f} -> {-rows[b]["head_dx"]:.0f} px from {lab[a]} - K1 is the impact, K2 goes further (wrong frame order?)')
+    info.append('hit (against the idle; hip drop / head away / lean back / front knee rise / back foot slide): ' + ' | '.join(
+        f'{lab[i]} {r["drop"]:.0f} / {-r["head_dx"]:.0f} / {r["lean_back"]:.1f} / {r["knee_rise"]:.1f} / {r["slide"]:+.0f}' for i, r in enumerate(rows)))
+    # the way back: every frame after the deepest key is closer to the idle; the last one within 12 px of it
+    d = [joint_dist(m['_J'], R, BODY_JOINTS) for m in meas]
+    last = keys[-1] if keys else 0
+    for k in range(last + 1, len(meas)):
+        if d[k] >= d[k - 1]:
+            (errors if k == last + 1 else warns).append(f'{lab[k]}: {d[k]:.0f} px from the idle, {lab[k - 1]} was {d[k - 1]:.0f} - after the peak the body '
+                                                       'comes back toward the idle')
+    far = max(dist(meas[-1]['_J'][j], R[j]) for j in BODY_JOINTS)
+    if far > K.get('k_last_vs_idle_max_src_px', 12):
+        warns.append(f'{lab[-1]}: a body joint is still {far:.0f} px from the idle, the bible asks {K.get("k_last_vs_idle_max_src_px", 12)} or less '
+                     '(the last frame hands over to the idle)')
+
+
+def idle_rules(meas, spec, change, errors, warns, info):
+    """a breathing loop: the rest frame defines the column (hip x=192), the feet never move, tiny motion, the loop closes"""
+    n = len(meas)
+    lab = [m['frame'] for m in meas]
+    hip0 = meas[0]['hip']
+    if abs(hip0[0] - SLOT / 2) > HIP_X_TOL:
+        errors.append(f'{lab[0]}: hip centre at x={hip0[0]:.1f}, the rest frame stands on the column x={SLOT // 2} +-{HIP_X_TOL} (registration anchors '
+                      'it there; attack and hit sets are measured from the same column)')
+    for m in meas:
+        for s in 'NF':
+            mv = dist(m['_J']['ank' + s], meas[0]['_J']['ank' + s])
+            if mv > 2 or m['leg_low'][s] != BASELINE:
+                errors.append(f'{m["frame"]}: the {"near" if s == "N" else "far"} foot ' + (f'moves {mv:.1f} px' if mv > 2 else 'leaves the floor')
+                              + f' - an idle stands on both feet (+-2 px, soles on y={BASELINE})')
+        if abs(m['hip'][0] - hip0[0]) > 2:
+            warns.append(f'{m["frame"]}: the hip moves {m["hip"][0] - hip0[0]:+.1f} px sideways, breathing moves it up and down only')
+    moves = [max(dist(m['_J'][j], meas[0]['_J'][j]) for j in CHAIN) for m in meas]
+    info.append('largest joint move from the rest frame: ' + ' '.join(f'{v:.1f}' for v in moves) + f' px (a breathing idle: up to {IDLE_MOVE})')
+    for m, v in zip(meas, moves):
+        if v > IDLE_MOVE:
+            warns.append(f'{m["frame"]}: a joint moves {v:.0f} px from the rest frame, a breathing idle moves 1-2 game px ({IDLE_MOVE} px) - '
+                         'a bigger change is a different pose')
+    if n > 1 and max(moves[1:]) < 0.5:
+        warns.append('every frame is the rest pose (no joint moves): the breathing frames add nothing (chest and shoulders up 1 game px at the top)')
+    steps = [joint_dist(meas[k + 1]['_J'], meas[k]['_J']) for k in range(n - 1)]
+    close = joint_dist(meas[0]['_J'], meas[-1]['_J'])
+    sil = [change(k, k + 1) for k in range(n - 1)]
+    sc = change(n - 1, 0)
+    info.append('loop: joint step ' + ' '.join(f'{v:.1f}' for v in steps) + f' px, last -> first {close:.1f} px; silhouette '
+                + ' '.join(f'{v:.0f}%' for v in sil) + f', last -> first {sc:.0f}%')
+    if n > 1 and (close > max(steps) + 1 or sc > max(sil) + 2 or close > 2 * steps[0] + 1 or sc > 2 * sil[0] + 2):
+        errors.append(f'the loop does not close: {lab[-1]} -> {lab[0]} moves {close:.1f} px / {sc:.0f}% (the steps inside the loop at most '
+                      f'{max(steps):.1f} px / {max(sil):.0f}%, the step out of {lab[0]} {steps[0]:.1f} px / {sil[0]:.0f}%) - the last frame leads back '
+                      f'into the first like any neighbour (at most 2x the first step + 1 px / + 2%: exhale mirrors inhale)')
+    for k in range(n):
+        j = (k + 1) % n
+        if moves and joint_dist(meas[k]['_J'], meas[j]['_J']) == 0 and n > 1 and max(moves[1:]) >= 0.5:
+            warns.append(f'{lab[k]} -> {lab[j]}: the two frames have the same joints (a copy?) - each breathing frame is its own step '
+                         '(check the frame order: rest, inhale, top, exhale)')
+
+
+def export_motion(flats, durs, out, name, spec):
+    """one PNG per frame f<NN>_<name>.png (384x1024 RGB, NN 0-based in the bible order) and the game-size preview GIF"""
+    os.makedirs(out, exist_ok=True)
+    small = []
+    for i, (rgb, _) in enumerate(flats):
+        fn = re.sub(r'[^A-Za-z0-9]+', '_', spec['names'][i]).strip('_')
+        Image.fromarray(rgb, 'RGB').save(os.path.join(out, f'f{i:02d}_{fn}.png'))
+        cell = Image.fromarray(rgb, 'RGB').crop((0, BASELINE - 500, SLOT, BASELINE + 12))
+        cell = cell.resize((round(cell.width * SCALE), round(cell.height * SCALE)), Image.BOX)
+        small.append(cell.resize((cell.width * 4, cell.height * 4), Image.NEAREST))
+    small[0].save(os.path.join(out, f'{name}_preview.gif'), save_all=True, append_images=small[1:], duration=durs, loop=0, disposal=1)
+
+
+def main_motion(a, motion, bones):
+    set_id = a.set or os.path.splitext(os.path.basename(os.path.normpath(a.src)))[0]
+    try:
+        spec, problems = motion_spec(motion, set_id, a.bible, a.chars)
+    except (OSError, ValueError, KeyError) as e:
+        print(f'FAIL: cannot read the bible / chars: {e}')
+        return 1
+    print(f'# skeleton {set_id} ({motion})')
+    if spec is None:
+        for p in problems:
+            print('FAIL: ' + p)
+        print('RESULT: FAIL')
+        return 1
+    stem = os.path.splitext(os.path.basename(os.path.normpath(a.src)))[0]
+    pre_w = [] if stem == set_id else [f'the file is named {stem}, the set {set_id}: deliver it as art/inbox/guides/{set_id}/{set_id}.aseprite']
+    if os.path.isdir(a.src):
+        print('FAIL: a motion set is read from its .aseprite (frame tags and durations); a layers folder has neither')
+        print('RESULT: FAIL')
+        return 1
+    with tempfile.TemporaryDirectory(prefix='skeleton-') as tmp:
+        try:
+            frames, durs, names, hidden = load_aseprite(a.src, a.aseprite_exe, os.path.join(tmp, 'new'))
+            tags = load_tags(a.src, a.aseprite_exe, os.path.join(tmp, 'tags'))
+            ref = None
+            if a.idle:
+                fr2, _, names2, _ = load_aseprite(a.idle, a.aseprite_exe, os.path.join(tmp, 'idle'))
+                ref = frame_ref(fr2[0], names2, f'rest frame of {os.path.basename(a.idle)}')
+        except (RuntimeError, OSError, ValueError, KeyError, subprocess.SubprocessError) as e:
+            print(f'FAIL: cannot read {a.src}: {e}')
+            print('RESULT: FAIL')
+            return 1
+        errors, warns, info, meas, flats = check_motion(frames, durs, names, hidden, tags, bones, spec, ref)
+        errors = problems + errors
+        warns = pre_w + warns
+        for ln in info:
+            print('- ' + ln)
+        if a.base:
+            try:
+                print('- changed against the start file:')
+                for ln in compare(frames, load_aseprite(a.base, a.aseprite_exe, os.path.join(tmp, 'base'))[0], warns, 'f'):
+                    print('    ' + ln)
+            except (RuntimeError, OSError, ValueError, subprocess.SubprocessError) as e:
+                warns.append(f'could not read the start file {a.base}: {e}')
+        for w in warns:
+            print('WARN: ' + w)
+        for e in errors:
+            print('FAIL: ' + e)
+        if a.export and flats and len(flats) == len(spec['names']):
+            export_motion(flats, durs, a.export, set_id, spec)
+            with open(os.path.join(a.export, 'pose_measured.json'), 'w', encoding='utf-8') as f:
+                json.dump(dict(set=set_id, motion=motion, sheet=spec['sheet'], arch=spec['arch'], weight=spec['weight'], source=os.path.basename(a.src),
+                               baseline=BASELINE, scale=SCALE, names=spec['names'], durations_ms=durs, contact=spec['contact'], hold=spec['hold'],
+                               cut=spec['cut'], frames=meas), f, ensure_ascii=False, indent=1, default=lambda o: list(o) if isinstance(o, tuple) else str(o))
+                f.write('\n')
+            print(f'- exported f<NN>_<name>.png per frame, {set_id}_preview.gif and pose_measured.json to {a.export}')
+        print('RESULT: ' + ('FAIL' if errors else 'PASS' + (f' ({len(warns)} warning(s))' if warns else '')))
+    return 1 if errors else 0
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument('src', help='SET.aseprite, or a folder of W<n>_<layer>.png (run sets: R<n>_<layer>.png)')
@@ -601,6 +1415,13 @@ def main(argv=None):
     ap.add_argument('--gait', choices=('walk', 'run'), help='which rules to apply. Default: "gait" of --pose pose.json, else run for a folder '
                                                             'of R<n>_ files or a file named run_*, else walk')
     ap.add_argument('--aseprite-exe', default=os.environ.get('ASEPRITE_PATH') or (HEADLESS if os.path.exists(HEADLESS) else 'aseprite'))
+    ap.add_argument('--motion', choices=('attack', 'hit', 'idle'), help='measure an attack / hit / idle mannequin sequence (SPEC section 10) '
+                    'against tools/art/specs/motion_bible.json + motion_chars.json. Default: from a set id / file name atk__ / hit__ / idle__')
+    ap.add_argument('--set', help='the set id <atk|hit|idle>__<sheet stem without sheet_> (default: the file name), e.g. atk__class_warrior')
+    ap.add_argument('--idle', help='hit sets: the idle set of the character (.aseprite, rest frame 1) as the reference instead of the bible '
+                                   'idle_reference built on the posekit mannequin')
+    ap.add_argument('--bible', default=os.path.join(SPECS, 'motion_bible.json'), help=argparse.SUPPRESS)
+    ap.add_argument('--chars', default=os.path.join(SPECS, 'motion_chars.json'), help=argparse.SUPPRESS)
     a = ap.parse_args(argv)
     bones = dict(DEFAULT_BONES)
     request = {}
@@ -608,6 +1429,13 @@ def main(argv=None):
         with open(a.pose, encoding='utf-8') as f:
             request = json.load(f)
         bones.update(request.get('bones_px', {}))
+    pm = re.match(r'^(atk|hit|idle)__', a.set or os.path.basename(os.path.normpath(a.src)))
+    motion = a.motion or (PREFIX_MOTION[pm.group(1)] if pm and not a.gait and not request.get('gait') else None)
+    if motion:
+        if a.gait:
+            print(f'FAIL: --gait {a.gait} and --motion {motion}: a set is either a walk / run cycle or an attack / hit / idle sequence')
+            return 1
+        return main_motion(a, motion, bones)
     gait = a.gait or request.get('gait') or ('run' if dir_prefix(a.src) == 'R' or os.path.basename(os.path.normpath(a.src)).startswith('run_') else 'walk')
     if gait not in ('walk', 'run'):
         print(f'FAIL: {a.pose}: unknown gait "{gait}" (walk or run)')

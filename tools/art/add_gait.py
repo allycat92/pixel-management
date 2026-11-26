@@ -4,7 +4,7 @@
   python3 tools/art/add_gait.py <시트 id | 시트 png 이름> --gait run|walk
         --src <a.png> <b.png> | --src <파일.aseprite>
         [--stride 게임px | --pose pose.json] [--ms N] [--floor 870] [--center 192] [--scale S]
-        [--dry-run --work DIR] [--allow-draft] [--aseprite-bin EXE]
+        [--dry-run --work DIR] [--allow-draft] [--aseprite-bin EXE] [--extra-guides DIR]
   python3 tools/art/add_gait.py <시트> --gait run|walk --remove [--dry-run --work DIR]
   python3 tools/art/add_gait.py <시트> --reattach        # register_sheet.py 가 다시 등록한 뒤 부른다 (손으로 불러도 된다)
 
@@ -36,8 +36,10 @@
 
 게임에 들어가는 그림만 받는다: 초안 자리(art/concepts/, art/requests/, drafts/, nai_*)의 파일은 sheets.py 와 같은 규칙으로, 뼈대(마네킹)는
   — 경로에 guides 폴더가 있는 파일(art/inbox/guides/<id>/ 포함), 옆에 pose_measured.json 이 있는 띠(check_skeleton --export), joints 레이어가 있는
-  .aseprite, 어느 프레임의 실루엣이 클라우드 뼈대 초안(art/requests/guides/*/v*/ 의 띠 또는 레이어를 합친 것)과 IoU 0.9 넘게 겹치는 원본
-  (joints 레이어를 지운 마네킹, 이름을 바꾼 마네킹 띠) — 모두 거부한다. joints 레이어가 보이는 .aseprite 는 --allow-draft 로도 받지 않는다 (관절 점이 찍힌다).
+  .aseprite, 어느 프레임(또는 좌우로 뒤집은 것)의 실루엣이 뼈대 프레임과 자리를 맞춰(그림 상자의 아래 가운데를 맞추고 x, y ±24px 를 더 찾아)
+  IoU 0.9 넘게 겹치는 원본 (joints 레이어를 지운 마네킹, 이름을 바꾸거나 몇 px 옮기거나 뒤집은 마네킹) — 모두 거부한다.
+  비교하는 뼈대: 클라우드 초안 art/requests/guides/*/v*/ (띠, 레이어를 합친 것)·art/requests/guides/*/ 의 띠, PC 가 넘긴 마네킹
+  art/inbox/guides/** 의 .aseprite (내보내 파일 해시로 ~/.cache/pixel-management/guide_masks/ 에 캐시)와 띠, --extra-guides 폴더. joints 레이어가 보이는 .aseprite 는 --allow-draft 로도 받지 않는다 (관절 점이 찍힌다).
   --allow-draft = 파이프라인 시험용, 언제나 --dry-run.
 실패로 끝나는 그림: 384px 프레임의 테두리에 닿는 프레임 (띠가 잘리거나 옆 자세가 넘어온 것 — 프레임 번호를 알린다),
   바닥 줄 아래로 내려가는 프레임 (--allow-below 를 주면 받고 기록에 남긴다), 칸에 들어가지 않는 프레임.
@@ -361,8 +363,11 @@ def command_for(sid, gait, rec):
 
 
 GUIDES = os.path.join(ROOT, 'art', 'requests', 'guides')
-DRAFT_IOU = 0.9              # 원본 프레임의 실루엣이 클라우드 뼈대 초안의 한 프레임과 이만큼 겹치면 마네킹으로 본다
-_DRAFT_MASKS = None
+INBOX_GUIDES = os.path.join(ROOT, 'art', 'inbox', 'guides')
+DRAFT_IOU = 0.9              # 원본 프레임의 실루엣이 뼈대(마네킹)의 한 프레임과 이만큼 겹치면 마네킹으로 본다
+DRAFT_SEARCH = 24            # 맞춘 뒤 x, y 로 더 찾아보는 범위 (원본 px)
+EXTRA_GUIDES = []            # 비교에 더할 폴더 (receive.py 가 origin/art-inbox 의 art/inbox/guides/ 를 꺼내 둔 곳; --extra-guides)
+_DRAFT_MASKS = {}
 
 
 def frame_mask(arr):
@@ -372,25 +377,142 @@ def frame_mask(arr):
     return sh.matte(np.ascontiguousarray(arr))[1] > 0.5
 
 
-def draft_masks():
-    """클라우드가 만든 뼈대 초안(art/requests/guides/<set>/v<n>/)의 프레임 실루엣 → [(이름, mask)].
-    띠 png(<set>_a.png / _b.png: 높이 1024, 너비 384 의 배수)와 layers/ 의 레이어 png 를 프레임마다 합친 것(joints 제외) 둘 다."""
-    global _DRAFT_MASKS
-    if _DRAFT_MASKS is not None:
-        return _DRAFT_MASKS
-    out = []
-    for vdir in sorted(glob.glob(os.path.join(GUIDES, '*', 'v*'))):
-        if not os.path.isdir(vdir):
-            continue
-        for png in sorted(glob.glob(os.path.join(vdir, '*.png'))):
+def _crop(m):
+    """mask → 그림 테두리 상자로 자른 bool 배열 (빈 mask 면 None)"""
+    rows, cols = np.flatnonzero(m.any(1)), np.flatnonzero(m.any(0))
+    if not len(rows):
+        return None
+    return np.ascontiguousarray(m[rows[0]:rows[-1] + 1, cols[0]:cols[-1] + 1])
+
+
+def _fast(n):
+    """n 이상인 가장 작은 2·3·5 의 곱 (FFT 크기)"""
+    while True:
+        k = n
+        for f in (2, 3, 5):
+            while k % f == 0:
+                k //= f
+        if k == 1:
+            return n
+        n += 1
+
+
+def aligned_iou(a, b, search=DRAFT_SEARCH):
+    """두 실루엣(테두리 상자로 자른 bool 배열)의 IoU 를 자리와 상관없이 잰다:
+    상자의 아래 가운데를 맞춘 뒤 x, y 로 ±search px 안에서 가장 많이 겹치는 자리 → (IoU, (dx, dy)).
+    겹침은 FFT 상관으로 한 번에 센다 (모든 자리에서 정확한 값; 판 크기 = 큰 상자 + 2 x search 라 감아 돌지 않는다)."""
+    ha, wa = a.shape
+    hb, wb = b.shape
+    H, W = max(ha, hb) + 2 * search, max(wa, wb) + 2 * search
+    FH, FW = _fast(H), _fast(W)
+    bottom, mid = search + max(ha, hb), search + max(wa, wb) // 2
+
+    def place(m):
+        h, w = m.shape
+        c = np.zeros((FH, FW), np.float64)
+        c[bottom - h:bottom, mid - w // 2:mid - w // 2 + w] = m
+        return c
+    A, B = place(a), place(b)
+    corr = np.fft.irfft2(np.conj(np.fft.rfft2(A)) * np.fft.rfft2(B), s=(FH, FW))   # corr[s] = Σ A(p) B(p+s)
+    idx_y = np.arange(-search, search + 1) % FH
+    idx_x = np.arange(-search, search + 1) % FW
+    win = np.rint(corr[np.ix_(idx_y, idx_x)])
+    na, nb = float(a.sum()), float(b.sum())
+    iou = win / np.maximum(na + nb - win, 1)
+    k = np.unravel_index(int(np.argmax(iou)), iou.shape)
+    return float(iou[k]), (int(k[1]) - search, int(k[0]) - search)
+
+
+def _slots(arr):
+    """한 장의 그림(높이 1024, 너비 384 의 배수) → 프레임들; 규격이 아니면 []"""
+    if arr.shape[0] != 1024 or arr.shape[1] % SLOT:
+        return []
+    return [arr[:, k * SLOT:(k + 1) * SLOT] for k in range(arr.shape[1] // SLOT)]
+
+
+def _cache_dir():
+    base = os.environ.get('XDG_CACHE_HOME') or os.path.join(os.path.expanduser('~'), '.cache')
+    return os.path.join(base, 'pixel-management', 'guide_masks')
+
+
+def _ase_guide_masks(path, exe):
+    """마네킹 .aseprite 의 보이는 레이어를 합친 프레임 실루엣들 (한 Aseprite 프레임이 384 의 배수 너비면 384 씩 자른다).
+    파일 내용의 sha256 으로 캐시한다 (~/.cache/pixel-management/guide_masks/) — 같은 파일은 Aseprite 를 다시 부르지 않는다."""
+    import hashlib
+    with open(path, 'rb') as f:
+        digest = hashlib.sha256(f.read()).hexdigest()
+    cache = os.path.join(_cache_dir(), digest + '.npz')
+    try:
+        z = np.load(cache)
+        return [np.unpackbits(z['bits'][i], count=int(z['h']) * int(z['w'])).reshape(int(z['h']), int(z['w'])).astype(bool)
+                for i in range(len(z['bits']))]
+    except (OSError, KeyError, ValueError):
+        pass
+    exe2 = find_aseprite(exe)
+    if not exe2:
+        raise Fail(f'{rel(path)}: 마네킹 .aseprite 를 비교 대상으로 읽을 Aseprite 실행 파일이 없다 (--aseprite-bin / tools/art/ase_headless.sh) '
+                   '— 비교 없이 받지 않는다')
+    with tempfile.TemporaryDirectory(prefix='gait-guide-') as tmp:
+        png, js = os.path.join(tmp, 'frames.png'), os.path.join(tmp, 'frames.json')
+        r = subprocess.run([exe2, '--batch', os.path.abspath(path), '--sheet', png, '--data', js, '--format', 'json-array'],
+                           stdin=subprocess.DEVNULL, capture_output=True, timeout=300, env=ase_env())
+        if r.returncode or not os.path.exists(png) or not os.path.exists(js):
+            raise Fail(f'{rel(path)}: 마네킹 .aseprite 를 비교 대상으로 내보내지 못했다 — 비교 없이 받지 않는다: '
+                       + (r.stderr or r.stdout).decode('utf-8', 'replace').strip()[-200:])
+        with open(js, encoding='utf-8') as f:
+            data = json.load(f)['frames']
+        arr = np.asarray(Image.open(png).convert('RGBA'))
+    masks = []
+    for fr in data:
+        q = fr['frame']
+        masks += [frame_mask(s) for s in _slots(arr[q['y']:q['y'] + q['h'], q['x']:q['x'] + q['w']])]
+    if masks:
+        try:
+            os.makedirs(_cache_dir(), exist_ok=True)
+            h, w = masks[0].shape
+            tmpf = cache + f'.{os.getpid()}.npz'
+            np.savez_compressed(tmpf, bits=np.stack([np.packbits(m.ravel()) for m in masks]), h=h, w=w)
+            os.replace(tmpf, cache)
+        except OSError:
+            pass
+    return masks
+
+
+def draft_masks(exe=None):
+    """비교할 뼈대(마네킹) 프레임의 실루엣 → [(이름, 테두리 상자로 자른 mask)] (같은 모양은 한 번만):
+      - 클라우드 초안 art/requests/guides/<set>/v<n>/: 띠 png(높이 1024, 너비 384 의 배수)와 layers/ 의 레이어 png 를 프레임마다 합친 것(joints 제외)
+      - art/requests/guides/<set>/ 바로 아래의 띠 png
+      - PC 가 넘긴 마네킹 art/inbox/guides/**: <id>.aseprite 등 모든 .aseprite (보이는 레이어, 내보내서 캐시)와 띠 png
+      - EXTRA_GUIDES 폴더들 (receive.py: 아직 이 브랜치에 들이지 않은 origin/art-inbox 의 art/inbox/guides/) — 같은 규칙"""
+    key = tuple(EXTRA_GUIDES)
+    if key in _DRAFT_MASKS:
+        return _DRAFT_MASKS[key]
+    out, seen = [], set()
+
+    def add(name, m):
+        c = _crop(m)
+        if c is None:
+            return
+        h = (c.shape, np.packbits(c).tobytes())
+        if h not in seen:
+            seen.add(h)
+            out.append((name, c))
+
+    def strips(pngs):
+        for png in pngs:
             try:
                 arr = np.asarray(Image.open(png).convert('RGBA'))
             except OSError:
                 continue
-            if arr.shape[0] != 1024 or arr.shape[1] % SLOT:
-                continue                                   # 리뷰 그림·미리보기
-            for k in range(arr.shape[1] // SLOT):
-                out.append((f'{rel(png)} 의 {k + 1}번 프레임', frame_mask(arr[:, k * SLOT:(k + 1) * SLOT])))
+            for k, fr in enumerate(_slots(arr)):                # 리뷰 그림·미리보기는 규격이 아니라 빠진다
+                add(f'{rel(png)} 의 {k + 1}번 프레임', frame_mask(fr))
+
+    for sdir in sorted(glob.glob(os.path.join(GUIDES, '*'))):
+        strips(sorted(glob.glob(os.path.join(sdir, '*.png'))))
+    for vdir in sorted(glob.glob(os.path.join(GUIDES, '*', 'v*'))):
+        if not os.path.isdir(vdir):
+            continue
+        strips(sorted(glob.glob(os.path.join(vdir, '*.png'))))
         groups = {}
         for png in sorted(glob.glob(os.path.join(vdir, 'layers', '*_*.png'))):
             fr, layer = os.path.basename(png)[:-4].split('_', 1)
@@ -402,14 +524,45 @@ def draft_masks():
                 a = np.asarray(Image.open(png).convert('RGBA'))[..., 3] > 0
                 m = a if m is None else (m | a) if m.shape == a.shape else m
             if m is not None and m.shape[1] == SLOT:
-                out.append((f'{rel(os.path.join(vdir, "layers"))}/{fr}_*', m))
-    _DRAFT_MASKS = out
+                add(f'{rel(os.path.join(vdir, "layers"))}/{fr}_*', m)
+    for root in [INBOX_GUIDES] + list(EXTRA_GUIDES):
+        strips(sorted(glob.glob(os.path.join(root, '**', '*.png'), recursive=True)))
+        for ase in sorted(glob.glob(os.path.join(root, '**', '*.aseprite'), recursive=True)
+                          + glob.glob(os.path.join(root, '**', '*.ase'), recursive=True)):
+            for k, m in enumerate(_ase_guide_masks(ase, exe)):
+                add(f'{rel(ase)} 의 {k + 1}번 프레임', m)
+    _DRAFT_MASKS[key] = out
     return out
 
 
+def best_guide_match(frames, exe=None, stop=None):
+    """원본 프레임들 각각(과 좌우를 뒤집은 것)을 모든 뼈대 프레임에 자리를 맞춰 대 본 가장 높은 IoU
+    → (IoU, 프레임 번호, 뼈대 이름, 뒤집었나, (dx, dy)). 넓이 비가 지금까지의 최고보다 낮은 짝은 재지 않는다 (IoU ≤ 넓이 비).
+    stop 을 주면 그보다 높은 짝을 찾는 대로 멈추고, 넓이 비가 stop 이하인 짝도 재지 않는다 (판정만 필요할 때 — 돌려주는 값은 stop 이하일 수 있다)."""
+    drafts = [(n, d, float(d.sum())) for n, d in draft_masks(exe)]
+    best = (0.0, None, None, False, (0, 0))
+    floor = stop or 0.0
+    for i, fr in enumerate(frames):
+        c = _crop(frame_mask(fr))
+        if c is None:
+            continue
+        na = float(c.sum())
+        for flip, m in ((False, c), (True, np.ascontiguousarray(c[:, ::-1]))):
+            for name, d, nb in drafts:
+                if min(na, nb) / max(na, nb) <= max(best[0], floor):
+                    continue
+                iou, sh_ = aligned_iou(m, d)
+                if iou > best[0]:
+                    best = (iou, i + 1, name, flip, sh_)
+                    if stop is not None and iou > stop:
+                        return best
+    return best
+
+
 def draft_match(p, exe):
-    """원본의 어느 프레임이 클라우드 뼈대 초안의 프레임과 실루엣이 IoU > DRAFT_IOU 로 겹치면 그 이유, 아니면 None.
-    joints 레이어를 지운 마네킹, 이름을 바꾼 마네킹 띠도 잡는다 (그린 캐릭터는 옷·머리·무기로 실루엣이 달라진다)."""
+    """원본의 어느 프레임(또는 좌우로 뒤집은 것)이 뼈대(마네킹) 프레임과 자리를 맞춰 실루엣 IoU > DRAFT_IOU 로 겹치면 그 이유, 아니면 None.
+    joints 레이어를 지운 마네킹, 이름을 바꾼 마네킹 띠, 몇 px 옮기거나 뒤집은 마네킹도 잡는다
+    (그린 캐릭터는 옷·머리·무기로 실루엣이 달라진다 — 등록된 시트의 GPT 원본은 자리를 맞춰도 0.9 에 한참 못 미친다)."""
     try:
         if p.lower().endswith(('.aseprite', '.ase')):
             frames = frames_from_aseprite(p, exe)[0]
@@ -420,24 +573,11 @@ def draft_match(p, exe):
             frames = [arr[:, k * SLOT:(k + 1) * SLOT] for k in range(arr.shape[1] // SLOT)]
     except OSError:
         return None
-    drafts = draft_masks()
-    best = (0.0, None, None)
-    for i, fr in enumerate(frames):
-        m = frame_mask(fr)
-        if not m.any():
-            continue
-        for name, d in drafts:
-            if d.shape != m.shape:
-                continue
-            inter = int(np.count_nonzero(m & d))
-            if not inter:
-                continue
-            iou = inter / int(np.count_nonzero(m | d))
-            if iou > best[0]:
-                best = (iou, i + 1, name)
-    if best[0] > DRAFT_IOU:
-        return (f'{best[1]}번 프레임의 실루엣이 클라우드 뼈대 초안과 겹친다 — {best[2]}, IoU {best[0]:.3f} > {DRAFT_IOU} '
-                '= 마네킹 (joints 레이어를 지웠거나 이름을 바꾼 것)')
+    iou, fi, name, flip, (dx, dy) = best_guide_match(frames, exe, stop=DRAFT_IOU)
+    if iou > DRAFT_IOU:
+        return (f'{fi}번 프레임의 실루엣이 뼈대(마네킹)와 겹친다 — {name}, IoU {iou:.3f} > {DRAFT_IOU} '
+                f'(아래 가운데를 맞추고 {dx:+d},{dy:+d}px 옮겨서{", 좌우를 뒤집어서" if flip else ""}) '
+                '= 마네킹 (joints 레이어를 지웠거나 이름을 바꾸거나 옮긴 것)')
     return None
 
 
@@ -446,8 +586,8 @@ def guide_reason(p, exe):
     - 경로에 guides 폴더 (art/requests/guides/<id>/…, PC 가 넘기는 art/inbox/guides/<id>/<id>.aseprite)
     - 옆에 pose_measured.json (check_skeleton.py --export 가 마네킹에서 뽑은 띠)
     - joints 레이어가 있는 .aseprite (관절 점 레이어 = 뼈대 작업 파일)
-    - 어느 프레임의 실루엣이 클라우드 뼈대 초안(art/requests/guides/*/v*/ 의 띠·레이어)의 프레임과 IoU > 0.9
-      (joints 레이어를 지운 마네킹, 이름을 바꿔 옮긴 마네킹 띠)"""
+    - 어느 프레임(또는 뒤집은 것)의 실루엣이 뼈대 프레임(draft_masks: 클라우드 초안 + PC 가 넘긴 art/inbox/guides/ 마네킹)과
+      자리를 맞춰 IoU > 0.9 (joints 레이어를 지운 마네킹, 이름을 바꾸거나 옮기거나 뒤집은 마네킹)"""
     real = os.path.realpath(p)
     if 'guides' in real.split(os.sep)[:-1]:
         return 'guides/ 폴더 안의 파일 = 뼈대 가이드'
@@ -676,7 +816,10 @@ def main(argv=None):
     ap.add_argument('--allow-draft', action='store_true', help='시험용: 초안·가이드(뼈대 마네킹 포함) 원본도 처리한다. 언제나 --dry-run')
     ap.add_argument('--allow-below', action='store_true', help='바닥 줄 아래로 내려가는 프레임을 받는다 (기본: 실패). 기록에 남아 다시 붙일 때도 쓴다')
     ap.add_argument('--aseprite-bin', help='Aseprite 실행 파일 (기본: $ASEPRITE_PATH, tools/art/ase_headless.sh, $ASEPRITE, PATH)')
+    ap.add_argument('--extra-guides', action='append', default=[], metavar='DIR',
+                    help='마네킹 비교에 더할 폴더 (.aseprite·띠 png; receive.py 가 origin/art-inbox 의 art/inbox/guides/ 를 꺼내 넘긴다)')
     a = ap.parse_args(argv)
+    EXTRA_GUIDES[:] = [os.path.abspath(d) for d in a.extra_guides]
     try:
         man = load_manifest()
         sid = resolve_sheet(a.sheet, man)
