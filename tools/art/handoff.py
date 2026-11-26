@@ -11,6 +11,12 @@ README.md = the English prompt block for GPT (per-character part first) + Korean
 
   python3 tools/art/handoff.py                       # every package in CHARS and CREATURES
   python3 tools/art/handoff.py captain_fixer --check # one package; --check also prints the layout
+  python3 tools/art/handoff.py --hit-set DIR         # hit reaction keys K1/K2 x heavy/mid/light per weapon + measurements
+
+Hit (owner decision 2026-11-26): the guide's hit is the K2-mid reaction of posekit.HIT_KEYS, measured by hit_metrics() and
+refused when hit_problems() finds a lean > 15 deg, a hip drop outside 12-30 px, a lifted foot or knee. The hit text comes
+from hit_pose(hit_weight, detail): generation FAILS on knee-up wording (BANNED_POSE_RE) or on a note that seals away a
+portrait weapon (SEAL_RE) without an `explain`.
 
 Kinds: captains (CHARS, concept + portrait), generic class sheets (CHARS kind 'class': KEY COLOURS block from
 phase3.json item.tint, the engine recolours the uniform per faction), humanoid monsters (CHARS kind 'monster', posekit
@@ -67,16 +73,29 @@ POSES = [('idle', 'guide_1_idle.png', '대기', 'idle'),
 # posekit's generic frames keep one deep lunge for every pose, and some read badly as KEY poses at 64 px
 # (katana wind-up blade hanging down behind the back, spear wind-up/strike/hit all level, every hit
 # looking like a guard). The handoff uses these variants: wind-up = weight back, more upright; strike =
-# step-in lunge with the arms extended; hit = torso thrown back, weight on the rear leg, weapon dropped.
+# step-in lunge with the arms extended; hit = the K2-mid reaction of posekit.HIT_KEYS (head and shoulders snapped
+# away, knees bent, hips dropped, both feet planted flat where the idle stands them, weapon kept in hand).
 # Same mannequin, bone lengths, IK and checks as posekit (pk.check); values are head units, x is
 # absolute, heights come from at(x, h) (h relative to the shoulder line at 2.40, as in posekit.frames).
 A_ = 0.12
 KEY_BODY = {
     'windup': dict(hip=(-0.30, 1.46), lean=-0.10, footN=(-1.08, A_), footF=(0.72, A_), tilt=0.05, toeN=0.85),
     'strike': dict(hip=(0.42, 1.10), lean=0.30, footN=(-0.88, A_), footF=(1.42, A_), tilt=-0.08, toeN=0.85),
-    'hit': dict(hip=(-0.46, 1.36), lean=-0.42, footN=(-1.06, A_), footF=(0.66, A_), tilt=-0.30,
-                head_off=(-0.08, -0.02), faF=-10, toeN=0.85, kneeF=(1.0, -0.3)),
 }
+
+
+def _hit_key_body(key):
+    b = pk.hit_body(key)
+    return dict(b, footN=(b['footN'], A_), footF=(b['footF'], A_))
+
+
+for _k in pk.HIT_KEYS:                         # hit_k1_heavy .. hit_k2_light: the frame pipeline's reaction keys
+    KEY_BODY['hit_' + _k] = _hit_key_body(_k)
+KEY_BODY['hit'] = _hit_key_body(pk.HIT_DEFAULT)  # the one hit slot of the 4-pose packages = K2-mid
+# The key_hit arm targets below are authored on this body (K2-mid); key_frames() moves them with the shoulders of the
+# other reaction keys (pk.arm_shift), so every K1/K2 holds the weapon the same way relative to the torso.
+HIT_ARM_REF = dict(hip=KEY_BODY['hit']['hip'], lean=KEY_BODY['hit']['lean'])
+HIT_WEIGHTS = ('heavy', 'mid', 'light')
 _ZS = {'shield': 58, 'boss': 58.5}
 _ZM = {'blade': 'mid', 'handle': 'mid'}
 # weapon → {frame name: (posekit base frame, KEY_BODY key or None, arms(at) → pose overrides)}
@@ -87,9 +106,9 @@ KEY_POSES = {
             z={'blade': 'back', 'handle': 'mid', 'farfore': 'back'})),
         'key_strike': ('attack_2', 'strike', lambda a: dict(
             grip=a(1.50, 2.10), wa=-28, handN=('w', -0.12), handF=('w', -0.40), elbN=(0.0, 1.0), elbF=(0.0, 1.0), z={})),
-        'key_hit': ('hit_0', 'hit', lambda a: dict(
-            grip=a(-0.70, 1.70), wa=-120, handN=('w', -0.12), handF=('p',) + a(0.40, 2.70), elbN=(-1.0, 0.0),
-            elbF=(1.0, -0.2), z={'blade': 'back', 'handle': 'back'})),
+        'key_hit': ('hit_0', 'hit', lambda a: dict(               # katana pulled back by the hip, blade up-back; free hand guards the face
+            grip=a(-0.75, 1.75), wa=118, handN=('w', -0.12), handF=('p',) + a(0.45, 2.80), elbN=(-1.0, 0.0),
+            elbF=(0.5, 1.0), z={'blade': 'back', 'handle': 'back'})),
     },
     'sword_shield': {
         'key_windup': ('attack_1', 'windup', lambda a: dict(
@@ -98,29 +117,29 @@ KEY_POSES = {
         'key_strike': ('attack_2', 'strike', lambda a: dict(
             grip=a(1.30, 2.00), wa=-25, handN=('w', -0.14), handF=('p',) + a(0.55, 2.10), elbN=(0.0, 1.0),
             elbF=(0.4, 1.0), shield_ang=-20, z=dict(_ZS))),
-        'key_hit': ('hit_0', 'hit', lambda a: dict(
-            grip=a(-0.70, 1.70), wa=-115, handN=('w', -0.14), handF=('p',) + a(0.45, 2.40), elbN=(-1.0, 0.0),
-            elbF=(1.0, 0.0), shield_ang=12)),
+        'key_hit': ('hit_0', 'hit', lambda a: dict(               # shield up in front, sword pulled back by the hip, blade up-back
+            grip=a(-0.75, 1.80), wa=115, handN=('w', -0.14), handF=('p',) + a(1.05, 2.50), elbN=(-1.0, 0.0),
+            elbF=(1.0, 0.0), shield_ang=12, z={'blade': 'back', 'handle': 'back'})),
     },
     'spear': {
         'key_windup': ('attack_1', 'windup', lambda a: dict(      # spear pulled back: rear hand behind the hip
             grip=a(0.10, 1.72), wa=6, handN=('w', -0.62), handF=('w', 0.0), elbN=(-0.6, 1.0), elbF=(0.3, 1.0), z={})),
         'key_strike': ('attack_3', 'strike', lambda a: dict(      # both arms extended in the lunge
             grip=a(1.40, 2.10), wa=2, handN=('w', -0.62), handF=('w', 0.0), elbN=(0.0, 1.0), elbF=(0.0, 1.0), z={})),
-        'key_hit': ('hit_0', 'hit', lambda a: dict(               # knocked back, spear tip thrown up
-            grip=a(0.05, 2.20), wa=62, handN=('w', -0.62), handF=('w', 0.0), elbN=(-1.0, 0.3), elbF=(1.0, 0.0))),
+        'key_hit': ('hit_0', 'hit', lambda a: dict(               # spear kept in both hands, tip knocked up
+            grip=a(0.80, 2.29), wa=62, handN=('w', -0.62), handF=('w', 0.0), elbN=(-1.0, 0.3), elbF=(1.0, 0.0))),
     },
     'staff': {
         'key_strike': ('cast_2', 'strike', lambda a: dict(        # free arm extended forward (open palm), staff up behind
             grip=a(-0.55, 2.35), wa=96, handN=('w', 0.0), handF=('p',) + a(2.25, 2.45), elbN=(-0.6, 0.6),
             elbF=(0.0, 1.0), z=dict(_ZM))),
         'key_hit': ('hit_0', 'hit', lambda a: dict(
-            grip=a(-0.70, 1.90), wa=100, handN=('w', 0.0), handF=('p',) + a(0.45, 2.70), elbN=(-1.0, 0.0),
+            grip=a(0.05, 1.99), wa=100, handN=('w', 0.0), handF=('p',) + a(1.20, 2.79), elbN=(-1.0, 0.0),
             elbF=(1.0, -0.2), z=dict(_ZM))),
     },
     'bow': {
         'key_hit': ('hit_0', 'hit', lambda a: dict(
-            grip=a(0.35, 1.50), wa=-55, handF=('w', 0.0), handN=('p',) + a(-1.45, 1.95), elbF=(0.5, 1.0),
+            grip=a(1.10, 1.59), wa=-55, handF=('w', 0.0), handN=('p',) + a(-0.70, 2.04), elbF=(0.5, 1.0),
             elbN=(-1.0, 0.0), nocked=False, draw=0.0)),
     },
     'none': {                                                    # fixer: one reverse-grip dagger in the near hand (drawn by add_dagger)
@@ -132,7 +151,7 @@ KEY_POSES = {
             handN=('p',) + a(1.50, 1.95), handF=('p',) + a(0.05, 2.00), elbN=(0.0, 1.0), elbF=(-0.3, 1.0),
             z={'farfore': 'back'})),
         'key_hit': ('hit_0', 'hit', lambda a: dict(
-            handN=('p',) + a(-1.30, 1.90), handF=('p',) + a(0.45, 2.70), elbN=(-1.0, 0.0), elbF=(1.0, -0.2), z={})),
+            handN=('p',) + a(-0.56, 1.99), handF=('p',) + a(1.20, 2.79), elbN=(-1.0, 0.0), elbF=(1.0, -0.2), z={})),
     },
 }
 
@@ -142,7 +161,12 @@ def key_frames(weapon, B, F):
     k = B.leg / 1.75
     ka = (B.upper + B.fore) / 1.18
     out = {}
+    jobs = []
     for name, (base, body, arms) in KEY_POSES.get(weapon, {}).items():
+        jobs.append((name, base, body, arms))
+        if body == 'hit':                      # + key_hit_k1_heavy .. key_hit_k2_light (exported by --hit-set)
+            jobs += [(f'{name}_{hk}', base, 'hit_' + hk, arms) for hk in pk.HIT_KEYS]
+    for name, base, body, arms in jobs:
         p = copy.deepcopy(F[base])
         if body:
             b = dict(KEY_BODY[body])
@@ -151,8 +175,56 @@ def key_frames(weapon, B, F):
             b['footF'] = (b['footF'][0] * k, b['footF'][1])
             p.update(b)
         h = p['hip'][1] / k
-        p.update(arms(lambda x, y, h=h: (x, h * k + B.torso + (y - 2.40) * ka)))
+        dx = dy = 0.0
+        if body and body.startswith('hit'):
+            dx, dy = pk.arm_shift(p, dict(HIT_ARM_REF, hip=(HIT_ARM_REF['hip'][0], HIT_ARM_REF['hip'][1] * k)), B, k)
+        p.update(arms(lambda x, y, h=h: (x + dx, h * k + B.torso + (y - 2.40) * ka + dy)))
         out[name] = p
+    return out
+
+
+# measured rules of a hit guide pose, at HEAD_PX px/head (= source px of the deliverable strip); see posekit.HIT_KEYS
+HIT_RULES = dict(lean_max=15.0, hip_drop=(12.0, 30.0), knee_rise_max=1.0,
+                 head_dx={'heavy': (12.0, 35.0), 'mid': (25.0, 60.0), 'light': (40.0, 90.0)}, slide_max=0.3 * 110)
+
+
+def hit_metrics(F, builds, name, ref='idle_0'):
+    """numbers of hit pose `name` against the idle `ref`, in strip px (110 px/head): torso lean back (deg from vertical),
+    hip drop, head displacement (dx < 0 = away from the enemy), front/back foot lift (lowest boot pixel above the floor),
+    front-knee rise over its idle height, back-foot slide."""
+    import math
+    J, parts = builds[name]
+    Ji = builds[ref][0]
+    p, pi = F[name], F[ref]
+    d = (J['C'] - Ji['C']) * HEAD_PX
+    lift = {s: max(0.0, -pk.bbox(parts, lambda n, s=s: n == 'boot' + s)[3]) * HEAD_PX for s in 'NF'}
+    return dict(lean_back_deg=round(-math.degrees(p.get('lean', 0.08)), 1),
+                hip_drop_px=round((pi['hip'][1] - p['hip'][1]) * HEAD_PX, 1),
+                head_dx_px=round(float(d[0]), 1), head_dy_px=round(float(d[1]), 1), head_px=round(float(np.hypot(*d)), 1),
+                front_foot_lift_px=round(lift['F'], 1), back_foot_lift_px=round(lift['N'], 1),
+                front_knee_rise_px=round(float(Ji['kneeF'][1] - J['kneeF'][1]) * HEAD_PX, 1),
+                back_foot_slide_px=round((p['footN'][0] - pi['footN'][0]) * HEAD_PX, 1),
+                front_foot_move_px=round((p['footF'][0] - pi['footF'][0]) * HEAD_PX, 1))
+
+
+def hit_problems(m, weight='mid'):
+    """HIT_RULES violations of hit_metrics() output (empty = the guide pose is a believable reaction)."""
+    R, out = HIT_RULES, []
+    if m['lean_back_deg'] > R['lean_max']:
+        out.append(f'torso leans back {m["lean_back_deg"]} deg (max {R["lean_max"]:g})')
+    if not R['hip_drop'][0] <= m['hip_drop_px'] <= R['hip_drop'][1]:
+        out.append(f'hip drop {m["hip_drop_px"]} px (want {R["hip_drop"][0]:g}-{R["hip_drop"][1]:g}: the knees absorb the blow)')
+    lo, hi = R['head_dx'][weight]
+    if not lo <= -m['head_dx_px'] <= hi:
+        out.append(f'head moved {-m["head_dx_px"]} px away from the blow (want {lo:g}-{hi:g} for {weight})')
+    if m['front_foot_lift_px'] > 0 or m['back_foot_lift_px'] > 0:
+        out.append(f'foot lifted (front {m["front_foot_lift_px"]}, back {m["back_foot_lift_px"]} px): both feet stay planted')
+    if m['front_knee_rise_px'] > R['knee_rise_max']:
+        out.append(f'front knee {m["front_knee_rise_px"]} px above its idle height (knee-up hit)')
+    if m['front_foot_move_px'] != 0:
+        out.append(f'front foot moved {m["front_foot_move_px"]} px (it stays where the idle stands it)')
+    if not -R['slide_max'] - 0.5 <= m['back_foot_slide_px'] <= 0 or (weight != 'light' and m['back_foot_slide_px'] != 0):
+        out.append(f'back foot slid {m["back_foot_slide_px"]} px (only light characters, one short step <= 0.3 head)')
     return out
 
 
@@ -170,6 +242,66 @@ def add_dagger(J, parts):
     return sorted(out, key=lambda p: p[3])
 
 
+# ───────── hit wording + request lint ─────────
+# Owner decision 2026-11-26: the hit is a believable reaction, per character weight (default mid). The old sentence
+# "torso thrown back, weight on the rear leg" made the image model lift the front knee to balance; it is banned below.
+HIT_FACE_EN = 'face: wince, eyes squeezed shut, teeth gritted'
+HIT_EN = {
+    'heavy': ('braced against the blow, barely rocking: head and shoulders turn a little away from the enemy, knees bend slightly '
+              'to absorb it, BOTH feet stay flat on the ground exactly where they stood, torso stays almost upright'),
+    'mid': ('flinching away from the blow: head and shoulders snap back, away from the enemy, knees bend and the hips drop a little '
+            'to absorb it, BOTH feet stay flat on the ground exactly where they stood (neither foot leaves the ground), torso leans back only slightly '
+            '(15 degrees at most)'),
+    'light': ('pushed further by the blow: head and shoulders snap back, away from the enemy, knees bend deeply, the back foot may slide one '
+              'short step back while the front foot stays flat on the ground, torso leans back 15 degrees at most'),
+}
+HIT_KO = {'heavy': '버팀(거의 안 흔들림, 두 발 그대로)', 'mid': '머리·어깨가 뒤로 튀고 무릎으로 받음(두 발 바닥)',
+          'light': '더 밀림(뒷발 한 걸음까지, 앞발 바닥)'}
+
+
+def hit_pose(weight, detail, face=HIT_FACE_EN):
+    """the hit pose sentence of a request: weight reaction + face + the character's own detail (weapon kept in hand)."""
+    if weight not in HIT_EN:
+        raise SystemExit(f'hit weight {weight!r} is not one of {", ".join(HIT_WEIGHTS)}')
+    return f'{HIT_EN[weight]}; {face}; {detail}'
+
+
+# phrases that produced the knee-up comic hit (never in a pose text; "kick" alone is fine: "arm kicks up" = pistol recoil)
+BANNED_POSE_RE = re.compile(r'thrown back|rear (?:leg|bare foot|foot)|knees? (?:up|raised|lifted)|kicked up|'
+                            r'(?:lifted|raised) (?:front )?(?:leg|knee)|(?:leg|knee) (?:lifted|raised)', re.I)
+# notes that seal away a weapon / prop of the portrait: allowed only with an `explain` (reason + owner decision source),
+# because such sentences hid Marisol's pistol, Crimson's hook, Astel's book and Kato's chain (motion plan 2026-11-26)
+SEAL_RE = re.compile(r'stays? sheathed|\bsheathed\b|holster|never two|(?:on|from) (?:her|his|their) back|'
+                     r'never (?:fired|swung|thrown|used)|prop only|does not float|second weapon|'
+                     r'not the portrait|portrait[^.;]*\b(?:not drawn|do not draw)|(?:do not draw|not drawn)[^.;]*\bportrait', re.I)
+
+
+HIT_CHECK_EN = ('hit pose: BOTH feet flat on the baseline (no knee or foot lifted), knees bent, torso leaning back 15 degrees at most, '
+                'head and shoulders away from the enemy, face changed (wince), weapon still in hand')
+
+
+def pose_texts(C):
+    """the four pose sentences of a humanoid package: C['pose'] with the hit composed from hit_weight (+ hit_face)."""
+    out = dict(C['pose'])
+    out['hit'] = hit_pose(C.get('hit_weight', 'mid'), C['pose']['hit'], C.get('hit_face', HIT_FACE_EN))
+    return out
+
+
+def lint_request(cid, poses, notes=(), explain=''):
+    """→ list of problems: banned hit phrases in any pose text, portrait-weapon seals in the notes without `explain`."""
+    out = []
+    for p, t in poses:
+        for m in BANNED_POSE_RE.finditer(t):
+            out.append(f'{cid}: pose "{p}" contains banned phrase "{m.group(0)}" (knee-up hit wording; use hit_pose())')
+    if not (explain or '').strip():
+        for n in notes:
+            m = SEAL_RE.search(n)
+            if m:
+                out.append(f'{cid}: note seals a portrait weapon / prop ("{m.group(0)}": {n[:90]}...) without an "explain" '
+                           '(say why, and which owner decision)')
+    return out
+
+
 # ───────── per character ─────────
 # weapon: posekit weapon; frames: posekit or KEY_POSES frame per key pose; concepts: package name → art/concepts path.
 # weapon_desc / keep / fix / pose: English (goes to GPT); colours: labelled game colours (per garment, so a single
@@ -178,6 +310,7 @@ CHARS = {
     'captain_blademaster': dict(
         en='Baren', order=1, anchor=True, weapon='katana',
         frames=dict(idle='idle_0', windup='key_windup', strike='key_strike', hit='key_hit'),
+        hit_weight='mid',
         concepts={'concept.png': 'captain_blademaster/concept_05.png',
                   'concept_pixel.png': 'captain_blademaster/concept_08.png'},
         weapon_desc='ONE katana (slim curved single-edged sword, dark wrapped hilt, small round guard), held with both hands',
@@ -195,13 +328,14 @@ CHARS = {
         pose=dict(idle='katana held diagonally up in front, both hands on the hilt',
                   windup='weight on the back leg, more upright; both hands raised above the head, the blade pointing UP and BACK over the head',
                   strike='step-in lunge; both arms extended forward, the blade cutting down and forward',
-                  hit='torso thrown back, weight on the rear leg, head snapped back wincing; the katana drops down-back in the near hand, the free hand flies up'),
+                  hit='the katana still gripped and pulled back by the hip, the blade pointing up and back behind the body; the free hand comes up in front of the face'),
         ko=dict(keep='헝클어진 짙은 갈색 머리, 꼬리가 긴 흰 머리띠, 뺨의 흉터, 짙은 남색 상의(#2a3150), 한쪽에 늘어진 짙은 진홍 반망토(#3a1018), 가죽 띠, 갈색 장화, 카타나(두 손).',
                 fix='concept = 생김새 기준, concept_pixel = 도트로 줄여도 살아남을 만큼 단순한 형태의 기준. 상의는 남색, 진홍은 반망토만. 칼집·두 번째 칼·팔 붕대 없음. 이 그림이 나머지 8명의 화풍 기준(앵커).'),
     ),
     'captain_ironwall': dict(
         en='Briginda', order=2, weapon='sword_shield',
         frames=dict(idle='idle_0', windup='key_windup', strike='key_strike', hit='key_hit'),
+        hit_weight='heavy',
         concepts={'concept.png': 'captain_ironwall/concept_08.png'},
         weapon_desc=('a spiked mace (morning star) in the near hand and a tall rectangular tower shield with a gold rim on the far arm; '
                      'the shield is about 2 heads tall (~220 px) and 1 head wide (~110 px), top edge at shoulder height'),
@@ -217,13 +351,14 @@ CHARS = {
         pose=dict(idle='shield raised forward, mace held ready across the body as in the guide',
                   windup='weight on the back leg; mace raised up and back behind the head, shield kept forward',
                   strike='step-in lunge; mace smashing forward and down at full extension, shield pulled in',
-                  hit='torso thrown back, weight on the rear leg, wincing; shield up in front of the chest, mace arm dropped down-back'),
+                  hit='she takes it behind the tower shield, kept up in front of the chest; the mace still gripped and pulled back by the hip'),
         ko=dict(keep='강철 투구, 땋은 적갈색 긴 머리, 콧등 흉터, 금테 두른 회청색 판금갑옷, 회색 겉옷, 금테 탑실드(머리 2개 높이·1개 폭), 철퇴(모닝스타).',
                 fix='땋은 머리는 방패 반대쪽 등 뒤로 늘어져 실루엣에서 보이게. 가이드의 작은 원형 방패 → 같은 자리에 탑실드, 칼 → 철퇴.'),
     ),
     'captain_tactician': dict(
         en='Isabel', order=3, weapon='staff',
         frames=dict(idle='cast_0', windup='cast_1', strike='key_strike', hit='key_hit'),
+        hit_weight='light',
         concepts={'concept.png': 'captain_tactician/concept_07.png'},
         weapon_desc=("a slim black officer's cane / baton with a gold knob (no orb, no crystal), in the near hand where the guide holds "
                      'the staff, at the same angle, but only about HALF the guide staff\'s length (~1.2 heads, ~130 px)'),
@@ -238,13 +373,14 @@ CHARS = {
         pose=dict(idle='upright commander stance, cane planted at her side',
                   windup='cane raised, free hand lifted (about to give an order)',
                   strike='lunge; free arm extended straight forward, pointing with the index finger at the enemy; cane held up behind',
-                  hit='torso thrown back, weight on the rear leg, wincing, hat still on'),
+                  hit='cane still in the near hand, free hand up as a guard, cap still on'),
         ko=dict(keep='금테·금 백합 휘장의 검은 장교모(초상화대로, 삼각모 아님 — 주인 결정 11-26), 곧은 짙은 남보라 긴 머리, 숯색 긴 군복 코트, 금 견장·금단추, 검은 장화, 침착한 표정.',
                 fix='초안은 약 6등신 → 4등신. 지팡이 → 가이드 지팡이 절반 길이의 장교 지휘봉(금 손잡이), 같은 손·같은 각도. 타격 = 앞으로 뻗은 팔로 손가락 지휘.'),
     ),
     'captain_lancer': dict(
         en='Roderick', order=4, weapon='spear',
         frames=dict(idle='idle_0', windup='key_windup', strike='key_strike', hit='key_hit'),
+        hit_weight='mid',
         concepts={'concept.png': 'captain_lancer/concept_b_12.png'},
         weapon_desc=('a spear-length infantry lance: straight shaft, slim leaf-shaped steel tip, small blue pennant just below the tip, '
                      'exactly as long as the guide spear; NO cone-shaped jousting lance and no vamplate (hand guard)'),
@@ -259,7 +395,7 @@ CHARS = {
         pose=dict(idle='lance held diagonally forward with both hands',
                   windup='weight on the back leg; lance pulled back level at hip height, rear hand behind the hip, ready to thrust',
                   strike='step-in lunge; both arms extended, lance thrust straight forward at full extension',
-                  hit='torso thrown back, weight on the rear leg, wincing; the lance knocked upward (tip up) in both hands'),
+                  hit='the lance kept in both hands, its tip knocked upward'),
         ko=dict(keep='파란 깃털 장식 투구(얼굴 보이게), 갈색 짧은 머리·수염, 금테 파란 판금, 파란 사자 문장의 낡은 흰 겉옷, 해진 붉은 망토.',
                 fix='말 없이 걷는 기사(본 시트). 무기는 창 길이의 보병용 랜스(가는 잎 모양 날, 파란 작은 깃발, 원뿔 마상창·손 보호대 없음). 문장은 단순하게, 망토·깃털은 작게.'),
         mounted=dict(
@@ -269,6 +405,7 @@ CHARS = {
     'captain_huntress': dict(
         en='Kiara', order=5, weapon='bow',
         frames=dict(idle='idle_0', windup='attack_2', strike='attack_3', hit='key_hit'),
+        hit_weight='light',
         concepts={'concept.png': 'captain_huntress/concept_04.png'},
         weapon_desc='a short recurve bow the size of the guide bow, quiver of arrows on the back',
         keep=['long auburn hair in a high ponytail', 'ochre headband', 'freckles', 'olive-green hooded tunic',
@@ -280,13 +417,14 @@ CHARS = {
         pose=dict(idle='bow held low in front, ready',
                   windup='full draw: arrow nocked, string pulled back to the cheek',
                   strike='release: bow arm extended, string straight, drawing hand flung back, no arrow',
-                  hit='torso thrown back, weight on the rear leg, wincing; bow dropped low-forward, drawing hand flung back'),
+                  hit='bow still gripped, lowered in front; the drawing hand pulled back to the shoulder'),
         ko=dict(keep='높게 묶은 적갈색 포니테일, 황토색 머리띠, 주근깨, 올리브색 후드 상의, 가죽 조끼, 허리의 밧줄 뭉치, 등의 화살통, 짧은 활.',
                 fix='초안의 큰 활 → 가이드 크기의 짧은 활. 화살은 당길 때(준비)만, 쏜 뒤(타격)에는 날아가는 화살 없음(엔진이 그린다).'),
     ),
     'captain_hedgemage': dict(
         en='Felix', order=6, weapon='staff',
         frames=dict(idle='idle_0', windup='cast_1', strike='key_strike', hit='key_hit'),
+        hit_weight='light',
         concepts={'concept.png': 'captain_hedgemage/concept_08.png'},
         weapon_desc='a long, slightly crooked wooden staff (plain wooden top instead of the guide\'s blue orb)',
         keep=['short messy blond hair', 'worn, patched pointed wizard hat', 'purple robe', 'rope belt', 'satchel on the hip',
@@ -302,7 +440,7 @@ CHARS = {
         pose=dict(idle='staff held diagonally in front with both hands',
                   windup='staff raised high in the near hand, free hand lifted, gathering power',
                   strike='lunge; free arm extended straight forward, palm OPEN toward the enemy (casting); staff held upright behind in the near hand',
-                  hit='torso thrown back, weight on the rear leg, wincing, hat still on'),
+                  hit='staff still gripped upright in the near hand, free hand up in front as a guard, hat still on'),
         ko=dict(keep='헝클어진 금발, 기운 자국 있는 낡은 고깔모자, 보라색 로브, 밧줄 허리띠, 허리 가방, 갈색 장화, 나무 지팡이.',
                 fix='로브·모자는 밝은 면까지 짙은 청보라 #5a4a7a 계열(첫 납품은 밝은 면이 배경 키 #FF00FF 와 같아 구멍이 뚫렸다). '
                     '밝은 노란 테두리 → 탁한 황토 금색. 불꽃·빛 등 효과 금지(엔진이 그린다), 시전하는 손은 앞으로 뻗은 빈 손바닥. 시전 자세(cast).'),
@@ -310,6 +448,7 @@ CHARS = {
     'captain_fieldmedic': dict(
         en='Magda', order=7, weapon='staff',
         frames=dict(idle='idle_0', windup='cast_1', strike='key_strike', hit='key_hit'),
+        hit_weight='mid',
         concepts={'concept.png': 'captain_fieldmedic/concept_03.png'},
         weapon_desc='a long-handled spiked mace (the guide staff is the handle; the spiked iron head goes where the guide staff has its orb)',
         keep=['long black hair tied in a high ponytail', 'tan skin', 'bandage around the forehead', 'long field coat',
@@ -324,13 +463,14 @@ CHARS = {
         pose=dict(idle='long mace held diagonally in front with both hands',
                   windup='mace raised high in the near hand, free hand lifted',
                   strike='lunge; free arm extended straight forward, palm open; mace held upright behind in the near hand',
-                  hit='torso thrown back, weight on the rear leg, wincing'),
+                  hit='the mace still gripped upright in the near hand, free hand up in front as a guard'),
         ko=dict(keep='높게 묶은 검은 긴 머리, 갈색 피부, 이마 붕대, 긴 야전 코트, 짙은 빨강 스카프·앞치마, 무늬 없는 짙은 빨강 완장, 허리 주머니, 긴 자루 철퇴.',
                 fix='가슴(앞치마 턱받이)의 흰 십자 제거 — 어디에도 십자·무늬 없음, 완장은 무늬 없는 짙은 빨강. 코트는 흰색이 아니라 중간 밝기의 따뜻한 베이지(#c8bca4 쯤). 치유 빛 금지(엔진). 2·3번은 공격·치유 겸용 시전 자세.'),
     ),
     'captain_fixer': dict(
         en='Jin', order=8, weapon='none',
         frames=dict(idle='key_idle', windup='key_windup', strike='key_strike', hit='key_hit'),
+        hit_weight='light',
         concepts={'concept.png': 'captain_fixer/concept_05.png'},
         weapon_desc=('ONE short dagger in the near hand (screen-left arm = the character\'s right), REVERSE grip '
                      '(blade leaving the little-finger side, running back along the forearm), exactly as the guide draws it'),
@@ -344,13 +484,14 @@ CHARS = {
         pose=dict(idle='low ready stance, dagger hand low in front, free hand up as a guard',
                   windup='weight on the back leg; dagger hand raised high above the head (about to stab down), free hand forward',
                   strike='lunge; dagger arm fully extended forward, free hand pulled back',
-                  hit='torso thrown back, weight on the rear leg, wincing; dagger arm flung back, free hand up'),
+                  hit='the dagger still in the near hand, pulled back by the shoulder; free hand up in front as a guard'),
         ko=dict(keep='검은 후드, 입을 가린 회색 스카프, 가는 눈, 검은 짧은 머리, 회색 테두리 검은 가죽 재킷, 교차 띠, 검은 장화.',
                 fix='단검은 하나, 역수로, 가까운 쪽(화면 왼쪽) 손 — 가이드에 그려 두었다. 검정 옷은 짙은 숯색·청회색 + 왼쪽 위 림 라이트 + 조금 밝은 외곽선.'),
     ),
     'captain_veteran': dict(
         en='Harald', order=9, weapon='sword_shield',
         frames=dict(idle='idle_0', windup='key_windup', strike='key_strike', hit='key_hit'),
+        hit_weight='mid',
         concepts={'concept.png': 'captain_veteran/concept_03.png'},
         weapon_desc='an arming sword in the near hand and a round wooden shield with an iron boss on the far arm (the guide shield\'s size)',
         keep=['dented steel helmet', 'short white hair and a full white beard', 'old scars on the face',
@@ -362,7 +503,7 @@ CHARS = {
         pose=dict(idle='shield up, sword ready',
                   windup='weight on the back leg; sword raised up and back behind the head, shield kept forward',
                   strike='step-in lunge; sword cutting forward and down at full extension, shield pulled in',
-                  hit='torso thrown back, weight on the rear leg, wincing; shield up in front of the chest, sword arm dropped down-back'),
+                  hit='shield up in front of the chest; the sword still gripped and pulled back by the hip, the blade pointing up and back behind the body'),
         ko=dict(keep='찌그러진 강철 투구, 흰 짧은 머리·흰 수염, 얼굴 흉터, 쇠사슬 위 올리브회색 누비 갑옷, 둥근 나무 방패, 한손검.',
                 fix='초안은 약 5등신 → 4등신으로. 늙었지만 단단하게, 자세 폭은 가이드 그대로.'),
     ),
@@ -411,6 +552,7 @@ CHARS.update({
     'class_warrior': dict(
         kind='class', en='Warrior', order=11, weapon='sword_shield',
         frames=dict(idle='idle_0', windup='key_windup', strike='key_strike', hit='key_hit'),
+        hit_weight='mid', hit_face='face hidden: the visor stays down, the helmet ducks and turns away',
         concepts={'concept.png': 'class_warrior/concept_05.png'},
         draft=dict(keep=('the plain foot-soldier look: closed steel helm with the visor down and one dark eye slit (its small top spike may '
                          'stay, small), mail coif and mail sleeves under a sleeveless knee-length tabard split at the front, brown belt with a '
@@ -437,7 +579,7 @@ CHARS.update({
         pose=dict(idle='shield up, sword ready',
                   windup='weight on the back leg; sword raised up and back behind the head, shield kept forward',
                   strike='step-in lunge; sword cutting forward and down at full extension, shield pulled in',
-                  hit='torso thrown back, weight on the rear leg, head jerked back; shield up in front of the chest, sword arm dropped down-back'),
+                  hit='shield up in front of the chest; the sword still gripped and pulled back by the hip, the blade pointing up and back behind the body'),
         ko=dict(keep='면갑을 내린 강철 그레이트 헬름(눈 틈만 보임), 사슬 갑옷, 무릎 길이 민소매 겉옷(제복), 가죽 띠, 갈색 장갑·장화, 한손검 + 둥근 나무 방패.',
                 fix='겉옷·방패 면 = 제복 열쇠 색, 겉옷 테두리·방패의 띠 하나 = 장식 열쇠 색. 금속은 푸른 기 없는 중성 회색. 문장·무늬 없음. 면갑은 네 자세 모두 내린 채.',
                 face='전사는 면갑을 내린 투구(눈 틈만)',
@@ -448,6 +590,7 @@ CHARS.update({
     'class_archer': dict(
         kind='class', en='Archer', order=12, weapon='bow',
         frames=dict(idle='idle_0', windup='attack_2', strike='attack_3', hit='key_hit'),
+        hit_weight='light', hit_face='face hidden: hood and mask stay in place, the head ducks and turns away',
         concepts={'concept.png': 'class_archer/concept_10.png'},
         draft=dict(keep=('the hood up with the face mask running down into a short cowl over the shoulders (hood, mask and cowl one cloth), '
                          'long-sleeved knee-length tunic with a flared skirt, small brown leather bodice-vest with one diagonal strap, brown belt '
@@ -475,7 +618,7 @@ CHARS.update({
         pose=dict(idle='bow held low in front, ready',
                   windup='full draw: arrow nocked, string pulled back to the cheek',
                   strike='release: bow arm extended, string straight, drawing hand flung back, no arrow',
-                  hit='torso thrown back, weight on the rear leg, head jerked back, hood and mask still in place; bow dropped low-forward, drawing hand flung back'),
+                  hit='bow still gripped, lowered in front; the drawing hand pulled back to the shoulder'),
         ko=dict(keep='후드를 쓰고 천 마스크로 코 아래를 가린 얼굴(눈 둘레만 그늘 속에), 무릎 길이 후드 상의(제복), 갈색 가죽 조끼·팔 보호대, 등의 화살통, 짧은 활.',
                 fix='후드 상의·마스크·얼굴 둘레의 후드 앞 가장자리 = 제복 열쇠 색, 상의 밑단만 장식 열쇠 색 (얼굴 둘레에 장식 색 금지 — 밝은 진영 장식 색이 얼굴을 노란 덩어리로 만든다). 화살은 당길 때만, 쏜 뒤에는 없음.',
                 face='궁수는 후드 + 코 아래를 가린 천 마스크',
@@ -486,6 +629,7 @@ CHARS.update({
     'class_cleric': dict(
         kind='class', en='Cleric', order=14, weapon='staff',
         frames=dict(idle='idle_0', windup='cast_1', strike='key_strike', hit='key_hit'),
+        hit_weight='mid', hit_face='face hidden: cowl and veil stay in place, the head ducks and turns away',
         concepts={'concept.png': 'class_cleric/concept_04.png'},
         draft=dict(keep=('the deep cowl falling to the shoulders with the veil across the lower face (one cloth), a mail shirt with brown '
                          'leather sleeves under it, a long tabard with a border trim and a chest disc, brown belt with a round buckle, a small '
@@ -514,7 +658,7 @@ CHARS.update({
                         'the belt'),
                   windup='mace raised high in the near hand, free hand lifted (praying / gathering)',
                   strike='lunge; free arm extended straight forward, palm OPEN (blessing or striking); mace held up behind in the near hand',
-                  hit='torso thrown back, weight on the rear leg, head jerked back, cowl and veil still in place'),
+                  hit='the mace still gripped upright in the near hand, free hand up in front as a guard'),
         ko=dict(keep='이마까지 깊게 내린 두건(카울)과 아래 얼굴을 가린 베일(얼굴은 그늘), 사슬 갑옷 위 무릎 길이 겉옷(제복), 가슴의 무늬 없는 둥근 원판(장식 열쇠 색, 이 시트에서 유일하게 허용된 모양 — 문장이 아님), 허리의 작은 책, 한손 철퇴.',
                 fix='겉옷·두건·베일 = 제복 열쇠 색, 테두리·두건 앞 가장자리·가슴 원판 = 장식 열쇠 색. 십자·치유 빛 없음. 2·3번은 공격·치유 겸용 자세(마그다와 같은 틀, 철퇴는 짧게).',
                 face='성직자는 깊은 두건 + 베일, 얼굴은 그늘',
@@ -526,6 +670,7 @@ CHARS.update({
     'class_mage': dict(
         kind='class', en='Mage', order=13, weapon='staff',
         frames=dict(idle='idle_0', windup='cast_1', strike='key_strike', hit='key_hit'),
+        hit_weight='light', hit_face='face hidden: the hat stays on and low, the head ducks and turns away',
         concepts={'concept.png': 'class_mage/concept_09.png'},
         draft=dict(keep=('the pointed hat with its brim pulled down over the eyes, the high stand-up collar hiding mouth and chin, a small '
                          'shoulder capelet, the long robe with wide bell sleeves and one trim line down the front, brown belt with pouches, '
@@ -552,7 +697,7 @@ CHARS.update({
         pose=dict(idle='staff held diagonally in front with both hands',
                   windup='staff raised high in the near hand, free hand lifted, gathering power',
                   strike='lunge; free arm extended straight forward, palm OPEN toward the enemy (casting); staff held upright behind in the near hand',
-                  hit='torso thrown back, weight on the rear leg, head jerked back, hat still on and still low'),
+                  hit='staff still gripped upright in the near hand, free hand up in front as a guard'),
         ko=dict(keep='깊게 눌러쓴 챙 넓은 고깔모자(챙이 눈을 가림) + 입·턱을 가린 높은 깃(얼굴은 그늘), 정강이까지 오는 로브와 허리띠 천, 갈색 주머니, 호박색 작은 수정이 달린 곧은 나무 지팡이.',
                 fix='모자·로브(어깨 망토 포함)·높은 깃 = 제복 열쇠 색, 모자 띠·앞섶 테두리 선·어깨 망토 가장자리·로브 밑단·소맷부리·허리띠 천 = 장식 열쇠 색. 수정은 따뜻한 호박색(파랑·청록 금지), 효과 없음. 펠릭스와 같은 시전 틀.',
                 face='마법사는 깊게 눌러쓴 모자 챙 + 높은 깃, 얼굴은 그늘',
@@ -564,6 +709,7 @@ CHARS.update({
     'class_rogue': dict(
         kind='class', en='Rogue', order=15, weapon='none',
         frames=dict(idle='key_idle', windup='key_windup', strike='key_strike', hit='key_hit'),
+        hit_weight='light', hit_face='face hidden: hood and scarf stay in place, the head ducks and turns away',
         concepts={'concept.png': 'class_rogue/concept_02.png'},
         draft=dict(keep=('the deep hood with its cloth wrapped over the mouth and nose (only a dark eye slit), the wary, ready attitude (attitude '
                          'only: legs, crouch depth and size exactly as guide_strip.png), dark-brown '
@@ -592,7 +738,7 @@ CHARS.update({
         pose=dict(idle='low ready stance, dagger hand low in front, free hand up as a guard',
                   windup='weight on the back leg; dagger hand raised high above the head (about to stab down), free hand forward',
                   strike='lunge; dagger arm fully extended forward, free hand pulled back',
-                  hit='torso thrown back, weight on the rear leg, head jerked back, hood and scarf still in place; dagger arm flung back, free hand up'),
+                  hit='the dagger still in the near hand, pulled back by the shoulder; free hand up in front as a guard'),
         ko=dict(keep='깊게 눌러쓴 후드(얼굴은 그늘, 눈빛 두 점까지만) + 짧은 어깨 망토, 입·코를 가린 스카프, 끈 많은 짙은 갈색 가죽 갑옷, 역수 단검 하나.',
                 fix='후드·어깨 망토·입과 코를 가린 스카프 = 제복 열쇠 색(스카프는 따뜻한 어둠 외곽선으로 후드와 나눔), 가는 허리 천만 장식 열쇠 색 (얼굴에 장식 색 금지). 가죽은 따뜻한 짙은 갈색(청회색 금지) + 왼쪽 위 따뜻한 림 라이트. 진과 같은 틀.',
                 face='도적은 깊은 후드 + 스카프, 얼굴은 그늘',
@@ -609,6 +755,7 @@ CHARS.update({
     'monster_skeleton': dict(
         kind='monster', en='Skeleton soldier', enemy='해골 병사', order=21, weapon='sword_shield',
         frames=dict(idle='idle_0', windup='key_windup', strike='key_strike', hit='key_hit'),
+        hit_weight='mid', hit_face='the skull snaps away and the jaw drops open',
         concepts={'concept.png': 'monster_skeleton/concept_01.png'},
         draft=dict(keep=('the bowl-shaped open-faced helmet over a grinning skull (its colour from COLOURS: neutral grey steel, not rusty '
                          'brown), two red eye points, the big ribcage, pale bones, tattered cloth hanging from the shoulders and as a ragged '
@@ -639,7 +786,7 @@ CHARS.update({
         pose=dict(idle='shield up, sword ready, slightly hunched',
                   windup='weight on the back leg; sword raised up and back behind the head, shield kept forward',
                   strike='step-in lunge; sword cutting forward and down at full extension, shield pulled in',
-                  hit='torso thrown back, weight on the rear leg, skull snapped back, jaw open; shield up, sword arm dropped down-back'),
+                  hit='shield up in front of the chest; the sword still gripped and pulled back by the hip, the blade pointing up and back behind the body'),
         ko=dict(keep='찌그러진 회색 강철 개방형 투구 아래 해골, 눈구멍의 밝은 붉은 점 둘, 굵게 단순화한 뼈, 허리의 해진 천, 이 빠진 한손검 + 쇠테 두른 둥근 나무 방패.',
                 fix='재질을 나눈다: 뼈 = 옅은 상아색, 투구·칼 = 중성 회색 강철(녹슨 갈색 아님), 천 = 탁한 짙은 빨강 또는 찬 회색, 눈 = 밝은 빨강 #ff4a3a — 온통 따뜻한 갈색 덩어리 금지, '
                     '눈 위에서도 보이게 뼈 둘레에 어두운 외곽선. 뼈는 굵게(가는 뼈는 64px 에서 사라진다), 순백 금지, 초록 불꽃·빛 없음. 사람과 같은 크기.',
@@ -650,6 +797,7 @@ CHARS.update({
     'monster_desert-bandit': dict(
         kind='monster', en='Desert bandit', enemy='사막 도적', order=23, weapon='sword_shield',
         frames=dict(idle='idle_0', windup='key_windup', strike='key_strike', hit='key_hit'),
+        hit_weight='mid',
         concepts={'concept.png': 'monster_desert-bandit/concept_05.png'},
         draft=dict(keep=('the sand head wrap and face veil, the loose sand tunic with wrapped forearms, an open vest, a sash with a long cloth '
                          'flap hanging at the front, very baggy trousers gathered at the shins, dark wrapped boots, the alert fighting attitude '
@@ -674,7 +822,7 @@ CHARS.update({
         pose=dict(idle='scimitar held ready in front, free hand up as a guard',
                   windup='weight on the back leg; scimitar raised up and back behind the head, free hand forward',
                   strike='step-in lunge; scimitar slashing forward and down at full extension, free hand pulled back',
-                  hit='torso thrown back, weight on the rear leg, wincing; scimitar arm dropped down-back, free hand up'),
+                  hit='the scimitar still gripped and pulled back by the hip, the blade pointing up and back behind the body; free hand up in front as a guard'),
         ko=dict(keep='모래색 머리 두건과 얼굴 가리개(눈만 보임), 헐렁한 모래색 겉옷, 갈색 가죽 조끼·허리 천, 통 넓은 바지와 장화, 곡도(시미터) 하나.',
                 fix='방패 없음 — 가이드의 둥근 방패 자리는 빈손(막는 자세). 모래색이 사막 모래 배경에 묻히지 않게 둘레에 진한 짙은 갈색 외곽선, 겉옷의 깊은 그늘, 짙은 갈색 조끼·허리 천·장화(어두운 명암 포인트).',
                 draft_keep='모래색 머리 두건과 얼굴 가리개, 팔뚝을 감은 헐렁한 모래색 상의, 앞이 열린 조끼, 앞에 긴 천이 늘어진 허리 천, 정강이에서 모인 아주 헐렁한 바지, 감싼 짙은 장화, 싸울 태세와 막는 빈손(태도만 — 다리·자세 폭·크기는 guide_strip.png 그대로).',
@@ -684,6 +832,7 @@ CHARS.update({
     'monster_bandit': dict(
         kind='monster', en='Bandit', enemy='산적', order=25, weapon='sword_shield',
         frames=dict(idle='idle_0', windup='key_windup', strike='key_strike', hit='key_hit'),
+        hit_weight='light',
         concepts={'concept.png': 'monster_bandit/concept_01.png'},
         draft=dict(keep=('the red bandana with two short tails at the back, long dark hair, stubble and a sneer, a torn short-sleeved shirt '
                          'under a sleeveless jerkin, a rope belt wound several times, dark trousers, worn boots folded down at the top, '
@@ -705,7 +854,7 @@ CHARS.update({
         pose=dict(idle='buckler forward, axe ready',
                   windup='weight on the back leg; axe raised up and back behind the head, buckler kept forward',
                   strike='step-in lunge; axe chopping forward and down at full extension, buckler pulled in',
-                  hit='torso thrown back, weight on the rear leg, wincing; buckler up, axe arm dropped down-back'),
+                  hit='buckler up in front of the chest; the axe still gripped and pulled back by the hip, its head up and back behind the body'),
         ko=dict(keep='붉은 두건, 수염 자국·비웃는 얼굴, 기운 가죽 조끼, 밧줄 허리띠, 짧은 손도끼 + 작은 둥근 나무 버클러.',
                 fix='사막 도적과 확실히 다르게(붉은 두건·드러난 얼굴·도끼·버클러). 버클러는 가이드 방패보다 작게.',
                 draft_keep='뒤로 짧은 꼬리 둘이 늘어진 붉은 두건, 검은 긴 머리, 수염 자국과 비웃음, 찢어진 반소매 셔츠 위 민소매 조끼, 여러 번 감은 밧줄 허리띠, 짙은 바지, 끝을 접은 낡은 장화, 짧은 손도끼.',
@@ -743,9 +892,9 @@ CREATURES = {
         pose=dict(idle='standing on all fours, head lowered, snarling, tail down',
                   windup='crouched back on the haunches, front low, ready to pounce, ears flat',
                   strike='leaping lunge to the right: body stretched, forelegs reaching forward, jaws wide open; one hind paw still touches the baseline',
-                  hit='recoiling backward: head thrown up and back, yelping, hind legs bent, front paws lifted'),
+                  hit='flinch: head and shoulders jerk up and away from the enemy, yelping, hind legs bend to absorb it, all four paws stay on the ground'),
         ko=dict(brief='회색 들늑대, 머리 낮추고 으르렁, 꼬리 아래. 작은 몬스터(대기 상자 약 420x250px). 물기 근접 공격.',
-                pose='① 네 발로 서서 으르렁 ② 뒷다리에 웅크려 덮칠 준비 ③ 오른쪽으로 덮치며 문다(뒷발 하나는 바닥) ④ 머리를 젖히며 뒤로 물러남',
+                pose='① 네 발로 서서 으르렁 ② 뒷다리에 웅크려 덮칠 준비 ③ 오른쪽으로 덮치며 문다(뒷발 하나는 바닥) ④ 움찔: 머리·어깨가 위·뒤로 튀고 뒷다리를 굽혀 받음(네 발은 바닥)',
                 draft_keep='어깨선 아래로 낮춘 머리와 드러낸 송곳니, 목·어깨의 짙은 갈기, 밝은 뺨·주둥이, 밝은 다리 끝·발, 굵고 긴 꼬리, 다리가 긴 마른 체격.',
                 draft_fix='가는 빗금 털(노이즈) → 큰 털 덩어리 2~3단. 올리브·카키빛 회색 → 중성·찬 회색(등 짙게, 배 밝게). 주황빛 붉은 눈 → 호박색. 다리 넷·꼬리 하나 그대로, 먼 쪽 다리 둘은 한 단계 어둡게. '
                           '초안은 꼬리를 수평으로 들고 귀를 세웠다 → 꼬리는 낮게 늘어뜨리고 귀는 뒤로 젖힌다(DESIGN·POSES 대로). 바닥선에는 발, 꼬리 끝은 발보다 위.'),
@@ -789,7 +938,7 @@ CREATURES = {
         pose=dict(idle='hovering low with the wings half raised; short legs with the knees drawn up, talons hanging below them, the lowest talon on the baseline',
                   windup='wings raised high and back, head drawn back, mouth open (about to shriek), talons drawn up',
                   strike='lunging forward: head and chest thrust forward, mouth wide open shrieking, wings flung forward, talons reaching forward-down',
-                  hit='knocked back: wings flung up and out, body jerked back, feathers ruffled, wincing'),
+                  hit='jolts back in the air: head and shoulders snap away from the enemy, wings flung up and out, feathers ruffled; face: wince, eyes squeezed shut, teeth gritted; talons still hanging below'),
         ko=dict(brief='공중에 뜬 새 여인. 사람 머리·몸통(대장과 같은 배율, 머리 110px), 팔 대신 보라 날개, 무릎을 당긴 짧은 새 다리·발톱(발톱~정수리 약 330px, '
                       '나머지 높이는 반쯤 든 날개 끝). 날개 때문에 넓다(대기 약 440x400px). 상자와 맞지 않으면 머리 110px 가 우선(다리를 짧게, 머리를 줄이지 않음). '
                       '몸통 깃털은 갈색(허벅지와 이어짐), 보라는 날개·꼬리만, 보라의 밝은 면은 차갑게(분홍 쪽 금지). 게임에서는 원거리(엔진이 불덩이를 그림).',
@@ -823,7 +972,7 @@ CREATURES = {
         pose=dict(idle='crouched like a statue on all fours, wings folded half open, head low',
                   windup='rearing up on the hind legs, wings spread wide, claws raised, head pulled back',
                   strike='lunging forward low: head thrust forward with the jaws wide open (spitting), claws reaching forward, wings swept back',
-                  hit='knocked back onto the haunches: head thrown back, wings flung up, one claw raised to guard'),
+                  hit='flinches back onto the haunches: head and horns snap away from the enemy, wings flung up, one claw raised to guard, the feet stay planted'),
         ko=dict(brief='살아 움직이는 돌 악마상: 웅크린 몸, 박쥐 날개, 굽은 뿔, 꼬리. 웅크린 대기 약 380x330px. 게임에서는 원거리(엔진이 불덩이를 그림).',
                 pose='① 석상처럼 네 발로 웅크림 ② 뒷다리로 일어서며 날개 펼침 ③ 낮게 앞으로 덮치며 입을 크게 벌림 ④ 주저앉듯 뒤로 밀리며 날개가 젖혀짐',
                 draft_keep='금 간 청회색 돌 몸, 부리 같은 주둥이와 붉은 눈, 돌 날개 뼈와 어두운 날개막, 큰 갈고리 발톱으로 네 발 웅크림, 끝이 삽 모양인 가는 긴 꼬리.',
@@ -915,7 +1064,7 @@ CREATURES = {
         pose=dict(idle='hovering, arms hanging, the robe tail wisping down to the baseline',
                   windup='arms raised up and back, claws spread, robe billowing back',
                   strike='lunging forward: both clawed hands thrust forward, hood forward, mouth open wailing (casting)',
-                  hit='recoiling: body bent back, arms flung up, robe torn and fluttering backward'),
+                  hit='recoils: hood and shoulders snap back, away from the enemy, arms flung up, robe fluttering backward, the tail tip stays on the baseline'),
         ko=dict(brief='후드 쓴 떠다니는 유령, 해진 긴 연청색 로브가 가는 꼬리로 끝남, 앙상한 손톱, 다리 없음. 대기 약 240x360px. 게임에서는 원거리(엔진이 저주탄을 그림).',
                 pose='① 팔을 늘어뜨리고 떠 있음(꼬리 끝이 바닥선) ② 팔을 위·뒤로 들고 로브가 뒤로 부풂 ③ 두 손을 앞으로 내밀며 울부짖음(시전) ④ 몸이 뒤로 꺾이며 팔이 위로',
                 draft_keep='어두운 얼굴에 작은 청록 눈 둘이 있는 깊은 후드, 무겁게 늘어진 후드·어깨 천, 갈래갈래 찢어진 긴 밑단, 앞으로 뻗은 긴 손톱의 앙상한 손, 앞으로 기운 채 떠 있는 자세.',
@@ -972,6 +1121,7 @@ CHECK_EN = [
     MAGENTA_CHECK_EN,
     RULE_PROP_EN,
     'reads clearly when shrunk to 64 px tall on a dark background',
+    HIT_CHECK_EN,
 ]
 KEYS_CHECK_EN = ('the uniform ({outfit}) uses ONLY the four outfit keys and the trim ({accent}) ONLY the three accent keys, exact hex, flat; '
                  'the seven keys appear nowhere else and nothing else on the figure is blue, slate, teal or mint; every other figure colour '
@@ -1269,9 +1419,10 @@ def readme(cid, C, it, info, has_portrait, mounted_item=None, minfo=None):
     if draft_en(C):
         P.append(draft_en(C))
     P.append('FIX (do not reproduce the draft here):\n' + '\n'.join(f'  - {f}' for f in fixes(C)))
+    pt = pose_texts(C)
     P.append('POSES (the guide mannequin fixes pose, proportions, size and position; its colours, round head, plain clothes and '
              'fist-shaped hands are placeholders - follow the text for hands and weapon details):\n'
-             + '\n'.join(f'  {i + 1}. {en}: {C["pose"][p]}' for i, (p, _, _, en) in enumerate(POSES)))
+             + '\n'.join(f'  {i + 1}. {en}: {pt[p]}' for i, (p, _, _, en) in enumerate(POSES)))
     refs = [f'{f}' + {'guide_strip.png': ' (layout + poses + size: the most important reference)',
                       'guide_1_idle.png': ' .. guide_4_hit.png (the same four poses, larger)',
                       'concept.png': ' (DESIGN ONLY)',
@@ -1317,7 +1468,9 @@ def readme(cid, C, it, info, has_portrait, mounted_item=None, minfo=None):
     L += [f'- 결과 파일: `art/inbox/{it["file"]}` (id `{it["id"]}`)' + (f', 추가 선택: `art/inbox/{mounted_item["file"]}`' if mounted_item else ''),
           f'- 무기: posekit `{C["weapon"]}` 마네킹 → {C["weapon_desc"]}',
           f'- 자세(가이드 프레임): ① 대기 `{fr["idle"]}` ② 공격 준비 `{fr["windup"]}` ③ 공격 타격 `{fr["strike"]}` ④ 피격 `{fr["hit"]}`'
-          + ' (`key_*` = handoff.py 의 KEY_POSES: 준비는 체중 뒤로, 타격은 내딛는 런지, 피격은 상체가 뒤로 젖혀짐)',
+          + ' (`key_*` = handoff.py 의 KEY_POSES: 준비는 체중 뒤로, 타격은 내딛는 런지, 피격은 K2-mid 반응 — 머리·어깨가 뒤로, '
+          '무릎을 굽혀 받고 두 발은 대기 자리 그대로)',
+          f'- 피격 무게: `{C.get("hit_weight", "mid")}` — {HIT_KO[C.get("hit_weight", "mid")]}. 표정: 찡그림·눈 질끈·이 악묾(얼굴이 가려진 그림은 머리를 숙여 돌림). 무기는 쥔 채.',
           f'- 초안에서 가져올 것: {C["ko"]["keep"]}',
           f'- 고칠 것: {C["ko"]["fix"]}',
           *draft_ko(C),
@@ -1543,6 +1696,49 @@ def readme_creature(cid, C, it, slots, sinfo):
     return '\n'.join(L)
 
 
+# ───────── hit reaction keys for the frame pipeline (--hit-set) ─────────
+
+def write_hit_set(out):
+    """per weapon: guide_hit_<k1|k2>_<weight>.png (832x1216, the layout of guide_4_hit.png), hit_overview.png (idle + the six
+    keys at strip scale, soles on one line) and hit_set.json (hit_metrics + hit_problems per key; also the package hit slot)."""
+    from PIL import ImageDraw
+    os.makedirs(out, exist_ok=True)
+    report, fails = {}, 0
+    for w in pk.WEAPONS:
+        B, F, builds = builds_for(w)
+        wd = os.path.join(out, w)
+        os.makedirs(wd, exist_ok=True)
+        rows = {}
+        names = [('idle', 'idle_0', 'mid')] + [(hk, f'key_hit_{hk}', hk.split('_')[1]) for hk in pk.HIT_KEYS]
+        figs = []
+        for lab, n, wt in names:
+            if n != 'idle_0':
+                save_png(guide_frame(builds, n), os.path.join(wd, f'guide_hit_{lab}.png'))
+                m = hit_metrics(F, builds, n)
+                pr = hit_problems(m, wt) + pk.check(n, builds[n][0], B, F[n])
+                fails += bool(pr)
+                rows[lab] = dict(m, weight=wt, problems=pr)
+            figs.append((lab, render_tight(builds[n][1], HEAD_PX, 2.0)))
+        rows['package_hit_slot'] = 'key_hit = ' + pk.HIT_DEFAULT
+        report[w] = rows
+        top = max(f[1][0].shape[0] for f in figs) + 24
+        W = sum(f[1][0].shape[1] for f in figs) + GAP * (len(figs) + 1)
+        img = Image.new('RGB', (W, top + 8), MAGENTA)
+        dr = ImageDraw.Draw(img)
+        x = GAP
+        for lab, (rgb, m, fl) in figs:
+            img.paste(Image.fromarray(rgb), (x, top - rgb.shape[0]))
+            dr.text((x, 4), lab, fill=GUIDE_INK)
+            x += rgb.shape[1] + GAP
+        dr.line((0, top, W, top), fill=GUIDE_INK)
+        save_png(img, os.path.join(wd, 'hit_overview.png'))
+    with open(os.path.join(out, 'hit_set.json'), 'w', encoding='utf-8') as f:
+        json.dump(dict(rules=HIT_RULES, keys=pk.HIT_KEYS, px_per_head=HEAD_PX, weapons=report), f, ensure_ascii=False, indent=1)
+        f.write('\n')
+    print(f'hit set: {len(pk.WEAPONS)} weapons x {len(pk.HIT_KEYS)} keys -> {out} ({fails} with problems)')
+    return 1 if fails else 0
+
+
 # ───────── main ─────────
 
 def main():
@@ -1550,7 +1746,11 @@ def main():
     ap.add_argument('ids', nargs='*', help='package ids (default: all of CHARS and CREATURES)')
     ap.add_argument('--out', default=OUT)
     ap.add_argument('--check', action='store_true', help='print the strip layout of every package')
+    ap.add_argument('--hit-set', metavar='DIR', help='write the hit reaction keys K1/K2 x heavy/mid/light of every posekit weapon '
+                    '(guide PNGs, an overview and hit_set.json with the measurements) to DIR and exit; no packages')
     a = ap.parse_args()
+    if a.hit_set:
+        return write_hit_set(a.hit_set)
     with open(REQ, encoding='utf-8') as f:
         items = {it['file']: it for it in json.load(f)['items']}
     every = {**CHARS, **CREATURES}
@@ -1567,6 +1767,15 @@ def main():
             sys.exit(f'{cid}: phase3.json id {it["id"]} != sheet/monster/{C["enemy"]}')
         if C.get('kind') == 'class' and not it.get('tint'):
             sys.exit(f'{cid}: phase3.json item has no tint (key colours) — run node tools/art/requests.js')
+        if cid in CREATURES:
+            poses = list(C['pose'].items())
+            notes = C.get('fix', []) + C.get('design', []) + (C['draft']['fix'] if C.get('draft') else [])
+        else:
+            poses = list(pose_texts(C).items())
+            notes = fixes(C) + C['keep'] + [C['weapon_desc']]
+        bad = lint_request(cid, poses, notes, C.get('explain', ''))
+        if bad:
+            sys.exit('request lint FAILED (no package written):\n  ' + '\n  '.join(bad))
         d = os.path.join(a.out, cid)
         os.makedirs(d, exist_ok=True)
         for dst, src in C.get('concepts', {}).items():
@@ -1602,6 +1811,9 @@ def main():
         for f in fr:
             for m in pk.check(f, builds[f][0], B, F[f]):
                 print(f'  WARNING {cid} {f}: {m}')
+        hp = hit_problems(hit_metrics(F, builds, C['frames']['hit']), 'mid')
+        if hp:
+            sys.exit(f'{cid}: hit guide {C["frames"]["hit"]} is not a believable reaction: ' + '; '.join(hp))
         for (p, fn, _, _), f in zip(POSES, fr):
             save_png(guide_frame(builds, f), os.path.join(d, fn))
         strip, info = strip_image(builds, fr)

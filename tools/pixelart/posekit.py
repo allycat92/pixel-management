@@ -602,6 +602,53 @@ def render_stick(J, R, weapon_line=True):
     return img
 
 
+# ------------------------------------------------------------------ hit reaction keys
+# Owner decision 2026-11-26 (art/requests/feedback.md): a hit reads as head and shoulders snapping AWAY from the blow and
+# coming back, the knees absorbing it, the feet planted (one short stagger step at most), the weapon kept in hand, the face
+# changing - never the old "torso thrown back, weight on the rear leg" body (lean -0.42, tilt -0.30, front knee pulled up),
+# which the image model balanced by lifting the front knee. K1 = impact, K2 = deepest point, per character weight:
+# heavy barely rocks, mid, light is pushed further (the back foot slides one short step back in K2).
+# Values in head units as in frames(): hip = (x, height above the floor), footN / footF = x of the planted feet (the idle
+# stance is -1.10 / 1.00), lean / tilt in radians (negative = back, away from the enemy on the right), head_off = extra
+# head offset. Measured at 110 px/head (handoff.py hit_metrics): lean <= 15 deg, hip 12-30 px below idle, front foot and
+# front knee never above their idle height, head displaced 20-30 (heavy) / 35-60 (mid) / 50-90 (light) px.
+HIT_KEYS = {
+    'k1_heavy': dict(hip=(-0.02, 1.29), lean=0.05, footN=-1.10, footF=1.00, tilt=-0.08, head_off=(-0.02, -0.03)),
+    'k2_heavy': dict(hip=(-0.04, 1.26), lean=0.03, footN=-1.10, footF=1.00, tilt=-0.06, head_off=(-0.03, -0.03)),
+    'k1_mid': dict(hip=(-0.05, 1.27), lean=0.00, footN=-1.10, footF=1.00, tilt=-0.12, head_off=(-0.04, -0.02)),
+    'k2_mid': dict(hip=(-0.08, 1.21), lean=-0.06, footN=-1.10, footF=1.00, tilt=-0.10, head_off=(-0.04, -0.03)),
+    'k1_light': dict(hip=(-0.08, 1.24), lean=-0.06, footN=-1.10, footF=1.00, tilt=-0.16, head_off=(-0.05, -0.02)),
+    'k2_light': dict(hip=(-0.22, 1.15), lean=-0.15, footN=-1.40, footF=1.00, tilt=-0.12, head_off=(-0.05, -0.03)),
+}
+HIT_DEFAULT = 'k2_mid'          # the one hit slot of the 4-pose packages
+HIT_ARM_REF = dict(hip=(-0.22, 1.38), lean=-0.24)   # the body the hit_0 arm targets below were authored on
+
+
+def hit_body(key):
+    """HIT_KEYS[key] as frames()-style body keywords (feet flat: no foot angle)."""
+    b = dict(HIT_KEYS[key])
+    return dict(b, toeN=0.85, faN=0, faF=0)
+
+
+def arm_shift(pose, ref, B, k=1.0):
+    """(dx, dy) that keeps arm targets authored on body `ref` at the same place relative to the shoulders of `pose`:
+    the shoulder line moves with the hip x and the lean (at() already follows the hip height)."""
+    T = B.torso
+    dx = (pose['hip'][0] + math.sin(pose.get('lean', 0.08)) * T) - (ref['hip'][0] + math.sin(ref.get('lean', 0.08)) * T)
+    dy = (math.cos(pose.get('lean', 0.08)) - math.cos(ref.get('lean', 0.08))) * T
+    return dx, dy
+
+
+def shift_arms(pose, dx, dy):
+    """move the grip and every free hand target ('p', x, h) of a pose by (dx, dy) head units (dy = up)."""
+    if 'grip' in pose:
+        pose['grip'] = (pose['grip'][0] + dx, pose['grip'][1] + dy)
+    for side in 'NF':
+        sp = pose.get('hand' + side)
+        if sp and sp[0] == 'p':
+            pose['hand' + side] = ('p', sp[1] + dx, sp[2] + dy)
+
+
 # ------------------------------------------------------------------ pose library
 def grip_spec(weapon):
     return {
@@ -650,8 +697,8 @@ def frames(weapon, B):
         body((0.30, 1.10), 0.40, (-0.90,), (1.26,), toeN=0.85, tilt=-0.10),           # follow-through
         body((0.12, 1.34), 0.14, (-1.08,), (1.12,), toeN=0.85),                       # recover
     ]
-    hit = [body((-0.22, 1.38), -0.24, (-1.00,), (0.86,), toeN=0.85, tilt=-0.22, head_off=(-0.06, -0.02),
-                faF=-6)]
+    hb = hit_body(HIT_DEFAULT)                        # K2-mid reaction (see HIT_KEYS)
+    hit = [body(hb.pop('hip'), hb.pop('lean'), (hb.pop('footN'),), (hb.pop('footF'),), **hb)]
     cast = [
         body((-0.02, 1.46), 0.04, (-0.95,), (0.92,), toeN=0.85),
         body((-0.08, 1.50), -0.06, (-0.95,), (0.92,), toeN=0.85, tilt=0.06),
@@ -792,6 +839,9 @@ def frames(weapon, B):
             n = 'cast_%d' % i
             arms(n, grip=at(hh(n), -0.45, 1.62), wa=-172, handF=('p',) + at(hh(n), hx, hy),
                  handN=('w', 0.0), elbN=(-0.5, 0.5), elbF=(0.3, 1.0))
+    # the hit_0 arm targets above were authored on HIT_ARM_REF: move them with the shoulders of the reaction body
+    ref = dict(HIT_ARM_REF, hip=(HIT_ARM_REF['hip'][0], HIT_ARM_REF['hip'][1] * k))
+    shift_arms(F['hit_0'], *arm_shift(F['hit_0'], ref, B, k))
     return F
 
 

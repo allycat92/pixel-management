@@ -14,6 +14,14 @@ vm.createContext(ctx);
 });
 const D = vm.runInContext('({ CAPTAINS, CAPTAIN_CLASSES, HEROES, HERO_CLASSES, FACTIONS, CLASSES, STARTER_CAPTAINS, ENEMIES })', ctx);
 
+// --motion: 프레임 방식 동작의 예산·예측 창·시그니처·마네킹 닮음 검사만 한다 (요청서 파일은 쓰지 않는다). 아래 motionMain.
+//   node tools/art/requests.js --motion                 → 표 출력, FAIL 이 있으면 종료 코드 1
+//   node tools/art/requests.js --motion-iou A.png B.png → 두 그림의 게임 크기(0.1654배) 실루엣 IoU
+if (process.argv.includes('--motion') || process.argv.includes('--motion-iou')) {
+  process.exitCode = motionMain(process.argv.slice(2));
+  return;
+}
+
 // 인물의 체형·나이대 설정 (그림 일관성을 위한 아트 설정)
 const FIGURE = {
   blademaster: 'lean man in his thirties, a thin scar across one cheek, headband, calm killer eyes',
@@ -558,3 +566,408 @@ phase3.forEach((it) => {
 });
 fs.writeFileSync(path.join(ROOT, 'art/requests/phase3.md'), md3.join('\n'));
 console.log(`phase3 requests: ${phase3.length} items`);
+
+// ───────── --motion: 프레임 방식 동작 검사 (docs/plans/2026-11-26_motion_frames.md) ─────────
+// 읽는 것: tools/art/specs/motion_bible.json (계통 × 동작 프레임표), tools/art/specs/motion_chars.json (캐릭터별 덮어쓰기),
+//   js/classes.js (기본기 재사용: 병과는 상급·최상급 계열까지), js/battle.js 의 괴물 스킬(monsterSkills)·GENERIC_SPECIAL,
+//   assets/art/manifest.json (등록된 시트 목록, 읽기만). 아무 파일도 쓰지 않는다.
+// 예산 = 0.9 × (그 시트를 쓰는 모든 유닛의 가장 짧은 기본기 재사용) × 1000 − 30 ms (게임 시계). 3배속 이상은 × min(2,s)/s.
+function motionMain(argv) {
+  const SPEC = path.join(ROOT, 'tools/art/specs');
+  if (argv.includes('--motion-iou')) {
+    const i = argv.indexOf('--motion-iou'), a = argv[i + 1], b = argv[i + 2];
+    const sc = argv.includes('--scale') ? Number(argv[argv.indexOf('--scale') + 1]) : 0.1654;
+    if (!a || !b) { console.error('usage: node tools/art/requests.js --motion-iou A.png B.png [--scale 0.1654]'); return 2; }
+    const r = motionIou(a, b, sc);
+    console.log(r.error ? `iou: ${r.error}` : `iou ${r.iou.toFixed(3)} at scale ${sc} (game ${r.gw}x${r.gh}; A ${r.na} px, B ${r.nb} px)`);
+    return r.error ? 2 : 0;
+  }
+  const BIBLE = JSON.parse(fs.readFileSync(path.join(SPEC, 'motion_bible.json'), 'utf8'));
+  const CHARS = JSON.parse(fs.readFileSync(path.join(SPEC, 'motion_chars.json'), 'utf8')).chars;
+  const RU = BIBLE.rules;
+  const X = vm.runInContext('({ SK, CLASS_SKILLS, PROMOTIONS, MASTERS, CAPTAIN_CLASSES, HERO_CLASSES, HEROES, ENEMIES })', ctx);
+  // 괴물 스킬은 js/battle.js 안의 코드 그대로 (줄 번호가 바뀌어도 이름으로 찾는다)
+  const BSRC = fs.readFileSync(path.join(ROOT, 'js/battle.js'), 'utf8');
+  const grab = (tok) => {
+    const s = BSRC.indexOf(tok);
+    if (s < 0) throw new Error(`js/battle.js: ${tok} not found`);
+    let i = BSRC.indexOf('{', s), d = 0;
+    for (; i < BSRC.length; i++) { if (BSRC[i] === '{') d++; else if (BSRC[i] === '}' && --d === 0) break; }
+    let e = i + 1;
+    if (BSRC[e] === ';') e++;
+    return BSRC.slice(s, e);
+  };
+  const B = vm.runInContext(`(() => { ${grab('const RANGED_TPL')}\n${grab('const GENERIC_SPECIAL')}\n${grab('function monsterSkills')}\n return { RANGED_TPL, GENERIC_SPECIAL, monsterSkills }; })()`, ctx);
+  let manifest = {};
+  try { manifest = JSON.parse(fs.readFileSync(path.join(ROOT, 'assets/art/manifest.json'), 'utf8')); } catch (e) { /* 없어도 된다 */ }
+
+  let nFail = 0, nWarn = 0;
+  const out = [], seen = new Set();
+  const say = (s) => out.push(s);
+  // 같은 문제를 두 절에서 보여 줘도 한 번만 센다 (key = 시트 + 문구)
+  const once = (key) => { if (seen.has(key)) return false; seen.add(key); return true; };
+  const fail = (s, key) => { if (once(`F|${key || s}`)) nFail++; say(`    FAIL ${s}`); };
+  const warn = (s, key) => { if (once(`W|${key || s}`)) nWarn++; say(`    WARN ${s}`); };
+  const kindOf = (sk) => (sk.tgt === 'hurt' ? 'heal' : sk.tgt === 'self' ? 'rally' : sk.shot ? `shot:${sk.shot}` : 'melee');
+  const r0 = (v) => Math.round(v);
+
+  // 시트 → 기본기 목록 (who, name, cd, kind) 과 특기 목록
+  function skillsOf(id) {
+    const m = /^sheet\/(class|captain|hero|monster)\/(.+)$/.exec(id);
+    if (!m) return null;
+    const [, kind, key] = m;
+    const basics = [], specials = [];
+    const add = (lst, who, sk) => lst.push({ who, name: sk.name, cd: sk.cd, kind: kindOf(sk), sk });
+    if (kind === 'class') {
+      const C = X.CLASS_SKILLS[key];
+      if (!C) return null;
+      add(basics, key, C.b);
+      (X.PROMOTIONS[key] || []).forEach((p) => {
+        add(basics, p.key, p.b);
+        (X.MASTERS[p.key] || []).forEach((q) => add(basics, q.key, q.b));
+      });
+      if (B.GENERIC_SPECIAL[key]) add(specials, `${key} (generic leader)`, B.GENERIC_SPECIAL[key]);
+    } else if (kind === 'captain' || kind === 'hero') {
+      const C = kind === 'captain' ? X.CAPTAIN_CLASSES[key] : (X.HEROES[key] && X.HERO_CLASSES[X.HEROES[key].hcls]);
+      if (!C) return null;
+      add(basics, key, C.acts[0]);
+      C.acts.slice(1).forEach((sk) => add(specials, key, sk));
+    } else {
+      const E = X.ENEMIES[key];
+      if (!E) return null;
+      const variants = E.boss ? [{ mon: key, boss: true, bigMon: true, tag: 'boss' }] : [{ mon: key, tag: 'unit' }, { mon: key, bigMon: true, tag: 'group lead' }];
+      variants.forEach((ud) => {
+        const sks = B.monsterSkills(ud);
+        add(basics, ud.tag, sks[0]);
+        sks.slice(1).forEach((sk) => add(specials, ud.tag, sk));
+      });
+    }
+    return { basics, specials, own: basics[0] };
+  }
+
+  // 계통의 공격 흐름에 캐릭터 시간 덮어쓰기를 얹는다
+  function seqOf(arch, ch) {
+    const A = BIBLE.archetypes[arch].attack;
+    const over = (ch && ch.timing && ch.timing.ms) || {};
+    const frames = A.frames.map((f) => ({ ...f, ms: over[f.name] != null ? over[f.name] : f.ms }));
+    Object.keys(over).forEach((n) => { if (!frames.some((f) => f.name === n)) throw new Error(`timing.ms.${n}: no such frame in ${arch}`); });
+    return { A, frames };
+  }
+  const EL = RU.elastic_min_factor;
+  const sumMs = (fr, a, b, min) => fr.slice(a, b).reduce((s, f) => s + (min && f.elastic ? f.ms * EL : f.ms), 0);
+
+  function budgetOf(id) {
+    const S = skillsOf(id);
+    if (!S) return null;
+    const best = S.basics.reduce((a, b) => (b.cd < a.cd ? b : a));
+    return { S, best, cd: best.cd, B: 0.9 * best.cd * 1000 - 30 };
+  }
+
+  // 한 시트의 공격 흐름 검사. detail=false 면 한 줄
+  function checkAttack(id, arch, ch, detail) {
+    const AR = BIBLE.archetypes[arch];
+    const bu = budgetOf(id);
+    if (!bu) { fail(`${id}: no skill data (js/classes.js / content.js)`); return; }
+    const { A, frames } = seqOf(arch, ch);
+    const c = A.contact, cut = A.cut, n = frames.length;
+    const lead = sumMs(frames, 0, c), leadMin = sumMs(frames, 0, c, true);
+    const total = sumMs(frames, 0, n), totalMin = sumMs(frames, 0, n, true);
+    const prot = sumMs(frames, c, cut), protMin = sumMs(frames, c, cut, true);
+    const post = sumMs(frames, c, n), postMin = sumMs(frames, c, n, true);
+    const Bm = bu.B, B3 = Bm * 2 / 3, B4 = Bm * 2 / 4;
+    const win = AR.window_ms;
+    const res = [];
+    const bad = (s) => res.push(['FAIL', s]);
+    const soft = (s) => res.push(['WARN', s]);
+    if (win > RU.prediction_window_cap_ms) bad(`window ${win} > cap ${RU.prediction_window_cap_ms}`);
+    if (lead > win) bad(`lead ${lead} > window ${win}`);
+    if (totalMin > Bm) bad(`total ${total} (min ${r0(totalMin)}) > budget ${r0(Bm)}`);
+    else if (total > Bm) soft(`total ${total} fits budget ${r0(Bm)} only with elastic frames (min ${r0(totalMin)})`);
+    if (leadMin + protMin > Bm) bad(`lead + protected ${lead + prot} (min ${r0(leadMin + protMin)}) > budget ${r0(Bm)}`);
+    else if (lead + prot > Bm) soft(`lead + protected ${lead + prot} fits only compressed (min ${r0(leadMin + protMin)})`);
+    if (protMin > B4) bad(`4x: protected contact..cut ${prot} (min ${r0(protMin)}) > 4x view budget ${r0(B4)}`);
+    if (frames[A.hold] && !frames[A.hold].elastic) bad(`hold frame '${frames[A.hold].name}' is not elastic`);
+    if (frames[c].elastic) bad(`contact frame '${frames[c].name}' is elastic`);
+    const cr = A.contact_ms || RU.contact_ms;
+    if (frames[c].ms < cr[0] || frames[c].ms > cr[1]) soft(`contact ${frames[c].ms} ms outside ${cr[0]}-${cr[1]}`);
+    if (n > 8) bad(`attack has ${n} frames (v2 row max 8)`);
+    // 기본기 종류와 계통 (FAIL: 그 시트 자신의 기본기, WARN: 계열의 다른 직업)
+    bu.S.basics.forEach((b, i) => {
+      const okK = AR.kinds.includes(b.kind) || AR.kinds.includes(b.kind.split(':')[0]);
+      if (!okK) (i === 0 ? bad : soft)(`basic ${b.name} (${b.who}) is ${b.kind}; archetype ${arch} takes ${AR.kinds.join('/')}`);
+    });
+    const tag = res.some((r) => r[0] === 'FAIL') ? 'FAIL' : res.some((r) => r[0] === 'WARN') ? 'WARN' : 'OK';
+    if (!detail) {
+      say(`  ${id.padEnd(30)} cd ${bu.cd.toFixed(2)} (${bu.best.name}, ${bu.best.who})  budget ${r0(Bm)}  4x ${r0(B4)} | lead ${lead}/${win} (min ${r0(leadMin)})  total ${total} (min ${r0(totalMin)})  ${tag}`);
+    } else {
+      const fams = bu.S.basics.map((b) => `${b.name} ${b.cd}${b.kind === 'melee' ? '' : ` ${b.kind}`}`);
+      say(`    basics (${bu.S.basics.length}): ${fams.join(' | ')}`);
+      say(`    shortest basic cd ${bu.cd} s = ${bu.best.name} (${bu.best.who})`);
+      say(`    budget 0.9 x ${bu.cd} x 1000 - 30 = ${r0(Bm)} ms game clock (1x real ${r0(Bm / 1.3)} ms); view budget 3x ${r0(B3)}, 4x ${r0(B4)} (x min(2,s)/s)`);
+      say(`    attack  ${frames.map((f, i) => `${i === cut ? '| ' : ''}${i === c ? '[' : ''}${f.name} ${f.ms}${f.elastic ? 'e' : ''}${f.droppable ? 'd' : ''}${i === c ? ']' : ''}`).join(' · ')}`);
+      say('            (e elastic to 40 %, d droppable, [ ] contact, | cut)');
+      say(`    lead ${lead} (min ${r0(leadMin)}) / window ${win}    total ${total} (min ${r0(totalMin)}) / budget ${r0(Bm)}    lead+protected ${lead + prot} (min ${r0(leadMin + protMin)})`);
+      say(`    >=3x (no anticipation): protected contact..cut ${prot} (min ${r0(protMin)}) vs 4x ${r0(B4)}; post-contact ${post} (min ${r0(postMin)}) is capped at ${r0(B4)} (4x) / ${r0(B3)} (3x)`);
+      bu.S.specials.forEach((sp) => {
+        const f = sp.sk;
+        const how = f.tgt === 'self' ? `rally: hold '${frames[A.hold].name}' 450 ms` : (f.hits > 1 && !f.shot) ? `multi-target melee: one contact frame, victims +${RU.multi_target_stagger_ms} ms each`
+          : (f.hits > 1 && f.shot) ? 'multi-shot: one release + fan VFX' : f.tgt === 'hurt' ? 'heal cast, faces the target (view-side)' : 'same sequence';
+        say(`    special ${sp.name} (${sp.who}, cd ${f.cd}${f.hits > 1 ? `, hits ${f.hits}` : ''}${f.dash ? ', dash' : ''}${f.stun ? `, stun ${f.stun}` : ''}): ${how}`);
+      });
+      res.forEach(([k, s]) => (k === 'FAIL' ? fail(s, `${id}|${s}`) : warn(s, `${id}|${s}`)));
+      if (!res.length) say('    budget / window: OK');
+      return;
+    }
+    res.forEach(([k, s]) => (k === 'FAIL' ? fail(`${id}: ${s}`, `${id}|${s}`) : warn(`${id}: ${s}`, `${id}|${s}`)));
+  }
+
+  say('motion check (node tools/art/requests.js --motion) - ms are game-clock ms; 1x real = ms / 1.3');
+  say(`budget = 0.9 x shortest basic cd x 1000 - 30; elastic frames shrink to ${EL * 100} %; prediction window cap ${RU.prediction_window_cap_ms} ms`);
+  say('');
+
+  // 1) 계통마다: 가장 짧은 재사용을 쓰는 시트를 자세히, 나머지는 한 줄
+  const inArch = {};
+  say('== 1. archetypes (shortest-cd user in detail, then every user)');
+  Object.entries(BIBLE.archetypes).forEach(([arch, AR]) => {
+    if (!AR.attack) return;
+    const users = AR.users.map((id) => ({ id, bu: budgetOf(id) }));
+    users.forEach((u) => { (inArch[u.id] = inArch[u.id] || []).push(arch); });
+    const known = users.filter((u) => u.bu);
+    users.filter((u) => !u.bu).forEach((u) => fail(`${arch}: user ${u.id} has no skill data`));
+    if (!known.length) return;
+    const sh = known.reduce((a, b) => (b.bu.cd < a.bu.cd ? b : a));
+    say('');
+    say(`-- ${arch} (${AR.label}); window ${AR.window_ms} ms; shortest-cd user ${sh.id}`);
+    checkAttack(sh.id, arch, CHARS[sh.id] && CHARS[sh.id].arch === arch ? CHARS[sh.id] : null, true);
+    known.forEach((u) => checkAttack(u.id, arch, CHARS[u.id] && CHARS[u.id].arch === arch ? CHARS[u.id] : null, false));
+  });
+  Object.entries(inArch).forEach(([id, a]) => { if (a.length > 1) warn(`${id} is in ${a.length} archetypes (${a.join(', ')})`); });
+  const reg = Object.keys(manifest).filter((k) => manifest[k] && manifest[k].sheet && /^sheet\/(class|captain|hero|monster)\//.test(k) && !k.endsWith('_mounted'));
+  const unmapped = reg.filter((k) => !inArch[k]);
+  say('');
+  if (unmapped.length) unmapped.forEach((k) => warn(`registered ${k} is in no archetype`));
+  else say(`  registered sheets: ${reg.length}, all in an archetype`);
+
+  // 2) 피격 (무게별)
+  say('');
+  say(`== 2. hit sequences by weight (retrigger: no restart within ${BIBLE.hit.retrigger_ms} ms)`);
+  Object.entries(BIBLE.hit.weights).forEach(([w, H]) => {
+    const tot = sumMs(H.frames, 0, H.frames.length), mn = sumMs(H.frames, 0, H.frames.length, true);
+    say(`  ${w.padEnd(6)} ${H.frames.map((f) => `${f.name} ${f.ms}${f.elastic ? 'e' : ''}${f.droppable ? 'd' : ''}`).join(' · ')} = ${tot} (min ${r0(mn)})`);
+    if (H.contact !== 0) fail(`hit ${w}: contact must be frame 0`);
+    if (H.frames.length > 4) fail(`hit ${w}: ${H.frames.length} frames (max 4)`);
+    const lean = H.frames.map((f) => f.joints && f.joints.lean).filter((v) => v != null);
+    lean.forEach((v) => { if (Math.abs(v) * 180 / Math.PI > H.checks.lean_max_deg + 1e-9) fail(`hit ${w}: lean ${v} rad > ${H.checks.lean_max_deg} deg`); });
+    H.frames.forEach((f) => { if (f.joints && (f.joints.faN || f.joints.faF || f.joints.kneeF)) fail(`hit ${w} ${f.name}: foot angle / knee-lift value set (feet stay flat)`); });
+    const hip0 = BIBLE.hit.idle_reference.hip[1];
+    H.frames.slice(0, 2).forEach((f) => {
+      if (!f.joints || !f.joints.hip) return;
+      const drop = (hip0 - f.joints.hip[1]) * 110;
+      const [lo, hi] = H.checks.hip_drop_src_px;
+      if (drop < lo - 1e-9 || drop > hi + 1e-9) fail(`hit ${w} ${f.name}: hip drop ${drop.toFixed(1)} src px outside ${lo}-${hi}`);
+    });
+  });
+
+  // 3) 캐릭터 (motion_chars.json)
+  // 금지어·소품 봉인 문장: handoff.py 의 BANNED_POSE_RE / SEAL_RE 와 같은 패턴 (+ 한국어), 대소문자 무시
+  const bannedRe = new RegExp(RU.banned_pose_re, 'ig'), sealRe = new RegExp(RU.prop_seal_re, 'ig');
+  const hits = (re, t) => [...new Set(((t || '').match(re) || []).map((x) => x.toLowerCase()))];
+  const poseLint = (where, f) => hits(bannedRe, f.pose).forEach((w) => fail(`${where} pose '${f.name}' uses banned wording '${w}'`));
+  Object.values(BIBLE.archetypes).forEach((AR) => (AR.attack ? AR.attack.frames : []).forEach((f) => poseLint('bible', f)));
+  Object.values(BIBLE.hit.weights).forEach((H) => H.frames.forEach((f) => poseLint('bible hit', f)));
+  ['idle', 'run'].forEach((m) => Object.values(BIBLE[m]).forEach((S) => (S.frames || []).forEach((f) => poseLint(`bible ${m}`, f))));
+  say('');
+  say('== 3. characters (tools/art/specs/motion_chars.json)');
+  const core = (s) => s.replace(/\(.*?\)/g, '').trim();
+  Object.entries(CHARS).forEach(([id, ch]) => {
+    say('');
+    say(`-- ${id} [${ch.status}] ${ch.name || ''}: arch ${ch.arch}, hit ${ch.hit}${ch.run ? `, run ${ch.run}` : ''}`);
+    const AR = BIBLE.archetypes[ch.arch];
+    if (!AR) { fail(`unknown arch ${ch.arch}`); return; }
+    if (!AR.users.includes(id)) warn(`${id} is not listed in archetype ${ch.arch}.users`);
+    if (!BIBLE.hit.weights[ch.hit]) fail(`unknown hit weight ${ch.hit}`);
+    if (ch.status !== 'decided-signature' && !(BIBLE.run.humanoid.runStride_game_px_est[ch.run])) fail(`unknown run class ${ch.run}`);
+    checkAttack(id, ch.arch, ch, true);
+    const H = BIBLE.hit.weights[ch.hit];
+    if (H) say(`    hit (${ch.hit}): ${H.frames.map((f) => `${f.name} ${f.ms}`).join(' · ')}`);
+    // 시그니처
+    const sg = ch.signature || {};
+    const need = ['portrait_weapons', 'in_hand', 'explain', 'basic', 'special', 'idle', 'hit_face'];
+    const miss = need.filter((k) => sg[k] == null);
+    if (miss.length) fail(`signature missing ${miss.join(', ')}`);
+    const text = [sg.basic, sg.special, sg.idle, sg.hit_face, ...(sg.in_hand || [])].join(' ');
+    const all = `${text} ${sg.explain || ''}`;
+    (sg.portrait_weapons || []).forEach((pw) => {
+      const k = core(pw);
+      const held = (sg.in_hand || []).some((h) => h.includes(k) || k.includes(core(h)));
+      if (!held && !(sg.explain && sg.explain.includes(k))) fail(`portrait weapon '${pw}' is neither in in_hand nor explained`);
+    });
+    hits(bannedRe, all).forEach((w) => fail(`signature uses banned wording '${w}'`));
+    const sealed = hits(sealRe, all);
+    if (sealed.length && !sg.explain) fail(`prop sealed ('${sealed.join("', '")}') without explain`);
+    const sk = skillsOf(id);
+    if (sk) {
+      const names = [...sk.basics.map((b) => b.name), ...sk.specials.map((b) => b.name)];
+      const pool = `${(sg.in_hand || []).join(' ')} ${sg.explain || ''}`;
+      [...new Set(names)].forEach((nm) => Object.entries(RU.skill_word_items).forEach(([w, items]) => {
+        if (nm.includes(w) && !items.some((it) => pool.includes(it))) warn(`skill '${nm}' names '${w}' but in_hand / explain has none of ${items.join('/')}`);
+      }));
+    }
+    // 특기 흐름: 맞는 순간 프레임은 하나, 엇갈림은 한 값
+    const frames = AR.attack.frames.map((f) => f.name);
+    Object.entries((ch.engine && ch.engine.specials) || {}).forEach(([nm, sp]) => {
+      if (sp.seq) {
+        const unk = sp.seq.filter((s) => !frames.includes(s));
+        if (unk.length) fail(`special ${nm}: unknown frames ${unk.join(', ')}`);
+        const nc = sp.seq.filter((s) => s === frames[AR.attack.contact]).length;
+        if (nc !== 1) fail(`special ${nm}: ${nc} contact frames in seq (one sim tick = one contact frame)`);
+        else say(`    special ${nm}: seq ${sp.seq.join(' > ')} - one contact frame`);
+      }
+      if (sp.stagger_ms != null && sp.stagger_ms !== RU.multi_target_stagger_ms) fail(`special ${nm}: stagger ${sp.stagger_ms} != shared ${RU.multi_target_stagger_ms} ms`);
+    });
+    if (ch.engine && ch.engine.dx) {
+      if (ch.engine.dx.attack && ch.engine.dx.attack.length !== AR.attack.frames.length) fail(`engine.dx.attack has ${ch.engine.dx.attack.length} values for ${AR.attack.frames.length} frames`);
+      if (ch.engine.dx.hit && H && ch.engine.dx.hit.length !== H.frames.length) fail(`engine.dx.hit has ${ch.engine.dx.hit.length} values for ${H.frames.length} frames`);
+    }
+    if (ch.status !== 'decided-signature') {
+      const mq = ch.mannequin;
+      const cname = frames[AR.attack.contact], hname = frames[AR.attack.hold];
+      if (!mq || !mq.overrides) fail('no mannequin overrides');
+      else {
+        [hname, cname].forEach((fn) => { if (!mq.overrides[fn]) fail(`mannequin override for '${fn}' missing`); });
+        say(`    mannequin ${mq.set}: overrides ${Object.keys(mq.overrides).join(', ')}; pivot ${mq.pivot_foot}`);
+      }
+    }
+  });
+  // 같은 계통의 기본기 문장이 거의 같으면 (그롬·오스윈 README 처럼) WARN
+  const ids = Object.keys(CHARS);
+  const toks = (s) => new Set((s || '').split(/[\s,.=()]+/).filter(Boolean));
+  for (let i = 0; i < ids.length; i++) for (let j = i + 1; j < ids.length; j++) {
+    const a = CHARS[ids[i]], b = CHARS[ids[j]];
+    if (a.arch !== b.arch) continue;
+    const A = toks(a.signature && a.signature.basic), Bt = toks(b.signature && b.signature.basic);
+    const inter = [...A].filter((t) => Bt.has(t)).length, uni = new Set([...A, ...Bt]).size || 1;
+    if (inter / uni > 0.8) warn(`${ids[i]} and ${ids[j]}: basic wording ${Math.round(inter / uni * 100)} % the same`);
+  }
+
+  // 4) 마네킹 닮음 (C4): 같은 바탕 세트를 쓰는 두 캐릭터
+  say('');
+  say(`== 4. mannequin similarity (same base set; FAIL at IoU > ${RU.guide_similarity_iou_fail} or identical overrides)`);
+  const byBase = {};
+  Object.entries(CHARS).forEach(([id, ch]) => { if (ch.mannequin && ch.mannequin.base) (byBase[ch.mannequin.base] = byBase[ch.mannequin.base] || []).push(id); });
+  let pairs = 0;
+  Object.entries(byBase).forEach(([base, lst]) => {
+    for (let i = 0; i < lst.length; i++) for (let j = i + 1; j < lst.length; j++) {
+      pairs++;
+      const a = CHARS[lst[i]], b = CHARS[lst[j]], AR = BIBLE.archetypes[a.arch];
+      const fr = AR.attack.frames;
+      say(`  ${base}: ${a.mannequin.set} vs ${b.mannequin.set}`);
+      [AR.attack.hold, AR.attack.contact].forEach((k) => {
+        const fn = fr[k].name, oa = a.mannequin.overrides[fn], ob = b.mannequin.overrides[fn];
+        if (!oa || !ob || JSON.stringify(oa) === JSON.stringify(ob)) fail(`${fn}: overrides missing or identical - the guides would be one template`);
+        else {
+          const diff = Object.keys({ ...oa, ...ob }).filter((key) => key !== 'note' && JSON.stringify(oa[key]) !== JSON.stringify(ob[key]));
+          say(`    ${fn}: overrides differ in ${diff.join(', ') || 'note only'}`);
+          if (!diff.length) fail(`${fn}: overrides differ only in the note`);
+        }
+        const nn = String(k).padStart(2, '0');
+        const pa = path.join(ROOT, 'art/inbox/guides', a.mannequin.set, `f${nn}_${fn}.png`), pb = path.join(ROOT, 'art/inbox/guides', b.mannequin.set, `f${nn}_${fn}.png`);
+        if (fs.existsSync(pa) && fs.existsSync(pb)) {
+          const r = motionIou(pa, pb, 0.1654);
+          if (r.error) fail(`${fn}: ${r.error}`);
+          else if (r.iou > RU.guide_similarity_iou_fail) fail(`${fn}: guide IoU ${r.iou.toFixed(3)} > ${RU.guide_similarity_iou_fail} at game size`);
+          else say(`    ${fn}: guide IoU ${r.iou.toFixed(3)} at game size - OK`);
+        } else say(`    ${fn}: guide PNGs not delivered yet (art/inbox/guides/<set>/f${nn}_${fn}.png) - pixel IoU pending`);
+      });
+    }
+  });
+  if (!pairs) say('  no two characters share a base set');
+
+  say('');
+  say(`motion check: ${nFail} FAIL, ${nWarn} WARN`);
+  console.log(out.join('\n'));
+  return nFail ? 1 : 0;
+}
+
+// 두 PNG 의 실루엣 IoU (게임 크기로 줄여서): 투명·#FF00FF·왼쪽 위 모서리 색(가이드의 바탕)은 바탕으로 본다.
+function motionIou(fa, fb, scale) {
+  const A = motionMask(fa), Bm = motionMask(fb);
+  if (A.error || Bm.error) return { error: A.error || Bm.error };
+  if (A.w !== Bm.w || A.h !== Bm.h) return { error: `size differs (${A.w}x${A.h} vs ${Bm.w}x${Bm.h})` };
+  const ga = motionShrink(A, scale), gb = motionShrink(Bm, scale);
+  let i = 0, u = 0, na = 0, nb = 0;
+  for (let k = 0; k < ga.m.length; k++) { const a = ga.m[k], b = gb.m[k]; na += a; nb += b; if (a && b) i++; if (a || b) u++; }
+  return { iou: u ? i / u : 1, gw: ga.w, gh: ga.h, na, nb };
+}
+function motionShrink(M, s) {
+  const w = Math.max(1, Math.round(M.w * s)), h = Math.max(1, Math.round(M.h * s));
+  const m = new Uint8Array(w * h);
+  for (let y = 0; y < h; y++) {
+    const y0 = Math.floor(y / s), y1 = Math.min(M.h, Math.max(y0 + 1, Math.floor((y + 1) / s)));
+    for (let x = 0; x < w; x++) {
+      const x0 = Math.floor(x / s), x1 = Math.min(M.w, Math.max(x0 + 1, Math.floor((x + 1) / s)));
+      let on = 0, n = 0;
+      for (let yy = y0; yy < y1; yy++) for (let xx = x0; xx < x1; xx++) { on += M.m[yy * M.w + xx]; n++; }
+      m[y * w + x] = n && on * 2 >= n ? 1 : 0;
+    }
+  }
+  return { w, h, m };
+}
+// 작은 PNG 읽기 (zlib 만): 색 형식 0/2/3/4/6, 비트 1·2·4·8·16, 인터레이스 없음
+function motionMask(file) {
+  const zlib = require('zlib');
+  let buf;
+  try { buf = fs.readFileSync(file); } catch (e) { return { error: `cannot read ${file}` }; }
+  if (buf.readUInt32BE(0) !== 0x89504e47) return { error: `${file}: not a PNG` };
+  let p = 8, w = 0, h = 0, bd = 0, ct = 0, il = 0, plte = null, trns = null;
+  const idat = [];
+  while (p < buf.length) {
+    const len = buf.readUInt32BE(p), type = buf.toString('ascii', p + 4, p + 8), d = buf.subarray(p + 8, p + 8 + len);
+    if (type === 'IHDR') { w = d.readUInt32BE(0); h = d.readUInt32BE(4); bd = d[8]; ct = d[9]; il = d[12]; }
+    else if (type === 'PLTE') plte = d;
+    else if (type === 'tRNS') trns = d;
+    else if (type === 'IDAT') idat.push(d);
+    else if (type === 'IEND') break;
+    p += 12 + len;
+  }
+  const ch = { 0: 1, 2: 3, 3: 1, 4: 2, 6: 4 }[ct];
+  if (!ch || il) return { error: `${file}: unsupported PNG (colour type ${ct}, interlace ${il})` };
+  const raw = zlib.inflateSync(Buffer.concat(idat));
+  const bpp = Math.max(1, (ch * bd) >> 3), stride = Math.ceil((w * ch * bd) / 8);
+  const px = Buffer.alloc(stride * h);
+  let prev = Buffer.alloc(stride);
+  for (let y = 0; y < h; y++) {
+    const f = raw[y * (stride + 1)], src = raw.subarray(y * (stride + 1) + 1, (y + 1) * (stride + 1)), row = px.subarray(y * stride, (y + 1) * stride);
+    for (let i = 0; i < stride; i++) {
+      const a = i >= bpp ? row[i - bpp] : 0, b = prev[i], c = i >= bpp ? prev[i - bpp] : 0;
+      let v = src[i];
+      if (f === 1) v += a; else if (f === 2) v += b; else if (f === 3) v += (a + b) >> 1;
+      else if (f === 4) { const q = a + b - c, pa = Math.abs(q - a), pb = Math.abs(q - b), pc = Math.abs(q - c); v += pa <= pb && pa <= pc ? a : pb <= pc ? b : c; }
+      row[i] = v & 255;
+    }
+    prev = row;
+  }
+  const sample = (y, i) => {   // i 번째 표본 (0..w*ch-1)
+    if (bd === 8) return px[y * stride + i];
+    if (bd === 16) return px[y * stride + i * 2];
+    const bit = i * bd, byte = px[y * stride + (bit >> 3)], sh = 8 - bd - (bit & 7);
+    return (byte >> sh) & ((1 << bd) - 1);
+  };
+  const rgba = (x, y) => {
+    const s = (k) => sample(y, x * ch + k);
+    if (ct === 3) { const i = s(0); return [plte[i * 3], plte[i * 3 + 1], plte[i * 3 + 2], trns && i < trns.length ? trns[i] : 255]; }
+    const sc = bd < 8 ? 255 / ((1 << bd) - 1) : 1;
+    if (ct === 0) { const g = s(0) * sc; return [g, g, g, 255]; }
+    if (ct === 4) { const g = s(0); return [g, g, g, s(1)]; }
+    if (ct === 2) return [s(0), s(1), s(2), 255];
+    return [s(0), s(1), s(2), s(3)];
+  };
+  const bg = rgba(0, 0);
+  const m = new Uint8Array(w * h);
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const [r, g, b, a] = rgba(x, y);
+    const isBg = a < 128 || (r === 255 && g === 0 && b === 255) || (bg[3] >= 128 && r === bg[0] && g === bg[1] && b === bg[2]);
+    m[y * w + x] = isBg ? 0 : 1;
+  }
+  return { w, h, m };
+}

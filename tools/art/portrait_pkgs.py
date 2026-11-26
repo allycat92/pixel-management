@@ -11,10 +11,16 @@ starter nine, and special mercenaries (heroes). Each package has the same layout
 
   python3 tools/art/portrait_pkgs.py captain tools/art/specs/captains_batch2.json            # every entry
   python3 tools/art/portrait_pkgs.py captain tools/art/specs/captains_batch2.json bard titan # only these keys
+  python3 tools/art/portrait_pkgs.py captain SPEC bard --out /tmp/pk                     # write elsewhere (dry run of a change)
 
 Spec file: a JSON list of entries
-  {key, en, weapon (bow|staff|none|katana|sword_shield|spear), size_class, character, colours,
-   notes: [...], poses: [4 strings, "1 idle: ..." or "idle: ..."], ko_notes}
+  {key, en, weapon (bow|staff|none|katana|sword_shield|spear), size_class, hit_weight (heavy|mid|light, default mid),
+   character, colours, notes: [...], explain (why a note seals away a portrait weapon / prop, and which owner decision),
+   poses: [4 strings, "1 idle: ..." or "idle: ..."], ko_notes}
+Lint (the package is NOT written): a pose with knee-up hit wording (handoff.BANNED_POSE_RE: "thrown back", "rear leg",
+"knee up", "kicked up", "lifted leg" ...), a hit pose without the reaction wording of handoff.hit_pose() (both feet flat on
+the ground + a face change), or a note that seals a portrait weapon ("stays sheathed", "holstered", "never two",
+"on her back" ...; handoff.SEAL_RE) without `explain`.
 Names and the delivery file name come from art/requests/phase3.json (sheet/<kind>/<key>).
 
 Safety: a package folder that already exists and was NOT written by this script (e.g. the nine starter
@@ -74,6 +80,21 @@ def sentence(s):
     return s if s.endswith(('.', '!', '?')) else s + '.'
 
 
+def lint(S):
+    """→ problems of one spec entry (see the module doc)."""
+    key = S['key']
+    poses = list(zip(['idle', 'wind-up', 'strike', 'hit'], [pose_text(p) for p in S['poses']]))
+    out = h.lint_request(key, poses, S['notes'], S.get('explain', ''))
+    w = S.get('hit_weight', 'mid')
+    if w not in h.HIT_WEIGHTS:
+        out.append(f'{key}: hit_weight {w!r} is not one of {", ".join(h.HIT_WEIGHTS)}')
+    hit = poses[3][1]
+    if 'flat on the ground' not in hit or not re.search(r'wince|teeth gritted|eyes squeezed|jaw drops|ducks', hit):
+        out.append(f'{key}: the hit pose is not the reaction wording (both feet flat on the ground + face change; build it with '
+                   'handoff.hit_pose(weight, detail))')
+    return out
+
+
 def readme(kind, it, S, info, spec_rel):
     w = S['weapon']
     fname = it['file']
@@ -106,6 +127,7 @@ def readme(kind, it, S, info, spec_rel):
         if any(bad in n for n in S['notes']):
             raise SystemExit(f"{S['key']}: a note still says '{bad}' - an open question must not go into the prompt (use weapon_confirmed)")
     size_ko = ''
+    explain_ko = f"\n- 초상화 무기·소품을 빼는 근거(explain): {S['explain']}" if S.get('explain') else ''
     if S.get('size_class', 'normal') != 'normal':
         size_ko = f"\n- 체격 등급: `{S['size_class']}` — 4등신·머리 110px 유지, 덩치(어깨·팔)로만 크게. 시트 칸이 더 커야 할 수 있음."
     return f"""# {it['name']} · `{it['id']}`
@@ -122,6 +144,7 @@ def readme(kind, it, S, info, spec_rel):
 - 납품 파일: art-inbox 브랜치 `art/inbox/{fname}` + `art/inbox/NOTES.md`의 「{it['id']} - {ko}」 절.
 - 화풍 기준(앵커): art-inbox 의 `art/inbox/sheet_captain_blademaster.png`.
 - 요점: {S.get('ko_notes', '').strip()}{size_ko}{shrink_ko}
+- 피격 무게: `{S.get('hit_weight', 'mid')}` — {h.HIT_KO[S.get('hit_weight', 'mid')]}. 가이드 피격 = K2-mid 반응(두 발 바닥, 무릎으로 받음).{explain_ko}
 - 게임 칸: {cell}px — 어떤 자세도(든 무기·모자 포함) y={top_y} 위로 올라가지 않게 (자세 높이 {tall}px 이하).
 - 생성: `python3 {MARK} {kind} {spec_rel} {S['key']}` (고칠 때는 spec JSON 을 고치고 다시 실행).
 
@@ -153,6 +176,7 @@ WEAPON/PROP READABILITY: in every pose keep the weapon outside the body silhouet
 
 SELF-CHECK before saving: 4 poses in one row · soles on y=870 · highest pixel at or below y={top_y} · head ≈110 px · facing right · weapon matches NOTES and sits outside the body in every pose · no effects ·
 flat #FF00FF background · no figure colour within distance 170 of #FF00FF · ~40 colours with hard edges.
+{h.HIT_CHECK_EN}.
 Run `python3 tools/art/check_delivery.py art/inbox/{fname}` if you can and paste its RESULT line.
 
 DELIVERY: commit art/inbox/{fname} and add a section "## {it['id']} - {ko}" to art/inbox/NOTES.md using the template in art/requests/GPT_STANDING.md
@@ -161,7 +185,7 @@ DELIVERY: commit art/inbox/{fname} and add a section "## {it['id']} - {ko}" to a
 """
 
 
-def build(kind, S, items, cache, spec_rel):
+def build(kind, S, items, cache, spec_rel, root_out=OUT):
     key = S['key']
     iid = f'sheet/{kind}/{key}'
     if iid not in items:
@@ -172,7 +196,10 @@ def build(kind, S, items, cache, spec_rel):
         raise SystemExit(f'{key}: unknown weapon {w!r}')
     if len(S['poses']) != 4:
         raise SystemExit(f'{key}: needs exactly 4 poses')
-    out = os.path.join(OUT, f'{kind}_{key}')
+    bad = lint(S)
+    if bad:
+        raise SystemExit('request lint FAILED (no package written):\n  ' + '\n  '.join(bad))
+    out = os.path.join(root_out, f'{kind}_{key}')
     rd = os.path.join(out, 'README.md')
     if os.path.isdir(out) and os.listdir(out):
         if not (os.path.exists(rd) and MARK in open(rd, encoding='utf-8').read()):
@@ -183,8 +210,12 @@ def build(kind, S, items, cache, spec_rel):
         raise SystemExit(f'{key}: missing portrait {portrait}')
     os.makedirs(out, exist_ok=True)
     if w not in cache:
-        cache[w] = h.builds_for(w)[2]
+        _, F, cache[w] = h.builds_for(w)
+        cache[w + ':F'] = (F, cache[w])
     builds = cache[w]
+    hp = h.hit_problems(h.hit_metrics(*cache[w + ':F'], FRAMES[w][3]), 'mid')
+    if hp:
+        raise SystemExit(f'{key}: hit guide {FRAMES[w][3]} is not a believable reaction: ' + '; '.join(hp))
     for f, n in zip(FRAMES[w], GUIDES):
         h.save_png(h.guide_frame(builds, f), os.path.join(out, n))
     im, info = h.strip_image(builds, FRAMES[w])
@@ -207,16 +238,23 @@ def main():
     ap.add_argument('kind', choices=['captain', 'hero'])
     ap.add_argument('spec', help='JSON spec file (list of entries)')
     ap.add_argument('keys', nargs='*', help='only these keys')
+    ap.add_argument('--out', default=OUT, help='package root (default art/requests/phase3)')
+    ap.add_argument('--lint', action='store_true', help='only lint every (selected) entry and print the problems; write nothing')
     a = ap.parse_args()
     items = {i['id']: i for i in json.load(open(REQ, encoding='utf-8'))['items']}
     specs = json.load(open(a.spec, encoding='utf-8'))
     spec_rel = os.path.relpath(os.path.abspath(a.spec), ROOT).replace(os.sep, '/')
     cache = {}
     done = []
+    if a.lint:
+        bad = [m for S in specs if not a.keys or S['key'] in a.keys for m in lint(S)]
+        print('\n'.join(bad) or 'lint: OK')
+        print(f'{len(bad)} problem(s)')
+        return 1 if bad else 0
     for S in specs:
         if a.keys and S['key'] not in a.keys:
             continue
-        r = build(a.kind, S, items, cache, spec_rel)
+        r = build(a.kind, S, items, cache, spec_rel, a.out)
         if r:
             done.append(r)
             flag = f"  SHRUNK x{r['shrink']}" if r['shrink'] < 1 else ''
@@ -225,4 +263,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    sys.exit(main())

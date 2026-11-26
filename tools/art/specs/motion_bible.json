@@ -1,0 +1,1695 @@
+{
+  "version": 1,
+  "about": "Frame bible for the frame-by-frame battle sheets (v2). One entry per archetype x motion. Plan and reasons: docs/plans/2026-11-26_motion_frames.md. Per-character overrides (timing, engine, mannequin joints): tools/art/specs/motion_chars.json. Budget and signature checker: node tools/art/requests.js --motion. When an instruction changes, edit this JSON (and motion_chars.json), not the code.",
+  "units": {
+    "ms": "game-clock (view clock) ms. View clock = dt x min(2, speed) x 1.3 (js/battle.js main loop), so 1x real time = ms / 1.3; at speed s > 2 one view ms lasts s/2 sim ms.",
+    "head": "posekit head units (1 head = 110 px on the 1536x1024 source canvas, 4 heads tall, sole line y=870, hip x=192 in a 384-px frame). x is absolute (+x = facing direction), hip heights are above the floor, hand points use the posekit at() convention (h relative to the shoulder line 2.40). lean / tilt in radians (0.262 rad = 15 deg), weapon angle wa in degrees as in tools/art/handoff.py KEY_POSES.",
+    "src_px": "pixels on the 1536x1024 source canvas; game px = src px x 0.1654 (class / most captains)."
+  },
+  "who": {
+    "PC-mannequin": "every frame of every attack / hit / run sequence has a mannequin (skeleton) frame made by the PC Aseprite session from this spec plus the character's motion_chars.json overrides. The cloud does not build seq8 drafts; the PC may script them itself (as walk8_pc.py) or start from the walk/run .aseprite drafts as body templates.",
+    "GPT-key": "final art drawn by GPT on the mannequin frames (1536x1024, 1x4 strip, one strip per delivery).",
+    "PC-inbetween": "final art made by the PC on the game-size seed: rigid moves at source size by script plus paint-under, or freehand. Freehand frames are marked elastic + droppable and are measured in the pilot before they count.",
+    "reuse": "an already accepted cell is reused unchanged (named in motion_chars.json)."
+  },
+  "rules": {
+    "budget": "one attack sequence (first frame to the end of settle) must fit 0.9 x (shortest basic cd of every unit that uses the sheet) x 1000 - 30 ms; cd jitter x0.9..1.1 at js/battle.js useSkill (sk.left = sk.cd * (0.9 + r * 0.2)).",
+    "elastic_min_factor": 0.4,
+    "fit": "FAIL when the sequence does not fit even with every elastic frame at 40 %; WARN when it fits only with compression.",
+    "prediction_window_cap_ms": 400,
+    "lead": "lead = ms before the contact frame starts. Each archetype has window_ms (its prediction window, <= 400). FAIL when a nominal lead exceeds window_ms. Unpredicted actions start at the contact frame, so the contact frame must read on its own.",
+    "speed_conversion": "at speed s > 2 the view clock runs at min(2, s)/s of the sim, so the post-contact cap 0.9 x cd - lead - 30 ms becomes (0.9 x cd - 30) x min(2, s)/s view ms (x0.5 at 4x, x0.667 at 3x). At >= 3x anticipation is skipped and playback starts at the contact frame; the protected frames (contact up to cut) must fit that converted budget (FAIL otherwise).",
+    "contact": "the frame on which the sim's damage / shot spawn / heal lands (release for projectiles). Exactly one contact frame per sequence, also for multi-target melee (hits > 1 land in one sim tick, js/battle.js useSkill targets.forEach strike).",
+    "contact_ms": [
+      60,
+      80
+    ],
+    "breakdown_ms": [
+      40,
+      50
+    ],
+    "hold": "the anticipation hold is elastic (shrinks first when the budget is short).",
+    "cut": "from the cut frame on, the next action or a hit may interrupt.",
+    "neighbour_silhouette_change_min": 0.08,
+    "neighbour_exempt": [
+      "idle",
+      "hold"
+    ],
+    "multi_target_stagger_ms": 50,
+    "multi_target_stagger_source": "js/battle.js slash fx t: -i * 0.05 - victim reactions use the same constant, one value for slashes and reactions",
+    "multi_shot": "projectiles are sim objects and are never delayed: one release frame plus a fan VFX.",
+    "rally": "tgt:self skills (rally / shout / buff) hold the attack hold frame for 450 ms with the existing ring VFX instead of swinging at the air.",
+    "heal_facing": "a heal faces its target; view-side only (an r.* override in the renderer), never u.face in the sim.",
+    "dx": "per-frame body offset in game px at sheet scale 1; the engine multiplies by the draw scale sheetK (bosses 1.5x), as lungeOf already does with K.",
+    "smear": "slash smears are drawn by the engine (drawSmear), never painted into frames.",
+    "guide_follow_iou_min": 0.55,
+    "guide_similarity_iou_fail": 0.8,
+    "guide_similarity": "two characters' mannequin frames (hold and contact at game size, alpha IoU) above 0.8 = the same template = FAIL (requests.js --motion). Characters sharing a base set must carry different overrides.",
+    "banned_pose_re": "thrown back|rear (?:leg|bare foot|foot)|knees? (?:up|raised|lifted)|kicked up|(?:lifted|raised) (?:front )?(?:leg|knee)|(?:leg|knee) (?:lifted|raised)|무릎을 들|몸을 크게 젖",
+    "banned_source": "same pattern as tools/art/handoff.py BANNED_POSE_RE (hit job, working tree 2026-11-25) plus two Korean phrases; case-insensitive",
+    "banned_note": "'kick' alone is NOT banned: recoil wording such as 'arm kicks up' (Marisol's pistol) is legitimate.",
+    "prop_seal_re": "stays? sheathed|\\bsheathed\\b|holster|never two|(?:on|from) (?:her|his|their) back|never (?:fired|swung|thrown|used)|prop only|does not float|second weapon|not the portrait|portrait[^.;]*\\b(?:not drawn|do not draw)|(?:do not draw|not drawn)[^.;]*\\bportrait|쏘지 않|휘두르지 않|던지지 않|꺼내지 않|등에 멘",
+    "prop_seal_source": "tools/art/handoff.py SEAL_RE plus Korean phrases; case-insensitive",
+    "prop_seal_rule": "a sealed prop (any phrase above) needs signature.explain with the owner decision; otherwise FAIL.",
+    "skill_word_items": {
+      "사슬": [
+        "사슬"
+      ],
+      "족쇄": [
+        "사슬",
+        "족쇄"
+      ],
+      "갈고리": [
+        "갈고리"
+      ],
+      "방패": [
+        "방패"
+      ],
+      "권총": [
+        "권총"
+      ],
+      "덫": [
+        "덫",
+        "올가미"
+      ],
+      "올가미": [
+        "올가미",
+        "덫"
+      ],
+      "망치": [
+        "망치"
+      ],
+      "철퇴": [
+        "철퇴"
+      ],
+      "도끼": [
+        "도끼"
+      ],
+      "활": [
+        "활",
+        "궁"
+      ],
+      "쇠뇌": [
+        "쇠뇌"
+      ],
+      "석궁": [
+        "석궁",
+        "쇠뇌"
+      ],
+      "노궁": [
+        "쇠뇌",
+        "노궁"
+      ],
+      "늑대": [
+        "늑대"
+      ],
+      "창": [
+        "창"
+      ],
+      "랜스": [
+        "창",
+        "랜스"
+      ]
+    }
+  },
+  "hit": {
+    "about": "Hit sequences by weight. Reading comes from the silhouette first: head and shoulders snap away and return, knees absorb, feet planted (one stagger step at most for light), weapon kept, face changes (wince / eyes shut / teeth gritted) but a ~10 px face barely reads at 96 px. Heavy characters rock less. Joint values are the hit job's posekit.HIT_KEYS (tools/pixelart/posekit.py, working tree 2026-11-25, not yet committed) and the limits are handoff.py HIT_RULES; posekit / handoff win if they differ - update this copy.",
+    "retrigger_ms": 200,
+    "retrigger": "a new hit within 200 ms of the current hit's start does not restart the sequence: it re-shows K1 for its ms and resumes where it was (heavy: ignored). Hits interrupt idle, run and attack frames from cut on; they never interrupt an attack before its contact.",
+    "priority": [
+      "death",
+      "attack before contact",
+      "hit",
+      "attack after contact",
+      "stun",
+      "run / walk",
+      "idle"
+    ],
+    "idle_reference": {
+      "hip": [
+        0.0,
+        1.4
+      ],
+      "lean": 0.08,
+      "footN": -1.1,
+      "footF": 1.0
+    },
+    "weights": {
+      "heavy": {
+        "users": "ironwall, titan, frostjarl, grom, liberator, runesmith, big monsters and bosses",
+        "checks": {
+          "lean_max_deg": 15,
+          "hip_drop_src_px": [
+            12,
+            30
+          ],
+          "knee_rise_max_src_px": 1,
+          "feet_flat": "soles at y=870 +-3, no foot angle (faN = faF = 0)",
+          "k_last_vs_idle_max_src_px": 12,
+          "head_dx_src_px": [
+            12,
+            35
+          ]
+        },
+        "loop": false,
+        "contact": 0,
+        "cut": 1,
+        "frames": [
+          {
+            "name": "K1 brace",
+            "ms": 80,
+            "who": "GPT-key",
+            "strip": "S2#1",
+            "pose": "CONTACT: braced against the blow, shoulder turns into it, head dips a little, no foot movement, teeth gritted, weapon held",
+            "joints": {
+              "hip": [
+                -0.02,
+                1.29
+              ],
+              "lean": 0.05,
+              "footN": -1.1,
+              "footF": 1.0,
+              "tilt": -0.08,
+              "head_off": [
+                -0.02,
+                -0.03
+              ],
+              "faN": 0,
+              "faF": 0
+            }
+          },
+          {
+            "name": "K2 hold",
+            "ms": 110,
+            "who": "GPT-key",
+            "strip": "S2#2",
+            "pose": "Compressed brace, knees bent, weapon held up, weight even",
+            "joints": {
+              "hip": [
+                -0.04,
+                1.26
+              ],
+              "lean": 0.03,
+              "footN": -1.1,
+              "footF": 1.0,
+              "tilt": -0.06,
+              "head_off": [
+                -0.03,
+                -0.03
+              ],
+              "faN": 0,
+              "faF": 0
+            }
+          },
+          {
+            "name": "K3 settle",
+            "ms": 80,
+            "who": "PC-inbetween",
+            "elastic": true,
+            "droppable": true,
+            "pose": "Back to stance (within 12 src px of idle)"
+          }
+        ]
+      },
+      "mid": {
+        "users": "sword, spear and most melee (class warrior, veteran, lancer, ...), Orga",
+        "checks": {
+          "lean_max_deg": 15,
+          "hip_drop_src_px": [
+            12,
+            30
+          ],
+          "knee_rise_max_src_px": 1,
+          "feet_flat": "soles at y=870 +-3, no foot angle (faN = faF = 0)",
+          "k_last_vs_idle_max_src_px": 12,
+          "head_dx_src_px": [
+            25,
+            60
+          ]
+        },
+        "loop": false,
+        "contact": 0,
+        "cut": 2,
+        "frames": [
+          {
+            "name": "K1 impact",
+            "ms": 70,
+            "who": "GPT-key",
+            "strip": "S2#1",
+            "pose": "CONTACT: head and shoulders snap away from the blow, knees bend and the hips drop a little, BOTH feet flat where they stood, face winces or teeth grit, weapon kept",
+            "joints": {
+              "hip": [
+                -0.05,
+                1.27
+              ],
+              "lean": 0.0,
+              "footN": -1.1,
+              "footF": 1.0,
+              "tilt": -0.12,
+              "head_off": [
+                -0.04,
+                -0.02
+              ],
+              "faN": 0,
+              "faF": 0
+            }
+          },
+          {
+            "name": "K2 peak",
+            "ms": 100,
+            "who": "GPT-key",
+            "strip": "S2#2",
+            "pose": "Deepest point: hips lowest, head and shoulders furthest from the blow, weight on the supporting back foot, both feet flat, weapon arm out for balance",
+            "joints": {
+              "hip": [
+                -0.08,
+                1.21
+              ],
+              "lean": -0.06,
+              "footN": -1.1,
+              "footF": 1.0,
+              "tilt": -0.1,
+              "head_off": [
+                -0.04,
+                -0.03
+              ],
+              "faN": 0,
+              "faF": 0
+            }
+          },
+          {
+            "name": "K3 recover",
+            "ms": 80,
+            "who": "PC-inbetween",
+            "elastic": true,
+            "droppable": true,
+            "pose": "Halfway back (non-rigid: knees unbend - freehand, measured in the pilot)",
+            "joints": {
+              "note": "about halfway between k2_mid and idle (non-rigid: the knees unbend)"
+            }
+          },
+          {
+            "name": "K4 settle",
+            "ms": 70,
+            "who": "PC-inbetween",
+            "elastic": true,
+            "droppable": true,
+            "pose": "Guard coming back up, face easing, within 12 src px of idle"
+          }
+        ]
+      },
+      "light": {
+        "users": "dagger, twin blades, bow, staff, healer (Nikla, class rogue, class archer, class mage, class cleric, Marisol, ...)",
+        "checks": {
+          "lean_max_deg": 15,
+          "hip_drop_src_px": [
+            12,
+            30
+          ],
+          "knee_rise_max_src_px": 1,
+          "feet_flat": "soles at y=870 +-3, no foot angle (faN = faF = 0)",
+          "k_last_vs_idle_max_src_px": 12,
+          "head_dx_src_px": [
+            40,
+            90
+          ],
+          "back_foot_slide_max_src_px": 33
+        },
+        "loop": false,
+        "contact": 0,
+        "cut": 2,
+        "frames": [
+          {
+            "name": "K1 impact",
+            "ms": 60,
+            "who": "GPT-key",
+            "strip": "S2#1",
+            "pose": "CONTACT: head and shoulders snap back further, shoulders twist, knees bend, feet flat, face winces",
+            "joints": {
+              "hip": [
+                -0.08,
+                1.24
+              ],
+              "lean": -0.06,
+              "footN": -1.1,
+              "footF": 1.0,
+              "tilt": -0.16,
+              "head_off": [
+                -0.05,
+                -0.02
+              ],
+              "faN": 0,
+              "faF": 0
+            }
+          },
+          {
+            "name": "K2 stagger",
+            "ms": 110,
+            "who": "GPT-key",
+            "strip": "S2#2",
+            "pose": "The back foot slides one short step back (<= 0.3 head) while the front foot stays flat, torso leaning <= 15 deg, weapon kept",
+            "joints": {
+              "hip": [
+                -0.22,
+                1.15
+              ],
+              "lean": -0.15,
+              "footN": -1.4,
+              "footF": 1.0,
+              "tilt": -0.12,
+              "head_off": [
+                -0.05,
+                -0.03
+              ],
+              "faN": 0,
+              "faF": 0
+            }
+          },
+          {
+            "name": "K3 recover",
+            "ms": 90,
+            "who": "PC-inbetween",
+            "elastic": true,
+            "droppable": true,
+            "pose": "Halfway back, front foot still planted (non-rigid, measured in the pilot)"
+          },
+          {
+            "name": "K4 settle",
+            "ms": 80,
+            "who": "PC-inbetween",
+            "elastic": true,
+            "droppable": true,
+            "pose": "Back to guard"
+          }
+        ]
+      }
+    },
+    "source": {
+      "joints": "tools/pixelart/posekit.py HIT_KEYS (k1_/k2_ heavy|mid|light)",
+      "limits": "tools/art/handoff.py HIT_RULES + hit_metrics (110 px/head)"
+    }
+  },
+  "idle": {
+    "humanoid": {
+      "loop": true,
+      "pilot_note": "Pilot: the rest key plus today's sprite-gen breathing loop (offline). The three cloth-lag in-betweens are NOT made in the pilot (a 1 px breathing change does not read at 64-75 px; C6).",
+      "frames": [
+        {
+          "name": "rest",
+          "ms": 260,
+          "who": "GPT-key",
+          "strip": "S2#4",
+          "pose": "Natural rest key, not a weapon display: weight settled, weapon carried as it would be (Nikla both blades down, far one behind her; Brok hammer on shoulder; Oswin point planted). Existing idle when it is natural."
+        },
+        {
+          "name": "inhale",
+          "ms": 220,
+          "who": "PC-inbetween",
+          "pilot": false,
+          "pose": "Chest and shoulders up 1 game px, weapon tip +1 px"
+        },
+        {
+          "name": "top",
+          "ms": 260,
+          "who": "PC-inbetween",
+          "pilot": false,
+          "pose": "Hold; hair, cape and hem follow one frame late (1-2 px)"
+        },
+        {
+          "name": "exhale",
+          "ms": 220,
+          "who": "PC-inbetween",
+          "pilot": false,
+          "pose": "Back down; cloth settles"
+        }
+      ]
+    },
+    "flyer": {
+      "users": [
+        "sheet/monster/하피",
+        "sheet/monster/가고일",
+        "sheet/monster/망령"
+      ],
+      "loop": true,
+      "note": "hover; also used for moving",
+      "frames": [
+        {
+          "name": "up",
+          "ms": 110,
+          "who": "GPT-key",
+          "pose": "Wings high"
+        },
+        {
+          "name": "mid_down",
+          "ms": 110,
+          "who": "PC-inbetween",
+          "pose": "Downstroke"
+        },
+        {
+          "name": "down",
+          "ms": 110,
+          "who": "GPT-key",
+          "pose": "Wings low, body 1-2 px up"
+        },
+        {
+          "name": "mid_up",
+          "ms": 110,
+          "who": "PC-inbetween",
+          "pose": "Recovery stroke"
+        }
+      ]
+    }
+  },
+  "run": {
+    "humanoid": {
+      "loop": true,
+      "played_by": "distance, not time (js/battle.js gaitUpdate r.rp / pose run branch): one step = min(runStride x sheetK, code stride strideOf). The ms are nominal (80 ms at the code cadence of about 3 steps/s at 1x).",
+      "gate": "No run strip goes out before runStride per run class is fixed with the run job (C8). run_base/v1 has 45.5 game px, about twice a warrior's code stride, so drawn feet slide about 6 px per cell. In the pilot S3/S4 come after the attack and hit strips.",
+      "runStride_game_px_est": {
+        "about": "estimate from strideOf at the class speed (CLASS_STATS warrior 24, rogue 34, archer 26, mage 22, cleric 24; MONSTER_STATS 27): stride ~ 20.6 x clamp((speed/25)^0.75, 0.85, 1.4) game px for a ~66 px body. The run job measures and fixes the real values.",
+        "warrior": 20.0,
+        "cleric": 20.0,
+        "archer": 21.2,
+        "mage": 18.7,
+        "rogue": 26.0,
+        "monster": 21.8
+      },
+      "owner_of_anims_run": "v2 sheets: the v2 row layout (seed .aseprite, row 1) owns anims.run; registering a v2 sheet drops its sheet.gaits record so re-registration cannot duplicate it. Old 7-cell sheets keep the add_gait.py append + sheet.gaits re-attach path until they convert (S7).",
+      "frames": [
+        {
+          "name": "R1 contact",
+          "ms": 80,
+          "who": "GPT-key",
+          "strip": "S3#1",
+          "pose": "Near foot lands flat ahead, knee bent; far leg trailing folded"
+        },
+        {
+          "name": "R2 down",
+          "ms": 80,
+          "who": "GPT-key",
+          "strip": "S3#2",
+          "pose": "Hip lowest over the near foot, arms cross"
+        },
+        {
+          "name": "R3 push-off",
+          "ms": 80,
+          "who": "GPT-key",
+          "strip": "S3#3",
+          "pose": "Near leg extended behind on the toe, far knee drives forward"
+        },
+        {
+          "name": "R4 flight",
+          "ms": 80,
+          "who": "GPT-key",
+          "strip": "S3#4",
+          "pose": "Both feet off the floor, hip highest, legs scissored"
+        },
+        {
+          "name": "R5 contact",
+          "ms": 80,
+          "who": "GPT-key",
+          "strip": "S4#1",
+          "pose": "R1 with near/far swapped"
+        },
+        {
+          "name": "R6 down",
+          "ms": 80,
+          "who": "GPT-key",
+          "strip": "S4#2",
+          "pose": "R2 swapped"
+        },
+        {
+          "name": "R7 push-off",
+          "ms": 80,
+          "who": "GPT-key",
+          "strip": "S4#3",
+          "pose": "R3 swapped"
+        },
+        {
+          "name": "R8 flight",
+          "ms": 80,
+          "who": "GPT-key",
+          "strip": "S4#4",
+          "pose": "R4 swapped; cloth lag only after the pilot"
+        }
+      ]
+    },
+    "quadruped": {
+      "users": [
+        "sheet/monster/들늑대",
+        "sheet/monster/거대 거미"
+      ],
+      "loop": true,
+      "played_by": "distance (as humanoid)",
+      "frames": [
+        {
+          "name": "G1 reach",
+          "ms": 70,
+          "who": "GPT-key",
+          "pose": "Front legs reach"
+        },
+        {
+          "name": "G2 front plant",
+          "ms": 70,
+          "who": "GPT-key",
+          "pose": "Front feet down"
+        },
+        {
+          "name": "G3 gather",
+          "ms": 70,
+          "who": "GPT-key",
+          "pose": "Hind legs swing under"
+        },
+        {
+          "name": "G4 hind plant",
+          "ms": 70,
+          "who": "GPT-key",
+          "pose": "Hind feet down"
+        },
+        {
+          "name": "G5 push",
+          "ms": 70,
+          "who": "PC-inbetween",
+          "pose": "Extension"
+        },
+        {
+          "name": "G6 flight",
+          "ms": 70,
+          "who": "PC-inbetween",
+          "pose": "Airborne"
+        }
+      ]
+    }
+  },
+  "checks_by_kind": {
+    "melee_swing": {
+      "head_x_sign_flip": true,
+      "head_x_travel_min_src_px": 100,
+      "hip_travel_min_src_px": 55,
+      "pivot_foot_tol_src_px": 3,
+      "swing_to_contact_change_min": 0.15,
+      "contact_to_follow_change_max": 0.35,
+      "contact_rule": "slash / chop: weapon angle crosses the strike line; thrust: weapon tip at its furthest reach; shield shove: shield face at its furthest reach",
+      "weapon_outside_silhouette": "hold and contact: >= 60 % of weapon pixels over magenta, tip >= 33 src px outside the body"
+    },
+    "melee_thrust": {
+      "head_x_sign_flip": true,
+      "head_x_travel_min_src_px": 100,
+      "tip_travel_min_src_px": 165,
+      "pivot_foot_tol_src_px": 3,
+      "swing_to_contact_change_min": 0.15,
+      "contact_to_follow_change_max": 0.35,
+      "contact_rule": "tip at its furthest reach"
+    },
+    "bow": {
+      "head_x_sign_flip": false,
+      "draw_hand_travel_min_src_px": 100,
+      "release_hand_travel_min_src_px": 60,
+      "pivot_foot_tol_src_px": 3,
+      "swing_to_contact_change_min": null,
+      "contact_to_follow_change_max": null,
+      "origin_marker": true,
+      "note": "SPEC 8 bow exception (stands upright; the wind-up is the draw length). The release must move the string hand >= 60 src px back from the hold (the weakest-reading contact today) and carry the origin mark."
+    },
+    "gun": {
+      "head_x_sign_flip": false,
+      "muzzle_rise_min_deg": 15,
+      "shoulder_back_min_src_px": 10,
+      "pivot_foot_tol_src_px": 3,
+      "origin_marker": true,
+      "note": "fire -> recoil reads by the weapon bucking up and the shoulders rocking back"
+    },
+    "cast": {
+      "head_x_sign_flip": false,
+      "focus_travel_min_src_px": 100,
+      "pivot_foot_tol_src_px": 3,
+      "origin_marker": true,
+      "note": "staff tip / palm / mace head travels >= 100 src px from hold to release toward the target; the origin mark sits on that focus"
+    },
+    "creature": {
+      "head_x_sign_flip": false,
+      "head_travel_min_src_px": 80,
+      "origin_marker_if_shot": true
+    }
+  },
+  "archetypes": {
+    "sword_shield": {
+      "label": "sword (or mace / cutlass) and shield",
+      "kinds": [
+        "melee"
+      ],
+      "checks": "melee_swing",
+      "window_ms": 300,
+      "hit_default": "mid",
+      "users": [
+        "sheet/class/warrior",
+        "sheet/captain/ironwall",
+        "sheet/captain/veteran",
+        "sheet/captain/pirateking",
+        "sheet/monster/해골 병사",
+        "sheet/monster/산적"
+      ],
+      "attack": {
+        "loop": false,
+        "contact": 3,
+        "contact_kind": "hit",
+        "hold": 1,
+        "cut": 5,
+        "frames": [
+          {
+            "name": "in",
+            "ms": 70,
+            "who": "PC-inbetween",
+            "elastic": true,
+            "droppable": true,
+            "pose": "Idle sinking into the crouch behind the shield (non-rigid: freehand, measured in the pilot)"
+          },
+          {
+            "name": "hold",
+            "ms": 160,
+            "who": "GPT-key",
+            "strip": "S1#1",
+            "elastic": true,
+            "pose": "Anticipation hold: crouched behind the raised shield, weapon cocked low at the hip, weight back (warrior, ironwall: shoulder dropped into the shield)"
+          },
+          {
+            "name": "swing",
+            "ms": 50,
+            "who": "GPT-key",
+            "strip": "S1#2",
+            "pose": "Breakdown: body uncoiling, rear heel lifting; class warrior: the SHIELD CHECK - shield punched forward at face height while the sword still trails low"
+          },
+          {
+            "name": "contact",
+            "ms": 70,
+            "who": "GPT-key",
+            "strip": "S1#3",
+            "pose": "CONTACT per character (signature.basic): class warrior = sword cut lands low-forward past the shield edge, shield still forward; ironwall = tower shield driven to face height, mace stays cocked behind; veteran = short chop from behind the shield; pirateking = cutlass on the strike line. Arm extended, weight on the front foot, weapon clear of the body silhouette"
+          },
+          {
+            "name": "follow",
+            "ms": 90,
+            "who": "GPT-key",
+            "strip": "S1#4",
+            "pose": "Follow-through: 25-40 deg past the line, hips +0.08 head forward (pirateking: free arm flung back = chain release)",
+            "joints": {
+              "hip_dx_vs_contact": 0.08,
+              "lean_vs_contact": 0.1,
+              "weapon_past_line_deg": [
+                25,
+                40
+              ]
+            }
+          },
+          {
+            "name": "recover",
+            "ms": 90,
+            "who": "GPT-key",
+            "strip": "S2#3",
+            "pose": "Halfway back to guard"
+          },
+          {
+            "name": "settle",
+            "ms": 70,
+            "who": "PC-inbetween",
+            "elastic": true,
+            "droppable": true,
+            "pose": "Guard restored (non-rigid: freehand, measured in the pilot)"
+          }
+        ]
+      }
+    },
+    "sword": {
+      "label": "one- or two-handed sword / katana / rune sword / rapier",
+      "kinds": [
+        "melee"
+      ],
+      "checks": "melee_swing",
+      "window_ms": 300,
+      "hit_default": "mid",
+      "users": [
+        "sheet/captain/blademaster",
+        "sheet/captain/spellblade",
+        "sheet/hero/oswin",
+        "sheet/captain/bard",
+        "sheet/monster/사막 도적"
+      ],
+      "attack": {
+        "loop": false,
+        "contact": 3,
+        "contact_kind": "hit",
+        "hold": 1,
+        "cut": 5,
+        "frames": [
+          {
+            "name": "in",
+            "ms": 70,
+            "who": "PC-inbetween",
+            "elastic": true,
+            "droppable": true,
+            "pose": "Lift into the guard"
+          },
+          {
+            "name": "hold",
+            "ms": 180,
+            "who": "GPT-key",
+            "strip": "S1#1",
+            "elastic": true,
+            "pose": "Stillness: blade high or drawn back, body coiled (Oswin short vertical guard; Cassian off hand leading; Rico rapier cocked at shoulder height)"
+          },
+          {
+            "name": "swing",
+            "ms": 40,
+            "who": "GPT-key",
+            "strip": "S1#2",
+            "pose": "Fast mid-arc breakdown"
+          },
+          {
+            "name": "contact",
+            "ms": 60,
+            "who": "GPT-key",
+            "strip": "S1#3",
+            "pose": "CONTACT: blade on the strike line at chest height, full extension (rapier: tip at its furthest reach)"
+          },
+          {
+            "name": "follow",
+            "ms": 120,
+            "who": "GPT-key",
+            "strip": "S1#4",
+            "pose": "Held follow-through, blade low past the front foot (the iai beat)"
+          },
+          {
+            "name": "recover",
+            "ms": 90,
+            "who": "GPT-key",
+            "strip": "S2#3",
+            "pose": "Blade returning (Rico: blade twirl)"
+          },
+          {
+            "name": "settle",
+            "ms": 70,
+            "who": "PC-inbetween",
+            "elastic": true,
+            "droppable": true,
+            "pose": "Guard"
+          }
+        ]
+      }
+    },
+    "greatweapon": {
+      "label": "hammer, axe, greatsword",
+      "kinds": [
+        "melee"
+      ],
+      "checks": "melee_swing",
+      "window_ms": 360,
+      "hit_default": "heavy",
+      "users": [
+        "sheet/captain/titan",
+        "sheet/captain/warlord",
+        "sheet/captain/runesmith",
+        "sheet/captain/frostjarl",
+        "sheet/hero/grom",
+        "sheet/captain/dragonslayer"
+      ],
+      "attack": {
+        "loop": false,
+        "contact": 3,
+        "contact_kind": "hit",
+        "hold": 1,
+        "cut": 5,
+        "frames": [
+          {
+            "name": "lift",
+            "ms": 80,
+            "who": "PC-inbetween",
+            "elastic": true,
+            "droppable": true,
+            "pose": "Weapon leaves the shoulder or ground"
+          },
+          {
+            "name": "hold",
+            "ms": 220,
+            "who": "GPT-key",
+            "strip": "S1#1",
+            "elastic": true,
+            "pose": "Hang at the top or a deep low coil behind the hip (Grom, Sieglinde), torso twisted away"
+          },
+          {
+            "name": "drop",
+            "ms": 50,
+            "who": "GPT-key",
+            "strip": "S1#2",
+            "pose": "Fast drop or sweep breakdown"
+          },
+          {
+            "name": "contact",
+            "ms": 80,
+            "who": "GPT-key",
+            "strip": "S1#3",
+            "pose": "CONTACT: head lands on the target or on the sole line (Urg, Bjorn bite the ground); Grom waist-height sweep at full extension"
+          },
+          {
+            "name": "follow",
+            "ms": 130,
+            "who": "GPT-key",
+            "strip": "S1#4",
+            "pose": "Weight sunk, weapon buried or past the front foot"
+          },
+          {
+            "name": "recover",
+            "ms": 100,
+            "who": "GPT-key",
+            "strip": "S2#3",
+            "pose": "Heave out (Bjorn pulls the axe from the ground)"
+          },
+          {
+            "name": "settle",
+            "ms": 80,
+            "who": "PC-inbetween",
+            "elastic": true,
+            "droppable": true,
+            "pose": "Back to the rest carry"
+          }
+        ]
+      }
+    },
+    "dagger": {
+      "label": "dagger (stab, slash or throw)",
+      "kinds": [
+        "melee",
+        "shot:dagger"
+      ],
+      "checks": "melee_swing",
+      "window_ms": 200,
+      "hit_default": "light",
+      "users": [
+        "sheet/class/rogue",
+        "sheet/captain/fixer",
+        "sheet/captain/shadowlord",
+        "sheet/hero/lyra"
+      ],
+      "attack": {
+        "loop": false,
+        "contact": 2,
+        "contact_kind": "hit (release for thrown daggers: origin = the throwing hand)",
+        "hold": 1,
+        "cut": 4,
+        "frames": [
+          {
+            "name": "dip",
+            "ms": 60,
+            "who": "PC-inbetween",
+            "elastic": true,
+            "droppable": true,
+            "pose": "Shoulder dip, blade turned out"
+          },
+          {
+            "name": "hold",
+            "ms": 90,
+            "who": "GPT-key",
+            "strip": "S1#1",
+            "elastic": true,
+            "pose": "Short coil (rogue overhead ice-pick; Jin low backhand chamber; Lyra hand cocked at the hip). No breakdown frame: hold -> contact is sharper for a short hand move"
+          },
+          {
+            "name": "contact",
+            "ms": 60,
+            "who": "GPT-key",
+            "strip": "S1#2",
+            "pose": "CONTACT: stab, slash or throw with the blade visible outside the forearm silhouette"
+          },
+          {
+            "name": "follow",
+            "ms": 80,
+            "who": "GPT-key",
+            "strip": "S1#3",
+            "pose": "Blade past, free hand flourish (Lyra) or none (Jin)"
+          },
+          {
+            "name": "recover",
+            "ms": 70,
+            "who": "GPT-key",
+            "strip": "S1#4",
+            "pose": "Hop back to guard"
+          },
+          {
+            "name": "settle",
+            "ms": 60,
+            "who": "PC-inbetween",
+            "elastic": true,
+            "droppable": true,
+            "pose": "Low guard"
+          }
+        ]
+      }
+    },
+    "twin": {
+      "label": "twin blades (Nikla)",
+      "kinds": [
+        "melee"
+      ],
+      "checks": "melee_swing",
+      "window_ms": 250,
+      "hit_default": "light",
+      "users": [
+        "sheet/captain/shadowqueen"
+      ],
+      "attack": {
+        "loop": false,
+        "contact": 3,
+        "contact_kind": "hit",
+        "hold": 1,
+        "cut": 5,
+        "frames": [
+          {
+            "name": "in",
+            "ms": 60,
+            "who": "GPT-key",
+            "strip": "S1#1",
+            "elastic": true,
+            "droppable": true,
+            "pose": "From the both-blades-down idle, arms start to rise and cross (non-rigid between two accepted keys, so GPT draws it for Nikla; S5)"
+          },
+          {
+            "name": "hold",
+            "ms": 110,
+            "who": "reuse",
+            "elastic": true,
+            "pose": "X wind-up: both arms crossed behind the shoulders (accepted cell, aa0687e strip #2)"
+          },
+          {
+            "name": "swing",
+            "ms": 50,
+            "who": "reuse",
+            "pose": "Breakdown = the accepted low scissor strike (0cc6046 strip #3, the owner called it a plausible in-between; S5)"
+          },
+          {
+            "name": "contact",
+            "ms": 60,
+            "who": "GPT-key",
+            "strip": "S1#2",
+            "pose": "CONTACT: scissor closes low-forward at target height, both blades clear of the body, weight on the front foot. The ONLY contact frame, also for the 4-target special"
+          },
+          {
+            "name": "follow",
+            "ms": 80,
+            "who": "GPT-key",
+            "strip": "S1#3",
+            "pose": "Blades past each other (scissor return), cloak and hair swinging"
+          },
+          {
+            "name": "recover",
+            "ms": 80,
+            "who": "GPT-key",
+            "strip": "S1#4",
+            "pose": "Rising, blades lowering"
+          },
+          {
+            "name": "settle",
+            "ms": 60,
+            "who": "GPT-key",
+            "strip": "S2#4",
+            "elastic": true,
+            "droppable": true,
+            "pose": "Back to both blades down"
+          }
+        ]
+      }
+    },
+    "spear": {
+      "label": "spear / lance",
+      "kinds": [
+        "melee"
+      ],
+      "checks": "melee_thrust",
+      "window_ms": 300,
+      "hit_default": "mid",
+      "users": [
+        "sheet/captain/lancer"
+      ],
+      "attack": {
+        "loop": false,
+        "contact": 3,
+        "contact_kind": "hit",
+        "hold": 1,
+        "cut": 5,
+        "frames": [
+          {
+            "name": "draw",
+            "ms": 80,
+            "who": "PC-inbetween",
+            "elastic": true,
+            "droppable": true,
+            "pose": "Lance pulled back"
+          },
+          {
+            "name": "hold",
+            "ms": 170,
+            "who": "GPT-key",
+            "strip": "S1#1",
+            "elastic": true,
+            "pose": "Deep coil: rear hand past the hip, tip pulled in, torso low"
+          },
+          {
+            "name": "swing",
+            "ms": 40,
+            "who": "GPT-key",
+            "strip": "S1#2",
+            "pose": "Thrust breakdown"
+          },
+          {
+            "name": "contact",
+            "ms": 70,
+            "who": "GPT-key",
+            "strip": "S1#3",
+            "pose": "CONTACT: full extension, body behind the point, tip at its furthest reach"
+          },
+          {
+            "name": "follow",
+            "ms": 80,
+            "who": "GPT-key",
+            "strip": "S1#4",
+            "pose": "Extension held"
+          },
+          {
+            "name": "recover",
+            "ms": 90,
+            "who": "GPT-key",
+            "strip": "S2#3",
+            "pose": "Drag back"
+          },
+          {
+            "name": "settle",
+            "ms": 70,
+            "who": "PC-inbetween",
+            "elastic": true,
+            "droppable": true,
+            "pose": "Couched ready"
+          }
+        ]
+      }
+    },
+    "bow": {
+      "label": "bow",
+      "kinds": [
+        "shot"
+      ],
+      "checks": "bow",
+      "window_ms": 400,
+      "hit_default": "light",
+      "users": [
+        "sheet/class/archer",
+        "sheet/hero/kai",
+        "sheet/captain/elfwarden",
+        "sheet/captain/windhunter",
+        "sheet/captain/khan",
+        "sheet/captain/huntress",
+        "sheet/captain/beastmaster"
+      ],
+      "attack": {
+        "loop": false,
+        "contact": 3,
+        "contact_kind": "release",
+        "hold": 2,
+        "cut": 5,
+        "frames": [
+          {
+            "name": "nock",
+            "ms": 80,
+            "who": "PC-inbetween",
+            "elastic": true,
+            "droppable": true,
+            "pose": "Hand to the quiver or string"
+          },
+          {
+            "name": "raise",
+            "ms": 80,
+            "who": "GPT-key",
+            "strip": "S1#1",
+            "pose": "Bow rising, half draw"
+          },
+          {
+            "name": "hold",
+            "ms": 200,
+            "who": "GPT-key",
+            "strip": "S1#2",
+            "elastic": true,
+            "pose": "Full draw to the cheek, aim hold (Kai to the ear, canted up; Narin a short snap)"
+          },
+          {
+            "name": "release",
+            "ms": 60,
+            "who": "GPT-key",
+            "strip": "S1#3",
+            "pose": "CONTACT/RELEASE: string hand flies back >= 60 src px, bow arm holds, projectile spawns at the origin mark (arrow rest)"
+          },
+          {
+            "name": "follow",
+            "ms": 110,
+            "who": "GPT-key",
+            "strip": "S1#4",
+            "pose": "Hand floats back, hair and cloak flick"
+          },
+          {
+            "name": "lower",
+            "ms": 100,
+            "who": "PC-inbetween",
+            "elastic": true,
+            "pose": "Bow lowering (rigid rotation at source size)"
+          },
+          {
+            "name": "settle",
+            "ms": 70,
+            "who": "PC-inbetween",
+            "elastic": true,
+            "droppable": true,
+            "pose": "Rest"
+          }
+        ]
+      }
+    },
+    "gun": {
+      "label": "crossbow / pistol",
+      "kinds": [
+        "shot"
+      ],
+      "checks": "gun",
+      "window_ms": 320,
+      "hit_default": "light",
+      "users": [
+        "sheet/captain/siegemaster",
+        "sheet/captain/admiral",
+        "sheet/hero/marisol"
+      ],
+      "attack": {
+        "loop": false,
+        "contact": 2,
+        "contact_kind": "release",
+        "hold": 1,
+        "cut": 4,
+        "frames": [
+          {
+            "name": "shoulder",
+            "ms": 90,
+            "who": "PC-inbetween",
+            "elastic": true,
+            "droppable": true,
+            "pose": "Weapon comes up"
+          },
+          {
+            "name": "hold",
+            "ms": 220,
+            "who": "GPT-key",
+            "strip": "S1#1",
+            "elastic": true,
+            "pose": "Steady aim, cheek on the stock (Marisol one-handed, side-on, arm straight)"
+          },
+          {
+            "name": "fire",
+            "ms": 60,
+            "who": "GPT-key",
+            "strip": "S1#2",
+            "pose": "CONTACT/RELEASE: shot, recoil starts, projectile at the muzzle origin mark"
+          },
+          {
+            "name": "recoil",
+            "ms": 100,
+            "who": "GPT-key",
+            "strip": "S1#3",
+            "pose": "Recoil peak: weapon bucked up, shoulders rock back (Marisol: arm kicks up, coat tail swings)"
+          },
+          {
+            "name": "lower",
+            "ms": 110,
+            "who": "PC-inbetween",
+            "elastic": true,
+            "pose": "Weapon lowering"
+          },
+          {
+            "name": "reload",
+            "ms": 150,
+            "who": "GPT-key",
+            "strip": "S1#4",
+            "elastic": true,
+            "pose": "Signature beat: crank or pull the string (Otto, Maren), twirl the pistol up to the shoulder (Marisol)"
+          },
+          {
+            "name": "settle",
+            "ms": 80,
+            "who": "PC-inbetween",
+            "elastic": true,
+            "droppable": true,
+            "pose": "Rest"
+          }
+        ]
+      }
+    },
+    "staff": {
+      "label": "staff / focus caster (attack = cast)",
+      "kinds": [
+        "shot",
+        "heal"
+      ],
+      "checks": "cast",
+      "window_ms": 400,
+      "hit_default": "light",
+      "users": [
+        "sheet/class/mage",
+        "sheet/captain/hedgemage",
+        "sheet/captain/archmagus",
+        "sheet/captain/hexer",
+        "sheet/hero/astel",
+        "sheet/captain/tactician",
+        "sheet/captain/inquisitorlord",
+        "sheet/captain/demonhunter"
+      ],
+      "attack": {
+        "loop": false,
+        "contact": 4,
+        "contact_kind": "release",
+        "hold": 2,
+        "cut": 5,
+        "note": "lead shortened from 450 (plan draft: 550) to 400 so it fits the 400 ms prediction cap (S1)",
+        "frames": [
+          {
+            "name": "gather0",
+            "ms": 90,
+            "who": "PC-inbetween",
+            "elastic": true,
+            "droppable": true,
+            "pose": "Begin to draw the staff back or lift the book (Astel)"
+          },
+          {
+            "name": "gather1",
+            "ms": 100,
+            "who": "GPT-key",
+            "strip": "S1#1",
+            "pose": "Gathering, robe starts to lift"
+          },
+          {
+            "name": "hold",
+            "ms": 160,
+            "who": "GPT-key",
+            "strip": "S1#2",
+            "elastic": true,
+            "pose": "Peak gather (Euria staff to the sky; Felix two-handed hitch over the shoulder; Balthazar brazier at face level)"
+          },
+          {
+            "name": "thrust",
+            "ms": 50,
+            "who": "GPT-key",
+            "strip": "S1#3",
+            "pose": "Breakdown toward the target"
+          },
+          {
+            "name": "release",
+            "ms": 80,
+            "who": "GPT-key",
+            "strip": "S1#4",
+            "pose": "CONTACT/RELEASE: staff tip, brazier, mace cross or fingers toward the target; origin mark there, never an empty palm unless that is the signature (Belladonna)"
+          },
+          {
+            "name": "hold_release",
+            "ms": 200,
+            "who": "GPT-key",
+            "strip": "S2#3",
+            "elastic": true,
+            "pose": "Release held; only hair, hat and robe recoil"
+          },
+          {
+            "name": "settle",
+            "ms": 120,
+            "who": "PC-inbetween",
+            "elastic": true,
+            "droppable": true,
+            "pose": "Back to rest"
+          }
+        ]
+      }
+    },
+    "healer": {
+      "label": "healer cast (attack = cast; the class cleric sheet also serves mace basics)",
+      "kinds": [
+        "heal",
+        "melee"
+      ],
+      "checks": "cast",
+      "window_ms": 320,
+      "hit_default": "light",
+      "users": [
+        "sheet/class/cleric",
+        "sheet/captain/fieldmedic",
+        "sheet/hero/seraphine",
+        "sheet/captain/lightbearer",
+        "sheet/captain/pilgrim",
+        "sheet/captain/saintknight"
+      ],
+      "attack": {
+        "loop": false,
+        "contact": 2,
+        "contact_kind": "release (heal lands / mace lands)",
+        "hold": 1,
+        "cut": 4,
+        "frames": [
+          {
+            "name": "turn",
+            "ms": 110,
+            "who": "PC-inbetween",
+            "elastic": true,
+            "droppable": true,
+            "pose": "Turn toward the ally, begin raise or reach (Magda hand to the pouch)"
+          },
+          {
+            "name": "hold",
+            "ms": 200,
+            "who": "GPT-key",
+            "strip": "S1#1",
+            "elastic": true,
+            "pose": "Prayer or gather (Seraphine hands clasped; Amelie bare front foot raised a little for the stamp; Eleanor mace overhead)"
+          },
+          {
+            "name": "release",
+            "ms": 80,
+            "who": "GPT-key",
+            "strip": "S1#2",
+            "pose": "CONTACT/RELEASE: palm opened toward the ally, bandage tossed underhand (Magda), foot stamps (Amelie), mace comes down (Eleanor, class cleric)"
+          },
+          {
+            "name": "hold_release",
+            "ms": 220,
+            "who": "GPT-key",
+            "strip": "S1#3",
+            "elastic": true,
+            "pose": "Release held, veil and hem drifting"
+          },
+          {
+            "name": "lower",
+            "ms": 110,
+            "who": "GPT-key",
+            "strip": "S1#4",
+            "pose": "Arm lowering"
+          },
+          {
+            "name": "settle",
+            "ms": 90,
+            "who": "PC-inbetween",
+            "elastic": true,
+            "droppable": true,
+            "pose": "Rest"
+          }
+        ]
+      }
+    },
+    "chain": {
+      "label": "unarmed / chain (Kato)",
+      "kinds": [
+        "melee"
+      ],
+      "checks": "melee_swing",
+      "window_ms": 320,
+      "hit_default": "heavy",
+      "users": [
+        "sheet/captain/liberator"
+      ],
+      "attack": {
+        "loop": false,
+        "contact": 3,
+        "contact_kind": "hit",
+        "hold": 1,
+        "cut": 5,
+        "frames": [
+          {
+            "name": "in",
+            "ms": 70,
+            "who": "PC-inbetween",
+            "elastic": true,
+            "droppable": true,
+            "pose": "Guard tightens, fists up"
+          },
+          {
+            "name": "hold",
+            "ms": 190,
+            "who": "GPT-key",
+            "strip": "S1#1",
+            "elastic": true,
+            "pose": "Chain whipped back and up behind, torso twisted away"
+          },
+          {
+            "name": "swing",
+            "ms": 50,
+            "who": "GPT-key",
+            "strip": "S1#2",
+            "pose": "Chain mid-arc beside the body"
+          },
+          {
+            "name": "contact",
+            "ms": 70,
+            "who": "GPT-key",
+            "strip": "S1#3",
+            "pose": "CONTACT: horizontal lash across the front at chest height, weight through the front foot"
+          },
+          {
+            "name": "follow",
+            "ms": 100,
+            "who": "GPT-key",
+            "strip": "S1#4",
+            "pose": "Chain wrapping past the front"
+          },
+          {
+            "name": "recover",
+            "ms": 90,
+            "who": "GPT-key",
+            "strip": "S2#3",
+            "pose": "Chain falling back to hang"
+          },
+          {
+            "name": "settle",
+            "ms": 70,
+            "who": "PC-inbetween",
+            "elastic": true,
+            "droppable": true,
+            "pose": "Boxer's guard"
+          }
+        ]
+      }
+    },
+    "quadruped": {
+      "label": "quadruped (wolf, spider, hellhound)",
+      "kinds": [
+        "melee",
+        "shot"
+      ],
+      "checks": "creature",
+      "window_ms": 300,
+      "hit_default": "mid",
+      "users": [
+        "sheet/monster/들늑대",
+        "sheet/monster/거대 거미"
+      ],
+      "attack": {
+        "loop": false,
+        "contact": 3,
+        "contact_kind": "hit",
+        "hold": 1,
+        "cut": 4,
+        "frames": [
+          {
+            "name": "crouch",
+            "ms": 90,
+            "who": "PC-inbetween",
+            "elastic": true,
+            "droppable": true,
+            "pose": "Haunches drop"
+          },
+          {
+            "name": "hold",
+            "ms": 150,
+            "who": "GPT-key",
+            "elastic": true,
+            "pose": "Coiled, head low"
+          },
+          {
+            "name": "lunge",
+            "ms": 50,
+            "who": "GPT-key",
+            "pose": "Spring breakdown"
+          },
+          {
+            "name": "bite",
+            "ms": 70,
+            "who": "GPT-key",
+            "pose": "CONTACT: jaws or fangs at the target, body stretched"
+          },
+          {
+            "name": "recoil",
+            "ms": 100,
+            "who": "GPT-key",
+            "pose": "Pull back"
+          },
+          {
+            "name": "settle",
+            "ms": 80,
+            "who": "PC-inbetween",
+            "elastic": true,
+            "droppable": true,
+            "pose": "Stance"
+          }
+        ]
+      }
+    },
+    "flyer": {
+      "label": "flyer (harpy, gargoyle, wraith)",
+      "kinds": [
+        "melee",
+        "shot"
+      ],
+      "checks": "creature",
+      "window_ms": 300,
+      "hit_default": "light",
+      "users": [
+        "sheet/monster/하피",
+        "sheet/monster/가고일",
+        "sheet/monster/망령"
+      ],
+      "attack": {
+        "loop": false,
+        "contact": 3,
+        "contact_kind": "hit, or release for shot basics (harpy and gargoyle are drake-template 1.4 s fire shots, the wraith a ghost-template 1.4 s curse shot: origin at the talons / mouth / hands)",
+        "hold": 1,
+        "cut": 4,
+        "frames": [
+          {
+            "name": "rise",
+            "ms": 90,
+            "who": "PC-inbetween",
+            "elastic": true,
+            "droppable": true,
+            "pose": "Climb"
+          },
+          {
+            "name": "hold",
+            "ms": 150,
+            "who": "GPT-key",
+            "elastic": true,
+            "pose": "Top of the climb, talons drawn"
+          },
+          {
+            "name": "dive",
+            "ms": 50,
+            "who": "GPT-key",
+            "pose": "Dive breakdown"
+          },
+          {
+            "name": "claw",
+            "ms": 70,
+            "who": "GPT-key",
+            "pose": "CONTACT: talons at the target (or the release of the shot)"
+          },
+          {
+            "name": "rebound",
+            "ms": 100,
+            "who": "GPT-key",
+            "pose": "Bounce up"
+          },
+          {
+            "name": "settle",
+            "ms": 90,
+            "who": "PC-inbetween",
+            "elastic": true,
+            "droppable": true,
+            "pose": "Hover"
+          }
+        ]
+      }
+    },
+    "big": {
+      "label": "big monster / boss (sheet drawn 1.5x)",
+      "kinds": [
+        "melee",
+        "shot"
+      ],
+      "checks": "creature",
+      "window_ms": 400,
+      "hit_default": "heavy",
+      "users": [
+        "sheet/monster/고블린 왕",
+        "sheet/monster/거미 여왕",
+        "sheet/monster/늪의 마녀",
+        "sheet/monster/모래 폭군",
+        "sheet/monster/서리 거인 왕",
+        "sheet/monster/마왕 베르녹스",
+        "sheet/monster/고룡 이그니스",
+        "sheet/monster/숲 트롤",
+        "sheet/monster/서리 트롤",
+        "sheet/monster/설인",
+        "sheet/monster/전갈 거인",
+        "sheet/monster/와이번",
+        "sheet/monster/리치의 망령"
+      ],
+      "attack": {
+        "loop": false,
+        "contact": 3,
+        "contact_kind": "hit",
+        "hold": 1,
+        "cut": 5,
+        "note": "shortened from 920 ms (lead 440) to 840 ms (lead 400): monster and boss melee basics are cd 1.0 (js/battle.js monsterSkills), budget 870 ms (S1)",
+        "contact_ms": [
+          80,
+          100
+        ],
+        "frames": [
+          {
+            "name": "lift",
+            "ms": 80,
+            "who": "PC-inbetween",
+            "elastic": true,
+            "droppable": true,
+            "pose": "Weight shifts back"
+          },
+          {
+            "name": "hold",
+            "ms": 260,
+            "who": "GPT-key",
+            "elastic": true,
+            "pose": "Long telegraph at the top"
+          },
+          {
+            "name": "drop",
+            "ms": 60,
+            "who": "GPT-key",
+            "pose": "Fast breakdown"
+          },
+          {
+            "name": "contact",
+            "ms": 100,
+            "who": "GPT-key",
+            "pose": "CONTACT: slam or strike lands, ground contact"
+          },
+          {
+            "name": "follow",
+            "ms": 140,
+            "who": "GPT-key",
+            "pose": "Weight sunk, held"
+          },
+          {
+            "name": "recover",
+            "ms": 110,
+            "who": "PC-inbetween",
+            "elastic": true,
+            "pose": "Lift back"
+          },
+          {
+            "name": "settle",
+            "ms": 90,
+            "who": "PC-inbetween",
+            "elastic": true,
+            "droppable": true,
+            "pose": "Stance"
+          }
+        ]
+      }
+    }
+  },
+  "unmapped_note": "Monster species without a sheet and without an archetype here (goblin, orc, lizardman, slime, mimic, demon warrior, hellhound, death knight) get one when their v2 request is written; requests.js --motion lists registered sheets that are in no archetype as WARN."
+}

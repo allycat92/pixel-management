@@ -1,0 +1,229 @@
+{
+  "version": 1,
+  "about": "Per-character motion data for the frame-by-frame sheets: archetype, hit weight, run class, signature (what the character holds and how each skill should look), timing and engine overrides, and the per-character mannequin overrides the PC applies to the archetype's base sequence. Copied into manifest sheet.motion at registration; the engine reads only the manifest. Frame bible: tools/art/specs/motion_bible.json. Plan: docs/plans/2026-11-26_motion_frames.md. Check: node tools/art/requests.js --motion.",
+  "status_values": {
+    "pilot": "in the pilot: mannequin + GPT strips + PC in-betweens + engine",
+    "gate1-mannequin": "pilot gate 1 only: mannequin sequence, no GPT strip yet (tests the guide-similarity check or the release/origin path and the tightest budget)",
+    "decided-signature": "owner decision recorded; timing / engine / mannequin come when the redraw is scheduled"
+  },
+  "mannequin_convention": {
+    "set": "<base set>__<sheet kind>_<key>, e.g. atk_sword_shield__class_warrior. Request: art/requests/guides/<set>/README.md (cloud); delivery: art/inbox/guides/<set>/<set>.aseprite plus one PNG per frame f<NN>_<name>.png (384x1024 frames, sole line y=870, hip x=192, #FF00FF or transparent).",
+    "overrides": "absolute targets in head units for the named frames (posekit conventions, motion_bible.json units). Keys: hip [x, h], lean (rad), tilt (rad), footN / footF [x, h], grip_near / grip_far [x, h] (at() convention, shoulder line 2.40), wa (deg), shield [x, h], note. Frames not named follow the base set.",
+    "similarity": "requests.js --motion FAILs when two characters with the same base set carry identical (or no) hold / contact overrides, and - once the PNGs exist - when their hold or contact frames reach alpha IoU > 0.8 at game size."
+  },
+  "chars": {
+    "sheet/class/warrior": {
+      "status": "pilot",
+      "name": "일반 병과 전사",
+      "arch": "sword_shield", "hit": "mid", "run": "warrior",
+      "signature": {
+        "portrait_weapons": ["아밍 소드", "둥근 방패"],
+        "in_hand": ["아밍 소드", "둥근 방패"],
+        "explain": "같은 시트를 쓰는 성전사(성전의 철퇴)도 칼과 방패로 그린다 - 병과 시트는 계열 전체가 함께 쓴다(js/art.js sheetFor)",
+        "basic": "방패 치기 = 방패 뒤로 웅크렸다가(준비 멈춤) 어깨를 넣어 방패를 얼굴 높이로 밀어 치고(휘두름 중간), 칼이 방패 가장자리 아래로 낮게 베며 맞는다(맞는 순간)",
+        "special": "돌격(GENERIC_SPECIAL, 돌진 + 기절) = 기존 돌진 잔상 뒤 같은 공격 흐름. 승급 계열의 천검(2명)도 맞는 순간 프레임은 하나",
+        "idle": "방패는 가슴 높이, 칼은 낮게 옆으로, 발은 어깨너비(무기를 보여 주는 넓은 웅크림이 아닌 자연스러운 경계 자세)",
+        "hit_face": "면갑이 얼굴을 가려 표정은 보이지 않는다. 실루엣으로 읽힘: 머리가 방패 뒤로 숙고 어깨가 밀렸다 돌아온다"
+      },
+      "design_choice": {
+        "id": "S6",
+        "question": "이 시트는 전사(방패 치기)뿐 아니라 성기사(심판의 방패)·수호기사(불굴의 성벽)와 검성(일섬)·검신(천검)·광전사(피의 난무), 성전사(성전의 철퇴)도 쓴다 (js/art.js sheetFor: 상급·최상급 시트가 없으면 기본 직업 시트).",
+        "chosen": "shield check, then sword cut: 휘두름 중간 = 방패 치기, 맞는 순간 = 방패 가장자리 아래로 칼이 낮게 벤다(방패는 앞에 그대로). 방패 기술은 휘두름 중간 → 맞는 순간에서, 칼 기술은 맞는 순간 → 지나침에서 읽힌다.",
+        "why": "가장 많이 보이는 몸(화면 시간 17.6%)이라 한쪽만 맞추면 다른 갈래 대원이 모두 틀린 동작을 한다. 두 박자를 한 흐름에 넣으면 새 동작 종류 없이 둘 다 읽힌다.",
+        "owner_veto": "주인이 '방패만' 또는 '칼만'을 원하면 이 행과 mannequin.overrides 만 고친다"
+      },
+      "timing": {"idleTempo": 1.0, "ms": {}},
+      "engine": {
+        "lunge": 0.8, "kick": 0.8, "smear": "slash_low", "contact_fx": "bash",
+        "dx": {"attack": [0, -2, 3, 6, 7, 4, 1], "hit": [-2, -4, -2, -1]},
+        "dx_note": "game px at sheet scale 1; the engine multiplies by sheetK (S10)",
+        "specials": {
+          "돌격": {"dash": true, "seq": ["in", "hold", "swing", "contact", "follow", "recover", "settle"], "note": "dash ghosts use run cells once the sheet has anims.run"},
+          "천검": {"hits": 2, "one_contact_frame": true, "stagger_ms": 50}
+        }
+      },
+      "mannequin": {
+        "set": "atk_sword_shield__class_warrior",
+        "base": "atk_sword_shield",
+        "pivot_foot": "rear (footN) planted in every frame +-3 src px",
+        "grip": "sword in the near hand, blade low; round shield on the far forearm, elbow ~90 deg",
+        "lean": {"hold": 0.12, "contact": 0.22},
+        "overrides": {
+          "hold": {"hip": [-0.22, 1.30], "lean": 0.12, "shield": [0.50, 2.55], "grip_near": [-0.45, 1.75], "wa": 190, "note": "crouched behind the raised shield, sword cocked low at the hip pointing back"},
+          "swing": {"hip": [0.05, 1.26], "lean": 0.18, "shield": [1.05, 2.50], "grip_near": [-0.10, 1.70], "wa": 200, "note": "SHIELD CHECK: shield punched forward at face height with the shoulder behind it, sword still trailing"},
+          "contact": {"hip": [0.30, 1.22], "lean": 0.22, "shield": [0.95, 2.45], "grip_near": [1.15, 1.85], "wa": -15, "note": "sword cuts low-forward past the shield's lower edge, shield still forward"}
+        }
+      },
+      "strips": {
+        "S1": ["hold", "swing", "contact", "follow"],
+        "S2": ["hit K1 impact", "hit K2 peak", "attack recover", "idle rest (existing idle if natural, else redrawn)"],
+        "S3": ["run R1-R4 (after runStride is fixed)"],
+        "S4": ["run R5-R8 (after runStride is fixed)"],
+        "pc_inbetween_measured": ["attack in", "attack settle", "hit K3 recover", "hit K4 settle"],
+        "order": "S1 -> S2 -> (runStride fixed with the run job) -> S3 -> S4, one strip per delivery"
+      },
+      "identity_refs": ["art/inbox/sheet_class_warrior.png (art-inbox)", "assets/art/sheets/sheet_class_warrior.png x4", "registered palette swatch (40 colours)", "tint keys (class sheets keep the 7 key colours, ratio >= 0.04)"]
+    },
+    "sheet/captain/shadowqueen": {
+      "status": "pilot",
+      "name": "니클라 (밤의 여왕)",
+      "arch": "twin", "hit": "light", "run": "rogue",
+      "signature": {
+        "portrait_weapons": ["쌍검(등)"],
+        "in_hand": ["쌍검"],
+        "explain": "",
+        "basic": "밤의 칼날 = 두 칼을 어깨 뒤로 X자로 감았다가 낮게 숙이며 가위처럼 닫아 벤다(맞는 순간 = 가위가 닫힌 프레임 하나)",
+        "special": "그림자 난무 = 돌진 후 가위 베기 한 번. 판정은 한 틱이라 맞는 순간 프레임도 하나이고, 피해자 반응과 베기 효과가 50ms씩 차례로 이어진다",
+        "idle": "두 칼 아래로, 먼 칼은 몸 뒤 (승인된 대기 e4df48d)",
+        "hit_face": "이를 악문다; 두건 아래 턱과 어깨가 비틀리는 실루엣이 먼저"
+      },
+      "accepted_cells": {
+        "rest": "registered cell 0 (idle, e4df48d - both blades down)",
+        "hold": "registered cell 4 (X wind-up, aa0687e strip #2)",
+        "swing": "registered cell 5 (low scissor strike, 0cc6046 strip #3) - reused as the breakdown (S5)"
+      },
+      "timing": {"idleTempo": 0.9, "ms": {}},
+      "engine": {
+        "lunge": 0.6, "kick": 1.4, "smear": "xslash",
+        "dx": {"attack": [0, -1, 4, 8, 9, 5, 2], "hit": [-3, -6, -3, -1]},
+        "dx_note": "game px at sheet scale 1; the engine multiplies by sheetK (S10)",
+        "specials": {
+          "그림자 난무": {
+            "seq": ["in", "hold", "swing", "contact", "follow", "recover", "settle"],
+            "contact": 3,
+            "one_contact_frame": true,
+            "dash": "lead frames play at the pre-dash spot; the dash ghost streak covers the swing frame; contact lands on the event tick at the new spot",
+            "stagger_ms": 50,
+            "stagger_source": "the same constant as the slash fx (js/battle.js view.slashes t: -i * 0.05): victim i reacts i x 50 ms after the contact frame; HP bars drop together on the sim tick",
+            "basic_after_special": "a basic can fire on the next tick (50 ms later; step runs the special, then basic.left). The basic wins: its contact frame (unpredicted, so it starts at contact) replaces the special's follow / recover; the special's slashes and victim staggers keep running because they are fx, not body frames. Every HP change keeps a contact frame on its tick.",
+            "done_when": "with 1 and with 4 targets the HP change and the contact frame fall on the same tick"
+          }
+        }
+      },
+      "mannequin": {
+        "set": "atk_twin__captain_shadowqueen",
+        "base": "atk_twin",
+        "fit_to_accepted": "the PC measures hip x/height and the planted foot on the accepted source strips (art/inbox/sheet_captain_shadowqueen.png on art-inbox: idle e4df48d, X wind-up aa0687e #2, strike 0cc6046 #3) and builds the mannequin so that its rest / hold / swing frames overlay those cells; new frames (in, contact, follow, recover, settle) continue from them",
+        "pivot_foot": "front (footF) from the swing frame on - as in the accepted strike; rear before",
+        "grip": "a blade in each hand, forward grip; X crossing at one point only (as accepted)",
+        "lean": {"hold": -0.05, "contact": 0.30},
+        "overrides": {
+          "hold": {"fit": "accepted cell 4", "note": "X behind the shoulders, upright, feet narrow (25 px at game size, not the wide crouch)"},
+          "contact": {"hip": [0.40, 1.08], "lean": 0.30, "grip_near": [1.20, 1.55], "grip_far": [1.10, 1.70], "note": "scissor closed low-forward at target height, both tips past the front foot, weight on the front foot"},
+          "follow": {"hip": [0.46, 1.10], "lean": 0.34, "note": "blades past each other, the far blade swinging up behind"}
+        }
+      },
+      "strips": {
+        "S1": ["attack in", "attack contact", "attack follow", "attack recover"],
+        "S2": ["hit K1 impact", "hit K2 stagger", "hit K3 recover (GPT version, compared with the warrior's PC K3)", "attack settle (GPT version)"],
+        "S3": ["run R1-R4 (after runStride is fixed)"],
+        "S4": ["run R5-R8 (after runStride is fixed)"],
+        "reused": ["idle rest", "attack hold", "attack swing"],
+        "order": "S1 -> S2 -> (runStride fixed) -> S3 -> S4, one strip per delivery"
+      },
+      "identity_refs": ["art/inbox/sheet_captain_shadowqueen.png (art-inbox, accepted)", "assets/art/sheets/sheet_captain_shadowqueen.png x4", "registered palette swatch"]
+    },
+    "sheet/captain/ironwall": {
+      "status": "gate1-mannequin",
+      "name": "브리긴다 (철벽 수호자)",
+      "why_in_pilot": "second sword_shield character (C4): the hardest case for the similarity check because her basic is also a shield move. Mannequin only, no GPT strip in the pilot.",
+      "arch": "sword_shield", "hit": "heavy", "run": "warrior",
+      "signature": {
+        "portrait_weapons": ["플랜지 철퇴", "탑 방패"],
+        "in_hand": ["플랜지 철퇴", "탑 방패"],
+        "explain": "",
+        "basic": "방패 밀치기 = 어깨를 탑 방패에 넣고 웅크렸다가 몸 전체로 방패를 얼굴 높이까지 밀어붙인다. 철퇴는 머리 위로 들지 않고 방패 뒤에서 낮게 겨눈 위협으로 남는다",
+        "special": "철벽 방진(rally) = 준비 멈춤 프레임(방패를 땅에 박은 자세)을 0.45초 유지 + 기존 고리 효과",
+        "idle": "방패 뒤로 웅크림, 철퇴는 방패 테 위에 얹음, 숨쉬기는 아주 작게(무거운 갑옷)",
+        "hit_face": "방패 뒤에서 이를 악물고 버틴다; 발은 움직이지 않는다"
+      },
+      "timing": {"idleTempo": 1.25, "ms": {"hold": 170, "contact": 80, "follow": 80}},
+      "engine": {"lunge": 0.6, "kick": 0.5, "smear": "none", "contact_fx": "bash_ring", "specials": {"철벽 방진": {"rally_hold_ms": 450}}},
+      "mannequin": {
+        "set": "atk_sword_shield__captain_ironwall",
+        "base": "atk_sword_shield",
+        "pivot_foot": "rear (footN); the front foot steps +0.15 head on contact",
+        "grip": "mace in the near hand, kept cocked behind; tall tower shield on the far arm, its lower rim >= 100 src px above the floor",
+        "lean": {"hold": 0.20, "contact": 0.26},
+        "overrides": {
+          "hold": {"hip": [-0.18, 1.24], "lean": 0.20, "shield": [0.45, 2.35], "grip_near": [-0.55, 2.10], "wa": 160, "note": "shoulder dropped into the tower shield, mace cocked back low (no overhead raise)"},
+          "swing": {"hip": [0.10, 1.22], "lean": 0.24, "shield": [0.90, 2.38], "grip_near": [-0.50, 2.10], "wa": 158},
+          "contact": {"hip": [0.36, 1.20], "lean": 0.26, "shield": [1.20, 2.40], "grip_near": [-0.35, 2.15], "wa": 150, "footF": [1.15, 0.12], "note": "whole body drives the shield to face height; the mace stays behind as a threat"}
+        }
+      }
+    },
+    "sheet/class/archer": {
+      "status": "gate1-mannequin",
+      "name": "일반 병과 궁수",
+      "why_in_pilot": "bow mannequin for gate 1 (critique coverage gap): the release/origin path, the weakest-reading contact, and the tightest budget in the roster (대륙 순찰자 질풍 사격 cd 0.6 -> 510 ms). Mannequin only, no GPT strip in the pilot.",
+      "arch": "bow", "hit": "light", "run": "archer",
+      "signature": {
+        "portrait_weapons": ["짧은 리커브 활", "화살통(등)"],
+        "in_hand": ["짧은 리커브 활"],
+        "explain": "화살통은 등에 멘다; nock 프레임에서 손만 닿는다. 같은 시트를 쓰는 노궁 대장(관통 노궁)도 활로 그린다 - 병과 시트는 계열 전체가 함께 쓴다",
+        "basic": "조준 사격 = 꼿꼿이 서서 볼까지 당기고 멈춘 뒤, 놓는 순간 시위 손이 뒤로 크게 튄다(놓기 = 판정 프레임, 화살은 활 손의 원점 표시에서 나간다)",
+        "special": "일제 사격(GENERIC_SPECIAL, 3명) = 놓기 한 번 + 부채꼴 효과. 질풍 사격 계열은 줄어드는 프레임으로 510ms 안에 든다",
+        "idle": "활은 옆구리 아래로 낮게, 시위는 느슨하게, 발은 어깨너비",
+        "hit_face": "후드와 천 마스크로 얼굴이 가려진다; 어깨가 비틀리고 머리가 밀리는 실루엣으로 읽힌다"
+      },
+      "timing": {"idleTempo": 1.0, "ms": {}},
+      "engine": {"lunge": 0, "kick": 1.0, "origin": "arrow rest on the bow hand (marks layer)", "recoil_dx": -2},
+      "mannequin": {
+        "set": "atk_bow__class_archer",
+        "base": "atk_bow",
+        "pivot_foot": "both planted (upright archer)",
+        "grip": "bow in the far hand, arm straight at full draw; string hand near",
+        "lean": {"hold": 0.02, "release": -0.02},
+        "overrides": {
+          "hold": {"hip": [0.0, 1.42], "lean": 0.02, "grip_far": [1.30, 2.55], "grip_near": [0.15, 2.65], "note": "full draw to the cheek, upright (SPEC cross-check 1 #7)"},
+          "release": {"hip": [-0.02, 1.42], "lean": -0.02, "grip_far": [1.30, 2.55], "grip_near": [-0.45, 2.70], "note": "string hand flies back >= 60 src px (0.55 head) from the hold; origin mark on the arrow rest"}
+        }
+      }
+    },
+    "sheet/captain/liberator": {
+      "status": "decided-signature",
+      "name": "카토 (해방 검투사)",
+      "decision": "주인 결정 11-26 (d2a73c2, art/requests/feedback.md): 사슬과 주먹으로 싸운다, 장검은 초상화처럼 등에. 다시 그리기는 프레임 방식으로.",
+      "arch": "chain", "hit": "heavy",
+      "signature": {
+        "portrait_weapons": ["끊어진 사슬", "주먹", "장검(등)"],
+        "in_hand": ["끊어진 사슬(손목 족쇄)", "주먹"],
+        "explain": "장검은 초상화처럼 등에 멘 채 쓰지 않는다 - 주인 결정 11-26 (d2a73c2)",
+        "basic": "사슬 휘두르기 = 권투 자세에서 사슬을 몸 뒤 위로 채찍처럼 감았다가, 가슴 높이로 몸 앞을 가로지르는 가로 채찍(범위 8로 읽힘)",
+        "special": "족쇄 부수기 = 같은 흐름에 멈춤이 센 내려찍기 + 기존 지진 효과",
+        "idle": "낮은 권투 자세, 족쇄 찬 두 주먹을 올림, 가까운 손목에 굵은 고리 4~5개 사슬",
+        "hit_face": "팔뚝과 족쇄로 받아내며 이를 악문다; 거의 흔들리지 않는다"
+      }
+    },
+    "sheet/hero/marisol": {
+      "status": "decided-signature",
+      "name": "마리솔 (해적 선장)",
+      "decision": "주인 결정 11-26 (d2a73c2): 권총을 손에(두 스킬이 권총 사격·포격 지원), 활은 등에 멘 소품. 대사는 그대로.",
+      "arch": "gun", "hit": "light",
+      "signature": {
+        "portrait_weapons": ["플린트록 권총", "리커브 활(등)", "화살통(등)"],
+        "in_hand": ["플린트록 권총"],
+        "explain": "리커브 활과 화살통은 등에 멘 소품이다(쏘지 않는다) - 주인 결정 11-26 (d2a73c2); 대사 '남은 건 이 활 한 자루뿐이야'는 그대로 둔다",
+        "basic": "권총 사격 = 몸을 옆으로 돌려 팔을 곧게 뻗어 조준, 한 손 사격, 반동으로 팔이 튀어 오르고 어깨가 젖혀지며 코트 자락이 흔들린다",
+        "special": "포격 지원 = 같은 반동 자세가 포격 신호로 읽힘(엔진: 화면 밖에서 포탄이 떨어짐)",
+        "idle": "한쪽 엉덩이에 무게, 권총은 어깨 옆에 총구를 위로, 빈손은 허리띠에",
+        "hit_face": "모자가 비뚤어지고 찡그린다; 권총 든 팔이 바깥으로 벌어지는 실루엣"
+      }
+    },
+    "sheet/captain/beastmaster": {
+      "status": "decided-signature",
+      "name": "오르가 (야수 조련사)",
+      "decision": "주인 결정 11-26 (d2a73c2): 특기 「늑대 떼 돌격」에서 본인은 제자리에서 명령, 엔진이 들늑대 2~3마리를 달려가게 그린다(전투 계산은 그대로).",
+      "arch": "bow", "hit": "mid",
+      "signature": {
+        "portrait_weapons": ["장궁", "화살통(등)", "회색 늑대"],
+        "in_hand": ["장궁"],
+        "explain": "화살통은 등에 멘다. 회색 늑대는 손에 드는 것이 아니라 특기 때 엔진이 들늑대 시트(sheet/monster/들늑대, 우리 그림)로 2~3마리를 달리게 그린다 - 주인 결정 11-26 (d2a73c2)",
+        "basic": "조련사의 활 = 나린보다 무겁고 천천히 당겨 짧고 날카롭게 놓는다",
+        "special": "늑대 떼 돌격 = 본인은 돌진하지 않고 타격(놓기) 자세의 팔을 앞으로 뻗어 무리에게 명령, 들늑대 2~3마리가 대상에게 달려간다",
+        "idle": "모피 망토, 활은 낮게, 빈손은 옆에 펴서 늘어뜨림(무리에게 보내는 신호처럼)",
+        "hit_face": "찡그리며 어깨로 받는다; 모피 망토가 한 박자 늦게 흔들린다"
+      }
+    }
+  }
+}
