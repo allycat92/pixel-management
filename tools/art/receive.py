@@ -39,9 +39,12 @@ Two kinds of delivery are not base sheets and never go to sheets.py:
                                   them (set id, durations_ms from the file, plan ms, contact / hold: gate_page.py and requests.js --motion
                                   read the set and the times from it), runs check_skeleton.py <set>.aseprite --motion <attack|hit|idle>
                                   --set <set>, compares the frames with the other characters' mannequins (aligned silhouette IoU at source
-                                  size: FAIL > 0.98 on any frame of the same motion = a copied mannequin; WARN > 0.8 only between the hold /
-                                  contact frames of characters of the same archetype (hit: same hit weight) - requests.js --motion owns the
-                                  game-size FAIL > 0.8 for those), writes review_<set>.png (frames at source size reduced + at game size on
+                                  size: FAIL > 0.98 on any frame of the same motion = a copied mannequin; "DO NOT ACCEPT until ..." (exit 1,
+                                  no plain accept line) at >= 0.8 between the hold / contact frames of characters of the same archetype (hit:
+                                  same hit weight) - requests.js --motion owns the game-size FAIL > 0.8 for attack sets, and every accept
+                                  line of an attack set names the exact `node tools/art/requests.js --motion --frames <frames>` to run first),
+                                  keeps the frames at <git common dir>/art-received/<set>/ ($ART_RECEIVED_DIR) where requests.js --motion
+                                  reads them without --frames, writes review_<set>.png (frames at source size reduced + at game size on
                                   the dark floor, frame name and ms under each) and prints the next step
   python3 tools/art/receive.py guides/run_base/run_base
   python3 tools/art/receive.py guides/atk__class_warrior/atk__class_warrior
@@ -334,6 +337,29 @@ def inbox_guides(work):
     return out if os.path.isdir(out) else None
 
 
+def received_root():
+    """where receive.py keeps the frames it exported from every motion set it received (accepted or not):
+    $ART_RECEIVED_DIR, else <git common dir>/art-received/<set>/ (inside .git: never committed, survives a wiped scratch folder,
+    shared by worktrees). requests.js --motion reads them from the same place, so its game-size similarity check (section 4) sees a
+    received delivery without --frames and before the .aseprite is checked out on this branch."""
+    env = os.environ.get('ART_RECEIVED_DIR')
+    if env:
+        return os.path.abspath(env)
+    g = git('rev-parse', '--git-common-dir')
+    return os.path.join(g if os.path.isabs(g) else os.path.join(ROOT, g), 'art-received') if g else None
+
+
+def keep_received(set_name, fdir):
+    """copy frames/ (f<NN>_<name>.png + pose_measured.json) to received_root()/<set> -> that path, or None"""
+    root = received_root()
+    if not root:
+        return None
+    dst = os.path.join(root, set_name)
+    shutil.rmtree(dst, ignore_errors=True)
+    shutil.copytree(fdir, dst)
+    return dst
+
+
 def sheet_id(stem):
     """'class_warrior' -> the manifest id whose file is sheet_class_warrior.png ('sheet/class/warrior'), or None"""
     man = _json(os.path.join(ROOT, 'assets', 'art', 'manifest.json'))
@@ -545,6 +571,9 @@ def motion_skeleton(rel, name, work, exe, tip):
                        tags=[list(t) for t in tags]), f, ensure_ascii=False, indent=1)
         f.write('\n')
     print(f'- frames exported (visible layers, joints hidden): {fdir}/ ' + ' '.join(names) + ' + pose_measured.json (set id, durations_ms)')
+    kept = keep_received(name, fdir)
+    print(f'- received frames kept at {kept}/ (node tools/art/requests.js --motion reads them there without --frames)' if kept
+          else '  WARN: no git dir here: the frames are NOT kept for requests.js --motion - pass --frames yourself')
     off = [f'{n} {d} ms (plan {p})' for n, d, (_, p) in zip(names, durs, plan) if len(frames) == len(plan) and d != p]
     if off:
         print('- ms differ from the plan: ' + ', '.join(off))
@@ -596,12 +625,19 @@ def motion_skeleton(rel, name, work, exe, tip):
             print(f'- closest frame of any other {m.group(1)} mannequin: {msg} (FAIL only above {SIMILAR_FAIL}: a copy)')
     else:
         print(f'- no other {m.group(1)}__* mannequin to compare with (art/inbox/guides/ here and on art-inbox)')
+    # the game-size verdict on hold / contact of the same archetype belongs to requests.js --motion (section 4, attack sets);
+    # receive prints the exact command, and a source-size IoU >= 0.8 here blocks the accept line until that check has been run
+    rq = f'node tools/art/requests.js --motion --frames {kept or fdir}'
+    blocked = []
     if warns:
         for v, key, other, i, j in sorted(warns, reverse=True):
             line = f'{key}: {names[i]} vs {other} frame {j:02d}, aligned silhouette IoU {v:.3f} (source size; same {group})'
-            if v > SIMILAR_WARN:
-                print(f'- WARN: {line} > {SIMILAR_WARN} - close to another character of the same {group}; requests.js --motion judges '
-                      'hold / contact aligned at game size (FAIL > 0.8)')
+            if v >= SIMILAR_WARN:
+                until = (f'`{rq}` shows {key} of {other} vs {name} <= {SIMILAR_WARN} at game size (section 4) - if it FAILs there, '
+                         'send it back to the PC' if motion == 'attack' else
+                         f'the PC redraws the {key} frame apart from {other} (requests.js has no game-size check for {motion} sets: this is it)')
+                print(f'  DO NOT ACCEPT until {until}: {line} >= {SIMILAR_WARN}, close to another character of the same {group}')
+                blocked.append(line)
             else:
                 print(f'- {line}')
     elif my_keys and group:
@@ -612,17 +648,32 @@ def motion_skeleton(rel, name, work, exe, tip):
     rp = motion_review(name, frames, labels, scale, work, ag)
     print(f'- review sheet (source /3 | game size x{scale:g} on the dark floor, name and ms under each frame): {rp}')
     print(f'- work folder: {work}')
+    sim = (f'run `{rq}` and read section 4 (game-size hold / contact IoU of {name} against every character of the same archetype: '
+           'any FAIL there = reject)' if motion == 'attack' else
+           f'requests.js --motion has no game-size similarity check for {motion} sets: the hold / contact lines above are the check')
     if rc:
         print(f'- NOT accepted: send the FAIL lines above to the PC (dot_queue row of {name}; art/requests/pc_notes.md) and wait for a redelivery.')
         print(f'  after judging: git checkout {tip[:7]} -- {take}   (it then counts as reviewed)')
+    elif blocked:
+        print(f'- NOT accepted yet: {len(blocked)} DO NOT ACCEPT line(s) above (hold / contact >= {SIMILAR_WARN} against a character of the '
+              f'same {group}).')
+        if motion == 'attack':
+            print(f'    first: {rq}')
+            print(f'    accept only if section 4 shows no FAIL for {name}: git checkout {tip[:7]} -- {take}, set the dot_queue row of {name} '
+                  f'to done (frames for gate 1: python3 tools/art/gate_page.py OUT.html {fdir})')
+            print(f'    if it FAILs: write what to change in the dot_queue row of {name} for the PC, then the same git checkout (it counts as reviewed)')
+        else:
+            print(f'    reject: write which frame to redraw in the dot_queue row of {name} for the PC, then git checkout {tip[:7]} -- {take} '
+                  '(it counts as reviewed)')
     else:
         print('- next: judge the review sheet by eye (the contact frame must read on its own at game size; hit: feet planted, '
-              'head and shoulders snap away and come back). Then:')
-        print(f'    accept: git checkout {tip[:7]} -- {take}, set the dot_queue row of {name} to done; the frames in '
+              'head and shoulders snap away and come back), and ' + sim + '. Then:')
+        print(f'    accept (only after `{rq}` shows no FAIL in section 4): ' if motion == 'attack' else '    accept: ', end='')
+        print(f'git checkout {tip[:7]} -- {take}, set the dot_queue row of {name} to done; the frames in '
               f'{fdir}/ (f<NN>_<name>.png + pose_measured.json) are this character\'s guide frames for the GPT strip and gate 1 '
               f'(python3 tools/art/gate_page.py OUT.html {fdir})')
         print(f'    reject: write what to change in the dot_queue row of {name} for the PC, then the same git checkout (it counts as reviewed)')
-    return rc
+    return rc or (1 if blocked else 0)
 
 
 GAIT_RE = re.compile(r'^gait/(sheet_[^/]+?)_(run|walk)(?:_([ab]))?(?:\.aseprite)?$')

@@ -30,10 +30,13 @@ What the page does (docs/plans/2026-11-26_motion_frames.md section 6 (2) "첫 �
   - then the frames are laid out as a strip at game size (played order, numbered, no names) with a slider / arrow keys, and the
     viewer picks the frame where the blow landed
   - at the end: the viewer's picks, a JSON blob to copy (page id, set, decoy or not, played order, expected and picked index), and a
-    box that merges blobs of several viewers into a verdict per set: PASS when at least 5 viewers took part and >= 80 % of
-    them (4 of 5) picked the contact frame or a neighbour on the planned play AND >= 80 % picked the moved side on the decoy
-    (they read the silhouette, not the beat). With fewer viewers the page lists the picks only. Blobs are counted once per
-    session id: the same blob pasted twice is one viewer.
+    box that merges blobs of several viewers into a verdict per set. Only PAIRED sessions count: per set, a session counts when it
+    has BOTH a planned and a decoy answer for that set (a planned answer alone cannot tell a silhouette reader from a viewer who
+    follows the beat, so stripping decoys from the pasted JSON cannot pass a set); the others are listed as "not counted (no
+    decoy answer)". PASS when at least 5 paired sessions took part and >= 80 % of them (4 of 5) picked the contact frame or a
+    neighbour on the planned play AND >= 80 % picked the moved side on the decoy (they read the silhouette, not the beat); fewer
+    than 5 paired sessions is FAIL "not enough paired sessions" (the picks are listed). A set without a decoy (--no-decoy, or a
+    one-frame set) counts planned answers as before. Blobs are counted once per session id: the same blob pasted twice is one viewer.
 Exit code 1 when a set cannot be read.
 """
 import argparse
@@ -364,7 +367,7 @@ th,td{border-bottom:1px solid var(--line);padding:5px 6px;text-align:left;vertic
 
 <section id="merge">
 <h2>여러 사람 결과 합치기</h2>
-<p class="muted">각 사람의 결과 JSON 을 아래에 붙여 넣습니다(한 줄에 하나, 또는 이어서). 통과: 5명 이상, 계획대로 재생한 판에서 80 %(5명 중 4명) 이상이 맞는 순간 프레임이나 바로 옆 프레임을 고르고, 속임 판에서도 80 % 이상이 옮긴 쪽 프레임을 고름. 주인 혼자 5회(매번 다른 순서)도 5명으로 셉니다.</p>
+<p class="muted">각 사람의 결과 JSON 을 아래에 붙여 넣습니다(한 줄에 하나, 또는 이어서). 세트마다 그 세트의 계획대로 판과 속임 판 답이 둘 다 있는 세션만 셉니다(속임 판 답이 없는 세션은 "not counted (no decoy answer)" 로 따로 적고 세지 않음). 통과: 그런 세션 5개 이상, 계획대로 재생한 판에서 80 %(5명 중 4명) 이상이 맞는 순간 프레임이나 바로 옆 프레임을 고르고, 속임 판에서도 80 % 이상이 옮긴 쪽 프레임을 고름. 5개 미만이면 FAIL (not enough paired sessions). 주인 혼자 5회(매번 다른 순서)도 5명으로 셉니다.</p>
 <p class="muted">같은 결과(같은 세션)를 여러 번 붙여도 한 번만 셉니다.</p>
 <textarea id="pasted" placeholder='{"tool":"gate_page", ...}'></textarea>
 <div class="row"><button id="score" class="ghost">채점</button><span class="muted" id="scoremsg"></span></div>
@@ -557,16 +560,37 @@ th,td{border-bottom:1px solid var(--line);padding:5px 6px;text-align:left;vertic
       (dup ? ', 같은 세션을 두 번 붙인 결과 ' + dup + '개는 뺌' : '');
     if (!blobs.length) { $('verdict').innerHTML = ''; return; }
     var html = '<table><tr><th>세트</th><th>보는 사람</th><th>계획대로: 맞는 순간 ±1</th><th>속임 판: 옮긴 쪽</th><th>판정</th></tr>';
+    var hitR = function (t) { return Math.abs(t.pick - t.expected) <= 1; };
+    var hitD = function (t) { return (t.pick - (t.expected - t.shift)) * t.shift >= 1; };
+    var who = function (b) { return esc(b.viewer || b.session || '?'); };
     D.sets.forEach(function (s) {
-      var real = [], dec = [];
-      blobs.forEach(function (b) { b.trials.forEach(function (t) { if (t.set === s.id) (t.decoy ? dec : real).push(t); }); });
-      var n = real.length, k = real.filter(function (t) { return Math.abs(t.pick - t.expected) <= 1; }).length;
-      var m = dec.length, kd = dec.filter(function (t) { return (t.pick - (t.expected - t.shift)) * t.shift >= 1; }).length;
-      var verdict;
-      if (n < 5) verdict = '<span class="muted">사람 부족 (' + n + '/5) — 고른 프레임: ' + real.map(function (t) { return t.pick + 1; }).join(', ') +
-        (dec.length ? ' / 속임 판: ' + dec.map(function (t) { return (t.pick + 1) + '(정답 ' + (t.expected + 1) + ')'; }).join(', ') : '') + '</span>';
-      else if (k >= 0.8 * n && (m === 0 || kd >= 0.8 * m)) verdict = '<b class="ok">PASS</b>';
-      else verdict = '<b class="bad">FAIL</b> — ' + (k < 0.8 * n ? '맞는 순간이 읽히지 않음' : '속임 판에서 박자를 따라감');
+      var real = [], dec = [], skipped = [], verdict, n, k, kd, m;
+      if (D.decoy && s.frames.length >= 2) {
+        // a page with decoys counts PAIRED sessions only: a session counts for this set when it answered BOTH the planned play and
+        // the decoy of it. A planned answer without its decoy says nothing about beat-following (a beat-follower picks the planned
+        // contact too), so it is listed, never counted - leaving decoys out of the pasted JSON cannot turn a FAIL into a PASS.
+        blobs.forEach(function (b) {
+          var r = null, d = null;
+          b.trials.forEach(function (t) { if (t.set !== s.id) return; if (t.decoy) { if (!d) d = t; } else if (!r) r = t; });
+          if (r && d) { real.push(r); dec.push(d); }
+          else if (r) skipped.push(who(b) + ' (not counted (no decoy answer): 속임 판 답 없음)');
+          else if (d) skipped.push(who(b) + ' (not counted (no planned answer): 계획대로 답 없음)');
+        });
+        n = real.length; k = real.filter(hitR).length; kd = dec.filter(hitD).length; m = n;
+        if (n < 5) verdict = '<b class="bad">FAIL</b> — not enough paired sessions: 짝(계획대로 + 속임 판)이 다 있는 세션 ' + n + '/5' +
+          (n ? '<br><span class="muted">고른 프레임: ' + real.map(function (t) { return t.pick + 1; }).join(', ') +
+            ' / 속임 판: ' + dec.map(function (t) { return (t.pick + 1) + '(정답 ' + (t.expected + 1) + ')'; }).join(', ') + '</span>' : '');
+        else if (k >= 0.8 * n && kd >= 0.8 * n) verdict = '<b class="ok">PASS</b>';
+        else verdict = '<b class="bad">FAIL</b> — ' + (k < 0.8 * n ? '맞는 순간이 읽히지 않음' : '속임 판에서 박자를 따라감');
+      } else {
+        // no decoy for this set (a --no-decoy page, or a one-frame set): planned answers only, as before
+        blobs.forEach(function (b) { b.trials.forEach(function (t) { if (t.set === s.id) (t.decoy ? dec : real).push(t); }); });
+        n = real.length; k = real.filter(hitR).length; m = dec.length; kd = dec.filter(hitD).length;
+        if (n < 5) verdict = '<span class="muted">사람 부족 (' + n + '/5) — 고른 프레임: ' + real.map(function (t) { return t.pick + 1; }).join(', ') + '</span>';
+        else if (k >= 0.8 * n && (m === 0 || kd >= 0.8 * m)) verdict = '<b class="ok">PASS</b>';
+        else verdict = '<b class="bad">FAIL</b> — ' + (k < 0.8 * n ? '맞는 순간이 읽히지 않음' : '속임 판에서 박자를 따라감');
+      }
+      if (skipped.length) verdict += '<br><span class="muted">' + skipped.join('<br>') + '</span>';
       html += '<tr><td>' + esc(s.id) + '<br><span class="muted">맞는 순간 ' + (s.contact + 1) + '번 (' + esc(s.names[s.contact]) + ')</span></td><td>' + n +
         '</td><td>' + k + ' / ' + n + '</td><td>' + (m ? kd + ' / ' + m : '-') + '</td><td>' + verdict + '</td></tr>';
     });
