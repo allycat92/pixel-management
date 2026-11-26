@@ -26,7 +26,11 @@
     모든 프레임이 같은 표본 격자(칸 전체에 해당하는 원본 창)로 줄어든다. 칸에 안 들어가는 프레임은 줄이거나 밀지 않고 몇 px 넘는지 알리고 실패한다.
   - 시트 png 아래에 새 줄로 칸을 붙인다 (기본 칸의 픽셀은 그대로; 이동 칸의 줄은 붙인 순서와 상관없이 run → walk). manifest 항목의 sheet 에:
       frames 에 새 칸의 [x, y], anims.<gait> = {from, to, ms:[...]}, <gait>Stride = 한 걸음에 가는 게임 px (n 프레임 = 두 걸음),
-      gaits.<gait> = {src, floor, center, stride, ms[, pose, step_px]} — 어디서 온 프레임인지 (다시 붙일 때 쓴다)
+      gaits.<gait> = {src, floor, center, stride, ms[, pose, step_px, class]} — 어디서 온 프레임인지 (다시 붙일 때 쓴다)
+  - run 칸이면 시트의 이동 부류 sheet.gait = light | heavy | robe 도 쓴다 (--pose pose.json 의 "gait": run → light, heavy, robe;
+    tools/art/specs/gait_classes.json 의 세 부류). 엔진(js/battle.js gaitClassOf)은 meta.gait 를 그 표보다 먼저 본다 — 그린 이동 칸이
+    어느 마네킹 위에 그려졌는지가 그 칸을 넘기는 방식(경량: 뜬 칸 / 중량·로브: 디딘 채로)을 정한다. 표와 다르면 주의를 찍는다.
+    부류를 모르는 pose(walk) 나 --stride 만 주면 쓰지 않는다 (add_gait 가 전에 쓴 값이면 지운다). --remove 로 run 을 빼면 같이 지운다.
   - --stride 가 없으면 --pose (없으면 원본 옆의 pose.json) 의 step_px x 시트 배율.
   - --remove: 그 이동 칸·anims·Stride·기록을 뺀다 (다른 이동 칸은 남는다. 하나도 안 남으면 시트 png 가 붙이기 전과 같아진다).
   - --dry-run: 시트·manifest 를 건드리지 않고 --work DIR 에 새 png · 등록될 항목(<이름>.entry.json) · 미리보기만 쓴다.
@@ -41,7 +45,8 @@
   마네킹도 잡도록 원본 프레임을 뼈대 프레임의 그림 상자 높이로 맞춰(가로세로 비 유지) 한 번 더 잰다 (높이 비 0.5..4 안에서 — 작게 줄여 격자로 넣은 마네킹도).
   기울인 마네킹도 잡도록 그대로 잰 IoU 가 0.5 이상인 짝은 원본을 발바닥 가운데로 ±2도부터 2도씩 ±8도까지 IoU 가 오르는 쪽으로 돌려
   (바닥에 다시 세워; 높이를 맞춰 보는 짝은 돌린 뒤 높이를 맞춰) 더 잰다 (±9도 안의 기울기, 크기를 바꾸고 기울인 것도).
-  비교하는 뼈대: 클라우드 초안 art/requests/guides/*/v*/ (띠, 레이어를 합친 것)·art/requests/guides/*/ 의 띠, PC 가 넘긴 마네킹
+  비교하는 뼈대: 클라우드 초안 art/requests/guides/*/<하위 폴더>/ — v*/ 와 draft/ (heavy_base·robe_base 초안) 등 모두 (띠, 레이어를 합친 것)·
+  art/requests/guides/*/ 의 띠, PC 가 넘긴 마네킹
   art/inbox/guides/** 의 .aseprite (내보내 파일 해시로 ~/.cache/pixel-management/guide_masks/ 에 캐시)와 띠 — 작업 트리의 것과
   origin/art-inbox 의 것(git show 로 읽는다: 아직 이 브랜치에 들이지 않은 마네킹도), --extra-guides 폴더. joints 레이어가 보이는 .aseprite 는 --allow-draft 로도 받지 않는다 (관절 점이 찍힌다).
   --allow-draft = 파이프라인 시험용, 언제나 --dry-run.
@@ -76,6 +81,8 @@ SLOT = 384                   # 한 프레임의 너비 (SPEC 2절)
 FLOOR = 870                  # 바닥 줄: 디딘 발의 맨 아래 픽셀 (SPEC 3절)
 GAITS = ('run', 'walk')
 DEFAULT_MS = {'run': 80, 'walk': 120}
+POSE_CLASS = {'run': 'light', 'heavy': 'heavy', 'robe': 'robe'}   # pose.json "gait" → 시트의 이동 부류 sheet.gait (run 칸만)
+GAIT_CLASSES = os.path.join(ROOT, 'tools', 'art', 'specs', 'gait_classes.json')
 ALPHA = 0.45                 # sheets.py --alpha 의 기본값
 log = sh.log
 
@@ -510,7 +517,8 @@ def inbox_ref_guides():
 
 def draft_masks(exe=None):
     """비교할 뼈대(마네킹) 프레임의 실루엣 → [(이름, 테두리 상자로 자른 mask)] (같은 모양은 한 번만):
-      - 클라우드 초안 art/requests/guides/<set>/v<n>/: 띠 png(높이 1024, 너비 384 의 배수)와 layers/ 의 레이어 png 를 프레임마다 합친 것(joints 제외)
+      - 클라우드 초안 art/requests/guides/<set>/<하위 폴더>/ (v<n>/, draft/ …): 띠 png(높이 1024, 너비 384 의 배수)와 layers/ 의 레이어 png 를
+        프레임마다 합친 것(joints 제외)
       - art/requests/guides/<set>/ 바로 아래의 띠 png
       - PC 가 넘긴 마네킹 art/inbox/guides/**: <id>.aseprite 등 모든 .aseprite (보이는 레이어, 내보내서 캐시)와 띠 png
       - origin/art-inbox 의 art/inbox/guides/** (git show 로 꺼낸다: 이 브랜치에 아직 들이지 않은 PC 마네킹; 이름 origin/art-inbox:<경로>)
@@ -540,7 +548,8 @@ def draft_masks(exe=None):
 
     for sdir in sorted(glob.glob(os.path.join(GUIDES, '*'))):
         strips(sorted(glob.glob(os.path.join(sdir, '*.png'))))
-    for vdir in sorted(glob.glob(os.path.join(GUIDES, '*', 'v*'))):
+    # 세트 아래의 하위 폴더 모두: v<n>/ (받아들인 판), draft/ (heavy_base·robe_base 처럼 PC 가 아직 다듬지 않은 클라우드 초안), 앞으로 생길 다른 이름도
+    for vdir in sorted(glob.glob(os.path.join(GUIDES, '*', '*'))):
         if not os.path.isdir(vdir):
             continue
         strips(sorted(glob.glob(os.path.join(vdir, '*.png'))))
@@ -803,7 +812,7 @@ def gait_blocks(sid, entry, img, gait, rec, exe):
         raise Fail('한 걸음(게임 px)을 알 수 없다 — --stride 또는 step_px 가 든 --pose pose.json')
     if pose:
         pg = pose.get('gait', 'walk')
-        if pg != gait:
+        if pg != gait and not (gait == 'run' and pg in POSE_CLASS):
             log(f'  주의: {rec["pose"]} 는 {pg} 세트인데 {gait} 로 붙인다')
         if pose.get('frames_per_cycle') and pose['frames_per_cycle'] != n:
             log(f'  주의: {rec["pose"]} 는 {pose["frames_per_cycle"]} 프레임인데 원본은 {n} 프레임')
@@ -878,6 +887,34 @@ def summary(sid, new):
     return f'{sid}: 시트 {new["w"]}x{new["h"]}, {len(m["frames"])}칸 — {", ".join(parts)}{"; " + strides if strides else ""}'
 
 
+def pose_class(rec):
+    """기록의 pose.json "gait" → 이동 부류 (light / heavy / robe) 또는 None"""
+    p = rec.get('pose')
+    if not p or not os.path.exists(absp(p)):
+        return None
+    try:
+        with open(absp(p), encoding='utf-8') as f:
+            return POSE_CLASS.get(json.load(f).get('gait'))
+    except (OSError, ValueError):
+        return None
+
+
+def table_class(sid):
+    """tools/art/specs/gait_classes.json 의 sheets.<sid>.gait (없으면 None)"""
+    try:
+        with open(GAIT_CLASSES, encoding='utf-8') as f:
+            return ((json.load(f).get('sheets') or {}).get(sid) or {}).get('gait')
+    except (OSError, ValueError):
+        return None
+
+
+def set_gait_class(sid, nm, cls):
+    nm['gait'] = cls
+    tc = table_class(sid)
+    log(f'  sheet.gait = {cls} (run 칸이 그려진 마네킹의 부류)' + ('' if tc in (None, cls) else
+        f' — 주의: gait_classes.json 은 {sid} 를 {tc} 로 적는다. 엔진은 sheet.gait 를 먼저 본다: 표를 고치거나 그 부류의 마네킹 위에 다시 그릴 것'))
+
+
 def attach(sid, man, gait, rec, a):
     entry = man[sid]
     meta = entry['sheet']
@@ -892,6 +929,14 @@ def attach(sid, man, gait, rec, a):
     nm = new['sheet']
     nm[gait + 'Stride'] = stride
     rec = dict(rec, stride=stride, ms=ms[0] if len(set(ms)) == 1 else ms)
+    rec.pop('class', None)
+    if gait == 'run':
+        cls = pose_class(rec)
+        if cls:
+            rec['class'] = cls
+            set_gait_class(sid, nm, cls)
+        elif (meta.get('gaits') or {}).get('run', {}).get('class') and 'gait' in nm:
+            log(f'  sheet.gait {nm.pop("gait")} 를 지웠다 (전에 add_gait 가 쓴 값; 이번 원본은 부류를 모른다 — 엔진은 gait_classes.json 표를 본다)')
     nm.setdefault('gaits', {})[gait] = rec
     finish(sid, man, entry, new, sheet, a, gait)
     log('  ' + summary(sid, new))
@@ -909,6 +954,8 @@ def remove(sid, man, gait, a):
     sheet, new = rebuild(entry, img, existing_blocks(entry, img, skip=(gait,)))
     nm = new['sheet']
     nm.pop(gait + 'Stride', None)
+    if gait == 'run' and recs[gait].get('class') and 'gait' in nm:
+        log(f'  sheet.gait {nm.pop("gait")} 도 뺐다 (run 칸과 같이 add_gait 가 쓴 값 — 엔진은 gait_classes.json 표를 본다)')
     del nm['gaits'][gait]
     if not nm['gaits']:
         del nm['gaits']
