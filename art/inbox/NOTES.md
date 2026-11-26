@@ -928,3 +928,72 @@ CHANGED: 클라우드 초안(`art/requests/guides/robe_base/draft/robe_base.asep
 결과: 통과
 본 방법: 게임 크기(0.1654x)·4배 확대 96ms 미리보기 GIF, 경량 달리기(`run_base/v2`)·초안·다듬기 3열 비교 GIF(고정 + 바닥 전진), G1~G8 전 프레임 비교 띠 확인
 남은 걱정: 맨손 마네킹이라 실제 마법사·사제 시트 덧그릴 때 지팡이 끝(G1·G5 접지)과 로브 앞자락 끝이 겹치지 않는지 첫 로브 시트에서 교차 검수할 것
+
+## sheet/captain/frostjarl - 도끼 날 ~30% 확대 손질 (Aseprite)
+CHECK: RESULT: PASS (with warnings)
+- `check_delivery.py sheet_captain_frostjarl.png --aseprite aseprite/sheet_captain_frostjarl.aseprite --base <b476149>`: RESULT: PASS (with warnings)
+- background #FF00FF: 85.6%, figure colours: 39, closest to #FF00FF: 182.1
+- pose 1: x 32-367 (w 336), pose 2: x 378-703 (w 326), pose 3: x 736-1141 (w 406), pose 4: x 1174-1503 (w 330), lowest y=870
+- against the base: silhouette changed 6622 px, colour changed 5745 px (per pose silhouette/colour: 2170/1373, 1176/1296, 1746/1594, 1530/1482)
+- .aseprite export == PNG (pixel-identical), layers: Background / original_ref (hidden), hidden layer original_ref == base PNG
+- WARN: pose 1 (idle) is 373 px tall (기존 베이스와 동일한 키 경고; 이번 손질 범위 밖)
+- `sheets.py --dry-run`: 384x192, 7칸, 40색, 완료 1, 실패 0 (idle 60x67, windup 59x84, strike 73x65, hit 59x69)
+CHANGED: 베이스(`b476149`)의 자세·체격·외곽·자루 위치는 그대로 두고 4자세의 수염도끼(bearded axe) 쇠날만 자루 소켓 기준 약 30~32% 확대:
+- P1(대기)·P2(예비): 날과 수염 갈고리 전체를 1.32배 확대(소켓 이음새 유지).
+- P3(타격)·P4(피격): 소켓 바깥쪽을 기준점으로 1.30배 확대해 P3~P4 사이 32px+ 여백(1141~1174)과 좌우 테두리 32px 규칙을 지키면서 날 볼륨을 키웠고, 자루 주변 미세 점(1px)을 정리.
+- 지침 판: 2026-11-26c
+
+## 판정 — sheet/captain/frostjarl
+결과: 통과
+본 방법: 원본 4자세 2배 확대 비교 시트 + `sheets.py --dry-run` 게임 크기(0.1800x)·4배 미리보기(`preview_x4.png`) 확인
+남은 걱정: 없음
+
+## sheet/hero/kai - 타격(3번) 시위 손 뒤로 26px 이동 손질 (Aseprite)
+CHECK: RESULT: PASS (with warnings)
+- `check_delivery.py sheet_hero_kai.png --aseprite aseprite/sheet_hero_kai.aseprite --base <09d981f>`: RESULT: PASS (with warnings)
+- background #FF00FF: 84.3%, figure colours: 111683 (기존 파일럿 베이스 유지), closest to #FF00FF: 150.0
+- pose 1: x 35-327 (w 293), pose 2: x 426-719 (w 294), pose 3: x 814-1114 (w 301), pose 4: x 1153-1503 (w 351), lowest y=870
+- against the base: silhouette changed 679 px, colour changed 4066 px (per pose silhouette/colour: 0/0, 0/0, 679/4066, 0/0)
+- .aseprite export == PNG (pixel-identical), layers: Background / original_ref (hidden), hidden layer original_ref == base PNG
+- WARN: figure colours / 150-170 distance (기존 GPT 파일럿 베이스 `09d981f` 고유 경고; 색 추가 없음)
+- `sheets.py --dry-run`: 384x192, 7칸, 40색, 완료 1, 실패 0 (idle 48x65, windup 49x62, strike 50x61, hit 58x63)
+CHANGED: 베이스(`09d981f`)에서 1·2·4번 자세는 0px 변경, 3번(타격·시위 놓기) 자세의 오른팔(가죽 팔보호대+펼친 시위 손)만 왼쪽(뒤)으로 26px 이동해 2번(당김)과 3번(발사 반동)의 차이가 게임 크기에서 바로 읽히도록 조정. 드러난 턱 아래 목·금발 옆머리 가닥·크림색 칼라 테두리·초록 망토 어깨는 같은 시트 1번 자세의 가려지지 않은 동일 부위를 얼굴 기준으로 정확히 맞춰 복원.
+- 지침 판: 2026-11-26c
+
+## 판정 — sheet/hero/kai
+결과: 통과
+본 방법: P2·P3 원본 1:1 나란히 비교 + 게임 크기(0.1654x)·4배 비교 및 `sheets.py --dry-run` `preview_x4.png` 확인
+남은 걱정: 없음
+
+## sheet/monster/skeleton - 타격(3번) 검 각도 조정으로 96px 칸 맞춤 (Aseprite)
+CHECK: RESULT: PASS
+- `check_delivery.py sheet_monster_skeleton.png --aseprite aseprite/sheet_monster_skeleton.aseprite --base <ea6fe20>`: RESULT: PASS (오류 0, 경고 0)
+- background #FF00FF: 83.7%, figure colours: 39, closest to #FF00FF: 210.4
+- pose 1: x 32-334 (w 303), pose 2: x 281-648 (w 368), pose 3: x 682-1113 (w 432), pose 4: x 1172-1503 (w 332), lowest y=870
+- spot #ff4a3a: 202 px exact, 202 px within 40, nearest other colour at distance 108.1
+- against the base: silhouette changed 5302 px, colour changed 1885 px (per pose silhouette/colour: 0/0, 0/0, 5302/1885, 0/0)
+- .aseprite export == PNG (pixel-identical), layers: Background / original_ref (hidden), hidden layer original_ref == base PNG
+- `sheets.py --dry-run`: 384x192, 7칸, 38색, 완료 1, 실패 0 — `strike: 71x62px` (`+2px 밀어 넣음` 경고 완전히 해소, 점 색 #ff4a3a 4자세 모두 유지)
+CHANGED: 베이스(`ea6fe20`)에서 1·2·4번 자세·눈 점색(`#ff4a3a`)·몸통·발 위치는 0px 변경, 3번(타격) 자세의 코등이+녹슨 검날만 손잡이 이음새(1004, 726) 기준으로 시계방향 +13° 아래로 꺾어 3번 폭을 456px→432px로 줄이고(x 끝 1137→1113) 손가락/코등이 사이 미세 틈은 기존 팔레트 외곽색(`#2e2a28`)으로 마감.
+- 지침 판: 2026-11-26c
+
+## 판정 — sheet/monster/skeleton
+결과: 통과
+본 방법: P3 전후 비교 시트 + 게임 크기 4배 비교 및 `sheets.py --dry-run` `preview_x4.png`(밀어 넣음 경고 0 확인) 확인
+남은 걱정: 없음
+
+## sheet/monster/desert-bandit - 3·4번 자세 겹침 해소 (Aseprite)
+CHECK: RESULT: PASS
+- `check_delivery.py sheet_monster_desert-bandit.png --aseprite aseprite/sheet_monster_desert-bandit.aseprite --base <87744c1>`: RESULT: PASS (오류 0, 경고 0)
+- background #FF00FF: 84.4%, figure colours: 36, closest to #FF00FF: 216.8
+- pose 1: x 32-335 (w 304), pose 2: x 357-669 (w 313), pose 3: x 707-1158 (w 452), pose 4: x 1158-1503 (w 346), lowest y=870
+- against the base: silhouette changed 27322 px, colour changed 41335 px (per pose silhouette/colour: 0/0, 2849/1119, 24191/40197, 282/19)
+- .aseprite export == PNG (pixel-identical), layers: Background / original_ref (hidden), hidden layer original_ref == base PNG
+- `sheets.py --dry-run`: 384x192, 7칸, 40색, 완료 1, 실패 0 (idle 50x66, windup 52x74, strike 75x63, hit 57x68)
+CHANGED: 요청 메모는 4번(피격)을 오른쪽으로 미는 안을 적었으나 베이스(`87744c1`)에서 4번 오른쪽 끝이 이미 x=1503(우측 테두리 최소 여백 32px 한계선)이라 오른쪽 이동 시 테두리 검사에 걸림. 대신 여유가 59px 있던 2~3번 사이 공간을 활용해 **3번(타격) 자세 전체를 왼쪽으로 22px 이동**(x 729..1180 → 707..1158)하여 2~3번 간격 37px(≥32px)과 3~4번 칼끝-피격 간격(2D ≥44px)을 모두 확보하고 `check_delivery.py` 기존 FAIL을 0오류·0경고 PASS로 해소. 그림·색·자세 내용은 무변경.
+- 지침 판: 2026-11-26c
+
+## 판정 — sheet/monster/desert-bandit
+결과: 통과
+본 방법: `check_delivery.py` 0오류·0경고 PASS 및 `sheets.py --dry-run` `preview_x4.png` 4자세 정상 분리·변환 확인
+남은 걱정: 3번 자세 자체 폭(452px)은 원래 그대로라 `sheets.py` 변환 시 기존과 동일한 `+3px` 칸 맞춤 안내가 남음(이번 요청은 3·4번 분리 목적이라 자세 변형 없이 위치만 이동함; 필요 시 해골처럼 칼 각도만 살짝 줄일 수 있음)
