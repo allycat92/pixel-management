@@ -665,3 +665,24 @@ PROPOSALS: none.
 - 검사: `check_skeleton.py` 첫 줄 `# skeleton run_base (run)`, RESULT: PASS (11 warnings — 위) · 한 걸음 270/274 · 엉덩이 180 178 182 184 · 뜸 바닥 틈 23/24px · 기울기 19.3~31.2° · 팔 흔들기 113 123 81 88px · 가위 -203px
   changed against the draft: R1 arm_far 4479 leg_far 8040 leg_near 4726 torso 6347 head 7107 arm_near 6939 joints 234 / R2 3933 9995 7002 4040 4245 4764 234 / R3 6424 4639 7472 11842 11350 5066 234 / R4 8908 12780 10300 18683 14336 7163 234 / R5 5658 6029 7889 6347 7107 3825 234 / R6 5872 7116 9300 4040 4245 5725 234 / R7 5990 8931 4174 11842 11350 7157 234 / R8 7786 11656 12409 18683 14336 9389 234 (px, 같은 순서)
 - 지침 판: 2026-11-26d
+
+## gait/sheet_class_warrior_run - 병과 전사 달리기
+CHECK: A — RESULT: PASS. B — RESULT: PASS. add_gait.py --dry-run: sheet/class/warrior: 시트 384x384, 15칸 — idle(4), attack(2), hit(1), run(8); runStride 45.5
+다시 붙이는 명령: python3 tools/art/add_gait.py sheet/class/warrior --gait run --src art/inbox/gait/sheet_class_warrior_run_a.png art/inbox/gait/sheet_class_warrior_run_b.png --pose art/requests/guides/run_base/v2/pose.json --ms 80
+REFERENCES LOADED: guide_run_a.png -> ok; guide_run_b.png -> ok; size_run_a.png -> ok; size_run_b.png -> ok; sheet_class_warrior.png -> ok; concept_800.jpg -> ok; 바렌 앵커 -> ok.
+DEVIATIONS: (a) 발바닥 y는 가이드와 일치. 발바닥 하단 중심의 x 차이는 R1 +8, R2 0, R3 −13, R4 −1, R5 +33, R6 0, R7 −29, R8 +8px(오른쪽 +); R8 투구 상단 y=440이라 다른 컷보다 약 9~13px 높음. 관절을 픽셀 단위로 일치시키지는 못함. (b) 닫힌 면갑·청색 제복·청록 트림·둥근 방패 유지. 투구 외곽과 사슬갑옷의 밝은 면 배치는 대기 시트와 다소 다름. 7개 치환색은 승인 원본의 정확한 RGB를 사용함. (c) 칼은 낮게 뒤로, 방패는 가슴 앞에 유지. 방패·칼 손의 전후 폭이 가이드보다 작고 장비 각도가 한 주기 동안 비슷함.
+RISKS AT GAME SIZE: 80ms 루프에서 특히 R5/R7 접지 때 미끄러져 보이는지, R1–R4와 R5–R8의 앞·뒤 다리 교대가 구분되는지, 세력 치환색을 적용한 뒤 방패 띠와 제복이 함께 읽히는지 확인 부탁드립니다.
+
+## gait/sheet_captain_shadowqueen_run - 니클라 달리기
+CHECK: A — RESULT: PASS. B — RESULT: PASS. add_gait.py --dry-run: sheet/captain/shadowqueen: 시트 384x384, 15칸 — idle(4), attack(2), hit(1), run(8); runStride 45.5
+다시 붙이는 명령: python3 tools/art/add_gait.py sheet/captain/shadowqueen --gait run --src art/inbox/gait/sheet_captain_shadowqueen_run_a.png art/inbox/gait/sheet_captain_shadowqueen_run_b.png --pose art/requests/guides/run_base/v2/pose.json --ms 80
+REFERENCES LOADED: guide_run_a.png -> ok; guide_run_b.png -> ok; size_run_a.png -> ok; size_run_b.png -> ok; sheet_captain_shadowqueen.png -> ok; portrait_800.jpg -> ok; 바렌 앵커 -> ok.
+DEVIATIONS: (a) 발바닥 y는 가이드와 일치. 발바닥 하단 중심의 x 차이는 R1 +5, R2 0, R3 −13, R4 +8, R5 +6, R6 0, R7 −16, R8 −7px(오른쪽 +). R5/R6 후드 상단 y=444, R4 y=457로 전체 높이 변화 13px. 관절을 픽셀 단위로 일치시키지는 못함. (b) 후드·망토의 문양, 머리카락 덩어리와 금장 하이라이트 배치는 대기 시트와 조금 다름. 승인 시트의 39개 실제 캐릭터 색 사용. (c) 수정한 R1–R4의 가까운 칼은 뒤·아래로 향하지만 R2–R4에서 가이드보다 눕고, 망토 끝과 닿아 보이는 컷이 있음. 먼 칼은 한 손에 남아 있으나 R2/R3 일부는 거의 가려짐. 근·원거리 칼날 길이와 망토의 정확히 한 컷 지연은 단정할 수 없음.
+RISKS AT GAME SIZE: 검 끝이 망토, 뒷부츠와 겹쳐 한 자루처럼 읽히는지(R2/R3와 R5/R6), R4에서 R5로 넘어갈 때 후드 높이가 튀는지, 루비와 눈이 배경에 묻히는지 확인 부탁드립니다.
+
+## gait/sheet_class_warrior_run - R5 디딘 발 한 칸 손질
+CHECK: A — RESULT: PASS. 수정 B — RESULT: PASS. add_gait.py --dry-run: sheet/class/warrior: 시트 384x384, 15칸 — idle(4), attack(2), hit(1), run(8); runStride 45.5
+다시 붙이는 명령: python3 tools/art/add_gait.py sheet/class/warrior --gait run --src art/inbox/gait/sheet_class_warrior_run_a.png art/inbox/gait/sheet_class_warrior_run_b.png --pose art/requests/guides/run_base/v2/pose.json --ms 80
+REFERENCES LOADED: guide_run_a/b.png -> ok; size_run_a/b.png -> ok; sheet_class_warrior.png -> ok; concept_800.jpg -> ok; 승인된 띠 A(R1), B(R5) -> ok.
+DEVIATIONS: (a) 없음. R5 발바닥 하단 8px의 중심 x=297→265, y=870 유지. R6 x=195 그대로라 이동 102→70px, 가이드 약 69px. (b) 변경 없음(같은 승인 팔레트, 디딘 쪽 무릎 아래만 다시 그림). (c) 변경 없음. 변경 픽셀 6,193개, 전부 B 첫 칸의 x=212–330, y=770–870. R6–R8과 A, R5의 몸·머리·칼·방패·들린 다리 모두 그대로.
+RISKS AT GAME SIZE: 실제 전투 재생에서 80ms R5→R6 접지가 덜 미끄러져 보이는지와 무릎·부츠 연결부의 어두운 윤곽을 확인할 것. 이번 확인은 등록 전 1× 비교 미리보기까지.
