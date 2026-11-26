@@ -72,3 +72,51 @@ soft misses (great with >25% loss / disaster with <50% loss): 0
   fail     n=100 miss=0 soft=0 avg 21.5 ms, battle 25.5 s
   disaster n=100 miss=0 soft=0 avg 18.5 ms, battle 22.5 s
 ```
+
+## C5-art-battle-integration-qa — 2026-11-27
+
+게임 기준은 `48dde80c326c881c591fbda5934b2c0f51a04955`다. `git archive`로 적용 전후 임시 복사본을 만들었다. 아래 원본은 모두 `art/inbox/` 상대 경로이며, 해시는 추출한 PNG의 SHA-256이다.
+
+| 원본 커밋 | 파일 | SHA-256 |
+|---|---|---|
+| `5520f3529df36a81bf496159895fca7f2647bf7f` | `sheet_captain_frostjarl.png` | `c5d251e925d67a73634d41d9f7556db0030536e7084575d131f78d6944e1f881` |
+| 같은 커밋 | `sheet_hero_kai.png` | `fa6a379f48c6d7a210a2169b34e1565297f38d7068c99496d77083610771ee77` |
+| 같은 커밋 | `sheet_monster_skeleton.png` | `e6b4ff52c0e15bed1e6fffac3eaf2c2ab87ff347a8a5dbd31d26875d85c8ab2d` |
+| 같은 커밋 | `sheet_monster_desert-bandit.png` | `686c37be609216fb3f85f6575013815cadd3e593894a3b47f26592ed9e33ed38` |
+| `c4cc05408f630628cfcd8bc4fcead5148ff34840` | `sheet_monster_goblin.png` | `2f3b2730aba949b472d2826bbc89391aff9729f190505c9a9fbd04418be9d486` |
+| 같은 커밋 | `sheet_monster_frost-troll.png` | `61585b5f4e93ff220f97e342e740b617c4a9de72105b088a6036ce77fa06d17f` |
+
+재현은 임시 복사본에서 각 PNG에 대해 아래 명령을 실행한다. Windows PowerShell 5에서는 Git 바이너리 출력을 `>`로 쓰지 말고 프로세스의 표준 출력을 파일로 리디렉션한다.
+
+```sh
+git cat-file blob "<커밋>:art/inbox/<PNG>" > "<임시빌드>/art/inbox/<PNG>"
+python tools/art/check_delivery.py "art/inbox/<PNG>"
+python tools/art/sheets.py "art/inbox/<PNG>" --id "<manifest 키>"
+```
+
+기존 넷의 키는 `sheet/captain/frostjarl`, `sheet/hero/kai`, `sheet/monster/해골 병사`, `sheet/monster/사막 도적`이다. `phase3.json` 기본값이 적용됐으며 해골의 `#ff4a3a`는 네 자세에 2/3/2/2px 남았다. 새 키 `sheet/monster/고블린`과 `sheet/monster/서리 트롤`은 검사에 각각 `--layout 1x4 --cell 96`, `--layout 2x2 --cell 96`을, 변환에 각각 `--grid 4x1 --scale 0.1654 --cell 96`, `--grid 2x2 --scale 0.1800 --cell 96`을 추가했다.
+
+PNG 검사 6/6 통과, 임시 등록 6/6 성공. 비요른 키 경고는 대장 유휴 높이 373px, 카이는 원본 색 111,683개와 마젠타 근접색 809개였다. 기존 넷은 PNG가 교체됐고 manifest 항목은 값까지 동일했다. 파일명, 96×96 셀, 앵커 (48,92), facing 1, 태그 idle(4)/attack(2)/hit(1)을 유지했다. 기존 넷 모두 등록 전부터 walk/run 태그가 없었다. manifest는 새 키 둘만 추가되어 113→115였다. 이 환경에서 Aseprite 실행 파일을 찾지 못해 편집 원본과 PNG의 동일성은 미확인이다. sprite-gen 실행기 부재로 변환기는 내장 idle 들썩임을 사용했다. 아카이브 복사본의 마네킹 대조 범위는 체크아웃에 포함된 가이드였다.
+
+로컬 HTTP와 새 Chrome 프로필, 1280×900 / DPR 1 / 전투 속도 ×1에서 `index.html`의 `UI.openModal(Battle.play(report, ...), true)`로 재현했다. 테스트 보고서는 성공 결과, 3레벨 의뢰, 비요른과 카이가 속한 직속 용병단을 사용했다. 전후 각각 같은 보고서 시드와 리플레이 시드를 사용했고 10회 재생에서 페이지 오류 0건이었다.
+
+| 대상 전투 | 지방 | 보고서 / 재생 시드 |
+|---|---|---|
+| 해골 병사 | `frost` | 2701 / 3004 |
+| 사막 도적 | `oasis` | 2702 / 2904 |
+| 고블린 | `royal` | 2703 / 3006 |
+| 서리 트롤 | `frost` | 2704 / 2906 |
+| 고블린 어두운 배경 추가 재현 | `deepwood` | 2703 / 3208 |
+
+대상 6종 모두 적용 후 실제 전투의 캔버스 그리기에서 지정 PNG와 idle 4칸, 준비·접촉 2칸, 피격 1칸 호출을 관측했다. 고블린과 트롤의 적용 전 manifest에는 해당 키가 없어 기본 도트로 나왔다. 아래 판정은 이 빌드와 관측 장면 기준이다.
+
+| 유닛 | 판정 | 관찰 |
+|---|---|---|
+| 비요른 | PASS | 아군 방향과 도끼 실루엣을 확인했다. 피격 변환의 발 맞춤은 발바닥 기준보다 -13px로 기록됐다. |
+| 카이 | 미확인 | 활 방향과 발사 장면은 확인했다. 1× 전투에서 시위 손의 손가락 단위 접점은 판독하지 못했다. |
+| 해골 병사 | PASS | 방패와 돌출된 무기 끝이 보이고 관측 화면에서 끝이 잘리지 않았다. |
+| 사막 도적 | FIX | 공격은 읽히나 접촉 칸에서 3px 밀어 넣어 발이 앵커에서 벗어났다. 피격 발 맞춤은 발바닥 기준 -12px다. 공격 자세 폭과 기준 발을 재검토할 것. |
+| 고블린 | FIX | 외곽선이 켜진 숲 화면에서는 구분된다. 어두운 녹색·갈색 몸통의 내부 명암과 겹친 실루엣은 읽기 어렵다. 배경 대비를 재검토할 것. |
+| 서리 트롤 | 미확인 | 유휴 높이 74px, 설원에서 몸집·대면 방향·피격을 확인했다. 전용 이동 프레임이 없어 보폭 판정은 보류했다. |
+
+최종 반영 전 Aseprite 내보내기 대조, 카이 시위 손 확인, 사막 도적 앵커와 고블린 대비 조정, 트롤 걸음 확인이 남았다. [전후 전투 캡처](shots/C5-art-battle-integration-qa/) 12장은 각 500KB 미만이다.
