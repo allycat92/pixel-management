@@ -41,26 +41,27 @@ FLOOR = (46, 58, 46)                            # battle floor colour of the rev
 SOLE_BAND = 4                                   # rows above the floor line in which the front end of the planted sole is measured
 
 # per half cycle: index 0 contact, 1 down, 2 push-off, 3 flight   (head units; x forward, h above the floor)
-HIP = [1.63, 1.56, 1.70, 1.90]                 # hip joint height: lowest at down, highest in flight (bob 0.34 heads = 8.5% of the height)
+# 2026-11-26: tables below = the PC Aseprite session's refinement (art-inbox 14c9788, NOTES 「뼈대 — 달리기 v1」); re-baking reproduces it pixel for pixel
+HIP = [1.60, 1.55, 1.782, 1.909]                 # hip joint height: lowest at down, highest in flight (bob 0.34 heads = 8.5% of the height)
 LEAN = [0.30, 0.32, 0.30, 0.28]                # torso lean forward (rad) - the walk has 0.10-0.15
 TILT = [-0.08, -0.08, -0.08, -0.06]            # head tilt (rad): the head stays level while the torso leans
 SHW = [1.06, 1.00, 0.95, 0.94]                 # shoulder width factor while the near leg is the stance leg (mirrored for the far half)
 # arms: (upper-arm deg from straight down, + = forward; elbow flex deg), elbows near 90 deg all the way round.
 # Opposite to the legs: the stance leg goes back from contact to flight while the arm of that side comes forward; the extremes
 # are at push-off/flight. *_ST = the arm on the side of the stance leg, *_SW = the arm of the other side.
-ARM_ST = [(-48, 82), (-12, 90), (28, 88), (36, 85)]            # near arm
-ARM_SW = [(26, 88), (-14, 88), (-52, 82), (-60, 80)]
+ARM_ST = [(-36, 84), (2, 94), (19, 107), (21, 110)]            # near arm
+ARM_SW = [(8, 104), (-32, 88), (-54, 82), (-58, 80)]
 # The far shoulder is drawn 0.7 heads ahead of the near one: with the near arm's forward swing the far hand would leave the
 # 384 px frame (the strip needs 32 px of magenta at its right border) and the forearm would stick out in front of the chest in
 # five frames of eight. So the far arm swings further back, and going forward its upper arm stops at the vertical while the
 # elbow folds more (the fist comes up in front of the chest).
-FAR_ST = [(-55, 82), (-34, 100), (0, 105), (5, 110)]
-FAR_SW = [(2, 108), (-38, 98), (-58, 84), (-66, 80)]
-CONTACT = 0.36                                  # ankle x of the landing foot ahead of the hip (heads)
+FAR_ST = [(-50, 82), (-8, 100), (14, 116), (18, 116)]
+FAR_SW = [(0, 106), (-44, 92), (-62, 84), (-66, 80)]
+CONTACT = 0.5636                                  # ankle x of the landing foot ahead of the hip (heads)
 PUSH = 40                                       # heel lift at push-off (deg)
 # the leg that is not on the floor: ankle x, ankle h, foot angle (deg; + = toe down)
-SWING = [(-1.08, 1.10, 100), (-0.50, 0.88, 65), (0.22, 0.70, 15)]
-FLIGHT = ((-0.98, 0.70, 70), (0.62, 0.66, -5))  # R4: the leg that just pushed off (trailing) / the leg reaching for the next contact
+SWING = [(-0.85, 1.24, 135), (-0.57, 1.31, 140), (0.16, 0.70, 15)]
+FLIGHT = ((-0.98, 0.80, 75), (0.86, 0.62, -18))  # R4: the leg that just pushed off (trailing) / the leg reaching for the next contact
 
 
 def roll(fa):
