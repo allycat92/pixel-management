@@ -1188,15 +1188,22 @@ const Battle = (() => {
   // 전투 계산을 바꾸면 VER 을 올린다. 편성 밖에서 읽는 표(스킬·속도·조정값)는 tab 요약값으로 따로 지킨다.
   const VER = 1;
   const fnv = (h, v) => { for (let i = 0; i < 4; i++) { h ^= (v >>> (i * 8)) & 0xff; h = Math.imul(h, 0x01000193) >>> 0; } return h; };
-  let tabCache = null;
+  let fixedTables = null;
+  let tabSource = null, tabCache = null;
   function tablesDigest() {
-    if (tabCache != null) return tabCache;
-    const K = Stats.KN;
-    const src = JSON.stringify([VER, DT, CLASS_STATS, MONSTER_STATS.speed, RANGED_TPL, GENERIC_SPECIAL, SLOW_MUL,
-      Object.keys(CLASS_SKILLS).map((k) => CLASS_SKILLS[k].b), Object.keys(ENEMIES).map((k) => [k, ENEMIES[k].tpl]),
-      Object.keys(Stats.ARCH).map((k) => [k, Stats.ARCH[k].speed]), K.K, K.HEAL_K, K.PIERCE, K.RETREAT, K.RETREAT_DOWN, K.RETREAT_RATIO]);
+    if (fixedTables === null) {
+      const monsterTable = Object.keys(ENEMIES).map((mon) => [mon, ENEMIES[mon].tpl,
+        monsterSkills({ mon }), monsterSkills({ mon, bigMon: true }), monsterSkills({ mon, boss: true, bigMon: true })]);
+      fixedTables = JSON.stringify([VER, DT, CLASS_STATS, MONSTER_STATS.speed, GENERIC_SPECIAL, SLOW_MUL,
+        Object.keys(CLASS_SKILLS).map((k) => CLASS_SKILLS[k].b), monsterTable]);
+    }
+    const src = JSON.stringify([Stats.KN, Stats.ARCH, Stats.REF, Stats.RANK]);
+    if (src === tabSource) return tabCache;
+    tabSource = src;
     let h = 0x811c9dc5;
-    for (let i = 0; i < src.length; i++) { h ^= src.charCodeAt(i) & 0xff; h = Math.imul(h, 0x01000193) >>> 0; h ^= src.charCodeAt(i) >>> 8; h = Math.imul(h, 0x01000193) >>> 0; }
+    for (const table of [fixedTables, src]) {
+      for (let i = 0; i < table.length; i++) { h ^= table.charCodeAt(i) & 0xff; h = Math.imul(h, 0x01000193) >>> 0; h ^= table.charCodeAt(i) >>> 8; h = Math.imul(h, 0x01000193) >>> 0; }
+    }
     return (tabCache = h);
   }
   const begin = (spec) => setup(spec.groups, 1, spec.seed, spec);

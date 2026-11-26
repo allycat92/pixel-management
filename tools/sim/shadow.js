@@ -33,18 +33,45 @@ function parseArgs(argv) {
   }
   return a;
 }
-const num = (v) => (v !== '' && !isNaN(+v) ? +v : v === 'true' ? true : v === 'false' ? false : v);
+function assignment(input) {
+  const i = input ? input.indexOf('=') : -1;
+  if (i <= 0 || !input.slice(i + 1).trim()) throw new Error(`expected KEY=VALUE: ${input || '(missing)'}`);
+  return [input.slice(0, i), input.slice(i + 1).trim()];
+}
+function knobValue(v) {
+  if (v.startsWith('{') || v.startsWith('[')) return JSON.parse(v);
+  return v && !isNaN(+v) ? +v : v === 'true' ? true : v === 'false' ? false : v;
+}
+const valueType = (v) => v === null ? 'null' : Array.isArray(v) ? 'array' : typeof v;
+function validateValue(expected, value, key) {
+  const type = valueType(expected);
+  if (valueType(value) !== type || (type === 'number' && !Number.isFinite(value))) {
+    throw new Error(`invalid knob ${key || 'STAT_KNOBS'}: expected ${type === 'number' ? 'finite number' : type}`);
+  }
+  if (type === 'object' || type === 'array') {
+    if (type === 'array' && value.length !== expected.length) throw new Error(`invalid knob ${key}: expected ${expected.length} entries`);
+    Object.entries(value).forEach(([k, v]) => {
+      const sub = key ? `${key}.${k}` : k;
+      if (!Object.hasOwn(expected, k)) throw new Error(`unknown knob: ${sub}`);
+      validateValue(expected[k], v, sub);
+    });
+  }
+}
+function validatePath(schema, key, value) {
+  let expected = schema;
+  for (const k of key.split('.')) {
+    if (expected == null || typeof expected !== 'object' || !Object.hasOwn(expected, k) || k === 'length') {
+      throw new Error(`unknown knob: ${key}`);
+    }
+    expected = expected[k];
+  }
+  validateValue(expected, value, key);
+}
 function setPath(obj, key, val) {
   const ks = key.split('.');
   let o = obj;
   ks.slice(0, -1).forEach((k) => { o = o[k] = (o[k] && typeof o[k] === 'object') ? o[k] : {}; });
   o[ks[ks.length - 1]] = val;
-}
-function knobsFrom(args, extra = {}) {
-  const kn = process.env.STAT_KNOBS ? JSON.parse(process.env.STAT_KNOBS) : {};
-  args.set.forEach((kv) => { const i = kv.indexOf('='); setPath(kn, kv.slice(0, i), num(kv.slice(i + 1))); });
-  Object.entries(extra).forEach(([k, v]) => setPath(kn, k, v));
-  return kn;
 }
 
 // ───────── 한 판 ─────────
@@ -65,8 +92,6 @@ function playSeed(seed, days, cfg) {
     script, shadow: true, equipGuard: !!cfg.guard,
     onStart(G, ctx) {
       const St = ctx.Stats, B = ctx.Battle, M = ctx.Math;
-      const unknown = Object.keys(cfg.knobs || {}).filter((k) => !St.KNOBS.includes(k));
-      if (unknown.length) throw new Error(`unknown knob: ${unknown.join(', ')} (known: ${St.KNOBS.join(' ')})`);
       // 편성·그림자 전투가 도는 동안에는 게임의 난수를 세기만 하는 것으로 바꿔 둔다 (--check)
       const guarded = (fn) => {
         if (!cfg.check) return fn();
@@ -165,7 +190,7 @@ function table(x, title, keyOf) {
   });
   return out.join('\n');
 }
-const decile = (r) => (r.chance >= 0.97 ? '0.97 (cap)' : `${(Math.min(9, Math.floor(r.chance * 10)) / 10).toFixed(1)}-${((Math.min(9, Math.floor(r.chance * 10)) + 1) / 10).toFixed(1)}`);
+const decile = (r) => (r.chance >= 0.97 ? '0.97 (cap)' : r.chance >= 0.90 ? '0.90-0.97' : `${(Math.floor(r.chance * 10) / 10).toFixed(1)}-${((Math.floor(r.chance * 10) + 1) / 10).toFixed(1)}`);
 const rBand = (r) => (r.R < 0.6 ? '0 <0.60' : r.R < 0.7 ? '1 0.60-0.70' : r.R < 0.8 ? '2 0.70-0.80' : r.R < 0.9 ? '3 0.80-0.90' : r.R < 1 ? '4 0.90-1.00' : r.R < 1.15 ? '5 1.00-1.15' : r.R < 1.5 ? '6 1.15-1.50' : '7 >=1.50');
 const BANDS_KO = ['0 무모', '1 열세', '2 백중', '3 우세', '4 압도'];
 
@@ -191,6 +216,31 @@ function playAll(seeds, days, cfg, jobs) {
 
 async function main() {
   const args = parseArgs(process.argv.slice(2));
+  const ctx = {};
+  makeScript().runInNewContext(ctx);
+  const { KN, ARCH, REF, RANK } = ctx.Stats;
+  // KIND_K is sparse in the game: omitted entries use the documented multiplier of 1.
+  const schema = { ...KN, ARCH, REF, RANK,
+    KIND_K: { normal: 1, story: 1, capStory: 1, boss: 1, campaign: 1, final: 1, ...KN.KIND_K } };
+  const envKnobs = process.env.STAT_KNOBS ? JSON.parse(process.env.STAT_KNOBS) : {};
+  validateValue(schema, envKnobs, '');
+  const overrides = args.set.map((input) => {
+    const [key, raw] = assignment(input);
+    const value = knobValue(raw);
+    validatePath(schema, key, value);
+    return [key, value];
+  });
+  const axes = args.sweep.map((input) => {
+    const [key, raw] = assignment(input);
+    const vals = /^[{\[]/.test(raw) ? JSON.parse(`[${raw}]`) : raw.split(',').map((v) => knobValue(v.trim()));
+    vals.forEach((value) => validatePath(schema, key, value));
+    return { key, vals };
+  });
+  const knobsFrom = (extra = {}) => {
+    const knobs = structuredClone(envKnobs);
+    [...overrides, ...Object.entries(extra)].forEach(([key, value]) => setPath(knobs, key, structuredClone(value)));
+    return knobs;
+  };
   const N = +args.pos[0] || 6, days = +args.pos[1] || 200;
   const seed0 = +args.flags.seed0 || +process.env.SIM_SEED || 1;
   const seeds = Array.from({ length: N }, (_, i) => seed0 + i);
@@ -203,14 +253,13 @@ async function main() {
   const t0 = Date.now();
 
   // 값 훑기: 조합마다 한 줄
-  if (args.sweep.length) {
-    const axes = args.sweep.map((kv) => { const i = kv.indexOf('='); return { key: kv.slice(0, i), vals: kv.slice(i + 1).split(',').map(num) }; });
+  if (axes.length) {
     let combos = [{}];
     axes.forEach((ax) => { combos = combos.flatMap((c) => ax.vals.map((v) => ({ ...c, [ax.key]: v }))); });
     const dayBands = ['001-030', '031-060', '061-120', '121-240', '241-365'].filter((b) => +b.slice(0, 3) <= days);
     console.log(`${E(axes.map((a) => a.key).join(' '), 26)} ${P('n', 5)} ${P('rolled', 7)} ${P('shadow', 7)}  ${E('shadow tiers g/s/f/d', 20)} ${P('sec', 5)} ${P('down', 5)}  ${dayBands.map((b) => P(b, 8)).join('')}  ${P('monster', 8)}${P('soldier', 8)}`);
     for (const combo of combos) {
-      const got = await playAll(seeds, days, { ...base, knobs: knobsFrom(args, combo) }, jobs);
+      const got = await playAll(seeds, days, { ...base, knobs: knobsFrom(combo) }, jobs);
       const x = got.flatMap((g) => g.rows);
       const w = (y) => P(pc(mean(y.map((r) => r.win))), 8);
       console.log(`${E(axes.map((a) => combo[a.key]).join(' '), 26)} ${P(x.length, 5)} ${P(pc(mean(x.map(rolledWin)), 1), 7)} ${P(pc(mean(x.map((r) => r.win)), 1), 7)}  ${E(tierMix(x, 'tier'), 20)} `
@@ -220,7 +269,7 @@ async function main() {
     return;
   }
 
-  const knobs = knobsFrom(args);
+  const knobs = knobsFrom();
   console.log(`knobs ${JSON.stringify(knobs)} (others: js/stats.js defaults)`);
   const got = await playAll(seeds, days, { ...base, knobs }, jobs);
   const rows = got.flatMap((g) => g.rows), offers = got.flatMap((g) => g.offers);
