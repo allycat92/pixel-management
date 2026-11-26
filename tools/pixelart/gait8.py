@@ -58,14 +58,14 @@ FLOOR = run8.FLOOR
 STYLES = {
     'heavy': dict(
         tag='H', name='heavy_base', ms=110, step=1.21,          # 133 px = 22.0 game px per step; 8 x 110 = 880 ms a cycle, 136 steps a minute
-        HIP=[1.585, 1.475, 1.535, 1.585],                        # sinks 12 px onto the landing leg, rises again on the push: bob 12 px
+        HIP=[1.63, 1.54, 1.62, 1.67],                            # sinks onto the landing leg (push -> contact -> down: -5.5, -10 px), rises on the push: bob 14 px
         LEAN=[0.11, 0.13, 0.11, 0.10],                           # measured 8-9.6 deg (hip -> neck dot): upright under the armour, a little more over the sinking leg
         TILT=[-0.04, -0.05, -0.04, -0.035],                      # the head stays level
         SHW=[1.03, 1.04, 1.0, 0.98],
         CONTACT=0.45,                                            # ankle of the landing foot ahead of the hip (50 px): mid-stance is under the hip
         LAND=0, PUSH=14, REAR=28,                                # foot angles (deg, + = heel up): lands flat (a stomp), push heel lift, rear foot at contact
         # the other leg after contact: ankle x, ankle h, foot angle (deg; + = toe down)
-        SWING=[(-0.56, 0.32, 44), (0.02, 0.34, 16), (0.33, 0.19, -4)],
+        SWING=[(-0.54, 0.40, 42), (0.02, 0.34, 16), (0.33, 0.19, -4)],
         ARM_ST=[(-10, 50), (-13, 56), (-4, 46), (6, 48)],       # arms held close: small swing (+-13 deg), hands at the belt; elbows fold
         ARM_SW=[(10, 50), (13, 56), (4, 46), (-6, 48)],         # more at down and open a frame later (the hands sink late: the weight)
         FAR_ST=[(-16, 56), (-18, 62), (-10, 50), (-2, 52)],     # the far shoulder is drawn 0.7 heads ahead: its arm swings further back
@@ -80,7 +80,7 @@ STYLES = {
         SHW=[1.06, 1.08, 0.97, 0.98],
         CONTACT=0.50,
         LAND=0, PUSH=12, REAR=24,
-        SWING=[(-0.60, 0.30, 30), (-0.04, 0.22, 8), (0.36, 0.165, -6)],   # the foot barely leaves the floor: knees hidden, only the toes show
+        SWING=[(-0.60, 0.33, 30), (-0.04, 0.23, 8), (0.36, 0.165, -6)],   # the foot barely leaves the floor: knees hidden, only the toes show
         ARM_ST=[(-22, 58), (-26, 62), (-8, 60), (12, 58)],      # hurried, compact pump (+-26 deg), elbows 58-64
         ARM_SW=[(22, 58), (26, 62), (8, 60), (-12, 58)],
         FAR_ST=[(-28, 56), (-32, 60), (-14, 58), (2, 56)],
@@ -304,7 +304,7 @@ def export(out, name, tag, solved, oy, layers, ms, aseprite):
     return flats
 
 
-def compare(path, sets, travel_w=300):
+def compare(path, sets, travel_w=200):
     """the comparison GIF: per set a column at game size (x4 nearest) in place, and below all of them one lane each travelling
     over a ticked floor by step/4 per frame. Each set runs at its own nominal ms on one timeline (10 ms ticks); the loop is the
     least common multiple of the cycles when that is under 8 s"""
@@ -315,7 +315,7 @@ def compare(path, sets, travel_w=300):
     for c in cycles:
         total = total * c // math.gcd(total, c)
     total = total if total <= 8000 else max(cycles) * 4
-    top_w = (cw + 6) * len(sets)
+    top_w = (cw + 40) * len(sets)
     W = max(top_w, travel_w)
     lane_h = ch + 2
     H = 12 + ch + 4 + len(sets) * (lane_h + 10)
@@ -325,9 +325,9 @@ def compare(path, sets, travel_w=300):
         d = ImageDraw.Draw(img)
         for k, (lab, _, ms, step) in enumerate(sets):
             n = t // ms
-            x0 = k * (cw + 6) + (W - top_w) // 2
+            x0 = k * (cw + 40) + (W - top_w) // 2 + 20
             img.paste(cells[k][n % 8], (x0, 12))
-            d.text((x0 + 2, 1), lab, fill=(225, 225, 205))
+            d.text((x0 - 12, 1), lab, fill=(225, 225, 205))
         for k, (lab, _, ms, step) in enumerate(sets):
             n = t // ms
             y = 12 + ch + 4 + k * (lane_h + 10)
@@ -346,7 +346,9 @@ def compare(path, sets, travel_w=300):
             out.append(big)
             durs.append(10)
             prev = key
-    out[0].save(path, save_all=True, append_images=out[1:], duration=durs, loop=0, disposal=1)
+    pal = out[0].quantize(colors=64, method=Image.Quantize.MEDIANCUT)      # one palette (the mannequin has few colours): ~half the size
+    out = [f.quantize(palette=pal, dither=Image.Dither.NONE) for f in out]
+    out[0].save(path, save_all=True, append_images=out[1:], duration=durs, loop=0, optimize=True)
     return total
 
 
@@ -432,7 +434,7 @@ def main(argv=None):
         f.write('\n')
     if a.compare:
         total = compare(os.path.join(a.out, f'{name}_vs_run.gif'),
-                        [('light run 80ms', flats_of(a.compare), run8.MS, run8.STEP * HEAD_PX), (f'{a.style} {S["ms"]}ms', flats, S['ms'], step * HEAD_PX)])
+                        [(f'light {run8.MS}', flats_of(a.compare), run8.MS, run8.STEP * HEAD_PX), (f'{a.style} {S["ms"]}', flats, S['ms'], step * HEAD_PX)])
         print(f'compare gif loop {total} ms')
     print(f'{name}: step {info["step_px"]} px ({info["run_stride_game_px"]} game px), bob {info["bob_px"]} px '
           f'(sink {info["sink_contact_to_down_px"]}), lean {info["lean_deg"][0]}-{info["lean_deg"][1]} deg, {S["ms"]} ms/frame, '
