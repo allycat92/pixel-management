@@ -52,9 +52,10 @@ SET = {"set": "atk__class_warrior", "tag": "attack", "x0": 170, "auto_tilt": Tru
            # PC: handF (0.88, 2.42) -> (1.14, 2.27), far elbow bends up-back (hidden behind the head)
            {"name": "contact", "ms": 70, "hip": [0.27, 1.24], "lean": 0.32, "footN": [-0.90, 0.12], "footF": [0.80, 0.12], "toeN": 0.85, "faN": 15,
             "handN": [0.75, 1.55], "handF": [1.14, 2.27], "elbF": [-0.5, -1.0], "wa": 355},
-           # PC: handF (0.65, 2.30) -> (0.70, 2.05)
+           # PC: handF (0.65, 2.30) -> (1.06, 2.20), far elbow bends up-back like contact (touch-up 2: at (0.70, 2.05) only 11% of the
+           #     shield showed, mostly a grey wedge behind the neck that read as a hood; now it stays in front of the chest)
            {"name": "follow", "ms": 90, "hip": [0.33, 1.18], "lean": 0.40, "footN": [-0.90, 0.12], "footF": [0.80, 0.12], "toeN": 0.85, "faN": 0,
-            "handN": [0.72, 1.80], "handF": [0.70, 2.05], "wa": 385},
+            "handN": [0.72, 1.80], "handF": [1.06, 2.20], "elbF": [-0.5, -1.0], "wa": 385},
            {"name": "recover", "ms": 90, "hip": [0.10, 1.30], "lean": 0.18, "footN": [-0.90, 0.12], "footF": [0.80, 0.12], "toeN": 0.85, "faN": 0,
             "handN": [0.40, 1.65], "handF": [0.70, 2.15], "wa": 405},
            {"name": "settle", "ms": 70, "hip": [0.00, 1.38], "lean": 0.08, "footN": [-0.90, 0.12], "footF": [0.80, 0.12], "toeN": 0.85, "faN": 0,
