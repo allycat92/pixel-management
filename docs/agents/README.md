@@ -14,6 +14,7 @@
 
 ## 공통 규칙 (두 에이전트 모두)
 - **게임 브랜치 `claude/dot-fantasy-management-game-saupju` 에는 절대 푸시하지 않는다.**
+  - **예외 (주인 결정 2026-11-27)**: 주인이 클라우드가 쉬는 동안(사용량 제한 등) **대리 총괄**을 맡긴 에이전트는, 그 기간에 한해 게임 브랜치에 대기열·요청서·일감 문서(`art/requests/dot_queue.md`, `art/requests/phase3/*/README.md`, `docs/agents/queue.md`, `docs/agents/tasks/*`)를 올릴 수 있다. 게임 코드·`assets/`·그림 등록은 하지 않는다. 커밋 메시지에 `(acting lead)` 를 붙이고, 끝낼 때 보고 파일에 대리 시작·끝 시각과 한 일을 적는다. 클라우드는 돌아오면 그 커밋들을 읽고 이어받는다.
   - 그 브랜치에서 갈라 만든 자기 브랜치(`agent/<이름>`)에만 푸시한다.
   - 강제 푸시(`--force`)는 하지 않는다.
   - `art-inbox` 브랜치는 Codex 가 건드리지 않는다. 그곳은 GPT 그림, PC Aseprite, 헤드 Antigravity 의 그림·판정을 받는 곳이다(`art/inbox/` 만).
