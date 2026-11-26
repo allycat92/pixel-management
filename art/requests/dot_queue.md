@@ -21,6 +21,10 @@ Claude Code 가 받아서 확인한 결과는 `art/requests/feedback.md`에 남�
 
 | 누구 | 종류 | id | 할 일 (자세한 것은 그 줄의 요청서) |
 |---|---|---|---|
+| Antigravity | 손질 | `sheet/captain/frostjarl` | 비요른의 수염도끼 날이 작아 게임 크기에서 곡괭이처럼 보인다 → **날을 원본 약 30% 키운다**(네 자세 모두, 자세·윤곽·크기·위치는 그대로). 바탕 `art/inbox/sheet_captain_frostjarl.png`. 납품·검사는 `tools/aseprite-mcp/pc/CLAUDE.md` 「납품」 표의 「손질」 줄(`art/inbox/<stem>.png` + `art/inbox/aseprite/<stem>.aseprite`, `check_delivery.py`). 「판정」 절 포함 |
+| Antigravity | 손질 | `sheet/hero/kai` | 카이의 타격 자세에서 시위 당긴 손이 뒤로 빠지는 폭이 작아 준비·타격이 덜 구분된다 → 타격 자세의 시위 손을 원본 약 25px 더 뒤로(나머지는 그대로). 바탕 `art/inbox/sheet_hero_kai.png`. 납품·검사는 위와 같다 |
+| Antigravity | 손질 | `sheet/monster/skeleton` | 해골 병사의 찌르기 자세가 칸 오른쪽 끝에 닿아 2px 밀려 들어간다 → 자세를 약간 좁혀 칸 안에 들어오게(창끝이 잘리지 않게). 바탕 `art/inbox/sheet_monster_skeleton.png` + `aseprite/sheet_monster_skeleton.aseprite` |
+| Antigravity | 손질 | `sheet/monster/desert-bandit` | 사막 도적: 타격 칼끝과 피격 자세 사이가 32px 안이라 검사 FAIL(원래부터) → 피격 자세만 오른쪽으로 원본 12px. 바탕 `art/inbox/sheet_monster_desert-bandit.png` + `aseprite/...aseprite`. `check_delivery.py` 가 PASS 해야 한다 |
 | Antigravity | 예고 | `sheet/monster/goblin` · `sheet/monster/frost-troll` | 플레이테스트(A1): 코드로 그린 저해상도 고블린·서리 트롤이 시트 유닛 옆에서 화풍이 크게 어긋난다 → 전투 시트로 새로 그린다. 요청서는 클라우드가 만드는 중 — **요청서가 붙기 전에는 그리지 않는다** |
 | Antigravity | 보류 | `sheet/captain/liberator` | 카토 — **취소**: 주인 결정(11-26) 사슬과 주먹으로 다시 그린다(장검은 등에). 장검 손질은 하지 않는다 |
 
@@ -132,14 +136,14 @@ GPT 는 `art/requests/GPT_STANDING.md`, PC 는 `tools/aseprite-mcp/pc/CLAUDE.md`
 - **건너뛰어진 항목**: 위 항목이 건너뛰어진 채 아래 항목이 두 번 납품되면 「지금 차례」에 이유를 묻는 줄을 넣는다(오르가는 다섯 번 건너뛰어진 뒤에야 물었다).
 - **뒤집힌 판정**: feedback.md 의 앞 절 제목에 "(뒤집힘 → 아래 ○○)" 를 덧붙인다.
 
-## 나중 손질 (PC) — 통과시켰지만 적어 둔 것 (PC 대기열이 비면 위에서부터 올린다)
+## 나중 손질 (이제 Antigravity) — 통과시켰지만 적어 둔 것 (PC 대기열이 비면 위에서부터 올린다)
 
 | 파일 | 손볼 것 | 상태 |
 |---|---|---|
 | `sheet_captain_bard.png` (리코) | 레이피어 날이 1px 짙은 회색이라 어두운 전장에서 흐리다 → 밝은 강철색(#c8ccd2 근처) 2px(원본 약 12px) | **끝 (`caebb20`)** |
-| `sheet_captain_frostjarl.png` (비요른) | 수염도끼 날이 작아 게임 크기에서 곡괭이처럼 보일 수 있다 → 날을 원본 약 30% 키우기(네 자세) | LATER |
-| `sheet_hero_kai.png` (카이) | 타격 자세에서 시위 당긴 손이 뒤로 빠지는 폭이 작아 준비·타격이 덜 구분된다 | LATER |
+| `sheet_captain_frostjarl.png` (비요른) | 수염도끼 날이 작아 게임 크기에서 곡괭이처럼 보일 수 있다 → 날을 원본 약 30% 키우기(네 자세) | **올림 (11-27, Antigravity)** |
+| `sheet_hero_kai.png` (카이) | 타격 자세에서 시위 당긴 손이 뒤로 빠지는 폭이 작아 준비·타격이 덜 구분된다 | **올림 (11-27, Antigravity)** |
 | `sheet_monster_giant-spider.png` | (다리를 시안처럼 더 검게 — 주인이 "이대로 좋다"고 해서 하지 않는다) | **안 함 (11-26)** |
-| `sheet_monster_skeleton.png` | 찌르기 자세가 칸 오른쪽 끝에 닿아 2px 밀려 들어간다 (자세를 약간 좁히기) | LATER |
-| `sheet_monster_desert-bandit.png` | 타격 칼끝과 피격 자세 사이가 32px 안(검사 FAIL, 원래부터 — 변환은 정상). 피격 자세를 오른쪽으로 원본 12px | LATER (알려진 FAIL) |
+| `sheet_monster_skeleton.png` | 찌르기 자세가 칸 오른쪽 끝에 닿아 2px 밀려 들어간다 (자세를 약간 좁히기) | **올림 (11-27, Antigravity)** |
+| `sheet_monster_desert-bandit.png` | 타격 칼끝과 피격 자세 사이가 32px 안(검사 FAIL, 원래부터 — 변환은 정상). 피격 자세를 오른쪽으로 원본 12px | **올림 (11-27, Antigravity)** |
 | 그 밖의 메모 | feedback.md 의 "급하지 않음·다음 손질 때" 줄들(세라핀·그롬·아스텔·오스윈·진·이사벨) — 올리기 전에 게임 화면에서 다시 확인 | 확인 필요 |
