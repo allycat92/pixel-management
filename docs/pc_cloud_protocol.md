@@ -24,7 +24,8 @@
 
 - **역할 나눔 (2026-11-25 주인 결정)**: GPT 도트 = 새로 그리기·다시 그리기, PC = 이미 받은 그림을 Aseprite 로 손질(색·소품) + 자세 뼈대(`art/requests/guides/SPEC.md`).
   **마네킹 시퀀스도 PC 가 만든다 (2026-11-26 주인 결정: "마네킹 시퀀스도 pc하청으로")**: 클라우드는 요청서에 프레임 사양과 검사 명령을 적고 검사를 맡는다.
-  클라우드가 수치표로 구운 초안(걷기 `walk_base` v2, 달리기 `run_base` v1)은 PC 가 출발점으로 써도 된다. 클라우드가 손질 항목에 `담당: PC(Aseprite)` 를 붙이고, PC 는 **그 항목만** 한다 (담당 표시가 없는 DOT_READY 는 GPT 몫).
+  클라우드가 수치표로 구운 초안(걷기 `walk_base` v2, 달리기 `run_base` v1)은 PC 가 출발점으로 써도 된다. 동작 마네킹(공격 `atk__`·피격 `hit__`·대기 `idle__`)은 초안이 없다 —
+  요청서 README 의 프레임 표(클라우드가 그대로 지어 `check_skeleton.py --motion` PASS 를 확인한 값)만 보고 PC 가 묻지 않고 짓는다(주인: PC 가 요청을 묻지 않고 해낼 수 있어야 한다). 클라우드가 손질 항목에 `담당: PC(Aseprite)` 를 붙이고, PC 는 **그 항목만** 한다 (담당 표시가 없는 DOT_READY 는 GPT 몫).
 - **PC 지침의 원본은 `tools/aseprite-mcp/pc/CLAUDE.md` 하나뿐이다** (판 번호가 맨 위에 있다; 늘 지키는 규칙은 `art/requests/pc_notes.md`). `git pull` 로 따라온다.
   PC 에는 한 번만 복사한다: `tools/aseprite-mcp/pc/CLAUDE.local.md`(본문을 불러오는 세 줄 + 이 PC 의 경로) → 게임 폴더 루트, `settings.local.json` → 게임 폴더의 `.claude\settings.local.json`
   (둘 다 `.git\info\exclude` 에 적어 커밋되지 않게). 설정 파일의 허용 목록이 바뀌면 그때만 다시 복사한다.
@@ -58,7 +59,7 @@ git worktree add ..\pixel-management-inbox art-inbox    # 납품용 폴더 (art-
 | 납품 PNG | `art/inbox/<stem>.png` | `art/inbox/sheet_hero_lyra.png` |
 | Aseprite 원본 | `art/inbox/aseprite/<stem>.aseprite` | `art/inbox/aseprite/sheet_hero_lyra.aseprite` |
 | 납품 메모 | `art/inbox/NOTES.md` 의 절 | 「3단계 — 리라 (Aseprite)」, 다시 그리면 「리라 — 다시 그림 (Aseprite)」 |
-| 뼈대(마네킹 시퀀스) | `art/inbox/guides/<id>/<id>.aseprite` 하나 | `art/inbox/guides/run_base/run_base.aseprite` |
+| 뼈대(마네킹 시퀀스) | `art/inbox/guides/<id>/<id>.aseprite` 하나 (+ 스크립트로 지었으면 `mannequin_pc.py`) — Aseprite 프레임 하나 = 동작 프레임 하나, 프레임 수는 요청서 표대로(걷기·달리기 8, 공격 7, 피격 4) | `art/inbox/guides/run_base/run_base.aseprite`, `art/inbox/guides/atk__class_warrior/atk__class_warrior.aseprite` |
 | 이동 프레임(달리기·걷기 띠) | `art/inbox/gait/<시트 stem>_<run\|walk>.aseprite` | `art/inbox/gait/sheet_class_warrior_run.aseprite` |
 
 이동 프레임은 기본 시트가 아니다: 이름이 `sheet_*.png` 로 `art/inbox/` 바로 아래 오면 `sheets.py` 가 시트로 잘못 처리한다. 그래서 `gait/` 폴더에 두고,
@@ -115,7 +116,8 @@ NOTES.md 충돌은 양쪽 절을 모두 남기고 PNG·`.aseprite` 충돌은 풀
 ```bash
 python3 tools/art/receive.py --list                       # 새로 올라온 파일·NOTES 절 (이 브랜치의 art/inbox 와 다른 것 = 아직 안 본 것)
 python3 tools/art/receive.py <stem> --work <스크래치 폴더>   # 한 파일 검사 (Aseprite 는 tools/art/ase_headless.sh 가 버리는 프로필로 부른다)
-python3 tools/art/receive.py guides/<id>/<id>              # 뼈대: check_skeleton.py (요청의 pose.json·초안과 비교), 띠를 뽑아 검사
+python3 tools/art/receive.py guides/<id>/<id>              # 뼈대: 걷기·달리기는 check_skeleton.py (요청의 pose.json·초안과 비교), 띠를 뽑아 검사;
+                                                           #  동작 세트(atk__/hit__/idle__)는 check_skeleton.py --motion --set, 프레임 PNG 추출, 다른 마네킹과 닮음, 검토판
 python3 tools/art/receive.py gait/<시트 stem>_<run|walk>    # 이동 프레임: 띠 검사(달리기 --flight-slots 4) → add_gait.py --dry-run
 ```
 1. `--list` 에 아무것도 없으면 끝. 새 NOTES 절(제안·막힘·교차 검수 답)이 있으면 읽고 처리한다(`dot_queue.md` 「운영 규칙」).

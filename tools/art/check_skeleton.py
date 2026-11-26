@@ -50,25 +50,32 @@ file name starting atk__ / hit__ / idle__. --export writes f<NN>_<name>.png per 
 FAIL (all): frame count, durations or tags (one tag named after the motion over all frames; a tag named after a bible frame on that
       frame) differ from the bible, the shared layer / dot / bone / crisp-edge rules, both feet off y=870 in a frame, the picture
       touching the frame edge, neighbouring frames that are pixel copies (idle: WARN).
-  attack: the pivot foot (pivot_foot; default: at least one foot) moving more than 3 px; melee: the head (from the ankles' mid-point)
-      not behind at the hold and ahead at the contact or travelling under 100 px, the hip under 55 px; no contact on the contact
-      frame (a blade turning one way swing -> contact -> follow, or the tip / shield face at its unique furthest reach); a cut turning
-      under 120 deg hold -> follow, a thrust tip under 165 px; swing -> contact silhouette change under 15 %; recover not closer to
-      the first frame than the follow. bow: draw length (bow hand - string hand) under 100 px at the hold or not longest there, the
-      release moving the string hand under 60 px back or not being its biggest move back.
+  attack: the pivot foot (pivot_foot; default: at least one foot) sliding - in a frame its toe end and heel end (the sole in rows
+      y=866-870) and its ankle dot all more than 3 px from the span's first frame (a heel lift on the toe passes); melee: the
+      head (from the ankles' mid-point) not behind at the hold and ahead at the contact or travelling under 100 px, the hip under
+      55 px; no contact on the contact frame (a blade turning one way swing -> contact -> follow, 10 deg or more into the contact -
+      with a shield shove at the contact 25 deg or more in all, else it is carried along, not a cut - or the tip / shield face at
+      its unique furthest reach); a cut turning under 120 deg hold -> follow, a thrust tip under 165 px; a cut's follow more than
+      10 deg over the bible's weapon_past_line_deg maximum past the contact (25-40: over 50 = the contact frame is still mid-arc);
+      swing -> contact silhouette change under 15 %; recover not closer to the first frame than the follow. Blade angle: grip hand
+      dot -> centroid of the weapon pixels at least half the farthest pixel's distance away. bow (bow hand = the hand dot nearest
+      the bow layer's centroid): draw length (bow hand - string hand) under 100 px at the hold or not longest there, the release
+      moving the string hand under 60 px back or not being its biggest move back.
   hit: a foot off y=870, an ankle more than 3 px off the idle height, the front foot moved, the back foot moved (light: 0..-33 px),
       the front knee more than 1 px above the idle, lean back over 15 deg; at K1 / K2 a hip drop outside 12-30 px or a head
       displacement outside the weight's band (heavy 12-35, mid 25-60, light 40-90 px), K2 not deeper than K1; the frame after the
-      peak not closer to the idle. The idle is the bible's idle_reference on the posekit mannequin standing on K1's feet (--idle:
-      the rest frame of the character's idle set).
+      peak not closer to the idle. The idle is the bible's idle_reference on the posekit mannequin standing on K1's feet, its hip
+      0.05 head ahead of their mid-point (--idle: the rest frame of the character's idle set).
   idle: the rest hip off x=192 +-1, a foot moving more than 2 px, a loop that does not close (last -> first more than the biggest
       step + 1 px or twice the first step + 1 px; silhouette the same + 2 %).
 WARN: the picture outside x=32-351; neighbouring silhouettes under 8 % at game size (pairs with the hold frame and idle exempt); the
-      head tilting over 8 deg against the torso (round head: by angle) or drifting over 4 px on the neck (hit 10); attack: follow-through
-      outside 25-40 deg past the contact (or the hip falling back), contact -> follow over 35 %, weapon under 60 % clear of the body
+      head tilting over 8 deg against the torso (round head: by angle) or its centre's distance from the neck dot changing over 4 px
+      (hit 10); attack: follow-through outside weapon_past_line_deg (25-40) past the contact (or the hip falling back), contact ->
+      follow over 35 %, weapon under 60 % clear of the body
       or its tip within 33 px of it, a shield shove under 55 px, the bow hand moving at the release, a leaning archer, settle not
       closer than recover, kinds without rules here (gun, cast, creature); hit: later recovery frames, last frame over 12 px from
-      the idle; idle: a joint moving over 12 px, no motion, neighbours with the same joints.
+      the idle, without --idle the idle reference's hip off x=192 +-3 (the stance is off the idle column); idle: a joint moving
+      over 12 px, no motion, neighbours with the same joints.
 """
 import argparse
 from collections import Counter
@@ -637,6 +644,13 @@ IDLE_MOVE = 12           # idle: a breathing frame moves 1-2 game px (= 12 src p
 CHAIN = ('hipN', 'hipF', 'kneeN', 'kneeF', 'ankN', 'ankF', 'shoN', 'shoF', 'elbN', 'elbF', 'handN', 'handF', 'neck')
 BODY_JOINTS = ('hipN', 'hipF', 'kneeN', 'kneeF', 'ankN', 'ankF', 'shoN', 'shoF', 'neck')
 WEAPON_LAYERS = ('weapon_front', 'weapon_back', 'shield')
+BLADE_FAR = 0.5          # the blade angle is measured from the grip hand to the centroid of the weapon pixels at least this fraction of
+                         # the farthest pixel's distance away (the far half of the weapon): a wide head does not jump the angle
+CROSS_MIN = 10           # deg a blade turns swing -> contact (one way on into the follow) for the contact to be a crossing of its strike line
+SHOVE_SLASH_MIN = 25     # deg: when the contact is a shield shove, a blade must turn this much one way swing -> contact -> follow to be a cut too
+PAST_FAIL_OVER = 10      # deg over the bible's weapon_past_line_deg maximum: a follow this far past the contact means the contact frame
+                         # is still mid-arc (the strike line is crossed a frame late) -> FAIL (bible 25-40 -> over 50 fails)
+HIT_COLUMN_TOL = 3       # hit without --idle: the idle reference's hip x (built on K1's feet) within x=192 +-3, else WARN
 
 
 def read_json(path):
@@ -701,6 +715,13 @@ def motion_spec(motion, set_id, bible_path, chars_path):
         over = ((char or {}).get('timing') or {}).get('ms') or {}
         spec['ms'] = [over.get(f['name'], f['ms']) for f in E['frames']]
         spec['contact'], spec['hold'], spec['cut'] = E.get('contact'), E.get('hold'), E.get('cut')
+        # follow-through past the strike line: the archetype's own frames.*.joints.weapon_past_line_deg, else the first one in the bible
+        spec['past'] = None
+        for a_, v in [(arch, A)] + [(k, x) for k, x in bible['archetypes'].items() if k != arch]:
+            for f in (v.get('attack') or {}).get('frames', []):
+                p = (f.get('joints') or {}).get('weapon_past_line_deg')
+                if p and spec['past'] is None:
+                    spec['past'] = (float(p[0]), float(p[1]), f'archetypes.{a_}.attack.{f["name"]}.joints.weapon_past_line_deg')
         if char and (char.get('mannequin') or {}).get('pivot_foot'):
             spec['pivot'] = parse_pivot(char['mannequin']['pivot_foot'], [f['name'] for f in E['frames']])
     elif motion == 'hit':
@@ -735,7 +756,8 @@ def load_tags(src, exe, work):
 
 
 def weapon_geom(fr, J):
-    """per weapon layer present: pixel count, front-most x, distances from each hand dot -> filled into tip / angle later"""
+    """per weapon layer present: pixel count, front-most x, centroid, and per hand dot the nearest / farthest pixel and the centroid
+    of the far half (pixels at least BLADE_FAR of the farthest distance away) -> filled into grip / tip / angle later"""
     out = {}
     for ln in WEAPON_LAYERS:
         if ln not in fr:
@@ -743,12 +765,15 @@ def weapon_geom(fr, J):
         ys, xs = np.nonzero(fr[ln][..., 3] > 0)
         if not len(xs):
             continue
-        g = dict(n=int(len(xs)), front=int(xs.max()), low=int(ys.max()))
+        g = dict(n=int(len(xs)), front=int(xs.max()), low=int(ys.max()), centroid=(float(xs.mean()), float(ys.mean())))
         for s in 'NF':
             d = np.hypot(xs - J['hand' + s][0], ys - J['hand' + s][1])
             g['near_' + s] = float(d.min())
             k = int(d.argmax())
             g['tip_' + s] = (int(xs[k]), int(ys[k]))
+            far = d >= BLADE_FAR * d[k]
+            g['far_' + s] = (float(xs[far].mean()), float(ys[far].mean()))
+            g['to_centroid_' + s] = float(math.hypot(g['centroid'][0] - J['hand' + s][0], g['centroid'][1] - J['hand' + s][1]))
         out[ln] = g
     return out
 
@@ -772,16 +797,17 @@ def joint_dist(a, b, keys=CHAIN):
 
 def build_idle_ref(ankN_x, ankF_x, ir):
     """the idle of motion_bible.json hit.idle_reference (hip (0, 1.40) head, lean 0.08, feet -1.10 / 1.00) built on the posekit
-    mannequin with its feet where the hit set's K1 feet stand (a hit's K1 keeps the idle stance), measured like a set frame.
-    -> {joints, hip, hip_h, head}"""
+    mannequin with its feet where the hit set's K1 feet stand (a hit's K1 keeps the idle stance) and its hip 0.05 head (the bible
+    idle's offset, not scaled with the stance) ahead of their mid-point, measured like a set frame. -> {joints, hip, hip_h, head}"""
     import posekit as pk
     import walk8
     B = pk.Body(4.0)
     oy = walk8.floor_row(B, 1.30)
     fN, fF = ir.get('footN', -1.10), ir.get('footF', 1.00)
     width = (ankF_x - ankN_x) / HEAD_PX
-    s = width / (fF - fN) if fF != fN else 1.0
-    feet = (fN * s, fF * s)                                   # the set's stance, the hip at the bible's fraction between the feet
+    ahead = -(fN + fF) / 2                                    # the bible idle's hip ahead of its ankles' mid-point (+0.05 head = 5.5 px)
+    feet = (-width / 2 - ahead, width / 2 - ahead)            # the set's stance; the hip that far ahead of its mid-point, not scaled with
+                                                              # the width (a narrow stance keeps the body's weight where the idle has it)
 
     def make(lift):
         return dict(hip=tuple(ir.get('hip', (0.0, 1.40))), lean=ir.get('lean', 0.08), tilt=0.0, footN=(feet[0], B.ank + lift[0]),
@@ -811,7 +837,8 @@ def frame_ref(fr, names, label):
 def head_tilt_motion(meas, T, warns, info, drift_max):
     """the head against the neck over the sequence (SPEC 6: tilt range <= 8 deg, round head by angle) - relative to the torso,
     because an attack or a hit turns the whole torso on purpose: the head's own rotation minus the torso's (hip -> neck) rotation.
-    The drift is what is left after the head's own rotation (as in head_cycle)."""
+    The drift is the change of the head centre's distance from the neck dot only (the head swinging round the neck with the lean is
+    not a slide; walk / run keep head_cycle's rotate-then-compare drift)."""
     hp = [(tuple(m['head']['from_neck_px']), m['head']['axis_rad'], m['head']['elongation']) for m in meas]
     (c0x, c0y), th0, _ = hp[0]
     round_head = min(h[2] for h in hp) < 1.08
@@ -821,13 +848,12 @@ def head_tilt_motion(meas, T, warns, info, drift_max):
             dt = (math.atan2(cy, cx) - math.atan2(c0y, c0x) + math.pi) % (2 * math.pi) - math.pi
         else:
             dt = (th - th0 + math.pi / 2) % math.pi - math.pi / 2
-        px, py = c0x * math.cos(dt) - c0y * math.sin(dt), c0x * math.sin(dt) + c0y * math.cos(dt)
-        drift.append(abs(math.hypot(cx, cy) - math.hypot(c0x, c0y)) if round_head else math.hypot(cx - px, cy - py))
+        drift.append(abs(math.hypot(cx, cy) - math.hypot(c0x, c0y)))
         tilts.append(math.degrees(dt) - (m['lean_deg'] - meas[0]['lean_deg']))
     span = max(tilts) - min(tilts)
     info.append('head against the torso (its own rotation minus the hip->neck rotation' + (', round head: angle around the neck' if round_head else '')
                 + f'): tilt {min(tilts):+.1f}..{max(tilts):+.1f} deg from {meas[0]["frame"]} (range {span:.1f}, SPEC asks {HEAD_TILT} or less); '
-                'drift ' + ' '.join(f'{d:.1f}' for d in drift) + ' px')
+                'drift (head centre to neck dot distance against ' + meas[0]['frame'] + ') ' + ' '.join(f'{d:.1f}' for d in drift) + ' px')
     if span > HEAD_TILT:
         lo, hi = tilts.index(min(tilts)), tilts.index(max(tilts))
         warns.append(f'the head tilts over {span:.1f} deg against the torso ({meas[lo]["frame"]} {tilts[lo]:+.1f}, {meas[hi]["frame"]} {tilts[hi]:+.1f} deg'
@@ -835,8 +861,8 @@ def head_tilt_motion(meas, T, warns, info, drift_max):
                      + f'), SPEC asks {HEAD_TILT} or less - the head nods on the neck (turn it with the torso)')
     for m, d in zip(meas, drift):
         if d > drift_max:
-            warns.append(f'{m["frame"]}: the head layer sits {d:.1f} px off its {meas[0]["frame"]} place against the neck dot (after its tilt), '
-                         f'{drift_max} or less - the head slides on the neck')
+            warns.append(f'{m["frame"]}: the head centre is {d:.1f} px nearer to / further from the neck dot than in {meas[0]["frame"]}, '
+                         f'{drift_max} or less - the head slides on the neck (keep the chin on the neck)')
 
 
 def check_motion(frames, durs, names, hidden, tags, bones, spec, idle_ref=None):
@@ -940,6 +966,15 @@ def check_motion(frames, durs, names, hidden, tags, bones, spec, idle_ref=None):
         xs = np.nonzero(mask.any(0))[0]
         m['lowest_px'], m['top_px'], m['x_range'] = int(ys.max()), int(ys.min()), [int(xs.min()), int(xs.max())]
         m['leg_low'] = {s: int(np.nonzero((fr[ln][..., 3] > 0).any(1))[0].max()) for s, ln in (('N', 'leg_near'), ('F', 'leg_far'))}
+        # the ends of the sole in the SOLE_BAND rows above the floor line: front = toe, back = heel (or the ball once the heel is up).
+        # A planted foot pivots on one of them, so a heel lift (the ankle rises) or a toe lift does not move both; None when the leg
+        # does not reach the floor
+        m['sole_front'], m['sole_back'] = {}, {}
+        for s, ln in (('N', 'leg_near'), ('F', 'leg_far')):
+            band = np.nonzero((fr[ln][BASELINE - SOLE_BAND:BASELINE + 1, :, 3] > 0).any(0))[0]
+            on = m['leg_low'][s] == BASELINE and len(band) > 0
+            m['sole_front'][s] = int(band.max()) if on else None
+            m['sole_back'][s] = int(band.min()) if on else None
         if m['lowest_px'] > BASELINE:
             errors.append(f'{tag}: lowest pixel at y={m["lowest_px"]}, nothing may be below the floor line {BASELINE}')
         if BASELINE not in m['leg_low'].values():
@@ -995,30 +1030,53 @@ def clean(meas):
 
 
 def foot_spans(meas, spans, errors, info, lab):
-    """the planted foot (SPEC 8: at least one foot stays put; motion_chars pivot_foot names which, and from which frame)"""
+    """the planted foot (SPEC 8: at least one foot stays put; motion_chars pivot_foot names which, and from which frame). In every
+    frame of the span one anchor of the foot is where it was in the span's first frame (+-PIVOT_TOL): the front end of the sole on
+    the floor (toe; rows y=870-SOLE_BAND..870), its back end (heel), or the ankle dot (x and y). So the heel may lift (the foot
+    rolls onto the toe, the ankle rises), the toe may lift (it rocks on the heel); a slide moves all three.
+    -> (worst move px of the anchor that stayed, None when the foot leaves the floor; on the floor in every frame; anchors used; worst ankle move)"""
     def fixed(side, a, b):
-        J0 = meas[a]['_J']['ank' + side]
-        worst = max(max(abs(meas[k]['_J']['ank' + side][0] - J0[0]), abs(meas[k]['_J']['ank' + side][1] - J0[1])) for k in range(a, b + 1))
-        floor = all(meas[k]['leg_low'][side] == BASELINE for k in range(a, b + 1))
-        return worst, floor
+        floor = all(meas[k]['leg_low'][side] == BASELINE and meas[k]['sole_front'][side] is not None for k in range(a, b + 1))
+        J0, f0, h0 = meas[a]['_J']['ank' + side], meas[a]['sole_front'][side], meas[a]['sole_back'][side]
+        ank = max(dist(meas[k]['_J']['ank' + side], J0) for k in range(a, b + 1))
+        if not floor:
+            return None, False, set(), ank
+        worst, used = 0.0, set()
+        for k in range(a, b + 1):
+            J = meas[k]['_J']['ank' + side]
+            cand = {'toe': abs(meas[k]['sole_front'][side] - f0), 'heel': abs(meas[k]['sole_back'][side] - h0),
+                    'ankle': max(abs(J[0] - J0[0]), abs(J[1] - J0[1]))}
+            best = min(cand, key=lambda c: (cand[c], ('toe', 'heel', 'ankle').index(c)))
+            worst = max(worst, cand[best])
+            if cand[best] > 0:
+                used.add(best)
+        return worst, True, used, ank
+
+    def says(s, r):
+        nm = 'near' if s == 'N' else 'far'
+        if not r[1]:
+            return f'{nm} foot leaves the floor (ankle up to {r[3]:.1f} px)'
+        return f'{nm} foot stays within {r[0]:.0f} px' + (f' (on its {"/".join(sorted(r[2]))})' if r[2] and r[0] <= PIVOT_TOL else '') \
+            + f', ankle up to {r[3]:.1f} px'
     n = len(meas)
     if spans is None:
         res = {s: fixed(s, 0, n - 1) for s in 'NF'}
-        ok = [s for s, (wst, fl) in res.items() if wst <= PIVOT_TOL and fl]
-        info.append('planted foot (no pivot_foot in motion_chars.json: at least one foot fixed): ' + ', '.join(
-            f'{"near" if s == "N" else "far"} ankle moves up to {res[s][0]:.1f} px' + ('' if res[s][1] else ', leaves the floor') for s in 'NF'))
+        ok = [s for s, r in res.items() if r[1] and r[0] <= PIVOT_TOL]
+        info.append('planted foot (no pivot_foot in motion_chars.json: at least one foot fixed; toe / heel end of the sole in rows '
+                    f'y={BASELINE - SOLE_BAND}-{BASELINE} or the ankle dot): ' + ', '.join(says(s, res[s]) for s in 'NF'))
         if not ok:
-            errors.append(f'no foot stays put through the sequence (near ankle moves {res["N"][0]:.1f} px, far {res["F"][0]:.1f} px; '
-                          f'+-{PIVOT_TOL} and on y={BASELINE} in every frame) - SPEC 8: at least one foot is the pivot, the engine moves the body')
+            errors.append(f'no foot stays put through the sequence ({says("N", res["N"])}; {says("F", res["F"])}; the toe end, the heel end or the '
+                          f'ankle +-{PIVOT_TOL} px and the sole on y={BASELINE} in every frame) - SPEC 8: at least one foot is the pivot, the engine moves the body')
         return
     for sides, a, b in spans:
         for s in sides:
-            wst, fl = fixed(s, a, b)
+            r = fixed(s, a, b)
             nm = 'near (back)' if s == 'N' else 'far (front)'
-            info.append(f'pivot foot {nm} {lab[a]}..{lab[b]}: ankle moves up to {wst:.1f} px' + ('' if fl else ', leaves the floor'))
-            if wst > PIVOT_TOL or not fl:
-                errors.append(f'the pivot foot ({nm}, motion_chars.json pivot_foot) ' + (f'moves {wst:.1f} px' if wst > PIVOT_TOL else 'leaves the floor')
-                              + f' between {lab[a]} and {lab[b]} - it stays put (+-{PIVOT_TOL} px, sole on y={BASELINE})')
+            info.append(f'pivot foot {nm} {lab[a]}..{lab[b]}: ' + says(s, r))
+            if not r[1] or r[0] > PIVOT_TOL:
+                errors.append(f'the pivot foot ({nm}, motion_chars.json pivot_foot) ' + (f'slides: its toe end, heel end and ankle all move, the least by {r[0]:.0f} px'
+                              if r[1] else 'leaves the floor') + f' between {lab[a]} and {lab[b]} - it stays put (the toe end, the heel end or the ankle '
+                              f'+-{PIVOT_TOL} px, sole on y={BASELINE}; a heel lift keeps the toe where it stood)')
 
 
 def attack_rules(meas, frames, flats, spec, change, errors, warns, info):
@@ -1033,20 +1091,23 @@ def attack_rules(meas, frames, flats, spec, change, errors, warns, info):
                      f'({", ".join(k for k in K if k not in ("note",))}) are not implemented yet (checks_by_kind.{kind})')
         recover_rule(meas, C, errors, warns, info)
         return
-    # which hand holds which weapon layer: the hand dot closest to the layer, over the whole sequence
+    # which hand holds which weapon layer: the hand dot closest to the layer, over the whole sequence (median); a bow: the hand dot
+    # closest to the layer's centroid (the drawn string touches the string hand, the stave is the bulk of the layer)
     grips = {}
+    key = ('to_centroid_N', 'to_centroid_F') if kind == 'bow' else ('near_N', 'near_F')
     for ln in WEAPON_LAYERS:
-        ds = [(m['weapons'][ln]['near_N'], m['weapons'][ln]['near_F']) for m in meas if ln in m['weapons']]
+        ds = [(m['weapons'][ln][key[0]], m['weapons'][ln][key[1]]) for m in meas if ln in m['weapons']]
         if len(ds) == n:
             grips[ln] = 'N' if np.median([d[0] for d in ds]) <= np.median([d[1] for d in ds]) else 'F'
     for m in meas:
         for ln, s in grips.items():
             g = m['weapons'][ln]
             hx, hy = m['_J']['hand' + s]
-            g['grip'], g['tip'] = s, g['tip_' + s]
-            g['angle'] = math.degrees(math.atan2(-(g['tip'][1] - hy), g['tip'][0] - hx))
+            g['grip'], g['tip'], g['far'] = s, g['tip_' + s], g['far_' + s]
+            g['angle'] = math.degrees(math.atan2(-(g['far'][1] - hy), g['far'][0] - hx))
     if grips:
-        info.append('weapon layers: ' + ', '.join(f'{ln} in the {"near" if s == "N" else "far"} hand' for ln, s in grips.items()))
+        info.append('weapon layers: ' + ', '.join(f'{ln} in the {"near" if s == "N" else "far"} hand' for ln, s in grips.items())
+                    + (' (bow hand = the hand dot nearest the layer\'s centroid)' if kind == 'bow' else ''))
     if kind == 'bow':
         bow_rules(meas, spec, grips, errors, warns, info)
         recover_rule(meas, C, errors, warns, info)
@@ -1079,7 +1140,7 @@ def attack_rules(meas, frames, flats, spec, change, errors, warns, info):
         info.append(f'{ln}: angle ' + ' '.join(f'{a:.0f}' for a in ang) + ' deg; tip x ' + ' '.join(str(t) for t in tipx))
         if kind == 'melee_swing' and F is not None and C >= 1:
             s1, s2 = ang[C] - ang[C - 1], ang[F] - ang[C]
-            if s1 * s2 > 0 and abs(s1) >= 10:
+            if s1 * s2 > 0 and abs(s1) >= CROSS_MIN:
                 found.append(('cross', ln, ang, s1, s2))
         if max(tipx) - sorted(tipx)[-2] >= 2 and tipx.index(max(tipx)) == C:
             found.append(('reach', ln, tipx))
@@ -1092,6 +1153,13 @@ def attack_rules(meas, frames, flats, spec, change, errors, warns, info):
         how.append(f'shield reach peaks at {lab[sx.index(max(sx))]}')
     if kind == 'melee_thrust':
         found = [f for f in found if f[0] == 'reach']
+    if any(f[0] == 'shove' for f in found):
+        # a shield shove with a weapon carried along: a small turn of the blade is not a cut (the slash rules would demand 120 deg)
+        weak = [f for f in found if f[0] == 'cross' and abs(f[3] + f[4]) < SHOVE_SLASH_MIN]
+        for f in weak:
+            info.append(f'{f[1]} turns {abs(f[3] + f[4]):.0f} deg one way {lab[C - 1]} -> {lab[C]} -> {lab[F]}, under {SHOVE_SLASH_MIN} with a shield '
+                        'shove at the contact: carried along, not a cut (no slash rules)')
+        found = [f for f in found if f not in weak]
     if not found:
         errors.append(f'no contact at {lab[C]}: ' + ('a blade must cross its strike line there (swing -> contact -> follow turning one way) or '
                       if kind == 'melee_swing' else '') + 'the tip / shield face must reach furthest there (' + '; '.join(how)
@@ -1122,12 +1190,19 @@ def attack_rules(meas, frames, flats, spec, change, errors, warns, info):
             errors.append(f'thrust: the tip travels {best} px from {lab[H]} to {lab[C]}, SPEC 8 asks {K.get("tip_travel_min_src_px", 165)} or more')
     # follow-through passes the contact line
     if F is not None:
-        if cross:
-            _, ln, ang, s1, s2 = cross[0]
-            past = abs(ang[F] - ang[C])
-            info.append(f'follow-through: {ln} {past:.0f} deg past the contact (bible 25-40)')
-            if not 25 <= past <= 40:
-                warns.append(f'{lab[F]}: the weapon is {past:.0f} deg past its contact angle, the bible asks 25-40 (follow-through past the line)')
+        if cross and spec.get('past') is None:
+            warns.append('no weapon_past_line_deg in motion_bible.json: the follow-through past the strike line is not measured')
+        elif cross:
+            lo, hi, src = spec['past']
+            for _, ln, ang, s1, s2 in cross:
+                past = abs(ang[F] - ang[C])
+                info.append(f'follow-through: {ln} {past:.0f} deg past the contact (bible {lo:g}-{hi:g}, {src}; over {hi + PAST_FAIL_OVER:g} fails)')
+                if past > hi + PAST_FAIL_OVER:
+                    errors.append(f'{lab[F]}: {ln} is {past:.0f} deg past its contact angle, more than {hi + PAST_FAIL_OVER:g} (bible {lo:g}-{hi:g} + '
+                                  f'{PAST_FAIL_OVER}) - {lab[C]} is still mid-arc: the blade reaches its strike line a frame late (put the strike pose '
+                                  f'on {lab[C]}, {lo:g}-{hi:g} deg further on {lab[F]})')
+                elif not lo <= past <= hi:
+                    warns.append(f'{lab[F]}: {ln} is {past:.0f} deg past its contact angle, the bible asks {lo:g}-{hi:g} (follow-through past the line)')
         else:
             dx = meas[F]['hip'][0] - meas[C]['hip'][0]
             info.append(f'follow-through: hip {dx:+.0f} px from the contact (bible +0.08 head = +9)')
@@ -1227,11 +1302,16 @@ def hit_rules(meas, spec, ref, errors, warns, info):
     K, keys, w = spec['checks'], spec['keys'], spec['weight']
     lab = [m['frame'] for m in meas]
     J0 = meas[0]['_J']
-    if ref is None:
+    built = ref is None
+    if built:
         ref = build_idle_ref(J0['ankN'][0], J0['ankF'][0], spec['idle_reference'])
     R = ref['joints']
-    info.append(f'idle reference: {ref["source"]} - hip height {ref["hip_h"]:.1f} px, head centre x {ref["head"][0]:.1f}, '
+    info.append(f'idle reference: {ref["source"]} - hip x {ref["hip"][0]:.1f}, hip height {ref["hip_h"]:.1f} px, head centre x {ref["head"][0]:.1f}, '
                 f'ankles near {R["ankN"][0]:.0f} / far {R["ankF"][0]:.0f}')
+    if built and abs(ref['hip'][0] - SLOT / 2) > HIT_COLUMN_TOL:
+        warns.append(f'the idle reference stood on {lab[0]}\'s feet has its hip at x={ref["hip"][0]:.1f}, {ref["hip"][0] - SLOT / 2:+.1f} px off the idle '
+                     f'column x={SLOT // 2} (+-{HIT_COLUMN_TOL}) - a hit starts where the idle stands: move the whole sequence so K1\'s feet are the idle\'s '
+                     '(or check it with --idle <the idle set>.aseprite)')
     lo, hi = K['head_dx_src_px']
     rows = []
     for i, m in enumerate(meas):

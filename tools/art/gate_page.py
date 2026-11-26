@@ -6,11 +6,15 @@
 SET is one mannequin sequence, optionally followed by @<contact frame index, 0-based>:
   art/inbox/guides/atk__class_warrior/atk__class_warrior.aseprite        a delivered set: frames, durations from the file,
                                                                          frame names + contact from motion_bible.json / motion_chars.json
-  /work/frames@3                                                         a folder of frame PNGs (f<NN>_<name>.png as receive.py and
-                                                                         check_skeleton.py --export write them; durations from a
-                                                                         pose_measured.json beside them, else --ms)
+  /work/frames                                                           a folder of frame PNGs (f<NN>_<name>.png as receive.py and
+                                                                         check_skeleton.py --export write them) with the
+                                                                         pose_measured.json they write beside them: the set id
+                                                                         and durations_ms come from that file (not the folder name)
   art/requests/guides/run_base/v1/run_base.aseprite@0                    a stand-in (no bible entry): name the contact frame yourself
-  art/requests/guides/run_base/v1/layers@0                               a run8.py / walk8.py layers folder (R<n>_<layer>.png)
+  art/requests/guides/run_base/v1/layers@0                               a run8.py / walk8.py layers folder (R<n>_<layer>.png); its
+                                                                         frame time is nominal_ms of the pose.json one folder up
+A folder whose frame times are unknown (no pose_measured.json durations, no pose.json nominal_ms, no motion plan for its set id)
+is a FAIL unless --ms gives the time: the page never plays a guessed 100 ms.
 The .aseprite is exported with the headless Aseprite (tools/art/ase_headless.sh, or --aseprite-exe / ASEPRITE_PATH): visible
 layers only, so the hidden joints layer is left out. #FF00FF and transparent pixels are the background.
 
@@ -19,13 +23,17 @@ What the page does (docs/plans/2026-11-26_motion_frames.md section 6 (2) "첫 �
     image-rendering: pixelated on a dark floor; no VFX, no shake, no flash; planned ms / 1.3 (1x real time; --speed scales it)
   - trials in a random order per session: each set once as planned and once as a DECOY (the contact frame swapped with a
     neighbour, so its silhouette arrives one frame early or late, and every duration scaled by a random 0.8-1.25). A trial plays
-    the sequence once (--reps N: 1..N times, random 0.4-1.4 s pauses between plays) after a random 0.6-1.4 s idle on frame 0
+    the sequence once (--reps N: 1..N times, random 0.4-1.4 s pauses between plays) after a random 0.6-1.4 s lead-in on a NEUTRAL
+    frame: the settle frame (else the last frame, else frame 0), never the contact frame or a frame next to it (those are the
+    frames a decoy moves); with no such frame the floor stays empty during the lead-in. The lead-in frame is the same frame in the
+    planned play and in the decoy, so it tells nothing about the contact (a hit set's frame 0 IS the contact K1)
   - then the frames are laid out as a strip at game size (played order, numbered, no names) with a slider / arrow keys, and the
     viewer picks the frame where the blow landed
   - at the end: the viewer's picks, a JSON blob to copy (page id, set, decoy or not, played order, expected and picked index), and a
     box that merges blobs of several viewers into a verdict per set: PASS when at least 5 viewers took part and >= 80 % of
     them (4 of 5) picked the contact frame or a neighbour on the planned play AND >= 80 % picked the moved side on the decoy
-    (they read the silhouette, not the beat). With fewer viewers the page lists the picks only.
+    (they read the silhouette, not the beat). With fewer viewers the page lists the picks only. Blobs are counted once per
+    session id: the same blob pasted twice is one viewer.
 Exit code 1 when a set cannot be read.
 """
 import argparse
@@ -88,7 +96,9 @@ def load_aseprite(src, exe, work):
 
 def load_folder(src, ms):
     """f<NN>_<name>.png files, a run8.py / walk8.py layers folder (R<n>_<layer>.png / W<n>_<layer>.png), or any *.png in name order
-    -> (frames, durations, names, durations known: from pose_measured.json or --ms)"""
+    -> (frames, durations, names, durations known, pose_measured.json contents or {}).
+    Durations are known from pose_measured.json durations_ms (receive.py / check_skeleton.py --export), a layers folder's
+    ../pose.json nominal_ms, or --ms (which wins)."""
     files = sorted(fn for fn in os.listdir(src) if fn.lower().endswith('.png'))
     layered = {}
     for fn in files:
@@ -96,10 +106,11 @@ def load_folder(src, ms):
         if m and m.group(3) in LAYER_ORDER + ('joints',):
             layered.setdefault((m.group(1), int(m.group(2))), {})[m.group(3)] = fn
     durs_file = os.path.join(src, 'pose_measured.json')
-    known = None
+    meta = {}
     if os.path.exists(durs_file):
         with open(durs_file, encoding='utf-8') as f:
-            known = json.load(f).get('durations_ms')
+            meta = json.load(f)
+    known = meta.get('durations_ms')
     if layered:
         frames, names = [], []
         for (t, n) in sorted(layered):
@@ -110,15 +121,26 @@ def load_folder(src, ms):
                     im.alpha_composite(Image.open(os.path.join(src, parts[ln])).convert('RGBA'))
             frames.append(im)
             names.append(f'{t}{n}')
-        return frames, [ms or (80 if names[0].startswith('R') else 120)] * len(frames), names, bool(ms)
+        nominal = None
+        pose = os.path.join(os.path.dirname(os.path.normpath(src)), 'pose.json')
+        if os.path.exists(pose):
+            with open(pose, encoding='utf-8') as f:
+                nominal = json.load(f).get('nominal_ms')
+        if ms or nominal:
+            return frames, [int(ms or nominal)] * len(frames), names, True, meta
+        return frames, [0] * len(frames), names, False, meta
     framed = [fn for fn in files if re.match(r'^f\d\d', fn)] or files
     if not framed:
         raise Fail(f'{src}: no PNG frames')
     frames = [Image.open(os.path.join(src, fn)).convert('RGBA') for fn in framed]
     names = [re.sub(r'^f\d\d_?', '', os.path.splitext(fn)[0]).replace('_', ' ') or f'{i}' for i, fn in enumerate(framed)]
+    if ms:
+        return frames, [ms] * len(frames), names, True, meta
     if known and len(known) == len(frames):
-        return frames, known, names, True
-    return frames, [ms or 100] * len(frames), names, bool(ms)
+        return frames, [int(d) for d in known], names, True, meta
+    if known:
+        raise Fail(f'{durs_file}: {len(known)} durations_ms for {len(frames)} frame PNGs')
+    return frames, [0] * len(frames), names, False, meta
 
 
 def plan_of(set_id):
@@ -195,12 +217,15 @@ def read_set(arg, exe, ms, scale, work):
     if not os.path.exists(src):
         raise Fail(f'{src}: not found')
     stem = os.path.splitext(os.path.basename(src))[0]
+    meta = {}
     if os.path.isdir(src):
-        frames, durs, names, timed = load_folder(src, ms)
+        frames, durs, names, timed, meta = load_folder(src, ms)
         set_id, up = stem, src                      # layers / frames / export / v<N> folders take the set name above them
         while re.match(r'^(layers|frames|export|v\d+)$', set_id) and os.path.dirname(up) != up:
             up = os.path.dirname(up)
             set_id = os.path.basename(up)
+        if meta.get('set'):                         # receive.py / check_skeleton.py --export name the set in pose_measured.json
+            set_id = meta['set']
     else:
         if not src.lower().endswith('.aseprite'):
             raise Fail(f'{src}: give an .aseprite or a folder of frame PNGs')
@@ -222,8 +247,14 @@ def read_set(arg, exe, ms, scale, work):
             notes.append(f'{len(frames)} frames, the plan has {len(plan["names"])} ({", ".join(plan["names"])})')
         if plan['ms'] and len(plan['ms']) == len(durs) and not timed:
             durs = list(plan['ms'])                         # PNG frames without durations: the planned ms
+            timed = True
+            notes.append(f'no frame times in the folder: playing the planned ms {durs}')
         elif plan['ms'] and len(plan['ms']) == len(durs) and plan['ms'] != list(durs):
             notes.append(f'file durations {list(durs)} differ from the plan {plan["ms"]} - the page plays the file')
+    if not timed:
+        raise Fail(f'{src}: frame times unknown - no pose_measured.json durations_ms beside the PNGs, no motion plan for "{set_id}" '
+                   '(set id from pose_measured.json "set" or the folder name) and no --ms. Take the frames receive.py exported '
+                   '(it writes pose_measured.json), the .aseprite itself, or give --ms')
     gait = re.match(r'^(run|walk)_', set_id)                  # run / walk drafts as stand-ins: R1..R8 / W1..W8
     names = [n or (f'{"R" if gait.group(1) == "run" else "W"}{i + 1}' if gait else f'{i}') for i, n in enumerate(names)]
     if at != '':
@@ -239,10 +270,23 @@ def read_set(arg, exe, ms, scale, work):
         contact, source = guess[0], f'the frame named {names[guess[0]]}'
     if not 0 <= contact < len(frames):
         raise Fail(f'{src}: contact {contact} is outside frames 0-{len(frames) - 1}')
+    lead = lead_frame(names, contact)
     small, box = game_size([key_out(f) for f in frames], scale)
     return dict(id=set_id, source=os.path.relpath(src, ROOT) if src.startswith(ROOT) else src, names=names, ms=[int(d) for d in durs],
-                contact=contact, contact_source=source, w=small[0].width, h=small[0].height, crop=list(map(int, box)),
+                contact=contact, contact_source=source, lead=lead, w=small[0].width, h=small[0].height, crop=list(map(int, box)),
                 frames=[data_uri(s) for s in small], notes=notes)
+
+
+def lead_frame(names, contact):
+    """the frame shown still during the lead-in before each play: a neutral one - the settle frame, else the last, else frame 0 -
+    never the contact frame or a neighbour of it (the decoy swaps the contact with a neighbour; a hit's frame 0 is the contact K1).
+    None: no such frame, the floor stays empty during the lead-in."""
+    n = len(names)
+    settle = [i for i, nm in enumerate(names) if re.search(r'settle', nm or '', re.I)]
+    for i in settle[-1:] + [n - 1, 0]:
+        if abs(i - contact) > 1:
+            return i
+    return None
 
 
 PAGE = r'''<!doctype html>
@@ -321,6 +365,7 @@ th,td{border-bottom:1px solid var(--line);padding:5px 6px;text-align:left;vertic
 <section id="merge">
 <h2>여러 사람 결과 합치기</h2>
 <p class="muted">각 사람의 결과 JSON 을 아래에 붙여 넣습니다(한 줄에 하나, 또는 이어서). 통과: 5명 이상, 계획대로 재생한 판에서 80 %(5명 중 4명) 이상이 맞는 순간 프레임이나 바로 옆 프레임을 고르고, 속임 판에서도 80 % 이상이 옮긴 쪽 프레임을 고름. 주인 혼자 5회(매번 다른 순서)도 5명으로 셉니다.</p>
+<p class="muted">같은 결과(같은 세션)를 여러 번 붙여도 한 번만 셉니다.</p>
 <textarea id="pasted" placeholder='{"tool":"gate_page", ...}'></textarea>
 <div class="row"><button id="score" class="ghost">채점</button><span class="muted" id="scoremsg"></span></div>
 <div id="verdict"></div>
@@ -379,9 +424,11 @@ th,td{border-bottom:1px solid var(--line);padding:5px 6px;text-align:left;vertic
     $('cue').hidden = true; img.hidden = false;
     var reps = 1 + Math.floor(rnd() * D.reps), played = [];
     for (var r = 0; r < reps; r++) {
-      show(s, t.order[0]);
+      // lead-in on a neutral frame (settle / last / first, never the contact or its neighbours; the same frame in the decoy)
+      if (s.lead === null || s.lead === undefined) img.hidden = true; else show(s, s.lead);
       var idle = between(600, 1400); played.push(Math.round(idle));
       await sleep(idle);
+      img.hidden = false;
       for (var i = 0; i < t.order.length; i++) {
         show(s, t.order[i]);
         await sleep(t.ms[i] / 1.3 / SPEED);
@@ -450,7 +497,7 @@ th,td{border-bottom:1px solid var(--line);padding:5px 6px;text-align:left;vertic
   function blobOf() {
     return {tool: 'gate_page', version: 1, page: D.page, viewer: viewer, session: D.page + '-' + Math.floor(rnd() * 1e9).toString(36),
       started: started, finished: new Date().toISOString(),
-      sets: D.sets.map(function (s) { return {id: s.id, frames: s.frames.length, contact: s.contact}; }),
+      sets: D.sets.map(function (s) { return {id: s.id, frames: s.frames.length, contact: s.contact, lead: s.lead}; }),
       trials: trials.map(function (t) {
         return {set: D.sets[t.set].id, decoy: t.decoy, shift: t.shift, factor: t.factor, order: t.order, ms_planned: t.ms,
           expected: t.expected, pick: t.pick, pick_frame: t.order[t.pick], hit: t.decoy ? hitDecoy(t) : hitReal(t),
@@ -467,7 +514,7 @@ th,td{border-bottom:1px solid var(--line);padding:5px 6px;text-align:left;vertic
     $('mine').innerHTML = '<table><tr><th>세트</th><th>판</th><th>고른 것</th><th>맞는 순간</th><th></th></tr>' + rows.join('') + '</table>' +
       '<p class="muted">한 사람의 답만으로는 통과를 정하지 않습니다. 아래 칸에 5명(또는 5회)의 JSON 을 모아 채점합니다.</p>';
     $('blob').value = JSON.stringify(b);
-    $('pasted').value = ($('pasted').value ? $('pasted').value + '\n' : '') + JSON.stringify(b);
+    if ($('pasted').value.indexOf(b.session) < 0) $('pasted').value = ($('pasted').value ? $('pasted').value + '\n' : '') + JSON.stringify(b);
     score();
   }
 
@@ -498,8 +545,16 @@ th,td{border-bottom:1px solid var(--line);padding:5px 6px;text-align:left;vertic
 
   function score() {
     var blobs = parseBlobs($('pasted').value), other = blobs.filter(function (b) { return b.page !== D.page; }).length;
-    blobs = blobs.filter(function (b) { return b.page === D.page; });
-    $('scoremsg').textContent = blobs.length + '명(회) 결과' + (other ? ', 다른 페이지의 결과 ' + other + '개는 뺌' : '');
+    // one viewer (session) counts once: the same blob pasted twice is not two viewers
+    var seen = {}, dup = 0;
+    blobs = blobs.filter(function (b) {
+      if (b.page !== D.page) return false;
+      var k = b.session || JSON.stringify(b.trials);
+      if (seen[k]) { dup++; return false; }
+      seen[k] = true; return true;
+    });
+    $('scoremsg').textContent = blobs.length + '명(회) 결과' + (other ? ', 다른 페이지의 결과 ' + other + '개는 뺌' : '') +
+      (dup ? ', 같은 세션을 두 번 붙인 결과 ' + dup + '개는 뺌' : '');
     if (!blobs.length) { $('verdict').innerHTML = ''; return; }
     var html = '<table><tr><th>세트</th><th>보는 사람</th><th>계획대로: 맞는 순간 ±1</th><th>속임 판: 옮긴 쪽</th><th>판정</th></tr>';
     D.sets.forEach(function (s) {
@@ -535,7 +590,8 @@ def main(argv=None):
     ap.add_argument('--speed', type=float, default=1.0, help='playback speed on top of the 1x real time (ms / 1.3); default 1')
     ap.add_argument('--zoom', type=int, default=3, help='nearest-neighbour view zoom of the game-size frames (default 3)')
     ap.add_argument('--scale', type=float, default=0.1654, help='source -> game size (default 0.1654, the class / captain sheets)')
-    ap.add_argument('--ms', type=int, help='frame duration for PNG folders without durations (default: run 80, walk 120, else 100)')
+    ap.add_argument('--ms', type=int, help='frame duration for every frame of a PNG folder (overrides pose_measured.json / pose.json; '
+                    'needed when the folder has no times and its set id has no motion plan)')
     ap.add_argument('--title', default='첫 관문: 맞는 순간 찾기', help='page title')
     ap.add_argument('--aseprite-exe', default=os.environ.get('ASEPRITE_PATH') or (HEADLESS if os.path.exists(HEADLESS) else 'aseprite'))
     a = ap.parse_args(argv)
@@ -551,14 +607,16 @@ def main(argv=None):
                 s['id'] = f'{s["id"]}#{len(sets) + 1}'
             sets.append(s)
             print(f'- {s["id"]}: {len(s["frames"])} frames, {s["w"]}x{s["h"]} game px, ms {s["ms"]}, contact {s["contact"]} '
-                  f'({s["names"][s["contact"]]}; {s["contact_source"]}), source {s["source"]}')
+                  f'({s["names"][s["contact"]]}; {s["contact_source"]}), lead-in '
+                  + (f'on frame {s["lead"]} ({s["names"][s["lead"]]})' if s['lead'] is not None else 'on the empty floor (no neutral frame)')
+                  + f', source {s["source"]}')
             for n in s['notes']:
                 print(f'  WARN: {n}')
     page_id = hashlib.sha1(json.dumps([[s['id'], s['ms'], s['contact'], s['frames']] for s in sets]).encode()).hexdigest()[:10]
     data = dict(page=page_id, made=__import__('datetime').date.today().isoformat(), zoom=a.zoom, stripZoom=max(1, a.zoom - 1), speed=a.speed,
                 reps=max(1, a.reps),
                 decoy=not a.no_decoy, scale=a.scale,
-                sets=[{k: s[k] for k in ('id', 'source', 'names', 'ms', 'contact', 'w', 'h', 'frames')} for s in sets])
+                sets=[{k: s[k] for k in ('id', 'source', 'names', 'ms', 'contact', 'lead', 'w', 'h', 'frames')} for s in sets])
     html = (PAGE.replace('__TITLE__', a.title.replace('&', '&amp;').replace('<', '&lt;'))
             .replace('__DATA__', json.dumps(data, ensure_ascii=False).replace('</', '<\\/')))
     os.makedirs(os.path.dirname(os.path.abspath(a.out)), exist_ok=True)

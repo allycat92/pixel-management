@@ -16,6 +16,9 @@ const D = vm.runInContext('({ CAPTAINS, CAPTAIN_CLASSES, HEROES, HERO_CLASSES, F
 
 // --motion: 프레임 방식 동작의 예산·예측 창·시그니처·마네킹 닮음 검사만 한다 (요청서 파일은 쓰지 않는다). 아래 motionMain.
 //   node tools/art/requests.js --motion                 → 표 출력, FAIL 이 있으면 종료 코드 1
+//   node tools/art/requests.js --motion --frames DIR|SET.aseprite [--frames ...]
+//        → 4절의 마네킹 닮음에 쓸 프레임: receive.py 가 납품 .aseprite 에서 뽑은 frames/ 폴더(pose_measured.json 의 set)
+//          또는 <set>.aseprite (헤드리스 Aseprite 로 여기서 뽑는다). 없으면 art/inbox/guides/<set>/<set>.aseprite 를 뽑는다
 //   node tools/art/requests.js --motion-iou A.png B.png → 두 그림의 게임 크기(0.1654배) 실루엣 IoU
 if (process.argv.includes('--motion') || process.argv.includes('--motion-iou')) {
   process.exitCode = motionMain(process.argv.slice(2));
@@ -915,63 +918,162 @@ function motionMain(argv) {
     if (inter / uni > 0.8) warn(`${ids[i]} and ${ids[j]}: basic wording ${Math.round(inter / uni * 100)} % the same`);
   }
 
-  // 4) 마네킹 닮음 (C4): 같은 바탕 세트를 쓰는 두 캐릭터
+  // 4) 마네킹 닮음 (C4): 같은 계통(archetype)의 두 캐릭터는 버팀(hold)·맞는 순간(contact) 프레임이 달라야 한다.
+  // 납품은 art/inbox/guides/<set>/<set>.aseprite 하나 (set = atk__<시트 png 이름에서 sheet_ 뺀 것>). 프레임 PNG 는 클라우드가 뽑는다:
+  // receive.py 의 frames/ (f<NN>_<name>.png + pose_measured.json) 를 --frames 로 주거나, 여기서 헤드리스 Aseprite 로 .aseprite 를 뽑는다.
+  // 비교: 각자 시트의 게임 배율로 줄인 실루엣을 그림 상자의 아래 가운데로 맞추고 ±4 게임 px 안에서 가장 겹치는 IoU (aligned, game size). > 0.8 = FAIL.
   say('');
-  say(`== 4. mannequin similarity (same base set; FAIL at IoU > ${RU.guide_similarity_iou_fail} or identical overrides)`);
-  // 납품 이름: art/inbox/guides/<set>/f<NN>_<name>.png, NN = 계통 공격 흐름의 0부터 센 프레임 번호 (f01_hold, f03_contact).
-  // 번호가 다르게 매겨졌으면 _<name>.png 로 찾아 쓰고 WARN. <set>.aseprite 가 왔는데 프레임 PNG 가 빠졌으면 WARN (조용한 pending 금지).
+  say(`== 4. mannequin similarity (same archetype; hold + contact frames, silhouette IoU aligned (bottom-centre, +-4 game px), game size; FAIL at IoU > ${RU.guide_similarity_iou_fail} or identical overrides)`);
   const GDIR = path.join(ROOT, 'art/inbox/guides');
-  function framePng(set, k, name) {
-    const dir = path.join(GDIR, set), want = `f${String(k).padStart(2, '0')}_${name}.png`;
-    if (fs.existsSync(path.join(dir, want))) return path.join(dir, want);
-    const alt = fs.existsSync(dir) ? fs.readdirSync(dir).filter((f) => f.endsWith(`_${name}.png`) && /^f\d+_/.test(f)) : [];
-    if (alt.length === 1) { warn(`${set}: ${alt[0]} is not numbered 0-based (expected ${want}); matched by _${name}.png`); return path.join(dir, alt[0]); }
-    if (alt.length > 1) warn(`${set}: ${alt.length} files end in _${name}.png (${alt.join(', ')}); expected ${want}`);
-    return null;
-  }
-  say('  deliveries (art/inbox/guides/<set>/<set>.aseprite + f<NN>_<name>.png, NN 0-based in the archetype attack order):');
-  Object.entries(CHARS).forEach(([id, ch]) => {
-    if (!ch.mannequin || !ch.mannequin.set || !BIBLE.archetypes[ch.arch] || !BIBLE.archetypes[ch.arch].attack) return;
-    const set = ch.mannequin.set, fr = BIBLE.archetypes[ch.arch].attack.frames;
-    const ase = fs.existsSync(path.join(GDIR, set, `${set}.aseprite`));
-    const missing = fr.map((f, k) => (framePng(set, k, f.name) ? null : `f${String(k).padStart(2, '0')}_${f.name}.png`)).filter(Boolean);
-    if (ase && missing.length) warn(`${set}: ${set}.aseprite is delivered but ${missing.length} of ${fr.length} frame PNGs are missing (${missing.join(', ')}); a strip is not enough - one PNG per frame`);
-    else say(`    ${set}: ${ase ? `delivered, ${fr.length} frame PNGs` : missing.length < fr.length ? `no ${set}.aseprite yet, ${fr.length - missing.length} frame PNGs` : 'not delivered yet'}`);
+  const P3 = (() => { try { return JSON.parse(fs.readFileSync(path.join(ROOT, 'art/requests/phase3.json'), 'utf8')).items || []; } catch (e) { return []; } })();
+  const stemOf = (id) => {
+    const f = manifest[id] && manifest[id].file ? path.basename(manifest[id].file, '.png') : null;
+    if (f && f.startsWith('sheet_')) return f.slice(6);
+    const m = /^sheet\/([^/]+)\/(.+)$/.exec(id);
+    return m ? `${m[1]}_${m[2]}` : null;
+  };
+  const scaleOf = (id) => { const it = P3.find((x) => x.file === `sheet_${stemOf(id)}.png`); return (it && it.scale) || 0.1654; };
+  // 주어진 프레임 출처: --frames DIR (pose_measured.json 의 set) 또는 --frames <set>.aseprite
+  const given = {};
+  argv.forEach((v, i) => {
+    if (v !== '--frames' || !argv[i + 1]) return;
+    const src = path.resolve(argv[i + 1]);
+    if (/\.aseprite$/i.test(src)) given[path.basename(src).replace(/\.aseprite$/i, '')] = src;
+    else {
+      let set = path.basename(src);
+      try { set = JSON.parse(fs.readFileSync(path.join(src, 'pose_measured.json'), 'utf8')).set || set; } catch (e) { /* 폴더 이름 */ }
+      given[set] = src;
+    }
   });
-  const byBase = {};
-  Object.entries(CHARS).forEach(([id, ch]) => { if (ch.mannequin && ch.mannequin.base) (byBase[ch.mannequin.base] = byBase[ch.mannequin.base] || []).push(id); });
+  const tmpRoot = fs.mkdtempSync(path.join(require('os').tmpdir(), 'motion-frames-'));
+  const asepriteExe = process.env.ASEPRITE_PATH || (fs.existsSync(path.join(ROOT, 'tools/art/ase_headless.sh')) ? path.join(ROOT, 'tools/art/ase_headless.sh') : 'aseprite');
+  const frameCache = {};
+  // set -> { files: [frame k -> png path], from: 출처 } | { error } | null (납품 없음)
+  function framesOf(set) {
+    if (set in frameCache) return frameCache[set];
+    let src = given[set] || null;
+    if (!src && fs.existsSync(path.join(GDIR, set, `${set}.aseprite`))) src = path.join(GDIR, set, `${set}.aseprite`);
+    if (!src) return (frameCache[set] = null);
+    let dir = src, from = path.relative(ROOT, src).startsWith('..') ? src : path.relative(ROOT, src);
+    if (/\.aseprite$/i.test(src)) {
+      dir = path.join(tmpRoot, set);
+      fs.mkdirSync(dir, { recursive: true });
+      const env = { ...process.env };
+      delete env.DISPLAY; delete env.WAYLAND_DISPLAY;
+      const r = require('child_process').spawnSync(asepriteExe, ['--batch', src, '--save-as', path.join(dir, 'f{frame}.png')], { env, stdio: ['ignore', 'pipe', 'pipe'], timeout: 300000 });
+      if (r.error || r.status) return (frameCache[set] = { error: `cannot export ${from} with ${asepriteExe}: ${r.error ? r.error.message : String(r.stderr || r.stdout).trim().slice(-200)}`, from });
+      const files = fs.readdirSync(dir).map((f) => /^f(\d+)\.png$/.exec(f)).filter(Boolean).sort((a, b) => +a[1] - +b[1]).map((m) => path.join(dir, m[0]));
+      if (!files.length && fs.existsSync(path.join(dir, 'f.png'))) files.push(path.join(dir, 'f.png'));
+      return (frameCache[set] = { files, from: `${from} (exported here, visible layers)` });
+    }
+    const byK = [];
+    fs.readdirSync(dir).forEach((f) => { const m = /^f(\d\d)(?:_.*)?\.png$/.exec(f); if (m) byK[+m[1]] = path.join(dir, f); });
+    if (!byK.length) return (frameCache[set] = { error: `${from}: no f<NN>_<name>.png frames`, from });
+    return (frameCache[set] = { files: byK, from: `${from} (frames exported by the cloud)` });
+  }
+  say('  deliveries (art/inbox/guides/<set>/<set>.aseprite; the cloud exports the frames - receive.py frames/ via --frames, else exported here):');
+  Object.entries(CHARS).forEach(([id, ch]) => {
+    if (!ch.mannequin || !BIBLE.archetypes[ch.arch] || !BIBLE.archetypes[ch.arch].attack) return;
+    const want = stemOf(id) && `atk__${stemOf(id)}`, set = ch.mannequin.set;
+    if (!set) { fail(`${id}: mannequin.set missing (want ${want})`); return; }
+    if (want && set !== want) fail(`${id}: mannequin.set '${set}' is not '${want}' (<motion>__<sheet png stem without sheet_>; the PC delivers art/inbox/guides/${want}/${want}.aseprite)`);
+    const n = BIBLE.archetypes[ch.arch].attack.frames.length, F = framesOf(set);
+    if (!F) say(`    ${set}: not delivered yet`);
+    else if (F.error) fail(`${set}: ${F.error} - delivered but hold / contact IoU cannot be measured (headless Aseprite: tools/art/ase_headless.sh / ASEPRITE_PATH, or --frames <receive.py frames/>)`);
+    else if (F.files.filter(Boolean).length !== n) warn(`${set}: ${F.files.filter(Boolean).length} frames in ${F.from}, the ${ch.arch} attack has ${n} - frames matched by index`);
+    else say(`    ${set}: ${n} frames from ${F.from}`);
+  });
+  const byArch = {};
+  Object.entries(CHARS).forEach(([id, ch]) => { if (ch.mannequin && ch.status !== 'decided-signature') (byArch[ch.arch] = byArch[ch.arch] || []).push(id); });
   let pairs = 0;
-  Object.entries(byBase).forEach(([base, lst]) => {
+  Object.entries(byArch).forEach(([arch, lst]) => {
     for (let i = 0; i < lst.length; i++) for (let j = i + 1; j < lst.length; j++) {
       pairs++;
-      const a = CHARS[lst[i]], b = CHARS[lst[j]], AR = BIBLE.archetypes[a.arch];
+      const a = CHARS[lst[i]], b = CHARS[lst[j]], AR = BIBLE.archetypes[arch];
       const fr = AR.attack.frames;
-      say(`  ${base}: ${a.mannequin.set} vs ${b.mannequin.set}`);
+      say(`  ${arch}: ${a.mannequin.set} vs ${b.mannequin.set}`);
       [AR.attack.hold, AR.attack.contact].forEach((k) => {
-        const fn = fr[k].name, oa = a.mannequin.overrides[fn], ob = b.mannequin.overrides[fn];
+        const fn = fr[k].name, oa = (a.mannequin.overrides || {})[fn], ob = (b.mannequin.overrides || {})[fn];
         if (!oa || !ob || JSON.stringify(oa) === JSON.stringify(ob)) fail(`${fn}: overrides missing or identical - the guides would be one template`);
         else {
           const diff = Object.keys({ ...oa, ...ob }).filter((key) => key !== 'note' && JSON.stringify(oa[key]) !== JSON.stringify(ob[key]));
           say(`    ${fn}: overrides differ in ${diff.join(', ') || 'note only'}`);
           if (!diff.length) fail(`${fn}: overrides differ only in the note`);
         }
-        const nn = String(k).padStart(2, '0');
-        const pa = framePng(a.mannequin.set, k, fn), pb = framePng(b.mannequin.set, k, fn);
+        const FA = framesOf(a.mannequin.set), FB = framesOf(b.mannequin.set);
+        const pa = FA && FA.files && FA.files[k], pb = FB && FB.files && FB.files[k];
+        const sa = scaleOf(lst[i]), sb = scaleOf(lst[j]);
         if (pa && pb) {
-          const r = motionIou(pa, pb, 0.1654);
+          const r = motionIouAligned(pa, sa, pb, sb);
+          const tag = `IoU ${r.iou === undefined ? '?' : r.iou.toFixed(3)} (aligned: bottom-centre + best of +-4 game px${r.shift ? ` (${r.shift.join(',')})` : ''}, game size x${sa} / x${sb}; f${String(k).padStart(2, '0')} ${fn})`;
           if (r.error) fail(`${fn}: ${r.error}`);
-          else if (r.iou > RU.guide_similarity_iou_fail) fail(`${fn}: guide IoU ${r.iou.toFixed(3)} > ${RU.guide_similarity_iou_fail} at game size`);
-          else say(`    ${fn}: guide IoU ${r.iou.toFixed(3)} at game size - OK`);
-        } else say(`    ${fn}: guide PNGs not delivered yet (art/inbox/guides/<set>/f${nn}_${fn}.png) - pixel IoU pending`);
+          else if (r.iou > RU.guide_similarity_iou_fail) fail(`${fn}: ${tag} > ${RU.guide_similarity_iou_fail} - the same template; every character moves in their own way`);
+          else say(`    ${fn}: ${tag} <= ${RU.guide_similarity_iou_fail} - OK`);
+        } else {
+          const miss = [[a.mannequin.set, FA], [b.mannequin.set, FB]].filter(([, F]) => !F || F.error || !F.files[k]).map(([nm]) => nm);
+          say(`    ${fn}: IoU (aligned, game size) pending - no frame ${k} of ${miss.join(', ')} (art/inbox/guides/<set>/<set>.aseprite, or --frames)`);
+        }
       });
     }
   });
-  if (!pairs) say('  no two characters share a base set');
+  try { fs.rmSync(tmpRoot, { recursive: true, force: true }); } catch (e) { /* 임시 폴더 */ }
+  if (!pairs) say('  no two characters share an archetype');
 
   say('');
   say(`motion check: ${nFail} FAIL, ${nWarn} WARN`);
   console.log(out.join('\n'));
   return nFail ? 1 : 0;
+}
+
+// 두 마네킹 프레임의 실루엣 IoU (aligned, game size): 각자 그림 상자로 잘라 상자의 아래 가운데를 맞춘 뒤 게임 배율로 줄이고,
+// 그 자리에서 x, y 로 ±search 게임 px (기본 4 = 원본 약 24px, add_gait 의 마네킹 막기와 같은 폭) 안의 가장 많이 겹치는 자리를 센다
+// (칼끝·방패가 길어져 상자 가운데가 밀려도 몸끼리 맞춘다). 같은 배율이면 원본에서 맞춘 뒤 한 격자로 줄인다 (옮겨 놓은 같은 틀이
+// 격자 위상 때문에 덜 겹쳐 보이지 않게). 배율이 다르면 각자 줄인 뒤 맞춘다. 발 자리·엉덩이 x 가 달라도 모양만 비교한다.
+function motionIouAligned(fa, sa, fb, sb, search = 4) {
+  const A = motionMask(fa), Bm = motionMask(fb);
+  if (A.error || Bm.error) return { error: A.error || Bm.error };
+  const crop = (G) => {
+    let x0 = G.w, y0 = G.h, x1 = -1, y1 = -1;
+    for (let y = 0; y < G.h; y++) for (let x = 0; x < G.w; x++) if (G.m[y * G.w + x]) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+    if (x1 < 0) return null;
+    const w = x1 - x0 + 1, h = y1 - y0 + 1, m = new Uint8Array(w * h);
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) m[y * w + x] = G.m[(y + y0) * G.w + x + x0];
+    return { w, h, m };
+  };
+  // 두 잘린 그림을 아래 가운데를 맞춰 같은 판(W x H)에 놓는다
+  const pair = (P, Q) => {
+    const W = Math.max(P.w, Q.w), H = Math.max(P.h, Q.h);
+    const put = (G) => {
+      const o = Math.floor((W - G.w) / 2), m = new Uint8Array(W * H);
+      for (let y = 0; y < G.h; y++) for (let x = 0; x < G.w; x++) m[(y + H - G.h) * W + x + o] = G.m[y * G.w + x];
+      return { w: W, h: H, m };
+    };
+    return [put(P), put(Q)];
+  };
+  let ga, gb;
+  if (sa === sb) {
+    const ca = crop(A), cb = crop(Bm);
+    if (!ca || !cb) return { error: `empty frame (${!ca ? fa : fb})` };
+    [ga, gb] = pair(ca, cb).map((G) => motionShrink(G, sa));
+  } else {
+    const ca = crop(motionShrink(A, sa)), cb = crop(motionShrink(Bm, sb));
+    if (!ca || !cb) return { error: `empty frame (${!ca ? fa : fb})` };
+    [ga, gb] = pair(ca, cb);
+  }
+  const W = ga.w, H = ga.h;
+  let na = 0, nb = 0;
+  for (let k = 0; k < ga.m.length; k++) { na += ga.m[k]; nb += gb.m[k]; }
+  let best = -1, at = [0, 0];
+  for (let dy = -search; dy <= search; dy++) for (let dx = -search; dx <= search; dx++) {
+    let i = 0;
+    for (let y = Math.max(0, dy); y < Math.min(H, H + dy); y++) {
+      const ra = y * W, rb = (y - dy) * W;
+      for (let x = Math.max(0, dx); x < Math.min(W, W + dx); x++) if (ga.m[ra + x] && gb.m[rb + x - dx]) i++;
+    }
+    const v = (na + nb - i) ? i / (na + nb - i) : 1;
+    if (v > best || (v === best && Math.abs(dx) + Math.abs(dy) < Math.abs(at[0]) + Math.abs(at[1]))) { best = v; at = [dx, dy]; }
+  }
+  return { iou: best, shift: at, w: W, h: H };
 }
 
 // 두 PNG 의 실루엣 IoU (게임 크기로 줄여서): 투명·#FF00FF·왼쪽 위 모서리 색(가이드의 바탕)은 바탕으로 본다.

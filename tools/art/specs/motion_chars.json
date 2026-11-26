@@ -77,15 +77,16 @@
         }
       },
       "mannequin": {
-        "set": "atk_sword_shield__class_warrior",
+        "set": "atk__class_warrior",
         "base": "atk_sword_shield",
         "pivot_foot": "rear (footN) planted in every frame +-3 src px",
         "grip": "sword in the near hand, blade low; round shield on the far forearm, elbow ~90 deg",
         "lean": {"hold": 0.12, "contact": 0.22},
         "overrides": {
-          "hold": {"hip": [-0.22, 1.30], "lean": 0.12, "shield": [0.50, 2.55], "grip_near": [-0.45, 1.75], "wa": 190, "note": "crouched behind the raised shield, sword cocked low at the hip pointing back"},
-          "swing": {"hip": [0.05, 1.26], "lean": 0.18, "shield": [1.05, 2.50], "grip_near": [-0.10, 1.70], "wa": 200, "note": "SHIELD CHECK: shield punched forward at face height with the shoulder behind it, sword still trailing"},
-          "contact": {"hip": [0.30, 1.22], "lean": 0.22, "shield": [0.95, 2.45], "grip_near": [1.15, 1.85], "wa": -15, "note": "sword cuts low-forward past the shield's lower edge, shield still forward"}
+          "hold": {"hip": [-0.3, 1.32], "lean": 0.04, "tilt": 0.02, "footN": [-0.9, 0.12], "footF": [0.8, 0.12], "shield": [0.45, 2.45], "grip_near": [-0.75, 1.78], "wa": 120, "note": "weight back behind the raised round shield (head behind the feet's mid-point), sword hand low behind the hip, blade raised up-back clear of the body (README atk__class_warrior 2026-11-26e)"},
+          "swing": {"hip": [0.0, 1.24], "lean": 0.16, "tilt": 0.08, "footN": [-0.9, 0.12], "footF": [0.8, 0.12], "shield": [0.95, 2.66], "grip_near": [-0.15, 1.66], "wa": 250, "note": "SHIELD CHECK: shield punched forward at face height with the shoulder behind it, sword dropped back-down and trailing; pivot heel may lift (toe stays)"},
+          "contact": {"hip": [0.27, 1.24], "lean": 0.32, "tilt": 0.16, "footN": [-0.9, 0.12], "footF": [0.8, 0.12], "shield": [0.88, 2.53], "grip_near": [0.75, 1.66], "wa": -5, "note": "sword cuts low-forward under the shield's lower edge (crosses its strike line), shield still forward, head ahead of the feet"},
+          "follow": {"hip": [0.33, 1.18], "lean": 0.4, "tilt": 0.2, "footN": [-0.9, 0.12], "footF": [0.8, 0.12], "shield": [0.65, 2.47], "grip_near": [0.72, 1.97], "wa": 25, "note": "sword 30 deg past the strike line, rising forward"}
         }
       },
       "strips": {
@@ -135,16 +136,17 @@
         }
       },
       "mannequin": {
-        "set": "atk_twin__captain_shadowqueen",
+        "set": "atk__captain_shadowqueen",
         "base": "atk_twin",
         "fit_to_accepted": "the PC measures hip x/height and the planted foot on the accepted source strips (art/inbox/sheet_captain_shadowqueen.png on art-inbox: idle e4df48d, X wind-up aa0687e #2, strike 0cc6046 #3) and builds the mannequin so that its rest / hold / swing frames overlay those cells; new frames (in, contact, follow, recover, settle) continue from them",
         "pivot_foot": "front (footF) from the swing frame on - as in the accepted strike; rear before",
         "grip": "a blade in each hand, forward grip; X crossing at one point only (as accepted)",
         "lean": {"hold": -0.05, "contact": 0.30},
         "overrides": {
-          "hold": {"fit": "accepted cell 4", "note": "X behind the shoulders, upright, feet narrow (25 px at game size, not the wide crouch)"},
-          "contact": {"hip": [0.40, 1.08], "lean": 0.30, "grip_near": [1.20, 1.55], "grip_far": [1.10, 1.70], "note": "scissor closed low-forward at target height, both tips past the front foot, weight on the front foot"},
-          "follow": {"hip": [0.46, 1.10], "lean": 0.34, "note": "blades past each other, the far blade swinging up behind"}
+          "hold": {"fit": "accepted cell #2 (X wind-up, aa0687e)", "hip": [0.42, 1.34], "lean": -0.1, "tilt": -0.05, "footN": [-0.48, 0.12], "footF": [1.27, 0.12], "grip_near": [0.42, 3.41], "grip_far": [0.57, 3.41], "wa": 50, "wa_far": 130, "note": "X crossed above the head (one crossing point), upright and leaning back 6 deg so the head is behind the feet; stance ~1.76 head as in the accepted cell (x: idle hip column = 0, README x - 0.48; wa_far = the far blade)"},
+          "swing": {"fit": "accepted cell #3 (low scissor strike, 0cc6046)", "hip": [0.47, 1.12], "lean": 0.22, "tilt": 0.11, "footN": [-0.48, 0.12], "footF": [1.47, 0.12], "grip_near": [1.14, 2.08], "grip_far": [1.18, 2.33], "wa": -30, "wa_far": 10, "note": "front foot steps +0.20 and becomes the pivot; blades come down forward"},
+          "contact": {"hip": [0.94, 1.08], "lean": 0.2, "tilt": 0.1, "footN": [-0.48, 0.12], "footF": [1.47, 0.12], "grip_near": [1.44, 1.97], "grip_far": [1.34, 2.47], "wa": 25, "wa_far": -10, "note": "scissor closed: lowest hip, hands reached out in front of the chest, the upper (far) blade coming down and the lower (near) blade coming up meet tip to tip in front of the front foot; both blades >= 60% clear of the body"},
+          "follow": {"hip": [0.98, 1.1], "lean": 0.24, "tilt": 0.12, "footN": [-0.33, 0.12], "footF": [1.47, 0.12], "grip_near": [1.47, 2.1], "grip_far": [1.37, 2.3], "wa": 55, "wa_far": -40, "note": "blades pass each other, 30 deg past each; the rear foot starts to drag in"}
         }
       },
       "strips": {
@@ -174,15 +176,16 @@
       "timing": {"idleTempo": 1.25, "ms": {"hold": 170, "contact": 80, "follow": 80}},
       "engine": {"lunge": 0.6, "kick": 0.5, "smear": "none", "contact_fx": "bash_ring", "specials": {"철벽 방진": {"rally_hold_ms": 450}}},
       "mannequin": {
-        "set": "atk_sword_shield__captain_ironwall",
+        "set": "atk__captain_ironwall",
         "base": "atk_sword_shield",
         "pivot_foot": "rear (footN); the front foot steps +0.15 head on contact",
         "grip": "mace in the near hand, kept cocked behind; tall tower shield on the far arm, its lower rim >= 100 src px above the floor",
         "lean": {"hold": 0.20, "contact": 0.26},
         "overrides": {
-          "hold": {"hip": [-0.18, 1.24], "lean": 0.20, "shield": [0.45, 2.35], "grip_near": [-0.55, 2.10], "wa": 160, "note": "shoulder dropped into the tower shield, mace cocked back low (no overhead raise)"},
-          "swing": {"hip": [0.10, 1.22], "lean": 0.24, "shield": [0.90, 2.38], "grip_near": [-0.50, 2.10], "wa": 158},
-          "contact": {"hip": [0.36, 1.20], "lean": 0.26, "shield": [1.20, 2.40], "grip_near": [-0.35, 2.15], "wa": 150, "footF": [1.15, 0.12], "note": "whole body drives the shield to face height; the mace stays behind as a threat"}
+          "hold": {"hip": [-0.36, 1.16], "lean": 0.1, "tilt": 0.05, "footN": [-0.8, 0.12], "footF": [0.95, 0.12], "shield": [0.38, 2.39], "grip_near": [-0.45, 2.44], "wa": 140, "note": "deep crouch with the shoulder dropped into the tower shield, weight back (head behind the feet's mid-point); mace cocked back at head height, not overhead (README atk__captain_ironwall 2026-11-26e)"},
+          "swing": {"hip": [0.0, 1.2], "lean": 0.2, "tilt": 0.1, "footN": [-0.8, 0.12], "footF": [1.02, 0.12], "shield": [0.75, 2.37], "grip_near": [-0.4, 2.37], "wa": 140, "note": "body uncoils, shield starts forward, front foot slides; mace unchanged"},
+          "contact": {"hip": [0.36, 1.12], "lean": 0.32, "tilt": 0.16, "footN": [-0.8, 0.12], "footF": [1.1, 0.12], "shield": [1.3, 2.43], "grip_near": [-0.28, 2.43], "wa": 140, "note": "SHIELD SHOVE: the whole body drives the shield face to its furthest reach at face height, front foot steps +0.15; the mace keeps its angle (140 deg hold to follow - a shove, not a cut)"},
+          "follow": {"hip": [0.4, 1.18], "lean": 0.34, "tilt": 0.17, "footN": [-0.8, 0.12], "footF": [1.1, 0.12], "shield": [1.05, 2.09], "grip_near": [-0.22, 2.37], "wa": 140, "note": "shield rebounds 0.25 head and dips, hip carries on +0.04"}
         }
       }
     },
@@ -203,14 +206,14 @@
       "timing": {"idleTempo": 1.0, "ms": {}},
       "engine": {"lunge": 0, "kick": 1.0, "origin": "arrow rest on the bow hand (marks layer)", "recoil_dx": -2},
       "mannequin": {
-        "set": "atk_bow__class_archer",
+        "set": "atk__class_archer",
         "base": "atk_bow",
         "pivot_foot": "both planted (upright archer)",
         "grip": "bow in the far hand, arm straight at full draw; string hand near",
         "lean": {"hold": 0.02, "release": -0.02},
         "overrides": {
           "hold": {"hip": [0.0, 1.42], "lean": 0.02, "grip_far": [1.30, 2.55], "grip_near": [0.15, 2.65], "note": "full draw to the cheek, upright (SPEC cross-check 1 #7)"},
-          "release": {"hip": [-0.02, 1.42], "lean": -0.02, "grip_far": [1.30, 2.55], "grip_near": [-0.45, 2.70], "note": "string hand flies back >= 60 src px (0.55 head) from the hold; origin mark on the arrow rest"}
+          "release": {"hip": [-0.02, 1.42], "lean": -0.02, "grip_far": [1.30, 2.55], "grip_near": [-0.50, 2.71], "note": "string hand flies back >= 60 src px (0.55 head) from the hold; origin mark on the arrow rest"}
         }
       }
     },

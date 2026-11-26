@@ -1105,19 +1105,18 @@ const Battle = (() => {
   // 걷는 것은 거미줄에 걸렸을 때(trudge)·뒷걸음(back)·맞붙은 채 자리 고치기(reseat)와, 제 발로 가지 않는데 밀리거나 아주 느리게 옮겨질 때(step)뿐이다.
   // 전투 계산이 유닛을 몰고 가는 동안(u.moving)은 느려도 달린다 — 보폭이 빠르기만큼 줄어든다(strideOf).
   // 값은 키(S.h)에 대한 비율:
-  //   sl 한 걸음 거리 · A 발이 앞뒤로 가는 폭(절반) · cap 그 폭의 한계(그려진 두 발 벌림 대비) · ext 그려진 자세보다 더 뻗는 양
-  //   lift 든 발 높이 · kick 뒷발을 차올리는 높이 · kb 뒷발이 뒤로 더 가는 거리
-  //   wbob 걷기의 몸 오르내림(디딘 다리 위에서 높다) · dip 달릴 때 디디며 가라앉는 양 · air 두 발이 다 뜬 동안 솟는 높이
-  //   lean 온몸 기울기(발 기준) · tl 윗몸만 더 숙이기(엉덩이 줄 기준)
+  //   sl 한 걸음 거리 · wbob 걷기의 몸 오르내림(그려진 칸이 없는 시트 — glideBob, 2% 가 한계) · air 시트 없는 코드 도트가 두 발이 다 뜬 동안 솟는 높이
   //   duty 한 발이 땅에 붙어 있는 길이(걸음 단위): 1 = 걷기(늘 한 발은 땅), 1 미만 = 걸음마다 (1 - duty) 만큼 두 발이 다 뜬다(달리기)
+  // 주인 결정(2026-11-26): 서 있는 그림을 잘라·기울여·꺾는 걸음(다리 가르기·무릎·윗몸 숙이기·온몸 기울기)은 없앴다 — 실제 캐릭터가 찌그러져 보였다.
+  // 달리기·걷기 동작은 뼈대·마네킹 위에 덧그린 시트 칸(run·walk)이 맡는다 (tools/art/add_gait.py).
   const GAITS = {
-    run:    { sl: 0.31, A: 0.095, cap: 0.22, ext: 0.04, lift: 0.09, kick: 0.10, kb: 0.08, wbob: 0, dip: 0.004, air: 0.01, lean: 0.07, tl: 0.21, duty: 0.62 },     // 달리기 (기본 이동) — 주인 11-26: 엉덩이는 거의 평평, 뜬 순간 숙여 눌리고 디딘 뒤 일어선다 (leanK)
-    charge: { sl: 0.30, A: 0.105, cap: 0.24, ext: 0.05, lift: 0.10, kick: 0.13, kb: 0.10, wbob: 0, dip: 0.005, air: 0.012, lean: 0.09, tl: 0.25, duty: 0.56 },  // 적이 가까울 때 달려들기 (근접)
-    flee:   { sl: 0.36, A: 0.11, cap: 0.24, ext: 0.05, lift: 0.11, kick: 0.14, kb: 0.10, wbob: 0, dip: 0.006, air: 0.014, lean: 0.10, tl: 0.27, duty: 0.54 },  // 도주: 가장 크게
-    trudge: { sl: 0.27, A: 0.08, cap: 0.15, ext: 0, lift: 0.05, kick: 0, kb: 0, wbob: 0.035, dip: 0, air: 0, lean: 0.04, tl: 0.09, duty: 1 },                 // 거미줄에 걸려 무겁게 걷기
-    back:   { sl: 0.25, A: 0.07, cap: 0.15, ext: 0, lift: 0.05, kick: 0, kb: 0, wbob: 0.015, dip: 0, air: 0, lean: -0.03, tl: 0, duty: 1 },                  // 적을 보며 뒷걸음
-    step:   { sl: 0.25, A: 0.07, cap: 0.15, ext: 0, lift: 0.05, kick: 0, kb: 0, wbob: 0.02, dip: 0, air: 0, lean: 0.02, tl: 0, duty: 1 },                    // 천천히 자리 옮기기 (달릴 빠르기가 안 될 때)
-    reseat: { sl: 0.22, A: 0.05, cap: 0.15, ext: 0, lift: 0.04, kick: 0, kb: 0, wbob: 0.012, dip: 0, air: 0, lean: 0, tl: 0, duty: 1 },                      // 맞붙은 채 자리 고치기
+    run:    { sl: 0.31, wbob: 0, air: 0.01, duty: 0.62 },        // 달리기 (기본 이동)
+    charge: { sl: 0.30, wbob: 0, air: 0.012, duty: 0.56 },       // 적이 가까울 때 달려들기 (근접)
+    flee:   { sl: 0.36, wbob: 0, air: 0.014, duty: 0.54 },       // 도주
+    trudge: { sl: 0.27, wbob: 0.035, air: 0, duty: 1 },          // 거미줄에 걸려 무겁게 걷기
+    back:   { sl: 0.25, wbob: 0.015, air: 0, duty: 1 },          // 적을 보며 뒷걸음
+    step:   { sl: 0.25, wbob: 0.02, air: 0, duty: 1 },           // 천천히 자리 옮기기 (달릴 빠르기가 안 될 때)
+    reseat: { sl: 0.22, wbob: 0.012, air: 0, duty: 1 },          // 맞붙은 채 자리 고치기
   };
   const RUN_KIND = { run: 1, charge: 1, flee: 1 };                      // 달리는 걸음 (시트의 달리기 칸을 쓰는 걸음)
   const HOVER_MON = { '망령': 1, '하피': 1, '리치의 망령': 1 };          // 떠 있는 몸: 발을 디디지 않는다
@@ -1156,8 +1155,6 @@ const Battle = (() => {
   // 달리는 걸음(run·charge·flee)은 실제 빠르기 ÷ 제 빠르기(r.vr, 0.55..1)만큼 보폭을 줄인다: 느리게 다가가도 초당 걸음 수가 그대로다
   // (vr 0.55 이상이면 그대로, 0.4..0.55 에서는 조금 느려진다).
   // 측정(1배속 화면): 전사 62px/초·키 66px → 달리기 초당 약 3걸음.
-  // 그 비율(runSf)은 walkTf 의 발 폭(A·ext·kb)에도 같이 곱한다 — 디딘 발이 뒤로 가는 거리(2A)가 몸이 디딘 동안 가는 거리(duty × 보폭)와 같아야
-  // 발이 땅에 붙는다 (곱하지 않으면 느린 달리기에서 디딘 발이 5~16px 뒤로 미끄러졌다).
   const runSf = (r) => RUN_KIND[r.kind] ? Math.max(0.55, Math.min(1, r.vr == null ? 1 : r.vr)) : 1;
   const strideOf = (u, r, H) => Math.max(5, r.gp.sl * H * Math.max(0.85, Math.min(1.4, Math.pow((u.speed || 25) / 25, 0.75))) * runSf(r));
   // 시트에 그려진 걸음 칸의 한 걸음 거리(화면 px): 시트의 runStride / walkStride(시트 px) × 그리는 배율(sheetK — 우두머리 1.5배). 없으면 0.
@@ -1201,61 +1198,7 @@ const Battle = (() => {
     const T = GAITS[r.kind] || GAITS.run, a = Math.min(1, dtc / 0.15);
     for (const k in T) r.gp[k] += (T[k] - r.gp[k]) * a;
   }
-  // 옷자락·방패가 다리 사이를 덮은 시트는 다리를 덜 벌린다 (가르는 선이 옷을 찢어 보이지 않게): 0.25..1
-  const swingCache = new Map();
-  function swingKOf(fr, cut) {
-    const w = fr.sheet && fr.sheet.meta.walk;
-    if (w && w.swing != null) return w.swing;
-    const key = (fr.sheet ? fr.sheet.id : fr.key) + '|' + cut;
-    let v = swingCache.get(key);
-    if (v != null) return v;
-    v = 1;
-    try {
-      const h = Math.max(1, Math.min(fr.sh, fr.ay) - cut), x0 = Math.max(0, fr.ax - 1);
-      const cv = document.createElement('canvas'); cv.width = 3; cv.height = h;
-      const x = cv.getContext('2d');
-      x.drawImage(fr.img, fr.sx + x0, fr.sy + cut, 3, h, 0, 0, 3, h);
-      const d = x.getImageData(0, 0, 3, h).data;
-      let full = 0;
-      for (let y = 0; y < h; y++) if (d[y * 12 + 3] > 40 && d[y * 12 + 7] > 40 && d[y * 12 + 11] > 40) full++;
-      v = Math.max(0.25, Math.min(1, (1 - full / h) / 0.5));
-    } catch (e) { /* 읽을 수 없으면 그대로 */ }
-    swingCache.set(key, v);
-    return v;
-  }
-  // 그려진 자세에서 두 발이 벌어진 폭(그림 px): 발바닥 위 5줄의 불투명 범위. 걸음의 다리 폭을 여기에 맞춘다.
-  const stanceCache = new Map();
-  function stanceOf(fr) {
-    const key = fr.sheet ? fr.sheet.id : fr.key;
-    let v = stanceCache.get(key);
-    if (v != null) return v;
-    v = fr.sw * 0.4;
-    try {
-      const y0 = Math.max(0, Math.min(fr.sh, fr.ay) - 5);
-      const cv = document.createElement('canvas'); cv.width = fr.sw; cv.height = 5;
-      const x = cv.getContext('2d');
-      x.drawImage(fr.img, fr.sx, fr.sy + y0, fr.sw, 5, 0, 0, fr.sw, 5);
-      const d = x.getImageData(0, 0, fr.sw, 5).data;
-      let l = fr.sw, ri = -1;
-      for (let i = 0; i < fr.sw * 5; i++) if (d[i * 4 + 3] > 40) { const xx = i % fr.sw; if (xx < l) l = xx; if (xx > ri) ri = xx; }
-      if (ri > l) v = ri - l + 1;
-    } catch (e) { /* 읽을 수 없으면 어림값 */ }
-    stanceCache.set(key, v);
-    return v;
-  }
-  // 다리 한쪽의 무릎 위치 (엉덩이 기준, 앞쪽이 +x): 발이 (dx, D) 에 놓일 때. L = 편 다리 길이, 넓적다리·정강이는 반씩.
-  // 발이 다리 길이보다 가까우면 무릎이 앞으로 굽고(kb: 굽는 정도 0..1, 옷자락이 덮은 다리는 덜), 멀면 곧게 뻗는다(조금 늘어난다).
-  function kneeOf(dx, D, L, kb) {
-    const R = Math.hypot(dx, D);
-    if (R >= L - 0.01) return [dx / 2, D / 2];
-    const hh = Math.sqrt(Math.max(0, L * L / 4 - R * R / 4)) * kb;
-    return [dx / 2 + hh * D / R, D / 2 - hh * dx / R];
-  }
-  // 움직이는 유닛의 그리기 변형 (blit 의 tf) — 걷기·달리기 동작이 없는 시트용.
-  // 이족: 엉덩이 줄 아래를 앞다리·뒷다리로 나누고 다리마다 무릎에서 한 번 꺾는다. 디딘 발은 땅에 붙어 뒤로 밀리고, 든 발은 뒤로 차올렸다가 앞으로 뻗는다.
-  // 달리기(duty < 1)는 걸음마다 두 발이 다 뜨는 구간이 있다: 그동안 온몸이 떠오르고(그림자는 땅에), 디디는 동안에는 무릎을 굽혀 가라앉는다.
-  // 시트 칸에 얹는 걸음 변형의 무게(0..1): 공격·피격·준비 칸(fr.act)이 뜨면 BODY_FADE 초에 걸쳐 0으로, 대기 칸으로 돌아오면 같은 시간에 1로.
-  // 달리던 몸이 공격·피격 칸에서 한 프레임에 곧추섰다가(머리 9px 남짓) 다시 한 프레임에 숙이던 것을 고르게 한다. 연출 시계 기준.
+  // 시트 칸에 얹는 몸 오르내림의 무게(0..1): 공격·피격·준비 칸(fr.act)이 뜨면 BODY_FADE 초에 걸쳐 0으로, 대기 칸으로 돌아오면 같은 시간에 1로. 연출 시계 기준.
   const BODY_FADE = 0.08;
   function bodyW(view, r, act) {
     const c = view.clock, dt = r.bwC == null ? 0 : Math.max(0, Math.min(0.1, c - r.bwC)), want = act ? 0 : 1;
@@ -1263,76 +1206,54 @@ const Battle = (() => {
     r.bw = r.bw == null ? want : want > r.bw ? Math.min(want, r.bw + dt / BODY_FADE) : Math.max(want, r.bw - dt / BODY_FADE);
     return r.bw;
   }
-  // 달리는 몸의 숙임 박자 (주인 11-26, PC 달리기 마네킹 4판 a94de43): 뜬 순간 앞으로 숙여 눌리고, 디뎌 몸을 가눈 뒤 살짝 일어선다.
-  // 마네킹 기울기 R1 닿음 24° → R2 가누기 19° → R3 밀어냄 29° → R4 뜸 31° 를 기준값(약 25°)에 대한 배율로 옮긴 것. 걷기(d >= 1)는 1.
-  function leanK(p, d) {
-    if (d >= 1) return 1;
-    if (p < d) { const s = p / d; return s < 0.35 ? 0.92 - 0.2 * (s / 0.35) : 0.72 + 0.46 * ((s - 0.35) / 0.65); }
-    const f = (p - d) / (1 - d);
-    return 1.18 + 0.12 * Math.sin(Math.PI * f) - 0.26 * f;
-  }
-  // 이족 몸 높이: 걷기는 디딘 다리 위에서 높고, 달리기는 디디는 동안 가라앉았다가(dip) 두 발이 다 뜬 동안 솟는다(air)
-  function bipedBody(P, H, g, p, d) {
-    const flying = d < 1 && p >= d, fl = flying ? Math.sin(Math.PI * (p - d) / (1 - d)) : 0;
-    const air = Math.round(P.air * H * g * fl);
-    const bob = Math.round(((1 - Math.cos(2 * Math.PI * p)) / 2 * P.wbob - (flying ? 0 : Math.sin(Math.PI * p / d) * P.dip)) * H * g) + air;
-    return { bob, air, flying };
-  }
-  // 네발·다족 몸 높이. 달리는 네발 짐승(bk > 0): 두 걸음이 한 번의 도약 — 뒷발로 차며 앞이 들리고(0..0.35) → 몸을 편 채 뜨고(0.35..0.6) →
-  // 앞발로 내려서며 뒤가 들린다(0.6..1). rise: 앞쪽이 들리는 높이(몸 기울기용), air: 뜬 정도 0..1
-  function quadBody(P, H, g, p2, spider, bk) {
-    let bob = spider ? 0 : (1 - Math.cos(2 * Math.PI * (p2 % 1))) / 2 * P.wbob * H * g, rise = 0, air = 0;
-    if (bk > 0) {
-      const q = p2 / 2, Q = 0.07 * H * g * bk;
-      rise = q < 0.35 ? Q * Math.sin(Math.PI / 2 * q / 0.35) : q < 0.6 ? Q * Math.cos(Math.PI * (q - 0.35) / 0.25) : -Q * Math.cos(Math.PI / 2 * (q - 0.6) / 0.4);
-      air = q >= 0.35 && q < 0.6 ? Math.sin(Math.PI * (q - 0.35) / 0.25) : 0;
-      bob += Math.abs(rise) + air * P.air * 1.3 * H * g * bk;
-    }
-    return { bob, rise, air };
-  }
   const isBug = (u) => !!(u.mon && typeof ENEMIES !== 'undefined' && ENEMIES[u.mon] && ENEMIES[u.mon].tpl === 'bug');   // 다족(거미·전갈): 뛰어오르지 않는다
+  // 걸음 칸이 그려지지 않은 시트의 몸 높이(화면 px, 0 이상 — 발이 땅 아래로 들어가지 않는다).
+  // 주인 결정(2026-11-26): 서 있는 그림을 잘라·기울여·꺾어 달리게 하면 찌그러져 보인다 — 달리기·걷기는 뼈대·마네킹 위에 덧그린 칸(시트의 run·walk)이 맡는다.
+  // 그 칸이 없는 시트는 그림을 전혀 바꾸지 않고(다리 가르기·기울이기·무릎 꺾기·윗몸 숙이기 없음) 대기 자세 그대로 미끄러지며, 몸 전체만 1px 남짓 오르내린다.
+  //   달리기(duty < 1): 주인 박자 — 디딘 직후(받아낸 순간, 걸음의 0.12)에 가장 낮고, 밀어내기 전 디딘 동안(0.55)에 가장 높다. 뜬 동안은 그대로 조금씩 내려온다(살짝 뜬 느낌만).
+  //   걷기(duty 1): 디딜 때 낮고 디딘 다리 위에서 높다. 다족(거미·전갈)은 오르내리지 않는다.
+  //   높이: 키의 2%(1..2px). 키 66px 전사는 0 또는 1px, 1.5배 우두머리는 0..2px.
+  function glideBob(P, H, g, p, d) {
+    if (!(g > 0)) return 0;
+    const runK = Math.max(0, Math.min(1, (1 - d) / 0.3));     // 달리는 정도 (걸음 종류가 섞이는 동안 0..1)
+    const A = Math.max(1, Math.min(2, 0.02 * H)), Aw = Math.min(A, P.wbob * H);
+    const LO = 0.12, HI = 0.55, s = (((p - LO) % 1) + 1) % 1, up = HI - LO;
+    const xr = (1 - (s < up ? Math.cos(Math.PI * s / up) : -Math.cos(Math.PI * (s - up) / (1 - up)))) / 2;   // 달리기 0..1 (LO 에서 0, HI 에서 1)
+    const xw = (1 - Math.cos(2 * Math.PI * p)) / 2;                                                           // 걷기 0..1
+    return Math.max(0, Math.round(g * (runK * A * xr + (1 - runK) * Aw * xw)));
+  }
+  // 움직이는 유닛의 그리기 변형 (blit 의 tf: { bob } — 그림자·발 디딤은 땅에 둔 채 몸 전체만 올린다).
+  // 시트: 그림은 그대로 두고 몸 높이(glideBob)와 발 디딤 먼지만. 그려진 걸음 칸이 있으면 그 칸에 몸 움직임이 그려져 있으므로 얹지 않는다.
+  // 떠 있는 몸(hover 시트): 천천히 떠오르내린다(모든 칸에, 기울이지 않는다).
+  // 시트가 없는 코드 생성 도트: 다리는 두 칸 그림이 맡고(걸음에 맞춰 바뀐다 — pose), 달릴 때 두 발이 다 뜨는 구간에만 몸이 통째로 떠오른다.
   function walkTf(view, st, u, r, fr, S, X, Y) {
     const gt = gaitType(u, fr), P = r.gp;
     const dir = r.dirX || 1;
     if (gt === 'hover') {
       if (!fr.sheet) return null;
-      // 떠 있는 몸은 발을 디디지 않는다: 천천히 떠오르내리고, 빨리 갈수록 가는 쪽으로 더 숙인다 (모든 칸에 같이 얹는다)
       const ic = view.idleClock != null ? view.idleClock : view.clock;
-      return { bob: Math.round(1.5 + 1.5 * Math.sin((ic + r.phase) * 2 * Math.PI / 1.1)), lean: -dir * Math.min(0.2, 0.03 + (Math.max(0, P.lean) + P.tl) * 0.55) * (r.gait || 0) };
+      return { bob: Math.round(1.5 + 1.5 * Math.sin((ic + r.phase) * 2 * Math.PI / 1.1)) };
     }
-    const w = fr.sheet ? bodyW(view, r, fr.act) : 1;
-    const g = (r.gait || 0) * w;
     const H = S.h, quad = gt === 'quad', spider = isBug(u);
-    const p2 = ((r.wp % 2) + 2) % 2, p = p2 % 1;
+    const p = ((r.wp % 1) + 1) % 1;
     const d = Math.max(0.4, Math.min(1, P.duty));
-    const runK = Math.max(0, Math.min(1, (1 - d) / 0.3));       // 달리는 정도 (걸음 종류가 섞이는 동안 0..1)
-    if (!fr.walkFx) {
-      if (fr.sheet) {
-        // 공격·피격·준비 칸: 다리·윗몸 꺾기 없이 몸 전체 변형(오르내림·온몸 기울기)만 남겨, 걷던 몸이 BODY_FADE 에 걸쳐 곧추선다.
-        // 그려진 걸음 칸을 쓰는 시트(지금 걸음 종류의 run·walk 칸이 있다)는 그 칸에 몸 움직임이 그려져 있으므로 얹지 않는다.
-        if (!fr.act || !(g > 0) || gaitAnimOf(fr.sheet.meta, r.kind)) return null;
-        r.stepI = Math.floor(r.wp);                             // 돌아왔을 때 먼지가 한꺼번에 나지 않게
-        if (quad) {
-          const b = quadBody(P, H, g, p2, spider, spider ? 0 : runK);
-          return { bob: Math.round(b.bob), lean: -dir * Math.max(0, P.lean) * 0.6 * g * (spider ? 0 : 1) };
-        }
-        // 윗몸 숙이기(tl)는 온몸 기울기로 옮겨 얹는다 (옷자락 시트와 같은 0.6 비율) — 머리 자리가 걸음 변형 때와 가깝게
-        return { bob: bipedBody(P, H, g, p, d).bob, lean: -dir * (P.lean + P.tl * 0.6) * g * leanK(p, d) };
-      }
-      // 시트가 없는 코드 생성 도트: 다리는 두 칸 그림이 맡는다(걸음에 맞춰 바뀐다 — pose). 달릴 때 두 발이 다 뜨는 구간에만 몸이 통째로 떠오른다.
+    if (!fr.sheet) {
       // 다족(bug: 거미·전갈)은 뛰어오르지 않고, 네발 짐승(beast)은 반만.
-      if (!(g > 0) || d >= 1 || p < d || isBug(u)) return null;
+      if (!((r.gait || 0) > 0) || d >= 1 || p < d || spider) return null;
       const e = u.mon && typeof ENEMIES !== 'undefined' && ENEMIES[u.mon];
-      const hop = Math.round(P.air * H * g * (e && e.tpl === 'beast' ? 0.5 : 1) * Math.sin(Math.PI * (p - d) / (1 - d)));
+      const hop = Math.round(P.air * H * r.gait * (e && e.tpl === 'beast' ? 0.5 : 1) * Math.sin(Math.PI * (p - d) / (1 - d)));
       return hop > 0 ? { bob: hop } : null;
     }
-    const fk = fr.k || 1;
-    const cut = Math.round(fr.ay - (S.h / fk) * (u.mon ? 0.4 : 0.42));
-    const lh = Math.max(4, (fr.ay - cut) * fk);                 // 다리 길이 (엉덩이 줄 → 발바닥, 화면 px)
-    const sk = quad ? 1 : swingKOf(fr, cut);                    // 옷자락·방패가 다리 사이를 덮은 만큼 줄인다 (0.25..1)
-    const stance = stanceOf(fr) * fk;
-    const fwd = fr.face || 1;                                   // 그림이 보는 쪽 (그림 좌표에서 앞)
-    // 발이 땅에 닿는 순간의 먼지: 달려들 때·도주·큰 괴물은 크게, 보통 달리기는 한 톨 (걷는 걸음은 없음)
+    const w = bodyW(view, r, fr.act), g = (r.gait || 0) * w;
+    if (!fr.walkFx) {
+      // 공격·피격·준비 칸: 걷던 몸 높이가 BODY_FADE 에 걸쳐 0으로 내려온다. 그려진 걸음 칸을 쓰는 시트(지금 걸음 종류의 run·walk 칸)는 얹지 않는다.
+      if (!fr.act || !(g > 0) || gaitAnimOf(fr.sheet.meta, r.kind)) return null;
+      r.stepI = Math.floor(r.wp);                               // 돌아왔을 때 먼지가 한꺼번에 나지 않게
+      const b = spider ? 0 : glideBob(P, H, g, p, d);
+      return b ? { bob: b } : null;
+    }
+    // 발이 땅에 닿는 순간의 먼지: 달려들 때·도주·큰 괴물은 크게, 보통 달리기는 한 톨 (걷는 걸음은 없음). 달리는 네발 짐승은 두 걸음에 한 번(한 도약).
+    const runK = Math.max(0, Math.min(1, (1 - d) / 0.3));
     const stepI = Math.floor(r.wp);
     if (r.stepI != null && stepI !== r.stepI && g > 0.6 && !(quad && !spider && runK > 0.5 && (stepI & 1))) {
       const big = u.bigMon || u.boss, hard = r.kind === 'charge' || r.kind === 'flee';
@@ -1340,71 +1261,8 @@ const Battle = (() => {
       else if (r.kind === 'run') spawn(view, 1, X - dir * 4, Y - 1, { sp: [4, 12], life: [0.12, 0.2], color: '#a89a80', size: 2, add: false, rise: -6 });
     }
     r.stepI = stepI;
-    const sf = runSf(r);                                        // 느린 달리기의 보폭 비율 (strideOf 와 같다): 발 폭에도 곱한다
-    if (quad) {
-      // 걷는 걸음(거미는 늘 이쪽): 앞뒤 반이 번갈아 조금씩
-      const A = Math.min(0.05 * H, stance * 0.15) * g * sf, liftW = Math.max(1, 0.06 * H) * g;
-      const foot = (ph) => ph < 1 ? [(1 - 2 * ph) * A, 0] : [-Math.cos((ph - 1) * Math.PI) * A, Math.sin((ph - 1) * Math.PI) * liftW];
-      const [oF, lF] = foot(p2), [oB, lB] = foot((p2 + 1) % 2);
-      const wk = spider ? 1 : 1 - runK, bk = 1 - wk;
-      let xF = (oF - A) * wk, xB = (oB + A) * wk, tF = lF * wk, tB = lB * wk;
-      const qb = quadBody(P, H, g, p2, spider, bk);
-      const bob = qb.bob;
-      let pitch = 0;
-      if (bk > 0) {
-        // 달리는 네발 짐승: 몸은 통째로 기울고(pitch), 다리는 뜰 때 앞·뒤로 뻗었다가 디디며 몸 아래로 모인다.
-        const q = p2 / 2, c = Math.max(6, stance * 0.4);
-        pitch = qb.rise / c;                                    // 앞쪽 발이 rise 만큼 들리는 기울기
-        const Aq = Math.min(0.10 * H, stance * 0.14) * g * bk * sf, sw = Math.cos(2 * Math.PI * (q - 0.47));
-        xF += Aq * sw; xB -= Aq * sw;
-        const tq = Math.max(1, P.lift * H) * g * bk;
-        if (q >= 0.35) tB += tq * Math.sin(Math.PI * (q - 0.35) / 0.65);                      // 뒷다리: 차고 난 뒤 접어 올린다
-        { const wq = (q + 0.05) % 1; if (wq < 0.65) tF += tq * Math.sin(Math.PI * wq / 0.65); }  // 앞다리: 내려서기 전까지
-      }
-      const leg = (x, t) => ({ kx: x * fwd / 2, ky: lh / 2, fx: x * fwd, fy: lh, up: Math.round(t) });
-      const F = leg(xF, tF), B = leg(xB, tB);
-      return { bob: Math.round(bob), lean: -dir * Math.max(0, P.lean) * 0.6 * g * (spider ? 0 : 1), pitch: -pitch * fwd,
-        legs: { cut, R: fwd > 0 ? F : B, L: fwd > 0 ? B : F, right: Math.round(fwd > 0 ? tF : tB), left: Math.round(fwd > 0 ? tB : tF) } };
-    }
-    // 발이 앞뒤로 가는 폭: 걸음 종류의 값에서, 옷자락이 덮은 만큼 줄이고, 그려진 두 발 벌림에 견준 한계(cap) 안에서
-    // 느린 달리기는 보폭(strideOf)과 같은 비율(sf)로 발 폭도 줄인다 — 디딘 발이 땅에 붙게
-    const A0 = Math.min(P.A * sk * H, stance * P.cap) * g, A = A0 * sf;
-    const ext = Math.min(P.ext * sk * H, A0) * g * sf;          // 그려진 자세보다 더 뻗는 양 (앞발은 앞으로, 뒷발은 뒤로)
-    const liftMax = Math.max(2, P.lift * H) * (0.5 + 0.5 * sk) * g, kick = P.kick * H * sk * g, kb = P.kb * H * sk * g * sf;
-    // 발 하나의 한 바퀴(두 걸음): 0..d 디딘 채 뒤로(+A → -A, 땅과 같은 빠르기), d..2 들어서 — 뒤로 차올리고 → 몸 아래를 지나 → 앞으로 뻗어 내린다
-    const foot = (ph) => {
-      if (ph < d) return [A - 2 * A * ph / d, 0];
-      const s = (ph - d) / (2 - d), kf = s < 0.5 ? Math.sin(Math.PI * s / 0.5) ** 2 : 0;
-      const e = Math.min(1, Math.max(0, (s - 0.15) / 0.75));
-      return [-A + 2 * A * e * e * (3 - 2 * e) - kb * kf, kick * kf + liftMax * Math.sin(Math.PI * s)];
-    };
-    const [oF, hF] = foot(p2), [oB, hB] = foot((p2 + 1) % 2);
-    // 몸 높이 (bipedBody): 디디는 동안 가라앉았다가 두 발이 다 뜬 동안 air 만큼 솟는다
-    const { bob, air } = bipedBody(P, H, g, p, d);
-    const kbend = sk * Math.sqrt(sk);                          // 옷자락·방패가 덮은 다리는 무릎을 덜 꺾는다 (덮은 것이 찢어져 보이지 않게)
-    // 다리 하나: x 발이 그려진 자리에서 앞뒤로 간 거리, h 든 높이(뜬 높이 제외), 발은 air 만큼 더 떠 있다
-    const span = Math.max(1, 2 * A - ext);
-    const leg = (x, h, inward) => {
-      // 든 발: 그려진 다리는 이미 비스듬하다 — 그 자리에서 무릎을 굽혀(위아래로 눌러) 올리면 다리가 누워 버린다.
-      // 그래서 그려진 자리 가까이에서는 다리를 통째로 올리고(엉덩이 쪽이 몸 뒤로 숨는다), 몸 아래로 모였을 때(곧게 선 다리)만 무릎을 굽혀 올린다.
-      const bend = 0.65 * Math.max(0, Math.min(1, inward / span));
-      const up = Math.round(Math.min(h * (1 - bend), lh * 0.4));
-      const D = Math.max(lh * 0.6, lh + bob - air - h + up);    // 엉덩이 줄(올린 뒤)에서 발바닥까지의 높이
-      let [kx, ky] = kneeOf(x, D, lh, kbend);
-      // 토막을 기울여 그리는 방식의 한계: 정강이는 길이의 70% 아래로 눌리지 않게, 기울기는 넓적다리 0.8·정강이 1.0 까지만 (더 누우면 가는 가시처럼 늘어진다)
-      ky = Math.max(lh * 0.22, Math.min(D - lh * 0.35, ky));
-      kx = Math.max(-ky * 0.8, Math.min(ky * 0.8, kx));
-      const fx = Math.max(kx - (D - ky), Math.min(kx + (D - ky), x));
-      return { kx: Math.round(kx) * fwd, ky: Math.round(ky), fx: Math.round(fx) * fwd, fy: Math.round(D), up };
-    };
-    const hFa = hF + air, hBa = hB + air;
-    // 그려진 자세가 이미 벌린 자세다: 앞다리는 그보다 ext 만큼만 더 앞으로, 뒷다리는 ext 만큼만 더 뒤로
-    const xF = Math.min(ext, oF - (A - ext)), xB = Math.max(-ext, oB + (A - ext));
-    const F = leg(xF, hF, -xF), B = leg(xB, hB, xB);
-    // 윗몸 숙이기는 엉덩이 줄에서 꺾인다: 그 줄을 가로지르는 긴 것(방패·로브·지팡이)이 있는 시트는 꺾지 않고 온몸을 기울인다
-    const tlK = sk * sk, lk = leanK(p, d);
-    return { bob, lean: -dir * (P.lean + P.tl * (1 - tlK) * 0.6) * g * lk, tl: -dir * P.tl * tlK * g * lk,
-      legs: { cut, knee: 1, R: fwd > 0 ? F : B, L: fwd > 0 ? B : F, right: Math.round(fwd > 0 ? hFa : hBa), left: Math.round(fwd > 0 ? hBa : hFa) } };
+    const b = spider ? 0 : glideBob(P, H, g, p, d);
+    return b ? { bob: b } : null;
   }
   // 공격할 때 몸이 앞뒤로 움직이는 정도(px): 준비 때 살짝 뒤로, 타격 칸이 뜨는 순간 앞으로 뻗고 천천히 돌아온다
   function lungeOf(view, u, r, fr) {
@@ -1532,7 +1390,7 @@ const Battle = (() => {
   }
 
   // 지금 걸음에 쓸 그려진 동작: 달리는 걸음(run·charge·flee)은 시트의 run, 걷는 걸음(trudge·back·step)은 walk.
-  // 맞붙은 채 잔걸음(reseat)에는 쓰지 않는다 (대기↔동작 칸의 키·자세 차이로 튄다). 없으면 null → 대기 칸에 걸음 변형(walkTf).
+  // 맞붙은 채 잔걸음(reseat)에는 쓰지 않는다 (대기↔동작 칸의 키·자세 차이로 튄다). 없으면 null → 대기 칸 그대로 미끄러지며 몸 높이만(walkTf).
   function gaitAnimOf(m, kind) {
     if (kind === 'reseat') return null;
     const name = RUN_KIND[kind] ? 'run' : 'walk';
@@ -1545,8 +1403,8 @@ const Battle = (() => {
     const sh = useArt() && Art.sheetFor(u);
     if (sh) {
       const m = sh.meta;
-      let i, ga, walkFx = false, act = null; // walkFx: 지금 걸음에 쓸 동작 칸이 없는 시트가 움직이는 중 → 그릴 때 걸음(다리·몸 움직임)을 덧붙인다
-      // act: 공격·피격·준비 칸 — 걷던 몸이면 walkTf 가 몸 전체 변형만 남겨 BODY_FADE 에 걸쳐 푼다
+      let i, ga, walkFx = false, act = null; // walkFx: 지금 걸음에 쓸 동작 칸이 없는 시트가 움직이는 중 → 그릴 때 몸 높이(walkTf: 그림은 그대로)만 얹는다
+      // act: 공격·피격·준비 칸 — 걷던 몸이면 walkTf 가 몸 높이를 BODY_FADE 에 걸쳐 푼다
       if (force) { const a = force === 'walk' && m.anims.run ? m.anims.run : Art.anim(m, force); i = Math.min(a.to, a.from + 1); }   // 돌진 잔상('walk')은 달리기 칸이 있으면 그것으로
       else if (!u.alive) i = Art.anim(m, 'hit').to;
       else if (c - r.atkAt < r.atkDur) { const a = Art.anim(m, r.atkAnim); i = frameAt(a, ((c - r.atkAt) / r.atkDur) * a.total, true); act = 'atk'; }
@@ -1570,7 +1428,7 @@ const Battle = (() => {
         }
         i = a.from + ((Math.floor(q) % n) + n) % n;
       } else {
-        // 숨쉬기는 실제 시간으로 (배속에 헐떡이지 않게). 걷는 중이면 그릴 때 걸음(다리·몸 움직임)을 덧붙인다
+        // 숨쉬기는 실제 시간으로 (배속에 헐떡이지 않게). 걷는 중이면 그릴 때 몸 높이만 얹는다(그림은 그대로)
         i = frameAt(Art.anim(m, 'idle'), ((view.idleClock != null ? view.idleClock : c) + r.phase) * 1000, false);
         walkFx = r.gait > 0.05;
       }
@@ -1597,57 +1455,11 @@ const Battle = (() => {
 
   // 한 칸 그리기: (X, Y) 가 발 위치, flip 이면 좌우 반전
   // fr.k: 그리는 배율 (괴물 우두머리 시트 1.5 등, 기본 1)
-  // tf: 걸음 변형 { bob: 몸 높이(px, 음수면 가라앉음), lean: 가는 쪽 기울기(발 기준), tl: 윗몸만 더 숙이기(엉덩이 줄 기준),
-  //                pitch: 네발 짐승의 몸 기울기(앞이 들림), sx/sy: 눌림, legs: 다리 } — 그림자·발 디딤은 땅에 둔 채 몸을 움직인다
+  // tf: 걸음 변형 { bob: 몸 높이(px) } — 그림은 그대로, 그림자·발 디딤은 땅에 둔 채 몸 전체만 올린다 (walkTf)
   function blit(ctx, fr, X, Y, flip, img, tf) {
     const src = img || fr.img, sx = img ? 0 : fr.sx, sy = img ? 0 : fr.sy;
     const k = fr.k || 1, dw = Math.round(fr.sw * k), dh = Math.round(fr.sh * k), ax = Math.round(fr.ax * k), ay = Math.round(fr.ay * k);
-    if (tf) {
-      ctx.save();
-      ctx.translate(Math.round(X), Math.round(Y) - (tf.bob || 0));
-      if (tf.lean) ctx.transform(1, 0, tf.lean, 1, 0, 0);
-      ctx.scale((flip ? -1 : 1) * (tf.sx || 1), tf.sy || 1);
-      if (tf.pitch) ctx.transform(1, tf.pitch, 0, 1, 0, 0);
-      const L = tf.legs;
-      if (!L) { ctx.drawImage(src, sx, sy, fr.sw, fr.sh, -ax, -ay, dw, dh); ctx.restore(); return; }
-      // 걸음(걷기·달리기 동작이 없는 시트): 엉덩이 줄(L.cut) 아래를 발 사이(앵커 x)에서 앞다리·뒷다리로 나눈다.
-      // 다리는 엉덩이 줄에 붙은 채(몸과 함께 오르내린다) 발이 놓일 자리까지 늘이거나 접는다:
-      //   knee 가 있으면 무릎 줄에서 넓적다리·정강이 두 토막으로 꺾고, 없으면(네발) 통째로 기울이고 up 만큼 몸 뒤로 올려 접는다.
-      const cut = Math.max(1, Math.min(fr.sh - 1, L.cut)), fx = Math.max(1, Math.min(fr.sw - 1, fr.ax));
-      const ck = Math.round(cut * k), fk = Math.round(fx * k), hipY = -ay + ck;
-      const foot = Math.max(cut + 2, Math.min(fr.sh, fr.ay));           // 발바닥 줄 (그림 px)
-      const kn = Math.max(cut + 1, Math.min(foot - 1, Math.round((cut + foot) / 2)));   // 무릎 줄
-      // 그림의 r0..r1 줄(한쪽 다리 폭)을 화면 y0..y1 에, 위쪽은 x0 · 아래쪽은 x1 만큼 옆으로 밀어 그린다
-      const seg = (ssx, sww, dx, dww, r0, r1, y0, y1, x0, x1) => {
-        const hgt = y1 - y0;
-        if (hgt < 0.5 || r1 <= r0) return;
-        if (x0 === x1) { ctx.drawImage(src, ssx, sy + r0, sww, r1 - r0, dx + x0, y0, dww, hgt); return; }
-        ctx.save(); ctx.translate(x0, y0); ctx.transform(1, 0, (x1 - x0) / hgt, 1, 0, 0);
-        ctx.drawImage(src, ssx, sy + r0, sww, r1 - r0, dx, 0, dww, hgt); ctx.restore();
-      };
-      const leg = (ssx, sww, dx, dww, G) => {
-        if (!G) { ctx.drawImage(src, ssx, sy + cut, sww, fr.sh - cut, dx, hipY, dww, dh - ck); return; }
-        const top = hipY - (G.up || 0);
-        if (!L.knee) {
-          const m = (fr.sh - cut) / (foot - cut);                        // 발바닥 아래 여백까지 같은 비율로
-          seg(ssx, sww, dx, dww, cut, fr.sh, top, top + G.fy * m, 0, G.fx * m);
-          return;
-        }
-        const m = (fr.sh - kn) / (foot - kn);
-        seg(ssx, sww, dx, dww, kn, fr.sh, top + G.ky, top + G.ky + (G.fy - G.ky) * m, G.kx, G.kx + (G.fx - G.kx) * m);   // 정강이·발
-        seg(ssx, sww, dx, dww, cut, kn, top, top + G.ky, 0, G.kx);                                                       // 넓적다리
-      };
-      // 두 다리가 벌어지면 가르는 선(앵커 x)에 틈이 생긴다: 무릎 줄 위쪽(사타구니·배)은 가르기 전 그림 한 줄기를 먼저 깔아 메운다
-      { const gw = Math.min(3, fx, fr.sw - fx); ctx.drawImage(src, sx + fx - gw, sy + cut, gw * 2, kn - cut, -ax + fk - Math.round(gw * k), hipY, Math.round(gw * k) * 2, Math.round((kn - cut) * k)); }
-      leg(sx, fx, -ax, fk, L.L);                          // 왼쪽 다리
-      leg(sx + fx, fr.sw - fx, -ax + fk, dw - fk, L.R);   // 오른쪽 다리
-      // 몸: 엉덩이 줄은 제자리, 윗몸만 가는 쪽으로 숙인다
-      const tl = (tf.tl || 0) * (flip ? -1 : 1);
-      if (tl) { ctx.translate(0, hipY); ctx.transform(1, 0, tl, 1, 0, 0); ctx.drawImage(src, sx, sy, fr.sw, cut, -ax, -ck, dw, ck); }
-      else ctx.drawImage(src, sx, sy, fr.sw, cut, -ax, -ay, dw, ck);
-      ctx.restore();
-      return;
-    }
+    if (tf && tf.bob) Y -= tf.bob;
     if (!flip) { ctx.drawImage(src, sx, sy, fr.sw, fr.sh, Math.round(X) - ax, Math.round(Y) - ay, dw, dh); return; }
     ctx.save();
     ctx.translate(Math.round(X), 0);
@@ -2274,7 +2086,7 @@ const Battle = (() => {
         ctx.drawImage(glow(gc, gr), X - gr, Y - Math.round(S.h * 0.45) - gr);
         ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
       }
-      // 걷기 동작이 없는 시트의 걸음 (walkTf): 걸은 거리에 맞춰 다리를 앞뒤로 움직이고, 몸이 오르내리며, 가는 쪽으로 기운다
+      // 걸음 (walkTf): 걸음 칸이 그려지지 않은 시트는 그림을 바꾸지 않고 몸 전체만 1px 남짓 오르내린다 (주인 11-26), 코드 도트는 뜰 때만 떠오른다
       const tf = walkTf(view, st, u, r, fr, S, X, Y);
       blit(ctx, fr, X, Y, flip, null, tf);
       drawRim(ctx, view, fr, X, Y, flip, tf);

@@ -29,6 +29,11 @@
 NovelAI 그림은 거부한다 (주인 결정: NovelAI 는 디자인 초안 전용, 게임 그림은 언제나 GPT 를 거친다):
   PNG 메타데이터의 NovelAI 표시, art/concepts/·art/requests/·drafts/ 안의 파일, nai_*.png 이름.
   --allow-draft = 파이프라인 시험용, 언제나 --dry-run 이라 manifest 에 등록할 수 없다.
+뼈대(마네킹) 그림도 거부한다 (마네킹은 PC 가 만드는 자세 가이드, 게임 그림이 아니다 — add_gait.py 와 같은 규칙): 경로에 guides 폴더,
+  옆에 pose_measured.json (check_skeleton --export / receive.py 가 마네킹에서 뽑은 프레임), 또는 어느 자세(좌우로 뒤집은 것도)의 실루엣이
+  뼈대 프레임(art/requests/guides/ 초안, art/inbox/guides/ 와 origin/art-inbox 의 PC 마네킹)과 그림 상자의 아래 가운데를 맞추고
+  ±24px 더 찾아(그림 높이를 뼈대 프레임에 맞춘 것도) IoU > 0.9. 높이 1024·너비 384 의 배수인 그림은 384 칸으로, 그 밖의 그림은
+  split_poses 로 나눈 자세로 잰다. --allow-draft 로만 (언제나 --dry-run) 처리한다.
 달리기·걷기 프레임은 tools/art/add_gait.py 가 등록된 시트에 붙인다 (이 파일의 shrink_pose · paint_pose 를 같이 쓴다).
   시트를 다시 등록하면 register_sheet.py 가 그 칸을 기록된 원본에서 다시 붙인다 (원본이 없으면 크게 경고). --realign 은 그 칸을 밀지 않는다.
 필요: Pillow + NumPy (sprite-gen venv 가 있으면 숨쉬기 루프에 쓴다)
@@ -100,6 +105,49 @@ def novelai_draft_reason(path):
         return None
     if 'novelai' in meta.lower() or 'nai-diffusion' in meta.lower():
         return 'PNG 메타데이터에 NovelAI 생성 표시'
+    return None
+
+
+def mannequin_reason(path, exe=None):
+    """뼈대(마네킹) 그림으로 보이면 그 이유, 아니면 None (add_gait.py 의 마네킹 막기를 시트 원본에도):
+    - 경로에 guides 폴더 (art/requests/guides/<id>/…, art/inbox/guides/<id>/…)
+    - 옆에 pose_measured.json (check_skeleton.py --export · receive.py 가 마네킹 .aseprite 에서 뽑은 프레임 png)
+    - 어느 자세(또는 좌우로 뒤집은 것)의 실루엣이 뼈대 프레임과 자리를 맞춰(크기를 뼈대 프레임의 그림 높이로 맞춘 것도) IoU > 0.9
+      (add_gait.best_guide_match / draft_masks: 클라우드 초안, 작업 트리와 origin/art-inbox 의 art/inbox/guides/ 마네킹)
+    Aseprite 가 없어 마네킹 .aseprite 를 비교 대상으로 읽지 못하면 그 이유를 돌려준다 (비교 없이 받지 않는다)."""
+    real = os.path.realpath(path)
+    if 'guides' in real.split(os.sep)[:-1]:
+        return 'guides/ 폴더 안의 파일 = 뼈대 가이드(마네킹)'
+    if os.path.exists(os.path.join(os.path.dirname(real), 'pose_measured.json')):
+        return '옆에 pose_measured.json — 마네킹 .aseprite 에서 뽑은 프레임 (check_skeleton.py --export / receive.py)'
+    here = os.path.dirname(os.path.abspath(__file__))
+    if here not in sys.path:
+        sys.path.insert(0, here)
+    import add_gait as ag
+    try:
+        arr = np.asarray(Image.open(path).convert('RGBA'))
+    except OSError:
+        return None
+    if arr.shape[0] == 1024 and arr.shape[1] % ag.SLOT == 0:      # 뼈대 규격의 띠: 384 칸 그대로 (add_gait 와 같은 자르기)
+        frames, masks = [arr[:, k * ag.SLOT:(k + 1) * ag.SLOT] for k in range(arr.shape[1] // ag.SLOT)], None
+    else:                                                          # 그 밖의 시트: 자세를 나눠 실루엣으로
+        alpha = matte(arr)[1]
+        g = globals()
+        say, g['log'] = g['log'], (lambda *a_: None)                # 자세 나누기 기록은 처리 때 한 번만
+        try:
+            wide = arr.shape[1] >= 1.3 * arr.shape[0]
+            parts = split_poses(alpha, None, 4 if wide else None, guess=wide)
+        finally:
+            g['log'] = say
+        frames, masks = None, [m & (alpha > 0.5) for m in parts]
+    try:
+        iou, fi, name, flip, (dx, dy), k = ag.best_guide_match(frames, exe, stop=ag.DRAFT_IOU, masks=masks)
+    except ag.Fail as e:
+        return f'마네킹 비교를 하지 못했다 ({e})'
+    if iou > ag.DRAFT_IOU:
+        return (f'{fi}번 자세의 실루엣이 뼈대(마네킹)와 겹친다 — 맞은 마네킹: {name}, IoU {iou:.3f} > {ag.DRAFT_IOU} '
+                f'(아래 가운데를 맞추고 {dx:+d},{dy:+d}px 옮겨서{", 좌우를 뒤집어서" if flip else ""}'
+                f'{f", 그림 높이를 x{k:.3f} 로 맞춰서" if k else ""})')
     return None
 
 
@@ -1161,6 +1209,14 @@ def main():
                 bad += 1
                 continue
             log(f'{p}: NovelAI 초안 ({why}) — --allow-draft 시험 처리, manifest 는 바꾸지 않는다')
+        why = mannequin_reason(p, a.aseprite_bin)
+        if why:
+            if not a.allow_draft:
+                log(f'{p}: 뼈대(마네킹) 그림이라 거부 ({why}). 마네킹은 PC 가 만드는 자세 가이드이고 게임 그림이 아니다 — 게임 그림은 GPT 를 거쳐 '
+                    'art/inbox/ 로 온다. 파이프라인 시험만이라면 --allow-draft (항상 --dry-run).')
+                bad += 1
+                continue
+            log(f'{p}: 뼈대(마네킹) ({why}) — --allow-draft 시험 처리, manifest 는 바꾸지 않는다')
         sid = a.id or id_for(p, reqs)
         if not sid:
             log(f'{p}: id 를 알 수 없다 (요청서에 없는 파일 이름) — --id 로 지정할 것')

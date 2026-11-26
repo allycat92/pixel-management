@@ -27,16 +27,22 @@ Two kinds of delivery are not base sheets and never go to sheets.py:
                                   final gait frames for a registered sheet: strips checked (run: --flight-slots 4), the .aseprite checked
                                   for a mannequin (add_gait guide_reason: joints layer, or a frame whose silhouette matches a skeleton
                                   frame at IoU > 0.9 after alignment - bottom-centre + a +-24 px search, mirrored too - against the cloud
-                                  drafts, art/inbox/guides/ here AND the mannequins on origin/art-inbox, passed as add_gait --extra-guides)
+                                  drafts, art/inbox/guides/ here AND the mannequins on origin/art-inbox - add_gait reads those itself with
+                                  git, and receive also passes its extracted copy as --extra-guides; a refusal names the matched mannequin)
                                   and its export compared with the PNGs, then add_gait.py --dry-run (stride from guides/<gait>_<class> or
                                   <gait>_base); the register command is printed only when everything passed
   guides/<motion>__<stem>/<motion>__<stem>.aseprite   (motion = atk | hit | idle; stem = the sheet png stem without 'sheet_')
                                   a per-character motion mannequin from the PC (docs/plans/2026-11-26_motion_frames.md): the .aseprite
-                                  is the whole delivery. The cloud exports one PNG per frame itself (f<NN>_<frame name>.png, names and
-                                  planned ms from tools/art/specs/motion_bible.json + motion_chars.json), runs
-                                  check_skeleton.py <set>.aseprite --motion <attack|hit|idle> --set <set>, compares the frames with the other
-                                  characters' mannequins of the same motion (aligned silhouette IoU), writes review_<set>.png (frames at
-                                  source size reduced + at game size on the dark floor, frame name and ms under each) and prints the next step
+                                  is the whole delivery (plus mannequin_pc.py when the PC built it with a script: it is checked out with
+                                  it, SPEC section 1). The cloud exports one PNG per frame itself (f<NN>_<frame name>.png, names and
+                                  planned ms from tools/art/specs/motion_bible.json + motion_chars.json) with pose_measured.json beside
+                                  them (set id, durations_ms from the file, plan ms, contact / hold: gate_page.py and requests.js --motion
+                                  read the set and the times from it), runs check_skeleton.py <set>.aseprite --motion <attack|hit|idle>
+                                  --set <set>, compares the frames with the other characters' mannequins (aligned silhouette IoU at source
+                                  size: FAIL > 0.98 on any frame of the same motion = a copied mannequin; WARN > 0.8 only between the hold /
+                                  contact frames of characters of the same archetype (hit: same hit weight) - requests.js --motion owns the
+                                  game-size FAIL > 0.8 for those), writes review_<set>.png (frames at source size reduced + at game size on
+                                  the dark floor, frame name and ms under each) and prints the next step
   python3 tools/art/receive.py guides/run_base/run_base
   python3 tools/art/receive.py guides/atk__class_warrior/atk__class_warrior
   python3 tools/art/receive.py gait/sheet_class_warrior_run
@@ -335,7 +341,8 @@ def sheet_id(stem):
 
 
 def motion_plan(sid, motion):
-    """the planned sequence of a character's motion -> ([(frame name, ms)], contact index or None, where it comes from).
+    """the planned sequence of a character's motion -> ([(frame name, ms)], contact index or None, where it comes from, hold index
+    or None, group). group = what characters must differ within: the archetype (attack), the hit weight (hit), the idle kind.
     Frame names and ms only label the review; check_skeleton.py --motion --set is what judges them."""
     bible = _json(os.path.join(SPECS, 'motion_bible.json'))
     chars = _json(os.path.join(SPECS, 'motion_chars.json'))
@@ -346,17 +353,20 @@ def motion_plan(sid, motion):
     if motion == 'attack':
         seq, where = (archs.get(arch) or {}).get('attack') or {}, f'motion_bible archetypes.{arch}.attack'
         over = (ch.get('timing') or {}).get('ms') or {}
+        group = f'archetype {arch}' 
     elif motion == 'hit':
         w = ((chars.get('hit') or {}).get('sheets') or {}).get(sid) or (archs.get(arch) or {}).get('hit_default')
         seq, where = ((bible.get('hit') or {}).get('weights') or {}).get(w) or {}, f'motion_bible hit.weights.{w}'
+        group = f'hit weight {w}'
     else:
         idle = bible.get('idle') or {}
         kind = next((k for k, v in idle.items() if isinstance(v, dict) and sid in (v.get('users') or [])), 'humanoid')
         seq, where = idle.get(kind) or {}, f'motion_bible idle.{kind}'
+        group = f'idle {kind}'
     frames = [(f.get('name', f'f{i}'), int(over.get(f.get('name'), f.get('ms', 0)))) for i, f in enumerate(seq.get('frames') or [])]
     if over and motion == 'attack':
         where += ' + motion_chars timing.ms ' + ', '.join(f'{k} {v}' for k, v in over.items())
-    return frames, seq.get('contact'), where
+    return frames, seq.get('contact'), where, seq.get('hold'), group
 
 
 def export_frames(src, exe, out):
@@ -472,15 +482,20 @@ def motion_skeleton(rel, name, work, exe, tip):
         if outside:
             print(f'  FAIL: commit {revs[0]} touched paths OUTSIDE art/inbox/: {outside} (the PC writes art/inbox/ only)')
             rc = 1
+    script = f'art/inbox/guides/{name}/mannequin_pc.py'
     others = [p for p in (git('ls-tree', '-r', '--name-only', 'origin/art-inbox', '--', f'art/inbox/guides/{name}') or '').split('\n')
-              if p and p != path]
+              if p and p not in (path, script)]
+    has_script = git('cat-file', '-e', f'origin/art-inbox:{script}') is not None
+    print('- mannequin_pc.py: ' + (f'{script} is on art-inbox - read it; it is checked out with the delivery (SPEC section 1: keep the script)'
+                                    if has_script else 'none (the README asks for it when the PC built the frames with a script)'))
     if others:
-        print(f'- WARN: only {name}.aseprite is the delivery (the cloud exports the frames itself); ignored: {others}')
+        print(f'- WARN: only {name}.aseprite (+ mannequin_pc.py) is the delivery (the cloud exports the frames itself); ignored: {others}')
+    take = f'{path}' + (f' {script}' if has_script else '') + ' art/inbox/NOTES.md' 
     sid = sheet_id(stem)
     req = os.path.join(ROOT, 'art', 'requests', 'guides', name, 'README.md')
     print(f'- sheet: {sid or "NOT REGISTERED (no manifest entry with file sheet_" + stem + ".png)"}; request: '
           + (os.path.relpath(req, ROOT) if os.path.exists(req) else f'NONE at art/requests/guides/{name}/README.md'))
-    plan, contact, where = motion_plan(sid, motion) if sid else ([], None, 'no sheet id')
+    plan, contact, where, hold, group = motion_plan(sid, motion) if sid else ([], None, 'no sheet id', None, None)
     print(f'- plan: {len(plan)} frames from {where}' + (f', contact = frame {contact}' if contact is not None else '')
           + (': ' + ', '.join(f'{n} {v}' for n, v in plan) if plan else ''))
     # 1. check_skeleton (the shared interface: the same command the PC runs before delivering)
@@ -520,16 +535,29 @@ def motion_skeleton(rel, name, work, exe, tip):
         if contact is not None and i == contact and len(frames) == len(plan):
             lab.append(('CONTACT', (240, 80, 80)))
         labels.append(lab)
-    print(f'- frames exported (visible layers, joints hidden): {fdir}/ ' + ' '.join(names))
+    with open(os.path.join(fdir, 'pose_measured.json'), 'w', encoding='utf-8') as f:
+        # gate_page.py takes the set id and the frame times from here (the folder name is a work folder, not a set id); requests.js
+        # --motion takes the set, hold and contact from here. Beside these frames it also marks them as mannequin frames for add_gait.
+        json.dump(dict(set=name, motion=motion, sheet=sid, source=f'{name}.aseprite', art_inbox=revs[0] if revs else None, tip=tip,
+                       files=names, names=[n for n, _ in plan] if len(frames) == len(plan) else None, durations_ms=[int(d) for d in durs],
+                       plan_ms=[v for _, v in plan] if len(frames) == len(plan) else None,
+                       contact=contact if len(frames) == len(plan) else None, hold=hold if len(frames) == len(plan) else None,
+                       tags=[list(t) for t in tags]), f, ensure_ascii=False, indent=1)
+        f.write('\n')
+    print(f'- frames exported (visible layers, joints hidden): {fdir}/ ' + ' '.join(names) + ' + pose_measured.json (set id, durations_ms)')
     off = [f'{n} {d} ms (plan {p})' for n, d, (_, p) in zip(names, durs, plan) if len(frames) == len(plan) and d != p]
     if off:
         print('- ms differ from the plan: ' + ', '.join(off))
-    # 3. two characters must not share identical guide frames: aligned silhouette IoU against every other set of the same motion
+    # 3. two characters must not share a guide frame. FAIL: any frame of another character's mannequin of the same motion at aligned
+    # silhouette IoU > 0.98 (a copy). WARN: only the hold / contact frames of characters in the same group (attack: archetype; hit: hit
+    # weight) above 0.8 - near-idle frames (in, settle, recover) of any two characters are alike and say nothing.
     ag = _add_gait()
     import numpy as np
     extra = inbox_guides(work)
     mine = [ag._crop(ag.frame_mask(np.asarray(f))) for f in frames]
-    seen, worst = set(), (0.0, None, None, None)
+    keyed = len(frames) == len(plan)
+    my_keys = {k: v for k, v in (('hold', hold), ('contact', contact)) if v is not None and keyed and v < len(frames)}
+    seen, worst, warns = set(), (0.0, None, None, None), []
     for root in [os.path.join(ROOT, 'art', 'inbox', 'guides')] + ([extra] if extra else []):
         for other in sorted(os.listdir(root)) if os.path.isdir(root) else []:
             om = MOTION_SET_RE.match(other)
@@ -549,17 +577,35 @@ def motion_skeleton(rel, name, work, exe, tip):
                         v = ag.aligned_iou(a_, b_)[0]
                         if v > worst[0]:
                             worst = (v, names[i], other, j)
+            osid = sheet_id(om.group(2))
+            oplan, ocontact, _, ohold, ogroup = motion_plan(osid, motion) if osid else ([], None, '', None, None)
+            if not my_keys or group is None or ogroup != group or len(theirs) != len(oplan):
+                continue
+            for key, i in my_keys.items():
+                j = {'hold': ohold, 'contact': ocontact}[key]
+                if j is None or j >= len(theirs) or mine[i] is None or theirs[j] is None:
+                    continue
+                v = ag.aligned_iou(mine[i], theirs[j])[0]
+                warns.append((v, key, other, i, j))
     if worst[1]:
-        msg = f'{worst[1]} vs {worst[2]} frame {worst[3]:02d}: aligned silhouette IoU {worst[0]:.3f}'
+        msg = f'{worst[1]} vs {worst[2]} frame {worst[3]:02d}: aligned silhouette IoU {worst[0]:.3f} (source size)'
         if worst[0] > SIMILAR_FAIL:
             print(f'  FAIL: same guide frame as another character ({msg} > {SIMILAR_FAIL}): every character moves in their own way')
             rc = 1
-        elif worst[0] > SIMILAR_WARN:
-            print(f'- WARN: close to another character ({msg} > {SIMILAR_WARN}; requests.js --motion judges hold / contact at game size)')
         else:
-            print(f'- closest other {m.group(1)} mannequin: {msg}')
+            print(f'- closest frame of any other {m.group(1)} mannequin: {msg} (FAIL only above {SIMILAR_FAIL}: a copy)')
     else:
         print(f'- no other {m.group(1)}__* mannequin to compare with (art/inbox/guides/ here and on art-inbox)')
+    if warns:
+        for v, key, other, i, j in sorted(warns, reverse=True):
+            line = f'{key}: {names[i]} vs {other} frame {j:02d}, aligned silhouette IoU {v:.3f} (source size; same {group})'
+            if v > SIMILAR_WARN:
+                print(f'- WARN: {line} > {SIMILAR_WARN} - close to another character of the same {group}; requests.js --motion judges '
+                      'hold / contact aligned at game size (FAIL > 0.8)')
+            else:
+                print(f'- {line}')
+    elif my_keys and group:
+        print(f'- hold / contact: no other mannequin of the same {group} delivered yet')
     # 4. review sheet
     item = sheet_args(f'sheet_{stem}')[1]
     scale = item.get('scale') or 0.1654
@@ -568,12 +614,13 @@ def motion_skeleton(rel, name, work, exe, tip):
     print(f'- work folder: {work}')
     if rc:
         print(f'- NOT accepted: send the FAIL lines above to the PC (dot_queue row of {name}; art/requests/pc_notes.md) and wait for a redelivery.')
-        print(f'  after judging: git checkout {tip[:7]} -- {path} art/inbox/NOTES.md   (it then counts as reviewed)')
+        print(f'  after judging: git checkout {tip[:7]} -- {take}   (it then counts as reviewed)')
     else:
         print('- next: judge the review sheet by eye (the contact frame must read on its own at game size; hit: feet planted, '
               'head and shoulders snap away and come back). Then:')
-        print(f'    accept: git checkout {tip[:7]} -- {path} art/inbox/NOTES.md, set the dot_queue row of {name} to done; the frames in '
-              f'{fdir}/ (f<NN>_<name>.png) are this character\'s guide frames for the GPT strip and gate 1 (contact check)')
+        print(f'    accept: git checkout {tip[:7]} -- {take}, set the dot_queue row of {name} to done; the frames in '
+              f'{fdir}/ (f<NN>_<name>.png + pose_measured.json) are this character\'s guide frames for the GPT strip and gate 1 '
+              f'(python3 tools/art/gate_page.py OUT.html {fdir})')
         print(f'    reject: write what to change in the dot_queue row of {name} for the PC, then the same git checkout (it counts as reviewed)')
     return rc
 
@@ -716,7 +763,8 @@ def gait_delivery(rel, work, exe, tip):
         print('- add_gait.py --dry-run' + (' FAILED' if r.returncode else '') + ':')
         for ln in txt.splitlines():
             if ln.strip() and '원본 창' not in ln:
-                print('    ' + ln.strip()[:300])
+                # a refusal names the matched mannequin in full (path, frame, IoU, shift): never cut it
+                print('    ' + (ln.strip() if '거부' in ln or '마네킹' in ln else ln.strip()[:300]))
         rc = rc or r.returncode
         if rc:
             print('- NOT ready to register: fix the FAIL lines above and deliver again')

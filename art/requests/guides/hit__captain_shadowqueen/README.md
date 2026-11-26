@@ -1,6 +1,6 @@
 # 피격 마네킹 · `hit__captain_shadowqueen` — 니클라 (가벼움: 어깨가 비틀리며 휘청 한 걸음)
 
-공통 규칙은 `art/requests/guides/SPEC.md` (캔버스 3절, 레이어 4절, 관절 점 4절, **10절 = 동작 마네킹의 이름·납품·검사 수치**). 이 파일 하나만 읽고 끝낼 수 있게 적었다. 요청 2026-11-26 (클라우드).
+공통 규칙은 `art/requests/guides/SPEC.md` (캔버스 3절, 레이어 4절, 관절 점 4절, **10절 = 동작 마네킹의 이름·납품·검사 수치**). 이 파일 하나만 읽고 끝낼 수 있게 적었다 — **묻지 않고 끝까지 한다**. 요청 2026-11-26 (클라우드), 고침 2026-11-26e.
 초안은 없다 — **클라우드는 이 세트의 초안을 굽지 않는다**. K1·K2 의 출발값은 `tools/pixelart/posekit.py` `HIT_KEYS` 의 `k1_light`, `k2_light` 다(K2 는 니클라의 좁은 발에 맞게 조금 고쳤다, 아래).
 
 ## 왜 만드나 (주인 결정)
@@ -11,10 +11,10 @@
   보통 무게인 병과 전사(`hit__class_warrior`)와 같은 프레임이 되면 안 된다.
 
 ## 납품 (모든 마네킹 세트가 지키는 약속)
-- art-inbox **`art/inbox/guides/hit__captain_shadowqueen/hit__captain_shadowqueen.aseprite` 하나**. 띠·프레임 PNG·GIF 는 올리지 않는다(클라우드가 뽑는다). 스크립트를 썼으면 같은 폴더에 `mannequin_pc.py`.
+- art-inbox **`art/inbox/guides/hit__captain_shadowqueen/hit__captain_shadowqueen.aseprite` 하나**. 띠·프레임 PNG·GIF 는 올리지 않는다(클라우드가 뽑는다). 스크립트를 썼으면 같은 폴더에 `mannequin_pc.py`(수령 도구가 납품과 함께 받는다).
 - 한 프레임 384x1024, Background #FF00FF, 바닥 y=870, 머리 110px, 오른쪽을 본다(맞는 쪽 = 앞 = 오른쪽).
 - 레이어(아래 → 위): `Background` · `weapon_back`(먼 손의 칼) · `arm_far` · `leg_far` · `leg_near` · `torso` · `head` · `weapon_front`(가까운 손의 칼) · `arm_near` · `joints`(숨김).
-  칼 두 자루는 공격 세트(`atk__captain_shadowqueen`)와 같은 소품(손 점에서 칼끝 0.95 머리, 손잡이 0.20 뒤). 망토·머리카락은 그리지 않는다. 이 밖의 이름은 FAIL, 숨김은 `joints` 하나.
+  칼 두 자루는 공격 세트(`atk__captain_shadowqueen`)와 같은 소품(손 점에서 칼끝 0.85 머리, 손잡이 0.20 뒤). 망토·머리카락은 그리지 않는다. 이 밖의 이름은 FAIL, 숨김은 `joints` 하나.
 - **프레임 4개, 표 순서대로, 프레임 시간 = 표의 ms**. 태그 `hit` 하나가 1~4 전체(프레임별 태그는 표의 이름 그대로만 — `K2 stagger` 처럼 공백 포함).
 - **세계 좌표**: **앞발(`leg_far`)은 4프레임 내내 그 자리 ±3px**, 뒷발(`leg_near`)은 **뒤로만** 최대 33px(0.3 머리) 미끄러질 수 있다(앞으로는 3px 까지). 두 발 모두 바닥에 평평히(발목 높이 ±3px, 뒤꿈치·발끝 들기 없음).
 - **K3·K4 는 마네킹에서 빼지 않는다**(최종 그림에서 뺄 수 있을 뿐 — 니클라는 K3 을 GPT 가 그려 전사의 PC 손그림 K3 과 비교한다).
@@ -44,7 +44,7 @@
 | K4 settle | (−0.02, 1.37) = (190, 719) | +0.06 (+3°) | −0.01 | (0, 0) | −0.50 = 137 (−2) | (+0.27, 1.55) = (222, 700) | (+0.47, 1.62) = (244, 692) |
 
 앞발목은 4프레임 모두 +0.37 = 233px, 발목 높이 0.12.
-클라우드가 posekit 몸에 메모리에서만 세워 잰 값(그림은 만들지 않았다; 대기 기준, 원본 px):
+클라우드가 posekit 몸에 세워 잰 값(대기 기준, 원본 px; 2026-11-26e 에 이 표 그대로 `.aseprite` 를 지어 지금 검사기에 돌려 **PASS, 경고 0** 을 확인 — 스크래치에서만, 초안으로 주지 않는다):
 
 | 프레임 | 엉덩이 내려감 (12~30) | 머리가 밀린 거리 (40~90, 게임 7~15px) | 뒤로 젖힘 (15° 이하) | 앞 무릎 올라감 (1px 이하) | 뒷발 미끄럼 (33 이하) | 대기에서 가장 먼 관절 |
 |---|---|---|---|---|---|---|
@@ -76,7 +76,7 @@
 ## 자체 검사 (납품 전, 이 저장소 폴더에서 한 줄)
 `uv run --no-project --with pillow --with numpy python tools/art/check_skeleton.py ../pixel-management-inbox/art/inbox/guides/hit__captain_shadowqueen/hit__captain_shadowqueen.aseprite --motion hit --set hit__captain_shadowqueen`
 (클라우드: `python3 tools/art/check_skeleton.py hit__captain_shadowqueen.aseprite --motion hit --set hit__captain_shadowqueen`.)
-- 첫 줄 `# skeleton hit__captain_shadowqueen (hit)`, 다음 줄에 `hit weight light`. **`FAIL` 이 있으면 푸시하지 않는다.** `RESULT` 줄과 `hit (against the idle; ...)` 줄을 NOTES 에.
+- 첫 줄 `# skeleton hit__captain_shadowqueen (hit)`, 다음 줄에 `hit weight light`. **`FAIL` 이 있으면 푸시하지 않는다** — 표를 다시 보고 고친다(묻지 않는다). `RESULT` 줄과 `hit (against the idle; ...)` 줄을 NOTES 에.
   `unrecognized arguments: --motion` 이면 `git pull`, 그래도면 멈추고 알린다.
 - 검사의 비교 기준(대기)은 posekit 대기 몸을 이 세트 K1 의 두 발목 위에 세운 것이다(엉덩이 높이 1.40 머리).
 - FAIL 로 잡는 것(이 세트): 프레임 수 ≠ 4 · 프레임 시간 ≠ 60·110·90·80 · `hit` 태그 · 레이어 · 반투명 · 관절 점 · 뼈 길이 ±2px · 떨어진 머리 · 바닥 아래 · 칸 가장자리 · 같은 프레임 복사 ·

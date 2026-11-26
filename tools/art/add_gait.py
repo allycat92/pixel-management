@@ -37,9 +37,11 @@
 게임에 들어가는 그림만 받는다: 초안 자리(art/concepts/, art/requests/, drafts/, nai_*)의 파일은 sheets.py 와 같은 규칙으로, 뼈대(마네킹)는
   — 경로에 guides 폴더가 있는 파일(art/inbox/guides/<id>/ 포함), 옆에 pose_measured.json 이 있는 띠(check_skeleton --export), joints 레이어가 있는
   .aseprite, 어느 프레임(또는 좌우로 뒤집은 것)의 실루엣이 뼈대 프레임과 자리를 맞춰(그림 상자의 아래 가운데를 맞추고 x, y ±24px 를 더 찾아)
-  IoU 0.9 넘게 겹치는 원본 (joints 레이어를 지운 마네킹, 이름을 바꾸거나 몇 px 옮기거나 뒤집은 마네킹) — 모두 거부한다.
+  IoU 0.9 넘게 겹치는 원본 (joints 레이어를 지운 마네킹, 이름을 바꾸거나 몇 px 옮기거나 뒤집은 마네킹) — 모두 거부한다. 크기를 바꾼
+  마네킹도 잡도록 원본 프레임을 뼈대 프레임의 그림 상자 높이로 맞춰(가로세로 비 유지) 한 번 더 잰다 (높이 비 0.5..2 안에서).
   비교하는 뼈대: 클라우드 초안 art/requests/guides/*/v*/ (띠, 레이어를 합친 것)·art/requests/guides/*/ 의 띠, PC 가 넘긴 마네킹
-  art/inbox/guides/** 의 .aseprite (내보내 파일 해시로 ~/.cache/pixel-management/guide_masks/ 에 캐시)와 띠, --extra-guides 폴더. joints 레이어가 보이는 .aseprite 는 --allow-draft 로도 받지 않는다 (관절 점이 찍힌다).
+  art/inbox/guides/** 의 .aseprite (내보내 파일 해시로 ~/.cache/pixel-management/guide_masks/ 에 캐시)와 띠 — 작업 트리의 것과
+  origin/art-inbox 의 것(git show 로 읽는다: 아직 이 브랜치에 들이지 않은 마네킹도), --extra-guides 폴더. joints 레이어가 보이는 .aseprite 는 --allow-draft 로도 받지 않는다 (관절 점이 찍힌다).
   --allow-draft = 파이프라인 시험용, 언제나 --dry-run.
 실패로 끝나는 그림: 384px 프레임의 테두리에 닿는 프레임 (띠가 잘리거나 옆 자세가 넘어온 것 — 프레임 번호를 알린다),
   바닥 줄 아래로 내려가는 프레임 (--allow-below 를 주면 받고 기록에 남긴다), 칸에 들어가지 않는 프레임.
@@ -367,6 +369,8 @@ INBOX_GUIDES = os.path.join(ROOT, 'art', 'inbox', 'guides')
 DRAFT_IOU = 0.9              # 원본 프레임의 실루엣이 뼈대(마네킹)의 한 프레임과 이만큼 겹치면 마네킹으로 본다
 DRAFT_SEARCH = 24            # 맞춘 뒤 x, y 로 더 찾아보는 범위 (원본 px)
 EXTRA_GUIDES = []            # 비교에 더할 폴더 (receive.py 가 origin/art-inbox 의 art/inbox/guides/ 를 꺼내 둔 곳; --extra-guides)
+INBOX_REF = 'origin/art-inbox'   # 이 ref 의 art/inbox/guides/** 도 비교한다 (git show; 작업 트리에 아직 없는 PC 마네킹)
+NORM_RANGE = (0.5, 2.0)      # 원본 프레임을 뼈대 프레임의 그림 높이로 맞춰 볼 때 허용하는 높이 비
 _DRAFT_MASKS = {}
 
 
@@ -435,13 +439,15 @@ def _cache_dir():
     return os.path.join(base, 'pixel-management', 'guide_masks')
 
 
-def _ase_guide_masks(path, exe):
+def _ase_guide_masks(path, exe, label=None):
     """마네킹 .aseprite 의 보이는 레이어를 합친 프레임 실루엣들 (한 Aseprite 프레임이 384 의 배수 너비면 384 씩 자른다).
-    파일 내용의 sha256 으로 캐시한다 (~/.cache/pixel-management/guide_masks/) — 같은 파일은 Aseprite 를 다시 부르지 않는다."""
+    파일 내용의 sha256 으로 캐시한다 (~/.cache/pixel-management/guide_masks/) — 같은 파일은 Aseprite 를 다시 부르지 않는다.
+    label: 오류 문구에 쓸 이름 (git show 로 꺼낸 임시 파일이면 origin/art-inbox:<경로>)"""
     import hashlib
     with open(path, 'rb') as f:
         digest = hashlib.sha256(f.read()).hexdigest()
     cache = os.path.join(_cache_dir(), digest + '.npz')
+    label = label or rel(path)
     try:
         z = np.load(cache)
         return [np.unpackbits(z['bits'][i], count=int(z['h']) * int(z['w'])).reshape(int(z['h']), int(z['w'])).astype(bool)
@@ -450,14 +456,14 @@ def _ase_guide_masks(path, exe):
         pass
     exe2 = find_aseprite(exe)
     if not exe2:
-        raise Fail(f'{rel(path)}: 마네킹 .aseprite 를 비교 대상으로 읽을 Aseprite 실행 파일이 없다 (--aseprite-bin / tools/art/ase_headless.sh) '
+        raise Fail(f'{label}: 마네킹 .aseprite 를 비교 대상으로 읽을 Aseprite 실행 파일이 없다 (--aseprite-bin / tools/art/ase_headless.sh) '
                    '— 비교 없이 받지 않는다')
     with tempfile.TemporaryDirectory(prefix='gait-guide-') as tmp:
         png, js = os.path.join(tmp, 'frames.png'), os.path.join(tmp, 'frames.json')
         r = subprocess.run([exe2, '--batch', os.path.abspath(path), '--sheet', png, '--data', js, '--format', 'json-array'],
                            stdin=subprocess.DEVNULL, capture_output=True, timeout=300, env=ase_env())
         if r.returncode or not os.path.exists(png) or not os.path.exists(js):
-            raise Fail(f'{rel(path)}: 마네킹 .aseprite 를 비교 대상으로 내보내지 못했다 — 비교 없이 받지 않는다: '
+            raise Fail(f'{label}: 마네킹 .aseprite 를 비교 대상으로 내보내지 못했다 — 비교 없이 받지 않는다: '
                        + (r.stderr or r.stdout).decode('utf-8', 'replace').strip()[-200:])
         with open(js, encoding='utf-8') as f:
             data = json.load(f)['frames']
@@ -478,12 +484,32 @@ def _ase_guide_masks(path, exe):
     return masks
 
 
+def _git(*args):
+    r = subprocess.run(['git', '-C', ROOT, *args], capture_output=True)
+    return r.stdout if r.returncode == 0 else None
+
+
+def inbox_ref_guides():
+    """origin/art-inbox 의 art/inbox/guides/** 중 .aseprite / .ase / .png → [(경로, blob id)]; ref 가 없으면 None"""
+    out = _git('ls-tree', '-r', INBOX_REF, '--', 'art/inbox/guides')
+    if out is None:
+        return None
+    rows = []
+    for ln in out.decode('utf-8', 'replace').splitlines():
+        meta, _, path = ln.partition('\t')
+        parts = meta.split()
+        if len(parts) == 3 and parts[1] == 'blob' and path.lower().endswith(('.aseprite', '.ase', '.png')):
+            rows.append((path, parts[2]))
+    return rows
+
+
 def draft_masks(exe=None):
     """비교할 뼈대(마네킹) 프레임의 실루엣 → [(이름, 테두리 상자로 자른 mask)] (같은 모양은 한 번만):
       - 클라우드 초안 art/requests/guides/<set>/v<n>/: 띠 png(높이 1024, 너비 384 의 배수)와 layers/ 의 레이어 png 를 프레임마다 합친 것(joints 제외)
       - art/requests/guides/<set>/ 바로 아래의 띠 png
       - PC 가 넘긴 마네킹 art/inbox/guides/**: <id>.aseprite 등 모든 .aseprite (보이는 레이어, 내보내서 캐시)와 띠 png
-      - EXTRA_GUIDES 폴더들 (receive.py: 아직 이 브랜치에 들이지 않은 origin/art-inbox 의 art/inbox/guides/) — 같은 규칙"""
+      - origin/art-inbox 의 art/inbox/guides/** (git show 로 꺼낸다: 이 브랜치에 아직 들이지 않은 PC 마네킹; 이름 origin/art-inbox:<경로>)
+      - EXTRA_GUIDES 폴더들 (receive.py 가 꺼내 둔 곳 등) — 같은 규칙"""
     key = tuple(EXTRA_GUIDES)
     if key in _DRAFT_MASKS:
         return _DRAFT_MASKS[key]
@@ -525,37 +551,82 @@ def draft_masks(exe=None):
                 m = a if m is None else (m | a) if m.shape == a.shape else m
             if m is not None and m.shape[1] == SLOT:
                 add(f'{rel(os.path.join(vdir, "layers"))}/{fr}_*', m)
-    for root in [INBOX_GUIDES] + list(EXTRA_GUIDES):
-        strips(sorted(glob.glob(os.path.join(root, '**', '*.png'), recursive=True)))
+    def tree(root, label):
+        for png in sorted(glob.glob(os.path.join(root, '**', '*.png'), recursive=True)):
+            try:
+                arr = np.asarray(Image.open(png).convert('RGBA'))
+            except OSError:
+                continue
+            for k, fr in enumerate(_slots(arr)):
+                add(f'{label(png)} 의 {k + 1}번 프레임', frame_mask(fr))
         for ase in sorted(glob.glob(os.path.join(root, '**', '*.aseprite'), recursive=True)
                           + glob.glob(os.path.join(root, '**', '*.ase'), recursive=True)):
-            for k, m in enumerate(_ase_guide_masks(ase, exe)):
-                add(f'{rel(ase)} 의 {k + 1}번 프레임', m)
+            for k, m in enumerate(_ase_guide_masks(ase, exe, label(ase))):
+                add(f'{label(ase)} 의 {k + 1}번 프레임', m)
+
+    tree(INBOX_GUIDES, rel)
+    ref = inbox_ref_guides()
+    if ref is None:
+        log(f'  마네킹 비교: {INBOX_REF} 가 없다 (git fetch origin art-inbox) — 작업 트리의 art/inbox/guides/ 와 --extra-guides 만 비교한다')
+    elif ref:
+        with tempfile.TemporaryDirectory(prefix='gait-inbox-guides-') as tmp:
+            names = {}
+            for path, blob in ref:
+                data = _git('cat-file', 'blob', blob)
+                if data is None:
+                    raise Fail(f'{INBOX_REF}:{path} 를 읽지 못했다 — 비교 없이 받지 않는다')
+                dst = os.path.join(tmp, *path[len('art/inbox/guides/'):].split('/'))
+                os.makedirs(os.path.dirname(dst), exist_ok=True)
+                with open(dst, 'wb') as f:
+                    f.write(data)
+                names[os.path.realpath(dst)] = f'{INBOX_REF}:{path}'
+            tree(tmp, lambda q: names.get(os.path.realpath(q), q))
+    for root in EXTRA_GUIDES:
+        tree(root, lambda q, r=root: f'{os.path.basename(os.path.normpath(r))}/{os.path.relpath(q, r)} ({q})')
     _DRAFT_MASKS[key] = out
     return out
 
 
-def best_guide_match(frames, exe=None, stop=None):
+def _to_height(m, h):
+    """잘린 실루엣 m 을 그림 높이 h 로 (가로세로 비 유지; 넓이 평균 후 반 이상 = 켬)"""
+    k = h / m.shape[0]
+    w = max(1, round(m.shape[1] * k))
+    im = Image.fromarray(m.astype(np.uint8) * 255, 'L').resize((w, h), Image.BOX)
+    return np.ascontiguousarray(np.asarray(im) >= 128)
+
+
+def best_guide_match(frames, exe=None, stop=None, masks=None):
     """원본 프레임들 각각(과 좌우를 뒤집은 것)을 모든 뼈대 프레임에 자리를 맞춰 대 본 가장 높은 IoU
-    → (IoU, 프레임 번호, 뼈대 이름, 뒤집었나, (dx, dy)). 넓이 비가 지금까지의 최고보다 낮은 짝은 재지 않는다 (IoU ≤ 넓이 비).
-    stop 을 주면 그보다 높은 짝을 찾는 대로 멈추고, 넓이 비가 stop 이하인 짝도 재지 않는다 (판정만 필요할 때 — 돌려주는 값은 stop 이하일 수 있다)."""
+    → (IoU, 프레임 번호, 뼈대 이름, 뒤집었나, (dx, dy), 높이 맞춤 배율 또는 None). 원본 그대로 한 번, 원본을 그 뼈대 프레임의 그림 상자
+    높이로 맞춰(가로세로 비 유지, 높이 비 NORM_RANGE 안) 한 번 잰다 — 크기를 바꾼 마네킹. 넓이 비가 지금까지의 최고보다 낮은 짝은
+    재지 않는다 (IoU ≤ 넓이 비). stop 을 주면 그보다 높은 짝을 찾는 대로 멈추고, 넓이 비가 stop 이하인 짝도 재지 않는다
+    (판정만 필요할 때 — 돌려주는 값은 stop 이하일 수 있다).
+    masks: frames 대신 이미 실루엣으로 만든 bool 배열들 (sheets.py 가 split_poses 로 자세를 나눈 그림 — 384x1024 칸이 아닌 시트)."""
     drafts = [(n, d, float(d.sum())) for n, d in draft_masks(exe)]
-    best = (0.0, None, None, False, (0, 0))
+    best = (0.0, None, None, False, (0, 0), None)
     floor = stop or 0.0
-    for i, fr in enumerate(frames):
-        c = _crop(frame_mask(fr))
+    for i, fr in enumerate(masks if masks is not None else frames):
+        c = _crop(fr if masks is not None else frame_mask(fr))
         if c is None:
             continue
-        na = float(c.sum())
         for flip, m in ((False, c), (True, np.ascontiguousarray(c[:, ::-1]))):
+            scaled = {}
             for name, d, nb in drafts:
-                if min(na, nb) / max(na, nb) <= max(best[0], floor):
-                    continue
-                iou, sh_ = aligned_iou(m, d)
-                if iou > best[0]:
-                    best = (iou, i + 1, name, flip, sh_)
-                    if stop is not None and iou > stop:
-                        return best
+                cands = [(m, None)]
+                k = d.shape[0] / m.shape[0]
+                if d.shape[0] != m.shape[0] and NORM_RANGE[0] <= k <= NORM_RANGE[1]:
+                    if d.shape[0] not in scaled:
+                        scaled[d.shape[0]] = _to_height(m, d.shape[0])
+                    cands.append((scaled[d.shape[0]], k))
+                for mm, kk in cands:
+                    na = float(mm.sum())
+                    if not na or min(na, nb) / max(na, nb) <= max(best[0], floor):
+                        continue
+                    iou, sh_ = aligned_iou(mm, d)
+                    if iou > best[0]:
+                        best = (iou, i + 1, name, flip, sh_, kk)
+                        if stop is not None and iou > stop:
+                            return best
     return best
 
 
@@ -573,11 +644,12 @@ def draft_match(p, exe):
             frames = [arr[:, k * SLOT:(k + 1) * SLOT] for k in range(arr.shape[1] // SLOT)]
     except OSError:
         return None
-    iou, fi, name, flip, (dx, dy) = best_guide_match(frames, exe, stop=DRAFT_IOU)
+    iou, fi, name, flip, (dx, dy), k = best_guide_match(frames, exe, stop=DRAFT_IOU)
     if iou > DRAFT_IOU:
-        return (f'{fi}번 프레임의 실루엣이 뼈대(마네킹)와 겹친다 — {name}, IoU {iou:.3f} > {DRAFT_IOU} '
-                f'(아래 가운데를 맞추고 {dx:+d},{dy:+d}px 옮겨서{", 좌우를 뒤집어서" if flip else ""}) '
-                '= 마네킹 (joints 레이어를 지웠거나 이름을 바꾸거나 옮긴 것)')
+        return (f'{fi}번 프레임의 실루엣이 뼈대(마네킹)와 겹친다 — 맞은 마네킹: {name}, IoU {iou:.3f} > {DRAFT_IOU} '
+                f'(아래 가운데를 맞추고 {dx:+d},{dy:+d}px 옮겨서{", 좌우를 뒤집어서" if flip else ""}'
+                f'{f", 그림 높이를 x{k:.3f} 로 맞춰서" if k else ""}) '
+                '= 마네킹 (joints 레이어를 지웠거나 이름을 바꾸거나 옮기거나 크기를 바꾼 것)')
     return None
 
 
