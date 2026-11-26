@@ -43,7 +43,7 @@ SOLE_BAND = 4                                   # rows above the floor line in w
 # per half cycle: index 0 contact, 1 down, 2 push-off, 3 flight   (head units; x forward, h above the floor)
 # 2026-11-26: tables below = the PC Aseprite session's refinement (art-inbox 14c9788, eca075a, f34777f, a94de43: the owner asked for a run that
 # drives ahead: the body presses forward (leans most) in flight and rises a little once the landing is caught; the hip stays nearly level); re-baking reproduces the delivery pixel for pixel
-HIP = [1.60, 1.585, 1.62, 1.635]                  # hip joint height: lowest at down, highest in flight (nearly level - the press is in the lean, owner 2026-11-26)
+HIP = [1.60, 1.585, 1.62, 1.635]                  # hip joint height: lowest at down, highest in flight (nearly level - the press is in the lean, owner 2026-11-26); = run_base/v2 (accepted; a94de43 was the PC's 4th touch-up, there is no v4 folder): hip centre 180/178/182/184 px, bob 5.5, lean 24/19/29/31 deg
 LEAN = [0.38, 0.30, 0.47, 0.51]                # torso lean forward (rad) - the walk has 0.10-0.15
 TILT = [-0.13, -0.10, -0.155, -0.17]           # head tilt (rad): the head stays level while the torso leans
 SHW = [1.06, 1.00, 0.95, 0.94]                 # shoulder width factor while the near leg is the stance leg (mirrored for the far half)
