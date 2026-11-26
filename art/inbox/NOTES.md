@@ -838,3 +838,93 @@ CHANGED: 클라우드 초안(`art/requests/guides/heavy_base/draft/heavy_base.as
 결과: 통과
 본 방법: 게임 크기(0.1654x)·4배 확대 101ms 미리보기 GIF, 경량 달리기(`run_base/v2`)·초안·다듬기 3열 비교 GIF(고정 + 바닥 전진), H1~H8 전 프레임 비교 띠 확인
 남은 걱정: 맨손 마네킹이라 실제 중량 시트(큰 방패·무거운 무기)를 덧그릴 때 방패 아랫단(바닥 위 100px 이상) 아래로 두 정강이와 장화가 겹치지 않고 읽히는지 첫 중량 시트에서 교차 검수할 것
+
+
+## guide/atk__class_warrior - 팔 고침 2차 마무리 (Aseprite)
+CHECK: RESULT: PASS
+- `check_skeleton.py atk__class_warrior.aseprite --motion attack --set atk__class_warrior`: RESULT: PASS (경고 0, posekit warnings 0, face 0%)
+- arms (posekit natural-arms 2): in N 82/+51/+0.00 F 38/+75/+0.02 · hold N 177/+1/-0.04 F 39/+74/+0.39 · swing N 148/+17/-0.00 F 80/+51/+0.60 · contact N 119/+31/+0.18 F 31/+79/+0.36 · follow N 59/+63/+0.03 F 30/+79/-0.01 · recover N 86/+48/-0.02 F 40/+74/+0.01 · settle N 91/+46/-0.01 F 47/+70/+0.01
+- contact at f03 contact (weapon_front crosses strike line + furthest tip 347, hold->follow 263 deg, follow-through 30 deg); warrior vs ironwall IoU hold 0.776 / contact 0.754 (<= 0.800)
+CHANGED: `round2_wip` 스크립트(`posekit natural-arms 2`) 기준으로 재빌드·검증 완료. hold 에서 칼 손은 엉덩이 뒤 낮게(`handN [-0.76, 1.07]`, `wa 122`) 두어 1차의 얼굴 가로지름·머리 위 치켜듦을 없앴고, swing 방패 밀치기 → contact 방패 밑 낮게 베기 → follow 가슴 앞 지나침까지 모든 팔이 자연 꺾임(+1~+79°)·얼굴 가림 0%. `contact`/`follow`의 `elbF` 강제 지정 제거.
+
+## 판정 — guide/atk__class_warrior
+결과: 통과
+본 방법: 원본 7프레임 시트, 게임 크기(0.1654x·4배) 전체 컷 비교 시트 및 70·160·50·70·90·90·70ms 미리보기 확인
+남은 걱정: 없음
+
+## guide/atk__captain_shadowqueen - 팔 고침 2차 마무리 (Aseprite)
+CHECK: RESULT: PASS (1 warning(s))
+- `check_skeleton.py atk__captain_shadowqueen.aseprite --motion attack --set atk__captain_shadowqueen`: RESULT: PASS (1 warning: `WARN: f03 contact: only 41% of weapon_back is clear of the body`, 이전 납품 10%·1차 30%에서 개선; posekit warnings 0, face 0%)
+- arms (posekit natural-arms 2): in N 66/+59/+0.10 F 40/+74/+0.25 · hold N 153/+14/+0.22 F 148/+16/+0.34 · swing N 80/+51/+0.33 F 32/-79/-0.45 cocked · contact N 81/+52/+0.18 F 35/-77/-0.35 cocked · follow N 68/+58/+0.21 F 39/-73/-0.29 cocked · recover N 90/+46/-0.00 F 128/+26/-0.17 · settle N 105/+39/-0.01 F 140/+20/-0.15
+- contact at f03 contact (두 칼날 모두 타격선 통과 + 최대 도달 349/323, hold->follow 184 deg, follow-through 30/30 deg)
+CHANGED: `round2_wip` 스크립트(`posekit natural-arms 2`) 기준으로 재빌드·검증 완료. hold 머리 위 X 교차에서 `elbN` 강제 제거해 양팔 자연 꺾임 유지, swing~follow 낮게 돌진해 가위 닫힘, recover/settle 의 들린 먼 팔꿈치 제거(`handF [1.85, 1.05]` / `[1.75, 1.12]` 로 몸 옆 자연스럽게 내림).
+
+## 판정 — guide/atk__captain_shadowqueen
+결과: 통과
+본 방법: 원본 7프레임 시트, 게임 크기(0.1654x·4배) 전체 컷 비교 시트 및 60·110·50·60·80·80·60ms 미리보기 확인
+남은 걱정: contact 에서 먼 단검(`weapon_back`)이 몸통 바깥 41% 로 노출되어 가위 닫힘 자체는 게임 크기에서 읽히지만, 본 그림 덧그릴 때 먼 칼날 밝기를 높여 배경·어깨와 뚜렷이 분리할 것
+
+## guide/atk__captain_ironwall - 팔 고침 2차 마무리 및 contact/follow 철퇴 팔 손질 (Aseprite)
+CHECK: RESULT: PASS
+- `check_skeleton.py atk__captain_ironwall.aseprite --motion attack --set atk__captain_ironwall`: RESULT: PASS (경고 0, posekit warnings 0, face 0%)
+- arms (posekit natural-arms 2): in N 37/+75/+0.07 F 39/+74/+0.06 · hold N 32/+80/+0.18 F 39/+75/+0.43 · swing N 37/+74/+0.12 F 38/+75/+0.42 · contact N 30/+80/+0.01 F 34/+77/+0.50 · follow N 30/+79/+0.01 F 26/+82/+0.09 · recover N 38/+74/+0.10 F 38/+74/+0.34 · settle N 41/+73/+0.05 F 39/+74/+0.06
+- contact at f03 contact (shield front x 348 최대 도달, follow hip +4px, weapon_back 12 deg carried along — not a cut); warrior vs ironwall IoU hold 0.776 / contact 0.754 (<= 0.800)
+CHANGED: `round2_wip` 에서 `contact`/`follow` 의 가까운 팔이 `elbN [-0.3, 1.0]` 때문에 등 뒤로 153° 뒤집혀 접히던 문제(`hinge +74° -> -79° -> +74°`, 팔꿈치 31° 급접힘)를 고침:
+- **contact**: `elbN` 제거, `handN [0.58, 1.98]`·`wa 128°` 로 전진하는 어깨를 따라 자연 꺾임(`+80°`, 얼굴 가림 0%) 유지하면서 철퇴 머리가 어깨 뒤 높이에서 60%+ 또렷이 보이게 함. 몸은 더 낮게 웅크리고(`hip [0.36, 1.05]`) 탑방패를 앞으로 8° 기울여 밀어붙임(`handF [1.34, 2.02]`, `shield_ang -8°`, 방패 앞면 x 348).
+- **follow**: `elbN` 제거, `handN [0.64, 2.04]`·`wa 128°`·`hip [0.40, 1.12]`·`handF [1.32, 1.84]`·`shield_ang -5°` 로 자연 반동·연속성 유지.
+
+## 판정 — guide/atk__captain_ironwall
+결과: 통과
+본 방법: 원본 7프레임 시트, 게임 크기(0.1654x·4배) 전체 컷 비교 시트, 70·170·50·80·80·90·70ms 미리보기, 전사 대비 hold/contact 실루엣 IoU 측정(0.776 / 0.754) 확인
+남은 걱정: 없음
+
+## guide/atk__class_archer - 팔 고침 2차 마무리 및 follow 시위 팔 완화 (Aseprite)
+CHECK: RESULT: PASS
+- `check_skeleton.py atk__class_archer.aseprite --motion attack --set atk__class_archer`: RESULT: PASS (경고 0, posekit warnings 0, face 0%)
+- arms (posekit natural-arms 2; bow string arm N): nock N 84/+50/+0.23 F 132/+25/+0.29 · raise N 41/+73/+0.17 F 70/+57/+0.18 · hold N 46/-71/-0.38 draw F 152/+14/+0.62 · release N 44/-71/-0.61 draw F 170/+5/+0.62 · follow N 43/-72/-0.40 cocked F 170/+5/+0.62 · lower N 58/+64/-0.01 F 88/+48/+0.33 · settle N 97/+43/-0.03 F 103/+39/+0.24
+- draw length (bow hand - draw hand): 60 79 154 213 238 86 83 px (release 시위 손 -62px 후퇴)
+CHANGED: `round2_wip` 스크립트(`posekit natural-arms 2`, `_solve_sides` 비활성·`bow_draw` 적용) 기준으로 재빌드하고, `follow` 에서 시위 팔꿈치가 30.4° 로 지나치게 좁혀져 보이던 것을 `handN [-0.90, 2.58]`·`elbN [-1.0, 0.2]` 로 풀어 `inner 43°` 의 자연스러운 발사 후 반동으로 다듬음.
+
+## 판정 — guide/atk__class_archer
+결과: 통과
+본 방법: 원본 7프레임 띠, 게임 크기(0.1654x·4배) 80·80·200·60·110·100·70ms 미리보기 확인
+남은 걱정: 없음
+
+## guide/hit__class_warrior - 팔 고침 2차 마무리 (Aseprite)
+CHECK: RESULT: PASS
+- `check_skeleton.py hit__class_warrior.aseprite --motion hit --set hit__class_warrior`: RESULT: PASS (경고 0, posekit warnings 0, face 0%)
+- arms (posekit natural-arms 2): K1 impact N 94/+44/-0.01 F 39/+74/+0.17 · K2 peak N 58/+64/-0.03 F 40/+74/+0.01 · K3 recover N 94/+44/-0.02 F 38/+75/-0.00 · K4 settle N 92/+45/-0.02 F 48/+69/-0.01
+- hit (hip drop / head away / lean back / front knee rise / back foot slide): K1 14/32/-2.2/0/+0 · K2 21/46/1.2/0/+0 · K3 10/19/-3.7/0/+0 · K4 2/4/-5.9/0/+0
+CHANGED: `round2_wip` 스크립트(`posekit natural-arms 2`) 기준으로 재빌드·검증 완료. K1~K4 전 프레임에서 검 팔의 닭 날개를 없애 자연 꺾임(`inner 58~94°`, `hinge +44~+64°`)으로 정리했고, 두 발 고정·무릎 들림 0·방패 전면 유지 그대로.
+
+## 판정 — guide/hit__class_warrior
+결과: 통과
+본 방법: 게임 크기(0.1654x·4배) 대기 유령 겹침 비교 시트 및 70·100·80·70ms 전후 맥락 GIF 확인
+남은 걱정: 없음
+
+## guide/hit__captain_shadowqueen - 팔 고침 2차 마무리 (Aseprite)
+CHECK: RESULT: PASS
+- `check_skeleton.py hit__captain_shadowqueen.aseprite --motion hit --set hit__captain_shadowqueen`: RESULT: PASS (경고 0, posekit warnings 0, face 0%)
+- arms (posekit natural-arms 2): K1 impact N 111/+35/+0.08 F 100/+41/-0.02 · K2 stagger N 94/+44/-0.03 F 88/+48/-0.03 · K3 recover N 105/+39/+0.01 F 113/+34/-0.01 · K4 settle N 113/+34/+0.07 F 111/+36/-0.03
+- hit (hip drop / head away / lean back / front knee rise / back foot slide): K1 18/50/1.2/-2.0/0 · K2 26/69/6.2/-1.0/-34 · K3 14/33/-0.2/-1.0/-16 · K4 3/6/-5.7/-1.0/-2
+CHANGED: `round2_wip` 스크립트(`posekit natural-arms 2`) 기준으로 재빌드·검증 완료. K1~K4 전 프레임에서 먼 팔의 닭 날개·팔꿈치 들림을 없애 양팔 자연 꺾임(`inner 88~113°`, `hinge +34~+48°`)으로 정리, 가벼움 뒷발 미끄럼(-34px)과 쌍검 각도 흐름 유지.
+
+## 판정 — guide/hit__captain_shadowqueen
+결과: 통과
+본 방법: 게임 크기(0.1654x·4배) 대기 유령 겹침 비교 시트 및 60·110·90·80ms 미리보기 확인
+남은 걱정: 없음
+
+## guide/robe_base - 로브 이동 마네킹 다듬기 (Aseprite)
+CHECK: RESULT: PASS
+- `check_skeleton.py robe_base.aseprite --gait robe --pose art/requests/guides/robe_base/draft/pose.json --base art/requests/guides/robe_base/draft/robe_base.aseprite`: RESULT: PASS (경고 0, posekit warnings 0)
+- 8 frames, 384x1024, durations [96] ms, layers: Background · arm_far · leg_far · leg_near · torso · cloth_front · head · arm_near · joints(숨김)
+- step 134 / 136 px (= 22.3 game px, step/4 = 33.5 / 34.0) · hip height 182.5 180.5 185.0 185.5 -> bob 5.0 px (0.8 game px) · lean 6.9-7.5 deg (range 0.6) · lifted sole 6 8 5 9 10 5 px · elbows 71-76 deg, hand fore-aft near 32.0 / far 36.0 px, hand height near 195-222 / far 181-204 px · hem 46 41 40 45 px (G1~G4/G5~G8), edges G1 74/-87 G2 71/-84 G3 58/-79 G4 71/-59 G5 79/-85 G6 76/-83 G7 60/-79 G8 67/-59 · cloth_front change 8% 7% 12% 8% 6% 7% 9% 8% · head drift 0.0 2.7 1.3 0.6 px, tilt -1.5..+0.4 deg · silhouette 13% 15% 17% 15% 12% 16% 15% 13%
+CHANGED: 클라우드 초안(`art/requests/guides/robe_base/draft/robe_base.aseprite`)에서 다리·몸통·팔·관절 점·96ms 박자·보폭(134.2px)은 그대로 두고 `cloth_front` 레이어만 G1~G8 전 프레임 손질:
+- **자락 외곽 곡선화(G1~G8)**: 딱딱한 10각 사다리꼴을 허리띠 아래는 깔끔히 붙고 앞 무릎에 밀리는 곳은 둥글게 감기며 뒤로는 부드럽게 끌리는 열린 Catmull-Rom 곡선으로 다듬음. 아랫단에도 걸음 위상에 맞는 미세한 물결을 주어 천의 흐름을 살리되 바닥 위 40~46px(기준 38~52px)·두 무릎 완전 가림 유지.
+- **내려앉음(G2·G6) 뻣뻣함 완화**: G1→G2(G5→G6)에서 자락이 완전히 얼어 보이지 않도록 앞·뒤 끝을 약 2~3px(허용 ±4px 안)만 미세하게 가라앉혀 한 박자 늦음은 유지하면서도 살아 있는 천 움직임(이웃 변화 6~12%)으로 정리.
+- 지침 판: 2026-11-26f
+
+## 판정 — guide/robe_base
+결과: 통과
+본 방법: 게임 크기(0.1654x)·4배 확대 96ms 미리보기 GIF, 경량 달리기(`run_base/v2`)·초안·다듬기 3열 비교 GIF(고정 + 바닥 전진), G1~G8 전 프레임 비교 띠 확인
+남은 걱정: 맨손 마네킹이라 실제 마법사·사제 시트 덧그릴 때 지팡이 끝(G1·G5 접지)과 로브 앞자락 끝이 겹치지 않는지 첫 로브 시트에서 교차 검수할 것

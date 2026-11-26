@@ -67,6 +67,18 @@ SET = {
     ],
 }
 
+# ---------------------------------------------------------------- ARMS: table changes for posekit natural-arms 2 (README 「팔 고침」 2차)
+# the frame keys below replace the table's (None removes the key); "*" = set-level keys
+ARMS_FIX = {"*": {"defaults": {"footN": [-0.85, 0.12], "footF": [0.85, 0.12], "toeN": 0.85, "faN": 0, "faF": 0, "swF": 0.2}, "weapon": {"type": "bow", "hand": "F", "layer": "weapon_front", "height": 1.50, "thick": 0.06, "bend": 0.16, "draw_bend": 0.06, "recurve": 0.07, "rgb": "#8A5A2B", "string_px": 2.5, "string_rgb": "#E6E6E6", "arrow": 1.50, "arrow_px": 4, "arrow_rgb": "#B0B0B8", "arrowhead": [0.09, 0.075]}}, "nock": {"handN": [0.45, 2.12], "handF": [1.00, 1.62]}, "raise": {"swN": None, "swF": None, "handN": [0.08, 2.40]}, "hold": {"swN": None, "swF": None, "handN": [-0.10, 2.84]}, "release": {"swN": None, "swF": None, "handF": [1.275, 2.62], "handN": [-0.66, 2.82]}, "follow": {"swN": None, "swF": None, "handF": [1.262, 2.58], "handN": [-0.90, 2.58], "elbN": [-1.0, 0.2]}, "lower": {"swN": None, "swF": None, "handN": [0.16, 2.12]}, "settle": {"handN": [0.23, 1.66], "handF": [0.98, 1.86]}}
+_T = globals().get("SET") or globals().get("CFG")
+_T.update(ARMS_FIX.get("*", {}))
+for _f in _T["frames"]:
+    for _k, _v in ARMS_FIX.get(_f["name"], {}).items():
+        if _v is None:
+            _f.pop(_k, None)
+        else:
+            _f[_k] = _v
+# ---------------------------------------------------------------- /ARMS
 args = sys.argv[1:]
 if len(args) == 3:
     repo, setf, out = args
@@ -78,6 +90,7 @@ else:
     sys.exit(__doc__)
 sys.path.insert(0, os.path.join(repo, 'tools', 'pixelart'))
 import posekit as pk  # noqa: E402
+assert getattr(pk, 'ARMS_VERSION', '').startswith('posekit natural-arms 2'), 'pull the repo: this table needs posekit natural-arms 2 (tools/pixelart/posekit.py)'  # ARMS
 import walk8 as w8  # noqa: E402
 
 HEAD, SLOT, H, BASE, SCALE = w8.HEAD_PX, w8.SLOT, w8.SH_, w8.BASELINE, w8.SCALE
@@ -109,7 +122,8 @@ def _solve_sides(pose, B, weapon):
     return J
 
 
-pk.solve = _solve_sides
+# ARMS: posekit places swN / swF itself now (same shoulders) and keeps the natural elbow - no re-solve here
+# pk.solve = _solve_sides
 
 
 def load_embedded():
@@ -164,6 +178,9 @@ def make_pose(f, lift=(0.0, 0.0)):
         dv = (up - hup) * 0.55 * B.hs
         ho = p.get('head_off', (0.0, 0.0))
         p['head_off'] = (ho[0] + dv[0], ho[1] - dv[1])
+    p['arms'] = 'natural'      # ARMS: posekit natural-arms 2 - the elbow bends the anatomical way (SPEC 10.3b)
+    if cfg.get('weapon', {}).get('type') == 'bow':       # ARMS: the string hand may draw (raised elbow behind the hand)
+        p['bow_draw'] = 'N' if cfg['weapon'].get('hand', 'F') == 'F' else 'F'
     p['z'] = f.get('z', {'farfore': 'back'})
     return p
 
