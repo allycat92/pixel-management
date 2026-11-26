@@ -134,6 +134,8 @@ ARM_CROSS = (0.30, -0.05)                   # crossing: elbow this far in front 
                                             # a hand cocked above the shoulder behind the head has its elbow forward - natural)
 ARM_STRAIGHT = 160.0                        # an arm straighter than this has no bend side
 ARM_REV = 0.04                              # reversed only when the elbow is this far (heads) on the wrong side of shoulder -> hand
+ARM_TUCK = (0.10, -0.35)                    # tucked (warn): hand over 0.10 above its shoulder, forearm running over 0.35 back to it
+                                            # and the elbow above the hand - a hand wrapped behind the neck under a raised elbow
 HANG_UPPER, HANG_FORE = 0.62, 0.65          # upper arm / forearm + hand (4-head Body) for hang_gap
 
 
@@ -160,6 +162,8 @@ def arm_eval(S, E, H, hip, neck0, unit=1.0, torso=1.05, allow_draw=False):
       draw          reversed hinge, hand at/above the shoulder, elbow behind the hand and not dropped: the bow draw - ok only with
                     allow_draw (the string arm of a bow), else it is "hyper"
       hyper         any other reversed hinge (the elbow bends the wrong way)
+      tucked        (warn) hand over 0.10 above its shoulder, the forearm running > 0.35 back to it and the elbow ABOVE the hand: the
+                    hand is wrapped behind the neck / head under a raised elbow (a cocked weapon: the hand goes above the elbow)
       chicken-wing  elbow > 0.15 behind its own shoulder (warn > 0.08), bent under 115 deg, while the forearm runs > 0.35 forward
                     to a hand below the shoulder + 0.10: the upper arm points back behind the torso and the forearm folds forward again
     hang_gap = 0.65 - |hand - (shoulder - 0.62 up)|: > 0 means the hand cannot be reached with the elbow hanging under the shoulder
@@ -207,6 +211,9 @@ def arm_eval(S, E, H, hip, neck0, unit=1.0, torso=1.05, allow_draw=False):
                    f'forward to the hand: hang_gap {hang:+.2f} - move the hand about {max(hang, 0.05):.2f} head forward / down')
     if fwd and dE[0] < ARM_BACK_WARN:
         return res('warn', 'chicken-wing', f'elbow {-dE[0]:.2f} head behind its shoulder (borderline, fail at {-ARM_BACK:.2f})')
+    if dH[1] > ARM_TUCK[0] and h[0] - e[0] < ARM_TUCK[1] and e[1] > h[1]:
+        return res('warn', 'tucked', f'hand {dH[1]:.2f} head above its shoulder tucked {e[0] - h[0]:.2f} back under an elbow '
+                   f'{e[1] - h[1]:.2f} above it: raise the hand above the elbow (a cocked weapon) or bring it forward')
     if inner < ARM_FOLD_WARN:
         return res('warn', 'folded', f'elbow folded to {inner:.0f} deg (under {ARM_FOLD_WARN:.0f}): hand {reach:.2f} head from its shoulder')
     if side < -ARM_REV:

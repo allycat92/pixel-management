@@ -108,8 +108,9 @@ ARMS (all three, SPEC 10.3b, posekit.arm_eval in torso coordinates - r forward, 
       in front of both the shoulder and the hand), hyper (any other reversed hinge - the natural side is (-d.y, d.x) of shoulder ->
       hand for a right-facing figure; a bow's string arm may draw: raised elbow behind the hand at shoulder height), folded (inner
       elbow angle under 20 deg). An elbow under 20 % visible (higher layers cover it) only WARNs.
-  WARN chicken-wing 0.08-0.15 head back, inner angle 20-35 deg, an almost straight arm bent the wrong way, an elbow jumping over
-      2 x its hand's move + 40 px (and over 60 px) between neighbouring frames.
+  WARN chicken-wing 0.08-0.15 head back, inner angle 20-35 deg, an almost straight arm bent the wrong way, tucked (a hand over 0.10
+      above its shoulder wrapped over 0.35 back under a higher elbow - behind the neck), an elbow jumping over 2 x its hand's move +
+      40 px (and over 60 px) between neighbouring frames.
 """
 import argparse
 from collections import Counter
