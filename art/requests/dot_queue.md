@@ -21,7 +21,7 @@ Claude Code 가 받아서 확인한 결과는 `art/requests/feedback.md`에 남�
 
 | 누구 | 종류 | id | 할 일 (자세한 것은 그 줄의 요청서) |
 |---|---|---|---|
-| Antigravity | DOT_READY | `sheet/captain/liberator/idle-redraw` | 카토 새 디자인 대기 1컷: 쇠사슬과 주먹, 장검은 등에. [요청서의 THIS ROUND](phase3/captain_liberator/README.md#this-round). 옛 장검 손질은 취소 유지. |
+| Antigravity | DOT_READY | `sheet/captain/liberator/chain-sheet` | 카토 주먹·사슬 시트: 대기 `2391081` 그대로, 준비·접촉·피격 세 컷 추가. [요청서](phase3/captain_liberator/chain_sheet.md). |
 
 수령 완료, 제작 대상 아님: 비요른·카이·해골 병사·사막 도적 (`5520f35`), 고블린·서리 트롤 (`c4cc054`). `C5-art-battle-integration-qa`에서 Codex가 별도 빌드로 반영·실전 확인한다. 최종 등록은 별도다.
 
