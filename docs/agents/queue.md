@@ -7,8 +7,8 @@
 
 | 누구 | id | 상태 | 할 일 (자세한 것은 그 줄의 문서) |
 |---|---|---|---|
-| Codex | `C5-art-battle-integration-qa` | READY | 납품 시트 6종을 격리 빌드에 먼저 반영하고 실제 전투 UI에서 확인: `docs/agents/tasks/C5-art-battle-integration-qa.md` |
-| Codex | `C6-shadow-sweep-tooling` | READY | 그림자 측정 도구 손질(노브 검사·digest·표 이름·문서): `docs/agents/tasks/C6-shadow-sweep-tooling.md` |
+| Codex | `C5-art-battle-integration-qa` | REVIEW | 납품 시트 6종을 격리 빌드에 먼저 반영하고 실제 전투 UI에서 확인: `docs/agents/tasks/C5-art-battle-integration-qa.md` |
+| Codex | `C6-shadow-sweep-tooling` | REVIEW | 그림자 측정 도구 손질(노브 검사·digest·표 이름·문서): `docs/agents/tasks/C6-shadow-sweep-tooling.md` |
 
 ## 끝난 일
 
