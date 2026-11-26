@@ -7,10 +7,10 @@
 
 | 누구 | id | 상태 | 할 일 (자세한 것은 그 줄의 문서) |
 |---|---|---|---|
-| Codex | `C1-walker-yields` | READY | 유닛 밀림 고치기: `docs/agents/tasks/C1-walker-yields.md` |
 | GPT | `A1-playtest` | READY | 플레이테스트 한 바퀴와 화면 검수 보고: `docs/agents/tasks/A1-playtest.md` (11-26: Antigravity 에서 GPT 로 옮김) |
 
 ## 끝난 일
 
 | 누구 | id | 결과 |
 |---|---|---|
+| Codex | `C1-walker-yields` | **DONE** (2026-11-26, `54ac32d` 합침): 서 있는 유닛 밀림 20.07% → 0.04%, 승패 재현 400판 불일치 0, 봇 동일, 전투 길이 +4~10%, 탐색 시간 그대로. GPT 독립 QA(`2d5bd59`) 통과 |

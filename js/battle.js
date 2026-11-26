@@ -681,9 +681,10 @@ const Battle = (() => {
   const groupAlive = (g) => g.units.filter((u) => u.alive && !u.fled);
   const sideActive = (st, side) => st.groups.some((g) => g.side === side && !g.routed && groupAlive(g).length);
   // Math.hypot 은 느려서 (전투 찾기가 한 판을 여러 번 시뮬레이션한다) 제곱근으로 직접 잰다
-  const dist = (a, b) => { const dx = a.x - b.x, dy = a.y - b.y; return Math.sqrt(dx * dx + dy * dy); };
-  const len2 = (x, y) => Math.sqrt(x * x + y * y);
-  const meleeDist = (a, b) => { const dx = a.x - b.x, dy = (a.y - b.y) * DEPTH; return Math.sqrt(dx * dx + dy * dy); };
+  const { sqrt, max, min, abs } = Math;
+  const dist = (a, b) => { const dx = a.x - b.x, dy = a.y - b.y; return sqrt(dx * dx + dy * dy); };
+  const len2 = (x, y) => sqrt(x * x + y * y);
+  const meleeDist = (a, b) => { const dx = a.x - b.x, dy = (a.y - b.y) * DEPTH; return sqrt(dx * dx + dy * dy); };
   const sizeOf = (u) => (u.scale > 1 ? u.scale * 4 : 0);
   const isMelee = (u) => !u.healer && !u.skills[0].shot;
 
@@ -693,7 +694,10 @@ const Battle = (() => {
   const slotFree = (t, i, u) => { const a = t.slots[i]; return !a || a === u || !holdsSlot(a, t, i); };
   const slotAt = (t, i, s) => {
     const [ox, oy] = MELEE_SLOTS[i];
-    return { x: t.x + (ox >= 0 ? s : -s) * (Math.abs(ox) + sizeOf(t)), y: clamp(t.y + oy, TOP, BOTTOM) };
+    const y = clamp(t.y + oy, TOP, BOTTOM), ny = (y - t.y) / (SEP_FOE_Y + sizeOf(t) * 0.5);
+    // 위·아래 경계에 눌려 자리가 목표에 가까워지면 그만큼 옆으로 물린다 (적과의 간격 타원 밖)
+    const ax = max(abs(ox) + sizeOf(t), (SEP_FOE_X + sizeOf(t) * 0.75) * sqrt(max(0, 1.08 - ny * ny)));
+    return { x: t.x + (ox >= 0 ? s : -s) * ax, y };
   };
   // 목표 곁에 이미 붙은 다른 근접 공격자 수 (다 찼으면 Infinity)
   function crowdOf(t, u) {
@@ -702,8 +706,19 @@ const Battle = (() => {
     for (let i = 0; i < slotCount(t); i++) if (!slotFree(t, i, u)) n++;
     return n >= meleeCap(t) ? Infinity : n;
   }
+  // 자리를 고를 때, 이미 다른 몸이 서 있는 자리는 건너뛴다 (가 봐야 비켜 달라고 밀 수밖에 없다)
+  function spotTaken(p, u, t, live) {
+    for (const o of live) {
+      if (o.x <= p.x - 29 || o.x >= p.x + 29 || o.y <= p.y - 24 || o.y >= p.y + 24 || o === u || o === t || !o.alive || o.moving) continue;
+      const same = o.side === u.side, big = sizeOf(u) + sizeOf(o);
+      const mx = (same ? SEP_X : SEP_FOE_X) + big * 0.75, my = (same ? SEP_Y : SEP_FOE_Y) + big * 0.5;
+      const dx = (o.x - p.x) / mx, dy = (o.y - p.y) / my;
+      if (dx * dx + dy * dy < 0.64) return true;
+    }
+    return false;
+  }
   // u 가 t 를 칠 자리 (자리가 다 찼으면 null)
-  function slotPos(t, u) {
+  function slotPos(t, u, live) {
     if (!t.slots) t.slots = [];
     if (u.slotOf !== t || u.slot < 0 || t.slots[u.slot] !== u) {
       // 새로 자리를 잡는다: 빈자리 중 가장 가까운 곳. 다가오는 쪽(왼쪽/오른쪽)은 이때 정해 둔다.
@@ -713,7 +728,7 @@ const Battle = (() => {
       for (let i = 0; i < slotCount(t) && !full; i++) {
         if (!slotFree(t, i, u)) continue;
         const p = slotAt(t, i, s);
-        const d = len2(p.x - u.x, p.y - u.y);
+        const d = len2(p.x - u.x, p.y - u.y) + (spotTaken(p, u, t, live) ? 1000 : 0);
         if (d < bd) { bd = d; best = i; }
       }
       u.slotOf = t; u.slot = best; u.slotSide = s;
@@ -722,13 +737,61 @@ const Battle = (() => {
     }
     return slotAt(t, u.slot, u.slotSide);
   }
+
+  // 길 비키기: 가는 길 앞에 서 있는 몸(아군·적, 내 목표는 빼고)이 있으면 그 옆을 겨눠 돌아간다 (밀고 지나가지 않게).
+  // 피할 쪽은 한 번 정하면 같은 몸을 지날 때까지 유지한다 (좌우로 떨지 않게). 위·아래 경계 밖으로는 돌지 않는다.
+  const STEER_LOOK = 2.2, STEER_CLR = 1.2;
+  function steer(u, live, mx, my, gx, gy, tg) {
+    const ml = len2(mx, my) || 1, dx = mx / ml, dy = my / ml;
+    let best = null, bA = Infinity, bLat = 0, bMX = 0, bMY = 0, bnx = 0, bny = 0;
+    const rxMax = STEER_LOOK * (SEP_X + (sizeOf(u) + 12) * 0.75);
+    const ryMax = STEER_LOOK * (SEP_Y + (sizeOf(u) + 12) * 0.5);
+    for (const o of live) {
+      if (o.x <= u.x - rxMax || o.x >= u.x + rxMax || o.y <= u.y - ryMax || o.y >= u.y + ryMax) continue;
+      if (o === u || o === tg || !o.alive || o.fled || (o.side === u.side && (u.g.routed || o.g.routed))) continue;
+      if (o.moving && (o.vx || 0) * dx + (o.vy || 0) * dy > 0.7 * u.speed * DT) continue;  // 같은 쪽으로 비슷하게 가는 몸은 따라간다
+      const same = o.side === u.side, big = sizeOf(u) + sizeOf(o);
+      const MX = (same ? SEP_X : SEP_FOE_X) + big * 0.75, MY = (same ? SEP_Y : SEP_FOE_Y) + big * 0.5;
+      const rx = (o.x - u.x) / MX, ry = (o.y - u.y) / MY;
+      if (rx > STEER_LOOK || rx < -STEER_LOOK || ry > STEER_LOOK || ry < -STEER_LOOK) continue;
+      let nx = dx / MX, ny = dy / MY; const nl = len2(nx, ny) || 1; nx /= nl; ny /= nl;
+      const along = rx * nx + ry * ny;
+      if (along <= 0 || along > STEER_LOOK || along >= bA) continue;
+      const lat = -rx * ny + ry * nx;
+      if (lat >= 1 || lat <= -1) continue;
+      const gAlong = ((gx - u.x) / MX) * nx + ((gy - u.y) / MY) * ny;
+      if (gAlong < along - 0.6) continue;           // 목적지가 그 몸보다 앞이면 피할 것 없다
+      best = o; bA = along; bLat = lat; bMX = MX; bMY = MY; bnx = nx; bny = ny;
+    }
+    if (!best) { u.avoid = null; return null; }
+    let s = u.avoid && u.avoid.o === best ? u.avoid.s : (bLat > 0.08 ? -1 : bLat < -0.08 ? 1 : (u.y < (TOP + BOTTOM) / 2 ? 1 : -1) * (bny >= 0 ? 1 : -1) || 1);
+    const way = (k) => ({ x: best.x + k * -bny * STEER_CLR * bMX, y: best.y + k * bnx * STEER_CLR * bMY });
+    let w = way(s);
+    if (w.y < TOP || w.y > BOTTOM) { const w2 = way(-s); if (w2.y >= TOP && w2.y <= BOTTOM) { s = -s; w = w2; } else w.y = clamp(w.y, TOP, BOTTOM); }
+    u.avoid = { o: best, s };
+    let ax = w.x - u.x, ay = w.y - u.y; const al = len2(ax, ay) || 1; ax /= al; ay /= al;
+    if (ax * dx + ay * dy < 0) { ax = s * -dy; ay = s * dx; }   // 뒤로 돌지는 않는다: 옆으로 비킨다
+    return [ax, ay];
+  }
+  const GHOST_FAR = 20;
+  // 원거리·치유: 서 있는 아군과 몸이 깊이 겹친 채로는 멈추지 않는다 (조금 더 걸어 나가 선다)
+  function crowdedAt(u, live) {
+    for (const o of live) {
+      if (o.x <= u.x - 28 || o.x >= u.x + 28 || o.y <= u.y - 24 || o.y >= u.y + 24) continue;
+      if (o === u || !o.alive || o.moving || o.side !== u.side) continue;
+      const big = sizeOf(u) + sizeOf(o), mx = SEP_X + big * 0.75, my = SEP_Y + big * 0.5;
+      const dx = (o.x - u.x) / mx, dy = (o.y - u.y) / my;
+      if (dx * dx + dy * dy < 0.6) return true;
+    }
+    return false;
+  }
   const buffSum = (u, k, t) => u.buffs.reduce((a, b) => a + (b.until > t ? (b[k] || 0) : 0), 0);
   const atkMul = (u, t) => {
     const cap = u.g.captain;
     const aura = cap.alive && cap !== u && len2(cap.x - u.x, cap.y - u.y) < 60 ? 1.1 : 1; // 대장 곁의 대원은 힘이 난다
     return (1 + buffSum(u, 'atk', t)) * aura;
   };
-  const defMul = (u, t) => 1 - Math.min(0.6, buffSum(u, 'def', t));
+  const defMul = (u, t) => 1 - min(0.6, buffSum(u, 'def', t));
 
   function addBuff(st, u, b) { if (b) u.buffs.push({ atk: b.atk || 0, def: b.def || 0, until: st.t + b.dur }); }
 
@@ -760,15 +823,15 @@ const Battle = (() => {
       let d = base * (e === t ? 1 : 0.7);
       if (sk.exec && e.hp / e.maxHp < 0.35) d *= 1 + sk.exec;
       dealt += damage(st, e, d, crit && e === t, u);
-      if (sk.stun && e.alive) e.stunUntil = Math.max(e.stunUntil, st.t + sk.stun * (e.boss ? 0.3 : e.bigMon ? 0.6 : 1));
-      if (sk.slow && e.alive) e.slowUntil = Math.max(e.slowUntil || 0, st.t + sk.slow * (e.boss ? 0.4 : e.bigMon ? 0.7 : 1));
+      if (sk.stun && e.alive) e.stunUntil = max(e.stunUntil, st.t + sk.stun * (e.boss ? 0.3 : e.bigMon ? 0.6 : 1));
+      if (sk.slow && e.alive) e.slowUntil = max(e.slowUntil || 0, st.t + sk.slow * (e.boss ? 0.4 : e.bigMon ? 0.7 : 1));
     });
     const special = sk !== u.skills[0];
     st.fx.push({ kind: 'hit', x: t.x, y: t.y - 8, dir: u.face, melee: !sk.shot, style: sk.shot ? null : meleeStyle(sk), big: crit || special, special, t: 0,
       color: SHOT_COLOR[sk.shot] || (u.side === 0 ? '#bfe8ff' : '#ffb0a0') });
     if (sk.aoe) st.fx.push({ kind: 'boom', x: t.x, y: t.y - 8, r: sk.aoe, t: 0, color: SHOT_COLOR[sk.shot] || '#f39c12' });
     if (sk.drain && u.alive) {
-      u.hp = Math.min(u.maxHp, u.hp + dealt * sk.drain);
+      u.hp = min(u.maxHp, u.hp + dealt * sk.drain);
       if (dealt > 0) st.fx.push({ kind: 'drain', x: t.x, y: t.y, tx: u.x, ty: u.y, t: 0 });
     }
     if (sk.selfBuff) addBuff(st, u, sk.selfBuff);
@@ -778,7 +841,7 @@ const Battle = (() => {
     const list = sk.aoe ? st.units.filter((a) => a.alive && !a.fled && a.side === u.side && dist(a, t) <= sk.aoe) : [t];
     list.forEach((a) => {
       if (!a.alive) return;
-      a.hp = Math.min(a.maxHp, a.hp + u.healPow * sk.heal * (0.9 + st.r() * 0.2));
+      a.hp = min(a.maxHp, a.hp + u.healPow * sk.heal * (0.9 + st.r() * 0.2));
       st.fx.push({ kind: 'heal', x: a.x, y: a.y - 14, t: 0, named: !!a.named });
       if (sk.buff) addBuff(st, a, sk.buff);
     });
@@ -797,7 +860,7 @@ const Battle = (() => {
       }
       return best;
     }
-    const reach = (sk.dash ? Math.max(sk.range, 60) : sk.range + (sk.shot ? 0 : BODY));
+    const reach = (sk.dash ? max(sk.range, 60) : sk.range + (sk.shot ? 0 : BODY));
     let best = null, bd = Infinity;
     for (const e of live) {
       if (e.side === u.side || e.g.routed) continue;
@@ -810,7 +873,7 @@ const Battle = (() => {
   function useSkill(st, u, sk, t, live) {
     sk.left = sk.cd * (0.9 + st.r() * 0.2);
     if (sk !== u.skills[0] && (u.named || u.captain || u.boss)) st.fx.push({ kind: 'label', x: u.x, y: u.y - 26, text: sk.name, t: 0, side: u.side });
-    if (sk !== u.skills[0]) st.fx.push({ kind: 'cast', x: u.x, y: u.y, t: 0, r: Math.max(12, sk.aoe || 12), color: sk.tgt === 'hurt' ? '#7ed37e' : SHOT_COLOR[sk.shot] || (sk.buff ? '#f2c94c' : '#ffffff') });
+    if (sk !== u.skills[0]) st.fx.push({ kind: 'cast', x: u.x, y: u.y, t: 0, r: max(12, sk.aoe || 12), color: sk.tgt === 'hurt' ? '#7ed37e' : SHOT_COLOR[sk.shot] || (sk.buff ? '#f2c94c' : '#ffffff') });
     // 아군 대장·특별 용병의 특기는 컷인으로 보여 준다
     if (sk !== u.skills[0] && u.unique && u.side === 0) st.cutins.push({ t: st.t, name: u.named, skill: sk.name, art: u.art, look: u.look });
     if (sk.tgt === 'self') {
@@ -830,7 +893,7 @@ const Battle = (() => {
     // 공격: 여러 대상이면 가까운 순으로
     let targets = [t];
     if (sk.hits > 1) {
-      targets = live.filter((e) => e.side !== u.side && !e.g.routed && dist(e, u) - sizeOf(e) <= Math.max(sk.range, 30) + 20)
+      targets = live.filter((e) => e.side !== u.side && !e.g.routed && dist(e, u) - sizeOf(e) <= max(sk.range, 30) + 20)
         .sort((a, b) => dist(a, u) - dist(b, u)).slice(0, sk.hits);
       if (!targets.length) targets = [t];
     }
@@ -840,6 +903,7 @@ const Battle = (() => {
       const d = dist(u, t) || 1;
       const stop = MELEE_SLOTS[0][0] + sizeOf(t); // 정면 자리 거리에서 멈춘다
       if (d > stop) { u.x = t.x - ((t.x - u.x) / d) * stop; u.y = t.y - ((t.y - u.y) / d) * stop; }
+      u.dashed = u.x !== fromX || u.y !== fromY;
       st.fx.push({ kind: 'dash', x: u.x, y: u.y - 6, t: 0 });
     }
     u.face = t.x >= u.x ? 1 : -1;
@@ -876,15 +940,17 @@ const Battle = (() => {
       }
     });
     const live = units.filter((u) => u.alive && !u.fled);
+    for (const u of live) { u.ox = u.x; u.oy = u.y; u.dashed = false; }
     for (const u of live) {
-      u.flash = Math.max(0, u.flash - DT); u.lunge = Math.max(0, u.lunge - DT);
+      u.flash = max(0, u.flash - DT); u.lunge = max(0, u.lunge - DT);
       u.skills.forEach((sk) => { sk.left -= DT; });
-      u.moving = false;
+      u.moving = false; u.wantStep = 0; u.far = false;
       const SPD = u.speed * (u.slowUntil > st.t ? SLOW_MUL : 1);   // 거미줄에 걸리면 느리게
       if (u.g.routed) {
         // 자기 진영 쪽 가장자리로 도주
         const dir = u.g.side === 0 && !u.g.flipped ? -1 : 1;
-        u.x += dir * SPD * 1.25 * DT; u.face = dir; u.moving = true;
+        const sv = steer(u, live, dir, 0, dir * 1000, u.y, null);
+        u.x += (sv ? sv[0] : dir) * SPD * 1.25 * DT; u.y += (sv ? sv[1] : 0) * SPD * 1.25 * DT; u.face = dir; u.moving = true;
         if (u.x < -12 || u.x > W + 12) u.fled = true;
         continue;
       }
@@ -905,7 +971,9 @@ const Battle = (() => {
           for (const e of live) { if (e.side !== u.side && !e.g.routed) { const d = dist(e, u); if (d < fd) { fd = d; foe = e; } } }
           if (foe && fd > basic.range * 0.9) {
             const dx = foe.x - u.x, dy = foe.y - u.y, d = len2(dx, dy) || 1;
-            u.x += (dx / d) * SPD * DT; u.y += (dy / d) * SPD * DT; u.moving = true; u.face = dx >= 0 ? 1 : -1;
+            const sv = steer(u, live, dx / d, dy / d, foe.x, foe.y, foe);
+            const hx = sv ? sv[0] : dx / d, hy = sv ? sv[1] : dy / d;
+            u.x += hx * SPD * DT; u.y += hy * SPD * DT; u.moving = true; u.face = dx >= 0 ? 1 : -1; u.wantStep = SPD * DT; u.far = true;
           }
         }
         continue;
@@ -918,7 +986,7 @@ const Battle = (() => {
         let best = null, bd = Infinity;
         for (const e of live) {
           if (e.side === u.side || e.g.routed) continue;
-          const d = Math.abs(e.x - u.x) + Math.abs(e.y - u.y) * 1.4 + (e.captain ? -6 : 0) + (crowd ? Math.min(48, crowdOf(e, u) * 16) : 0);
+          const d = abs(e.x - u.x) + abs(e.y - u.y) * 1.4 + (e.captain ? -6 : 0) + (crowd ? min(48, crowdOf(e, u) * 16) : 0);
           if (d < bd) { bd = d; best = e; }
         }
         u.target = best;
@@ -933,11 +1001,12 @@ const Battle = (() => {
       const md = melee ? meleeDist(u, tg) : d;
       let gx = tg.x, gy = tg.y;
       if (melee) {
-        const p = slotPos(tg, u);
+        const p = slotPos(tg, u, live);
         if (p) { gx = p.x; gy = p.y; } else { gx = tg.x + u.slotSide * (reach + 14); gy = u.y; }
       }
       const ex = gx - u.x, ey = gy - u.y, ed = len2(ex, ey);
-      if (md > reach || (melee && ed > 3)) {
+      u.far = md > reach + GHOST_FAR;
+      if (md > reach || (melee && ed > 3) || (!melee && crowdedAt(u, live))) {
         // 대장 근처로 모이려는 힘을 약간 섞는다 (부대 대형 유지) — 목표에 닿기 전까지만
         let mx = ex / (ed || 1), my = ey / (ed || 1);
         const cap = u.g.captain;
@@ -945,43 +1014,67 @@ const Battle = (() => {
           const cx = cap.x - u.x, cy = cap.y - u.y, cd = len2(cx, cy);
           if (cd > 32) { mx += (cx / cd) * 0.45; my += (cy / cd) * 0.45; }
         }
+        const sv = steer(u, live, mx, my, gx, gy, tg);
+        if (sv) { mx = sv[0]; my = sv[1]; }
         const ml = len2(mx, my) || 1;
         // 이미 닿은 채 자리를 고쳐 서는 중이면 천천히
         const v = SPD * DT * (md > reach ? 1 : 0.5);
-        const stepLen = Math.min(v, ed || v);
+        const stepLen = min(v, ed || v);
         u.x += (mx / ml) * stepLen; u.y += (my / ml) * stepLen;
-        u.moving = stepLen > 0.2;
+        u.moving = stepLen > 0.2; u.wantStep = stepLen;
       } else if (basic.shot && d < reach * 0.45) {
         // 원거리 유닛은 너무 붙으면 물러난다
         u.x -= (dx / d) * SPD * 0.6 * DT; u.y -= (dy / d) * SPD * 0.3 * DT;
-        u.moving = true;
+        u.moving = true; u.wantStep = len2(dx * 0.6, dy * 0.3) / d * SPD * DT;
       }
       if (md <= reach && basic.left <= 0) useSkill(st, u, basic, tg, live);
     }
     // 겹침 방지: 가로로 넓고 깊이(세로)로 얕은 타원 간격. 큰 도트가 한 덩어리로 뭉개지지 않게 한다.
-    // 맞붙은 적끼리는 근접 사거리 안에 들어올 만큼만 떨어진다.
+    // 이번 틱에 제 발로 움직인 쪽(걷기·물러서기·도주·돌진)이 비켜 선다: 서 있는 유닛은 지나가는 유닛에게 밀리지 않는다.
+    // 둘 다 움직였으면 반씩, 둘 다 서 있으면 깊이 겹친 만큼만 천천히 벌린다 (서서 싸우는 유닛이 질질 밀리지 않게).
+    for (const u of live) u.own = u.x !== u.ox || u.y !== u.oy;
     for (let i = 0; i < live.length; i++) {
       const a = live[i];
       if (!a.alive) continue;
       for (let j = i + 1; j < live.length; j++) {
         const b = live[j];
-        if (!b.alive) continue;
-        const big = sizeOf(a) + sizeOf(b);
+        if (b.x <= a.x - 36 || b.x >= a.x + 36 || b.y <= a.y - 30 || b.y >= a.y + 30) continue;
         const same = a.side === b.side;
+        if (!b.alive || a.fled || b.fled || (same && (a.g.routed || b.g.routed))) continue;
+        const big = sizeOf(a) + sizeOf(b);
         const mx = (same ? SEP_X : SEP_FOE_X) + big * 0.75, my = (same ? SEP_Y : SEP_FOE_Y) + big * 0.5;
         const ddx = (b.x - a.x) || (j % 2 ? 0.01 : -0.01), ddy = b.y - a.y;
-        if (Math.abs(ddx) >= mx || Math.abs(ddy) >= my) continue;
+        if (abs(ddx) >= mx || abs(ddy) >= my) continue;
         const nx = ddx / mx, ny = ddy / my;
         const nd2 = nx * nx + ny * ny;
         if (nd2 >= 1) continue;
-        const nd = Math.sqrt(nd2);
-        const push = (1 - nd) * 0.5;
+        const nd = sqrt(nd2);
         const ux = nx / nd, uy = ny / nd;
-        a.x -= ux * push * mx; a.y -= uy * push * my * 0.8;
-        b.x += ux * push * mx; b.y += uy * push * my * 0.8;
+        let pa, pb;
+        if (a.dashed !== b.dashed) {
+          pa = a.dashed ? 1 - nd : 0; pb = b.dashed ? 1 - nd : 0;
+        } else if (a.own !== b.own) {
+          // 서 있는 아군 곁은 걷는 쪽이 조금 겹쳐 지나가도 된다 (몸 사이를 빠져나가는 정도): 그보다 깊을 때만 걷는 쪽을 물린다
+          const lim = same ? ((a.own ? a : b).far || (a.own ? a : b).g.routed ? 0 : 0.85) : 1;
+          if (nd >= lim) continue;
+          const p = lim - nd; pa = a.own ? p : 0; pb = a.own ? 0 : p;
+        }
+        else if (a.own) pa = pb = (1 - nd) * 0.5;
+        else { if (nd >= 0.6) continue; pa = pb = min(0.6 - nd, DT * 0.9) * 0.5; }
+        a.x -= ux * pa * mx; a.y -= uy * pa * my * 0.8;
+        b.x += ux * pb * mx; b.y += uy * pb * my * 0.8;
       }
     }
     live.forEach((u) => { u.y = clamp(u.y, TOP, BOTTOM); if (!u.g.routed) { const e = EDGE + sizeOf(u) * EDGE_BIG; u.x = clamp(u.x, e, W - e); } });
+    // 앞이 막혀 한 걸음의 3할도 못 나아갔으면 그 자리에 선다 (서 있는 몸에 대고 제자리 달리기하지 않게: 비킬 때까지 기다린다)
+    for (const u of live) {
+      if (!u.moving || u.g.routed || !u.wantStep || u.dashed) continue;
+      if (len2(u.x - u.ox, u.y - u.oy) < u.wantStep * 0.3) { u.x = u.ox; u.y = u.oy; u.moving = false; u.blocked = (u.blocked || 0) + DT; }
+      else u.blocked = 0;
+      // 1초 넘게 막혀 있으면 자리를 내놓고 다시 고른다 (줄이 얼어붙지 않게)
+      if (u.blocked > 1) { u.blocked = 0; if (u.slotOf && u.slotOf.slots && u.slotOf.slots[u.slot] === u) u.slotOf.slots[u.slot] = null; u.slotOf = null; u.slot = -1; }
+    }
+    for (const u of live) { u.vx = u.x - u.ox; u.vy = u.y - u.oy; }
     // 투사체
     for (let i = st.shots.length - 1; i >= 0; i--) {
       const s = st.shots[i];
@@ -1047,7 +1140,7 @@ const Battle = (() => {
       const weaker = want ? (!res.won || (outcome === 'great' && res.loss > 0.25) || slow) : false;
       const stronger = !want ? (res.won || (outcome === 'disaster' && res.loss < 0.5) || slow) : (outcome === 'success' && res.loss <= 0.05);
       if (weaker) hi = bias; else if (stronger) lo = bias;
-      bias = Math.sqrt(lo * hi);
+      bias = sqrt(lo * hi);
     }
     return best;
   }
