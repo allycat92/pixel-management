@@ -52,3 +52,9 @@
   ```
   클라우드의 수령 도구(`receive.py`)가 새 절을 알아채고 대기열에 반영한다.
 - **판정 대기 줄**: 클라우드가 납품을 받아 기술 검사를 통과시키면 그 줄을 `HEAD_REVIEW` 로 바꾼다. 헤드는 그 줄들을 판정한다.
+
+## 작업 폴더 (에이전트마다 따로 — 2026-11-26)
+- 에이전트마다 **자기 클론을 따로** 쓴다. 같은 폴더를 함께 쓰면 한쪽이 브랜치를 바꾸거나 커밋하지 않은 수정을 남길 때 다른 쪽이 막힌다.
+- 폴더는 사용자 홈 아래에 둔다(예: `$HOME\work\pm-codex`, `$HOME\work\pm-antigravity`). `C:\Windows\System32` 아래는 일반 계정에 쓰기 권한이 없어 `git fetch` 가 실패한다.
+- PC Aseprite 세션의 `pixel-management-inbox` 폴더(art-inbox)와도 따로 쓴다.
+- 만드는 법: `git clone -b claude/dot-fantasy-management-game-saupju https://github.com/allycat92/pixel-management.git <폴더>` 를 실행하고, 에이전트를 그 폴더에서 연다.
