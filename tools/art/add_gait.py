@@ -39,6 +39,7 @@
   .aseprite, 어느 프레임(또는 좌우로 뒤집은 것)의 실루엣이 뼈대 프레임과 자리를 맞춰(그림 상자의 아래 가운데를 맞추고 x, y ±24px 를 더 찾아)
   IoU 0.9 넘게 겹치는 원본 (joints 레이어를 지운 마네킹, 이름을 바꾸거나 몇 px 옮기거나 뒤집은 마네킹) — 모두 거부한다. 크기를 바꾼
   마네킹도 잡도록 원본 프레임을 뼈대 프레임의 그림 상자 높이로 맞춰(가로세로 비 유지) 한 번 더 잰다 (높이 비 0.5..2 안에서).
+  기울인 마네킹도 잡도록 그대로 잰 IoU 가 0.5 이상인 짝은 원본을 발바닥 가운데로 ±2·4·6·8도 돌려(바닥에 다시 세워) 더 잰다 (±9도까지).
   비교하는 뼈대: 클라우드 초안 art/requests/guides/*/v*/ (띠, 레이어를 합친 것)·art/requests/guides/*/ 의 띠, PC 가 넘긴 마네킹
   art/inbox/guides/** 의 .aseprite (내보내 파일 해시로 ~/.cache/pixel-management/guide_masks/ 에 캐시)와 띠 — 작업 트리의 것과
   origin/art-inbox 의 것(git show 로 읽는다: 아직 이 브랜치에 들이지 않은 마네킹도), --extra-guides 폴더. joints 레이어가 보이는 .aseprite 는 --allow-draft 로도 받지 않는다 (관절 점이 찍힌다).
@@ -371,6 +372,8 @@ DRAFT_SEARCH = 24            # 맞춘 뒤 x, y 로 더 찾아보는 범위 (원�
 EXTRA_GUIDES = []            # 비교에 더할 폴더 (receive.py 가 origin/art-inbox 의 art/inbox/guides/ 를 꺼내 둔 곳; --extra-guides)
 INBOX_REF = 'origin/art-inbox'   # 이 ref 의 art/inbox/guides/** 도 비교한다 (git show; 작업 트리에 아직 없는 PC 마네킹)
 NORM_RANGE = (0.5, 2.0)      # 원본 프레임을 뼈대 프레임의 그림 높이로 맞춰 볼 때 허용하는 높이 비
+ROT_ANGLES = (2, -2, 4, -4, 6, -6, 8, -8)   # 기울인 마네킹: 원본을 이만큼(도) 돌려 다시 잰다 — 2도 간격이라 ±9도까지 남는 기울기 ≤ 1도
+ROT_GATE = 0.5               # 돌려 보는 짝: 그대로 잰 IoU 가 이 이상 (뼈대 프레임을 9도 돌리면 제 프레임과 IoU 가 0.54 까지 떨어진다)
 _DRAFT_MASKS = {}
 
 
@@ -595,22 +598,30 @@ def _to_height(m, h):
     return np.ascontiguousarray(np.asarray(im) >= 128)
 
 
+def _rotate(m, deg):
+    """잘린 실루엣 m 을 deg 도(반시계) 돌려 다시 자른 것. 자른 뒤 아래 가운데로 맞추므로(aligned_iou) 발바닥 가운데로 돌려
+    바닥에 다시 세운 것과 같다 (돌리는 중심은 옮김만 바꾼다)"""
+    im = Image.fromarray(m.astype(np.uint8) * 255, 'L').rotate(deg, resample=Image.BILINEAR, expand=True)
+    return _crop(np.asarray(im) >= 128)
+
+
 def best_guide_match(frames, exe=None, stop=None, masks=None):
     """원본 프레임들 각각(과 좌우를 뒤집은 것)을 모든 뼈대 프레임에 자리를 맞춰 대 본 가장 높은 IoU
-    → (IoU, 프레임 번호, 뼈대 이름, 뒤집었나, (dx, dy), 높이 맞춤 배율 또는 None). 원본 그대로 한 번, 원본을 그 뼈대 프레임의 그림 상자
-    높이로 맞춰(가로세로 비 유지, 높이 비 NORM_RANGE 안) 한 번 잰다 — 크기를 바꾼 마네킹. 넓이 비가 지금까지의 최고보다 낮은 짝은
-    재지 않는다 (IoU ≤ 넓이 비). stop 을 주면 그보다 높은 짝을 찾는 대로 멈추고, 넓이 비가 stop 이하인 짝도 재지 않는다
-    (판정만 필요할 때 — 돌려주는 값은 stop 이하일 수 있다).
-    masks: frames 대신 이미 실루엣으로 만든 bool 배열들 (sheets.py 가 split_poses 로 자세를 나눈 그림 — 384x1024 칸이 아닌 시트)."""
+    → (IoU, 프레임 번호, 뼈대 이름, 뒤집었나, (dx, dy), 높이 맞춤 배율 또는 None, 돌린 각도(도) 또는 0). 원본 그대로 한 번, 원본을 그
+    뼈대 프레임의 그림 상자 높이로 맞춰(가로세로 비 유지, 높이 비 NORM_RANGE 안) 한 번 잰다 — 크기를 바꾼 마네킹. 그렇게 잰 IoU 가
+    ROT_GATE 이상인 짝은 원본을 ROT_ANGLES 만큼 돌려(발바닥 가운데로, 바닥에 다시 세워) 더 잰다 — 기울인 마네킹.
+    넓이 비가 지금까지의 최고보다 낮은 짝은 재지 않는다 (IoU ≤ 넓이 비). stop 을 주면 그보다 높은 짝을 찾는 대로 멈추고, 넓이 비가 stop
+    이하인 짝도 재지 않는다 (판정만 필요할 때 — 돌려주는 값은 stop 이하일 수 있다).
+    masks: frames 대신 이미 실루엣으로 만든 bool 배열들 (sheets.py 가 split_poses 로 자세를 나눈 그림)."""
     drafts = [(n, d, float(d.sum())) for n, d in draft_masks(exe)]
-    best = (0.0, None, None, False, (0, 0), None)
+    best = (0.0, None, None, False, (0, 0), None, 0)
     floor = stop or 0.0
     for i, fr in enumerate(masks if masks is not None else frames):
         c = _crop(fr if masks is not None else frame_mask(fr))
         if c is None:
             continue
         for flip, m in ((False, c), (True, np.ascontiguousarray(c[:, ::-1]))):
-            scaled = {}
+            scaled, turned = {}, {}
             for name, d, nb in drafts:
                 cands = [(m, None)]
                 k = d.shape[0] / m.shape[0]
@@ -624,10 +635,33 @@ def best_guide_match(frames, exe=None, stop=None, masks=None):
                         continue
                     iou, sh_ = aligned_iou(mm, d)
                     if iou > best[0]:
-                        best = (iou, i + 1, name, flip, sh_, kk)
+                        best = (iou, i + 1, name, flip, sh_, kk, 0)
                         if stop is not None and iou > stop:
                             return best
+                    if iou < ROT_GATE:
+                        continue
+                    for deg in ROT_ANGLES:
+                        key = (mm.shape[0] if kk else None, deg)
+                        if key not in turned:
+                            turned[key] = _rotate(mm, deg)
+                        rm = turned[key]
+                        if rm is None:
+                            continue
+                        ra = float(rm.sum())
+                        if min(ra, nb) / max(ra, nb) <= max(best[0], floor):
+                            continue
+                        iou, sh_ = aligned_iou(rm, d)
+                        if iou > best[0]:
+                            best = (iou, i + 1, name, flip, sh_, kk, deg)
+                            if stop is not None and iou > stop:
+                                return best
     return best
+
+
+def match_words(dx, dy, flip, k, deg):
+    """best_guide_match 의 맞춘 방법 → 문구"""
+    return (f'아래 가운데를 맞추고 {dx:+d},{dy:+d}px 옮겨서{", 좌우를 뒤집어서" if flip else ""}'
+            f'{f", 그림 높이를 x{k:.3f} 로 맞춰서" if k else ""}{f", {deg:+d}도 돌려서" if deg else ""}')
 
 
 def draft_match(p, exe):
@@ -644,12 +678,11 @@ def draft_match(p, exe):
             frames = [arr[:, k * SLOT:(k + 1) * SLOT] for k in range(arr.shape[1] // SLOT)]
     except OSError:
         return None
-    iou, fi, name, flip, (dx, dy), k = best_guide_match(frames, exe, stop=DRAFT_IOU)
+    iou, fi, name, flip, (dx, dy), k, deg = best_guide_match(frames, exe, stop=DRAFT_IOU)
     if iou > DRAFT_IOU:
         return (f'{fi}번 프레임의 실루엣이 뼈대(마네킹)와 겹친다 — 맞은 마네킹: {name}, IoU {iou:.3f} > {DRAFT_IOU} '
-                f'(아래 가운데를 맞추고 {dx:+d},{dy:+d}px 옮겨서{", 좌우를 뒤집어서" if flip else ""}'
-                f'{f", 그림 높이를 x{k:.3f} 로 맞춰서" if k else ""}) '
-                '= 마네킹 (joints 레이어를 지웠거나 이름을 바꾸거나 옮기거나 크기를 바꾼 것)')
+                f'({match_words(dx, dy, flip, k, deg)}) '
+                '= 마네킹 (joints 레이어를 지웠거나 이름을 바꾸거나 옮기거나 크기를 바꾸거나 기울인 것)')
     return None
 
 
@@ -659,7 +692,7 @@ def guide_reason(p, exe):
     - 옆에 pose_measured.json (check_skeleton.py --export 가 마네킹에서 뽑은 띠)
     - joints 레이어가 있는 .aseprite (관절 점 레이어 = 뼈대 작업 파일)
     - 어느 프레임(또는 뒤집은 것)의 실루엣이 뼈대 프레임(draft_masks: 클라우드 초안 + PC 가 넘긴 art/inbox/guides/ 마네킹)과
-      자리를 맞춰 IoU > 0.9 (joints 레이어를 지운 마네킹, 이름을 바꾸거나 옮기거나 뒤집은 마네킹)"""
+      자리를 맞춰 IoU > 0.9 (joints 레이어를 지운 마네킹, 이름을 바꾸거나 옮기거나 뒤집거나 크기를 바꾸거나 ±9도 안으로 기울인 마네킹)"""
     real = os.path.realpath(p)
     if 'guides' in real.split(os.sep)[:-1]:
         return 'guides/ 폴더 안의 파일 = 뼈대 가이드'

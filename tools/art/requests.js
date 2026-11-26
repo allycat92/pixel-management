@@ -18,7 +18,9 @@ const D = vm.runInContext('({ CAPTAINS, CAPTAIN_CLASSES, HEROES, HERO_CLASSES, F
 //   node tools/art/requests.js --motion                 → 표 출력, FAIL 이 있으면 종료 코드 1
 //   node tools/art/requests.js --motion --frames DIR|SET.aseprite [--frames ...]
 //        → 4절의 마네킹 닮음에 쓸 프레임: receive.py 가 납품 .aseprite 에서 뽑은 frames/ 폴더(pose_measured.json 의 set)
-//          또는 <set>.aseprite (헤드리스 Aseprite 로 여기서 뽑는다). 없으면 art/inbox/guides/<set>/<set>.aseprite 를 뽑는다
+//          또는 <set>.aseprite (헤드리스 Aseprite 로 여기서 뽑는다). 없으면 art/inbox/guides/<set>/<set>.aseprite 를 뽑고,
+//          그것도 없으면 receive.py 가 받아서 뽑아 둔 <git common dir>/art-received/<set>/ ($ART_RECEIVED_DIR) 를 읽는다.
+//          art-inbox 에 있는데 받은 프레임이 없으면 "not delivered yet" 이 아니라 WARN (닮음을 재지 못함)
 //   node tools/art/requests.js --motion-iou A.png B.png → 두 그림의 게임 크기(0.1654배) 실루엣 IoU
 if (process.argv.includes('--motion') || process.argv.includes('--motion-iou')) {
   process.exitCode = motionMain(process.argv.slice(2));
@@ -948,11 +950,34 @@ function motionMain(argv) {
   const tmpRoot = fs.mkdtempSync(path.join(require('os').tmpdir(), 'motion-frames-'));
   const asepriteExe = process.env.ASEPRITE_PATH || (fs.existsSync(path.join(ROOT, 'tools/art/ase_headless.sh')) ? path.join(ROOT, 'tools/art/ase_headless.sh') : 'aseprite');
   const frameCache = {};
+  // receive.py 가 받은 납품마다 뽑아 둔 frames/ 사본: $ART_RECEIVED_DIR, 없으면 <git common dir>/art-received/<set>/ (receive.py received_root).
+  // 받았지만 아직 이 브랜치에 들이지 않은 납품도 --frames 없이 여기서 잰다 (닮음 검사를 조용히 건너뛰지 않게).
+  const gitOut = (args) => {
+    const r = require('child_process').spawnSync('git', ['-C', ROOT, ...args], { stdio: ['ignore', 'pipe', 'ignore'] });
+    return r.status === 0 ? String(r.stdout).trim() : null;
+  };
+  const RECV = (() => {
+    if (process.env.ART_RECEIVED_DIR) return path.resolve(process.env.ART_RECEIVED_DIR);
+    const g = gitOut(['rev-parse', '--git-common-dir']);
+    return g ? path.join(path.resolve(ROOT, g), 'art-received') : null;
+  })();
+  const inboxRev = (set) => gitOut(['log', '-1', '--format=%h', 'origin/art-inbox', '--', `art/inbox/guides/${set}/${set}.aseprite`]) || null;
+  // set -> received frames { dir, rev, stale } | null
+  function receivedOf(set) {
+    if (!RECV) return null;
+    const dir = path.join(RECV, set);
+    let pm;
+    try { pm = JSON.parse(fs.readFileSync(path.join(dir, 'pose_measured.json'), 'utf8')); } catch (e) { return null; }
+    if (pm.set && pm.set !== set) return null;
+    const now = inboxRev(set), rev = pm.art_inbox || null;
+    return { dir, rev, now, stale: !!(now && rev && !now.startsWith(rev) && !rev.startsWith(now)) };
+  }
   // set -> { files: [frame k -> png path], from: 출처 } | { error } | null (납품 없음)
   function framesOf(set) {
     if (set in frameCache) return frameCache[set];
-    let src = given[set] || null;
+    let src = given[set] || null, rcv = null;
     if (!src && fs.existsSync(path.join(GDIR, set, `${set}.aseprite`))) src = path.join(GDIR, set, `${set}.aseprite`);
+    if (!src && (rcv = receivedOf(set))) src = rcv.dir;
     if (!src) return (frameCache[set] = null);
     let dir = src, from = path.relative(ROOT, src).startsWith('..') ? src : path.relative(ROOT, src);
     if (/\.aseprite$/i.test(src)) {
@@ -961,25 +986,36 @@ function motionMain(argv) {
       const env = { ...process.env };
       delete env.DISPLAY; delete env.WAYLAND_DISPLAY;
       const r = require('child_process').spawnSync(asepriteExe, ['--batch', src, '--save-as', path.join(dir, 'f{frame}.png')], { env, stdio: ['ignore', 'pipe', 'pipe'], timeout: 300000 });
-      if (r.error || r.status) return (frameCache[set] = { error: `cannot export ${from} with ${asepriteExe}: ${r.error ? r.error.message : String(r.stderr || r.stdout).trim().slice(-200)}`, from });
+      if (r.error || r.status) {
+        const rv = given[set] ? null : receivedOf(set);
+        if (!rv) return (frameCache[set] = { error: `cannot export ${from} with ${asepriteExe}: ${r.error ? r.error.message : String(r.stderr || r.stdout).trim().slice(-200)}`, from });
+        rcv = rv; dir = rv.dir; from = rv.dir;   // 이 브랜치의 .aseprite 를 못 뽑으면 receive.py 가 뽑아 둔 프레임으로
+      } else {
       const files = fs.readdirSync(dir).map((f) => /^f(\d+)\.png$/.exec(f)).filter(Boolean).sort((a, b) => +a[1] - +b[1]).map((m) => path.join(dir, m[0]));
       if (!files.length && fs.existsSync(path.join(dir, 'f.png'))) files.push(path.join(dir, 'f.png'));
       return (frameCache[set] = { files, from: `${from} (exported here, visible layers)` });
+      }
     }
     const byK = [];
     fs.readdirSync(dir).forEach((f) => { const m = /^f(\d\d)(?:_.*)?\.png$/.exec(f); if (m) byK[+m[1]] = path.join(dir, f); });
     if (!byK.length) return (frameCache[set] = { error: `${from}: no f<NN>_<name>.png frames`, from });
-    return (frameCache[set] = { files: byK, from: `${from} (frames exported by the cloud)` });
+    const note = rcv ? ` (frames received by receive.py from art-inbox ${rcv.rev || '?'}${fs.existsSync(path.join(GDIR, set, `${set}.aseprite`)) ? '' : ', not checked out on this branch yet'})` : ' (frames exported by the cloud)';
+    return (frameCache[set] = { files: byK, from: `${from}${note}`, rcv });
   }
-  say('  deliveries (art/inbox/guides/<set>/<set>.aseprite; the cloud exports the frames - receive.py frames/ via --frames, else exported here):');
+  say(`  deliveries (art/inbox/guides/<set>/<set>.aseprite; the cloud exports the frames - --frames DIR, else the .aseprite on this branch exported here, else the frames receive.py kept in ${RECV ? path.relative(ROOT, RECV).startsWith('..') ? RECV : path.relative(ROOT, RECV) : '(no git dir: none)'}/<set>/):`);
   Object.entries(CHARS).forEach(([id, ch]) => {
     if (!ch.mannequin || !BIBLE.archetypes[ch.arch] || !BIBLE.archetypes[ch.arch].attack) return;
     const want = stemOf(id) && `atk__${stemOf(id)}`, set = ch.mannequin.set;
     if (!set) { fail(`${id}: mannequin.set missing (want ${want})`); return; }
     if (want && set !== want) fail(`${id}: mannequin.set '${set}' is not '${want}' (<motion>__<sheet png stem without sheet_>; the PC delivers art/inbox/guides/${want}/${want}.aseprite)`);
     const n = BIBLE.archetypes[ch.arch].attack.frames.length, F = framesOf(set);
-    if (!F) say(`    ${set}: not delivered yet`);
-    else if (F.error) fail(`${set}: ${F.error} - delivered but hold / contact IoU cannot be measured (headless Aseprite: tools/art/ase_headless.sh / ASEPRITE_PATH, or --frames <receive.py frames/>)`);
+    if (!F) {
+      // not received here: is it on art-inbox all the same? then it is delivered and unmeasured, not "not delivered yet"
+      const rev = inboxRev(set);
+      if (rev) warn(`${set}: delivered on art-inbox ${rev} but not received here - hold / contact IoU NOT measured; run python3 tools/art/receive.py guides/${set}/${set} (or --frames DIR)`);
+      else say(`    ${set}: not delivered yet`);
+    } else if (F.rcv && F.rcv.stale) warn(`${set}: the received frames are of art-inbox ${F.rcv.rev}, art-inbox now has ${F.rcv.now} - run python3 tools/art/receive.py guides/${set}/${set} again (measured below on the OLD frames)`);
+    if (!F) { /* above */ } else if (F.error) fail(`${set}: ${F.error} - delivered but hold / contact IoU cannot be measured (headless Aseprite: tools/art/ase_headless.sh / ASEPRITE_PATH, or --frames <receive.py frames/>)`);
     else if (F.files.filter(Boolean).length !== n) warn(`${set}: ${F.files.filter(Boolean).length} frames in ${F.from}, the ${ch.arch} attack has ${n} - frames matched by index`);
     else say(`    ${set}: ${n} frames from ${F.from}`);
   });
