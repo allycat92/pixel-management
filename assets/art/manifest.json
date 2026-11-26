@@ -2058,7 +2058,7 @@
   },
   "sheet/captain/shadowqueen": {
     "file": "assets/art/sheets/sheet_captain_shadowqueen.png",
-    "h": 192,
+    "h": 384,
     "sheet": {
       "anchor": [
         48,
@@ -2089,6 +2089,20 @@
             240
           ],
           "to": 3
+        },
+        "run": {
+          "from": 7,
+          "ms": [
+            80,
+            80,
+            80,
+            80,
+            80,
+            80,
+            80,
+            80
+          ],
+          "to": 14
         }
       },
       "cell": [
@@ -2124,8 +2138,55 @@
         [
           192,
           96
+        ],
+        [
+          0,
+          192
+        ],
+        [
+          96,
+          192
+        ],
+        [
+          192,
+          192
+        ],
+        [
+          288,
+          192
+        ],
+        [
+          0,
+          288
+        ],
+        [
+          96,
+          288
+        ],
+        [
+          192,
+          288
+        ],
+        [
+          288,
+          288
         ]
-      ]
+      ],
+      "gaits": {
+        "run": {
+          "center": 192,
+          "floor": 870,
+          "ms": 80,
+          "pose": "art/requests/guides/run_base/v2/pose.json",
+          "src": [
+            "art/inbox/gait/sheet_captain_shadowqueen_run_a.png",
+            "art/inbox/gait/sheet_captain_shadowqueen_run_b.png"
+          ],
+          "step_px": 275.0,
+          "stride": 45.5
+        }
+      },
+      "runStride": 45.5
     },
     "w": 384
   },
@@ -2986,7 +3047,7 @@
   },
   "sheet/class/warrior": {
     "file": "assets/art/sheets/sheet_class_warrior.png",
-    "h": 192,
+    "h": 384,
     "sheet": {
       "anchor": [
         48,
@@ -3017,6 +3078,20 @@
             240
           ],
           "to": 3
+        },
+        "run": {
+          "from": 7,
+          "ms": [
+            80,
+            80,
+            80,
+            80,
+            80,
+            80,
+            80,
+            80
+          ],
+          "to": 14
         }
       },
       "cell": [
@@ -3052,8 +3127,55 @@
         [
           192,
           96
+        ],
+        [
+          0,
+          192
+        ],
+        [
+          96,
+          192
+        ],
+        [
+          192,
+          192
+        ],
+        [
+          288,
+          192
+        ],
+        [
+          0,
+          288
+        ],
+        [
+          96,
+          288
+        ],
+        [
+          192,
+          288
+        ],
+        [
+          288,
+          288
         ]
       ],
+      "gaits": {
+        "run": {
+          "center": 192,
+          "floor": 870,
+          "ms": 80,
+          "pose": "art/requests/guides/run_base/v2/pose.json",
+          "src": [
+            "art/inbox/gait/sheet_class_warrior_run_a.png",
+            "art/inbox/gait/sheet_class_warrior_run_b.png"
+          ],
+          "step_px": 275.0,
+          "stride": 45.5
+        }
+      },
+      "runStride": 45.5,
       "tint": {
         "accent": [
           "#3f7a6c",
