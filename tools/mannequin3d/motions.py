@@ -6,7 +6,7 @@ Gaits (8 frames a cycle, frame k at cycle phase k/8; the far leg / far arm run h
   run_robe   G1..G8  contact (both feet), down, passing, push (robe_base/v1: 96 ms, step 134.2 px, no flight)
 
 How a gait frame is made:
-  1. the SWING leg (off the floor) comes straight from the table SWING: thigh angle, knee bend, ankle;
+  1. the SWING leg (off the floor) comes straight from the table SWING: thigh angle, knee bend, foot pitch;
   2. the STANCE leg is foot-locked: its toe ball sits on the floor at toe0 - 2*step*phase on SCREEN (relative to the hip
      column), i.e. exactly step/4 further back every cell - the rule the engine needs to keep feet planted
      (js/battle.js runCells moves the unit step/4 per stance cell). A 2-bone IK (rig.leg_ik) finds thigh + knee, the
@@ -36,9 +36,9 @@ GAITS = {
         'stance_pitch': [3.0, 0.0, -16.0],
         'hip_h': [180.0, 178.4, 182.2, 183.9],  # hip joint height for the canonical leg (v2), per half-cycle frame
         'lean': [24.0, 19.4, 29.1, 31.4],
-        # leg phase -> (thigh, knee, ankle) while the foot is up
-        'swing': {0.375: (-14.0, 72.0, -38.0), 0.5: (-6.0, 114.0, -30.0), 0.625: (10.0, 134.0, -12.0),
-                  0.75: (60.0, 110.0, 4.0), 0.875: (55.0, 44.0, 14.0)},
+        # leg phase -> (thigh, knee, foot pitch) while the foot is up (pitch absolute: 0 = sole level, - = toes down)
+        'swing': {0.375: (-14.0, 72.0, -120.0), 0.5: (-6.0, 114.0, -145.0), 0.625: (10.0, 134.0, -130.0),
+                  0.75: (60.0, 110.0, -45.0), 0.875: (55.0, 44.0, 15.0)},
         # near arm per frame (its far twin is half a cycle later): shoulder (from the torso axis), elbow
         'arm': [(-22.0, 80.0), (14.0, 92.0), (40.0, 104.0), (46.0, 108.0), (28.0, 100.0), (-18.0, 86.0),
                 (-34.0, 80.0), (-36.0, 78.0)],
@@ -49,10 +49,10 @@ GAITS = {
         'phases': ['contact', 'down', 'passing', 'push'],
         'stance': [0.0, 0.125, 0.25, 0.375, 0.5],
         'toe0': 83.0,
-        'stance_pitch': [0.0, 0.0, 0.0, -6.0, -16.0],
+        'stance_pitch': [0.0, 0.0, 0.0, -8.0, -26.0],
         'hip_h': [180.0, 172.9, 177.8, 179.5],
         'lean': [5.0, 5.6, 5.0, 4.8],
-        'swing': {0.625: (14.0, 72.0, -6.0), 0.75: (36.0, 72.0, 2.0), 0.875: (40.0, 48.0, 6.0)},
+        'swing': {0.625: (14.0, 72.0, -18.0), 0.75: (36.0, 72.0, -8.0), 0.875: (40.0, 48.0, 4.0)},
         'arm': [(-4.0, 70.0), (-5.0, 66.0), (-2.0, 68.0), (2.0, 72.0), (4.0, 70.0), (5.0, 66.0), (2.0, 68.0), (-2.0, 72.0)],
         'pelvis_twist': 4.0, 'chest_counter': 2.0, 'head_pitch': 2.0,
     },
@@ -61,10 +61,10 @@ GAITS = {
         'phases': ['contact', 'down', 'passing', 'push'],
         'stance': [0.0, 0.125, 0.25, 0.375, 0.5],
         'toe0': 87.0,
-        'stance_pitch': [0.0, 0.0, 0.0, -6.0, -15.0],
+        'stance_pitch': [0.0, 0.0, 0.0, -8.0, -24.0],
         'hip_h': [182.2, 180.5, 185.0, 185.5],
         'lean': [7.1, 7.6, 6.8, 6.8],
-        'swing': {0.625: (8.0, 60.0, -6.0), 0.75: (29.0, 58.0, 0.0), 0.875: (34.0, 38.0, 4.0)},
+        'swing': {0.625: (8.0, 60.0, -15.0), 0.75: (29.0, 58.0, -6.0), 0.875: (34.0, 38.0, 4.0)},
         'arm': [(-10.0, 72.0), (-12.0, 76.0), (-4.0, 74.0), (6.0, 72.0), (10.0, 72.0), (12.0, 76.0), (4.0, 74.0), (-6.0, 72.0)],
         'pelvis_twist': 4.0, 'chest_counter': 3.0, 'head_pitch': 2.0,
         'robe': {'hem': 40.0, 'flare': 8.0, 'lag': 6.0, 'trail': 12.0},
@@ -125,7 +125,8 @@ def gait_keys(spec, P, cam, char):
         L = spec['lean'][half]
         pose = {
             'hip_h': spec['hip_h'][half] * k_leg,
-            'pelvis_pitch': L * 0.45, 'spine_pitch': L * 0.30, 'chest_pitch': L * 0.25,
+            # 1.2 x the table lean: the screen lean (hip -> neck base) of the turned, curved trunk comes out ~0.83 x
+            'pelvis_pitch': L * 0.5, 'spine_pitch': L * 0.35, 'chest_pitch': L * 0.35,
             'pelvis_yaw': char.get('pelvis_yaw', 0.0) - spec['pelvis_twist'] * math.cos(2 * math.pi * phi),
             'chest_yaw': char.get('chest_open', 30.0) + spec['chest_counter'] * math.cos(2 * math.pi * phi) * 2,
             'head_pitch': spec['head_pitch'],
@@ -135,8 +136,8 @@ def gait_keys(spec, P, cam, char):
         for side, off in (('N', 0.0), ('F', 0.5)):
             psi = round((phi + off) % 1.0, 4)
             if psi in spec['swing']:
-                th, kn, an = spec['swing'][psi]
-                pose['thigh_' + side], pose['knee_' + side], pose['ankle_' + side] = th, kn, an
+                th, kn, pitch = spec['swing'][psi]
+                pose['thigh_' + side], pose['knee_' + side], pose['ankle_' + side] = th, kn, pitch - (th - kn)
             else:
                 meta['stance'].append(side)
         for side, off in (('N', 0.0), ('F', 0.5)):
@@ -158,21 +159,42 @@ def gait_keys(spec, P, cam, char):
             pose['hip_h'] -= 0.5
             meta['hip_lowered'] += 0.5
         meta['reached'] = ok_all
-        char_pose(pose, char, f / 8.0)
+        char_pose(pose, char, f / 8.0, P)
         rows.append((pose, meta))
     return rows
 
 
-def char_pose(pose, char, phi):
-    """per-character overrides (weapon arm held low, shield arm in front...): char['arm_N'] etc. = callable or tuple"""
+def char_pose(pose, char, phi, P=None):
+    """per-character carry: char['arm_N'] / ['arm_F'] = (shoulder, elbow) or a callable(shoulder, elbow) -> (shoulder, elbow)
+    applied to the gait table's arm swing; char['wrist_N'/'_F'] = wrist bend; char['grip'] = two-hand grip solved by arm IK
+    (see apply_grip)."""
     for side in 'NF':
         o = char.get('arm_' + side)
-        if o is None:
-            continue
-        sh, el = o(phi) if callable(o) else o
-        pose['shoulder_' + side], pose['elbow_' + side] = sh, el
+        if o is not None:
+            sh, el = o(pose['shoulder_' + side], pose['elbow_' + side]) if callable(o) else o
+            pose['shoulder_' + side], pose['elbow_' + side] = sh, el
         if char.get('wrist_' + side) is not None:
             pose['wrist_' + side] = char['wrist_' + side]
+    if char.get('grip') and P is not None:
+        apply_grip(P, pose, char['grip'], phi)
+
+
+def apply_grip(P, pose, grip, phi=0.0):
+    """two-hand grip: grip = {'N': (dx, dy, dz), 'F': (...)} wrist targets in the CHEST frame from the neck base
+    (x forward, y up, z toward the near side), plus optional 'swing' px fore-aft (cos of the cycle).
+    Solved with a 2-bone arm IK in each arm's swing plane (elbow pointing back/down)."""
+    from rig import arm_ik
+    body = fk(P, pose)
+    J, Fm = body.joints, body.frames
+    sw = grip.get('swing', 0.0) * math.cos(2 * math.pi * phi)
+    for side in 'NF':
+        if side not in grip:
+            continue
+        off = np.array(grip[side], float) + np.array([sw, 0.0, 0.0])
+        target = J['neck0'] + Fm['chest'] @ off
+        sh, el = arm_ik(P, pose, J['S' + side], target)
+        pose['shoulder_' + side], pose['elbow_' + side] = sh, el
+        pose['arm_abd_' + side] = 0.0
 
 
 CHANNELS = ['hip_h', 'pelvis_pitch', 'spine_pitch', 'chest_pitch', 'pelvis_yaw', 'chest_yaw', 'head_pitch', 'neck_pitch',
@@ -203,6 +225,8 @@ def gait_frames(name, P, cam, char, n=8):
                 pose['abd_' + side] = 0.0
                 stance.append(side)
                 reached &= ok
+        if char.get('grip'):
+            apply_grip(P, pose, char['grip'], phi)
         k = i * 8 / n
         meta = {'phi': phi, 'stance': stance, 'reached': reached,
                 'key': abs(k - round(k)) < 1e-9}
@@ -238,23 +262,31 @@ def lerp_props(pa, pb, u):
     return out
 
 
-def lock_feet(P, pose, cam, feet):
-    """solve both legs with IK so the toe tips sit on the floor at feet = {'N': (tip_x_world, pitch), 'F': ...}"""
+def lock_feet(P, pose, cam, feet, max_lower=14.0):
+    """solve both legs with IK so the toe tips sit on the floor at feet = {'N': (tip_x_world, pitch), 'F': ...};
+    if a foot is out of reach the hip is lowered 1 px at a time (at most max_lower px). -> (pose, reached)"""
     pose = dict(pose)
-    q = full_pose(pose)
-    body = fk(P, q)
-    ok_all = True
-    for side, (tip_x, pitch) in feet.items():
-        hip = body.joints['H' + side]
-        R = rz(pitch)
-        tip_off = R @ np.array([P['toe'] + P['r_foot'], -(P['ankle_h'] - P['r_foot']), 0.0])
-        ank = np.array([tip_x, 0.0, hip[2]]) - tip_off
-        heel, toe = foot_points(ank, pitch, P)
-        ank[1] += P['r_foot'] - min(heel[1], toe[1])
-        th, kn, ok = leg_ik(P, hip[:2], ank[:2])
-        pose['thigh_' + side], pose['knee_' + side], pose['ankle_' + side] = th, kn, pitch - (th - kn)
-        pose['abd_' + side] = 0.0
-        ok_all &= ok
+    lowered = 0.0
+    while True:
+        q = full_pose(pose)
+        body = fk(P, q)
+        ok_all = True
+        for side, (tip_x, pitch) in feet.items():
+            hip = body.joints['H' + side]
+            R = rz(pitch)
+            tip_off = R @ np.array([P['toe'] + P['r_foot'], -(P['ankle_h'] - P['r_foot']), 0.0])
+            ank = np.array([tip_x, 0.0, hip[2]]) - tip_off
+            heel, toe = foot_points(ank, pitch, P)
+            ank[1] += P['r_foot'] - min(heel[1], toe[1])
+            th, kn, ok = leg_ik(P, hip[:2], ank[:2])
+            pose['thigh_' + side], pose['knee_' + side], pose['ankle_' + side] = th, kn, pitch - (th - kn)
+            pose['abd_' + side] = 0.0
+            ok_all &= ok
+        if ok_all or lowered >= max_lower:
+            break
+        pose['hip_h'] = full_pose(pose)['hip_h'] - 1.0
+        lowered += 1.0
+    pose['_hip_lowered'] = lowered
     return pose, ok_all
 
 
@@ -280,25 +312,25 @@ def action_frames(keys, P, cam, inbetweens):
 def warrior_attack(P, char):
     """sword swing (sheet/class/warrior cells 4-5): READY -> WINDUP (key) -> 2 in-betweens -> STRIKE (key)"""
     k = (P['thigh'] + P['shin'] + P['ankle_h']) / CANON_LEG
-    feet = {'N': (-95.0, -10.0), 'F': (128.0, 0.0)}
-    feet_lunge = {'N': (-95.0, -24.0), 'F': (128.0, 0.0)}
+    feet = {'N': (-62.0, -8.0), 'F': (112.0, 0.0)}
+    feet_lunge = {'N': (-62.0, -26.0), 'F': (112.0, 0.0)}
     base = {'chest_yaw': char.get('chest_open', 30.0), 'head_pitch': 6.0, 'arm_abd_N': 8, 'arm_abd_F': 10}
     ready = dict(base, hip_h=166 * k, x=0.0, pelvis_pitch=6, spine_pitch=4, chest_pitch=4,
                  shoulder_N=10, elbow_N=95, shoulder_F=30, elbow_F=100, wrist_N=-10)
     windup = dict(base, hip_h=170 * k, x=-12.0, pelvis_pitch=-2, spine_pitch=-4, chest_pitch=-4, chest_yaw=base['chest_yaw'] + 14,
                   shoulder_N=165, elbow_N=105, shoulder_F=40, elbow_F=95, wrist_N=-20, head_pitch=2)
-    strike = dict(base, hip_h=146 * k, x=44.0, pelvis_pitch=14, spine_pitch=8, chest_pitch=6, chest_yaw=base['chest_yaw'] - 12,
+    strike = dict(base, hip_h=152 * k, x=12.0, pelvis_pitch=14, spine_pitch=8, chest_pitch=6, chest_yaw=base['chest_yaw'] - 12,
                   shoulder_N=78, elbow_N=8, shoulder_F=-10, elbow_F=80, wrist_N=-8, head_pitch=4)
     sword = lambda a: [{'hand': 'N', 'kind': 'sword', 'angle': a}, {'hand': 'F', 'kind': 'shield', 'radius': 58.0}]
-    keys = [('ready', ready, sword(60.0), feet), ('windup', windup, sword(75.0), feet),
-            ('strike', strike, sword(-5.0), feet_lunge)]
+    keys = [('ready', ready, sword(60.0), feet), ('windup', windup, sword(125.0), feet),
+            ('strike', strike, sword(285.0), feet_lunge)]
     return keys, {1: 2}
 
 
 def warrior_hit(P, char):
     """hit reaction: IMPACT (key) -> RECOVER (key) with feet planted"""
     k = (P['thigh'] + P['shin'] + P['ankle_h']) / CANON_LEG
-    feet = {'N': (-95.0, -6.0), 'F': (115.0, 8.0)}
+    feet = {'N': (-70.0, -6.0), 'F': (92.0, 8.0)}
     base = {'chest_yaw': char.get('chest_open', 30.0), 'arm_abd_N': 12, 'arm_abd_F': 14}
     impact = dict(base, hip_h=160 * k, x=-26.0, pelvis_pitch=-10, spine_pitch=-10, chest_pitch=-6, chest_yaw=base['chest_yaw'] + 10,
                   head_pitch=-18, shoulder_N=-30, elbow_N=50, shoulder_F=46, elbow_F=70)

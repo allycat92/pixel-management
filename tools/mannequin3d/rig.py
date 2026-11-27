@@ -33,7 +33,7 @@ FWD = np.array([1.0, 0.0, 0.0])
 # Canonical proportions = the accepted 2D run mannequin (art/requests/guides/run_base/v2/pose.json bones_px, head_px 110,
 # hip ~180, neck base ~285, head top ~417 above the floor). fit.py rescales these per character.
 CANON = {
-    'thigh': 89.65, 'shin': 89.65, 'ankle_h': 17.2, 'heel': 13.0, 'toe': 38.0,
+    'thigh': 89.65, 'shin': 89.65, 'ankle_h': 17.2, 'heel': 14.0, 'toe': 26.0,
     'hip_w': 21.0, 'hip_drop': 7.0,
     'spine': 48.0, 'chest': 64.0, 'neck': 16.0,
     'head_r': [50.0, 56.0, 46.0], 'head_c': 44.0,
@@ -241,8 +241,19 @@ def add_prop(B, P, pr):
         J['prop_base'], J['prop_tip'] = c, c + R @ np.array([0.0, h, 0.0])
         B.add_ellipsoid(c, R, [6.0, h, rad], 'prop', 'shield', ghost=True)
         return
-    R = R_hd @ rx(pr.get('roll', 0.0)) @ rz(pr.get('angle', 0.0))
-    d = R @ FWD
+    if pr.get('between'):
+        a_, b_ = (J['wri' + h] for h in pr['between'])
+        d = (b_ - a_) / max(np.linalg.norm(b_ - a_), 1e-9)
+        grip = a_
+        R = np.eye(3)
+    elif pr.get('abs_angle') is not None:
+        # direction fixed in the world sagittal plane (deg from forward-horizontal, + = up), turned like the pelvis
+        a_ = math.radians(pr['abs_angle'])
+        d = turn(pr.get('yaw', 0.0)) @ np.array([math.cos(a_), math.sin(a_), 0.0])
+        R = np.eye(3)
+    else:
+        R = R_hd @ rx(pr.get('roll', 0.0)) @ rz(pr.get('angle', 0.0))
+        d = R @ FWD
     L = pr.get('length', PROP_LEN[kind])
     back = pr.get('back', {'sword': 22.0, 'mace': 14.0, 'staff': 140.0}[kind])
     base, tip = grip - d * back, grip + d * L
@@ -270,7 +281,8 @@ def add_robe(B, P, robe):
     hem_r = max(28.0, (front - back) / 2 + robe.get('flare', 6.0))
     top = J['pelvis'] + np.array([0.0, P['pelvis_r'][1] * 0.6, 0.0])
     hem = np.array([mid, hem_h + 6.0, 0.0])
-    B.add_capsule(top, hem, P['pelvis_r'][2] * 1.05, hem_r, 'robe', 'robe', ghost=True)
+    B.add_capsule(top, hem + np.array([0.0, hem_r * 0.6, 0.0]), P['pelvis_r'][2] * 1.05, hem_r, 'robe', 'robe', ghost=True)
+    B.ghosts[-1]['clip_below'] = hem_h
 
 
 # ---------------------------------------------------------------- IK
@@ -289,6 +301,22 @@ def leg_ik(P, hip_xy, ank_xy):
     knee = 180.0 - math.degrees(math.acos(max(-1.0, min(1.0, cos_k))))
     thigh = ang_target + alpha        # knee forward of the hip-ankle line
     return thigh, knee, reached
+
+
+def arm_ik(P, pose, sho, target):
+    """2-bone arm IK -> (shoulder, elbow) for the rig's arm convention (swing plane = the torso lean plane turned by the
+    pelvis yaw; elbow bends with the forearm coming forward, so the elbow points back/down)."""
+    q = full_pose(pose)
+    lean_total = q['pelvis_pitch'] + q['spine_pitch'] + q['chest_pitch']
+    R_armbase = turn(q['pelvis_yaw']) @ lean(lean_total)
+    v = R_armbase.T @ (np.asarray(target, float) - sho)
+    a, b = P['upper_arm'], P['forearm']
+    d = math.hypot(v[0], v[1])
+    d = min(max(d, abs(a - b) + 1e-3), a + b - 1e-6)
+    ang = math.degrees(math.atan2(v[0], -v[1]))
+    alpha = math.degrees(math.acos(max(-1.0, min(1.0, (a * a + d * d - b * b) / (2 * a * d)))))
+    elbow = 180.0 - math.degrees(math.acos(max(-1.0, min(1.0, (a * a + b * b - d * d) / (2 * a * b)))))
+    return ang - alpha, elbow
 
 
 def scaled(P, k):

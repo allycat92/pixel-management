@@ -189,6 +189,13 @@ def rasterize(prims, cam, w, h):
         parts.append(pr['part'])
         mi, pi = mats.index(pr['mat']), len(parts) - 1
         (raster_capsule if pr['type'] == 'capsule' else raster_ellipsoid)(buf, cam, pr, mi, pi)
+        if pr.get('clip_below') is not None:      # robe hem: nothing of this primitive below that height
+            row = int(np.floor(cam.floor + 1 - pr['clip_below']))
+            sel = buf.part[max(0, row):, :] == pi
+            sub = buf.depth[max(0, row):, :]
+            sub[sel] = -np.inf
+            buf.part[max(0, row):, :][sel] = -1
+            buf.mat[max(0, row):, :][sel] = -1
     return buf, mats, parts
 
 
@@ -218,7 +225,7 @@ def edges(buf, mask, depth_jump=7.0):
     for dy, dx in ((0, 1), (1, 0), (0, -1), (-1, 0)):
         sil2 |= np.roll(np.roll(sil, dy, 0), dx, 1) & m
     occ = np.zeros_like(m)
-    D, P = buf.depth, buf.part
+    D, P = np.where(mask, buf.depth, -1e9), buf.part
     for dy, dx in ((0, 1), (1, 0), (0, -1), (-1, 0)):
         D2 = np.roll(np.roll(D, dy, 0), dx, 1)
         P2 = np.roll(np.roll(P, dy, 0), dx, 1)
@@ -299,7 +306,10 @@ def render(body, P, cam, bg=MAGENTA, joints=True, ground=True, ghosts=True, mark
         gs = shade(gb, gm)
         gsil, _ = edges(gb, gmask)
         fill = gmask & ~gsil
-        out[fill] = (out[fill] * 0.55 + gs[fill] * 0.45).astype(np.uint8)
+        over_body = fill & mask
+        out[over_body] = (out[over_body] * 0.55 + gs[over_body] * 0.45).astype(np.uint8)
+        over_bg = fill & ~mask          # on the background: the prop colour itself (no magenta tint)
+        out[over_bg] = np.clip(gs[over_bg] * 0.9 + 25, 0, 255).astype(np.uint8)
         gcol = np.array([20, 90, 110])
         out[gsil] = gcol
     img = Image.fromarray(out)
