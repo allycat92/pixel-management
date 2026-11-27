@@ -88,7 +88,7 @@ function run(seed, days, mode, opts = {}) {
   const powerAt = {};
   let finalTries = 0, finalChance = 0;
   // 전투 모드 기록: 단어별·날짜 구간별 승패, 등급, 부상, 사망(특별한 전투 / 그 밖)
-  const bs = battle ? { byBand: {}, byDay: {}, byKind: {}, tiers: { great: 0, success: 0, fail: 0, disaster: 0 }, memberBattles: 0, downed: 0, injured: 0, injDays: 0,
+  const bs = battle ? { byBand: {}, byDay: {}, byKind: {}, byHeads: {}, timeout: {}, tiers: { great: 0, success: 0, fail: 0, disaster: 0 }, memberBattles: 0, downed: 0, injured: 0, injDays: 0,
     deathsSpecial: 0, deathsOther: 0, relief: 0, reliefTaken: 0, lossPay: 0, losses: 0, minMercs: 99, captainOnlyDays: 0, offered: [0, 0, 0, 0, 0], taken: [0, 0, 0, 0, 0], boards: {} } : null;
   const tally = (o, k, win) => { const x = (o[k] = o[k] || [0, 0]); x[0]++; x[1] += win ? 1 : 0; };
   const seenOffer = new Set();
@@ -228,6 +228,13 @@ function run(seed, days, mode, opts = {}) {
         tally(bs.byBand, r.battle.band, won);
         tally(bs.byDay, dayBandOf(s.day), won);
         tally(bs.byKind, ctx.Stats.kindOf(q), won);
+        // 4단계: 보낸 인원(직속 단원)별 단어 승률과, 시간이 다해 진 전투(인원별·의뢰 유형별)
+        const nOurs = r.battle.spec ? r.battle.spec.groups.filter((g) => g.kind === 'own' || g.kind === 'ext').reduce((a, g) => a + g.units.filter((u) => !u.recruit).length, 0) : r.members.length;
+        const heads = nOurs >= 4 ? '4+' : String(nOurs);
+        tally(bs.byHeads, `${heads} ${BAND_NAMES[r.battle.band]}`, won);
+        const lostOnTime = !won && r.battle.end === 'time';
+        tally(bs.timeout, `heads ${heads}`, lostOnTime); tally(bs.timeout, `type ${q.type}`, lostOnTime);
+        if (r.battle.band >= 3) tally(bs.timeout, `≥우세 heads ${heads}`, lostOnTime);
         bs.tiers[r.outcome]++;
         if (!won) { bs.losses++; bs.lossPay += r.gold; }
         if (q.relief) bs.reliefTaken++;
@@ -335,6 +342,9 @@ function summarize(res, days) {
     [0, 1, 2, 3, 4].forEach((b) => rows.push([`win rate, forecast ${BAND_NAMES[b]}`, byBand[b] ? rate(byBand[b]) : '-']));
     ['001-030', '031-060', '061-120', '121-240', '241-365'].forEach((k) => { if (byDay[k]) rows.push([`win rate, days ${k}`, rate(byDay[k])]); });
     Object.keys(byKind).sort().forEach((k) => rows.push([`win rate, ${k}`, rate(byKind[k])]));
+    const byHeads = merge('byHeads'), tout = merge('timeout');
+    ['1', '2', '3', '4+'].forEach((h) => rows.push([`win rate by heads ${h}: 백중 / 우세 / 압도`, ['백중', '우세', '압도'].map((w) => (byHeads[`${h} ${w}`] ? rate(byHeads[`${h} ${w}`]) : '-')).join(' | ')]));
+    Object.keys(tout).sort().forEach((k) => rows.push([`lost on time, ${k}`, rate(tout[k])]));
     rows.push(['tiers great/success/fail/disaster', tiers.map((t) => `${((100 * t) / tn).toFixed(1)}%`).join(' / ')]);
     rows.push(['offers seen by band 무모..압도 (per game)', [0, 1, 2, 3, 4].map((b) => fmt(sum((x) => x.offered[b]) / N, 1)).join(' / ')]);
     // 게시판의 폭: 일반 의뢰를 가장 나은 직속 용병단의 예상으로 (사흘에 한 번)
