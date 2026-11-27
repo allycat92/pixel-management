@@ -283,7 +283,8 @@
   function waitHint() {
     const s = Game.state, own = Game.ownCompanies();
     // 모두 나가 있을 때와, 집에 있는 용병단이 있지만 보낼 단원이 없을 때(모두 부상·빈 용병단)를 가른다 (넘기기는 둘 다 귀환·회복에서 멈춘다)
-    const lines = [Game.allAway() ? '모든 용병단이 의뢰에 나가 있습니다. 위의 「귀환까지 ▶▶」로 귀환하는 날까지 넘길 수 있습니다.'
+    const lines = [Game.waitingForOwnReturn() ? '직속 용병단은 모두 출격 중입니다. 외부단을 보내지 않으려면 위의 「직속 귀환까지 ▶▶」를 누르세요.'
+      : Game.allAway() ? '모든 용병단이 의뢰에 나가 있습니다. 위의 「귀환까지 ▶▶」로 귀환하는 날까지 넘길 수 있습니다.'
       : '지금 보낼 수 있는 용병단이 없습니다 (의뢰에 나갔거나, 남은 용병단에 나갈 수 있는 단원이 없습니다). 위의 「귀환까지 ▶▶」로 귀환하거나 단원이 회복하는 날까지 넘길 수 있습니다.'];
     if (own.length === 1) {
       if (own.length < Game.maxCompanies()) lines.push(SECOND_COMPANY_HINT, '용병단 탭의 창설 버튼 옆에서 남는 금화와 다음 정산 급료를 확인할 수 있습니다.');
