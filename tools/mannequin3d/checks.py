@@ -10,7 +10,7 @@ Run (gait) checks - gait_checks():
   knee        stance knee flex >= 10 deg (a locked straight knee reads as a stilt; too long a stride)              FAIL
   mirror      knee flex of the near leg at frame f == far leg at f+4 (+-3 deg); hip height +-1 px                   FAIL
   band        everything incl. props inside the slot band x 32..351                                                FAIL
-  feet        each foot keeps >= 45% of its own area visible (no two-feet blob in passing frames)                  FAIL
+  feet        each foot keeps >= 75% of its own area clear of the other leg (no two-feet blob in passing frames)                  FAIL
   knees       the far knee is visible or >= 14 px from the near knee on screen                                     WARN
   upper body  each hand travels >= 12 px (relative to the hip) over the cycle - no frozen cut-out torso             FAIL
   props       a mace / weapon head is >= its radius + 8 px from the other hand (not sitting on the shield hand)     FAIL
@@ -47,17 +47,24 @@ def part_mask(body, cam, parts, ghosts=False):
     return buf.depth > -np.inf
 
 
-def visible_fraction(body, cam, parts):
-    """share of the parts' own screen area that is still visible in the rendered frame (body.render_info)"""
+def visible_fraction(body, cam, parts, blockers=None):
+    """share of the parts' own screen area that is not hidden in the rendered frame (body.render_info) - by anything,
+    or only by the `blockers` parts when given (e.g. the other leg: two feet merging)"""
     own = part_mask(body, cam, parts)
     if not own.any():
         return 1.0
     info = body.render_info
     names = np.array(info['parts'], dtype=object)
-    vis = np.zeros_like(own)
+    hit = np.zeros_like(own)
     sel = info['buf'].part >= 0
-    vis[sel] = np.isin(names[info['buf'].part[sel]], list(parts))
-    return float((vis & own).sum() / own.sum())
+    if blockers is None:
+        hit[sel] = ~np.isin(names[info['buf'].part[sel]], list(parts))
+    else:
+        hit[sel] = np.isin(names[info['buf'].part[sel]], list(blockers))
+    return float((own & ~hit).sum() / own.sum())
+
+
+LEG = ('foot', 'instep', 'ankle', 'shin', 'thigh')
 
 
 def gait_checks(spec, recs, bodies, plains, cam, carry=None):
@@ -116,10 +123,10 @@ def gait_checks(spec, recs, bodies, plains, cam, carry=None):
     fv = []
     for r, b in zip(recs, bodies):
         cam.fit(b)
-        fv.append((r['frame'], visible_fraction(b, cam, {'footN', 'instepN', 'ankleN'}),
-                   visible_fraction(b, cam, {'footF', 'instepF', 'ankleF'})))
-    low = [f'{f} {"near" if n < 0.45 else "far"} {min(n, fa):.2f}' for f, n, fa in fv if min(n, fa) < 0.45]
-    out.append((FAIL if low else OK, 'feet visible share (>= 0.45): '
+        fv.append((r['frame'], visible_fraction(b, cam, {'footN', 'instepN', 'ankleN'}, {p + 'F' for p in LEG}),
+                   visible_fraction(b, cam, {'footF', 'instepF', 'ankleF'}, {p + 'N' for p in LEG})))
+    low = [f'{f} {"near" if n < 0.75 else "far"} {min(n, fa):.2f}' for f, n, fa in fv if min(n, fa) < 0.75]
+    out.append((FAIL if low else OK, 'feet not covered by the other leg (>= 0.75): '
                 + ' '.join(f'{f}:{n:.2f}/{fa:.2f}' for f, n, fa in fv) + (f'  merged: {low}' if low else '')))
     kw = []
     for r, b in zip(recs, bodies):

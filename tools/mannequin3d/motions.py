@@ -7,17 +7,24 @@ Gaits (8 frames a cycle, frame k at cycle phase k/8; the far leg / far arm run h
 
 How a gait frame is made:
   1. the SWING leg (off the floor) comes straight from the table SWING: thigh angle, knee bend, foot pitch;
-  2. the STANCE leg is foot-locked: its toe ball sits on the floor at toe0 - 2*step*phase on SCREEN (relative to the hip
-     column), i.e. exactly step/4 further back every cell - the rule the engine needs to keep feet planted
-     (js/battle.js runCells moves the unit step/4 per stance cell). A 2-bone IK (rig.leg_ik) finds thigh + knee, the
-     table's STANCE_PITCH gives the foot angle (heel rising at push-off);
-  3. hip height, lean, arm swing, chest counter-turn come from the per-frame tables;
+  2. the STANCE leg is foot-locked: its toe tip sits on the floor (toe0 - 2*step*phase) / cos(yaw) in front of the hip
+     midpoint (world x), i.e. exactly step/4 further back every cell on screen - the rule the engine needs to keep feet
+     planted (js/battle.js runCells moves the unit step/4 per stance cell). Both legs use the same WORLD rule, so the
+     two halves of the cycle mirror exactly (same knee bend); on screen the 3/4 yaw puts the near toe 5 px behind and the
+     far toe 5 px in front of the mid-plane value. A 2-bone IK (rig.leg_ik) finds thigh + knee, the table's
+     STANCE_PITCH gives the foot angle (heel rising at push-off);
+  3. hip height, lean, chest counter-turn come from the per-frame tables; arms and props from the character's carry
+     (specs/carry3d.json: arm swing with a lag, prop swing with a lag, two-hand grips);
   4. the 8 key frames are joined by periodic Catmull-Rom splines, so any number of in-between frames can be sampled
      (stance legs are re-solved with IK at every sampled phase). With n = 8 the frames ARE the table rows.
 The numbers were read off the accepted 2D mannequins (pose.json of the three base sets: hip heights, lean, toe x,
 swing-leg thigh/knee angles) so the 3D motion keeps the same rhythm, stride and cadence; arms were re-authored in 3D.
 
-Actions (attack_swing, hit): key poses with both feet locked to the floor; in-betweens by eased interpolation.
+Stride: gait_spec() = the class's GAME stride / the sheet's scale (x the fitted leg factor when > 5% off), so the
+registered runStride stays the class stride at any sheet scale and short-legged bodies keep a bent stance knee.
+Actions (warrior_attack, warrior_hit): frames with both feet locked to the floor, the sword arm solved by arm IK to a
+fist target per frame (relative to the head, shoulder, hip or - READY - the idle drawing's own grip), blade angles
+per frame; in-between bodies by eased interpolation.
 """
 import copy
 import math
@@ -58,9 +65,9 @@ GAITS = {
         'stance_pitch': [0.0, 0.0, 0.0, -8.0, -26.0],
         'hip_h': [180.0, 172.9, 177.8, 179.5],
         'lean': [5.0, 5.6, 5.0, 4.8],
-        # passing (0.625): the swing foot is carried a little ahead of the stance foot and its heel lifted, so the two feet
-        # do not merge into one blob (sole ~10-13 px up, inside the class's 5-13 px knee-lift band)
-        'swing': {0.625: (22.0, 78.0, -16.0), 0.75: (36.0, 72.0, -8.0), 0.875: (40.0, 48.0, 4.0)},
+        # passing (leg phase 0.75 = H3 far / H7 near): the swing foot is carried ahead of the stance foot (ankles ~20 px
+        # apart; was 36 deg -> 11 px, one blob) with the sole 13 px up (the class's 5-13 px knee-lift band)
+        'swing': {0.625: (14.0, 72.0, -18.0), 0.75: (41.0, 72.0, -8.0), 0.875: (40.0, 48.0, 4.0)},
         'arm': [(-4.0, 70.0), (-5.0, 66.0), (-2.0, 68.0), (2.0, 72.0), (4.0, 70.0), (5.0, 66.0), (2.0, 68.0), (-2.0, 72.0)],
         'pelvis_twist': 4.0, 'chest_counter': 2.0, 'head_pitch': 2.0,
     },
@@ -72,7 +79,8 @@ GAITS = {
         'stance_pitch': [0.0, 0.0, 0.0, -8.0, -24.0],
         'hip_h': [182.2, 180.5, 185.0, 185.5],
         'lean': [7.1, 7.6, 6.8, 6.8],
-        'swing': {0.625: (17.0, 66.0, -14.0), 0.75: (29.0, 58.0, -6.0), 0.875: (34.0, 38.0, 4.0)},
+        # passing (0.75 = G3 / G7): swing foot ahead of the stance foot, sole 13 px up (was 29 deg: ankles 3 px apart)
+        'swing': {0.625: (8.0, 60.0, -15.0), 0.75: (38.0, 62.0, -4.0), 0.875: (34.0, 38.0, 4.0)},
         'arm': [(-10.0, 72.0), (-12.0, 76.0), (-4.0, 74.0), (6.0, 72.0), (10.0, 72.0), (12.0, 76.0), (4.0, 74.0), (-6.0, 72.0)],
         'pelvis_twist': 4.0, 'chest_counter': 3.0, 'head_pitch': 2.0,
         # robe proxy: hem height (robe_base v1: 38-52 px, check fail < 38), hem corner lift, margins around the leading
@@ -394,34 +402,35 @@ def _sword(abs_angle, carry):
 
 
 def warrior_attack(P, carry):
-    """overhead sword swing (sheet cells 4-5): READY (the idle's grip) -> WINDUP (key: hand up behind the head, blade
-    cocked back and up) -> 1/3 (hand over the head, blade vertical) -> 2/3 (hand in front of the face, blade level
-    forward) -> STRIKE (key: arm out, blade forward and down). Only the strike points down."""
+    """overhead sword swing (sheet cells 4-5): READY (the idle's grip) -> WINDUP (key: fist up behind the head, blade
+    cocked back and up ~45 deg) -> 1/3 (fist over the head, blade vertical) -> 2/3 (fist over the brow, blade level
+    forward, above the head) -> STRIKE (key: arm forward and down, blade forward and down). Only the strike points
+    down. The body stays over its feet (feet centre = the sheet anchor) so the whole swing fits the slot band."""
     k = leg_factor(P)
     hr = P['head_r']
-    feet = {'N': (-62.0 * k, -8.0), 'F': (112.0 * k, 0.0)}
-    feet_lunge = {'N': (-62.0 * k, -26.0), 'F': (112.0 * k, 0.0)}
+    feet = {'N': (-52.0 * k, -8.0), 'F': (100.0 * k, 0.0)}
+    feet_lunge = {'N': (-52.0 * k, -26.0), 'F': (100.0 * k, 0.0)}
     co = carry.get('chest_open', 30.0)
     base = {'chest_yaw': co, 'head_pitch': 6.0, 'arm_abd_N': 8, 'arm_abd_F': 10}
     rd = carry.get('ready', {})
     ready = dict(base, hip_h=166 * k, x=0.0, pelvis_pitch=6, spine_pitch=4, chest_pitch=4, wrist_N=0)
-    windup = dict(base, hip_h=170 * k, x=-12.0 * k, pelvis_pitch=-2, spine_pitch=-4, chest_pitch=-4, chest_yaw=co + 10,
+    windup = dict(base, hip_h=170 * k, x=-2.0 * k, pelvis_pitch=-2, spine_pitch=-4, chest_pitch=-4, chest_yaw=co + 10,
                   head_pitch=2, wrist_N=0)
-    strike = dict(base, hip_h=152 * k, x=12.0 * k, pelvis_pitch=14, spine_pitch=8, chest_pitch=6, chest_yaw=co - 12,
+    strike = dict(base, hip_h=154 * k, x=2.0 * k, pelvis_pitch=12, spine_pitch=8, chest_pitch=6, chest_yaw=co - 12,
                   head_pitch=4, wrist_N=0)
     u1, u2 = ease(1 / 3), ease(2 / 3)
     ff = lambda u: {s: (feet[s][0], feet[s][1] + (feet_lunge[s][1] - feet[s][1]) * u) for s in feet}
     keys = [
         {'name': 'ready', 'pose': ready, 'feet': feet, 'props': _sword(rd.get('blade_deg', 38.0), carry),
          'arms': {'N': ('feet', *rd.get('hand_N', [-25.0, 191.0])), 'F': ('angles', 34.0, 104.0)}},
-        {'name': 'windup', 'pose': windup, 'feet': feet, 'props': _sword(140.0, carry),
-         'arms': {'N': ('head', -hr[0] - 10.0, -hr[1] * 0.25), 'F': ('angles', 44.0, 100.0)}},
+        {'name': 'windup', 'pose': windup, 'feet': feet, 'props': _sword(135.0, carry),
+         'arms': {'N': ('head', -hr[0] * 0.6, hr[1] * 0.8), 'F': ('angles', 44.0, 100.0)}},
         {'name': 'windup>strike 1/3', 'key': False, 'pose': lerp_pose(windup, strike, u1), 'feet': ff(u1),
-         'props': _sword(95.0, carry), 'arms': {'N': ('head', -hr[0] * 0.25, hr[1] + 22.0), 'F': ('angles', 34.0, 96.0)}},
+         'props': _sword(95.0, carry), 'arms': {'N': ('head', -hr[0] * 0.1, hr[1] + 20.0), 'F': ('angles', 34.0, 96.0)}},
         {'name': 'windup>strike 2/3', 'key': False, 'pose': lerp_pose(windup, strike, u2), 'feet': ff(u2),
-         'props': _sword(12.0, carry), 'arms': {'N': ('head', hr[0] + 46.0, -hr[1] * 0.3), 'F': ('angles', 10.0, 90.0)}},
-        {'name': 'strike', 'pose': strike, 'feet': feet_lunge, 'props': _sword(-32.0, carry),
-         'arms': {'N': ('shoulder', 118.0 * k, -48.0 * k), 'F': ('angles', -10.0, 80.0)}},
+         'props': _sword(12.0, carry), 'arms': {'N': ('head', hr[0] * 0.1, hr[1] + 16.0), 'F': ('angles', 10.0, 90.0)}},
+        {'name': 'strike', 'pose': strike, 'feet': feet_lunge, 'props': _sword(-50.0, carry),
+         'arms': {'N': ('shoulder', 58.0 * k, -74.0 * k), 'F': ('angles', -10.0, 80.0)}},
     ]
     return keys
 

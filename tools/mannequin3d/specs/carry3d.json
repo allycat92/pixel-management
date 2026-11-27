@@ -7,7 +7,7 @@
     "chest_open": "extra chest turn toward the viewer (default: the --chest-open CLI value)",
     "chest_counter": "chest counter-rotation amplitude against the pelvis (default: the gait table's)",
     "arms": "per side N / F: shoulder = table_scale x the gait table's shoulder + shoulder + swing x wave; elbow (+ elbow_swing x wave) replaces the table's; wrist; abd (out to the side); lag = frames the swing trails the legs (secondary motion)",
-    "props": "list: kind sword | mace | staff | shield; hand N | F. Weapons: abs_angle (deg from forward-horizontal, + = up), yaw (turn out of the side plane), length beyond the fist, back (pommel / butt behind the fist), swing (deg with the hand's wave), lag (frames). Shields: shape round (radius) | tower (half = [w, h], corner), face (deg from forward toward the viewer), lift (px up from the forearm middle), offset (px out from the forearm). measured = where the value was read on the idle drawing",
+    "props": "list: kind sword | mace | staff | shield; hand N | F. Weapons: abs_angle (deg from forward-horizontal, + = up), yaw (turn out of the side plane), length beyond the fist, back (pommel / butt behind the fist), swing (deg with the hand's wave), lag (frames). Shields: shape round (radius) | tower (half = [w, h], corner), face (deg from forward toward the viewer), lift (px up from the forearm middle), toward (px toward the viewer, so the shield covers its forearm and hand), offset (px out from the forearm). measured = where the value was read on the idle drawing",
     "two_hand": "second hand on a staff / two-handed weapon: prop index, other hand, along = px past the holding hand along the prop",
     "ready": "actions only: the idle's grip as the first key: hand_N = [x, h] of the sword fist on the idle drawing, blade_deg = blade angle on the idle drawing",
     "robe": "true: draw the robe proxy (run_robe)",
@@ -25,10 +25,11 @@
           "elbow": 40.0
         },
         "F": {
-          "table_scale": 0.12,
-          "shoulder": 38.0,
+          "table_scale": 0.0,
+          "shoulder": 33.0,
           "elbow": 142.0,
-          "lag": 1
+          "lag": 1,
+          "swing": 4.0
         }
       },
       "props": [
@@ -47,13 +48,14 @@
           "hand": "F",
           "kind": "shield",
           "shape": "round",
-          "radius": 64.0,
+          "radius": 60.0,
           "face": 30.0,
           "offset": 6.0,
           "swing": 3.0,
           "lag": 1,
           "measured": "idle shield x 35..127, h 156..290: an upright disc ~134 px tall seen at ~45 deg (92 px wide); run strips: centre ~(+104, 261), up to the helmet chin",
-          "lift": 20.0
+          "lift": 20.0,
+          "toward": 30.0
         }
       ],
       "ready": {
@@ -115,7 +117,8 @@
           "lift": 10.0,
           "swing": 4.0,
           "lag": 1,
-          "measured": "idle tower shield x 47..143, h 95..340: a rectangle 95 x 245 seen almost face-on, chamfered corners"
+          "measured": "idle tower shield x 47..143, h 95..340: a rectangle 95 x 245 seen almost face-on, chamfered corners",
+          "toward": 30.0
         }
       ]
     },
