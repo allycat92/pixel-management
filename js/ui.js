@@ -443,7 +443,13 @@ const UI = (() => {
   function missionReport(r) {
     const titles = { great: '대성공!', success: '의뢰 성공', fail: '의뢰 실패', disaster: '대실패...' };
     const good = r.outcome === 'great' || r.outcome === 'success';
-    const timedOut = !good && r.battle?.end === 'time';
+    const end = r.battle?.end;
+    const timedOut = !good && end === 'time';
+    const reason = end === 'retreat' ? '아군이 전열을 잃고 물러났습니다.'
+      : end === 'wipe' ? (good ? '적을 모두 쓰러뜨렸습니다.' : '아군이 모두 쓰러졌습니다.')
+      : end === 'rout' ? (good ? '적이 달아났습니다.' : '아군이 패주했습니다.')
+      : end === 'time' ? (good ? '아군이 제한 시간 동안 거점을 지켰습니다.' : '제한 시간 안에 적을 쓰러뜨리지 못해 패배했습니다.')
+      : null;
     const c = r.quest;
     const members = el('div', { class: 'report-members' });
     // 전투 판정 보고서: 단원마다 피해·처치·치유 (m.bt, 화면 눈금). 피해+치유가 가장 큰 단원에게 ★. 옛 보고서에는 없다
@@ -485,8 +491,8 @@ const UI = (() => {
     return el('div', { class: 'report' },
       // 첫 초점은 제목(확인 버튼이 아니라): 「결과 보기」에서 Enter 를 두 번 눌러도 보고서가 바로 닫히지 않는다
       el('div', { class: `report-banner ${good ? 'good' : 'bad'} ${r.outcome}`, text: titles[r.outcome], tabindex: '-1', 'data-autofocus': '' }),
-      timedOut ? el('p', { class: 'small bad', text: '제한 시간 안에 적을 쓰러뜨리지 못해 패배했습니다.' }) : null,
       el('h3', { text: c.title }),
+      reason ? el('p', { class: `small report-end ${good ? 'muted' : 'bad'}`, text: reason }) : null,
       el('div', { class: 'small muted', text: `${PROVINCES[c.province].name} · 의뢰주 ${FACTIONS[c.issuer].name}${c.target ? ` · 대상 ${FACTIONS[c.target].name}` : ''}` }),
       r.battle ? el('div', { class: 'small muted', text: `출격 당시 예상 전황 「${Stats.BAND_NAMES[r.battle.band]}」 · ${timedOut ? `시간 초과(${Math.round(r.battle.t)}초)` : `전투 ${Math.round(r.battle.t)}초`} · 쓰러진 단원 ${r.members.filter((m) => m.down).length}명` }) : null,
       members,
