@@ -32,18 +32,19 @@
 <!-- index:start (gait_requests.py --index) -->
 | 요청 | 시트 | 부류 · 마네킹 | 납품 (art-inbox) | 상태 |
 |---|---|---|---|---|
-| [`heavy__captain_ironwall/`](heavy__captain_ironwall/README.md) | `sheet/captain/ironwall` 브리긴다 이동 (중량) | 중량 · `art/requests/guides/heavy_base/v1` | `art/inbox/gait/sheet_captain_ironwall_run_a.png` + `_b.png` | 요청 |
+| [`heavy__captain_ironwall/`](heavy__captain_ironwall/README.md) | `sheet/captain/ironwall` 브리긴다 이동 (중량) | 중량 · `art/requests/guides/heavy_base/v1` | `art/inbox/gait/sheet_captain_ironwall_run_a.png` + `_b.png` | 그려짐 · 등록 |
 | [`heavy__captain_lancer/`](heavy__captain_lancer/README.md) | `sheet/captain/lancer` 로드릭 — 말을 잃은 기사 (창기병) 이동 | 중량 · `art/requests/guides/heavy_base/v1` | `art/inbox/gait/sheet_captain_lancer_run_a.png` + `_b.png` | 요청 |
 | [`heavy__captain_saintknight/`](heavy__captain_saintknight/README.md) | `sheet/captain/saintknight` 엘리노어 — 성광의 기사 (성광 기사) 이동 | 중량 · `art/requests/guides/heavy_base/v1` | `art/inbox/gait/sheet_captain_saintknight_run_a.png` + `_b.png` | 요청 |
 | [`heavy__hero_oswin/`](heavy__hero_oswin/README.md) | `sheet/hero/oswin` 오스윈 — 몰락한 기사단장 (몰락 기사단장) 이동 | 중량 · `art/requests/guides/heavy_base/v1` | `art/inbox/gait/sheet_hero_oswin_run_a.png` + `_b.png` | 요청 |
 | [`robe__captain_archmagus/`](robe__captain_archmagus/README.md) | `sheet/captain/archmagus` 에우리아 — 마지막 대현자 (대현자) 이동 | 로브 · `art/requests/guides/robe_base/v1` | `art/inbox/gait/sheet_captain_archmagus_run_a.png` + `_b.png` | 요청 |
 | [`robe__captain_lightbearer/`](robe__captain_lightbearer/README.md) | `sheet/captain/lightbearer` 루치아 — 빛을 든 사도 (빛의 사도) 이동 | 로브 · `art/requests/guides/robe_base/v1` | `art/inbox/gait/sheet_captain_lightbearer_run_a.png` + `_b.png` | 요청 |
-| [`robe__class_mage/`](robe__class_mage/README.md) | `sheet/class/mage` 병과 마법사 이동 (로브) | 로브 · `art/requests/guides/robe_base/v1` | `art/inbox/gait/sheet_class_mage_run_a.png` + `_b.png` | 요청 |
+| [`robe__class_mage/`](robe__class_mage/README.md) | `sheet/class/mage` 병과 마법사 이동 (로브) | 로브 · `art/requests/guides/robe_base/v1` | `art/inbox/gait/sheet_class_mage_run_a.png` + `_b.png` | 그려짐 · 등록 |
 | [`robe__hero_astel/`](robe__hero_astel/README.md) | `sheet/hero/astel` 아스텔 — 마탑의 마지막 제자 (마탑 계승자) 이동 | 로브 · `art/requests/guides/robe_base/v1` | `art/inbox/gait/sheet_hero_astel_run_a.png` + `_b.png` | 요청 |
 | [`robe__hero_seraphine/`](robe__hero_seraphine/README.md) | `sheet/hero/seraphine` 세라핀 — 파문당한 성녀 (파문 성녀) 이동 | 로브 · `art/requests/guides/robe_base/v1` | `art/inbox/gait/sheet_hero_seraphine_run_a.png` + `_b.png` | 요청 |
 | [`run__captain_bard/`](run__captain_bard/README.md) | `sheet/captain/bard` 리코 — 노래하는 검 (음유 검객) 이동 | 경량 · `art/requests/guides/run_base/v2` | `art/inbox/gait/sheet_captain_bard_run_a.png` + `_b.png` | 요청 |
 | [`run__captain_blademaster/`](run__captain_blademaster/README.md) | `sheet/captain/blademaster` 바렌 — 떠돌이 검귀 (검귀) 이동 | 경량 · `art/requests/guides/run_base/v2` | `art/inbox/gait/sheet_captain_blademaster_run_a.png` + `_b.png` | 요청 |
 | [`run__captain_fixer/`](run__captain_fixer/README.md) | `sheet/captain/fixer` 진 — 뒷골목 해결사 (해결사) 이동 | 경량 · `art/requests/guides/run_base/v2` | `art/inbox/gait/sheet_captain_fixer_run_a.png` + `_b.png` | 요청 |
+| [`run__captain_frostjarl/`](run__captain_frostjarl/README.md) | `sheet/captain/frostjarl` 비요른 달리기 | 경량 · `art/requests/guides/run_base/v2` | `art/inbox/gait/sheet_captain_frostjarl_run_a.png` + `_b.png` | 요청 |
 | [`run__captain_huntress/`](run__captain_huntress/README.md) | `sheet/captain/huntress` 키아라 — 숲의 덫꾼 (덫사냥꾼) 이동 | 경량 · `art/requests/guides/run_base/v2` | `art/inbox/gait/sheet_captain_huntress_run_a.png` + `_b.png` | 요청 |
 | [`run__captain_shadowqueen/`](run__captain_shadowqueen/README.md) | `sheet/captain/shadowqueen` 니클라 달리기 | 경량 · `art/requests/guides/run_base/v2` | `art/inbox/gait/sheet_captain_shadowqueen_run_a.png` + `_b.png` | 그려짐 · 등록 |
 | [`run__captain_tactician/`](run__captain_tactician/README.md) | `sheet/captain/tactician` 이사벨 — 퇴역 참모 (전술가) 이동 | 경량 · `art/requests/guides/run_base/v2` | `art/inbox/gait/sheet_captain_tactician_run_a.png` + `_b.png` | 요청 |
@@ -73,6 +74,7 @@ python3 tools/art/gait_requests.py --write sheet/<kind>/<key> [sheet/... ...]
 ```
 - 시트의 부류(`gait_classes.json`) → 그 부류의 확정 마네킹(`pose.json`)의 숫자로 README 를 쓰고, `tools/art/run_request_guides.py` 가 그림 넷을 만든다.
   대기 자세의 x 범위·앵커 열·배율은 등록된 시트(`assets/art/manifest.json`)와 원본(`art/inbox/<stem>.png`)·요청서 배율(`art/requests/phase3.json`)에서 잰다 — 캐릭터마다 손으로 적는 표가 없다.
+- 시트 배율과 마네킹 배율이 1% 넘게 다르면 요청 폴더에 변환된 `pose.json`을 쓴다. `guide_*`와 `size_*`의 마네킹은 각 칸의 (192, 870)을 기준으로 같은 비율만큼 조정한다. 수령 도구와 SELF-CHECK는 요청 폴더의 pose를 사용한다.
 - 손에 든 것·천·얼굴 문장은 `tools/art/gait_requests.py` 의 `CARRY` 표(시트 id 마다)에서 온다(중량은 방패를 가슴 앞에 세운 채, 로브는 옷자락이 한 칸 늦고 무릎을 가림).
   표에 없는 시트는 phase3 꾸러미 README 의 CHARACTER 줄(없으면 phase3.json 의 prompt) + 부류 기본 문장으로 만들고 README 와 출력에 「검토」를 단다
   → 대기 그림을 보고 CARRY 에 적은 뒤 `--force` 로 다시 만든다. 「검토」가 달린 요청은 대기열에 올리지 않는다.

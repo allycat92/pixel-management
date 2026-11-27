@@ -705,7 +705,16 @@ def gait_pose(sheet, gait):
     <gait>_<last name part>, else - run - the base set of the sheet's class in gait_classes.json (light run_base, heavy heavy_base,
     robe robe_base; newest v<n>/, else draft/) or - walk - walk_base"""
     body = sheet[len('sheet_'):]
-    base = CLASS_BASE.get(gait_class(sheet) or 'light', 'run_base') if gait == 'run' else f'{gait}_base'
+    cls = gait_class(sheet) or 'light'
+    base = CLASS_BASE.get(cls, 'run_base') if gait == 'run' else f'{gait}_base'
+    if gait == 'run' and cls in CLASS_BASE:
+        prefix = 'run' if cls == 'light' else cls
+        requested = os.path.join(ROOT, 'art', 'requests', 'gait', f'{prefix}__{body}', 'pose.json')
+        if os.path.isfile(requested):
+            with open(requested, encoding='utf-8') as f:
+                pose = json.load(f)
+            if pose.get('scaled_from'):
+                return requested, pose
     for set_name in (f'{gait}_{body}', f'{gait}_{body.split("_")[-1]}', base):
         p, d = latest_pose(set_name)
         if p:

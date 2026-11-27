@@ -9,8 +9,8 @@ Any registered battle sheet, any movement class (light run / heavy / robe - tool
 
 The README of a request is written by tools/art/gait_requests.py --write (which calls build() below).
 
-guide_<p>_a.png / guide_<p>_b.png = exact copies of the class mannequin strips (<p> = run / heavy / robe; light: run_base/v2,
-    heavy: heavy_base/v<n>, robe: robe_base/v<n> - the newest confirmed set).
+guide_<p>_a.png / guide_<p>_b.png = class mannequin strips (<p> = run / heavy / robe). If the sheet scale differs by
+    more than 1%, the strips and a request-local pose.json are scaled around the slot anchor.
 size_<p>_a.png / size_<p>_b.png  = 1920x1024: a SIZE panel (the character's accepted idle, faint, placed the way the engine places it
     - its anchor column on x=192, soles on y=870 - with the mannequin's first frame of that strip outlined over it at the same scale)
     + the 4 mannequin frames in their delivery slots, with the floor line y=870, the hip column x=192 of each slot, the 32-px border
@@ -93,6 +93,7 @@ def mannequin(cls):
             raise Fail(f'{cls}: no confirmed mannequin art/requests/guides/{GUIDE_SET[cls]}/v<n>/ yet (draft/ is not a request guide)')
         pj = os.path.relpath(vs[-1], REPO)
     pose = load_json(pj)
+    pj = pj.replace(os.sep, '/')
     d = os.path.dirname(pj)
     strips = [f'{d}/{pose["set"]}_{h}.png' for h in 'ab']
     for s in strips:
@@ -226,18 +227,81 @@ def stance_toes(fr):
     return out
 
 
+def scale_pose(source, pose, sheet_scale):
+    ratio = pose['scale'] / sheet_scale
+
+    def distance(value):
+        if value is None:
+            return None
+        if isinstance(value, dict):
+            return {key: distance(item) for key, item in value.items()}
+        if isinstance(value, list):
+            return [distance(item) for item in value]
+        return round(value * ratio, 4)
+
+    def y_pos(value):
+        if value is None:
+            return None
+        if isinstance(value, dict):
+            return {key: y_pos(item) for key, item in value.items()}
+        return round(FLOOR + (value - FLOOR) * ratio)
+
+    scaled = dict(pose, scale=sheet_scale, scaled_from=source,
+                  source_scale=pose['scale'], scale_ratio=ratio, anchor=[HIP, FLOOR])
+    for key in ('head_px', 'step_px', 'bob_px', 'flight_clearance_px', 'push_ankle_shift_px',
+                'sink_contact_to_down_px', 'other_foot_max_px', 'heel_up_ankle_shift_px', 'bones_px'):
+        if key in pose:
+            scaled[key] = distance(pose[key])
+    if 'planted_toes' in pose:
+        scaled['planted_toes'] = [dict(toes, toe_x_px=distance(toes['toe_x_px'])) for toes in pose['planted_toes']]
+
+    scaled['frames'] = []
+    for frame in pose['frames']:
+        origin = HIP + (frame['slot'] - 1) * SLOT
+        out = {}
+        for key, value in frame.items():
+            if key == 'joints':
+                out[key] = {joint: [round(origin + (x - origin) * ratio, 4),
+                                    round(FLOOR + (y - FLOOR) * ratio, 4)]
+                            for joint, (x, y) in value.items()}
+            elif key in ('top_px', 'lowest_px', 'sole_px'):
+                out[key] = y_pos(value)
+            elif key.endswith('_px') or key == 'hem':
+                out[key] = distance(value)
+            else:
+                out[key] = value
+        scaled['frames'].append(out)
+    return scaled
+
+
+def scale_strip(strip, ratio):
+    """Resample each slot about its own anchor, without reading neighbouring slots."""
+    sx = np.rint(HIP + (np.arange(SLOT) - HIP) / ratio).astype(int)
+    sy = np.rint(FLOOR + (np.arange(strip.shape[0]) - FLOOR) / ratio).astype(int)
+    valid_x = (sx >= 0) & (sx < SLOT)
+    valid_y = (sy >= 0) & (sy < strip.shape[0])
+    out = np.empty_like(strip)
+    out[:] = MAG
+    for slot in range(strip.shape[1] // SLOT):
+        offset = slot * SLOT
+        out[np.ix_(np.flatnonzero(valid_y), np.flatnonzero(valid_x) + offset)] = (
+            strip[np.ix_(sy[valid_y], sx[valid_x] + offset)])
+    return out
+
+
 def build(sid, outdir, cls=None, man=None, force=False):
     """write guide_<p>_a/b.png + size_<p>_a/b.png for one sheet into outdir -> geometry dict (+ class, mannequin)"""
     man = man or load_json(MANIFEST)
     geo = geometry(sid, man)
     cls = cls or movement_class(sid)
     pj, pose, strips = mannequin(cls)
-    if abs(geo['scale'] / pose['scale'] - 1) > 0.01:
-        raise Fail(f'{sid}: sheet scale {geo["scale"]} != mannequin scale {pose["scale"]} - the mannequin would have to be rescaled '
-                   'first (not supported: add_gait converts the frames with the sheet scale)')
+    source_pose = pj
+    scaled = abs(geo['scale'] / pose['scale'] - 1) > 0.01
     p = PREFIX[cls]
     os.makedirs(outdir, exist_ok=True)
     names = [f'guide_{p}_{h}.png' for h in 'ab'] + [f'size_{p}_{h}.png' for h in 'ab']
+    if scaled:
+        names.append('pose.json')
     if not force:
         there = [n for n in names if os.path.exists(os.path.join(outdir, n))]
         if there:
@@ -250,11 +314,27 @@ def build(sid, outdir, cls=None, man=None, force=False):
     f_reg = ImageFont.truetype(FONT, 22)
     f_small = ImageFont.truetype(FONT, 18)
     f_big = ImageFont.truetype(FONTB, 28)
+    if scaled:
+        pose = scale_pose(source_pose, pose, geo['scale'])
+        local_pose = os.path.join(outdir, 'pose.json')
+        pj = os.path.relpath(local_pose, REPO).replace(os.sep, '/')
+        with open(local_pose, 'w', encoding='utf-8', newline='\n') as f:
+            json.dump(pose, f, ensure_ascii=False, indent=2)
+            f.write('\n')
+    elif force:
+        local_pose = os.path.join(outdir, 'pose.json')
+        if os.path.isfile(local_pose) and load_json(local_pose).get('scaled_from'):
+            os.remove(local_pose)
     frames = pose['frames']
     flight_any = any(fr.get('phase') == 'flight' for fr in frames)
     for k, half in enumerate('ab'):
-        shutil.copyfile(path(strips[k]), os.path.join(outdir, f'guide_{p}_{half}.png'))
         strip = np.asarray(Image.open(path(strips[k])).convert('RGB'))
+        guide = os.path.join(outdir, f'guide_{p}_{half}.png')
+        if scaled:
+            strip = scale_strip(strip, pose['scale_ratio'])
+            Image.fromarray(strip).save(guide, optimize=True)
+        else:
+            shutil.copyfile(path(strips[k]), guide)
         frs = [fr for fr in frames if fr.get('strip') == half] or frames[k * 4:(k + 1) * 4]
         W = SLOT * 5
         canvas = np.zeros((1024, W, 3), np.uint8)
@@ -331,7 +411,7 @@ def build(sid, outdir, cls=None, man=None, force=False):
                 y += 30
         d.text((10, 310), 'SIZE (idle + mannequin)', font=f_reg, fill=(255, 255, 255))
         im.save(os.path.join(outdir, f'size_{p}_{half}.png'), optimize=True)
-    geo.update(cls=cls, prefix=p, pose=pj, strips=strips, idle_offset=ox, files=names)
+    geo.update(cls=cls, prefix=p, pose=pj, source_pose=source_pose, scaled=scaled, strips=strips, idle_offset=ox, files=names)
     return geo
 
 
