@@ -15,9 +15,9 @@
 | `art/inbox/sheet_captain_runesmith.png` | **승인된 전투 시트 원본** — 디자인·색·크기의 기준. 1번 자세가 대기 |
 | `art/requests/guides/heavy_base/v1/` (`pose.json`, `heavy_base_preview.gif`, `heavy_base.aseprite`) | 마네킹 원본 — 숫자·움직임 확인용 |
 
-- 부류: **중량** — stocky dwarf in leather-and-steel armour with big rounded steel pauldrons and engraved plates, heavy two-handed rune warhammer. (tools/art/specs/gait_classes.json)
+- 부류: **중량** — stocky, barrel-chested man in leather-and-steel armour with big rounded steel pauldrons and engraved plates, heavy two-handed rune warhammer. (tools/art/specs/gait_classes.json)
 - 납품: art-inbox `art/inbox/gait/sheet_captain_runesmith_run_a.png` (H1~H4) + `art/inbox/gait/sheet_captain_runesmith_run_b.png` (H5~H8) + `art/inbox/NOTES.md` 절 「gait/sheet_captain_runesmith_run - 브로크 이동」 + 「## 판정 — gait/sheet_captain_runesmith_run」. 파일 이름은 부류와 상관없이 `_run_` (엔진의 `anims.run`).
-- 팔·무기: 양손 룬 망치의 머리는 x=299–302, 전폭 x=257–348. 앞 수염·앞치마·갑옷은 제자리.
+- 팔·무기: 양손 룬 망치는 대기 각도(약 70°)로 약 16px 왼쪽에: 머리 x≈300, 전폭 x=251–350 (머리 폭 약 98px, 줄이지 않는다). 키는 마네킹 머리보다 약 50px 아래(머리 위 y≈490–500), 목을 늘이지 않는다. 앞 수염·앞치마·갑옷은 제자리.
 - 디딘 발: 한 걸음 원본 142.5px(게임 23.6px) → 디딘 발은 칸마다 **정확히 35.6px**(±3, 게임 5.9px) 뒤로 — 발끝 x 는 Prompt 의 PLANTED FOOT 표. (병과 전사 R5 는 디딘 발이 30px 앞에 그려져 한 번 고쳤다.)
 - 클라우드가 받은 뒤: `python3 tools/art/receive.py gait/sheet_captain_runesmith_run` (검사 + `add_gait.py --dry-run`) → 미리보기를 보고 `add_gait.py` 로 붙인다 (`--pose art/requests/guides/heavy_base/v1/pose.json`).
 
@@ -42,7 +42,7 @@ REFERENCES (load all; if the sheet or a guide does not load, do not draw - write
   - art/requests/guides/heavy_base/v1/pose.json (the numbers below come from it), art/requests/guides/heavy_base/v1/heavy_base_preview.gif (the motion at speed), art/requests/guides/heavy_base/v1/heavy_base.aseprite (the mannequin source -
     you may open it as an underlay and draw on your own layers, but the delivered PNGs contain ONLY your drawing).
 
-CHARACTER (unchanged from the accepted sheet): Brok, stocky bearded dwarf with round steel pauldrons and engraved armour, holding a broad two-handed rune warhammer.
+CHARACTER (unchanged from the accepted sheet): Brok, a stout, barrel-chested, bare-headed man (4 heads tall, short thick legs exactly as in the idle) with swept-back copper-orange hair and a huge braided orange beard bound with gold rings, dark-brown leather-and-steel armour with big rounded grey steel pauldrons and cyan-engraved plates, holding a heavy two-handed rune warhammer (grey steel block head with a cyan rune, dark wrapped haft, gold collar).
 
 THE MOVE (owner's three movement classes; heavy: heavy armour / tower shield / very large weapon: cannot really run. Fastest natural gait for that body = a heavy, purposeful, FAST trudge (not a stroll): NO flight phase (one foot always on the ground), torso upright, short stride, the weight dropped onto each footfall, arms held close and high. It is already in the mannequin - copy it, do not invent another):
   - Each frame: the legs, the torso lean and the arm swing of that mannequin frame. Joint for joint: hips, knees, ankles, feet,
@@ -64,7 +64,7 @@ THE MOVE (owner's three movement classes; heavy: heavy armour / tower shield / v
     YOUR toe tip against these numbers (the size_* images mark them with yellow ticks).
 
 ARMS AND WEAPONS:
-  - Keep the two idle hammer grips, lower hand x=220–229, y=678–695, near his belt. Raise the shaft forward at about 67–72° above horizontal, with the head centred at x=299–302; its full width must fit x=257–348. Keep the shaft ahead of the face above y=580, and the entire hammer within x=190–350, y=452–765. The mannequin's two separate arm swings and elbow locations do NOT apply to this character (intended, not a deviation). Let the shoulders follow the torso, keep both hands attached to the weapon, and limit fore-aft travel to 8 px.
+  - Keep the two idle hammer grips, lower hand x=220–229, y=678–695, near his belt. Keep the shaft at the idle angle (about 70° above horizontal; 67–72° is fine) and move the whole hammer about 16 px left: the head (about 98 px wide at this angle, never shrink it) centred at x≈300, its full width inside x=251–350, and its left corner at least 6 px ahead of his nose/brow (x≈244 at y=520–560). Keep the shaft ahead of the face above y=580, and the entire hammer within x=190–350, y=452–765. The mannequin's two separate arm swings and elbow locations do NOT apply to this character (intended, not a deviation). Let the shoulders follow the torso, keep both hands attached to the weapon, and limit fore-aft travel to 8 px.
   - Keep his beard, front apron and armoured front flaps over his chest and thighs. Shoulder plates ride with the torso; back tips sway only slightly.
   - Face: match the accepted idle in every frame.
 
@@ -76,7 +76,7 @@ front three-quarter view, light from the upper left, exactly the placement of gu
   - the hip centre of every frame on the slot's column x=192 (the body stays in place, the feet move);
   - EVERY frame: the lowest pixel of the figure is the standing sole on y=870 (no flight frame); in H1/H5 both soles are on y=870; the lifted sole 3-13 px above it; nothing below y=870 (no weapon tip, no hem);
   - every pixel of a frame between x=32 and x=351 of its slot (at least 32 px of magenta to the slot edges - nothing may cross into the next slot, including weapons, cloth and hair);
-  - head 110 px scale = the scale of the accepted sheet (0.1654 source -> game: the idle is 64 game px tall); the figure about as tall as the idle stood up (the mannequin's head top is near y=440-447).
+  - head 110 px scale = the scale of the accepted sheet (0.1654 source -> game: the idle is 64 game px tall); the figure about as tall as the idle stood up: Brok has almost no neck and his head is smaller than the mannequin's placeholder, so his hair top stays near y≈490–500 (the idle's 499 plus the 7-px bob), about 50 px BELOW the mannequin's head top (y=440–447). His shoulders/pauldron tops go on the mannequin's shoulders (y≈570–585), and his face and beard sit where the mannequin's neck is. Do not stretch his torso or add a neck to reach the mannequin's height.
 STYLE: crisp pixel art like the accepted sheet - about 40 colours, hard pixel edges, no anti-aliasing into the background.
 BACKGROUND: perfectly flat #FF00FF. Every figure colour at RGB distance >= 170 from #FF00FF (hard minimum 150).
 NO effects: no dust, speed lines, motion blur, afterimages, shadows, floor, text or guide lines in the delivery.

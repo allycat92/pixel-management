@@ -17,7 +17,7 @@
 
 - 부류: **경량** — long leather coat to the knee, trousers, boots, steel helmet; heavy crossbow carried in the hands. (tools/art/specs/gait_classes.json)
 - 납품: art-inbox `art/inbox/gait/sheet_captain_siegemaster_run_a.png` (R1~R4) + `art/inbox/gait/sheet_captain_siegemaster_run_b.png` (R5~R8) + `art/inbox/NOTES.md` 절 「gait/sheet_captain_siegemaster_run - 오토 이동」 + 「## 판정 — gait/sheet_captain_siegemaster_run」. 파일 이름은 부류와 상관없이 `_run_` (엔진의 `anims.run`).
-- 팔·무기: 양손 대형 노궁은 무릎 위 허리 높이 y=685–703. 고글·앞깃 유지, 뒷자락만 늦게.
+- 팔·무기: 양손 대형 노궁은 허리 높이에 수평, 가까운 손 x=140–146, y=683–688 (볼트 끝은 x≤350). 개머리는 코트 허리를 가로지른다(의도, 윤곽선 유지). 고글·가슴 렌치·뒤 허리 주머니·앞깃 유지, 뒷자락만 늦게.
 - 디딘 발: 한 걸음 원본 275px(게임 45.5px) → 디딘 발은 칸마다 **정확히 68.8px**(±3, 게임 11.4px) 뒤로 — 발끝 x 는 Prompt 의 PLANTED FOOT 표. (병과 전사 R5 는 디딘 발이 30px 앞에 그려져 한 번 고쳤다.)
 - 클라우드가 받은 뒤: `python3 tools/art/receive.py gait/sheet_captain_siegemaster_run` (검사 + `add_gait.py --dry-run`) → 미리보기를 보고 `add_gait.py` 로 붙인다 (`--pose art/requests/guides/run_base/v2/pose.json`).
 
@@ -65,8 +65,9 @@ THE MOVE (owner's three movement classes; light: the accepted run: lean forward,
     YOUR toe tip against these numbers (the size_* images mark them with yellow ticks).
 
 ARMS AND WEAPONS:
-  - Keep both idle grips, near hand at the trigger around x=133–145, y=685–703, far hand supporting the stock ahead of it. Keep the stock level and low; keep the wide prod visible, with the entire crossbow inside x=90–350, y=622–790. The mannequin's two separate arm swings and elbow locations do NOT apply to this character (intended, not a deviation). Let the shoulders follow the torso, keep both hands attached to the weapon, and limit fore-aft travel to 12 px.The left SIZE panel crops the end of the idle weapon after aligning the hip. Use the original accepted sheet for its complete silhouette and dimensions.
-  - Goggles, helmet, scarf and front lapels stay seated. The moving leg pushes the front edge; only the back coat tail lags.
+  - Keep the idle grip shapes (near hand closed on the rear trigger grip, far hand under the fore-stock about 93 px ahead of it). Move the whole crossbow back to a level low carry: near hand at x=140–146, y=683–688, at hip height. The near arm is almost straight, reaching down and back from the shoulder. Do not go further back or lower, because the arm cannot reach in R3/R4/R7/R8. Do not go further forward, or the loaded bolt tip (about 203 px ahead of the near hand) passes x=350. Keep the stock level and the wide prod visible, with the whole crossbow inside x=125–350, y=615–760. The mannequin's two separate arm swings and elbow locations do NOT apply to this character (intended, not a deviation). Let the shoulders follow the torso, keep both hands attached to the weapon, and limit fore-aft travel to 12 px. The left SIZE panel crops the end of the idle weapon after aligning the hip; take its full silhouette and size from the original accepted sheet.
+  - The level stock now crosses the brown coat at the belt (intended, not a deviation from the sheet). Keep its dark 1-px outline and the brass/ochre highlights where it lies over the coat, so stock and coat separate at 64 px. The prod and the bolt tip stay on the background in front of the body.
+  - Goggles, helmet, ochre neckerchief and front lapels stay seated. The steel wrench on its chest strap stays visible on the chest in every frame. The leather pouch on the near back hip stays; the near hand and forearm pass over or just above its front edge, but do not drop it. The loaded bolt stays in the groove as in the idle. The moving leg pushes the front coat edge; only the back coat tail lags.
   - Face: match the accepted idle in every frame.
 
 MUST NOT CHANGE: outfit, colours, proportions, headgear, weapon and shield shapes and sizes, and the SCALE of the accepted

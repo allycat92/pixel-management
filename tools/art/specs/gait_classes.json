@@ -99,7 +99,7 @@
     },
     "sheet/captain/fieldmedic": {
       "gait": "light",
-      "why": "long cream field coat with the back tails at the calf, red front apron to the upper shin, dark trousers and boots; mace.",
+      "why": "long warm-beige field coat with the back tails at the calf, red front apron to the upper shin, dark trousers and boots; mace.",
       "borderline": "the back tails reach the calf and the red apron hangs in front; the split leaves both legs readable. Light with rear coat-tail swing."
     },
     "sheet/captain/fixer": {
@@ -158,7 +158,7 @@
     },
     "sheet/captain/runesmith": {
       "gait": "heavy",
-      "why": "stocky dwarf in leather-and-steel armour with big rounded steel pauldrons and engraved plates, heavy two-handed rune warhammer."
+      "why": "stocky, barrel-chested man in leather-and-steel armour with big rounded steel pauldrons and engraved plates, heavy two-handed rune warhammer."
     },
     "sheet/captain/saintknight": {
       "gait": "heavy",

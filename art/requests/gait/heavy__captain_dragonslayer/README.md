@@ -17,7 +17,7 @@
 
 - 부류: **중량** — full dark-crimson dragon-scale armour (scale coat to the knee, layered scale pauldrons) plus a huge two-handed greatsword. (tools/art/specs/gait_classes.json)
 - 납품: art-inbox `art/inbox/gait/sheet_captain_dragonslayer_run_a.png` (H1~H4) + `art/inbox/gait/sheet_captain_dragonslayer_run_b.png` (H5~H8) + `art/inbox/NOTES.md` 절 「gait/sheet_captain_dragonslayer_run - 지크린데 이동」 + 「## 판정 — gait/sheet_captain_dragonslayer_run」. 파일 이름은 부류와 상관없이 `_run_` (엔진의 `anims.run`).
-- 팔·무기: 양손 대검은 앞위 74–77°, 아래 손 y=704–714. 얼굴 높이는 날 왼쪽도 x≥267. 앞 비늘갑과 앞자락 유지.
+- 팔·무기: 양손 대검은 앞위 74–77°, 아래 손 y=704–714. 얼굴 높이는 날 왼쪽도 x≥267. 가슴 앞 땋은 머리, 앞 비늘갑과 앞자락 유지.
 - 디딘 발: 한 걸음 원본 142.5px(게임 23.6px) → 디딘 발은 칸마다 **정확히 35.6px**(±3, 게임 5.9px) 뒤로 — 발끝 x 는 Prompt 의 PLANTED FOOT 표. (병과 전사 R5 는 디딘 발이 30px 앞에 그려져 한 번 고쳤다.)
 - 클라우드가 받은 뒤: `python3 tools/art/receive.py gait/sheet_captain_dragonslayer_run` (검사 + `add_gait.py --dry-run`) → 미리보기를 보고 `add_gait.py` 로 붙인다 (`--pose art/requests/guides/heavy_base/v1/pose.json`).
 
@@ -42,7 +42,7 @@ REFERENCES (load all; if the sheet or a guide does not load, do not draw - write
   - art/requests/guides/heavy_base/v1/pose.json (the numbers below come from it), art/requests/guides/heavy_base/v1/heavy_base_preview.gif (the motion at speed), art/requests/guides/heavy_base/v1/heavy_base.aseprite (the mannequin source -
     you may open it as an underlay and draw on your own layers, but the delivered PNGs contain ONLY your drawing).
 
-CHARACTER (unchanged from the accepted sheet): Sieglinde, bare-headed in dark crimson layered dragon-scale armour, with long blond hair, separate armoured coat panels and a huge two-handed greatsword.
+CHARACTER (unchanged from the accepted sheet): Sieglinde, bare-headed in dark crimson layered dragon-scale armour, with long wild blond hair and a side braid over her chest, separate armoured coat panels and a huge two-handed greatsword.
 
 THE MOVE (owner's three movement classes; heavy: heavy armour / tower shield / very large weapon: cannot really run. Fastest natural gait for that body = a heavy, purposeful, FAST trudge (not a stroll): NO flight phase (one foot always on the ground), torso upright, short stride, the weight dropped onto each footfall, arms held close and high. It is already in the mannequin - copy it, do not invent another):
   - Each frame: the legs, the torso lean and the arm swing of that mannequin frame. Joint for joint: hips, knees, ankles, feet,
@@ -65,7 +65,7 @@ THE MOVE (owner's three movement classes; heavy: heavy armour / tower shield / v
 
 ARMS AND WEAPONS:
   - Carry the sword forward and up, 74–77° above horizontal. Lower grip x=249–254, y=704–714 in front of the hips; the other hand stays above it on the same hilt, at the idle spacing. Keep the leading blade edge and its width in x=230–350, y=420–775; between y=440 and y=582 the left blade edge stays at x≥267, ahead of the face. The mannequin's two separate arm swings and elbow locations do NOT apply to this character (intended, not a deviation). Let the shoulders follow the torso, keep both hands attached to the weapon, and limit fore-aft travel to 5 px.
-  - Scale plates and front overlap stay over their original body areas; do not blow the front guards behind her. Only the rear blond hair tips and rear cloth sway slightly.
+  - Her thick blond side braid (gold tip) hangs from the near side of her head over the near scale pauldron and down the FRONT of her chest, drawn on top of the armour (slot x≈160–185, y≈560–640 in the idle): keep it lying on the chest in every frame. It moves only with the torso and never swings back. Scale plates and the front coat overlap stay over their original body areas; do not blow the front guards behind her. Only the rear tips of the big blond mane and the rear coat panels sway slightly.
   - Face: match the accepted idle in every frame.
 
 MUST NOT CHANGE: outfit, colours, proportions, headgear, weapon and shield shapes and sizes, and the SCALE of the accepted

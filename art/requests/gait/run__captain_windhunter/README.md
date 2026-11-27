@@ -17,7 +17,7 @@
 
 - 부류: **경량** — green head wrap and short shoulder mantle over a split tunic, with both trouser legs and boots visible; longbow. (tools/art/specs/gait_classes.json)
 - 납품: art-inbox `art/inbox/gait/sheet_captain_windhunter_run_a.png` (R1~R4) + `art/inbox/gait/sheet_captain_windhunter_run_b.png` (R5~R8) + `art/inbox/NOTES.md` 절 「gait/sheet_captain_windhunter_run - 나린 이동」 + 「## 판정 — gait/sheet_captain_windhunter_run」. 파일 이름은 부류와 상관없이 `_run_` (엔진의 `anims.run`).
-- 팔·무기: 활 손 y=672–680, 얼굴 높이에서는 활·시위 x≥303. 앞 천은 허벅지를 따른다.
+- 팔·무기: 활은 먼 손, 주먹 중심 x=326–334, y=672–680 (마네킹 팔 흔들기 안 따름). 대기보다 5–8° 앞으로 기울여 얼굴 높이에서 활·시위 x≥300. 망토 깃·단추·잎 브로치 유지(스카프 없음), 앞 튜닉 자락은 허벅지를 따른다.
 - 디딘 발: 한 걸음 원본 275px(게임 45.5px) → 디딘 발은 칸마다 **정확히 68.8px**(±3, 게임 11.4px) 뒤로 — 발끝 x 는 Prompt 의 PLANTED FOOT 표. (병과 전사 R5 는 디딘 발이 30px 앞에 그려져 한 번 고쳤다.)
 - 클라우드가 받은 뒤: `python3 tools/art/receive.py gait/sheet_captain_windhunter_run` (검사 + `add_gait.py --dry-run`) → 미리보기를 보고 `add_gait.py` 로 붙인다 (`--pose art/requests/guides/run_base/v2/pose.json`).
 
@@ -65,8 +65,8 @@ THE MOVE (owner's three movement classes; light: the accepted run: lean forward,
     YOUR toe tip against these numbers (the size_* images mark them with yellow ticks).
 
 ARMS AND WEAPONS:
-  - Bow hand x=289–300, y=672–680. Carry the same bow nearly upright, with its upper limb and string at x≥303 at face height. Allow the bottom limb to curve back below the knee; the full bow must fit x=250–350, y=512–850. Keep the near hand open or in its relaxed idle grip, without drawing the string.
-  - Keep the shoulder mantle and front scarf against the body. Rear hair and the rear cloak tip lag; the front flap tracks the leading thigh.
+  - Bow in the FAR (forward) hand, as in the idle. In every frame the centre of the bow-hand fist (the bow spine runs through it) is at x=326–334, y=672–680, about 60 px in front of the far shoulder, with the elbow slightly bent. The mannequin's far-arm swing does not apply to this hand (intended, not a deviation). Tilt the same bow about 5–8° top-forward from the idle so that at face height (y≤565) the upper limb and string stay at x≥300, clear of the face. The bottom limb curves back below the knee. The whole bow stays inside x=265–350, y=515–825. Keep the near hand open or in its relaxed idle grip, without drawing the string.
+  - Keep the shoulder mantle, with its folded-down hood collar, gold toggle clasp and lime leaf brooch, seated against the body (there is no scarf). The long rear hair, the two lime headband tails and the rear coat tip lag behind. The short front tunic flap tracks the leading thigh.
   - Face: match the accepted idle in every frame.
 
 MUST NOT CHANGE: outfit, colours, proportions, headgear, weapon and shield shapes and sizes, and the SCALE of the accepted

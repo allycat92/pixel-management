@@ -17,7 +17,7 @@
 
 - 부류: **경량** — gold-edged hooded cloak with side and front panels past the thigh, split over visible trousers and boots; dagger, wiry build. (tools/art/specs/gait_classes.json)
 - 납품: art-inbox `art/inbox/gait/sheet_captain_shadowlord_run_a.png` (R1~R4) + `art/inbox/gait/sheet_captain_shadowlord_run_b.png` (R5~R8) + `art/inbox/NOTES.md` 절 「gait/sheet_captain_shadowlord_run - 모로 이동」 + 「## 판정 — gait/sheet_captain_shadowlord_run」. 파일 이름은 부류와 상관없이 `_run_` (엔진의 `anims.run`).
-- 팔·무기: 단검은 가까운 손 허리에서 뒤아래 45–55°. 앞 금테와 앞자락 위치 유지.
+- 팔·무기: 단검은 가까운 손을 엉덩이 바로 뒤 x=140–157, y=685–710 으로 당겨 날을 뒤아래 45–55° (날 길이 그대로, 어두운 망토와 섞이지 않게). 앞 금테 두건, 짧은 튜닉 치마, 무릎 사이 금테 앞 망토 자락 유지.
 - 디딘 발: 한 걸음 원본 275px(게임 45.5px) → 디딘 발은 칸마다 **정확히 68.8px**(±3, 게임 11.4px) 뒤로 — 발끝 x 는 Prompt 의 PLANTED FOOT 표. (병과 전사 R5 는 디딘 발이 30px 앞에 그려져 한 번 고쳤다.)
 - 클라우드가 받은 뒤: `python3 tools/art/receive.py gait/sheet_captain_shadowlord_run` (검사 + `add_gait.py --dry-run`) → 미리보기를 보고 `add_gait.py` 로 붙인다 (`--pose art/requests/guides/run_base/v2/pose.json`).
 
@@ -65,8 +65,8 @@ THE MOVE (owner's three movement classes; light: the accepted run: lean forward,
     YOUR toe tip against these numbers (the size_* images mark them with yellow ticks).
 
 ARMS AND WEAPONS:
-  - Keep the dagger in the idle near hand, x=140–157 and y=685–710 near the belt. Keep the compact blade pointed back and down at 45–55° below horizontal, tucked outside the thigh, all dagger pixels within x=48–184, y=659–825. The free far fist may take the short forward swing.
-  - The hood and its front gold edge stay around the face; keep the front tunic flap between the knees. Only the back cloak edge lifts with the step.
+  - Keep the dagger in the near hand with the idle grip (gold crossguard just under the fist, blade back and down). In the idle the hand is held out behind the hip at x≈72–107, y≈687–725. In the run the arm cannot reach that far, so bring the hand in to x=140–157, y=685–710, just behind the hip. Keep the full-length light-steel blade (≈80 px from guard to tip, as in the idle; do not shorten it) pointed back and down at 45–55° below horizontal, with all dagger pixels within x=48–184, y=659–825. Keep it readable as in the idle: lift the back cloak edge behind and above the blade so the blade shows on magenta wherever possible. Where it crosses the cloak or the trailing leg, keep its 1-px dark outline and the light steel #d8dde3 so it never merges into the dark cloak. The free far fist may take the short forward swing.
+  - The hood and its front gold edge stay around the face, with the wavy brown hair spilling out. Keep the short brown-trimmed tunic skirt under the belt, and keep the long gold-edged front cloak panel hanging between the knees (down to about y≈840 in the idle). Only the back cloak edge lifts with the step.
   - Face: match the accepted idle in every frame.
 
 MUST NOT CHANGE: outfit, colours, proportions, headgear, weapon and shield shapes and sizes, and the SCALE of the accepted

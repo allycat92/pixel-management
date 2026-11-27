@@ -17,7 +17,7 @@
 
 - 부류: **로브** — beige hooded pilgrim cloak and long navy tunic to the shin, bare feet; long-hafted mace. (tools/art/specs/gait_classes.json)
 - 납품: art-inbox `art/inbox/gait/sheet_captain_pilgrim_run_a.png` (G1~G4) + `art/inbox/gait/sheet_captain_pilgrim_run_b.png` (G5~G8) + `art/inbox/NOTES.md` 절 「gait/sheet_captain_pilgrim_run - 아멜리 이동」 + 「## 판정 — gait/sheet_captain_pilgrim_run」. 파일 이름은 부류와 상관없이 `_run_` (엔진의 `anims.run`).
-- 팔·무기: 긴 별머리 철퇴는 세워 들고 손 y=630–645. 가슴 앞 땋은 머리, 남색 앞자락, 맨발 유지.
+- 팔·무기: 긴 별머리 철퇴는 대기 각도(약 82°)로 세워 들고 손 y=630–645, 별(x≈231–318, y≈404–476)은 두건 위·앞, 줄이지 않는다. 다른 손은 망토 속(그리지 않는다). 가슴 앞 땋은 머리·묵주, 남색 앞자락, 맨발 유지.
 - 디딘 발: 한 걸음 원본 134.2px(게임 22.2px) → 디딘 발은 칸마다 **정확히 33.5px**(±3, 게임 5.5px) 뒤로 — 발끝 x 는 Prompt 의 PLANTED FOOT 표. (병과 전사 R5 는 디딘 발이 30px 앞에 그려져 한 번 고쳤다.)
 - 클라우드가 받은 뒤: `python3 tools/art/receive.py gait/sheet_captain_pilgrim_run` (검사 + `add_gait.py --dry-run`) → 미리보기를 보고 `add_gait.py` 로 붙인다 (`--pose art/requests/guides/robe_base/v1/pose.json`).
 
@@ -64,7 +64,7 @@ THE MOVE (owner's three movement classes; robe: loose long cloth: running in it 
     YOUR toe tip against these numbers (the size_* images mark them with yellow ticks).
 
 ARMS AND WEAPONS:
-  - Use the exposed idle weapon hand at x=250–258, y=630–645, above the hip; keep the other hand gathered at the front of the cloak. Hold the staff-like mace steeply forward, 80–84° above horizontal, with its point and star inside x=254–340, y=400–505. Keep the lower shaft inside x=202–267 down to y≤824. Carry it off the floor and move the grip fore-aft by at most 8 px.
+  - Use the exposed idle weapon hand at x=250–258, y=630–645, above the hip. Only the mace hand shows in the accepted idle. Keep the other arm hidden under the cream mantle in every frame and do not draw a second hand. The prayer beads and gold cross hang free at the chest over the navy tunic. Hold the staff-like mace steeply forward at the idle angle, about 82° above horizontal (80–84°). Keep the star head where the idle has it. It is about 88 px wide and 73 px tall: spikes at x≈231–318, y≈404–476, with the gold collar below down to y≈506. Its lower-left spike stays just above the hood (the hood reaches about x≈245 at y≈500). If the leaned hood comes forward under the star, tip the mace a few degrees further forward (no lower than about 77°) so the star stays above and in front of the hood. Do not shrink the star or let it overlap the hood. Keep the lower shaft inside x=202–267 down to y≤824. Carry it off the floor and move the grip fore-aft by at most 8 px.
   - The braid stays OVER the front of the cream mantle. Keep the navy front panel in front of the legs, allow the rear mantle edge to lag, and show bare toes below the hem.
   - Face: match the accepted idle in every frame.
 

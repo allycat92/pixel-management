@@ -17,7 +17,7 @@
 
 - 부류: **경량** — crimson long coat with cream front lapels, open over trousers and tall boots; cutlass and rear coat tails. (tools/art/specs/gait_classes.json)
 - 납품: art-inbox `art/inbox/gait/sheet_captain_pirateking_run_a.png` (R1~R4) + `art/inbox/gait/sheet_captain_pirateking_run_b.png` (R5~R8) + `art/inbox/NOTES.md` 절 「gait/sheet_captain_pirateking_run - 크림슨 이동」 + 「## 판정 — gait/sheet_captain_pirateking_run」. 파일 이름은 부류와 상관없이 `_run_` (엔진의 `anims.run`).
-- 팔·무기: 외손 커틀러스 뒤아래 20–28°, 손 y=699–719. 앞깃과 앞 머리는 앞에 둔다.
+- 팔·무기: 외손 커틀러스는 가까운 손, 마네킹 팔 흔들기를 따르지 않는다: 주먹 x=213–230, y=699–719, 날은 뒤아래 20–28°. 먼 손은 R2–R5 에서 주먹·코트 뒤에 가린다. 앞깃·셔츠·조끼는 가슴에(가슴 위 머리 없음), 긴 머리와 뒷자락만 늦게.
 - 디딘 발: 한 걸음 원본 245.865px(게임 45.5px) → 디딘 발은 칸마다 **정확히 61.5px**(±3, 게임 11.4px) 뒤로 — 발끝 x 는 Prompt 의 PLANTED FOOT 표. (병과 전사 R5 는 디딘 발이 30px 앞에 그려져 한 번 고쳤다.)
 - 클라우드가 받은 뒤: `python3 tools/art/receive.py gait/sheet_captain_pirateking_run` (검사 + `add_gait.py --dry-run`) → 미리보기를 보고 `add_gait.py` 로 붙인다 (`--pose art/requests/gait/run__captain_pirateking/pose.json`).
 
@@ -65,8 +65,8 @@ THE MOVE (owner's three movement classes; light: the accepted run: lean forward,
     YOUR toe tip against these numbers (the size_* images mark them with yellow ticks).
 
 ARMS AND WEAPONS:
-  - Grip the cutlass in its idle hand at x=213–230, y=699–719. Carry the blade back and down roughly 20–28° below horizontal; fit the full curved edge and basket guard inside x=64–270, y=675–824. The open far hand remains free; keep it away from the hilt and face.
-  - Keep cream lapels and front hair locks over the chest and coat front. Only back hair and the long rear coat tails lag; the hat and its feather keep the accepted silhouette.
+  - Cutlass in the NEAR (right) gloved hand only, with the idle's gold basket guard, gold pommel ball and curved blade unchanged. The near arm does NOT follow the mannequin's pump: the mannequin's near elbow and hand positions do not apply to this arm (intended, not a deviation). The shoulder follows the torso lean and the fist stays low at the near hip, x=213–230, y=699–719, in all 8 frames. Turn the fist so the curved blade leaves it pointing BACK and down 20–28° below horizontal, tip to the rear, with the gold knuckle bow still wrapped round the fist and the pommel ball just in front of it. The whole cutlass fits inside x=64–270, y=675–824. The FAR (left) gloved hand stays open and follows the mannequin's far arm. In R2–R5 that hand passes behind the hips at x=226–258, y=715–725, behind the cutlass fist, so the near fist and the coat hide it. Draw only the part that shows, and never on the hilt or the face.
+  - Keep the cream lapels, the ruffled shirt and the gold-buttoned waistcoat on the chest exactly as in the idle; no hair lies over the chest. The strand under the hat brim in front of the ear stays with the face, and the gold hoop earring stays on. The long wavy crimson hair mass behind the near shoulder and down the back lags by one frame, together with the long rear coat tails. The front coat edges stay at the front, never thrown back. The black gold-trimmed tricorne with its skull and its cream-and-red feather keeps the accepted silhouette.
   - Face: match the accepted idle in every frame.
 
 MUST NOT CHANGE: outfit, colours, proportions, headgear, weapon and shield shapes and sizes, and the SCALE of the accepted

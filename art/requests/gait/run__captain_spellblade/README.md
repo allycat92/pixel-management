@@ -17,7 +17,7 @@
 
 - 부류: **경량** — high-collared long coat open at the front, trousers and boots clearly visible; one-handed sword. (tools/art/specs/gait_classes.json)
 - 납품: art-inbox `art/inbox/gait/sheet_captain_spellblade_run_a.png` (R1~R4) + `art/inbox/gait/sheet_captain_spellblade_run_b.png` (R5~R8) + `art/inbox/NOTES.md` 절 「gait/sheet_captain_spellblade_run - 카시안 이동」 + 「## 판정 — gait/sheet_captain_spellblade_run」. 파일 이름은 부류와 상관없이 `_run_` (엔진의 `anims.run`).
-- 팔·무기: 외손 검 손 y=675–695. 검끝 뒤아래 19–24°. 앞 머리와 파란 앞선은 제자리.
+- 팔·무기: 외손 검은 가까운 손, 마네킹 팔 흔들기를 따르지 않는다: 주먹은 엉덩이 앞 x=250–264, y=675–695, 검끝 뒤아래 19–24°. 먼 손은 펴서 마네킹을 따르되 R2–R5 에서는 검 주먹·코트 뒤에 가린다. 앞 머리와 파란 앞선은 제자리.
 - 디딘 발: 한 걸음 원본 275px(게임 45.5px) → 디딘 발은 칸마다 **정확히 68.8px**(±3, 게임 11.4px) 뒤로 — 발끝 x 는 Prompt 의 PLANTED FOOT 표. (병과 전사 R5 는 디딘 발이 30px 앞에 그려져 한 번 고쳤다.)
 - 클라우드가 받은 뒤: `python3 tools/art/receive.py gait/sheet_captain_spellblade_run` (검사 + `add_gait.py --dry-run`) → 미리보기를 보고 `add_gait.py` 로 붙인다 (`--pose art/requests/guides/run_base/v2/pose.json`).
 
@@ -65,7 +65,7 @@ THE MOVE (owner's three movement classes; light: the accepted run: lean forward,
     YOUR toe tip against these numbers (the size_* images mark them with yellow ticks).
 
 ARMS AND WEAPONS:
-  - Keep the idle sword hand near the leading hip at x=250–264, y=675–695. Let the blade extend BACK and down 19–24° under the elbow, tip to the rear. Keep full blade width and guard, all sword pixels in x=33–300, y=650–812. The open unarmed hand stays free in front.
+  - Sword in the NEAR (right) hand only, with the idle's gold cross-guard, dark grip, gold pommel and full pale-steel runed blade unchanged. The near arm does NOT follow the mannequin's pump: the mannequin's near elbow and hand positions do not apply to this arm (intended, not a deviation). The shoulder follows the torso lean, the elbow stays above and behind the fist, and the fist sits low in front of the hips at x=250–264, y=675–695 in all 8 frames. This is about 70 px further forward and 35 px lower than the idle fist, so that the turned blade stays in the slot. Turn the fist so the blade leaves its thumb side pointing BACK and down 19–24° below horizontal and passes under the elbow, tip to the rear. The cross-guard sits just behind the fist and the pommel just in front of it. All sword pixels stay in x=33–300, y=650–812. The FAR (left) hand stays open and follows the mannequin's far arm. In R2–R5 that hand passes behind the hips at x=230–265, y=697–707, behind the sword fist, so the near fist and the coat hide it. Draw only the part that shows, and never on the hilt.
   - Hair locks over the front shoulder and the front blue-edged coat lining stay on their own sides. Only rear hair and coat tails lag; preserve the split and visible boots.
   - Face: match the accepted idle in every frame.
 
