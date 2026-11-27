@@ -99,8 +99,8 @@
     },
     "sheet/captain/fieldmedic": {
       "gait": "light",
-      "why": "long field coat open at the front (tails to the calf behind), knee-length red apron, dark trousers and boots; mace.",
-      "borderline": "the coat tails reach the calf; but the front is open and both legs read in every cell. Light with coat-tail swing."
+      "why": "long cream field coat with the back tails at the calf, red front apron to the upper shin, dark trousers and boots; mace.",
+      "borderline": "the back tails reach the calf and the red apron hangs in front; the split leaves both legs readable. Light with rear coat-tail swing."
     },
     "sheet/captain/fixer": {
       "gait": "light",
@@ -113,7 +113,7 @@
     },
     "sheet/captain/hedgemage": {
       "gait": "robe",
-      "why": "purple wizard robe to mid-shin with rope belt; thighs and knees hidden, only shins/boots show.",
+      "why": "purple wizard robe with rope belt and front hem below the knees; trousers and boots show under the split.",
       "borderline": "trousers and boots visible below the hem and a cheerful young body; LIGHT with hem swing is possible. Default robe: the robe covers the knees, so a knee-lift run would push through cloth."
     },
     "sheet/captain/hexer": {
@@ -153,7 +153,7 @@
     },
     "sheet/captain/pirateking": {
       "gait": "light",
-      "why": "crimson long coat (tails behind), trousers and tall boots fully visible at the front; cutlass.",
+      "why": "crimson long coat with cream front lapels, open over trousers and tall boots; cutlass and rear coat tails.",
       "borderline": "the coat tails are long, but the front is open and the legs read in every cell. Light with coat-tail swing."
     },
     "sheet/captain/runesmith": {
@@ -166,7 +166,7 @@
     },
     "sheet/captain/shadowlord": {
       "gait": "light",
-      "why": "hooded cloak to the thigh over a leather tunic, trousers, boots, dagger; wiry."
+      "why": "gold-edged hooded cloak with side and front panels past the thigh, split over visible trousers and boots; dagger, wiry build."
     },
     "sheet/captain/shadowqueen": {
       "gait": "light",
@@ -204,7 +204,7 @@
     },
     "sheet/captain/windhunter": {
       "gait": "light",
-      "why": "hooded cloak/mantle over a tunic, trousers, boots, longbow."
+      "why": "green head wrap and short shoulder mantle over a split tunic, with both trouser legs and boots visible; longbow."
     },
     "sheet/class/archer": {
       "gait": "light",
