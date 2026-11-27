@@ -88,7 +88,9 @@ function playSeed(seed, days, cfg) {
   const rowOf = (c, spec, est, rec, v, St, extra) => ({
     seed, star: c.level, type: c.type, cat: c.cat, kind: St.kindOf(c), foe: St.foeKind(spec), arch: (spec.groups.find((g) => g.kind === 'foe').units[0].arch) || 'soldier',
     rule: spec.rule, lv: spec.lv, k: spec.k, R: est.R, band: est.band, win: rec.winner === 0 ? 1 : 0, tier: v.outcome, t: rec.t, end: rec.end,
-    ours: v.ours, recruits: spec.groups.reduce((a, g) => a + g.units.filter((u) => u.recruit).length, 0), heads: spec.heads, need: spec.need, down: v.down, fled: v.fled, low: v.low, downShare: v.ours ? +(v.down / v.ours).toFixed(3) : 0, hash: rec.hash, ...extra,
+    ours: v.ours, recruits: spec.groups.reduce((a, g) => a + g.units.filter((u) => u.recruit).length, 0), heads: spec.heads, need: spec.need,
+    olv: (() => { const lv = spec.groups.filter((g) => g.kind === 'own' || g.kind === 'ext').flatMap((g) => g.units.filter((u) => !u.recruit).map((u) => u.level || g.level || 1)); return lv.length ? +(lv.reduce((a, b) => a + b, 0) / lv.length).toFixed(1) : 0; })(),
+    down: v.down, fled: v.fled, low: v.low, downShare: v.ours ? +(v.down / v.ours).toFixed(3) : 0, hash: rec.hash, ...extra,
   });
   const battle = cfg.resolve === 'battle';
   const sentIds = new Set();   // 전투 모드: 보낸 의뢰 번호 (--offers 에서 뺀다)

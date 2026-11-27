@@ -52,16 +52,18 @@ const Stats = (() => {
     EXT_LOST_CAP: 2,
     BM_LATE_STEP: 3,    // 전투 모드(일반 의뢰): ★8 부터 별 하나에 오르는 적 레벨 (기본 표는 1 — 후반에는 가장 높은 별도 쉬워 어려운 의뢰가 없었다)
     BM_LOW_K: [1, 0.6, 0.75, 0.9],   // 전투 모드(일반 의뢰): ★1·★2·★3 적 배율 (갓 만든 1레벨 용병단도 ★1 은 이길 만하게. ★4 부터 1)
-    // 전투 모드의 예상 보정 (CAL_KIND 에 더 곱한다). 2차 맞춤(stage3 fix): 시드 1~24 × 365일 23,743전(보낸 것 + 살펴본 것)에서, 갈래마다
-    // 우세 승률 87%·백중 50% (약하게 열세 17%·압도 99%)에 가장 가까운 곱을 차원(머릿수·적 레벨·틀·갈래)을 번갈아 맞췄다 (표본이 작은 갈래는 1 쪽으로 줄인다)
-    BM_CAL_ARCH: { soldier: 0.99, grunt: 1.102, beast: 1.053, brute: 1.162, armored: 1.208, caster: 0.963, blob: 0.983 },
-    // 특별한 의뢰 갈래 (표본: 보스 228, 대장 이야기 267, 이야기 455, 결전 2,347, 최종 27)
-    BM_CAL_SPECIAL: { boss: 0.894, capStory: 0.982, story: 1.005, final: 1.015, campaign: 0.995 },
+    // 전투 모드의 예상 보정 (CAL_KIND 에 더 곱한다). 2차 맞춤(stage3 fix): 시드 1~24 와 201~212 × 365일 36,855전(보낸 것 + 살펴본 것)에서,
+    // 갈래마다 우세 승률 87%·백중 50% (약하게 열세 17%·압도 99%)에 가장 가까운 곱을 차원(머릿수·우리 레벨·적 틀·의뢰 갈래)을 번갈아 맞췄다
+    // (표본이 작은 갈래는 1 쪽으로 줄인다). 맞춤 스크립트와 표: stage3_notes.md
+    BM_CAL_ARCH: { soldier: 0.98, grunt: 1.091, beast: 1.048, brute: 1.14, armored: 1.185, caster: 0.945, blob: 1.02 },
+    // 특별한 의뢰 갈래 (표본: 보스 304, 대장 이야기 499, 이야기 664, 결전 4,206, 최종 38)
+    BM_CAL_SPECIAL: { boss: 0.912, capStory: 0.952, story: 1.021, final: 0.966, campaign: 1.009 },
     // 머릿수 보정 (검증 1번): 우리 단원(수습·지원 부대 빼고) 1·2·3명일 때 R 에 곱한다 (4명 이상 1). 후퇴 규칙은 우리 단원의 절반이 쓰러지면 물러나므로
     // 한두 명이 나간 판은 한 명만 쓰러져도 끝난다 — 능력치만 보는 margin 은 그것을 모른다 (맞춤 전 R50: 1명 1.07, 2명 1.14, 3명 1.02, 4명 1.00)
-    BM_CAL_HEADS: [1, 0.912, 0.909, 1, 1],
-    // 적 레벨 보정 (검증 4번 초반): [이 레벨 이하, 곱] 의 계단. 낮은 레벨의 판은 같은 R 에서 더 졌다 (맞춤 전 R50: 레벨 2~9 1.03~1.07, 26~32 0.97~0.98)
-    BM_CAL_LV: [[3, 0.937], [9, 0.947], [13, 0.981], [23, 1.005], [999, 1]],
+    BM_CAL_HEADS: [1, 0.95, 0.984, 1, 1],
+    // 우리 레벨 보정 (검증 4번 초반): [우리 단원 평균 레벨 이하, 곱] 의 계단. 레벨이 낮은 파티는 같은 R 에서 더 졌다
+    // (맞춤 전 R50: 1~3레벨 1.08, 4~9레벨 1.02~1.03, 10~16레벨 1.00, 17레벨+ 0.98). 처음에는 적 레벨로 맞췄으나 새 시드의 1~30일이 여전히 우세 78% 였다
+    BM_CAL_OWNLV: [[3, 0.879], [6, 0.928], [9, 0.946], [12, 1], [16, 1.005], [999, 1.034]],
     BM_BOARD_EXTRA: 3,  // 전투 모드: 게시판의 일반 의뢰 칸 + 이만큼 (오늘 3 + 게시판 시설)
     BM_CAP_AHEAD: 4,    // 전투 모드의 별 상한: 길드 등급 + 이 값 (오늘은 +2. 재앙 뒤에는 LATE_MAX_LEVEL 까지) — 상한 안에 벅찬 의뢰가 들게 (검증 3번)
   };
@@ -287,7 +289,7 @@ const Stats = (() => {
   const foeKind = (spec) => (spec.groups.some((g) => g.kind === 'foe' && g.units[0] && g.units[0].mon) ? 'monster' : 'soldier');
   const bandOf = (R) => KN.BANDS.filter((e) => R >= e).length;   // 0 무모 … 4 압도
   // 굳힌 편성 → { R, band }. R = 1 이 '반반'이 되도록 CAL_KIND 로 맞춘다 (보정 전에는 1).
-  // 전투 모드의 편성(spec.bm)은 적 틀·의뢰 갈래·머릿수·적 레벨 보정을 더한다 (BM_CAL_ARCH, BM_CAL_SPECIAL, BM_CAL_HEADS, BM_CAL_LV)
+  // 전투 모드의 편성(spec.bm)은 적 틀·의뢰 갈래·머릿수·우리 레벨 보정을 더한다 (BM_CAL_ARCH, BM_CAL_SPECIAL, BM_CAL_HEADS, BM_CAL_OWNLV)
   function forecast(spec) {
     let cal = KN.CAL_KIND[foeKind(spec)] || 1;
     if (spec.bm) {
@@ -296,7 +298,9 @@ const Stats = (() => {
       cal *= KN.BM_CAL_SPECIAL[spec.kind] || 1;
       const n = spec.groups.filter((g) => g.kind === 'own' || g.kind === 'ext').reduce((a, g) => a + g.units.filter((u) => !u.recruit).length, 0);
       cal *= KN.BM_CAL_HEADS[Math.min(n, KN.BM_CAL_HEADS.length - 1)] || 1;
-      const lvStep = KN.BM_CAL_LV.find(([x]) => (spec.lv || 1) <= x);
+      const lvs = spec.groups.filter((g) => g.kind === 'own' || g.kind === 'ext').flatMap((g) => g.units.filter((u) => !u.recruit).map((u) => u.level || g.level || 1));
+      const olv = lvs.length ? lvs.reduce((a, b) => a + b, 0) / lvs.length : 1;
+      const lvStep = KN.BM_CAL_OWNLV.find(([x]) => olv <= x);
       cal *= lvStep ? lvStep[1] : 1;
     }
     const R = +(margin(spec.groups) * cal).toFixed(3);
