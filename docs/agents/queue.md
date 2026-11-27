@@ -7,14 +7,15 @@
 
 | 누구 | id | 상태 | 할 일 (자세한 것은 그 줄의 문서) |
 |---|---|---|---|
-| GPT | `Q22-rogue-run-ingame` | REVIEW | 다시 넣은 도적 달리기를 게임에서 보기: `docs/agents/tasks/Q22-rogue-run-ingame.md` |
 | Codex | `C27-crosscheck-c24` | READY | (C26 보다 먼저 — 기본 전환이 기다림) GPT 의 C24 교차 확인: 부상 분포·전투 모드 경제 변화: `docs/agents/tasks/C27-crosscheck-c24.md` |
+| GPT | `Q23-flip-readiness-3` | REVIEW | 기본 전환 직전 사람 확인: C19 새 문구 + C23 둘째 부대 안내, 새 시드 40일: `docs/agents/tasks/Q23-flip-readiness-3.md` |
 | GPT | `C24-battle-injury-loss-fixed` | REVIEW | (Codex C27 교차 확인 대기) 전투 뒤 부상·외부단 손실 고정 |
 
 ## 끝난 일
 
 | 누구 | id | 결과 |
 |---|---|---|
+| GPT | `Q22-rogue-run-ingame` | **DONE** (11-28, `c120c5a`): 다시 넣은 도적 달리기 PASS — R4·R8 다리 이어짐, R1 단검 보임, 미끄러짐 ±4px, 세력 색 번짐 0 |
 | GPT | `C26-gait-requests-last` | **DONE** (11-28, `30726cd` 요청서만 가져옴): 마지막 이동 요청서 6건(가르마크·우르그·모르데카이·벨라도나·발타자르·카토), 카토 경량 분류. 클라우드 그림 대조 중 |
 | GPT | `Q21-kato-cleric-ingame` | **DONE** (11-27, `cd08c31`): 카토 PASS(바렌·브리긴다 옆 체격 자연, 사슬·등검·펀치·피격 읽힘), 성직자 손질 PASS(R5~R8 앞 타바드 유지, 철퇴 얼굴과 분리), 도적 대체 걸음 PASS |
 | Codex | `C25-seam-check-tool` | **DONE** (11-27, `bb24e20` 합침): `check_delivery.py` 가 가로·세로 실루엣 이음매를 WARN — 도적 R4 를 잡고(y=688/712), 등록 이동 띠 48자세·시트 214자세 오탐 0. receive.py 에 확대 컷 경로 출력 |
