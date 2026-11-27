@@ -224,9 +224,10 @@ def fk(P, pose, props=None, robe=None):
         B.add_capsule(J['knee' + s], J['ank' + s], P['r_thigh'][1] * 0.95, P['r_shin'][1], m, 'shin' + s)
         # wedge foot: heel block (r_foot) tapering to the toe ball; instep from the ankle; an ankle knob that reads as the joint
         B.add_capsule(J['heel' + s], J['toe' + s], P['r_foot'], P['r_foot'] * TOE_TAPER, m + '_foot', 'foot' + s)
-        B.add_capsule(J['ank' + s], J['heel' + s] * 0.55 + J['toe' + s] * 0.45, P['r_shin'][1] * 0.92, P['r_foot'] * 0.95,
-                      m + '_foot', 'instep' + s)
-        B.add_ellipsoid(J['ank' + s], Fm['foot' + s], [P['r_shin'][1] * 1.18] * 3, m, 'ankle' + s)
+        B.add_capsule(J['ank' + s], J['heel' + s] * 0.55 + J['toe' + s] * 0.45 + Fm['foot' + s] @ np.array([0.0, 2.0, 0.0]),
+                      P['r_shin'][1] * 0.92, P['r_foot'] * 0.85, m + '_foot', 'instep' + s)
+        # the knob never reaches below the sole (bulky fits have thick shins but the same ankle height)
+        B.add_ellipsoid(J['ank' + s], Fm['foot' + s], [min(P['r_shin'][1] * 1.18, P['ankle_h'] - 3.0)] * 3, m, 'ankle' + s)
         B.add_capsule(J['S' + s], J['elb' + s], *P['r_upper_arm'], m, 'upper_arm' + s)
         B.add_capsule(J['elb' + s], J['wri' + s], *P['r_forearm'], m, 'forearm' + s)
         B.add_ellipsoid(J['hand' + s], Fm['hand' + s], [P['r_hand'] * 0.8, P['r_hand'], P['r_hand'] * 0.7], m, 'hand' + s)
@@ -287,7 +288,6 @@ def add_prop(B, P, pr):
         else:
             r = pr.get('radius', 62.0)
             add_slab(B, c, u, up, (r, r), r, 'prop', 'shield')
-        J['prop_base'], J['prop_tip'] = c, c + up * (pr.get('half', [0, pr.get('radius', 62.0)])[1])
         J['shield_c'] = c
         return
     R_hd = Fm['hand' + s]
@@ -312,6 +312,7 @@ def add_prop(B, P, pr):
     J['prop_dir_' + kind] = d
     if kind == 'sword':
         J['blade_a'], J['blade_b'] = grip + d * 14, tip
+        J['sword_grip'], J['sword_tip'] = grip, tip
         side = np.cross(d, UP if abs(d[1]) < 0.9 else FWD)
         side = side / max(np.linalg.norm(side), 1e-9)
         B.add_capsule(base, grip + d * 12, 4.5, 4.5, 'prop', 'grip', ghost=True)

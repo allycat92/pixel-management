@@ -198,8 +198,8 @@ def action_checks(act, names, bodies, plains, recs, cam_of):
     dirs = []
     for i, b in enumerate(bodies):
         c = cam_of(i)
-        g, _ = c.to_screen(b.joints['prop_grip'])
-        t, _ = c.to_screen(b.joints['prop_tip'])
+        g, _ = c.to_screen(b.joints['sword_grip'])
+        t, _ = c.to_screen(b.joints['sword_tip'])
         dirs.append((round(float(t[0] - g[0])), round(float(g[1] - t[1]))))     # (+x forward, +y up)
     bad = []
     if act == 'attack':

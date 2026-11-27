@@ -3,6 +3,7 @@ the warrior's comparison with its already-drawn run (compare_run.png / .json) an
 Used by build.py after the guides are rendered."""
 import io
 import json
+import math
 import os
 import subprocess
 import textwrap
