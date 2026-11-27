@@ -15,9 +15,9 @@
 | `art/inbox/sheet_hero_lyra.png` | **승인된 전투 시트 원본** — 디자인·색·크기의 기준. 1번 자세가 대기 |
 | `art/requests/guides/run_base/v2/` (`pose.json`, `run_base_preview.gif`, `run_base.aseprite`) | 마네킹 원본 — 숫자·움직임 확인용 |
 
-- 부류: **경량** — hooded masked outlaw: short shoulder cape, split rear tails to the thighs, fitted trousers and boots, one visible dagger in idle. (tools/art/specs/gait_classes.json)
+- 부류: **경량** — hooded masked outlaw: short shoulder capelet over a knee-length coat open below the belt, full trousers and boots, one dagger in idle. (tools/art/specs/gait_classes.json)
 - 납품: art-inbox `art/inbox/gait/sheet_hero_lyra_run_a.png` (R1~R4) + `art/inbox/gait/sheet_hero_lyra_run_b.png` (R5~R8) + `art/inbox/NOTES.md` 절 「gait/sheet_hero_lyra_run - 리라 — 가면 쓴 의적 (가면 의적) 이동」 + 「## 판정 — gait/sheet_hero_lyra_run」. 파일 이름은 부류와 상관없이 `_run_` (엔진의 `anims.run`).
-- 팔·무기: 가까운 오른손에 단검 한 자루, 먼 손은 빈 가드다. 얼굴 앞 붉은 머리와 짧은 후드를 유지한다.
+- 팔·무기: 가까운 오른손에 단검 한 자루(대기처럼 뒤아래로 약 50도), 먼 손은 빈 주먹으로 마네킹의 먼 팔 흔들기를 따른다. 등 뒤로 허리까지 내려오는 긴 붉은 머리는 한 박자 늦게 뒤로 살짝 날리고, 가면 옆 앞머리 한 가닥과 뾰족한 후드는 그대로 둔다.
 - 디딘 발: 한 걸음 원본 275px(게임 45.5px) → 디딘 발은 칸마다 **정확히 68.8px**(±3, 게임 11.4px) 뒤로 — 발끝 x 는 Prompt 의 PLANTED FOOT 표. (병과 전사 R5 는 디딘 발이 30px 앞에 그려져 한 번 고쳤다.)
 - 클라우드가 받은 뒤: `python3 tools/art/receive.py gait/sheet_hero_lyra_run` (검사 + `add_gait.py --dry-run`) → 미리보기를 보고 `add_gait.py` 로 붙인다 (`--pose art/requests/guides/run_base/v2/pose.json`).
 
@@ -42,7 +42,7 @@ REFERENCES (load all; if the sheet or a guide does not load, do not draw - write
   - art/requests/guides/run_base/v2/pose.json (the numbers below come from it), art/requests/guides/run_base/v2/run_base_preview.gif (the motion at speed), art/requests/guides/run_base/v2/run_base.aseprite (the mannequin source -
     you may open it as an underlay and draw on your own layers, but the delivered PNGs contain ONLY your drawing).
 
-CHARACTER (unchanged from the accepted sheet): Masked outlaw with a violet hood and short shoulder cloak, fitted trousers, boots, loose red locks and the single dagger visible in the accepted idle.
+CHARACTER (unchanged from the accepted sheet): Masked outlaw in a white half-mask, with a pointed violet hood, a short shoulder capelet and a cream cravat. Over these she wears a violet coat with cream trim, buttoned to a belt with a square buckle and open below it. The coat skirt reaches the knees: one rear tail sweeps back behind the near leg, and its back panel shows between the legs. She wears full trousers that meet brown boots at a cream cuff, has long red hair down her back, and carries the single dagger visible in the accepted idle.
 
 THE MOVE (owner's three movement classes; light: the accepted run: lean forward, press down in flight, rise a little after the landing is caught, hip nearly level, slight float, no hopping. It is already in the mannequin - copy it, do not invent another):
   - Each frame: the legs, the torso lean and the arm swing of that mannequin frame. Joint for joint: hips, knees, ankles, feet,
@@ -65,8 +65,8 @@ THE MOVE (owner's three movement classes; light: the accepted run: lean forward,
     YOUR toe tip against these numbers (the size_* images mark them with yellow ticks).
 
 ARMS AND WEAPONS:
-  - Near right hand holds the single dagger with the same grip as the accepted idle. Carry the approximately 90 px grip-to-tip blade back and down 35–45 deg below horizontal; the far left hand stays empty in guard. Keep the tip inside x=32–351 and above y=852, with no slash.
-  - The rear violet cloth panels follow the hips one frame late. Keep the red locks around the face and across the shoulders where they appear in idle; they bounce without moving behind the body.
+  - Near right hand holds the single dagger with the same grip as the accepted idle. Carry the ~85-90 px grip-to-tip blade back and down about 50 deg below horizontal (45-55), as in the idle. The tip stays inside x=32-351 and above y=852 in every frame (at 55 deg it reaches only about (122,744) in R8). Do not slash. The far left hand is an empty half-closed fist, as in the idle guard, and it follows the mannequin's far-arm swing (no fixed raised guard).
+  - The rear violet cloth panels follow the hips one frame late. Lyra's long red hair falls from under the hood down her back to belt height, behind the near (dagger) sleeve. Let it lag one frame and lift back a little in R4/R8 and R1/R5, staying inside x>=32. The single lock in front of the ear beside the masked face stays where it is. Keep the full pointed violet hood (fleur-de-lis) up. The short garment is the shoulder capelet, not the hood.
   - Face: exactly as in the idle in every frame.
 
 MUST NOT CHANGE: outfit, colours, proportions, headgear, weapon and shield shapes and sizes, and the SCALE of the accepted

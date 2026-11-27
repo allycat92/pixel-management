@@ -17,7 +17,7 @@
 
 - 부류: **경량** — humanoid skeleton: bones, cloth scraps at the hips, open helmet, round wooden shield, sword. (tools/art/specs/gait_classes.json)
 - 납품: art-inbox `art/inbox/gait/sheet_monster_skeleton_run_a.png` (R1~R4) + `art/inbox/gait/sheet_monster_skeleton_run_b.png` (R5~R8) + `art/inbox/NOTES.md` 절 「gait/sheet_monster_skeleton_run - 몬스터 — 해골 병사 이동」 + 「## 판정 — gait/sheet_monster_skeleton_run」. 파일 이름은 부류와 상관없이 `_run_` (엔진의 `anims.run`).
-- 팔·무기: 가까운 오른손의 이 빠진 검과 먼 왼팔의 철테 방패를 유지한다. 엉덩이의 찢긴 천만 늦게 움직인다.
+- 팔·무기: 가까운 오른손의 이 빠진 검과 먼 왼팔의 철테 방패를 유지한다. 골반 앞에 늘어진 찢긴 천은 늘 골반 앞에 두고 끝단만 한 박자 늦게 흔들린다.
 - 디딘 발: 한 걸음 원본 275px(게임 45.5px) → 디딘 발은 칸마다 **정확히 68.8px**(±3, 게임 11.4px) 뒤로 — 발끝 x 는 Prompt 의 PLANTED FOOT 표. (병과 전사 R5 는 디딘 발이 30px 앞에 그려져 한 번 고쳤다.)
 - 클라우드가 받은 뒤: `python3 tools/art/receive.py gait/sheet_monster_skeleton_run` (검사 + `add_gait.py --dry-run`) → 미리보기를 보고 `add_gait.py` 로 붙인다 (`--pose art/requests/guides/run_base/v2/pose.json`).
 
@@ -65,8 +65,8 @@ THE MOVE (owner's three movement classes; light: the accepted run: lean forward,
     YOUR toe tip against these numbers (the size_* images mark them with yellow ticks).
 
 ARMS AND WEAPONS:
-  - Near right hand keeps the notched sword and far left arm the round shield, boss forward. Carry the approximately 190 px grip-to-tip sword back and down 55–60 deg below horizontal so it stays inside x=32–351 and y<=852. Keep the shield in front of the ribs, keeping the shield centre at x<=275 (about 75 px from centre to rim) by folding the far elbow in where needed.
-  - Only the ragged hip cloth lags one frame. Keep the shoulder scrap and red eye points with the bone silhouette and preserve the open space between the ribs and arms.
+  - Near right hand keeps the notched sword; the far left arm keeps the round wooden shield exactly as in the idle: vertical brown planks with a crack, an iron rim with rivets, NO central boss (do not add one), its face turned forward/toward the viewer as in the idle. Carry the approximately 190 px grip-to-tip sword back and down 55–60 deg below horizontal so it stays inside x=32–351 and y<=852. Keep the shield in front of the ribs, keeping the shield centre at x<=275 (about 75 px from centre to rim) by folding the far elbow in where needed.
+  - The red-brown loincloth hangs in FRONT of the pelvis, down between the thighs (hem near y=812 in the idle). Keep it in front of the hips in every frame and let only its ragged hem swing, one frame behind the legs. The darker scraps showing behind the near thigh may trail back a little. The tattered red-brown scrap on the near (sword-arm) shoulder stays on that shoulder. Keep the two red eye points as in the idle, and keep the small open gap between the near upper arm and the ribs.
   - Face: exactly as in the idle in every frame.
 
 MUST NOT CHANGE: outfit, colours, proportions, headgear, weapon and shield shapes and sizes, and the SCALE of the accepted

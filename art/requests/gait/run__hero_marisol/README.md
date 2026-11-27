@@ -65,8 +65,8 @@ THE MOVE (owner's three movement classes; light: the accepted run: lean forward,
     YOUR toe tip against these numbers (the size_* images mark them with yellow ticks).
 
 ARMS AND WEAPONS:
-  - Far left hand carries the bow by its idle grip. Bring the grip inside x=300 and above y=690 by folding the forearm in; near right hand stays free beside the string. Keep the approximately 140 px upper and 145 px lower bow halves; tilt the upper tip 3–8 deg forward from vertical and the lower tip back. Keep the flintlock holstered on the near hip and the quiver strapped on.
-  - The cream plume and rear coat tails follow a step one frame late. Keep the front coat panels at the hips, and the loose dark lock at the near cheek.
+  - Far left hand carries the bow by its idle grip. Bring the grip inside x=300 and above y=690 by folding the forearm in. In the idle the near right gloved hand pinches the string beside the grip. For the run it lets go and swings with the mannequin's near arm as a loose fist, with no draw. The string then runs straight from the upper knob to the lower knob. Keep the approximately 140 px upper and 145 px lower bow halves; tilt the upper tip 3–8 deg forward from vertical and the lower tip back. Keep the flintlock holstered on the near hip and the quiver strapped on.
+  - The cream plume, the long dark wavy hair down the back and the rear coat tails follow the step one frame late (hair and tails inside x>=32). Keep the red ribbon tied at the back of the head under the hat and the front coat panels at the hips. Keep the loose dark lock that hangs from under the brim in front of the jaw on the far side of the face. The near cheek (scar, gold hoop earring) stays bare.
   - Face: exactly as in the idle in every frame.
 
 MUST NOT CHANGE: outfit, colours, proportions, headgear, weapon and shield shapes and sizes, and the SCALE of the accepted

@@ -17,7 +17,7 @@
 
 - 부류: **중량** — old knight commander in weathered silver plate with greaves and sabatons, two-handed longsword, rear blue cape and front tabard. (tools/art/specs/gait_classes.json)
 - 납품: art-inbox `art/inbox/gait/sheet_hero_oswin_run_a.png` (H1~H4) + `art/inbox/gait/sheet_hero_oswin_run_b.png` (H5~H8) + `art/inbox/NOTES.md` 절 「gait/sheet_hero_oswin_run - 오스윈 — 몰락한 기사단장 (몰락 기사단장) 이동」 + 「## 판정 — gait/sheet_hero_oswin_run」. 파일 이름은 부류와 상관없이 `_run_` (엔진의 `anims.run`).
-- 팔·무기: 장검을 양손으로 가슴 가까이 세워 든다. 두꺼운 판금과 앞쪽 파란 천의 위치를 유지한다.
+- 팔·무기: 장검을 대기 그림처럼 양손으로 허리띠 높이에서 몸에 붙여 세워 든다(먼 왼손은 가드 바로 밑·흉갑 아래 끝, 가까운 오른손은 그 아래 허리띠 위). 손잡이를 가슴으로 올리지 않는다. 두꺼운 판금과 앞쪽 파란 천의 위치를 유지한다.
 - 디딘 발: 한 걸음 원본 142.5px(게임 23.6px) → 디딘 발은 칸마다 **정확히 35.6px**(±3, 게임 5.9px) 뒤로 — 발끝 x 는 Prompt 의 PLANTED FOOT 표. (병과 전사 R5 는 디딘 발이 30px 앞에 그려져 한 번 고쳤다.)
 - 클라우드가 받은 뒤: `python3 tools/art/receive.py gait/sheet_hero_oswin_run` (검사 + `add_gait.py --dry-run`) → 미리보기를 보고 `add_gait.py` 로 붙인다 (`--pose art/requests/guides/heavy_base/v1/pose.json`).
 
@@ -64,7 +64,7 @@ THE MOVE (owner's three movement classes; heavy: heavy armour / tower shield / v
     YOUR toe tip against these numbers (the size_* images mark them with yellow ticks).
 
 ARMS AND WEAPONS:
-  - Far left hand stays by the guard and near right hand below it on the same hilt. The mannequin's two separate arm swings do NOT apply to this character (intended, not a deviation); carry both hands near the chest with hilt travel at most 20 px fore-aft, x=209–229. Carry the approximately 250 px grip-to-tip longsword forward and up at 70–80 deg above horizontal. Keep the elbows tucked and use no slash.
+  - Far left hand stays by the guard and near right hand below it on the same hilt, exactly as in the idle. The mannequin's two separate arm swings do NOT apply to this character (intended, not a deviation). Carry both fists close to the body at BELT height, as in the idle: the far fist just under the bottom edge of the breastplate, the near fist resting on the belt (fists about y=645-705, the mannequin's near hand is at y=666-689). Do not raise the hilt to the chest. Hilt travel at most 20 px fore-aft, x=209–229. Carry the approximately 250 px grip-to-tip longsword forward and up at 70–80 deg above horizontal. Keep the elbows tucked and use no slash.
   - The rear blue cape sways lightly one frame late. The front blue tabard stays between the legs, and the grey hair lifts only a little with each footfall.
   - Face: exactly as in the idle in every frame.
 

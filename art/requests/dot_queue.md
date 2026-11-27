@@ -39,6 +39,15 @@ Claude Code 가 받아서 확인한 결과는 `art/requests/feedback.md`에 남�
 | Antigravity | new | `gait/sheet_captain_fixer_run` | 대장 해결사 달리기 8프레임 (C8 요청서, 클라우드 대조 검증 반영). 요청서 `art/requests/gait/run__captain_fixer/README.md` |
 | Antigravity | new | `gait/sheet_captain_veteran_run` | 대장 노병 달리기 8프레임 (C8 요청서, 클라우드 대조 검증 반영). 요청서 `art/requests/gait/run__captain_veteran/README.md` |
 | Antigravity | new | `gait/sheet_captain_tactician_run` | 대장 전술가 달리기 8프레임 (C8 요청서, 클라우드 대조 검증 반영). 요청서 `art/requests/gait/run__captain_tactician/README.md` |
+| Antigravity | new | `gait/sheet_hero_kai_run` | 카이 달리기 8프레임 (C9 요청서, 클라우드 대조 검증 반영). 요청서 `art/requests/gait/run__hero_kai/README.md` |
+| Antigravity | new | `gait/sheet_hero_grom_run` | 그롬 달리기 8프레임 (C9 요청서, 클라우드 대조 검증 반영). 요청서 `art/requests/gait/run__hero_grom/README.md` |
+| Antigravity | new | `gait/sheet_hero_lyra_run` | 리라 달리기 8프레임 (C9 요청서, 클라우드 대조 검증 반영). 요청서 `art/requests/gait/run__hero_lyra/README.md` |
+| Antigravity | new | `gait/sheet_hero_marisol_run` | 마리솔 달리기 8프레임 (C9 요청서, 클라우드 대조 검증 반영). 요청서 `art/requests/gait/run__hero_marisol/README.md` |
+| Antigravity | new | `gait/sheet_hero_oswin_run` | 오스윈 중량 이동 8프레임 (C9 요청서, 클라우드 대조 검증 반영). 요청서 `art/requests/gait/heavy__hero_oswin/README.md` |
+| Antigravity | new | `gait/sheet_hero_astel_run` | 아스텔 로브 이동 8프레임 (C9 요청서, 클라우드 대조 검증 반영). 요청서 `art/requests/gait/robe__hero_astel/README.md` |
+| Antigravity | new | `gait/sheet_hero_seraphine_run` | 세라핀 로브 이동 8프레임 (C9 요청서, 클라우드 대조 검증 반영). 요청서 `art/requests/gait/robe__hero_seraphine/README.md` |
+| Antigravity | new | `gait/sheet_monster_skeleton_run` | 해골 병사 달리기 8프레임 (C9 요청서, 클라우드 대조 검증 반영). 요청서 `art/requests/gait/run__monster_skeleton/README.md` |
+| Antigravity | new | `gait/sheet_monster_bandit_run` | 산적 달리기 8프레임 (C9 요청서, 클라우드 대조 검증 반영). 요청서 `art/requests/gait/run__monster_bandit/README.md` |
 
 수령 완료, 제작 대상 아님: 비요른·카이·해골 병사·사막 도적 (`5520f35`), 고블린·서리 트롤 (`c4cc054`). `C5-art-battle-integration-qa`에서 Codex가 별도 빌드로 반영·실전 확인한다. 최종 등록은 별도다.
 

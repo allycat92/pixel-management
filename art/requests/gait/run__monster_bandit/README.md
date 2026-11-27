@@ -17,7 +17,7 @@
 
 - 부류: **경량** — humanoid bandit: leather jerkin, trousers, boots, hand axe, small buckler. (tools/art/specs/gait_classes.json)
 - 납품: art-inbox `art/inbox/gait/sheet_monster_bandit_run_a.png` (R1~R4) + `art/inbox/gait/sheet_monster_bandit_run_b.png` (R5~R8) + `art/inbox/NOTES.md` 절 「gait/sheet_monster_bandit_run - 몬스터 — 산적 이동」 + 「## 판정 — gait/sheet_monster_bandit_run」. 파일 이름은 부류와 상관없이 `_run_` (엔진의 `anims.run`).
-- 팔·무기: 가까운 오른손에 손도끼, 먼 왼팔에 작은 둥근 방패를 든다. 붉은 두건 끝과 허리끈이 뒤따른다.
+- 팔·무기: 가까운 오른손에 손도끼, 먼 왼팔에 작은 둥근 방패를 든다. 두건 끝과 목 뒤 머리는 한 박자 늦게 뒤로, 허리 밧줄 끝은 다리 앞에 늘어진 채 조금만 흔들린다.
 - 디딘 발: 한 걸음 원본 275px(게임 45.5px) → 디딘 발은 칸마다 **정확히 68.8px**(±3, 게임 11.4px) 뒤로 — 발끝 x 는 Prompt 의 PLANTED FOOT 표. (병과 전사 R5 는 디딘 발이 30px 앞에 그려져 한 번 고쳤다.)
 - 클라우드가 받은 뒤: `python3 tools/art/receive.py gait/sheet_monster_bandit_run` (검사 + `add_gait.py --dry-run`) → 미리보기를 보고 `add_gait.py` 로 붙인다 (`--pose art/requests/guides/run_base/v2/pose.json`).
 
@@ -65,8 +65,8 @@ THE MOVE (owner's three movement classes; light: the accepted run: lean forward,
     YOUR toe tip against these numbers (the size_* images mark them with yellow ticks).
 
 ARMS AND WEAPONS:
-  - Near right hand holds the hand axe at belt-to-rib height, x<=265. Carry its roughly 135 px grip-to-head length tilted forward and up 70–80 deg above horizontal, with the blade profile from idle and no swing. Keep the far left buckler tucked forward and keep its centre at x<=310 (about 40 px to the outer rim) by folding that elbow in where needed.
-  - The tied red bandana's rear tails and the loose rope belt ends lag one frame. Keep the front of the jerkin at the waist and the hair beside the face in place.
+  - Near right hand holds the hand axe at belt-to-rib height, x<=265, with the idle grip. The fist sits partway up the handle: about 40-50 px of handle shows below the fist, and the top of the iron head is about 80 px from the fist. Do not lengthen the handle. Tilt the handle forward and up 70-80 deg above horizontal, steeper than in the idle, so the blade's front edge stays left of x=351. Keep the idle blade profile with the edge facing forward, and do not swing. Keep the far left buckler tucked forward and keep its centre at x<=310 (about 40 px to the outer rim) by folding that elbow in where needed.
+  - The two red bandana tails at the back of the head, and the shoulder-length dark hair hanging behind the neck, lag one frame and lift back a little in R4/R8 and R1/R5. The loose rope-belt ends hang straight down in front of the crotch and thighs: keep them in front of the legs, swinging only a little, one frame late, and never trailing behind the body. The jerkin front at the waist and the hair beside the face stay in place.
   - Face: exactly as in the idle in every frame.
 
 MUST NOT CHANGE: outfit, colours, proportions, headgear, weapon and shield shapes and sizes, and the SCALE of the accepted

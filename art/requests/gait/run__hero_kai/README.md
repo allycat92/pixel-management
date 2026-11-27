@@ -66,7 +66,8 @@ THE MOVE (owner's three movement classes; light: the accepted run: lean forward,
 
 ARMS AND WEAPONS:
   - Far left hand carries the bow by its idle grip. Fold that elbow inward in the reaching frames so the grip stays at x=300 or less; the near right hand is free beside the string, with no draw. Measured grip-to-tip lengths are about 130 px up and 135 px down. Tilt the upper tip 5–10 deg forward from vertical and the lower tip back; use grip y<=707 for the lower tip to stay above y=852. Keep arrow quiver fixed to the back.
-  - Keep the long blond hair tied behind the neck and visible over the back shoulder. The rear section of the green cloak trails one frame late; the split front panel stays in front between the legs.
+  - Keep the long blond hair tied with the dark-green ribbon at the back of the head, at ear height (not at the neck). Below the tie the loose waves hang down the back over the cloak to about belt height. Let them swing back and trail the step by one frame, and keep them inside x>=32. The short locks in front of the ear stay beside the cheek, down to the collar.
+  - The elbow-length green shoulder cloak with cream trim stays on the shoulders and only lifts a little at its rear edge. The knee-length rear flap of the split tunic (gold embroidery, cream hem) comes out from under the belt and trails one frame late. The cream-trimmed front tab stays in front between the legs, with the dark-green far panel behind it.
   - Face: exactly as in the idle in every frame.
 
 MUST NOT CHANGE: outfit, colours, proportions, headgear, weapon and shield shapes and sizes, and the SCALE of the accepted
