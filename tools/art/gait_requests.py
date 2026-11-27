@@ -255,6 +255,57 @@ def check_requests(spec, man):
 # face = 얼굴, ko = 한국어 머리말의 팔·무기 요약, refs = 꾸러미에서 더 넣을 참고 그림 (concept 는 늘 넣는다),
 # height = (있으면) FORMAT 의 「the figure about as tall as ...」 문장 대신 쓸 키 문장.
 CARRY = {
+    'sheet/monster/고블린': {
+        'title': '고블린 이동', 'name': '고블린', 'refs': [],
+        'character': ('Small green goblin: oversized pointed ears and amber eyes, diagonal leather strap, wrist wraps, '
+                      'ragged front waistcloth, wrapped ankles and bare green toes. The weapon is a knotted wooden club, not a blade.'),
+        'carry': [
+            'Keep the club in the near hand at low waist height, x=142–147 and y=668–682 in each 384-px slot. '
+            'The club points forward and about 23–27 degrees below horizontal; keep the full knob, handle and outline '
+            'within x=105–350 and below the chest. The shaft may cross the near hip (intended); the broad knotted end '
+            'must read on the background in front. It must not cross the face or ears or touch either boot.',
+            'The fixed carry replaces the near-hand and elbow swing. Bend the elbow as needed from the guide shoulder; '
+            'keep the far claw free and following its light arm swing. Do not let the club flip between hands.',
+        ],
+        'cloth': ['Keep the diagonal strap and the ragged front waistcloth in front. Only the free ends at the sides lag, '
+                  'without merging the feet.'],
+        'face': 'Face: keep both ears, brow and amber eyes readable, with no club in front of them.',
+        'height': 'Keep the short, big-eared body the same size as the accepted idle (~55 game pixels including the ears).',
+        'ko': '몽둥이(칼 아님)는 가까운 손 허리 높이에서 앞아래로. 굵은 옹이까지 x=350 안, 얼굴·귀와 발에서 분리. 앞 가죽띠·허리천은 앞에.',
+    },
+    'sheet/monster/서리 트롤': {
+        'title': '서리 트롤 이동', 'name': '서리 트롤', 'refs': [],
+        'character': ('Bare-handed pale-blue frost troll: bald head, heavy brow, protruding tusks, huge shoulders, '
+                      'low massive fists, ragged dark front loincloth and bare feet. No club or ice weapon in any accepted pose.'),
+        'carry': [
+            'Use both bare fists, not a club. Keep the fists low, below the ribs, and clear of the brow, tusks and knee silhouettes. '
+            'Follow the scaled heavy guide shoulders and elbow beat. Limit the far fist if its knuckles approach the slot edge; '
+            'the whole fist must stay inside x=32–351 and should still be attached to a bent arm.',
+            'Do not narrow his shoulders or shrink the fists to fit. Adjust the forearm turn before changing the silhouette; '
+            'keep the planted heavy foot and torso positions from the scaled guide.',
+        ],
+        'cloth': ['The dark ragged loincloth lies in front between the thighs. Only its free tips lag a little; keep both blue feet separate.'],
+        'face': 'Face: keep the bald skull, projecting brow and both tusks unobstructed.',
+        'height': 'Keep the bare-footed troll about as tall as the upper-left idle of the accepted 2×2 sheet (~75 game pixels); '
+                  'retain its broad shoulders and oversized fists.',
+        'ko': '승인 2×2 왼쪽 위가 대기. 곤봉 없이 맨주먹, 주먹은 늑골 아래·칸 안에. 넓은 어깨와 맨발, 앞의 어두운 허리천 유지.',
+    },
+    'sheet/monster/사막 도적': {
+        'title': '사막 도적 이동', 'name': '사막 도적', 'refs': [],
+        'character': ('Desert bandit in a wrapped sand-coloured headcloth and face veil, brown vest, wrapped wrists, '
+                      'front sash, separate baggy trousers and dark boots. The weapon is the accepted curved scimitar.'),
+        'carry': [
+            'Carry the scimitar low in the near hand at x=158–168, y=673–687. Turn the curved blade about 49–53 degrees '
+            'back and down from that grip; allow for its curved belly and use x=32–210, y=640–840 as the full weapon envelope. '
+            'The weapon stays below the veiled face and reads separately from the trailing boot. The curve and length stay unchanged.',
+            'The near elbow follows the shoulder but the steady grip replaces its swing; adjust the elbow bend, not arm length. '
+            'The empty far hand follows the free light arm swing and stays separated from the blade.',
+        ],
+        'cloth': ['Keep the face veil, vest fronts and the vertical sash in their original front layers. Only short rear headwrap '
+                  'tails and loose tips lag. The baggy trousers separate across both knees and boots; this is light, not robe.'],
+        'face': 'Face: keep the same narrow eye slit and veil; do not uncover the nose or mouth.',
+        'ko': '가까운 손 허리 높이, 굽은 칼날은 뒤아래. 날 폭까지 칸 안, 얼굴·뒤 발과 분리. 얼굴 베일과 긴 앞 허리띠는 앞으로.',
+    },
     'sheet/captain/admiral': {
         'title': '마렌 이동', 'name': '마렌', 'refs': ['portrait.png'],
         'character': (

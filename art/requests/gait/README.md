@@ -38,6 +38,7 @@
 | [`heavy__captain_runesmith/`](heavy__captain_runesmith/README.md) | `sheet/captain/runesmith` 브로크 이동 | 중량 · `art/requests/guides/heavy_base/v1` | `art/inbox/gait/sheet_captain_runesmith_run_a.png` + `_b.png` | 요청 |
 | [`heavy__captain_saintknight/`](heavy__captain_saintknight/README.md) | `sheet/captain/saintknight` 엘리노어 — 성광의 기사 (성광 기사) 이동 | 중량 · `art/requests/guides/heavy_base/v1` | `art/inbox/gait/sheet_captain_saintknight_run_a.png` + `_b.png` | 요청 |
 | [`heavy__hero_oswin/`](heavy__hero_oswin/README.md) | `sheet/hero/oswin` 오스윈 — 몰락한 기사단장 (몰락 기사단장) 이동 | 중량 · `art/requests/guides/heavy_base/v1` | `art/inbox/gait/sheet_hero_oswin_run_a.png` + `_b.png` | 요청 |
+| [`heavy__monster_frost-troll/`](heavy__monster_frost-troll/README.md) | `sheet/monster/서리 트롤` 서리 트롤 이동 | 중량 · `art/requests/gait/heavy__monster_frost-troll` | `art/inbox/gait/sheet_monster_frost-troll_run_a.png` + `_b.png` | 요청 |
 | [`robe__captain_archmagus/`](robe__captain_archmagus/README.md) | `sheet/captain/archmagus` 에우리아 — 마지막 대현자 (대현자) 이동 | 로브 · `art/requests/guides/robe_base/v1` | `art/inbox/gait/sheet_captain_archmagus_run_a.png` + `_b.png` | 요청 |
 | [`robe__captain_hedgemage/`](robe__captain_hedgemage/README.md) | `sheet/captain/hedgemage` 펠릭스 이동 | 로브 · `art/requests/guides/robe_base/v1` | `art/inbox/gait/sheet_captain_hedgemage_run_a.png` + `_b.png` | 요청 |
 | [`robe__captain_lightbearer/`](robe__captain_lightbearer/README.md) | `sheet/captain/lightbearer` 루치아 — 빛을 든 사도 (빛의 사도) 이동 | 로브 · `art/requests/guides/robe_base/v1` | `art/inbox/gait/sheet_captain_lightbearer_run_a.png` + `_b.png` | 요청 |
@@ -63,7 +64,7 @@
 | [`run__captain_tactician/`](run__captain_tactician/README.md) | `sheet/captain/tactician` 이사벨 — 퇴역 참모 (전술가) 이동 | 경량 · `art/requests/guides/run_base/v2` | `art/inbox/gait/sheet_captain_tactician_run_a.png` + `_b.png` | 요청 |
 | [`run__captain_veteran/`](run__captain_veteran/README.md) | `sheet/captain/veteran` 하랄드 — 백발의 노병 (노병) 이동 | 경량 · `art/requests/guides/run_base/v2` | `art/inbox/gait/sheet_captain_veteran_run_a.png` + `_b.png` | 요청 |
 | [`run__captain_windhunter/`](run__captain_windhunter/README.md) | `sheet/captain/windhunter` 나린 이동 | 경량 · `art/requests/guides/run_base/v2` | `art/inbox/gait/sheet_captain_windhunter_run_a.png` + `_b.png` | 요청 |
-| [`run__class_archer/`](run__class_archer/README.md) | `sheet/class/archer` 병과 궁수 달리기 | 경량 · `art/requests/guides/run_base/v2` | `art/inbox/gait/sheet_class_archer_run_a.png` + `_b.png` | 요청 |
+| [`run__class_archer/`](run__class_archer/README.md) | `sheet/class/archer` 병과 궁수 달리기 | 경량 · `art/requests/guides/run_base/v2` | `art/inbox/gait/sheet_class_archer_run_a.png` + `_b.png` | 그려짐 · 등록 |
 | [`run__class_cleric/`](run__class_cleric/README.md) | `sheet/class/cleric` 병과 성직자 달리기 | 경량 · `art/requests/guides/run_base/v2` | `art/inbox/gait/sheet_class_cleric_run_a.png` + `_b.png` | 요청 |
 | [`run__class_rogue/`](run__class_rogue/README.md) | `sheet/class/rogue` 병과 도적 달리기 | 경량 · `art/requests/guides/run_base/v2` | `art/inbox/gait/sheet_class_rogue_run_a.png` + `_b.png` | 요청 |
 | [`run__class_warrior/`](run__class_warrior/README.md) | `sheet/class/warrior` 병과 전사 달리기 | 경량 · `art/requests/guides/run_base/v2` | `art/inbox/gait/sheet_class_warrior_run_a.png` + `_b.png` | 그려짐 · 등록 |
@@ -72,6 +73,8 @@
 | [`run__hero_lyra/`](run__hero_lyra/README.md) | `sheet/hero/lyra` 리라 — 가면 쓴 의적 (가면 의적) 이동 | 경량 · `art/requests/guides/run_base/v2` | `art/inbox/gait/sheet_hero_lyra_run_a.png` + `_b.png` | 요청 |
 | [`run__hero_marisol/`](run__hero_marisol/README.md) | `sheet/hero/marisol` 마리솔 — 닻을 잃은 해적 선장 (해적 선장) 이동 | 경량 · `art/requests/guides/run_base/v2` | `art/inbox/gait/sheet_hero_marisol_run_a.png` + `_b.png` | 요청 |
 | [`run__monster_bandit/`](run__monster_bandit/README.md) | `sheet/monster/산적` 몬스터 — 산적 이동 | 경량 · `art/requests/guides/run_base/v2` | `art/inbox/gait/sheet_monster_bandit_run_a.png` + `_b.png` | 요청 |
+| [`run__monster_desert-bandit/`](run__monster_desert-bandit/README.md) | `sheet/monster/사막 도적` 사막 도적 이동 | 경량 · `art/requests/guides/run_base/v2` | `art/inbox/gait/sheet_monster_desert-bandit_run_a.png` + `_b.png` | 요청 |
+| [`run__monster_goblin/`](run__monster_goblin/README.md) | `sheet/monster/고블린` 고블린 이동 | 경량 · `art/requests/guides/run_base/v2` | `art/inbox/gait/sheet_monster_goblin_run_a.png` + `_b.png` | 요청 |
 | [`run__monster_skeleton/`](run__monster_skeleton/README.md) | `sheet/monster/해골 병사` 몬스터 — 해골 병사 이동 | 경량 · `art/requests/guides/run_base/v2` | `art/inbox/gait/sheet_monster_skeleton_run_a.png` + `_b.png` | 요청 |
 <!-- index:end -->
 

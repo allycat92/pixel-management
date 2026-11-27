@@ -17,7 +17,7 @@ size_<p>_a.png / size_<p>_b.png  = 1920x1024: a SIZE panel (the character's acce
     band, the planted toe of each stance frame (yellow tick + x) and, for the light run, the flight line y=852.
 
 Nothing is hard-coded per character: the idle x-range, the anchor ("hip") column and the scale come from the source sheet
-art/inbox/<stem>.png (first figure from the left = the idle), the registered sheet (assets/art/manifest.json: file, anchor, frame 0)
+art/inbox/<stem>.png (first pose = idle; upper-left for 2x2), the registered sheet (assets/art/manifest.json: file, anchor, frame 0)
 and the request scale (art/requests/phase3.json). The anchor column = the idle's sole centre in the source (the column sheets.py put
 on the anchor) corrected by how far the registered idle's sole centre sits from the anchor. Writes only under the request folder
 (or --out); never assets/ or art/inbox/.
@@ -131,6 +131,11 @@ def feet_x(mask):
     return (xs[band].min() + xs[band].max() + 1) / 2
 
 
+def idle_region(src, layout):
+    # 같은 1536×1024라도 2×2는 위쪽 첫 칸만 대기다. 아래 칸(공격/피격)을 섞지 않는다.
+    return src[:src.shape[0] // 2, :src.shape[1] // 2] if layout == '2x2' else src
+
+
 def geometry(sid, man=None):
     """everything the guides and the README need about one sheet, derived from the files (no per-character table)"""
     man = man or load_json(MANIFEST)
@@ -144,14 +149,19 @@ def geometry(sid, man=None):
     src = np.asarray(Image.open(path(src_rel)).convert('RGB'))
     if src.shape[:2] != (1024, 1536):
         raise Fail(f'{src_rel}: {src.shape[1]}x{src.shape[0]}, expected a 1536x1024 1x4 strip')
-    mk = fig_mask(src)
+    req = request_item(sid)
+    layout = req.get('layout')
+    mk = fig_mask(idle_region(src, layout))
     col = mk.any(0)
     if not col.any():
         raise Fail(f'{src_rel}: empty')
     x0 = int(np.argmax(col))
-    x1 = x0
-    while x1 + 1 < len(col) and col[x1 + 1]:
-        x1 += 1
+    if layout == '2x2':
+        x1 = int(np.flatnonzero(col)[-1])  # 같은 칸 안의 떨어진 장비도 대기 그림에 남긴다
+    else:
+        x1 = x0
+        while x1 + 1 < len(col) and col[x1 + 1]:
+            x1 += 1
     idle = mk[:, x0:x1 + 1]
     ys = np.nonzero(idle.any(1))[0]
     # the registered idle (frame 0 of the game sheet)
@@ -160,14 +170,13 @@ def geometry(sid, man=None):
     fx, fy = meta['frames'][0]
     ga = g[fy:fy + ch, fx:fx + cw, 3] > 0
     gys = np.nonzero(ga.any(1))[0]
-    req = request_item(sid)
     reg_scale = (gys.max() - gys.min() + 1) / (ys.max() - ys.min() + 1)
     ax, ay = meta['anchor']
     anchor_col = x0 + feet_x(idle) + (ax - feet_x(ga)) / scale
     return {
         'sheet': sid, 'stem': stem, 'short': stem[len('sheet_'):], 'source': src_rel, 'registered': e['file'],
         'idle_x': [x0, x1], 'idle_top': int(ys.min()), 'idle_low': int(ys.max()), 'anchor_col': round(float(anchor_col), 1),
-        'scale': scale, 'scale_src': 'phase3.json',
+        'scale': scale, 'scale_src': 'phase3.json', 'source_layout': layout,
         'scale_registered': round(float(reg_scale), 4), 'cell': [cw, ch], 'anchor': [ax, ay],
         'game_idle_h': int(gys.max() - gys.min() + 1), 'tint': req.get('tint') or meta.get('tint'),
         'spots': req.get('spots'), 'package': req.get('package'), 'name_ko': req.get('name'),
@@ -265,7 +274,8 @@ def scale_pose(source, pose, sheet_scale):
 
     scaled['frames'] = []
     for frame in pose['frames']:
-        origin = HIP + (frame['slot'] - 1) * SLOT
+        # Run poses store strip-wide joint x; heavy/robe store the joints in each slot.
+        origin = HIP if pose.get('gait') in ('heavy', 'robe') else HIP + (frame['slot'] - 1) * SLOT
         out = {}
         for key, value in frame.items():
             if key == 'joints':
@@ -322,7 +332,12 @@ def build(sid, outdir, cls=None, man=None, force=False):
             raise Fail(f'{outdir}: {", ".join(there)} already there - pass --force to rebuild')
     sheet = np.asarray(Image.open(path(geo['source'])).convert('RGB'))
     ix0, ix1 = geo['idle_x']
-    idle = sheet[:, ix0:ix1 + 1]
+    idle = idle_region(sheet, geo['source_layout'])[:, ix0:ix1 + 1]
+    idle_y = 0
+    if geo['source_layout'] == '2x2':
+        # 위 왼쪽 원본은 y≈461에 디딘다. 위치 비교판은 y=870으로 옮기고 배율은 유지한다.
+        idle_y = FLOOR - geo['idle_low'] + geo['idle_top']
+        idle = idle[geo['idle_top']:geo['idle_low'] + 1]
     imask = fig_mask(idle)
     ox = int(round(HIP - (geo['anchor_col'] - ix0)))        # idle column 0 lands here in the SIZE panel
     f_reg = ImageFont.truetype(FONT, 22)
@@ -354,10 +369,10 @@ def build(sid, outdir, cls=None, man=None, force=False):
         W = SLOT * 5
         canvas = np.zeros((1024, W, 3), np.uint8)
         canvas[:] = MAG
-        # SIZE panel (slot 0): faint idle, anchor column on x=192, soles on y=870 (the source sheet has its soles on 870)
+        # SIZE panel (slot 0): faint idle, anchor column on x=192, soles on y=870 (2x2 idle is moved down without resizing)
         lo, hi = max(0, -ox), min(idle.shape[1], SLOT - ox)
         faint = (idle.astype(float) * 0.45 + np.array([235, 235, 235]) * 0.55).astype(np.uint8)
-        sub = canvas[:, ox + lo:ox + hi]
+        sub = canvas[idle_y:idle_y + idle.shape[0], ox + lo:ox + hi]
         m = imask[:, lo:hi]
         sub[m] = faint[:, lo:hi][m]
         # mannequin first frame of this strip as a cyan outline over it
