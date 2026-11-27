@@ -7,14 +7,15 @@
 
 | 누구 | id | 상태 | 할 일 (자세한 것은 그 줄의 문서) |
 |---|---|---|---|
+| GPT | `C20-betrayal-loss-fixed` | READY | (코드 일감, 「한 부대 다듬기」 들어간 뒤) 결전 배신·외부단 손실도 출격 때 고정: `docs/agents/tasks/C20-betrayal-loss-fixed.md` |
 | GPT | `Q19-flip-readiness-2` | 예고 | 한 부대 초반 다듬기가 들어가면 READY — 다른 시드로 사람 플레이 다시: `docs/agents/tasks/Q19-flip-readiness-2.md` |
-| Codex | `C18-crosscheck-gpt-code` | READY | GPT 가 대신 고친 C14·C16 코드 교차 확인(보고만): `docs/agents/tasks/C18-crosscheck-gpt-code.md` |
 | Codex | `C19-newplayer-texts` | READY | (C18 다음, 「한 부대 다듬기」 들어간 뒤) 처음 하는 사람을 위한 전투 모드 설명: `docs/agents/tasks/C19-newplayer-texts.md` |
 
 ## 끝난 일
 
 | 누구 | id | 결과 |
 |---|---|---|
+| Codex | `C18-crosscheck-gpt-code` | **DONE** (11-27, `9bbc82e`): GPT 의 C14·C16 교차 확인 — C14 꼼수 고정 3/3, 24판 금화 평균 50.5k→60.7k(한 방향 아님), C16 경계 30.86초·숨김 조건 PASS. 남은 틈: **전투 모드 결전 배신이 새로고침에 바뀜**, roll 외부단 손실 재굴림 → C20 (GPT) |
 | GPT | `Q20-newplayer-clarity` | **DONE** (11-27, `0265bc7`): 다섯 단어 뜻·패배 결과·전사 가능 전투·연출 스위치 뜻이 게임 안에 설명되지 않음 → 화면별 문구 제안 → C19 (Codex) |
 | GPT | `Q18-issuer-standoff-check` | **DONE** (11-27, `9045016`): 의뢰주 멸망 정리 PASS, 전투 멈춤 해소 PASS(90초 시간패 → 24.9초 승), C14 PASS. **FIX**: 재앙이 점령한 지역의 보스 의뢰가 재앙을 의뢰주로 게시됨(`checkBosses`) → 총괄 |
 | GPT | `Q17-cleric-run-ingame` | **DONE** (11-27): 성직자 달리기 FIX — R5~R8 앞 타바드 사라짐(두 걸음마다 옷이 바뀜), R7/R8 철퇴 머리가 얼굴 옆 → Antigravity 손질 맨 위 |
