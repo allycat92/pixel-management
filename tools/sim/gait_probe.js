@@ -4,7 +4,8 @@
 // 잔차 = (다음 디딘 칸이 처음 보일 때의 발끝 x − 이 칸이 처음 보일 때의 발끝 x) × 나아가는 쪽 (0 = 발이 땅에 붙음, − = 뒤로 미끄러짐).
 // "첫 걸음" = 달리기 칸이 (대기·공격 등 다른 칸 뒤에) 처음 보인 묶음의 첫 디딘 칸 넘김, "달리는 중" = 그 뒤의 넘김.
 //   node tools/sim/gait_probe.js [battle.js 경로=js/battle.js] [--battles 8] [--speed 1] [--fps 60] [--json]   (PROBE_TOES=1: 칸별 발끝 표)
-//   고치기 전과 비교: git show HEAD:js/battle.js > /tmp/b.js && node tools/sim/gait_probe.js /tmp/b.js
+//   고치기 전과 비교: 고치기 전 커밋(9c4acc7 — 1bc63f9 와 같은 battle.js)의 battle.js 를 작업 폴더 밖 임시 파일로 꺼내 그 경로를 준다
+//     (git show 9c4acc7:js/battle.js > <임시 폴더>/before.js && node tools/sim/gait_probe.js <임시 폴더>/before.js). HEAD 는 이미 고친 뒤다.
 // 모든 유닛에 한 시트(경량 archer · 중량 ironwall · 로브 mage)를 입혀 같은 움직임으로 부류마다 잰다. 그림·속도는 건드리지 않는다.
 'use strict';
 const fs = require('fs');

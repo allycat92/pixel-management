@@ -120,7 +120,7 @@ function playSeed(seed, days, cfg) {
         const other = G.state.companies.find((co) => !units.some((u) => u.companyId === co.id) && (!co.own || G.members(co).length));
         if (other) alts.push([other.own ? { companyId: other.id, memberIds: G.members(other).map((m) => m.id) } : { companyId: other.id }]);
         alts.forEach((us) => { chk.rosterN++; if (guarded(() => foes(G.muster(c, us))) !== base) chk.roster++; });
-        if (JSON.stringify(guarded(() => G.muster(c, units))) !== JSON.stringify(mission.spec)) chk.roster++;   // 같은 입력이면 같은 편성
+        if (JSON.stringify(guarded(() => G.muster(c, units, undefined, mission.id))) !== JSON.stringify(mission.spec)) chk.roster++;   // 같은 입력이면 같은 편성
       };
       // 전투 모드는 결과를 정하는 battleResolve 를, 기본은 그림자 shadowResolve 를 잰다 (둘 다 { spec, rec, verdict } 를 돌려준다)
       const hook = battle ? 'battleResolve' : 'shadowResolve';
