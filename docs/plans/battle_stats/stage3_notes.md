@@ -1324,3 +1324,363 @@ node c3/coll.js --strategy sensible --seeds 1,3101,4101 --jobs 4      # SIM_ROOT
 OUT=… node c3/coll.js --strategy sensible --seeds 5101,6101           # before (base) and after (base + this stats.js); human 5101
 SIM_SEED=7101 SIM_RESOLVE=battle node tools/sim/bot.js 12 365 --jobs 2
 ```
+
+### Review fixes (v3.1, after the adversarial review)
+
+Date 2026-11-27, same session. An adversarial review of the v3 values above, on fresh seeds, found six things:
+1. melee captain + 1 melee + 2 ranged members (`M|MRR`) now read optimistic;
+2. small and captain-less parties in the one-company bot regressed;
+3. story contracts were missed (sensible 우세 71% in and out of sample);
+4. smaller over-corrections (beastmaster, capStory, support share ≥ 0.3);
+5. the sensible tactician was unresolved;
+6. the economy gain did not replicate.
+
+Only `js/stats.js` changed again. The values in the tables above (the v3 section) are superseded by the ones below.
+
+#### How
+
+- **Richer per-row ingredients.** Scratch `v4/feat3.js` reads the spec of every row (the C21 seeds with specs from `c3/data`, the
+  new seeds from `c3/before`, plus new seeds 8101 for both bots collected on the base for this fix). For every one of our units it
+  records role, `dps`, `ehp` and `hps` (k = 1 `sideOf` against the real enemies), and for the enemy it records role counts, the
+  power share of the top unit and the enemy `sideOf`.
+- **Exact offline model.** `v4/m4.py` + `fx.py` + `fin.py` rebuild the old, the v3 and the new forecast from these ingredients. Old
+  and v3 match the JS exactly (|ΔR| = 0 on all rows). The new one matches to 0.001, which is the R rounding.
+- **Fit** as before: C21 offers only, bosses excluded, both bots weighted the same, likelihood with slope 13. Then the boss terms
+  are picked from a small grid against the 백중 / 우세 targets (likelihood over all R again gave about 76% at 우세 for bosses).
+- **Driver search.** With the current forecast fixed as an offset, I ran one-variable logits in each bot separately. A driver
+  counts only if its coefficient has the same sign and size in both bots. Level, star, day, enemy count, support share and the
+  concentration terms all flip sign between the bots. Three quantities do not flip.
+- **Out of sample:**
+  - (a) Re-forecast of the same battles on new seeds (sensible 5101, 6101 and 8101, human 5101 and 8101; 128,970 rows, all from
+    the base code).
+  - (b) Live games on seeds 10101 (sensible and human × 12 × 365), run three times: on the base `ce63492`, on base + the v3
+    `stats.js`, and on base + this `stats.js`.
+
+#### What the review findings turned out to be
+
+Three of the drivers do not flip sign between the bots. The first two were not in the forecast at all.
+
+1. **Enemy healing.** When the enemy's healing per second is a large share of our damage per second, the forecast is far too
+   optimistic.
+   - These are soldier contracts with two clerics in the enemy roster, or a cleric leader.
+   - Old forecast, enemy healing ≥ 0.4 of our damage: 백중 11-22% / 우세 58-68% (sensible) and 5-9% / 56-59% (human), n of
+     about 40-150 per cell. v3 was no better.
+   - ln R error −0.15 to −0.20 once the enemy heals more than about 0.3 of our damage.
+   - Q25 measured the same battles: enemy healing returned 80% of the damage taken. `margin` adds healing to hp only through
+     `hps·T·0.6` with T clamped to 6-60 s.
+2. **Our healing, by amount.** v3 counted it by head (`ROLE.heal` 1.101 per healer). The amount matters instead.
+   - As an offset logit, our healing per our damage gets +0.07 (sensible) and +0.09 (human), the same in both bots. In the fit,
+     healing over the *enemy's* damage works better: out-of-sample log-loss 267.5 against 272.1.
+   - This is also why the bots disagreed at high level. The human bot's healing per damage grows with level (0.24 → 0.38). The
+     sensible bot's falls (0.22 → 0.14).
+   - The v3 level steps (1.009 / 1.015 / 1.024 above level 9) were carrying this. With heal amounts in, they return to about 1.
+3. **Enemy ranged share.** Enemy archers and mages also out-perform `margin`, for the same reason ours do.
+   - ln R −0.18 per unit of enemy ranged share in both bots, with dnll −1,158 (sensible) and −470 (human). This is the
+     strongest single term found.
+   - Story contracts field 39% ranged enemies (normal 17%). That is the story miss (finding 3), not a curve shape: the story
+     losses at 우세 were retreats.
+4. **Our ranged share.** The per-member geometric mean of v3 was the wrong shape.
+   - The comp table (one company, both bots) is convex in the ranged share: 0, 1, 2, 3 of 4 ranged give −0.02, +0.03, +0.08,
+     +0.20.
+   - A ranged captain is worth about +0.08 more than a ranged member.
+   - A lone archer earned only about a third of the full-party effect (`-|R` +0.10 against `-|RRR` +0.32).
+   - The new form counts ranged heads, captain included, over max(heads, 3). It has a linear and a square term.
+
+Finding by finding:
+- **1, `M|MRR`: fixed** by 4 and 2. Re-forecast 36/73 → 40/83, live offers 33/78 → 40/88.
+- **2, small and captain-less human parties: partly.**
+  - The lone archer is fixed by `MIN_N`: `-|R` no longer gets the full bonus.
+  - Captain-less human parties still read optimistic: ln R −0.02 to −0.05 at 1-3 heads, while the sensible bot's captain-less
+    trios read +0.03. Opposite signs, so no single knob fits; this is listed under open issues.
+- **3, story: fixed** by 3. Re-forecast 우세 79 → 83.
+- **4, smaller ones:**
+  - Support share ≥ 0.3 is now 56/92 (v3 60/93), slightly pessimistic.
+  - capStory 76 → 80.
+  - beastmaster 81 → 89.
+- **5, tactician: fixed in the re-forecast** (sensible 43/86 → 47/89). Live 35/78 → 52/93 offers (n 176/204).
+  - The sensible tactician leads two clerics and a melee member (`R|HHM`, `R|HMM`). Those are the rosters the heal-amount term
+    moves most.
+- **6, economy:** re-measured below; inside seed noise.
+
+#### Changes (v3 → v3.1, all in `Stats.KN`, commented, `--set`-able)
+
+| Knob | v3 | v3.1 | Meaning |
+|---|---|---|---|
+| `BM_CAL_ROLE` | melee 1, ranged 1.284, heal 1.101 (per member, geometric mean) | ranged 1.1774, ranged2 1.268, MIN_N 3 | s = ranged heads (captain included; first skill not a heal and range ≥ `RANGE_MIN`) / max(heads, MIN_N); R × ranged^s × ranged2^(s²) |
+| `BM_CAL_FOE` (new) | – | ranged2 0.7022 | e = enemy units with a ranged first skill / enemy units; R × ranged2^(e²) |
+| `BM_CAL_HEAL` (new) | – | ours 1.7248, foe 0.353, FREE 0.2, boss 1.18, CAP 1 | R × ours^min(CAP, our hps / enemy dps) × foe^max(0, min(CAP, enemy hps / our dps) − FREE); bosses use `boss` instead of `ours` |
+| `BM_CAL_LEAD` | 1 / 1.109 / 1.08 / 1.068 | 1.029 / 1.056 / 1.066 / 1.063 | melee / ranged / heal / rally captains, against no captain |
+| `BM_CAL_HEADS` | [1, 0.965, 0.972, 1, 1] | [1, 1.048, 1.005, 1, 1] | refitted with `MIN_N` |
+| `BM_CAL_OWNLV` | .876 .926 .966 1.009 1.015 1.024 | .862 .915 .968 .994 .988 .994 | the high-level steps were heal amount |
+| `BM_CAL_SPECIAL` | boss .866, capStory .967, story .956, campaign .94 | boss .87, capStory .95, story 1, campaign .961 | `final` unchanged |
+| `BM_CAL_ALLY` | 0.541 | 0.506 | |
+| `BM_CAL_GROUPS` | [1, 1, 1, 0.91] | [1, 1, 1, 0.914] | |
+| `BM_CAL_BOSS` | arch 1.5, sure 0.65 | arch 1.5, sure 0.6 | with boss .87 and `HEAL.boss` |
+
+- **Code.** New `sidesK1(groups)` computes the k = 1 `sideOf` pair once. `killTime(groups, sd)` and the new `healCal` share it,
+  so the heal term costs no extra pass. `roleCal` now also counts enemy ranged units.
+- **No per-captain table.**
+- **`HEAL.boss`:** against a boss, our healing is worth about a third as much. The boss fit gave ln coefficient 0.165 against
+  0.545; the boss stuns and hits big.
+- **`CAP`** stops R growing into the thousands against weak enemies. It is neutral on the log-loss (fit 247.08 → 247.06).
+- **Rejected:**
+  - A support-share hinge: small gain, collinear with `ALLY`.
+  - A front-line shortfall term (melee heads < half the heads): coefficient about +0.02 on the per-comp offsets, no gain.
+  - An ordered, retreat-truncated strength term (front units fall first, stop at half the heads): its sign was not the same in
+    the two bots.
+  - A healer-count term: `ROLE.heal` fitted to 0.92 once heal amount was in.
+  - Enemy-heal thresholds 0.25 and 0.3: 0.2 was best out of sample.
+  - A linear enemy-ranged term next to the square one: its coefficient was +0.09, and dropping it moved the out-of-sample
+    log-loss by 0.25.
+
+#### Fit quality (log-loss × 1000 over every row, slope 13; lower is better)
+
+| rows | old | v3 | v3.1 |
+|---|---|---|---|
+| C21 offers, sensible (fit) | 199.9 | 183.9 | 164.0 |
+| C21 offers, human (fit) | 194.0 | 173.5 | 139.0 |
+| new-seed offers, sensible (re-forecast) | 196.9 | 189.7 | 165.1 |
+| new-seed offers, human | 196.7 | 174.1 | 150.1 |
+| new-seed sent, sensible | 273.4 | 265.8 | 228.0 |
+| new-seed sent, human | 260.1 | 232.7 | 196.7 |
+
+#### Results: 백중 / 우세 win %, old → v3 → v3.1 (n at 백중 / 우세 for v3.1)
+
+Offline: the same battles under each forecast. Fit = C21 offers; re-forecast = new seeds 5101/6101/8101 (sensible) and 5101/8101
+(human), all collected on the base code.
+
+##### Offline, sensible bot
+
+| slice | fit: C21 offers | re-forecast: new-seed offers | re-forecast: new-seed sent |
+|---|---|---|---|
+| all | 48/89 → 47/87 → 47/88 (7538/8702) | 46/88 → 47/86 → 48/88 (7547/8458) | 45/88 → 52/88 → 54/91 (2409/6586) |
+| 1 co. | 48/89 → 47/87 → 47/88 (7364/8512) | 46/88 → 47/86 → 48/88 (7359/8316) | 45/89 → 52/88 → 54/91 (2346/6463) |
+| 2 co. | 69/88 → 61/88 → 58/94 (89/95) | 41/90 → 38/89 → 41/91 (87/64) | 49/92 → 51/92 → 50/96 (20/53) |
+| 3 co. | 29/81 → 43/83 → 44/83 (85/95) | 33/74 → 42/89 → 47/85 (101/78) | 38/74 → 39/89 → 53/84 (43/70) |
+| story | 40/71 → 45/71 → 44/76 (850/600) | 39/76 → 45/79 → 43/83 (916/601) | 41/82 → 54/87 → 52/87 (165/261) |
+| capStory | 52/83 → 44/81 → 45/83 (245/309) | 51/80 → 50/76 → 48/80 (294/355) | 55/84 → 60/81 → 53/84 (60/203) |
+| campaign | 45/84 → 52/86 → 52/89 (176/182) | 36/79 → 40/90 → 43/88 (191/136) | 44/79 → 44/90 → 52/89 (63/118) |
+| (0, 30] | 43/90 → 51/90 → 50/90 (272/437) | 49/87 → 52/89 → 51/87 (281/413) | 42/87 → 51/89 → 54/89 (105/372) |
+| (30, 60] | 53/87 → 52/86 → 49/87 (464/508) | 48/86 → 47/86 → 44/85 (439/503) | 47/87 → 47/87 → 51/88 (126/360) |
+| (60, 120] | 44/84 → 44/84 → 45/83 (1410/1133) | 45/85 → 48/85 → 47/87 (1367/1126) | 47/86 → 54/87 → 57/90 (348/794) |
+| (120, 240] | 49/87 → 51/87 → 50/88 (2663/3048) | 45/87 → 51/86 → 51/89 (2670/2966) | 44/89 → 55/89 → 57/92 (956/2318) |
+| (240, 365] | 48/91 → 45/87 → 45/90 (2729/3576) | 46/89 → 43/85 → 46/88 (2790/3450) | 45/89 → 48/88 → 50/91 (874/2742) |
+| foe heal >= 0.4 of our dmg | 22/58 → 23/55 → 53/67 (100/91) | 11/68 → 11/58 → 53/86 (103/70) | 11/66 → 14/65 → 60/86 (68/58) |
+| foe ranged share >= 0.35 | 33/73 → 32/70 → 41/84 (1448/1313) | 31/71 → 31/69 → 42/83 (1501/1282) | 28/73 → 31/71 → 46/86 (565/994) |
+| support share >= 0.3 | 34/79 → 59/94 → 55/87 (346/68) | 35/75 → 60/93 → 56/92 (352/73) | 36/75 → 62/92 → 69/92 (121/49) |
+| 1 head | 80/94 → 75/100 → 62/93 (13/27) | 59/92 → 75/91 → 57/85 (23/20) | 50/92 → 76/91 → 71/89 (14/18) |
+| 2 heads | 49/98 → 65/99 → 58/95 (62/84) | 66/94 → 63/95 → 53/94 (49/96) | 72/94 → 73/94 → 79/95 (19/79) |
+| no captain | 46/90 → 49/88 → 48/88 (1538/1590) | 49/91 → 52/90 → 51/90 (1628/1805) | 51/91 → 59/92 → 65/94 (488/1340) |
+| M|MRR | 49/85 → 37/76 → 41/82 (733/757) | 47/86 → 36/73 → 40/83 (795/865) | 43/88 → 42/80 → 35/87 (178/628) |
+| M|HMR | 53/92 → 51/89 → 49/88 (603/713) | 47/88 → 45/83 → 44/88 (574/587) | 46/88 → 46/85 → 42/88 (150/456) |
+| R|MRR | 78/97 → 64/93 → 59/95 (482/708) | 65/93 → 61/83 → 54/93 (202/270) | 69/94 → 62/89 → 54/94 (54/194) |
+| -|HMM | 49/93 → 65/96 → 69/95 (103/107) | 43/80 → 53/85 → 77/89 (112/79) | 50/81 → 61/85 → 67/86 (45/65) |
+| -|MMM | 16/68 → 47/85 → 61/92 (36/37) | 15/79 → 66/91 → 77/94 (62/86) | 22/79 → 66/91 → 77/94 (56/86) |
+| tactician | 32/85 → 33/85 → 36/88 (621/686) | 47/85 → 43/86 → 47/89 (168/216) | 48/84 → 47/85 → 52/90 (64/175) |
+| blademaster | 34/83 → 45/85 → 43/84 (442/431) | 37/79 → 45/81 → 41/84 (523/563) | 33/80 → 49/83 → 45/85 (211/463) |
+| pilgrim | 33/52 → 43/56 → 17/65 (23/40) | -/- → -/- → -/- (0/0) | -/- → -/- → -/- (0/0) |
+| hexer | 43/80 → 43/77 → 46/85 (82/108) | 53/86 → 57/82 → 53/88 (163/184) | 48/87 → 53/85 → 54/89 (48/140) |
+| bard | 73/93 → 52/90 → 42/85 (114/171) | 46/83 → 42/66 → 43/83 (44/53) | 55/83 → 55/73 → 33/86 (9/42) |
+| windhunter | 68/96 → 63/94 → 65/95 (702/929) | 55/94 → 54/94 → 61/95 (628/671) | 52/94 → 54/95 → 63/96 (230/563) |
+| demonhunter | 85/96 → 85/97 → 48/97 (25/34) | -/- → -/- → -/- (0/0) | -/- → -/- → -/- (0/0) |
+| saintknight | 42/93 → 50/94 → 47/90 (306/427) | 49/92 → 54/91 → 48/87 (389/481) | 51/92 → 63/93 → 61/91 (110/345) |
+| shadowlord | 45/87 → 47/83 → 49/86 (1024/1080) | 49/88 → 45/81 → 48/88 (824/921) | 44/89 → 53/85 → 50/90 (236/699) |
+| pirateking | 51/86 → 47/82 → 48/87 (806/881) | 42/85 → 42/82 → 44/86 (632/670) | 43/87 → 46/87 → 43/89 (171/509) |
+| liberator | 50/85 → 40/82 → 45/87 (239/346) | 33/85 → 27/78 → 40/88 (268/310) | 26/85 → 32/80 → 39/89 (98/272) |
+| shadowqueen | 43/84 → 38/80 → 42/85 (178/238) | 44/87 → 48/82 → 41/84 (222/277) | 39/88 → 53/87 → 51/89 (65/202) |
+| beastmaster | 49/93 → 40/88 → 35/88 (160/185) | 35/84 → 37/81 → 42/89 (270/292) | 42/84 → 43/84 → 47/91 (105/247) |
+| khan | 59/95 → 46/91 → 40/90 (227/381) | 61/93 → 58/92 → 58/92 (274/325) | 58/93 → 54/92 → 62/95 (65/238) |
+| ironwall | 42/85 → 44/83 → 40/83 (440/484) | 41/86 → 43/84 → 41/83 (858/951) | 38/87 → 47/87 → 47/87 (271/732) |
+| elfwarden | 60/94 → 58/95 → 58/95 (247/322) | 51/92 → 54/90 → 58/94 (351/470) | 49/92 → 58/92 → 63/95 (129/386) |
+| boss frost | 85/81 → 76/86 → 71/86 (80/51) | 65/91 → 57/92 → 57/92 (76/38) | 75/88 → 75/88 → 75/88 (12/26) |
+| boss mist | 38/66 → 37/82 → 40/88 (121/43) | 31/70 → 32/77 → 35/84 (144/43) | 44/63 → 54/70 → 47/83 (30/24) |
+| boss oasis | 76/92 → 72/96 → 69/97 (93/31) | 64/86 → 47/91 → 47/91 (135/57) | 65/85 → 56/90 → 59/89 (17/28) |
+| boss silverwood | 44/74 → 40/74 → 39/81 (217/52) | 51/74 → 41/82 → 41/87 (250/39) | 49/72 → 48/80 → 45/85 (42/20) |
+| boss wheat | 78/93 → 65/93 → 67/96 (46/26) | 65/85 → 61/86 → 59/88 (71/32) | 58/79 → 67/81 → 65/83 (17/24) |
+| boss >=우세 | 80.2 → 86.3 → 88.9 (216) | 81.4 → 86.2 → 89.1 (221) | 80.0 → 83.6 → 87.3 (134) |
+
+##### Offline, human bot
+
+| slice | fit: C21 offers | re-forecast: new-seed offers | re-forecast: new-seed sent |
+|---|---|---|---|
+| all | 59/94 → 51/92 → 47/93 (2556/6360) | 59/94 → 51/91 → 46/91 (2736/6366) | 56/93 → 51/91 → 53/92 (526/1410) |
+| 1 co. | 59/94 → 51/92 → 47/93 (2556/6360) | 59/94 → 51/91 → 46/91 (2736/6366) | 56/93 → 51/91 → 53/92 (526/1410) |
+| capStory | 67/99 → 52/98 → 48/92 (82/329) | 61/98 → 44/93 → 38/92 (64/224) | 55/98 → 35/97 → 38/89 (21/57) |
+| campaign | 46/84 → 44/83 → 47/90 (207/284) | 42/85 → 40/85 → 40/90 (240/267) | 45/87 → 46/86 → 54/92 (63/83) |
+| (0, 30] | 45/92 → 43/90 → 39/90 (160/458) | 50/88 → 50/87 → 46/88 (186/467) | 59/93 → 61/92 → 69/93 (51/140) |
+| (30, 60] | 49/92 → 50/89 → 47/89 (198/538) | 51/93 → 47/90 → 47/90 (189/463) | 51/92 → 41/91 → 55/89 (42/91) |
+| (60, 120] | 53/93 → 48/90 → 47/91 (444/1184) | 53/91 → 47/89 → 44/89 (501/1110) | 50/87 → 46/85 → 48/87 (81/207) |
+| (120, 240] | 59/94 → 56/91 → 46/94 (777/1856) | 56/94 → 52/92 → 44/92 (787/1890) | 55/92 → 55/90 → 53/92 (167/443) |
+| (240, 365] | 66/97 → 50/94 → 50/94 (977/2324) | 67/97 → 54/93 → 49/93 (1073/2436) | 61/96 → 51/93 → 51/94 (185/529) |
+| foe heal >= 0.4 of our dmg | 9/59 → 1/53 → 38/86 (150/155) | 8/58 → 5/50 → 40/82 (84/102) | 5/56 → 8/50 → 47/79 (43/39) |
+| foe ranged share >= 0.35 | 44/83 → 36/79 → 45/90 (534/750) | 45/85 → 34/80 → 46/92 (580/838) | 54/88 → 42/87 → 60/91 (156/224) |
+| support share >= 0.3 | 25/69 → 41/100 → 51/88 (55/8) | 27/92 → 45/91 → 44/81 (93/21) | 18/100 → 43/100 → 41/100 (17/6) |
+| 1 head | 55/88 → 61/85 → 58/77 (77/119) | 56/94 → 62/88 → 46/82 (63/145) | 56/89 → 58/87 → 53/85 (19/66) |
+| 2 heads | 59/91 → 61/89 → 52/87 (176/294) | 59/92 → 63/89 → 45/84 (174/270) | 58/92 → 55/90 → 48/84 (40/108) |
+| no captain | 47/87 → 50/86 → 42/81 (202/333) | 45/90 → 47/88 → 35/84 (153/285) | 48/89 → 48/89 → 42/85 (50/147) |
+| M|HMR | 62/95 → 50/92 → 47/94 (1170/3041) | 62/94 → 53/89 → 49/92 (902/2016) | 54/91 → 48/88 → 53/92 (169/390) |
+| R|HMR | 59/94 → 46/90 → 42/92 (407/1131) | 58/95 → 48/93 → 45/92 (1093/2727) | 59/93 → 52/92 → 53/95 (221/561) |
+| -|R | 59/89 → 82/82 → 76/83 (21/12) | 80/100 → 80/91 → 42/88 (12/25) | 89/100 → 100/94 → 100/95 (3/19) |
+| -|MR | 57/86 → 50/84 → 58/88 (12/17) | 64/87 → 69/82 → 60/90 (15/21) | 73/91 → 67/92 → 71/92 (7/12) |
+| tactician | 68/97 → 50/92 → 47/94 (192/562) | 77/98 → 61/96 → 58/96 (466/1410) | 72/96 → 62/94 → 66/98 (83/285) |
+| blademaster | 60/95 → 53/92 → 51/94 (456/1097) | 61/93 → 56/89 → 48/92 (430/1020) | 52/91 → 49/87 → 52/91 (73/194) |
+| fieldmedic | 57/97 → 61/97 → 52/95 (285/905) | 63/96 → 66/96 → 61/93 (94/301) | 68/92 → 67/92 → 67/89 (12/71) |
+| veteran | 71/97 → 55/93 → 52/96 (321/832) | 60/93 → 47/86 → 49/90 (156/366) | 47/86 → 41/77 → 47/88 (38/69) |
+| huntress | 53/90 → 47/87 → 46/88 (269/624) | 49/94 → 44/91 → 36/90 (391/757) | 49/93 → 50/91 → 45/93 (75/172) |
+| ironwall | 65/95 → 47/90 → 51/95 (228/520) | -/- → -/- → -/- (0/0) | -/- → -/- → -/- (0/0) |
+| lancer | 57/96 → 42/94 → 47/95 (168/423) | 62/94 → 53/91 → 51/92 (494/1017) | 62/94 → 54/93 → 57/95 (89/216) |
+| hedgemage | 43/92 → 39/90 → 27/89 (104/241) | 47/91 → 43/90 → 39/87 (552/1210) | 50/92 → 45/91 → 52/90 (106/256) |
+| fixer | 55/92 → 51/90 → 42/92 (331/823) | -/- → -/- → -/- (0/0) | -/- → -/- → -/- (0/0) |
+| boss frost | 100/100 → -/100 → -/100 (0/10) | 100/100 → -/100 → -/100 (0/16) | -/100 → -/100 → -/100 (0/10) |
+| boss mist | 100/86 → 100/88 → 100/89 (2/9) | 0/100 → 0/100 → 0/100 (4/6) | -/- → -/100 → -/100 (0/3) |
+| boss oasis | -/100 → -/100 → -/100 (0/9) | -/100 → -/100 → -/100 (0/9) | -/100 → -/100 → -/100 (0/6) |
+| boss silverwood | 100/94 → 93/95 → 92/96 (13/24) | 57/91 → 57/89 → 58/87 (19/39) | 62/92 → 62/92 → 57/92 (7/13) |
+| boss wheat | 80/100 → 83/100 → 80/100 (5/19) | 80/100 → 80/100 → 88/100 (8/24) | 100/100 → 100/100 → 100/100 (3/16) |
+| boss >=우세 | 98.8 → 98.8 → 98.8 (173) | 98.3 → 97.8 → 97.3 (184) | 98.9 → 98.9 → 98.9 (90) |
+
+Live: seeds 10101 × 12 × 365 for each bot, run three times (base `ce63492`; base + v3 `stats.js`; base + this `stats.js`). The bots
+choose by each forecast's own words, so the battles differ between columns.
+
+##### Live, sensible bot
+
+| slice | live 10101: sent | live 10101: offers |
+|---|---|---|
+| all | 48/89 → 47/87 → 48/89 (841/2770) | 47/88 → 47/86 → 50/88 (2629/2916) |
+| 1 co. | 49/89 → 47/87 → 47/89 (815/2704) | 48/88 → 46/86 → 50/88 (2552/2850) |
+| 2 co. | 55/95 → 70/89 → 58/96 (12/25) | 52/95 → 73/89 → 58/96 (36/25) |
+| 3 co. | 9/85 → 32/91 → 43/88 (14/41) | 31/85 → 43/91 → 54/88 (41/41) |
+| story | 31/76 → 40/83 → 49/75 (57/93) | 31/70 → 42/82 → 53/77 (302/188) |
+| capStory | 50/81 → 52/88 → 62/81 (13/63) | 50/71 → 54/89 → 62/79 (65/90) |
+| campaign | 29/90 → 49/90 → 50/91 (26/64) | 36/90 → 55/90 → 56/91 (77/64) |
+| (0, 30] | 57/86 → 45/91 → 61/92 (33/145) | 50/86 → 52/91 → 56/92 (93/145) |
+| (30, 60] | 46/90 → 59/87 → 48/87 (50/154) | 45/91 → 54/87 → 51/87 (179/156) |
+| (60, 120] | 45/85 → 51/87 → 48/86 (113/314) | 51/80 → 53/87 → 52/85 (400/354) |
+| (120, 240] | 48/88 → 48/86 → 47/90 (288/1002) | 42/86 → 46/86 → 51/89 (935/1059) |
+| (240, 365] | 49/92 → 42/86 → 46/89 (357/1155) | 52/92 → 43/86 → 48/88 (1022/1202) |
+| foe heal >= 0.4 of our dmg | 7/63 → 16/54 → 44/79 (16/19) | 11/54 → 15/64 → 33/83 (51/23) |
+| foe ranged share >= 0.35 | 33/70 → 33/73 → 41/85 (153/414) | 34/67 → 35/72 → 47/83 (571/489) |
+| support share >= 0.3 | 34/75 → 55/88 → 52/83 (50/23) | 36/75 → 62/88 → 54/83 (127/23) |
+| 1 head | 50/100 → 100/83 → 0/100 (1/6) | 60/100 → 100/83 → 67/100 (3/6) |
+| 2 heads | 89/94 → 50/84 → 80/96 (5/25) | 85/94 → 64/84 → 71/96 (17/26) |
+| no captain | 47/89 → 48/85 → 51/86 (158/471) | 48/88 → 49/85 → 52/85 (444/505) |
+| M|MRR | 56/92 → 42/78 → 36/88 (96/323) | 55/90 → 33/78 → 40/88 (354/350) |
+| M|HMR | 57/91 → 37/78 → 53/85 (85/238) | 45/89 → 37/78 → 52/85 (287/240) |
+| R|MRR | 94/100 → 65/93 → 56/99 (16/126) | 88/100 → 63/93 → 73/99 (70/126) |
+| -|HMM | 17/74 → 57/82 → 75/87 (4/23) | 24/74 → 58/82 → 64/91 (11/33) |
+| -|MMM | 11/72 → 40/77 → 33/100 (6/10) | 8/66 → 44/77 → 44/100 (9/10) |
+| tactician | 30/84 → 33/78 → 57/92 (61/199) | 39/84 → 35/78 → 52/93 (176/204) |
+| blademaster | 31/84 → 38/82 → 36/78 (76/213) | 32/84 → 37/83 → 37/78 (220/229) |
+| hexer | 47/95 → 46/89 → 50/92 (18/36) | 33/95 → 36/88 → 52/92 (56/37) |
+| windhunter | 36/96 → 62/95 → 60/95 (92/397) | 41/97 → 64/95 → 65/94 (321/400) |
+| saintknight | 42/85 → 50/88 → 32/89 (59/239) | 32/79 → 41/88 → 41/88 (210/274) |
+| shadowlord | 56/91 → 56/88 → 50/87 (156/404) | 53/89 → 49/88 → 48/87 (526/409) |
+| pirateking | 53/90 → 45/83 → 36/84 (42/171) | 52/90 → 42/81 → 39/84 (146/180) |
+| liberator | 71/95 → 32/77 → 54/96 (28/127) | 63/95 → 33/78 → 58/96 (72/133) |
+| shadowqueen | 70/92 → 67/89 → 48/93 (29/128) | 66/91 → 70/88 → 56/93 (103/141) |
+| beastmaster | 14/59 → 45/82 → 48/91 (21/81) | 5/68 → 31/80 → 58/90 (78/89) |
+| khan | 75/94 → 29/92 → 43/100 (14/38) | 67/93 → 45/92 → 58/100 (45/38) |
+| ironwall | 40/88 → 34/91 → 44/90 (39/124) | 41/84 → 36/91 → 47/90 (104/126) |
+| elfwarden | 68/97 → 52/90 → 32/90 (22/77) | 70/97 → 54/90 → 41/88 (51/86) |
+| boss frost | 100/100 → 67/91 → 33/89 (6/9) | 88/100 → 50/94 → 50/89 (32/9) |
+| boss mist | 33/62 → 67/86 → 25/90 (8/10) | 39/77 → 45/86 → 44/87 (32/15) |
+| boss oasis | 50/83 → 100/100 → 33/100 (3/11) | 57/87 → 86/100 → 50/100 (28/11) |
+| boss silverwood | 40/73 → 33/64 → 43/86 (14/7) | 52/80 → 44/67 → 45/86 (66/7) |
+| boss wheat | 50/88 → 25/89 → 100/100 (1/7) | 38/82 → 44/89 → 14/100 (7/7) |
+| boss >=우세 | 83.9 → 85.7 → 94.1 (51) | 85.9 → 84.4 → 92.9 (56) |
+
+##### Live, human bot
+
+| slice | live 10101: sent | live 10101: offers |
+|---|---|---|
+| all | 56/91 → 44/89 → 49/92 (354/749) | 60/94 → 51/92 → 48/93 (1427/3501) |
+| 1 co. | 56/91 → 44/89 → 49/92 (354/749) | 60/94 → 51/92 → 48/93 (1427/3501) |
+| capStory | 61/100 → 56/98 → 0/85 (3/27) | 75/100 → 58/97 → 44/92 (27/116) |
+| campaign | 57/81 → 44/83 → 45/91 (64/55) | 47/83 → 43/81 → 41/91 (150/108) |
+| (0, 30] | 50/92 → 71/96 → 59/89 (32/79) | 48/87 → 58/92 → 65/93 (103/256) |
+| (30, 60] | 62/92 → 37/88 → 52/89 (29/45) | 61/91 → 46/89 → 37/91 (89/224) |
+| (60, 120] | 52/84 → 34/84 → 44/94 (55/106) | 59/92 → 45/90 → 42/92 (252/611) |
+| (120, 240] | 54/90 → 52/88 → 46/92 (129/207) | 54/94 → 51/90 → 45/94 (471/873) |
+| (240, 365] | 60/94 → 38/91 → 51/92 (109/312) | 67/96 → 54/94 → 51/93 (512/1537) |
+| foe heal >= 0.4 of our dmg | 11/59 → 8/42 → 60/88 (15/26) | 9/61 → 3/41 → 44/88 (48/67) |
+| foe ranged share >= 0.35 | 45/83 → 36/82 → 53/94 (77/118) | 43/81 → 37/79 → 45/90 (280/442) |
+| support share >= 0.3 | 50/100 → 23/100 → 50/100 (12/2) | 31/87 → 47/83 → 57/94 (37/16) |
+| 1 head | 59/81 → 47/82 → 45/81 (20/16) | 58/86 → 44/83 → 43/82 (30/28) |
+| 2 heads | 65/93 → 62/83 → 24/82 (29/38) | 67/92 → 66/90 → 37/88 (65/118) |
+| no captain | 59/87 → 47/85 → 34/85 (47/55) | 52/87 → 46/86 → 42/85 (93/101) |
+| M|HMR | 46/91 → 40/88 → 52/91 (151/336) | 56/93 → 47/91 → 46/92 (718/1659) |
+| R|HMR | 65/90 → 49/89 → 57/97 (81/176) | 67/96 → 55/93 → 57/95 (306/889) |
+| -|R | 67/100 → 20/85 → 55/100 (11/6) | 76/100 → 38/81 → 50/90 (18/10) |
+| -|MR | 57/100 → 71/100 → 33/80 (3/5) | 62/100 → 53/100 → 50/75 (4/8) |
+| tactician | 70/94 → 48/92 → 59/98 (75/182) | 73/97 → 59/94 → 59/97 (304/974) |
+| blademaster | 41/90 → 47/88 → 56/94 (48/122) | 50/92 → 51/89 → 47/93 (240/631) |
+| fieldmedic | 70/98 → 47/92 → 36/87 (28/62) | 67/98 → 66/94 → 44/93 (99/295) |
+| lancer | 55/91 → 41/93 → 44/90 (52/104) | 65/95 → 43/94 → 40/95 (236/489) |
+| hedgemage | 55/80 → 50/84 → 41/90 (27/58) | 46/89 → 49/89 → 44/87 (106/253) |
+| fixer | 47/91 → 38/88 → 55/89 (77/166) | 56/91 → 47/90 → 48/89 (349/758) |
+| boss frost | -/100 → 0/100 → -/100 (0/1) | -/100 → 0/100 → -/100 (0/1) |
+| boss mist | 100/0 → 100/100 → -/100 (0/2) | 50/50 → 100/100 → 100/100 (1/2) |
+| boss oasis | -/- → 0/100 → -/100 (0/5) | -/100 → 33/96 → -/100 (0/22) |
+| boss silverwood | 100/100 → 0/100 → 100/83 (3/6) | 100/100 → 0/100 → 100/92 (3/13) |
+| boss wheat | -/100 → -/100 → -/100 (0/7) | 100/100 → -/100 → 100/100 (1/12) |
+| boss >=우세 | 97.7 → 100.0 → 97.6 (42) | 98.6 → 98.9 → 98.9 (94) |
+
+#### Economy (many-company bot, `SIM_SEED=9301 SIM_RESOLVE=battle node tools/sim/bot.js 12 365`, same seeds for all three)
+
+| | old (base) | v3 | v3.1 |
+|---|---|---|---|
+| games reaching S / day | 12 / 101 | 12 / 99 | 12 / 102 |
+| bankruptcies, deaths, game-overs | 0, 0, 0 | 0, 0, 0 | 0, 0, 0 |
+| gold day 240 / 365 | 29.9k / 69.6k | 19.2k / 60.2k | 23.2k / 65.4k |
+| completed / failed | 418 / 67 | 423 / 67 | 403 / 63 |
+| sent battles won at 백중 / 우세 / 압도 | 47.4 / 90.1 / 99.7% | 50.5 / 88.5 / 99.6% | 46.9 / 88.0 / 100% |
+| wins: boss / campaign / capStory / story | 64.5 / 77.1 / 81.3 / 66.8% | 75.0 / 84.9 / 82.6 / 75.5% | 69.0 / 88.8 / 89.3 / 74.2% |
+
+Gold and S day are inside the seed noise measured in "One-company polish": per-set day-365 gold swings of −48% to +216% with
+the same code (9201 alone went 34k → 107k). Half of the v3 gold drop the review found came back. Neither direction is a robust
+effect of the forecast.
+
+#### Gates (v3.1)
+
+- Roll md5, `SIM_JSON=1 node tools/sim/bot.js 6 200 | md5sum`, with and without `SIM_SHADOW=1`:
+  `11cadc0cceafa5e4262773fdadf780f9` on the base `ce63492` plus this `js/stats.js`. The current working tree gives
+  `f1712f75dd50877f69a65caf254be083`, as before this change (upstream edits moved it, see above).
+- `node tools/sim/battle.js 100`: miss 0 / soft 0 for all four outcomes, on the base + this file and on the current tree.
+- `node tools/sim/shadow.js 6 365 --resolve battle --check`: 2,762 battles, every invariant 0. Run on the base + this file and on the
+  current working tree, which includes other sessions' uncommitted edits.
+- `--set`: accepted `BM_CAL_HEAL.CAP=0.8`, `BM_CAL_HEAL.boss=1`, `BM_CAL_FOE.ranged2=1`, `BM_CAL_ROLE.MIN_N=2`,
+  `BM_CAL_ROLE.ranged2=1`. Refused `BM_CAL_ROLE.melee` (the old key is gone), `BM_CAL_FOE.melee` and `'BM_CAL_HEAL=[1,2]'`.
+  No other file reads `BM_CAL_ROLE` or `roleCal`.
+- Forecast cost (day-150 game, 200 cold `capability()` calls, idle machine, 3 runs each): `capability()` takes 5.3-5.9 ms on the
+  base, 5.3-5.4 ms with v3 and 4.9-5.0 ms with v3.1. One `forecast()` takes 47-52 µs on all three. The extra k = 1 `sideOf` pair is
+  shared with `killTime`, so nothing is computed twice.
+- The offline model reproduces the JS forecast to 0.001 (R rounding) on 47,792 rows.
+
+#### Open issues (v3.1)
+
+- **Captain-less parties: opposite signs in the two bots.**
+  - Human bot, 1-3 heads with no captain: ln R −0.02 to −0.05, optimistic. Re-forecast offers 35% / 84%; live 42% / 85% (n 93/101).
+  - Sensible bot, captain-less trios (hired companies, `-|HMM`, `-|MMM`): +0.03, pessimistic.
+  - In the human bot these parties are what remains while the captain recovers; in the sensible bot they are full hired
+    companies. No term in the specs separates them yet, so this is left.
+- **Human 2-head parties** read optimistic: 45% / 84% re-forecast, 37% / 88% live (n 65/118). Mostly the captain-less case above.
+- **Sensible blademaster** reads 41-43% / 84% offline and 37% / 78% live (n 220/229). Pirateking reads 39-44% / 84-86%. Both are
+  melee captains whose companies have a cleric and melee members.
+- **Story contracts, live:** 우세 77% (n 188) on 10101, against 83% re-forecast. Better than old (70%), still under 85%.
+- **Two companies** read slightly pessimistic at 우세 (94-96%, small n). That is noise-level and gets no factor.
+- **Bosses:**
+  - Many-company bot at 우세 or better: 87-89% offline, 93-94% live (n about 50).
+  - Per key, mist and silverwood are still the weakest at 백중 (35-45%).
+  - The human bot's 97-99% is unchanged. Its boss battles are at 압도 or high 우세; its 우세 cells have under 30 rows per boss.
+- **Overall level:** the human bot is now slightly optimistic at 백중 (46-49%, against v3 51%). The sensible bot is at 47-50%.
+- **Too few battles to judge:** pilgrim, demonhunter and bard (under 60 rows per word on the new seeds).
+
+#### Commands and scratch (v3.1)
+
+```
+# scratch (not in the repo), under the session scratchpad v4/:
+#   coll.js (collector with spec, TREE=… OUT=…), feat3.js (per-unit dps/ehp/hps, enemy roles), m4.py + fx.py + fin.py (exact offline
+#   model, fits f1-f6.py, boss grid fb4.py), mktabs.py / mklive.py (tables above), rf.js (JS forecast for the exactness check),
+#   bench.js, live.sh (10101 × 3 trees), econ.sh (9301 × 3 trees)
+TREE=<base> OUT=oosb node coll.js --strategy sensible --seeds 8101 --jobs 3      # new re-forecast seeds; also human 8101
+TREE=<tree> OUT=live_<tree> node coll.js --strategy sensible --seeds 10101 --jobs 4   # live; also human
+```

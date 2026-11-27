@@ -59,7 +59,9 @@ const Stats = (() => {
     // 특별한 의뢰 갈래 (표본: 보스 304, 대장 이야기 499, 이야기 664, 결전 4,206, 최종 38)
     // C21 보정 3판: boss 0.912 → 0.866 (BM_CAL_BOSS 와 함께), capStory 0.952 → 0.967, story 1.021 → 0.956, campaign 1.009 → 0.94 (한 용병단 결전 백중 46%·우세 84%
     // — 여러 용병단 결전은 BM_CAL_GROUPS 가 따로 센다), final 그대로
-    BM_CAL_SPECIAL: { boss: 0.866, capStory: 0.967, story: 0.956, final: 0.966, campaign: 0.94 },
+    // 3판 검토 (stage3_notes.md 「Calibration v3」 Review fixes): 적 원거리·양쪽 치유(BM_CAL_FOE·BM_CAL_HEAL)를 세자 이야기 의뢰의 낙관(우세 71%)은 적 궁수·마법사 몫이었다 —
+    // story 0.956 → 1, capStory 0.967 → 0.95, campaign 0.94 → 0.961, boss 0.866 → 0.87 (BM_CAL_BOSS·BM_CAL_HEAL.boss 와 함께)
+    BM_CAL_SPECIAL: { boss: 0.87, capStory: 0.95, story: 1, final: 0.966, campaign: 0.961 },
     // 머릿수 보정 (검증 1번): 우리 단원(수습·지원 부대 빼고) 1·2·3명일 때 R 에 곱한다 (4명 이상 1). 후퇴 규칙은 우리 단원의 절반이 쓰러지면 물러나므로
     // 한두 명이 나간 판은 한 명만 쓰러져도 끝난다 — 능력치만 보는 margin 은 그것을 모른다 (맞춤 전 R50: 1명 1.07, 2명 1.14, 3명 1.02, 4명 1.00)
     // 2명 0.984 → 0.94 (주인 결정 7): 대장 방식·레벨과 함께 다시 맞췄다 (아래 BM_CAL_LEAD 의 맞춤). 2명 파티(부상·탈진으로 줄어든 판)가
@@ -67,7 +69,8 @@ const Stats = (() => {
     // 1명 0.95 → 0.9 (주인 결정 7 검토): 혼자 나간 판(대장만 남은 한 부대)이 새 시드까지 모은 한 부대 시험 1,300전에서 백중 33%·우세 76% 였다 → 53%·85%
     // C21 보정 3판 (stage3_notes.md 「Calibration v3」): 아래 BM_CAL_ROLE·BM_CAL_ALLY 와 함께 다시 맞췄다 (1명 0.9 → 0.965, 2명 0.94 → 0.972).
     // 머릿수의 몫 대부분은 「대원이 근접인가 원거리인가」와 「지원 부대의 몫」이었다 — 줄어든 파티는 보통 원거리·치유 대원이 빠진 판이다
-    BM_CAL_HEADS: [1, 0.965, 0.972, 1, 1],
+    // 3판 검토: 원거리 몫을 MIN_N(3) 머리 이상으로 나누게 되자(혼자 나간 궁수가 원거리 몫을 다 받지 않는다) 1명 0.965 → 1.048, 2명 0.972 → 1.005
+    BM_CAL_HEADS: [1, 1.048, 1.005, 1, 1],
     // 대장의 싸움 방식 보정 (주인 결정 7): margin 은 적을 치는 기술과 치유만 센다 — 근접 대장은 앞줄로 걸어 들어가 먼저 쓰러지고(3~4명 파티에서는
     // 대장 하나가 후퇴 규칙의 절반이다), 아군을 북돋는 기술(전술 지시 공격+25%·방어+20%, 철벽 방진 방어+40%, 노병의 호통 ±20%)은 보이지 않는다.
     // 첫 대장마다 같은 단어가 다르게 맞았다 (한 부대 시험의 백중 승률: 해결사 39%·창기병 48%·검성 51% … 전술가 87%). 용병단마다 대장의 첫 기술이
@@ -79,23 +82,40 @@ const Stats = (() => {
     // C21 보정 3판: 대원의 방식(BM_CAL_ROLE)을 따로 세자 대장 몫이 0.98 / 1.082 / 1.035 → 1 / 1.109 / 1.068 이 되었다. heal(새 값): 첫 기술이 치유인 대장
     // (야전 의무관·순례 기사·성광 기사…) — 예전에는 ranged 로 셌다. 맞춤값은 1.117 이지만 새 시드의 성광 기사가 백중 33%·우세 75% 로 낙관이라
     // 예전 값(1.082) 쪽으로 낮췄다 (한 부대 봇의 야전 의무관은 그만큼 조심스럽게 읽힌다: 백중 50 → 60%). 없으면 ranged 를 쓴다
-    BM_CAL_LEAD: { melee: 1, ranged: 1.109, heal: 1.08, rally: 1.068, RANGE_MIN: 40 },
+    // 3판 검토: 원거리 몫(BM_CAL_ROLE)이 대장도 함께 세고 치유는 양(BM_CAL_HEAL)으로 세자 melee 1 → 1.029, ranged 1.109 → 1.056, heal 1.08 → 1.066,
+    // rally 1.068 → 1.063 (대장 없는 용병단 대비. 다시 맞춘 값 — 새 시드의 성광 기사는 아래 표)
+    BM_CAL_LEAD: { melee: 1.029, ranged: 1.056, heal: 1.066, rally: 1.063, RANGE_MIN: 40 },
     // 대원의 싸움 방식 (C21 보정 3판, 새 값): 대장이 아닌 우리 단원(수습 빼고, 외부 용병단 포함)마다 첫 기술로 melee(사거리 < RANGE_MIN) / ranged / heal(치유)을
     // 고르고, 그 곱을 우리 단원 수로 기하 평균한다 (대장 자리는 1 — BM_CAL_LEAD 가 센다). margin 은 공격력·체력을 어디서 쓰든 똑같이 센다.
     // 실제 전투에서 근접 대원은 앞줄로 걸어 들어가 먼저 맞고 먼저 쓰러지며(후퇴 규칙은 쓰러진 머릿수를 센다), 원거리 대원은 뒤에서 끝까지 친다.
     // 같은 대장도 대원 구성에 따라 다르게 맞았다 — 다부대 봇의 첫 용병단(성직자 둘 + 전사)과 한 부대 봇(전사·성직자·궁수)이 전술가 백중 32% / 68% 로
     // 갈린 까닭이 이것이다 (대장 key 별 상수로는 두 봇을 함께 못 맞춘다). 근거: stage3_notes.md 「Calibration v3」
-    BM_CAL_ROLE: { melee: 1, ranged: 1.284, heal: 1.101 },
+    // 3판 검토 (새 꼴): 대원마다 곱하던 ranged 1.284·heal 1.101 은 근접 대장 + 근접 1 + 원거리 2(다부대 봇의 후반 주력)를 낙관(우세 76%)으로, 혼자 나간
+    // 궁수를 1.284 그대로 읽었다. 이제 원거리 머릿수(대장 포함, 첫 기술 사거리 ≥ RANGE_MIN 이고 치유가 아닌 것)의 몫 s = 원거리 / max(머릿수, MIN_N) 로
+    // R × ranged^s × ranged2^(s²) — 원거리가 늘수록 그 몫이 커진다(앞줄이 얇아질수록 적이 걸어오는 동안 맞는 화살이 많다). 혼자인 궁수는 s = 1/3.
+    // 치유 대원의 몫은 치유량으로 BM_CAL_HEAL 이 센다. 1 / 1 = 끔
+    BM_CAL_ROLE: { ranged: 1.1774, ranged2: 1.268, MIN_N: 3 },
+    // 적의 원거리 (3판 검토, 새 값): 적 가운데 첫 기술이 원거리인 몫 e 로 R × ranged2^(e²). 우리 원거리가 margin 보다 센 것과 같은 까닭으로 적 궁수·마법사도
+    // margin 보다 세다 — 이야기 의뢰(적 원거리 몫 0.39)가 우세 71% 였던 까닭. 두 봇에서 같은 크기(ln R −0.18 × e)로 보였다. 1 = 끔
+    BM_CAL_FOE: { ranged2: 0.7022 },
+    // 치유의 양 (3판 검토, 새 값): margin 은 치유를 체력에 조금 더할 뿐이라(rho 의 0.6·T) 실제 전투에서 치유가 막아 내는 몫을 양쪽 모두 적게 센다 (Q25: 적 치유가
+    // 받은 피해의 80% 를 되돌렸다). R × ours^(우리 초당 치유 / 적 초당 피해) × foe^(max(0, 적 초당 치유 / 우리 초당 피해 − FREE)) — 둘 다 k = 1 의 sideOf.
+    // 적 치유가 우리 피해의 0.4 이상인 병사 의뢰가 백중 5~22%·우세 56~68% 였다 (두 봇 모두). 두 봇의 고레벨 엇갈림도 대부분 이것이다(한 부대 봇은 레벨이 오를수록 치유가
+    // 많고 다부대 봇은 적다). 보스 판은 ours 대신 boss (기절·큰 한 방 앞에서 치유가 덜 통한다). 두 비율은 CAP 에서 멈춘다(받는 피해보다 많은 치유는 더 세지 않는다 —
+    // 약한 적을 상대로 R 이 수천이 되지 않게). 1 = 끔
+    BM_CAL_HEAL: { ours: 1.7248, foe: 0.353, FREE: 0.2, boss: 1.18, CAP: 1 },
     // 지원 부대의 몫 (C21 보정 3판, 새 값): R × ALLY^(아군 쪽 힘(체력 × 공격) 가운데 의뢰주 지원 부대의 몫). 지원 병사는 자기 부대 줄에서 따로 싸우다
     // 부대장이 쓰러지면 무너져 달아나고, 전투는 「우리 단원의 절반이 쓰러지면」 끝난다 — margin 은 그 힘을 우리 힘과 똑같이 센다. 1 = 끔
-    BM_CAL_ALLY: 0.541,
+    // 3판 검토: 다시 맞춰 0.541 → 0.506 (지원 몫 0.3 이상의 비관은 대부분 적 원거리·치유 몫이었다)
+    BM_CAL_ALLY: 0.506,
     // 함께 나간 용병단 수(직속 + 외부)별 곱 [-, 1개, 2개, 3개] (C21 보정 3판, 새 값). 세 용병단 결전은 맞춤 전 백중 29%·우세 80%, 새 시드에서도 30%·73%
     // — 세 부대가 세 줄로 나뉘어 가장 약한 용병단의 줄이 먼저 무너진다. 두 용병단은 시드마다 41~69% 로 흔들려 1 로 둔다
-    BM_CAL_GROUPS: [1, 1, 1, 0.91],
+    BM_CAL_GROUPS: [1, 1, 1, 0.914],
     // 보스 (C21 보정 3판, 새 값): arch = 보스의 적 틀 보정(BM_CAL_ARCH)에 거는 지수 — 보스는 혼자 적 힘의 절반 가까이를 쥐어 그 틀의 몫이 일반 우두머리보다
     // 크다 (보스마다 R50 이 서리 0.86·오아시스 0.87·밀밭 0.91·은빛 숲 0.96·안개 1.05 로, 틀 보정만큼 한 번 더 어긋나 있었다). sure = 보스 판의 ln R 에 곱하는
     // 확신도 — 체력 7배·기절 광역기의 보스 판은 몇 번의 큰 타격이 승패를 갈라 결과 곡선이 완만하다 (기울기 9, 일반 의뢰 16). 1 / 1 = 끔
-    BM_CAL_BOSS: { arch: 1.5, sure: 0.65 },
+    // 3판 검토: sure 0.65 → 0.6 (boss 0.87·HEAL.boss 와 함께, 다부대 봇 백중 51%·우세 88% 에 가장 가까운 칸)
+    BM_CAL_BOSS: { arch: 1.5, sure: 0.6 },
     // 우리 레벨 보정 (검증 4번 초반): [우리 단원 평균 레벨 이하, 곱] 의 계단. 레벨이 낮은 파티는 같은 R 에서 더 졌다
     // (맞춤 전 R50: 1~3레벨 1.08, 4~9레벨 1.02~1.03, 10~16레벨 1.00, 17레벨+ 0.98). 처음에는 적 레벨로 맞췄으나 새 시드의 1~30일이 여전히 우세 78% 였다.
     // 주인 결정 7: BM_CAL_LEAD 와 함께 다시 맞췄다 (3단계 값 0.879 / 0.928 / 0.946 / 1 / 1.005 / 1.034 — 원거리 대장이 많은 후반 파티를 높게 읽던 몫이 레벨 계단에 들어 있었다)
@@ -104,7 +124,8 @@ const Stats = (() => {
     // 반쯤 기울였다 (다부대 61~120일 백중 45 → 47%, 한 부대 51 → 53%). stage3_notes.md 「One-company polish」 Review fixes
     // C21 보정 3판: BM_CAL_ROLE·BM_CAL_ALLY 와 함께 다시 맞췄다 (0.887 / 0.944 / 0.958 / 0.99 / 0.983 / 0.977 → 아래). 원거리 대원이 1.284 로 따로 서면서
     // 계단 전체가 그만큼 낮아졌다 (보통 파티의 곱은 비슷하다)
-    BM_CAL_OWNLV: [[3, 0.876], [6, 0.926], [9, 0.966], [12, 1.009], [16, 1.015], [999, 1.024]],
+    // 3판 검토: 치유·원거리 몫과 함께 다시 맞췄다 (… 1.009 / 1.015 / 1.024 → 아래. 고레벨 계단이 1 로 돌아왔다 — 그 몫은 치유량이었다)
+    BM_CAL_OWNLV: [[3, 0.862], [6, 0.915], [9, 0.968], [12, 0.994], [16, 0.988], [999, 0.994]],
     BM_BOARD_EXTRA: 3,  // 전투 모드: 게시판의 일반 의뢰 칸 + 이만큼 (오늘 3 + 게시판 시설)
     // 중반 경제 (주인 결정 5): 60~120일에 만들어진 마감 있는 의뢰의 보수(금화)와 명성에 1 + 값 × 곡선을 곱한다. 곡선은 BM_MID_DAYS 의 사다리꼴
     // (59일까지·121일부터 0 = 오늘 그대로, 72~110일 1). 등급은 명성만 올리므로 S 시기는 명성이 정한다 — 금화만 ×1.5 로는 S 141 → 140일 (시드 1~12).
@@ -357,18 +378,22 @@ const Stats = (() => {
   }
   // 4단계 (전투 모드): 우리 쪽(지원 부대·수습 포함)이 적 전체의 체력을 깎아 내는 데 걸릴 어림 시간(초). 양쪽 모두 처음 힘 그대로라 치고,
   // 적의 치유는 빼고 센다. margin 은 누가 이기는가만 보고 시간 제한(LIMIT)을 모른다 — 적이 많고 우리가 적으면 이길 싸움도 시간이 다해 진다 (Q5 #224, Q6 #721)
-  function killTime(groups) {
+  // 양쪽이 처음 힘 그대로일 때(k = 1)의 sideOf — killTime 과 치유 보정(BM_CAL_HEAL)이 함께 쓴다
+  function sidesK1(groups) {
     const A = sideUnitsOf(groups, 0), B = sideUnitsOf(groups, 1);
-    if (!A.length || !B.length) return 0;
-    const a = sideOf(A, B, 1, 1), b = sideOf(B, A, 1, 1);
-    const hpB = B.reduce((s, u) => s + u.st.hp, 0);
-    return Math.min(999, hpB / Math.max(1e-6, a.dps - KN.BM_TIME_HEAL * b.hps));
+    if (!A.length || !B.length) return null;
+    return { a: sideOf(A, B, 1, 1), b: sideOf(B, A, 1, 1), hpB: B.reduce((s, u) => s + u.st.hp, 0) };
+  }
+  function killTime(groups, sd) {
+    sd = sd === undefined ? sidesK1(groups) : sd;
+    if (!sd) return 0;
+    return Math.min(999, sd.hpB / Math.max(1e-6, sd.a.dps - KN.BM_TIME_HEAL * sd.b.hps));
   }
   const foeKind = (spec) => (spec.groups.some((g) => g.kind === 'foe' && g.units[0] && g.units[0].mon) ? 'monster' : 'soldier');
   const bandOf = (R) => KN.BANDS.filter((e) => R >= e).length;   // 0 무모 … 4 압도
   // 굳힌 편성 → { R, band }. R = 1 이 '반반'이 되도록 CAL_KIND 로 맞춘다 (보정 전에는 1).
-  // 전투 모드의 편성(spec.bm)은 적 틀·의뢰 갈래·머릿수·우리 레벨·대장 방식·대원 방식·지원 부대·용병단 수·보스 보정을 더한다
-  // (BM_CAL_ARCH, BM_CAL_SPECIAL, BM_CAL_HEADS, BM_CAL_OWNLV, BM_CAL_LEAD, BM_CAL_ROLE, BM_CAL_ALLY, BM_CAL_GROUPS, BM_CAL_BOSS)
+  // 전투 모드의 편성(spec.bm)은 적 틀·의뢰 갈래·머릿수·우리 레벨·대장 방식·양쪽의 원거리 몫·양쪽의 치유량·지원 부대·용병단 수·보스 보정을 더한다
+  // (BM_CAL_ARCH, BM_CAL_SPECIAL, BM_CAL_HEADS, BM_CAL_OWNLV, BM_CAL_LEAD, BM_CAL_ROLE, BM_CAL_FOE, BM_CAL_HEAL, BM_CAL_ALLY, BM_CAL_GROUPS, BM_CAL_BOSS)
   // 4단계 시간 보정 ②: R 이 말하는 승률에 시간 안에 끝낼 확률 S 를 곱해 다시 R 로 (BM_TIME_SLOPE). 받은 R 보다 높아지지 않는다
   function fromP(R0, S) {
     const b = KN.BM_TIME_SLOPE, q = Math.pow(Math.max(R0, 1e-6), b), p = (q / (1 + q)) * S;
@@ -402,27 +427,33 @@ const Stats = (() => {
     });
     return w ? f / w : 1;
   }
-  // 대원의 방식 (BM_CAL_ROLE) × 지원 부대의 몫 (BM_CAL_ALLY) × 용병단 수 (BM_CAL_GROUPS): 직속 대장 자리는 빼고(leadCal 이 센다) 우리 단원마다 첫 기술의 방식
+  // 원거리 몫 (BM_CAL_ROLE: 우리 머릿수 가운데 원거리, 대장 포함 · BM_CAL_FOE: 적 가운데 원거리) × 지원 부대의 몫 (BM_CAL_ALLY) × 용병단 수 (BM_CAL_GROUPS).
+  // 원거리 = 첫 기술이 치유가 아니고 사거리 RANGE_MIN 이상
   function roleCal(spec) {
     const RO = KN.BM_CAL_ROLE, RMIN = KN.BM_CAL_LEAD.RANGE_MIN;
-    let n = 0, lnf = 0, nG = 0, p0 = 0, pSup = 0;
+    const ranged = (u) => { const k = skillsOf(u)[0]; return k.tgt !== 'hurt' && (k.range || 0) >= RMIN; };
+    let n = 0, nR = 0, nG = 0, p0 = 0, pSup = 0, nF = 0, nFR = 0;
     spec.groups.forEach((g) => {
-      if (g.side !== 0) return;
+      if (g.side !== 0) { g.units.forEach((u) => { nF++; if (ranged(u)) nFR++; }); return; }
       const ours = g.kind === 'own' || g.kind === 'ext';
       if (ours) nG++;
-      const cap = g.kind === 'own' && g.units.find((u) => u.leader && u.capKey);
       g.units.forEach((u) => {
         const p = u.st.hp * u.st.atk;
         p0 += p; if (g.kind === 'support') pSup += p;
         if (!ours || u.recruit) return;
-        n++;
-        if (u === cap) return;
-        const k = skillsOf(u)[0];
-        lnf += Math.log((k.tgt === 'hurt' ? RO.heal : (k.range || 0) >= RMIN ? RO.ranged : RO.melee) || 1);
+        n++; if (ranged(u)) nR++;
       });
     });
-    const G = KN.BM_CAL_GROUPS;
-    return (n ? Math.exp(lnf / n) : 1) * (p0 ? Math.pow(KN.BM_CAL_ALLY, pSup / p0) : 1) * (G[Math.min(nG, G.length - 1)] || 1);
+    const G = KN.BM_CAL_GROUPS, s = nR / Math.max(n, RO.MIN_N, 1), e = nF ? nFR / nF : 0;
+    return Math.pow(RO.ranged, s) * Math.pow(RO.ranged2, s * s) * Math.pow(KN.BM_CAL_FOE.ranged2, e * e)
+      * (p0 ? Math.pow(KN.BM_CAL_ALLY, pSup / p0) : 1) * (G[Math.min(nG, G.length - 1)] || 1);
+  }
+  // 치유의 양 (BM_CAL_HEAL): 우리 치유 / 적 피해, 적 치유 / 우리 피해 (k = 1)
+  function healCal(sd, boss) {
+    if (!sd) return 1;
+    const H = KN.BM_CAL_HEAL;
+    const ours = Math.min(H.CAP, sd.a.hps / Math.max(1e-6, sd.b.dps)), foe = Math.min(H.CAP, sd.b.hps / Math.max(1e-6, sd.a.dps));
+    return Math.pow(boss ? H.boss : H.ours, ours) * Math.pow(H.foe, Math.max(0, foe - H.FREE));
   }
   function forecast(spec) {
     let cal = KN.CAL_KIND[foeKind(spec)] || 1;
@@ -437,12 +468,13 @@ const Stats = (() => {
       const olv = lvs.length ? lvs.reduce((a, b) => a + b, 0) / lvs.length : 1;
       const lvStep = KN.BM_CAL_OWNLV.find(([x]) => olv <= x);
       cal *= lvStep ? lvStep[1] : 1;
-      cal *= leadCal(spec) * roleCal(spec);
+      const sd = sidesK1(spec.groups);
+      cal *= leadCal(spec) * roleCal(spec) * healCal(sd, boss);
       // 보스 판의 확신도 (BM_CAL_BOSS.sure): ln R 을 줄여 반반 쪽으로 당긴다 (시간 보정 ② 앞)
       const sure = (R) => (boss && B.sure !== 1 ? Math.pow(R, B.sure) : R);
       // 4단계 시간 보정: 버티는 의뢰가 아니면 적을 다 깎는 어림 시간으로 ① R 을 고치고 ② 시간 초과의 몫만큼 승률을 깎는다
       if (spec.rule !== 'hold' && KN.BM_TIME_K > 0) {
-        const lim = spec.limit || KN.LIMIT, T0 = KN.BM_TIME_EDGE * lim, tk = killTime(spec.groups);
+        const lim = spec.limit || KN.LIMIT, T0 = KN.BM_TIME_EDGE * lim, tk = killTime(spec.groups, sd);
         const R1 = sure(margin(spec.groups) * cal * Math.pow(KN.BM_TIME_MID * lim / Math.max(tk, T0), KN.BM_TIME_BIAS));
         return tk > T0 ? fromP(R1, timeSurvival(tk, lim, T0)) : { R: +R1.toFixed(3), band: bandOf(+R1.toFixed(3)) };
       }
