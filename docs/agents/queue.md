@@ -8,6 +8,7 @@
 | 누구 | id | 상태 | 할 일 (자세한 것은 그 줄의 문서) |
 |---|---|---|---|
 | Codex | `C27-crosscheck-c24` | READY | (C26 보다 먼저 — 기본 전환이 기다림) GPT 의 C24 교차 확인: 부상 분포·전투 모드 경제 변화: `docs/agents/tasks/C27-crosscheck-c24.md` |
+| GPT | `Q26-visible-battle-ingame` | READY | 「전투 모드가 보이게」 실제 플레이 확인: 메뉴 모드 전환, 숫자 ×10, 단원별 활약·★, 보정 3.1: `docs/agents/tasks/Q26-visible-battle-ingame.md` |
 | GPT | `C24-battle-injury-loss-fixed` | REVIEW | (Codex C27 교차 확인 대기) 전투 뒤 부상·외부단 손실 고정 |
 
 ## 끝난 일
