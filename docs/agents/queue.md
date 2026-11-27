@@ -7,6 +7,7 @@
 
 | 누구 | id | 상태 | 할 일 (자세한 것은 그 줄의 문서) |
 |---|---|---|---|
+| Codex | `C17-monster-gait-requests` | READY | 고블린·서리 트롤·사막 도적 이동 요청서(phase3 배율 기록 + 2×2 원본 처리): `docs/agents/tasks/C17-monster-gait-requests.md` |
 | GPT | `C16-tight-time-hint` | READY | (코드 일감, Codex 병목으로 GPT) 시간이 빠듯한 예상에 이유 한 줄: `docs/agents/tasks/C16-tight-time-hint.md` |
 
 ## 끝난 일
