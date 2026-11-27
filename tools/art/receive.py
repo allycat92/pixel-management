@@ -259,7 +259,8 @@ def latest_pose(set_name):
 
 def strip_check(strip, label, extra):
     """check_delivery.py on one 1x4 strip -> return code (prints the RESULT / FAIL / WARN lines)"""
-    c = subprocess.run([sys.executable, os.path.join(ROOT, 'tools', 'art', 'check_delivery.py'), strip, '--layout', '1x4', *extra], capture_output=True)
+    c = subprocess.run([sys.executable, os.path.join(ROOT, 'tools', 'art', 'check_delivery.py'), strip, '--layout', '1x4', *extra],
+                       capture_output=True, env={**os.environ, 'PYTHONIOENCODING': 'utf-8'})
     lines = [ln.strip() for ln in c.stdout.decode('utf-8', 'replace').splitlines()
              if ln.strip().startswith(('RESULT', 'FAIL', 'WARN', 'ERROR')) or '(flight)' in ln]
     print(f'- {label}: ' + (' | '.join(lines) or c.stdout.decode('utf-8', 'replace').strip()[-300:]))
@@ -301,7 +302,8 @@ def skeleton(rel, name, work, exe, tip):
     for s in 'ab':
         strip = os.path.join(out, f'{name}_{s}.png')
         if os.path.exists(strip):
-            rc = rc or strip_check(strip, f'strip {s}' + (' (check_delivery --flight-slots 4: R4 / R8 are in the air)' if flight else ''), flight)
+            rc = rc or strip_check(strip, f'strip {s}' + (' (check_delivery --flight-slots 4: R4 / R8 are in the air)' if flight else ''),
+                                   flight + ['--work', os.path.join(work, 'seams')])
     print(f'- work folder: {work} (strips, {name}_preview.gif and pose_measured.json under skeleton/)')
     print('- a skeleton is a pose guide for the request, never game frames: add_gait.py refuses it (guides/ path, joints layer)')
     print('- after judging: git checkout origin/art-inbox -- <the delivered paths> art/inbox/NOTES.md')
@@ -854,7 +856,8 @@ def gait_delivery(rel, work, exe, tip):
             if not strips:
                 strips = exp
     for p in strips:
-        rc = strip_check(p, os.path.basename(p) + (' (--flight-slots 4)' if flight else ''), flight + cellarg) or rc
+        rc = strip_check(p, os.path.basename(p) + (' (--flight-slots 4)' if flight else ''),
+                         flight + cellarg + ['--work', os.path.join(work, 'seams')]) or rc
     src = [got['_a.png'], got['_b.png']] if '_a.png' in got and '_b.png' in got else ([got['.aseprite']] if '.aseprite' in got else [])
     if src:
         cmd = [sys.executable, os.path.join(ROOT, 'tools', 'art', 'add_gait.py'), sid, '--gait', gait, '--src', *src,
@@ -949,7 +952,7 @@ def main():
     ase = os.path.join(work, 'new', stem + '.aseprite')
     # touch-ups keep the source under aseprite/, guides beside the PNG
     has_ase = show('origin/art-inbox', f'art/inbox/{rel}.aseprite', ase) or show('origin/art-inbox', f'art/inbox/aseprite/{stem}.aseprite', ase)
-    cmd = [sys.executable, os.path.join(ROOT, 'tools', 'art', 'check_delivery.py'), new]
+    cmd = [sys.executable, os.path.join(ROOT, 'tools', 'art', 'check_delivery.py'), new, '--work', os.path.join(work, 'seams')]
     extra, item = sheet_args(stem)
     spots = [] if (sub.startswith('guides') or stem.startswith('check_')) else notes_spots(stem, item)
     if spots:
@@ -962,7 +965,7 @@ def main():
         cmd += ['--base', base]
     if has_ase:
         cmd += ['--aseprite', ase, '--aseprite-exe', a.aseprite_exe]
-    r = subprocess.run(cmd, capture_output=True)
+    r = subprocess.run(cmd, capture_output=True, env={**os.environ, 'PYTHONIOENCODING': 'utf-8'})
     print(r.stdout.decode('utf-8', 'replace').rstrip())
     if sub.startswith('guides') or stem.startswith('check_'):
         # pose guides and one-pose idle checks are not game sheets: checks only, then look at the PNG itself
