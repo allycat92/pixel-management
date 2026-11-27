@@ -8,7 +8,7 @@
 | 누구 | id | 상태 | 할 일 (자세한 것은 그 줄의 문서) |
 |---|---|---|---|
 | GPT | `Q17-cleric-run-ingame` | REVIEW | (짧게, Q16 보다 먼저) 성직자 달리기 앞 타바드·철퇴 위치를 게임에서: `docs/agents/tasks/Q17-cleric-run-ingame.md` |
-| GPT | `Q16-flip-readiness` | READY | 전투 모드를 기본으로 바꿔도 되는지 사람 플레이로 보기(400px 120일, roll 비교): `docs/agents/tasks/Q16-flip-readiness.md` |
+| GPT | `Q16-flip-readiness` | REVIEW | 전투 모드를 기본으로 바꿔도 되는지 사람 플레이로 보기(400px 120일, roll 비교): `docs/agents/tasks/Q16-flip-readiness.md` |
 | Codex | `C18-crosscheck-gpt-code` | READY | GPT 가 대신 고친 C14·C16 코드 교차 확인(보고만): `docs/agents/tasks/C18-crosscheck-gpt-code.md` |
 
 ## 끝난 일
