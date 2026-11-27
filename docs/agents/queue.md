@@ -8,7 +8,7 @@
 | 누구 | id | 상태 | 할 일 (자세한 것은 그 줄의 문서) |
 |---|---|---|---|
 | GPT | `Q2-new-art-ingame` | REVIEW | 새로 등록한 그림 열 장을 실제 게임에서 보기: `docs/agents/tasks/Q2-new-art-ingame.md` |
-| Codex | `C8-gait-requests-batch2` | READY | 이동 그림 요청서 둘째 묶음(대장 10명): `docs/agents/tasks/C8-gait-requests-batch2.md` |
+| Codex | `C8-gait-requests-batch2` | REVIEW | 이동 그림 요청서 둘째 묶음(대장 10명): `docs/agents/tasks/C8-gait-requests-batch2.md` |
 
 ## 끝난 일
 

@@ -33,8 +33,18 @@
 | 요청 | 시트 | 부류 · 마네킹 | 납품 (art-inbox) | 상태 |
 |---|---|---|---|---|
 | [`heavy__captain_ironwall/`](heavy__captain_ironwall/README.md) | `sheet/captain/ironwall` 브리긴다 이동 (중량) | 중량 · `art/requests/guides/heavy_base/v1` | `art/inbox/gait/sheet_captain_ironwall_run_a.png` + `_b.png` | 요청 |
+| [`heavy__captain_lancer/`](heavy__captain_lancer/README.md) | `sheet/captain/lancer` 로드릭 — 말을 잃은 기사 (창기병) 이동 | 중량 · `art/requests/guides/heavy_base/v1` | `art/inbox/gait/sheet_captain_lancer_run_a.png` + `_b.png` | 요청 |
+| [`heavy__captain_saintknight/`](heavy__captain_saintknight/README.md) | `sheet/captain/saintknight` 엘리노어 — 성광의 기사 (성광 기사) 이동 | 중량 · `art/requests/guides/heavy_base/v1` | `art/inbox/gait/sheet_captain_saintknight_run_a.png` + `_b.png` | 요청 |
+| [`robe__captain_archmagus/`](robe__captain_archmagus/README.md) | `sheet/captain/archmagus` 에우리아 — 마지막 대현자 (대현자) 이동 | 로브 · `art/requests/guides/robe_base/v1` | `art/inbox/gait/sheet_captain_archmagus_run_a.png` + `_b.png` | 요청 |
+| [`robe__captain_lightbearer/`](robe__captain_lightbearer/README.md) | `sheet/captain/lightbearer` 루치아 — 빛을 든 사도 (빛의 사도) 이동 | 로브 · `art/requests/guides/robe_base/v1` | `art/inbox/gait/sheet_captain_lightbearer_run_a.png` + `_b.png` | 요청 |
 | [`robe__class_mage/`](robe__class_mage/README.md) | `sheet/class/mage` 병과 마법사 이동 (로브) | 로브 · `art/requests/guides/robe_base/v1` | `art/inbox/gait/sheet_class_mage_run_a.png` + `_b.png` | 요청 |
+| [`run__captain_bard/`](run__captain_bard/README.md) | `sheet/captain/bard` 리코 — 노래하는 검 (음유 검객) 이동 | 경량 · `art/requests/guides/run_base/v2` | `art/inbox/gait/sheet_captain_bard_run_a.png` + `_b.png` | 요청 |
+| [`run__captain_blademaster/`](run__captain_blademaster/README.md) | `sheet/captain/blademaster` 바렌 — 떠돌이 검귀 (검귀) 이동 | 경량 · `art/requests/guides/run_base/v2` | `art/inbox/gait/sheet_captain_blademaster_run_a.png` + `_b.png` | 요청 |
+| [`run__captain_fixer/`](run__captain_fixer/README.md) | `sheet/captain/fixer` 진 — 뒷골목 해결사 (해결사) 이동 | 경량 · `art/requests/guides/run_base/v2` | `art/inbox/gait/sheet_captain_fixer_run_a.png` + `_b.png` | 요청 |
+| [`run__captain_huntress/`](run__captain_huntress/README.md) | `sheet/captain/huntress` 키아라 — 숲의 덫꾼 (덫사냥꾼) 이동 | 경량 · `art/requests/guides/run_base/v2` | `art/inbox/gait/sheet_captain_huntress_run_a.png` + `_b.png` | 요청 |
 | [`run__captain_shadowqueen/`](run__captain_shadowqueen/README.md) | `sheet/captain/shadowqueen` 니클라 달리기 | 경량 · `art/requests/guides/run_base/v2` | `art/inbox/gait/sheet_captain_shadowqueen_run_a.png` + `_b.png` | 그려짐 · 등록 |
+| [`run__captain_tactician/`](run__captain_tactician/README.md) | `sheet/captain/tactician` 이사벨 — 퇴역 참모 (전술가) 이동 | 경량 · `art/requests/guides/run_base/v2` | `art/inbox/gait/sheet_captain_tactician_run_a.png` + `_b.png` | 요청 |
+| [`run__captain_veteran/`](run__captain_veteran/README.md) | `sheet/captain/veteran` 하랄드 — 백발의 노병 (노병) 이동 | 경량 · `art/requests/guides/run_base/v2` | `art/inbox/gait/sheet_captain_veteran_run_a.png` + `_b.png` | 요청 |
 | [`run__class_archer/`](run__class_archer/README.md) | `sheet/class/archer` 병과 궁수 달리기 | 경량 · `art/requests/guides/run_base/v2` | `art/inbox/gait/sheet_class_archer_run_a.png` + `_b.png` | 요청 |
 | [`run__class_cleric/`](run__class_cleric/README.md) | `sheet/class/cleric` 병과 성직자 달리기 | 경량 · `art/requests/guides/run_base/v2` | `art/inbox/gait/sheet_class_cleric_run_a.png` + `_b.png` | 요청 |
 | [`run__class_rogue/`](run__class_rogue/README.md) | `sheet/class/rogue` 병과 도적 달리기 | 경량 · `art/requests/guides/run_base/v2` | `art/inbox/gait/sheet_class_rogue_run_a.png` + `_b.png` | 요청 |
