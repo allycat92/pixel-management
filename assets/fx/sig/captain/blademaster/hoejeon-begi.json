@@ -47,8 +47,8 @@
   ],
   "victimReact": { "after": "split", "anim": "hit", "dur": 0.26, "push": 2 },
   "screen": {
-    "dim": { "preset": "curve.envelope", "at": 0.0, "in": 0.22, "hold": 1.38, "out": 0.4, "alpha": 0.8, "colour": "tone", "only1x": true },
-    "unitDim": { "who": "others", "preset": "curve.envelope", "at": 0.0, "in": 0.22, "hold": 1.38, "out": 0.4, "alpha": 0.62, "colour": "tone", "only1x": true },
+    "dim": { "preset": "curve.envelope", "at": 0.0, "in": 0.22, "hold": 1.38, "out": 0.4, "alpha": 0.86, "colour": "tone", "only1x": true },
+    "unitDim": { "who": "others", "preset": "curve.envelope", "at": 0.0, "in": 0.22, "hold": 1.38, "out": 0.4, "alpha": 0.7, "colour": "tone", "only1x": true },
     "freeze": [
       { "preset": "screen.freeze", "at": 0.45, "dur": 0.15, "why": "still hold before the cut (kit cadence 120-160ms)" },
       { "preset": "screen.freeze", "at": 0.60, "dur": 0.10, "why": "hitstop on the cut" }

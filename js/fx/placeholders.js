@@ -48,26 +48,24 @@ const FxPlaceholders = (() => {
         }
       },
     },
-    // 늦게 열리는 갈라짐: 선이 벌어져 어두운 틈이 렌즈 모양으로 열렸다가 조각만 남는다
+    // 늦게 열리는 갈라짐: 선의 위 입술(상아)과 아래 입술(붉은색)이 서로 반대로 미끄러지며 어두운 틈이 1~2px 벌어진다
+    // (눈 모양 렌즈가 아니라 '어긋나는 단면' — 키트 형태 언어 linear/lateral)
     split: {
       size: [24, 24], origin: [12, 12], frames: 4,
       draw(f, px, run) {
         const cy = 12;
-        if (f === 0) {
-          run(2, 21, cy - 1, 'key'); run(3, 20, cy, 'tone'); run(2, 21, cy + 1, 'accent');
-          return;
+        if (f === 0) { run(2, 21, cy - 1, 'key'); run(3, 20, cy, 'tone'); run(2, 21, cy + 1, 'accent'); return; }
+        const sh = f === 1 ? 2 : f === 2 ? 3 : 4;      // 미끄러진 거리
+        const gap = f === 1 ? 2 : f === 2 ? 2 : 1;     // 틈 높이
+        for (let x = 0; x < 24; x++) {
+          const up = x - sh, lo = x + sh;               // 위 입술은 오른쪽, 아래 입술은 왼쪽으로
+          const brokenU = f >= 2 && x % (f === 2 ? 7 : 3) === 0, brokenL = f >= 2 && x % (f === 2 ? 5 : 3) === 1;
+          if (up >= 2 && up <= 21 && !brokenU) px(x, cy - 1, 'key', f === 3);
+          if (lo >= 2 && lo <= 21 && !brokenL) px(x, cy + gap, 'accent', f === 3);
+          if (f < 3 && x >= 4 && x <= 19) for (let y = cy; y < cy + gap; y++) px(x, y, 'tone', f === 2);
         }
-        const hMax = f === 1 ? 3 : f === 2 ? 4 : 5;
-        for (let x = 0; x <= 23; x++) {
-          const h = Math.round(hMax * Math.sin((Math.PI * (x + 0.5)) / 24));
-          const broken = f >= 2 && x % (f === 2 ? 6 : 3) === 0;
-          if (f < 3) for (let y = cy - h; y <= cy + h; y++) px(x, y, 'tone', f === 2);
-          if (!broken) { px(x, cy - h - 1, 'key', f === 3); px(x, cy + h + 1, 'accent', f === 3); }
-        }
-        // 양끝 파편
-        const s = f;
-        px(0 - s + 1, cy - 2 - s, 'key'); px(1 - s + 1, cy - 1 - s, 'key', true);
-        px(23 + s - 1, cy + 2 + s, 'key'); px(22 + s - 1, cy + 1 + s, 'key', true);
+        // 끝에서 튀는 상아 파편 두 점
+        px(23 - (3 - f), cy - 2 - f, 'key', f === 3); px(f - 1 < 0 ? 0 : f - 1, cy + gap + 1 + f, 'key', true);
       },
     },
     // 찢긴 천 조각: 붉은 몸 + 와인 그늘 + 너덜한 끝. 3칸 나풀거림
