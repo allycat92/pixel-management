@@ -72,6 +72,9 @@ const Stats = (() => {
     BM_MID_PAY: 0.25,   // 금화: 가장 높을 때 ×1.25 (중반 살림이 조금 낫게. 더 올리면 S 는 그대로이고 후반 금화만 는다)
     BM_MID_REP: 2.25,   // 명성: 가장 높을 때 ×3.25 (S 를 90~110일로 당기는 값. 2 는 S 112/108일, 2.5 는 107/101일 — 시드 1~12 / 13~24)
     BM_MID_DAYS: [59, 72, 110, 121],   // 사다리꼴 [오르기 시작, 다 오름, 내리기 시작, 다 내림] (날짜. 의뢰가 만들어진 날 기준)
+    // ── 4단계: 시간 제한과 후반 게시판 (stage3_notes.md 「Stage 4」) ──
+    BM_TIME_HEAL: 0.6,  // killTime: 적의 치유를 이만큼 빼고 센다 (margin 의 rho 와 같은 0.6)
+    BM_LATE_OPEN: [150, 30],   // 재앙 없이 높은 별 열기 (S 등급일 때): [★11 이 열리는 날, 별 하나 더 열리는 간격(일)] — 150·180·210·240일에 ★11~14. 간격 0 = 끔 (3단계: ★10 에서 멈춤)
     BM_CAP_AHEAD: 4,    // 전투 모드의 별 상한: 길드 등급 + 이 값 (오늘은 +2. 재앙 뒤에는 LATE_MAX_LEVEL 까지) — 상한 안에 벅찬 의뢰가 들게 (검증 3번)
   };
   // 능력치 공식의 계수
@@ -279,10 +282,10 @@ const Stats = (() => {
     });
     return { dps, ehp, hps };
   }
+  const sideUnitsOf = (groups, side) => groups.filter((g) => g.side === side).flatMap((g) => g.units).map((u) => ({ st: u.st, r: unitRates(u) }));
   // 적을 몇 배로 키워야 반반이 되는가 (1 보다 크면 우리가 세다)
   function margin(groups) {
-    const sideUnits = (side) => groups.filter((g) => g.side === side).flatMap((g) => g.units).map((u) => ({ st: u.st, r: unitRates(u) }));
-    const A = sideUnits(0), B = sideUnits(1);
+    const A = sideUnitsOf(groups, 0), B = sideUnitsOf(groups, 1);
     if (!A.length || !B.length) return A.length ? 20 : 0.05;
     const rho = (k) => {
       const a = sideOf(A, B, k, 1), b = sideOf(B, A, 1, k);
@@ -292,6 +295,15 @@ const Stats = (() => {
     let lo = 0.05, hi = 20;
     for (let i = 0; i < 30; i++) { const k = Math.sqrt(lo * hi); if (rho(k) >= 1) lo = k; else hi = k; }
     return Math.sqrt(lo * hi);
+  }
+  // 4단계 (전투 모드): 우리 쪽(지원 부대·수습 포함)이 적 전체의 체력을 깎아 내는 데 걸릴 어림 시간(초). 양쪽 모두 처음 힘 그대로라 치고,
+  // 적의 치유는 빼고 센다. margin 은 누가 이기는가만 보고 시간 제한(LIMIT)을 모른다 — 적이 많고 우리가 적으면 이길 싸움도 시간이 다해 진다 (Q5 #224, Q6 #721)
+  function killTime(groups) {
+    const A = sideUnitsOf(groups, 0), B = sideUnitsOf(groups, 1);
+    if (!A.length || !B.length) return 0;
+    const a = sideOf(A, B, 1, 1), b = sideOf(B, A, 1, 1);
+    const hpB = B.reduce((s, u) => s + u.st.hp, 0);
+    return Math.min(999, hpB / Math.max(1e-6, a.dps - KN.BM_TIME_HEAL * b.hps));
   }
   const foeKind = (spec) => (spec.groups.some((g) => g.kind === 'foe' && g.units[0] && g.units[0].mon) ? 'monster' : 'soldier');
   const bandOf = (R) => KN.BANDS.filter((e) => R >= e).length;   // 0 무모 … 4 압도
@@ -355,5 +367,5 @@ const Stats = (() => {
   }
 
   return { KN, KNOBS, REF, ARCH, RANK, ELV, ELV_BM, ARMOR_DEF, BAND_NAMES, rng, mix, raw, parts, sheet, aptOf, aidOf, armorDef, ref, enemy, generic,
-    kindOf, nominalReq, scale, ruleOf, margin, foeKind, bandOf, forecast, oursOf, judge, monsterSkills, foeShare };
+    kindOf, nominalReq, scale, ruleOf, margin, killTime, foeKind, bandOf, forecast, oursOf, judge, monsterSkills, foeShare };
 })();

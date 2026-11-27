@@ -252,8 +252,19 @@ Object.assign(Game, {
   },
   // 전투 모드의 별 상한: 길드 등급 + BM_CAP_AHEAD (재앙 뒤에는 LATE_MAX_LEVEL 까지). 등급이 오르면 더 높은 별이 열린다.
   // 오늘의 +2 는 상한 별까지 모두 압도라 게시판에 벅찬 의뢰가 없었다 (검증 3번: 1~30일 열세 이하 0%)
+  // 4단계: 재앙이 일어나지 않아도 후반에는 높은 별이 열린다 (bmMaxLevel). 재앙이 없던 판은 240일 뒤 가장 강한 용병단에게 일반 의뢰가 모두 압도였다 (Q8)
   battleCap() {
-    return clamp(this.lateGame() ? LATE_MAX_LEVEL : this.rankIndex() + Stats.KN.BM_CAP_AHEAD, 1, this.maxContractLevel());
+    const top = this.bmMaxLevel();
+    return clamp(this.lateGame() || top > 10 ? top : this.rankIndex() + Stats.KN.BM_CAP_AHEAD, 1, top);
+  },
+  // 전투 모드 일반 의뢰의 가장 높은 별: 재앙이 일어난 뒤에는 LATE_MAX_LEVEL (오늘과 같다). 재앙이 없어도 S 등급이면
+  // BM_LATE_OPEN = [첫날, 간격] — 첫날에 ★11, 그 뒤 간격(일)마다 별 하나씩 ★14 까지 (간격 0 이면 끈다: 옛 ★10).
+  // 적은 별이 정한다 (주인 결정 1) — 열리는 때는 날짜와 등급이고, 용병단의 힘을 따라가지 않는다. 특별한 의뢰는 옛 maxContractLevel 그대로
+  bmMaxLevel() {
+    if (this.lateGame()) return LATE_MAX_LEVEL;
+    const [d0, per] = Stats.KN.BM_LATE_OPEN, day = this.state.day;
+    if (!(per > 0) || this.rankIndex() < RANKS.length - 1 || day < d0) return this.maxContractLevel();
+    return Math.min(LATE_MAX_LEVEL, 11 + Math.floor((day - d0) / per));
   },
   // 전투 모드의 의뢰 별 등급. 게시판이 쉬운 것부터 벅찬 것까지 늘 펼쳐지도록 층을 나눠 뽑는다:
   //  1) 게시판의 일반 의뢰가 이미 겨냥한 단계(c.aim)를 세어, BOARD_W 비율에 가장 모자란 단계를 (모자란 만큼의 가중치로) 하나 뽑는다
@@ -281,7 +292,7 @@ Object.assign(Game, {
     else if (band > Stats.bandOf(tab.R[1])) L = 1;                       // 가장 쉬운 별도 그 단계보다 어렵다
     else L = pick(levels.slice(-2));                                     // 열린 별이 모두 그 단계보다 쉽다: 열린 가장 높은 별 둘 중 하나
     this._aim = band;
-    return clamp(L + bonus, 1, this.maxContractLevel());
+    return clamp(L + bonus, 1, this.bmMaxLevel());
   },
   // 구호 의뢰: 길드에 대장만 남으면, 대장 혼자서도 이길 만한 쉬운 의뢰를 하나 걸어 둔다 (보수 ×1.5, 5일)
   reliefCheck() {

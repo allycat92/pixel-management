@@ -151,11 +151,16 @@ function run(seed, days, mode, opts = {}) {
         cos.forEach((co) => { const R = G.forecast(G.muster(q, [{ companyId: co.id, memberIds: G.members(co).map((m) => m.id) }])).R; if (R > best) best = R; });
         if (best >= 0) w[ctx.Stats.bandOf(best)]++;
       });
-      const b = (bs.boards[dayBandOf(s.day)] = bs.boards[dayBandOf(s.day)] || { n: 0, w: [0, 0, 0, 0, 0], hard: 0, easy: 0, both: 0 });
-      b.n++; w.forEach((x, i) => { b.w[i] += x; });
-      if (w[0] + w[1]) b.hard++;
-      if (w[3] + w[4]) b.easy++;
-      if (w[0] + w[1] && w[3] + w[4]) b.both++;
+      // 4단계: 재앙이 일어난(lateGame) 판과 아닌 판을 따로도 센다 (재앙 없는 후반 게시판, Q8)
+      [dayBandOf(s.day), `${dayBandOf(s.day)} ${G.lateGame() ? 'calamity' : 'no calamity'}`].forEach((key) => {
+        const b = (bs.boards[key] = bs.boards[key] || { n: 0, w: [0, 0, 0, 0, 0], hard: 0, easy: 0, both: 0, mid: 0, top: 0 });
+        b.n++; w.forEach((x, i) => { b.w[i] += x; });
+        if (w[0] + w[1]) b.hard++;
+        if (w[0] + w[1] + w[2]) b.mid++;
+        b.top += s.contracts.reduce((m, q) => (ctx.Stats.kindOf(q) === 'normal' && !q.relief ? Math.max(m, q.level) : m), 0);
+        if (w[3] + w[4]) b.easy++;
+        if (w[0] + w[1] && w[3] + w[4]) b.both++;
+      });
     }
     // 의뢰: 이야기·보스·결전 우선, 그다음 보상순
     const special = (c) => (c.story || c.boss || c.campaign || c.capStory ? 1e6 : 0);
@@ -334,8 +339,8 @@ function summarize(res, days) {
     rows.push(['offers seen by band 무모..압도 (per game)', [0, 1, 2, 3, 4].map((b) => fmt(sum((x) => x.offered[b]) / N, 1)).join(' / ')]);
     // 게시판의 폭: 일반 의뢰를 가장 나은 직속 용병단의 예상으로 (사흘에 한 번)
     const boards = {};
-    res.forEach((r) => Object.entries(r.battle.boards || {}).forEach(([k, b]) => { const o = (boards[k] = boards[k] || { n: 0, w: [0, 0, 0, 0, 0], hard: 0, easy: 0, both: 0 }); o.n += b.n; b.w.forEach((x, i) => { o.w[i] += x; }); o.hard += b.hard; o.easy += b.easy; o.both += b.both; }));
-    Object.keys(boards).sort().forEach((k) => { const b = boards[k]; rows.push([`board days ${k}: per board 무모..압도 | has ≤열세 / ≥우세 / both`, `${b.w.map((x) => (x / b.n).toFixed(2)).join(' / ')} | ${Math.round(100 * b.hard / b.n)}% / ${Math.round(100 * b.easy / b.n)}% / ${Math.round(100 * b.both / b.n)}% (n=${b.n})`]); });
+    res.forEach((r) => Object.entries(r.battle.boards || {}).forEach(([k, b]) => { const o = (boards[k] = boards[k] || { n: 0, w: [0, 0, 0, 0, 0], hard: 0, easy: 0, both: 0, mid: 0, top: 0 }); o.n += b.n; b.w.forEach((x, i) => { o.w[i] += x; }); o.hard += b.hard; o.easy += b.easy; o.both += b.both; o.mid += b.mid || 0; o.top += b.top || 0; }));
+    Object.keys(boards).sort().forEach((k) => { const b = boards[k]; rows.push([`board days ${k}: per board 무모..압도 | has ≤열세 / ≥우세 / both / ≤백중 | top ★`, `${b.w.map((x) => (x / b.n).toFixed(2)).join(' / ')} | ${Math.round(100 * b.hard / b.n)}% / ${Math.round(100 * b.easy / b.n)}% / ${Math.round(100 * b.both / b.n)}% / ${Math.round(100 * b.mid / b.n)}% | ${(b.top / b.n).toFixed(1)} (n=${b.n})`]); });
     rows.push(['contracts taken by band 무모..압도 (per game)', [0, 1, 2, 3, 4].map((b) => fmt(sum((x) => x.taken[b]) / N, 1)).join(' / ')]);
     rows.push(['downed / injured per member-battle', `${((100 * sum((b) => b.downed)) / mb).toFixed(1)}% / ${((100 * sum((b) => b.injured)) / mb).toFixed(1)}% (avg ${fmt(sum((b) => b.injDays) / Math.max(1, sum((b) => b.injured)), 1)} days)`]);
     rows.push(['deaths per game: special / other', `${fmt(sum((b) => b.deathsSpecial) / N, 2)} / ${fmt(sum((b) => b.deathsOther) / N, 2)}`]);
