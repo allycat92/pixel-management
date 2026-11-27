@@ -784,7 +784,7 @@ const Battle = (() => {
     return [ax, ay];
   }
   const GHOST_FAR = 20;
-  const SQUEEZE = 2;                 // 막힌 걸음이 서 있는 아군을 지나갈 수 있는 시간(초)
+  const SQUEEZE = 2;                 // 거듭 막힌 걸음이 서 있는 아군을 지나갈 수 있는 시간(초)
   // 원거리·치유: 서 있는 아군과 몸이 깊이 겹친 채로는 멈추지 않는다 (조금 더 걸어 나가 선다)
   function crowdedAt(u, live) {
     for (const o of live) {
@@ -1042,7 +1042,7 @@ const Battle = (() => {
         if (p) { gx = p.x; gy = p.y; } else { gx = tg.x + u.slotSide * (reach + 14); gy = u.y; }
       }
       const ex = gx - u.x, ey = gy - u.y, ed = len2(ex, ey);
-      u.far = md > reach + GHOST_FAR || u.squeeze > st.t;   // 막혀 있다 풀려난 걸음은 잠깐 서 있는 아군 사이를 비집고 지나간다 (아래)
+      u.far = md > reach + GHOST_FAR || u.squeeze > st.t;   // 거듭 막혔던 걸음은 잠깐 서 있는 아군 사이를 비집고 지나간다 (아래 stuckN)
       if (md > reach || (melee && ed > 3) || (!melee && crowdedAt(u, live))) {
         // 대장 근처로 모이려는 힘을 약간 섞는다 (부대 대형 유지) — 목표에 닿기 전까지만
         let mx = ex / (ed || 1), my = ey / (ed || 1);
@@ -1105,18 +1105,21 @@ const Battle = (() => {
     live.forEach((u) => { u.y = clamp(u.y, TOP, BOTTOM); if (!u.g.routed) { const e = EDGE + sizeOf(u) * EDGE_BIG; u.x = clamp(u.x, e, W - e); } });
     // 앞이 막혀 한 걸음의 3할도 못 나아갔으면 그 자리에 선다 (서 있는 몸에 대고 제자리 달리기하지 않게: 비킬 때까지 기다린다)
     for (const u of live) {
-      if (!u.moving || u.g.routed || !u.wantStep || u.dashed) continue;
+      if (!u.moving || u.g.routed || !u.wantStep || u.dashed) { if (!u.blocked) u.stuckN = 0; continue; }
       if (len2(u.x - u.ox, u.y - u.oy) < u.wantStep * 0.3) { u.x = u.ox; u.y = u.oy; u.moving = false; u.blocked = (u.blocked || 0) + DT; }
-      else u.blocked = 0;
+      else { u.blocked = 0; u.stuckN = 0; }
       // 1초 넘게 막혀 있으면 자리를 내놓고 다시 고른다 (줄이 얼어붙지 않게).
-      // 자리를 다시 골라도 같은 자리·같은 길이면 또 막힌다 — 서 있는 아군(치유사·수습)이 목표와의 사이를 벽처럼 막으면 양쪽이
-      // 30px 거리에서 90초까지 멈춰 섰다 (4단계 미해결 '대치'). 그래서 SQUEEZE 초 동안은 멀리서 걸어올 때처럼 서 있는 아군을 지나가게 하고,
-      // 길을 막은 것이 적이면 (적은 지나갈 수 없다) 지금 닿는 적을 목표로 삼는다
+      // 다시 골라도 같은 자리·같은 길이라 한 걸음도 못 떼고 또 막히면 (stuckN ≥ 2): 서 있는 아군(치유사·수습)이 목표와의 사이를
+      // 벽처럼 막은 것이다 — 양쪽이 30px 거리에서 90초까지 멈춰 섰다 (4단계 미해결 '대치'). 그때는 SQUEEZE 초 동안 멀리서 걸어올 때처럼
+      // 서 있는 아군을 지나가게 하고 (u.far), 막은 것이 적이면 (적은 지나갈 수 없다) 지금 닿는 적을 목표로 삼는다
       if (u.blocked > 1) {
-        u.blocked = 0; u.squeeze = st.t + SQUEEZE;
+        u.blocked = 0;
         if (u.slotOf && u.slotOf.slots && u.slotOf.slots[u.slot] === u) u.slotOf.slots[u.slot] = null; u.slotOf = null; u.slot = -1;
-        const near = u.healer ? null : pickTarget(st, u, u.skills[0], live);
-        if (near && near !== u.target) { u.target = near; u.retarget = SQUEEZE; }
+        if ((u.stuckN = (u.stuckN || 0) + 1) >= 2) {
+          u.squeeze = st.t + SQUEEZE;
+          const near = u.healer ? null : pickTarget(st, u, u.skills[0], live);
+          if (near && near !== u.target) { u.target = near; u.retarget = SQUEEZE; }
+        }
       }
     }
     for (const u of live) { u.vx = u.x - u.ox; u.vy = u.y - u.oy; }
