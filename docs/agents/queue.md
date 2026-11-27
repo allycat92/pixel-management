@@ -9,7 +9,7 @@
 |---|---|---|---|
 | Codex | `C27-crosscheck-c24` | READY | (C26 보다 먼저 — 기본 전환이 기다림) GPT 의 C24 교차 확인: 부상 분포·전투 모드 경제 변화: `docs/agents/tasks/C27-crosscheck-c24.md` |
 | GPT | `C24-battle-injury-loss-fixed` | REVIEW | (Codex C27 교차 확인 대기) 전투 뒤 부상·외부단 손실 고정 |
-| Codex | `C26-gait-requests-last` | READY | 마지막 이동 요청서 5건 + 카토 분류·요청서: `docs/agents/tasks/C26-gait-requests-last.md` |
+| GPT | `C26-gait-requests-last` | READY | 마지막 이동 요청서 5건 + 카토 분류·요청서: `docs/agents/tasks/C26-gait-requests-last.md` |
 
 ## 끝난 일
 
