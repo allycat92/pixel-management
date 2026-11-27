@@ -8,7 +8,7 @@
 | 누구 | id | 상태 | 할 일 (자세한 것은 그 줄의 문서) |
 |---|---|---|---|
 | GPT | `Q19-flip-readiness-2` | 예고 | 한 부대 초반 다듬기가 들어가면 READY — 다른 시드로 사람 플레이 다시: `docs/agents/tasks/Q19-flip-readiness-2.md` |
-| Codex | `C18-crosscheck-gpt-code` | READY | GPT 가 대신 고친 C14·C16 코드 교차 확인(보고만): `docs/agents/tasks/C18-crosscheck-gpt-code.md` |
+| Codex | `C18-crosscheck-gpt-code` | REVIEW | GPT 가 대신 고친 C14·C16 코드 교차 확인(보고만): `docs/agents/tasks/C18-crosscheck-gpt-code.md` |
 | Codex | `C19-newplayer-texts` | READY | (C18 다음, 「한 부대 다듬기」 들어간 뒤) 처음 하는 사람을 위한 전투 모드 설명: `docs/agents/tasks/C19-newplayer-texts.md` |
 
 ## 끝난 일
