@@ -8,7 +8,7 @@
 | 누구 | id | 상태 | 할 일 (자세한 것은 그 줄의 문서) |
 |---|---|---|---|
 | GPT | `Q14-c13-text-check` | READY | C13 한국어 글 손질을 게임에서 확인: `docs/agents/tasks/Q14-c13-text-check.md` |
-| Codex | `C14-roll-mission-seed` | FIX | roll 모드 귀환 결과를 출격 때 고정(Q13 P1): `docs/agents/tasks/C14-roll-mission-seed.md` |
+| GPT | `C14-roll-mission-seed` | FIX | roll 모드 귀환 결과를 출격 때 고정(Q13 P1): `docs/agents/tasks/C14-roll-mission-seed.md` |
 | GPT | `Q11-stage4-check` | 예고 | 총괄 4단계 수정이 들어가면 READY: `docs/agents/tasks/Q11-stage4-check.md` |
 
 ## 끝난 일
