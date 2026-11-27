@@ -7,7 +7,7 @@
 
 | 누구 | id | 상태 | 할 일 (자세한 것은 그 줄의 문서) |
 |---|---|---|---|
-| GPT | `Q13-c11-check` | READY | C11 화면 수정과 즉시 저장 교차 확인(새로고침 꼼수 포함): `docs/agents/tasks/Q13-c11-check.md` |
+| GPT | `Q13-c11-check` | REVIEW | C11 화면 수정과 즉시 저장 교차 확인(새로고침 꼼수 포함): `docs/agents/tasks/Q13-c11-check.md` |
 | Codex | `C10-scaled-mannequin-guides` | FIX | 클라우드 검토(`docs/agents/reports/c10_tool_review.md`) — 아래 C10 FIX 절대로: `docs/agents/tasks/C10-scaled-mannequin-guides.md` |
 | GPT | `Q11-stage4-check` | 예고 | 총괄 4단계 수정이 들어가면 READY: `docs/agents/tasks/Q11-stage4-check.md` |
 | Codex | `C11-ui-fixes-q4` | REVIEW | Q4 화면 결함 6건 + 관리 조작 즉시 저장 (합침, GPT Q13 확인 중): `docs/agents/tasks/C11-ui-fixes-q4.md` |
