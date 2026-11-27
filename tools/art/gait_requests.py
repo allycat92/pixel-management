@@ -257,6 +257,120 @@ def check_requests(spec, man):
 # joints = (있으면) THE MOVE 의 「Each frame ... Joint for joint ... head on the mannequin's neck」 줄들 대신 쓸 줄들
 #          (마네킹과 키·어깨 폭이 크게 달라 관절을 관절에 올릴 수 없는 캐릭터).
 CARRY = {
+    'sheet/captain/warlord': {
+        'title': '가르마크 이동', 'name': 'Garmak', 'refs': ['portrait.png'],
+        'character': ('Broad red-haired, red-bearded warlord in a horned iron helmet, grey wolf-fur mantle, '
+                      'crimson rear cloak, leather harness, lion clasp, open trousers and boots. One two-handed crescent war axe, no sword.'),
+        'carry': [
+            'Carry the same two-handed axe low and forward, head about 15–20° below the shaft horizontal from the rear hand '
+            '(the idle points up; intentionally changed for the forward lean). Put the NEAR rear hand around x=126–137, y=660–676 '
+            'and the FAR forward hand around x=200–212, y=684–705, both on the same haft with the rear hand closest to the butt. '
+            'Aim the crescent center around x=296, y=710–725. Keep the ENTIRE steel head, not just its tip, within x=246–351, '
+            'y=648–790 and outside the shoulder/face. Preserve the crescent and its width; adjust pitch and grip, do not shorten '
+            'the axe to fit. Where the shaft crosses the harness below the ribs draw it over the harness (intended).',
+            'Both arms replace the mannequin arm swing (intended). Bend each elbow from its own shoulder and keep both grips '
+            'connected, without letting the blade merge with the leading knee or cape. Keep plenty of clear space beneath the axe in flight.',
+        ],
+        'cloth': ['Keep lion clasp, fur mantle edge, diagonal harness and any front red corner in front. Only the cape behind the shoulders and rear hair ends trail.'],
+        'face': 'Face: helmet horns, scar and braided red beard stay clear of the axe, without converting broad shoulders into armour.',
+        'ko': ('경량: 갑옷 없이 무릎이 자유롭다. 양손 도끼(대검 아님)를 아래 앞으로, 뒤손 기준 수평보다 15–20° 아래. '
+               '가까운 손 x126–137/y660–676, 먼 손 x200–212/y684–705, 둘 다 같은 자루. 도끼날 중심 x296/y710–725, 날 전체 '
+               'x246–351/y648–790. 머리·앞무릎·망토 분리, 몸 앞 사자 걸쇠와 가죽띠 유지. 두 팔은 가이드 그대로가 아니다.'),
+    },
+    'sheet/captain/titan': {
+        'title': '우르그 이동', 'name': 'Urg', 'refs': ['portrait.png'],
+        'character': ('Enormous giant-blooded Urg, bare muscular arms, brown swept hair and beard, white fur collar, '
+                      'leather and gold harness, rune medallion, split front tunic, fur boots and one two-handed stone maul with a gold spiral rune.'),
+        'carry': [
+            'Lower the two-handed stone maul from its idle diagonal to a short, braced carry across the low torso (intentional). '
+            'NEAR hand to the rear x=123–136, y=688–702; FAR hand forward x=207–223, y=666–679, on the same haft. '
+            'Aim for the stone head center x≈298, y≈638–654: keep the full head within x=249–351 and entirely below y=585 '
+            '(larger y), above the lead knee. Keep the whole handle above the floor and preserve the gold spiral side. The shaft '
+            'may cross the low harness in front; the stone must not cover the head or fur collar.',
+            'Both arms are exempt from the mannequin arm swing (intended). Bend the elbows from Urg’s own wider shoulders, '
+            'which are not interchangeable with the mannequin’s; keep the weight large, braced and close rather than swinging it.',
+        ],
+        'joints': [
+            '  - Take the heavy mannequin’s leg ANGLES, lean, small bob, planted toe x and ground line. Keep Urg’s own longer torso and',
+            '    wide shoulders. Do NOT place his head, shoulders, elbows, hips or knees on the mannequin’s joints; see FORMAT and ARMS.',
+        ],
+        'height': ('Urg’s accepted idle is about 413 source px head to sole (about 69 game px at 0.1654 / cell 112). Keep its own '
+                   'wide shoulders and long trunk. As a starting landmark at contact: hair around y≈455–470, shoulders around y≈550–580 '
+                   'and hips about y≈690–720 before the prescribed body drop. No taller mannequin head, stretched limbs, or shrinking the maul.'),
+        'cloth': ['White fur and gold shoulder medallion stay on the body; front belt and split tunic remain in front. Only the loose hair behind the shoulder and rear tips lag.'],
+        'face': 'Face: keep cheek marks, short beard, hairline and earring visible. Do not replace the loose hair behind him with a hood.',
+        'ko': ('중량: 거대한 몸과 돌망치. 대기·준비 x 투영은 겹치므로 분리한 실제 대기(약 413px·게임 69px) 기준. '
+               '자기 몸의 폭·길이로, 발끝·각도만 복사. 뒤손 x123–136/y688–702, 앞손 x207–223/y666–679, 돌 전체 x249–351·'
+               'y≥585, 얼굴·모피·앞무릎 분리. 금빛 룬·앞 허리띠와 튜닉 유지.'),
+    },
+    'sheet/captain/demonhunter': {
+        'title': '모르데카이 이동', 'name': 'Mordecai', 'refs': ['portrait.png'],
+        'character': ('Grey-bearded witch hunter in a charcoal hood and long grey-trimmed cloak, silver cartridge bandolier, '
+                      'front cross pendant and cross tabard, dark leather boots; holy mace with a spiked round cross head.'),
+        'carry': [
+            'Keep both hands on the upright holy mace, not a firearm: near support grip x=224–230, y=666–676; far main grip '
+            'x=243–252, y=614–630. The head stays forward of the hood: shaft angled top-forward about 18–22° from vertical, '
+            'head center about x=302–306, y=450–480. Leave the spikes actual width (about 80 px); full head x=263–351, away '
+            'from the nose and eye slit, not just the centre. The shaft may cross the chest below the pendant; do not cover the '
+            'cross or cartridge bandolier. Lower tip stays at or above y=785.',
+            'Use the idle two-hand braced posture (intended exemption from the robe arm swing). Flex the elbows to meet the same shaft.',
+        ],
+        'cloth': ['Grey piping on the open front and the long narrow cross tabard stay in front; only the rear hood/cape edge lags. Keep the black boots distinct.'],
+        'face': 'Face: keep the hood low and the grey beard readable inside it; no spike across the brow.',
+        'ko': ('로브, 앞 십자 천과 탄띠는 앞에. 양손 성철퇴, 뒤손 x224–230/y666–676, 앞손 x243–252/y614–630. '
+               '머리 전체 x263–351, 철퇴는 두건 오른쪽. 총이나 광원 추가 안 함.'),
+    },
+    'sheet/captain/hexer': {
+        'title': '벨라도나 이동', 'name': 'Belladonna', 'refs': ['portrait.png'],
+        'character': ('Belladonna in long plum panels with green embroidered trim, wide bent plum witch hat with skull charm '
+                      'and gold crescent, long dark-blue hair, gold earrings, and a curved wooden staff clasping one green gem.'),
+        'carry': [
+            'One far hand on the staff as in the idle, grip x=266–281, y=638–653; its top tilts slightly forward: head '
+            'center x=310–317, y≈463–482, with all the carved ring and gem within x=282–351. Keep the ring forward of the '
+            'hat brim, not in front of the face. Keep the long carved length and the butt above y=795. No magic or glow.',
+            'The near hand stays low by the near waist or the belt line as in the idle (idle palm is open, no second staff '
+            'hand); allow only a small change from that carry, not the full mannequin arm swing.',
+        ],
+        'cloth': ['Front lapels, brooch, embroidered green front panels and the curl already lying over her chest stay in front. Only the hair and coat tips already behind trail. Keep the bent brim and attachments.'],
+        'face': 'Face: keep the smirk and cheek mark visible below the brim; no staff or hair crosses the face.',
+        'ko': ('로브. 먼 손 하나 x266–281/y638–653에 굽은 지팡이, 머리 전체 x282–351, 모자 앞쪽; 가까운 빈 손은 허리. '
+               '앞머리·앞 초록 자수와 브로치 앞에, 뒤쪽 끝만 움직임. 보석은 불투명 색, 빛 효과 없음.'),
+    },
+    'sheet/captain/inquisitorlord': {
+        'title': '발타자르 이동', 'name': 'Balthazar', 'refs': ['portrait.png'],
+        'character': ('Severe grand inquisitor in a split deep-crimson hooded robe, gold cord and ornate gold chest cross, '
+                      'dark gloves and boots; one long iron mace with an open spiked cage head.'),
+        'carry': [
+            'The far hand grips the cage mace at x=279–292, y=631–654 (one hand, as in the idle). Keep it upright with '
+            'a slight forward rake, the head center around x=310–314, y≈460–475 and its full rim/spikes within x=270–351 '
+            'to the right of the hood. Keep the open cage silhouette and its bright rim; the lower end stays above y=792. '
+            'No flames inside the cage and no shaft in front of the chest cross.',
+            'The near empty gloved fist stays by the near hip with the short robe swing. The far arm bends to keep the '
+            'shaft steady and does not follow the full empty-hand mannequin swing (intended).',
+        ],
+        'cloth': ['The dark red front panels, gold edge, chest cross and tied cord stay in front. Keep the gap between the boots; only the rear hem lags.'],
+        'face': 'Face: hood and old cheek scars stay visible; keep the cage head away from brow and nose at all phases.',
+        'ko': ('로브. 먼 손 하나 x279–292/y631–654에 열린 철제 격자 철퇴. 머리 전체 x270–351, 두건 오른쪽, 불꽃 없음. '
+               '가까운 손 빈 주먹, 금 십자가·끈·갈라진 앞 로브는 앞에.'),
+    },
+    'sheet/captain/liberator': {
+        'title': '카토 이동', 'name': 'Kato', 'refs': ['portrait_800.jpg'],
+        'character': ('Kato from the registered chains-and-fists sheet (not the old sword-in-hand sheet): shaved scarred head, '
+                      'bare dark scarred torso, diagonal buckled strap, leather gladiator kilt over trousers, wrapped calves, '
+                      'an iron cuff and broken chain on each clenched wrist, and the longsword strapped to his back.'),
+        'carry': [
+            'Both clenched fists pump without a hand-held weapon or shield. Preserve both separate dangling chain stubs. '
+            'Use the light timing and the character’s own elbow bend; bring the far wrist inward if a chain would run out of '
+            'space (wrist not beyond x≈323). Keep links below and just behind the wrist, not raised or wrapped around the fingers. '
+            'Whole chain/sword outlines x=32–351 and clear of the face, legs and feet; in flight nothing below y=852.',
+            'The back longsword stays strapped on one diagonal: hilt visible behind the rear shoulder, sheath beside the far '
+            'hip. It does not move into the hand, swing into the face, or turn into a sword trail.',
+        ],
+        'cloth': ['Keep the diagonal chest strap and torn leather kilt panels as the front layers. Only free side/rear pieces and chain links lag slightly.'],
+        'face': 'Face: bald head, brow and cheek scars unobstructed by either cuff, chain or the back sword.',
+        'ko': ('경량: 맨상체·가죽 앞자락, 무릎 자유. 채택 사슬·주먹 시트만 기준. 두 손 주먹·각 손목 끊긴 사슬, '
+               '먼 손목 x≤약323, 사슬·등검 전체 x32–351, 도약 y≤852. 등 장검은 고정, 손 검·방패 없음.'),
+    },
     'sheet/monster/고블린': {
         'title': '고블린 이동', 'name': '고블린', 'refs': [],
         'character': ('Small green goblin: oversized pointed ears and amber eyes, diagonal leather strap, wrist wraps, '
@@ -1145,7 +1259,7 @@ def write_request(sid, out=None, force=False, date=None, spec=None, man=None):
                   f'tall); {height}.']
     receive = f'python3 tools/art/receive.py gait/{stem}_run'
     notes_h = f'## gait/{stem}_run - {c["title"]}'
-    refs_list = [f'guide_{p}_a/b', f'size_{p}_a/b', f'{stem}.png'] + [os.path.basename(r) for r, _ in refs_pkg] + ['pose.json']
+    refs_list = [f'guide_{p}_a/b', f'size_{p}_a/b', os.path.basename(geo['source'])] + [os.path.basename(r) for r, _ in refs_pkg] + ['pose.json']
     ko_files = [
         f'| `guide_{p}_a.png` / `guide_{p}_b.png` | **자세·자리 가이드** = 확정 {ko_cls} 마네킹 띠'
         f'{"를 시트 배율에 맞춰 조정" if geo["scaled"] else " 그대로"}({frames[0]["frame"]}'
@@ -1157,7 +1271,7 @@ def write_request(sid, out=None, force=False, date=None, spec=None, man=None):
     ]
     for r, what in refs_pkg:
         ko_files.append(f'| `{r}` | {"승인된 초상화 — 얼굴·머리·색" if "portrait" in r else "디자인 초안 — 디자인만"} |')
-    ko_files.append(f'| `art/inbox/{stem}.png` | **승인된 전투 시트 원본** — 디자인·색·크기의 기준. 1번 자세가 대기 |')
+    ko_files.append(f'| `{geo["source"]}` | **승인된 전투 시트 원본** — 디자인·색·크기의 기준. 1번 자세가 대기 |')
     if geo['scaled']:
         ko_files.append(f'| `{geo["pose"]}`, `{gif}` | 이 요청의 좌표·보폭과 원본 움직임. 덧그리기는 이 폴더의 '
                         f'`guide_{p}_a.png` / `guide_{p}_b.png` 위에만 한다. |')
@@ -1204,7 +1318,7 @@ def write_request(sid, out=None, force=False, date=None, spec=None, man=None):
         '    (the accepted mannequin, same canvas as your delivery: 1536x1024, 4 frames per strip in 384-px slots).',
         f'  - {reqdir}/size_{p}_a.png, size_{p}_b.png = the same frames with guide lines and the planted-toe ticks, and on the left',
         '    the accepted idle (faint) with the mannequin outline on top: the two are the SAME SCALE.',
-        f'  - art/inbox/{stem}.png (pose 1 = idle) = the accepted battle sheet: design, colours, outline, rendering and SIZE.',
+        f'  - {geo["source"]} (pose 1 = idle) = the accepted battle sheet: design, colours, outline, rendering and SIZE.',
         '    Same character, same pixel size, same palette.',
         *[f'  - {r} = {what}.' for r, what in refs_pkg],
         *([f'  - {geo["pose"]} (the scaled coordinates and stride), {gif} (motion reference only).',

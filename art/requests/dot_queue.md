@@ -21,7 +21,6 @@ Claude Code 가 받아서 확인한 결과는 `art/requests/feedback.md`에 남�
 
 | 누구 | 종류 | id | 할 일 (자세한 것은 그 줄의 요청서) |
 |---|---|---|---|
-| Antigravity | 손질 | `gait/sheet_class_rogue_run` | **주인 지적 (11-27): R4 다리가 잘렸다** — 원본 `art/inbox/gait/sheet_class_rogue_run_a.png` 의 R4 칸(x 1152–1536)에서 허벅지 높이(대략 y≈690)에 가로로 끊긴 이음매가 있다. 아랫다리 덩어리가 윗몸과 어긋나 붙어 있다. 두 다리가 허리에서 무릎·발까지 이어지게 다시 그린다(뜸 높이·발 위치는 그대로). **R8 도 같은 이음매가 있는지 확인한다.** R1 단검이 1배에서 안 보이는 것도 함께 손본다. 등록은 되돌렸다(게임은 걷기 대체 동작을 쓴다). 납품은 같은 이름 |
 | Antigravity | new | `gait/sheet_captain_lancer_run` | 대장 창기병 중량 이동 8프레임 (C8 요청서, 클라우드 대조 검증 반영). 요청서 `art/requests/gait/heavy__captain_lancer/README.md` |
 | Antigravity | new | `gait/sheet_captain_saintknight_run` | 대장 성광 기사 중량 이동 8프레임 (C8 요청서, 클라우드 대조 검증 반영). 요청서 `art/requests/gait/heavy__captain_saintknight/README.md` |
 | Antigravity | new | `gait/sheet_captain_archmagus_run` | 대장 대현자 로브 이동 8프레임 (C8 요청서, 클라우드 대조 검증 반영). 요청서 `art/requests/gait/robe__captain_archmagus/README.md` |

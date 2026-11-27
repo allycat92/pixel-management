@@ -136,6 +136,21 @@ def idle_region(src, layout):
     return src[:src.shape[0] // 2, :src.shape[1] // 2] if layout == '2x2' else src
 
 
+def gait_idle_source(src, layout, split):
+    idle = idle_region(src, layout)
+    if split is None:
+        return idle
+    if split != 'components' or layout == '2x2':
+        raise Fail(f'unsupported gait_split {split!r} for layout {layout!r}')
+    # 일부 승인된 1×4 띠는 자세가 x 상 겹치지만 서로 닿지 않는다. 등록 때와 같이 덩어리로 분리한다.
+    from sheets import split_poses
+    mask = fig_mask(idle)
+    poses = split_poses(mask.astype(np.float32), expect=4)
+    if len(poses) != 4:
+        raise Fail(f'gait_split components: expected four poses, found {len(poses)}')
+    return np.where((poses[0] & mask)[..., None], idle, MAG).astype(np.uint8)
+
+
 def geometry(sid, man=None):
     """everything the guides and the README need about one sheet, derived from the files (no per-character table)"""
     man = man or load_json(MANIFEST)
@@ -143,20 +158,24 @@ def geometry(sid, man=None):
     e = man[sid]
     meta = e['sheet']
     stem = os.path.splitext(os.path.basename(e['file']))[0]
-    src_rel = f'art/inbox/{stem}.png'
+    req = request_item(sid)
+    source = req.get('gait_source', f'{stem}.png')
+    if not isinstance(source, str) or os.path.basename(source) != source or not source.endswith('.png'):
+        raise Fail(f'{sid}: gait_source must be an accepted PNG basename in art/inbox')
+    src_rel = f'art/inbox/{source}'
     if not os.path.exists(path(src_rel)):
         raise Fail(f'{sid}: the accepted source sheet {src_rel} is not in this checkout')
     src = np.asarray(Image.open(path(src_rel)).convert('RGB'))
     if src.shape[:2] != (1024, 1536):
         raise Fail(f'{src_rel}: {src.shape[1]}x{src.shape[0]}, expected a 1536x1024 1x4 strip')
-    req = request_item(sid)
     layout = req.get('layout')
-    mk = fig_mask(idle_region(src, layout))
+    split = req.get('gait_split')
+    mk = fig_mask(gait_idle_source(src, layout, split))
     col = mk.any(0)
     if not col.any():
         raise Fail(f'{src_rel}: empty')
     x0 = int(np.argmax(col))
-    if layout == '2x2':
+    if layout == '2x2' or split == 'components':
         x1 = int(np.flatnonzero(col)[-1])  # 같은 칸 안의 떨어진 장비도 대기 그림에 남긴다
     else:
         x1 = x0
@@ -176,7 +195,7 @@ def geometry(sid, man=None):
     return {
         'sheet': sid, 'stem': stem, 'short': stem[len('sheet_'):], 'source': src_rel, 'registered': e['file'],
         'idle_x': [x0, x1], 'idle_top': int(ys.min()), 'idle_low': int(ys.max()), 'anchor_col': round(float(anchor_col), 1),
-        'scale': scale, 'scale_src': 'phase3.json', 'source_layout': layout,
+        'scale': scale, 'scale_src': 'phase3.json', 'source_layout': layout, 'source_split': split,
         'scale_registered': round(float(reg_scale), 4), 'cell': [cw, ch], 'anchor': [ax, ay],
         'game_idle_h': int(gys.max() - gys.min() + 1), 'tint': req.get('tint') or meta.get('tint'),
         'spots': req.get('spots'), 'package': req.get('package'), 'name_ko': req.get('name'),
@@ -332,7 +351,7 @@ def build(sid, outdir, cls=None, man=None, force=False):
             raise Fail(f'{outdir}: {", ".join(there)} already there - pass --force to rebuild')
     sheet = np.asarray(Image.open(path(geo['source'])).convert('RGB'))
     ix0, ix1 = geo['idle_x']
-    idle = idle_region(sheet, geo['source_layout'])[:, ix0:ix1 + 1]
+    idle = gait_idle_source(sheet, geo['source_layout'], geo['source_split'])[:, ix0:ix1 + 1]
     idle_y = 0
     if geo['source_layout'] == '2x2':
         # 위 왼쪽 원본은 y≈461에 디딘다. 위치 비교판은 y=870으로 옮기고 배율은 유지한다.

@@ -1372,3 +1372,30 @@ CHANGED:
 본 방법: `kato_chain_fullres_crop.png`(원본 1:1 4자세 크롭), `kato_chain_1x_compare.png`(0.18 셀112 및 0.1654 셀96 다크 `#2a2e26` / 풀 `#58723d` 배경 위 바렌과 나란히 1×·4× 비교), 양쪽 `sheets.py --dry-run` `preview_x4.png` 육안 대조
 고칠 점: 없음
 남은 걱정: `0.18`(대기 51×76px)에서는 바렌보다 덩치가 한 단 크게, `0.1654`(47×69px)에서는 일반 대장 키에 맞춰지는 차이가 있으므로, 전투 화면 실제 배치 크기는 후속 Codex 전투 QA에서 비교 후 확정 필요. 1× 크기에서 양손 사슬·등검·준비↔접촉 구분 모두 선명하게 읽힘.
+
+
+## gait/sheet_class_rogue_run - 병과 도적 달리기 (11-27 주인 지적 손질)
+CHECK:
+  check_delivery.py sheet_class_rogue_run_a.png --flight-slots 4 -> RESULT: PASS (figure colours: 31, dist 205.7, pose 1: x 68-305 top y=467 bot y=870, pose 2: x 421-676 top y=465 bot y=870, pose 3: x 823-1064 top y=471 bot y=870, pose 4: x 1216-1474 top y=475 bot y=848, pose 4 (flight): 22 px above the guide line (>= 18))
+  check_delivery.py sheet_class_rogue_run_b.png --flight-slots 4 -> RESULT: PASS (figure colours: 31, dist 205.7, pose 1: x 50-322 top y=467 bot y=870, pose 2: x 462-722 top y=464 bot y=870, pose 3: x 807-1092 top y=471 bot y=870, pose 4: x 1205-1468 top y=474 bot y=848, pose 4 (flight): 22 px above the guide line (>= 18))
+  add_gait.py sheet/class/rogue --gait run --dry-run -> 프레임별 맨 아래 픽셀 (바닥 줄 위 게임 px): 1:0 2:0 3:0 4:4 5:0 6:0 7:0 8:4 / sheet.gait = light / sheet/class/rogue: 시트 384x384, 15칸 — idle(4), attack(2), hit(1), run(8); runStride 45.5
+REFERENCES LOADED: guide_run_a/b, size_run_a/b, sheet_class_rogue.png, concept.png, pose.json -> ok
+CHANGED: 이전 판의 허리-허벅지 가로 절단·이식(`split_upper_below_sash` + `extract_clean_leg`)을 완전히 폐기하고, 8프레임 모두 **통몸(whole-body uncut)** 원화에서 재조립해 R4·R8 포함 R1–R8 전 프레임의 다리 이음매를 완전히 없앰(`seams: checked R1-R8`, `31`색, `boot_bleed=0`, 틸 허리띠 `412..1540 px`, 양쪽 금빛 눈광 `#f4d583` `44..257 px`, 먼 다리는 제자리 어둡기만 `0.72~0.85x` 적용).
+  - R1: 근접촉 (`top_y=467`, 디딘 발끝 `290` y=870, 제자리 먼 다리 `0.72x`). 뒤 가까운 손 역수 단검을 굵은 60px 밝은 은빛 칼날(`-18 deg`, `#e8e7df`/`#a6a49e` + `#191413` 외곽선, `dagger_hi=171 px`)로 키워 1× 게임 크기에서도 마젠타 위로 또렷이 읽히도록 수정.
+  - R2: 근착지 (`top_y=465`, 발끝 `222` y=870, 끊김 없는 통몸 + 자연스러운 뾰족 망토 + 앞 팔뚝 역수 단검 `dagger_hi=814 px`).
+  - R3: 근밀기 (`top_y=471`, 발끝 `154` [목표 155] y=870, 통몸 `-3.0 deg` 회전, 앞 먼 무릎 `0.74x` 어둡기 + 앞 역수 단검 `dagger_hi=705 px`).
+  - R4 (FLIGHT): `top_y=475`, `bot_y=848 <= 852` (`22 px` / `4` 게임px 체공, 100% 통몸 무절단으로 허리-허벅지-무릎-장화가 끊김 없이 이어짐, 앞 먼 다리 `0.78x`, 앞 역수 단검 `dagger_hi=615 px`, 금빛 두 눈 복구 `53 px`).
+  - R5: 원접촉 (`top_y=467`, 먼 디딘 발끝 `294` [목표 295] y=870, `b_v3 r0c0` `+13.0 deg` 기울기, 먼 앞다리 `0.76x` + 근 뒷다리 밝게 교차).
+  - R6: 원착지 (`top_y=464`, 먼 디딘 발끝 `227` y=870, `b_v3 r0c1` `+4.0 deg`, 팔·망토·허리띠 절단 없이 그대로 살리고 뒤 역수 은빛 단검 강조 `dagger_hi=616 px`, 먼 수직 다리 `0.85x`).
+  - R7: 원밀기 (`top_y=471`, 먼 디딘 발끝 `158` y=870, `b_v3 r0c2` `-4.5 deg`, 망토·팔 원형 유지 + 뒤 역수 은빛 단검 강조 `dagger_hi=596 px`, 먼 밀기 다리 `0.82x`).
+  - R8 (FLIGHT): `top_y=474`, `bot_y=848 <= 852` (`22 px` / `4` 게임px 체공, `b_v3 r0c3` 100% 통몸 무절단, 먼 뒷다리 `0.84x` vs 앞 근다리 밝음, 52px 뒤 역수 은빛 단검 `-18 deg` `dagger_hi=141 px`).
+DEVIATIONS:
+  - (a) from mannequin pose/position: none (발끝 `290, 222, 154` / `294, 227, 158`, `top_y` 464..475 [보브 7~11px], R4/R8 `bot_y=848 <= 852`).
+  - (b) from sheet design: none (`Pose 1` 파란 두건·어두운 마스크 `#263459/#394b78`·어깨 망토·갈색 가죽 흉갑·틸 허리띠·눈광 유지).
+  - (c) from ARMS AND WEAPONS: none (단검은 전 8칸 가까운 손 역수, 먼 손은 빈 주먹).
+RISKS AT GAME SIZE: 없음 (R1–R8 전 프레임 1:1 허벅지-장화 크롭, 1×/4× 개별 비교, preview_x4 및 4× GIF에서 이음매·잘림·미끄러짐 및 1× R1 단검 시인성 모두 확인).
+## 판정 — gait/sheet_class_rogue_run
+결과: 통과
+본 방법: seams: checked R1-R8; `rogue_seam_check_1x4x.png`(R1–R8 + 대기 1:1 허리-장화 크롭 및 1×/4× 개별 프레임 어두운/풀밭 배경 대조), `work_v2/sheet_class_rogue_preview_x4.png`, `rogue_gif_frames_v2.png`(`add_gait --dry-run` 4× GIF 전 8프레임), `rogue_tint_mask.png`, `rogue_guide_overlay_a/b.png` 육안 대조
+고칠 점: 없음
+남은 걱정: 없음

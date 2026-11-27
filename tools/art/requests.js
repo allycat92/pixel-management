@@ -501,13 +501,17 @@ Object.entries(D.CAPTAINS).forEach(([key, C]) => {
 // 여기 적어 두면 sheets.py · check_delivery.py · receive.py 가 플래그 없이 같은 결과를 낸다.
 // 그림이 가이드보다 작게 그려진 시트의 변환 배율 (원본이 6배 크므로 다시 그리지 않고 변환에서 맞춘다; 몸 크기를 다른 대장과 같게).
 //   pirateking: 대기 실루엣 363px(모자 포함) — 다른 대장 400~435px 보다 12~15% 작게 그려졌다 (art-inbox 9124b86)
-const DRAWN_SMALL = { pirateking: 0.185, frostjarl: 0.18, liberator: 0.18 };   // frostjarl: 대기 370px (b476149), liberator: 368px (75063a9)
-const CELL_112 = new Set(['lancer', 'pilgrim', 'titan', 'pirateking', 'liberator']);   // 든 무기·덩치가 96칸(자세 높이 90px)을 넘는 대장
+const DRAWN_SMALL = { pirateking: 0.185, frostjarl: 0.18 };   // frostjarl: 대기 370px (b476149)
+const CELL_112 = new Set(['lancer', 'pilgrim', 'titan', 'pirateking']);   // 든 무기·덩치가 96칸(자세 높이 90px)을 넘는 대장
 phase3.forEach((it) => {
   const m = /^sheet\/(captain|hero)\/([a-z_]+)$/.exec(it.id);
   if (!m || m[2].endsWith('_mounted')) return;
   if (it.scale == null) it.scale = DRAWN_SMALL[m[2]] || GPT_SCALE;
   if (it.cell == null) it.cell = CELL_112.has(m[2]) ? 112 : 96;
+  // 카토의 채택본(90d7e0c)은 옛 손 장검 그림과 다른 이름이며, 0.1654 / 96 으로 등록됐다.
+  if (it.id === 'sheet/captain/liberator') it.gait_source = 'sheet_captain_liberator_chain.png';
+  // 우르그의 대기와 준비 자세는 x 투영만 겹친다. 등록과 같이 덩어리로 분리한다.
+  if (it.id === 'sheet/captain/titan') it.gait_split = 'components';
 });
 fs.writeFileSync(path.join(ROOT, 'art/requests/phase3.json'), JSON.stringify({ version: 1, phase: 3, inbox: 'art/inbox/', items: phase3 }, null, 2) + '\n');
 const md3 = [

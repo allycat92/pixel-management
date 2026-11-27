@@ -143,6 +143,10 @@
       "gait": "heavy",
       "why": "polished blue plate armour, steel greaves and sabatons, ornate plumed helmet, surcoat, infantry lance."
     },
+    "sheet/captain/liberator": {
+      "gait": "light",
+      "why": "Registered chains-and-fists idle (90d7e0c): bare scarred torso, leather strap and kilt over free knees, no plate or shield; clenched hands with broken wrist chains, longsword secured on his back. The arms are free to run; a heavy hit weight is not a heavy gait."
+    },
     "sheet/captain/lightbearer": {
       "gait": "robe",
       "why": "layered cream-white robes to the lower shin with orange flame embroidery on the skirt panels and hem; short cream boots (shaft and foot) show below the hem, and the back cape hangs a little lower on the far side."
@@ -300,12 +304,7 @@
       "why": "humanoid skeleton: bones, cloth scraps at the hips, open helmet, round wooden shield, sword."
     }
   },
-  "pending_packages": {
-    "sheet/captain/liberator": {
-      "gait": "light",
-      "why": "art/requests/phase3/captain_liberator exists but no sheet is registered yet; bare scarred torso, leather gladiator kilt/pants, shackles, one-handed longsword - light (hit weight 'heavy' is about how he takes a blow, not his gait)."
-    }
-  },
+  "pending_packages": {},
   "class_defaults": {
     "about": "Defaults for units WITHOUT their own sheet and for commissioning FUTURE sheets. The gait of a unit on screen must follow the sheet actually drawn (Art.sheetFor: art portrait -> monster -> captain -> hero -> class master -> adv -> base). Today every adv/master unit falls back to sheet/class/<base> and must use THAT sheet's gait (e.g. a paladin drawn with the warrior sheet runs light). Lookup when deciding a gait: sheets[<the sheet used>] > class_defaults.master[key] > adv[key] > base[cls]; sheet-less captains use captain_style; enemies use enemy_tpl.",
     "base": {
@@ -375,7 +374,7 @@
       "cleric": "light",
       "rogue": "light"
     },
-    "captain_style_why": "only for a captain without a sheet; every current captain except liberator has a sheet entry above (which wins)",
+    "captain_style_why": "only for a captain without a sheet; current registered captain sheets use their entry above (which wins)",
     "hero_class_to_sheet": {
       "silverscout": "sheet/hero/kai",
       "exsaint": "sheet/hero/seraphine",
