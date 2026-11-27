@@ -30,6 +30,18 @@ Object.assign(Game, {
   isDestroyed(f) { return (this.state.destroyed || []).includes(f); },
   isCalamity(f) { return !!(f && FACTIONS[f] && FACTIONS[f].calamity); },
   aliveFactions() { return FACTION_KEYS.filter((f) => !this.isDestroyed(f)); },
+  // 상대가 사라진 의뢰: 멸망한 세력이나 이미 토벌된 재앙을 겨냥한 의뢰 (QA Q8). 게시판에서 내리고 출격도 막는다.
+  // 이미 떠난 의뢰(s.missions)는 건드리지 않는다 — 굳혀 둔 확률·전투·보수 그대로 판정한다
+  deadTarget(c) {
+    const t = c && c.target;
+    return !!t && (this.isDestroyed(t) || (this.isCalamity(t) && this.state.calamity !== t));
+  },
+  dropDeadTargets() {
+    const s = this.state;
+    const n = s.contracts.length;
+    s.contracts = s.contracts.filter((c) => !this.deadTarget(c));
+    return n - s.contracts.length;
+  },
   // 전쟁·관계 계산에 참여하는 세력 (살아 있는 6세력 + 대두한 재앙)
   activeFactions() { return this.state.calamity ? [...this.aliveFactions(), this.state.calamity] : this.aliveFactions(); },
 
@@ -357,6 +369,8 @@ Object.assign(Game, {
     s.calamity = null;
     s.calamityDefeated = key;
     this.log(`☀ ${F.leader} 토벌! ${F.name}${josa(F.name, '이', '가')} 무너지고 대륙에 다시 아침이 찾아옵니다.`, 'world');
+    const dropped = this.dropDeadTargets();
+    if (dropped) this.log(`${F.name}${josa(F.name, '이', '가')} 사라져 그들을 상대로 한 의뢰 ${dropped}건이 게시판에서 내려갔습니다.`, 'world');
     s.pendingReports.push({ special: 'savior', calamity: key });
   },
 

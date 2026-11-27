@@ -71,6 +71,7 @@ const Game = {
       if (st.version !== SAVE_VERSION) return false;
       this.state = st;
       this.normalizeCompanies(); // 용병단이 4~9명이던 저장: 정원을 넘는 대원은 예비 인원으로
+      this.dropDeadTargets();    // 재앙 토벌·멸망 뒤에도 게시판에 남은 의뢰가 있던 저장 (QA Q8)
       return true;
     } catch (e) { return false; }
   },

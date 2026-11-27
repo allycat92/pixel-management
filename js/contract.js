@@ -211,7 +211,7 @@ Object.assign(Game, {
     const s = this.state;
     // 전투 모드: 게시판이 BM_BOARD_EXTRA 칸 넓다 — 벅찬 의뢰가 이길 만한 일감의 자리를 빼앗지 않게 (검증 3·5번)
     const max = 3 + s.facilities.board + (s.resolve === 'battle' ? Stats.KN.BM_BOARD_EXTRA : 0);
-    s.contracts = s.contracts.filter((c) => c.expires >= s.day);
+    s.contracts = s.contracts.filter((c) => c.expires >= s.day && !this.deadTarget(c)); // 상대가 사라진 의뢰도 내린다 (옛 저장)
     const normal = () => s.contracts.filter((c) => !c.story && !c.boss && !c.campaign).length;
     let guard = 0;
     while (normal() < max && guard++ < 12) {
@@ -326,6 +326,12 @@ Object.assign(Game, {
     const s = this.state;
     const c = s.contracts.find((x) => x.id === contractId);
     if (!c || !units.length || this.storyHeroMissing(c, units)) return;
+    if (this.deadTarget(c)) {
+      // 옛 저장 등에 남은, 상대가 이미 사라진 의뢰 (QA Q8)
+      s.contracts = s.contracts.filter((x) => x.id !== contractId);
+      this.toast(`${FACTIONS[c.target].name}${josa(FACTIONS[c.target].name, '은', '는')} 이미 사라져 이 의뢰는 맡을 수 없습니다. 게시판에서 내렸습니다.`);
+      return this.emit();
+    }
     const slots = this.dispatchSlots(c);
     if (units.length > slots) return this.toast(`이 의뢰에는 용병단을 ${slots}개까지만 보낼 수 있습니다. (직속·외부 합계, 최대 ${MAX_DISPATCH}개)`);
     const { own, ext, allMembers } = this.unitParts(units);
