@@ -31,7 +31,7 @@ MAT = {
     'prop': (150, 170, 182),
     'robe': (120, 160, 200),
 }
-MARK = {'belt': (92, 70, 52), 'sternum': (120, 96, 80), 'eye': (60, 48, 56)}
+MARK = {'belt': (92, 70, 52), 'sternum': (120, 96, 80), 'eye': (60, 48, 56), 'sole': (84, 66, 58)}
 BANDS = (0.55, 0.72, 0.88, 1.0)
 # SPEC.md joints layer colours (near, far)
 JOINT_COL = {
@@ -39,6 +39,8 @@ JOINT_COL = {
     'S': ((255, 128, 0), (200, 100, 0)), 'elb': ((255, 0, 0), (170, 0, 0)), 'hand': ((0, 0, 255), (0, 0, 170)),
 }
 NECK_COL = (255, 255, 255)
+GHOST_LINE = (20, 90, 110)        # prop / robe outline where it is in front
+GHOST_HIDDEN = (120, 190, 205)    # prop / robe outline where a body part is in front of it (dashed)
 
 
 def view_matrix(yaw):
@@ -169,6 +171,80 @@ def raster_ellipsoid(buf, cam, prim, mi, pi):
     _merge(buf, x0, x1, y0, y1, best, nv, mi, pi)
 
 
+def raster_slab(buf, cam, prim, mi, pi):
+    """flat rounded rectangle (shields): ray-plane hit, inside test in the slab's own (u, v) axes"""
+    c = cam.to_view(prim['c'])
+    A = cam.V @ prim['R']
+    u, v, n = A[:, 0], A[:, 1], A[:, 2]
+    if abs(n[2]) < 0.12:          # edge-on: nothing sensible to fill
+        return
+    hu, hv = prim['half']
+    rc = min(prim['corner'], hu, hv)
+    ext_x = abs(u[0]) * hu + abs(v[0]) * hv
+    ext_y = abs(u[1]) * hu + abs(v[1]) * hv
+    sx, sy = cam.hip_x + c[0], cam.floor + 1 - c[1]
+    x0 = max(0, int(np.floor(sx - ext_x - 1)))
+    x1 = min(buf.w, int(np.ceil(sx + ext_x + 1)))
+    y0 = max(0, int(np.floor(sy - ext_y - 1)))
+    y1 = min(buf.h, int(np.ceil(sy + ext_y + 1)))
+    if x0 >= x1 or y0 >= y1:
+        return
+    X, Y = _grid(buf, cam, x0, x1, y0, y1)
+    dX, dY = X - c[0], Y - c[1]
+    Z = c[2] - (n[0] * dX + n[1] * dY) / n[2]
+    D = np.stack([dX, dY, Z - c[2]], -1)
+    lu, lv = D @ u, D @ v
+    qx = np.maximum(np.abs(lu) - (hu - rc), 0.0)
+    qy = np.maximum(np.abs(lv) - (hv - rc), 0.0)
+    inside = (np.abs(lu) <= hu) & (np.abs(lv) <= hv) & (qx * qx + qy * qy <= rc * rc)
+    nv = n if n[2] > 0 else -n
+    nrm = np.broadcast_to(nv, X.shape + (3,)).copy()
+    _merge(buf, x0, x1, y0, y1, np.where(inside, Z, -np.inf), nrm, mi, pi)
+
+
+def raster_skirt(buf, cam, prim, mi, pi):
+    """cloth proxy: horizontal elliptical cross-sections (centre cx, cz, half widths a along x, c along z) interpolated
+    linearly between rings by height; exact ray hit per pixel (nearest of the two roots)."""
+    R = prim['rings']                      # rows: y, cx, cz, a, c (top -> bottom, y decreasing)
+    ys_w = R[::-1, 0]
+    cs, sn = np.cos(np.radians(cam.yaw)), np.sin(np.radians(cam.yaw))
+    ymin, ymax = R[:, 0].min(), R[:, 0].max()
+    span = np.abs(R[:, 3]).max() + np.abs(R[:, 4]).max()
+    cxv = cs * R[:, 1] - sn * R[:, 2] + cam.dx
+    x0 = max(0, int(np.floor(cam.hip_x + cxv.min() - span - 1)))
+    x1 = min(buf.w, int(np.ceil(cam.hip_x + cxv.max() + span + 1)))
+    y0 = max(0, int(np.floor(cam.floor + 1 - ymax)))
+    y1 = min(buf.h, int(np.ceil(cam.floor + 1 - ymin)))
+    if x0 >= x1 or y0 >= y1:
+        return
+    X, Y = _grid(buf, cam, x0, x1, y0, y1)
+    yy = Y[:, 0]
+    cx = np.interp(yy, ys_w, R[::-1, 1])[:, None]
+    cz = np.interp(yy, ys_w, R[::-1, 2])[:, None]
+    a = np.interp(yy, ys_w, R[::-1, 3])[:, None]
+    c = np.interp(yy, ys_w, R[::-1, 4])[:, None]
+    inrow = ((yy >= ymin) & (yy <= ymax))[:, None]
+    Xv = X - cam.dx
+    U0 = cs * Xv - cx                       # world x - cx = cs*Xv + sn*Z - cx
+    W0 = -sn * Xv - cz                      # world z - cz = -sn*Xv + cs*Z - cz
+    qa = sn * sn / (a * a) + cs * cs / (c * c)
+    qb = 2 * (sn * U0 / (a * a) + cs * W0 / (c * c))
+    qc = U0 * U0 / (a * a) + W0 * W0 / (c * c) - 1.0
+    disc = qb * qb - 4 * qa * qc
+    hit = (disc >= 0) & inrow
+    Z = (-qb + np.sqrt(np.maximum(disc, 0.0))) / (2 * qa)
+    u = U0 + sn * Z
+    w = W0 + cs * Z
+    lf, lb = prim.get('hem_lift', (0.0, 0.0))
+    if lf or lb:        # the hem rises toward its front and back edges (cloth swung by the legs), not a flat cut
+        un = u / a
+        hit &= Y >= ymin + lf * np.maximum(un, 0) ** 2 + lb * np.maximum(-un, 0) ** 2
+    nw = np.stack([u / (a * a), 0.35 * np.sqrt((u / (a * a)) ** 2 + (w / (c * c)) ** 2), w / (c * c)], -1)
+    nv = nw @ cam.V.T
+    nv /= np.maximum(np.linalg.norm(nv, axis=-1, keepdims=True), 1e-9)
+    _merge(buf, x0, x1, y0, y1, np.where(hit, Z, -np.inf), nv, mi, pi)
+
+
 def _merge(buf, x0, x1, y0, y1, z, nrm, mi, pi):
     sub = buf.depth[y0:y1, x0:x1]
     upd = z > sub
@@ -180,6 +256,9 @@ def _merge(buf, x0, x1, y0, y1, z, nrm, mi, pi):
     buf.normal[y0:y1, x0:x1][upd] = nrm[upd]
 
 
+RASTER = {'capsule': raster_capsule, 'ellipsoid': raster_ellipsoid, 'slab': raster_slab, 'skirt': raster_skirt}
+
+
 def rasterize(prims, cam, w, h):
     buf = Buffers(w, h)
     mats, parts = [], []
@@ -188,7 +267,7 @@ def rasterize(prims, cam, w, h):
             mats.append(pr['mat'])
         parts.append(pr['part'])
         mi, pi = mats.index(pr['mat']), len(parts) - 1
-        (raster_capsule if pr['type'] == 'capsule' else raster_ellipsoid)(buf, cam, pr, mi, pi)
+        RASTER[pr['type']](buf, cam, pr, mi, pi)
         if pr.get('clip_below') is not None:      # robe hem: nothing of this primitive below that height
             row = int(np.floor(cam.floor + 1 - pr['clip_below']))
             sel = buf.part[max(0, row):, :] == pi
@@ -264,6 +343,13 @@ def body_marks(buf, cam, body, parts, P):
     Rh = Fm['head']
     lh = (W - J['head']) @ Rh
     marks['eye'] = mask_of((part == 'head') & (lh[:, 0] > P['head_r'][0] * 0.35) & (np.abs(lh[:, 1] - 2.0) < 3.2))
+    # sole: the bottom 3 px of each foot in its own frame (shows the heel, the arch line and the toe)
+    sole = np.zeros(len(xs), bool)
+    for s_ in 'NF':
+        Rf = Fm['foot' + s_]
+        lf = (W - J['ank' + s_]) @ Rf
+        sole |= np.isin(part, ['foot' + s_]) & (lf[:, 1] < -(P['ankle_h'] - 3.0))
+    marks['sole'] = mask_of(sole)
     return marks
 
 
@@ -283,6 +369,12 @@ def draw_joints(img, buf, cam, body, P, radius=5):
     p, z = cam.to_screen(J['neck0'])
     x, y = int(round(p[0] - 0.5)), int(round(p[1] - 0.5))
     d.ellipse([x - 4, y - 4, x + 4, y + 4], fill=NECK_COL, outline=tuple(OUTLINE.tolist()))
+    for s in sorted(getattr(body, 'grips', ())):
+        # the hand that holds a prop: a ring in the prop outline colour around its dot (drawn even if the dot is hidden)
+        p, _ = cam.to_screen(J['hand' + s])
+        x, y = int(round(p[0] - 0.5)), int(round(p[1] - 0.5))
+        r2 = radius + 4
+        d.ellipse([x - r2, y - r2, x + r2, y + r2], outline=GHOST_LINE, width=2)
 
 
 def render(body, P, cam, bg=MAGENTA, joints=True, ground=True, ghosts=True, marks=True):
@@ -305,19 +397,24 @@ def render(body, P, cam, bg=MAGENTA, joints=True, ground=True, ghosts=True, mark
         gmask = gb.depth > -np.inf
         gs = shade(gb, gm)
         gsil, _ = edges(gb, gmask)
-        fill = gmask & ~gsil
+        # depth test against the body: where a body part is nearer than the ghost, the ghost is BEHIND it
+        behind = gmask & mask & (gb.depth < buf.depth - 1.0)
+        fill = gmask & ~gsil & ~behind
         over_body = fill & mask
         out[over_body] = (out[over_body] * 0.55 + gs[over_body] * 0.45).astype(np.uint8)
         over_bg = fill & ~mask          # on the background: the prop colour itself (no magenta tint)
         out[over_bg] = np.clip(gs[over_bg] * 0.9 + 25, 0, 255).astype(np.uint8)
-        gcol = np.array([20, 90, 110])
-        out[gsil] = gcol
+        yy, xx = np.mgrid[0:h, 0:w]
+        dash = ((xx + yy) // 4) % 2 == 0
+        out[gsil & ~behind] = GHOST_LINE
+        out[gsil & behind & dash] = GHOST_HIDDEN        # hidden outline: dashed and lighter, never solid over a nearer limb
     img = Image.fromarray(out)
     if ground:
         d = ImageDraw.Draw(img)
         d.line([(0, cam.floor + 1), (w - 1, cam.floor + 1)], fill=(120, 120, 120), width=1)
     if joints:
         draw_joints(img, buf, cam, body, P)
+    body.render_info = {'buf': buf, 'parts': parts}    # per-pixel part ids for the checks (checks.py)
     return img, mask
 
 

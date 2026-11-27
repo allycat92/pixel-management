@@ -80,6 +80,7 @@ const Battle = (() => {
 
 
   let raf = null;
+  let cancelSheetWait = null;
   let lastSt = null;   // 마지막으로 재생한 전투 상태 (Battle.last)
 
   // ───────── 시드 난수 ─────────
@@ -791,6 +792,29 @@ const Battle = (() => {
   const GHOST_FAR = 20;
   const SQUEEZE = 2;                 // 거듭 막힌 걸음이 서 있는 아군을 지나갈 수 있는 시간(초)
   const GAIN = 2, STALL = 3;         // 닿지 못한 걸음이 목표와의 거리를 GAIN(px)도 못 줄인 채 STALL 초를 걸으면 막힌 것으로 친다
+  // 주인 지적(2026-11-28): 근접 적에게 붙은 원거리 유닛이 화면 끝까지 몸으로 밀려 가는 것처럼 보였다. 까닭은 겹침이 아니라 뒷걸음이었다 —
+  // 0.6배 빠르기로 쉬지 않고 물러나는 원거리를 더 빠른 근접이 사거리 끝(약 16px)에 붙어 따라와, 둘이 함께 평균 50px 을 미끄러져 가장자리에 박혔다.
+  // 주인 기준: 쫓고 쫓기는 것은 괜찮지만 몸으로 밀리는 것처럼 보이면 안 된다 (근접이 제자리에서 휘두르는 동안 원거리가 빠지는 것은 괜찮다).
+  const HOLD = 0.35;                 // 공격·치유를 쓴 몸은 그 동작(화면 0.28~0.5초) 동안 제자리에 선다 — 휘두르며·쏘며 미끄러지지 않게
+  const BACK_ROOM = 30, BACK_ROOM_Y = 12;   // 물러나는 원거리는 가장자리에서 이만큼 안쪽까지만 간다 (그 앞에서는 선 채로 싸우거나 옆으로 비킨다)
+  // 원거리가 붙은 적 tg 에게서 물러날 방향 (물러나지 않으면 null). 제 발로 제 빠르기로 뛰어 물러난다:
+  // 나를 노리고 붙은 근접 적이 모두 제자리에서 휘두르는 중(hold)이거나 기절했을 때만 — 따라오는 적 앞에서 뒷걸음질하면 함께 미끄러져 밀리는 것처럼 보인다.
+  // 아군 쪽(아군 무리의 가운데)으로 반쯤 꺾고, 가장자리로 가는 성분은 BACK_ROOM 앞에서 지운다. 적 쪽으로는 가지 않는다.
+  function backOff(st, u, live, dx, dy, d) {
+    for (const e of live) {
+      if (e.side === u.side || e.target !== u || e.g.routed || !isMelee(e) || e.hold > st.t || e.stunUntil > st.t) continue;
+      if (meleeDist(e, u) - sizeOf(e) < (e.skills[0].range + BODY) * 2) return null;
+    }
+    let ax = -dx / d, ay = -dy / d, cx = 0, cy = 0, n = 0;
+    for (const a of live) if (a.side === u.side && a !== u && !a.g.routed) { cx += a.x; cy += a.y; n++; }
+    if (n) { const bx = cx / n - u.x, by = cy / n - u.y, bl = len2(bx, by); if (bl > 1) { ax += (bx / bl) * 0.5; ay += (by / bl) * 0.5; } }
+    const e = EDGE + sizeOf(u) * EDGE_BIG;
+    if ((ax < 0 && u.x < e + BACK_ROOM) || (ax > 0 && u.x > W - e - BACK_ROOM)) ax = 0;
+    if ((ay < 0 && u.y < TOP + BACK_ROOM_Y) || (ay > 0 && u.y > BOTTOM - BACK_ROOM_Y)) ay = 0;
+    const l = len2(ax, ay);
+    if (l < 0.35 || ax * dx + ay * dy > 0) return null;
+    return [ax / l, ay / l];
+  }
   // 원거리·치유: 서 있는 아군과 몸이 깊이 겹친 채로는 멈추지 않는다 (조금 더 걸어 나가 선다)
   function crowdedAt(u, live) {
     for (const o of live) {
@@ -900,6 +924,7 @@ const Battle = (() => {
 
   function useSkill(st, u, sk, t, live) {
     sk.left = sk.cd * (0.9 + st.r() * 0.2);
+    u.hold = st.t + HOLD;
     if (sk !== u.skills[0] && (u.named || u.captain || u.boss)) st.fx.push({ kind: 'label', x: u.x, y: u.y - 26, text: sk.name, t: 0, side: u.side });
     if (sk !== u.skills[0]) st.fx.push({ kind: 'cast', x: u.x, y: u.y, t: 0, r: max(12, sk.aoe || 12), color: sk.tgt === 'hurt' ? '#7ed37e' : SHOT_COLOR[sk.shot] || (sk.buff ? '#f2c94c' : '#ffffff') });
     // 아군 대장·특별 용병의 특기는 컷인으로 보여 준다
@@ -1012,7 +1037,7 @@ const Battle = (() => {
         if (!t) {
           let foe = null, fd = Infinity;
           for (const e of live) { if (e.side !== u.side && !e.g.routed) { const d = dist(e, u); if (d < fd) { fd = d; foe = e; } } }
-          if (foe && fd > basic.range * 0.9) {
+          if (foe && fd > basic.range * 0.9 && !(u.hold > st.t)) {
             const dx = foe.x - u.x, dy = foe.y - u.y, d = len2(dx, dy) || 1;
             const sv = steer(u, live, dx / d, dy / d, foe.x, foe.y, foe);
             const hx = sv ? sv[0] : dx / d, hy = sv ? sv[1] : dy / d;
@@ -1050,7 +1075,10 @@ const Battle = (() => {
       const ex = gx - u.x, ey = gy - u.y, ed = len2(ex, ey);
       u.sq = u.squeeze > st.t; u.short = md > reach; u.md = md;
       u.far = md > reach + GHOST_FAR || u.sq;   // 거듭 막혔던 걸음은 잠깐 서 있는 아군 사이를 비집고 지나간다 (아래 stuckN)
-      if (md > reach || (melee && ed > 3) || (!melee && crowdedAt(u, live))) {
+      const hold = u.hold > st.t;   // 방금 쓴 공격 동작이 끝날 때까지 제자리 (HOLD)
+      let bk = null;
+      if (hold) { /* 선 채로 */ }
+      else if (md > reach || (melee && ed > 3) || (!melee && crowdedAt(u, live))) {
         // 대장 근처로 모이려는 힘을 약간 섞는다 (부대 대형 유지) — 목표에 닿기 전까지만
         let mx = ex / (ed || 1), my = ey / (ed || 1);
         const cap = u.g.captain;
@@ -1066,10 +1094,14 @@ const Battle = (() => {
         const stepLen = min(v, ed || v);
         u.x += (mx / ml) * stepLen; u.y += (my / ml) * stepLen;
         u.moving = stepLen > 0.2; u.wantStep = stepLen;
-      } else if (basic.shot && d < reach * 0.45) {
-        // 원거리 유닛은 너무 붙으면 물러난다
-        u.x -= (dx / d) * SPD * 0.6 * DT; u.y -= (dy / d) * SPD * 0.3 * DT;
-        u.moving = true; u.wantStep = len2(dx * 0.6, dy * 0.3) / d * SPD * DT;
+      } else if (basic.shot && d < reach * 0.45 && basic.left > 0 && (bk = backOff(st, u, live, dx, dy, d))) {
+        // 원거리 유닛은 너무 붙으면 물러난다 — 적이 휘두르는 틈에, 돌아서서 제 빠르기로 뛰어 (backOff). 서 있는 몸은 돌아간다 (steer)
+        let mx = bk[0], my = bk[1];
+        const sv = steer(u, live, mx, my, u.x + mx * 40, u.y + my * 40, tg);
+        if (sv) { mx = sv[0]; my = sv[1]; }
+        u.x += mx * SPD * DT; u.y += my * SPD * DT;
+        if (abs(mx) > 0.05) u.face = mx > 0 ? 1 : -1;
+        u.moving = true; u.wantStep = SPD * DT;
       }
       if (md <= reach && basic.left <= 0) useSkill(st, u, basic, tg, live);
     }
@@ -1214,7 +1246,7 @@ const Battle = (() => {
   // ───────── 능력치 전투 (그림자) ─────────
   // spec(js/muster.js 가 출격 때 굳힌 편성) 하나로 한 판을 끝까지 돌린다. 같은 spec 이면 언제나 같은 기록이 나온다.
   // 전투 계산을 바꾸면 VER 을 올린다. 편성 밖에서 읽는 표(스킬·속도·조정값)는 tab 요약값으로 따로 지킨다.
-  const VER = 1;
+  const VER = 2;   // 2: 공격 뒤 제자리(HOLD)·원거리 물러서기(backOff) (2026-11-28)
   const fnv = (h, v) => { for (let i = 0; i < 4; i++) { h ^= (v >>> (i * 8)) & 0xff; h = Math.imul(h, 0x01000193) >>> 0; } return h; };
   let fixedTables = null;
   let tabSource = null, tabCache = null;
@@ -2932,11 +2964,22 @@ const Battle = (() => {
       if (st.over && st.t - st.endT > END_HOLD) return finish();
       raf = requestAnimationFrame(loop);
     };
-    raf = requestAnimationFrame(loop);
+    const start = () => {
+      cancelSheetWait = null;
+      last = performance.now();
+      raf = requestAnimationFrame(loop);
+    };
+    if (typeof Art !== 'undefined' && Art.beforeBattle) cancelSheetWait = Art.beforeBattle(st.units, start);
+    else start();
     return wrap;
   }
 
-  function stop() { if (raf) cancelAnimationFrame(raf); raf = null; }
+  function stop() {
+    if (cancelSheetWait) cancelSheetWait();
+    cancelSheetWait = null;
+    if (raf) cancelAnimationFrame(raf);
+    raf = null;
+  }
 
   return { play, stop, plan, simulate, findBattle, VER, SHOW_K, showNum, setup, step, begin, record, run, last: () => lastSt };
 })();

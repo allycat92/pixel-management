@@ -5,7 +5,8 @@
 Source of the drawing (source px = the request strips' pixels, floor y = 870):
   1. art/inbox/<stem>.png in this checkout, else 2. `git show origin/art-inbox:art/inbox/<stem>.png`; the idle is the
      first pose of the 1x4 strip, cut and anchored exactly as tools/art/run_request_guides.py does (geometry()).
-  3. If neither exists: frame 0 of the registered sheet (assets/art/sheets/*.png) blown up by 1/scale (coarse).
+  3. If neither exists: frame 0 of the registered sheet (assets/art/sheets/*.png) blown up by 1/scale (coarse). The report
+     says so (coarse_source); build.py refuses to make painter guides from it unless --allow-coarse.
 
 What is measured on the idle silhouette (all heights above the floor, source px):
   top       first row from the top whose silhouette is >= 14 px wide (helmet spikes, plumes, hat tips are skipped);
@@ -27,6 +28,9 @@ Every number is also measured, the same way, on the canonical mannequin rendered
 the sheets), and the RATIOS drawing / mannequin set the factors: height -> uniform scale; head (clamped 0.8-1.25);
 trunk length from shoulder - hip (0.85-1.2); legs from a measured crotch only (0.85-1.15); limb bulk (0.85-1.45).
 Arms keep the canonical arm : height ratio. A last pass rescales so the fitted mannequin's idle has the measured height.
+Values the silhouette cannot show (the hip under a tabard or robe, the arm length) can be set once per character in
+specs/carry3d.json `fit_override` ({'hip_h': px, 'arm': factor}); the report then says 'override'.
+hem_w: widest run 34-46 px above the floor (a robe's hem width) - the robe proxy's minimum hem width.
 The result is a rig proportions dict (rig.CANON keys).
 """
 import json
@@ -78,7 +82,7 @@ def idle_drawing(sid):
         idle = np.zeros_like(mk)
         idle[:, x0:x1 + 1] = mk[:, x0:x1 + 1]
         rgb = src.copy()
-        return rgb, idle, {'source': origin, 'anchor_col': geo['anchor_col'], 'scale': scale, 'heads': req.get('heads', 4),
+        return rgb, idle, {'source': origin, 'coarse': False, 'anchor_col': geo['anchor_col'], 'scale': scale, 'heads': req.get('heads', 4),
                            'idle_x': [x0, x1], 'stem': stem}
     if src is not None:
         mk = rrg.fig_mask(src)
@@ -89,7 +93,7 @@ def idle_drawing(sid):
             x1 += 1
         idle = np.zeros_like(mk)
         idle[:, x0:x1 + 1] = mk[:, x0:x1 + 1]
-        return src, idle, {'source': origin, 'anchor_col': float(rrg.feet_x(idle)), 'scale': scale,
+        return src, idle, {'source': origin, 'coarse': False, 'anchor_col': float(rrg.feet_x(idle)), 'scale': scale,
                            'heads': req.get('heads', 4), 'idle_x': [x0, x1], 'stem': stem}
     # registered sheet frame 0, blown up
     meta = e['sheet']
@@ -109,7 +113,7 @@ def idle_drawing(sid):
     rgb[ys[ok] + oy, xs[ok] + ox] = big[ys[ok], xs[ok], :3]
     idle = np.zeros((1024, 384), bool)
     idle[ys[ok] + oy, xs[ok] + ox] = True
-    return rgb, idle, {'source': e['file'] + ' (frame 0 x %.2f)' % k, 'anchor_col': 192.0, 'scale': scale,
+    return rgb, idle, {'source': e['file'] + ' (frame 0 x %.2f)' % k, 'coarse': True, 'anchor_col': 192.0, 'scale': scale,
                        'heads': req.get('heads', 4), 'idle_x': [int(xs.min() + ox), int(xs.max() + ox)], 'stem': stem}
 
 
@@ -222,6 +226,13 @@ def measure(mask, anchor_col, heads=4):
         if len(segs) >= 2:
             segs.sort(key=lambda g: g[0])
             legs.append((len(segs[0]), len(segs[-1])))
+    # widest run through the anchor column 34..46 px above the floor (a robe's hem; on legs it is just the leg)
+    hw = []
+    for y in range(FLOOR - 46, FLOOR - 33):
+        r = run_through(mask[y], anchor_col)
+        if r is not None:
+            hw.append(r[1] - r[0])
+    m['hem_w'] = int(max(hw)) if hw else None
     if len(legs) >= 10:
         a = np.array(legs)
         m['leg_w'] = round(float(np.median([a[:, 0].min(), a[:, 1].min()])), 1)
@@ -251,9 +262,14 @@ def render_mask(P, pose, yaw=15.0):
     return img, mask, body, cam, pose
 
 
-def fit(sid, yaw=15.0, verbose=False):
+def fit(sid, yaw=15.0, verbose=False, override=None):
+    """-> (proportions, report, (rgb, idle mask, info)). override = carry3d.json 'fit_override': {'hip_h': source px,
+    'arm': arm length factor} - values a human measured once where the silhouette cannot show them."""
+    override = override or {}
     rgb, mask, info = idle_drawing(sid)
     m = measure(mask, info['anchor_col'], info['heads'])
+    if override.get('hip_h'):
+        m['hip_h'], m['hip_method'] = float(override['hip_h']), 'override (carry3d.json fit_override.hip_h)'
     # the same numbers on the canonical mannequin in its idle stance
     _, cmask, cbody, ccam, _ = render_mask(CANON, idle_pose(CANON), yaw)
     cm = measure(cmask, 192.0, 4)
@@ -266,7 +282,7 @@ def fit(sid, yaw=15.0, verbose=False):
     P['head_c'] *= kh
     # legs from the hip height (keep the ankle height), trunk from shoulder - hip
     hip_c = cm['hip_h']
-    kl = (m['hip_h'] / hip_c) / k if not m['hip_method'].startswith('0.43') else 1.0
+    kl = (m['hip_h'] / hip_c) / k if not m['hip_method'].startswith('0.43') else 1.0      # 0.43 fallback: legs unknown
     kl = float(np.clip(kl, 0.85, 1.15))
     for key in ('thigh', 'shin'):
         P[key] *= kl
@@ -286,6 +302,9 @@ def fit(sid, yaw=15.0, verbose=False):
         P[key] = [v * kbt for v in P[key]] if isinstance(P[key], list) else P[key] * kbt
     P['shoulder_w'] *= kbt
     P['hip_w'] *= kbt
+    ka = float(override.get('arm', 1.0))
+    P['upper_arm'] *= ka
+    P['forearm'] *= ka
     # iterate once on the total height so that the fitted mannequin's idle has the measured height
     _, fmask, _, _, _ = render_mask(P, idle_pose(P), yaw)
     fm = measure(fmask, 192.0, 4)
@@ -295,7 +314,9 @@ def fit(sid, yaw=15.0, verbose=False):
     fm = measure(fmask, 192.0, 4)
     report = {'sheet': sid, 'source': info['source'], 'anchor_col': info['anchor_col'], 'measured': m,
               'canonical_measured': cm, 'fitted_measured': fm,
-              'factors': {'height': round(k * k2, 4), 'head': round(kh, 4), 'legs': round(kl, 4), 'trunk': round(kt, 4), 'limb_bulk': round(kb, 4), 'trunk_bulk': round(kbt, 4)},
+              'coarse_source': bool(info.get('coarse')), 'override': override,
+              'factors': {'height': round(k * k2, 4), 'head': round(kh, 4), 'legs': round(kl, 4), 'trunk': round(kt, 4),
+                          'limb_bulk': round(kb, 4), 'trunk_bulk': round(kbt, 4), 'arms': round(ka, 4)},
               'proportions': {kk: ([round(x, 2) for x in v] if isinstance(v, list) else round(v, 2)) for kk, v in P.items()}}
     return P, report, (rgb, mask, info)
 
