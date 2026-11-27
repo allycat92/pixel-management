@@ -17,6 +17,9 @@ Every time you are told "계속" / "continue":
    mannequins and touch-ups -> tools/aseprite-mcp/pc/CLAUDE.md section 「납품」 + art/requests/guides/SPEC.md;
    sheets and motion strips -> the README's FORMAT and SELF-CHECK blocks + art/requests/gpt_handoff_notes.md "Rules changed".
 4. Make it. Look at your result at game speed and game size before delivering (the preview GIF / the game at http://localhost:8000).
+   SEAM CHECK (owner, 2026-11-27): view EVERY frame alone at 1x and 4x and look for cut or shifted body parts - a horizontal or
+   vertical seam where a limb was pasted (rogue R4 shipped with legs cut at the thigh). Also check each frame still shows the
+   character's weapon/tabard/props as in the idle. Write "seams: checked R1-R8" in 본 방법.
    Run the self-check commands the README gives and fix every FAIL.
 5. Deliver on the art-inbox branch, only under art/inbox/ (exact file names from the README). Append to art/inbox/NOTES.md:
      ## <row id> - <what>

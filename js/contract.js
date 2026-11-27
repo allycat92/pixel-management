@@ -386,8 +386,14 @@ Object.assign(Game, {
     // 결전에서 충성도가 바닥난 외부 용병단은 배신할 수 있다
     let chance = mission.chance;
     if (c.campaign) {
+      const battle = !!mission.spec?.bm;
+      // 옛 전투 저장은 출격 때 배신 표시가 없으므로 처음 정산할 때 같은 시드로 채운다.
+      if (battle && !mission.spec.betrayalsFixed) mission.spec = this.battleBetrayalSpec(mission.spec, c, mission.id, ext);
+      const traitors = battle ? new Set(mission.spec.groups.filter((g) => g.kind === 'ext' && g.betray).map((g) => g.companyId)) : null;
       ext.forEach((e) => {
-        if (e.loyalty < 25 && resultRoll() < 0.35) {
+        // 옛 귀환 경로의 공유 난수 소비 자리만 유지한다. 전투의 배신 여부는 굳힌 편성을 따른다.
+        const draw = e.loyalty < 25 ? resultRoll() : null;
+        if (battle ? traitors.has(e.id) : draw != null && draw < 0.35) {
           chance -= 0.25;
           e.loyalty = 0;
           report.notes.push(`「${e.name}」${josa(e.name, '이', '가')} 전투 도중 적에게 돌아섰습니다!`);
@@ -572,7 +578,7 @@ Object.assign(Game, {
         if (!won) for (let i = 0; i < downN; i++) if (Math.random() >= KB.EXT_KEEP) lostN++;
         lostN = Math.min(KB.EXT_LOST_CAP, lostN);
       }
-      const lost = e.betrayed ? 0 : this.extAfterMission(e, outcome, c, lostN);
+      const lost = e.betrayed ? 0 : this.extAfterMission(e, outcome, c, lostN, resultRoll);
       if (e.betrayed) { e.missionId = null; this.state.companies = this.state.companies.filter((x) => x.id !== e.id); }
       report.ext.push({ name: e.name, color: e.color, look: e.captain.look, lost, loyalty: e.loyalty - before, betrayed: !!e.betrayed });
       report.companies.push({ name: e.name, color: e.color, own: false, size: e.size + lost, level: e.level, look: e.captain.look, betrayed: !!e.betrayed });
