@@ -398,7 +398,8 @@ Object.assign(Game, {
       report.gold = Math.round(c.reward * ((outcome === 'fail' ? KB.LOSS_PAY : 0) + KB.LOSS_PAY_SHARE * fought.share));
       report.rep = -Math.round(c.rep * (outcome === 'disaster' ? 0.6 : 0.3));
       if (fought.share >= 0.05) report.notes.push(`적 전력의 ${Math.round(fought.share * 100)}%를 꺾어 보수 일부(금화 ${report.gold})를 받았습니다.`);
-      s.graceUntil = s.day + KB.GRACE_DAYS;
+      // 유예 주간은 GRACE_EVERY 일에 한 번만 새로 열린다 (연달아 지는 동안 끝없이 이어지지 않게)
+      if (!s.graceStart || s.day >= s.graceStart + KB.GRACE_EVERY) { s.graceStart = s.day; s.graceUntil = s.day + KB.GRACE_DAYS; }
       s.stats.failed++;
     } else {
       report.gold = outcome === 'fail' ? Math.round(c.reward * 0.1) : 0;

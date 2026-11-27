@@ -89,6 +89,9 @@ function run(seed, days, mode, opts = {}) {
     deathsSpecial: 0, deathsOther: 0, relief: 0, reliefTaken: 0, lossPay: 0, losses: 0, minMercs: 99, captainOnlyDays: 0, offered: [0, 0, 0, 0, 0], taken: [0, 0, 0, 0, 0] } : null;
   const tally = (o, k, win) => { const x = (o[k] = o[k] || [0, 0]); x[0]++; x[1] += win ? 1 : 0; };
   const seenOffer = new Set();
+  // 전투 모드 봇: 진 특별 의뢰를 같은 예상으로 바로 다시 받지 않는다 (사람이라면 몇 번 지고 나면 키워서 다시 온다)
+  const specialKey = (c) => (c.story ? `h${c.story.hero}:${c.story.ch}` : c.capStory ? `c${c.capStory.key}:${c.capStory.ch}` : c.boss ? `b${c.boss}` : c.final ? 'final' : null);
+  const lostSpecial = {};
 
   for (let d = 0; d < days; d++) {
     if (s.over) break;
@@ -170,6 +173,9 @@ function run(seed, days, mode, opts = {}) {
         const band = G.forecast(G.muster(c, units)).band;
         if (!seenOffer.has(c.id)) { seenOffer.add(c.id); bs.offered[band]++; }
         take = band >= 3 || (band === 2 && rnd() < 0.34);
+        // 다시 올라온 특별 의뢰(이야기·대장 이야기·보스·최종)에 진 적이 있으면: 예상이 그때보다 나아졌거나 압도일 때만, 아니면 열흘은 쉰다
+        const sk = specialKey(c), lost = sk && lostSpecial[sk];
+        if (take && lost && band < 4 && band <= lost.band && s.day < lost.day + 10) take = false;
         if (take) bs.taken[band]++;
       }
       if (take) {
@@ -190,6 +196,7 @@ function run(seed, days, mode, opts = {}) {
       if (r.quest && opts.onReport) opts.onReport(r, G, ctx);
       if (bs && r.quest && r.battle) {
         const won = r.outcome === 'great' || r.outcome === 'success', q = r.quest;
+        if (!won && specialKey(q)) lostSpecial[specialKey(q)] = { day: s.day, band: r.battle.band };
         tally(bs.byBand, r.battle.band, won);
         tally(bs.byDay, dayBandOf(s.day), won);
         tally(bs.byKind, ctx.Stats.kindOf(q), won);

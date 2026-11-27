@@ -701,7 +701,7 @@ const Game = {
         this.releaseCompany(c.id, '유지비를 받지 못해 계약을 파기했습니다!', 'bad');
       });
       const sorted = s.mercs.filter((m) => m.status !== 'quest' && !this.isCaptain(m)).sort((a, b) => this.wage(b) - this.wage(a)); // 대장은 길드를 떠나지 않는다
-      // 전투 모드: 패배 뒤 한 주(graceUntil)는 주급을 못 받아도 떠나지 않는다 — 급료를 미루고(빚이 되지 않는다) 실망만 한다
+      // 전투 모드: 패배 뒤 한 주(graceUntil, js/contract.js)는 주급을 못 받아도 떠나지 않는다 — 급료를 미루고(빚이 되지 않는다) 실망만 한다
       const grace = s.resolve === 'battle' && s.day <= (s.graceUntil || 0);
       while (s.gold < owed && sorted.length) {
         const m = sorted.shift();
@@ -717,6 +717,8 @@ const Game = {
         this.changeMorale(m, -25);
         this.log(`용병대장 ${m.name}${josa(m.name, '이', '가')} 급료를 받지 못했습니다. 떠나지는 않았지만 몹시 실망했습니다. (사기 -25)`, 'bad');
       }
+      // 전투 모드의 유예 주간: 못 준 급료(출격 중인 단원 몫 포함)는 미뤄 두고 빚으로 넘기지 않는다
+      if (grace && owed > Math.max(0, s.gold)) owed = Math.max(0, s.gold);
       s.gold -= owed;
       this.log(`주간 정산: 금화 ${owed} 지급.${s.gold < 0 ? ' 길드가 빚을 지고 있습니다!' : ''}`, s.gold < 0 ? 'bad' : '');
     }

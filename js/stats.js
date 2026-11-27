@@ -39,7 +39,8 @@ const Stats = (() => {
     LOSS_PAY: 0.1,      // 실패한 의뢰의 기본 보수 비율 (오늘과 같다)
     LOSS_PAY_SHARE: 0.5,  // + 무찌른 적 전력 비율 × 이 값 (적의 절반을 꺾고 물러나면 보수의 35%)
     RETREAT_MORALE: 0.5,  // 질서 있게 물러난 실패의 사기 하락 배율 (-6 → -3)
-    GRACE_DAYS: 7,      // 패배 뒤 이 날수 동안은 주급 탈주·불만 탈주가 없다
+    GRACE_DAYS: 7,      // 패배 뒤 이 날수 동안은 주급 탈주·불만 탈주가 없고, 못 준 급료는 빚이 되지 않는다 (유예 주간)
+    GRACE_EVERY: 14,    // 유예 주간은 이 날수에 한 번만 새로 열린다
     INJ_WIN: 0.6,       // 이긴 전투에서 쓰러진 단원이 다칠 확률 (설계 6장)
     INJ_LOSE: 0.9,      // 진 전투에서 쓰러진 단원이 다칠 확률
     INJ_LOW: 0.3,       // 서 있었지만 체력이 25% 아래인 단원의 가벼운 부상 확률 (1~2일)
@@ -51,7 +52,8 @@ const Stats = (() => {
     BM_LOW_K: [1, 0.6, 0.75, 0.9],   // 전투 모드(일반 의뢰): ★1·★2·★3 적 배율 (갓 만든 1레벨 용병단도 ★1 은 이길 만하게. ★4 부터 1)
     // 전투 모드의 예상 보정 (CAL_KIND 에 더 곱한다): 반반 지점(R50)의 역수. 전투 모드 12판×365일 10,597전(보낸 것 + 살펴본 것)의 로지스틱 맞춤
     BM_CAL_ARCH: { soldier: 1, grunt: 1.087, beast: 1.044, brute: 1.152, armored: 1.202, caster: 0.977, blob: 0.968 },
-    BM_CAL_SPECIAL: 0.92,   // 보스·이야기·대장 이야기·최종 결전 (R50 1.07~1.14): 큰 적 하나와 싸우는 판은 같은 R 에서 더 진다
+    // 특별한 의뢰 갈래 (적 틀 보정 뒤에 남은 R50 의 역수, 표본이 작다: 보스 107, 대장 이야기 123, 이야기 224, 최종 17): 큰 적과 싸우는 판은 같은 R 에서 더 진다
+    BM_CAL_SPECIAL: { boss: 0.86, capStory: 0.87, story: 0.92, final: 0.92 },
   };
   // 능력치 공식의 계수
   const ATK_W = [1, 0.3, 0.1];            // 공격 = 가장 높은 능력치 + 0.3·둘째 + 0.1·셋째
@@ -279,7 +281,7 @@ const Stats = (() => {
     if (spec.bm) {
       const foe = spec.groups.find((g) => g.kind === 'foe'), lead = foe && foe.units[0];
       cal *= KN.BM_CAL_ARCH[(lead && lead.arch) || 'soldier'] || 1;
-      if (spec.kind && spec.kind !== 'normal' && spec.kind !== 'campaign') cal *= KN.BM_CAL_SPECIAL;
+      cal *= KN.BM_CAL_SPECIAL[spec.kind] || 1;
     }
     const R = +(margin(spec.groups) * cal).toFixed(3);
     return { R, band: bandOf(R) };
