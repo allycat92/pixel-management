@@ -80,6 +80,7 @@ const Battle = (() => {
 
 
   let raf = null;
+  let cancelSheetWait = null;
   let lastSt = null;   // 마지막으로 재생한 전투 상태 (Battle.last)
 
   // ───────── 시드 난수 ─────────
@@ -2963,11 +2964,22 @@ const Battle = (() => {
       if (st.over && st.t - st.endT > END_HOLD) return finish();
       raf = requestAnimationFrame(loop);
     };
-    raf = requestAnimationFrame(loop);
+    const start = () => {
+      cancelSheetWait = null;
+      last = performance.now();
+      raf = requestAnimationFrame(loop);
+    };
+    if (typeof Art !== 'undefined' && Art.beforeBattle) cancelSheetWait = Art.beforeBattle(st.units, start);
+    else start();
     return wrap;
   }
 
-  function stop() { if (raf) cancelAnimationFrame(raf); raf = null; }
+  function stop() {
+    if (cancelSheetWait) cancelSheetWait();
+    cancelSheetWait = null;
+    if (raf) cancelAnimationFrame(raf);
+    raf = null;
+  }
 
   return { play, stop, plan, simulate, findBattle, VER, SHOW_K, showNum, setup, step, begin, record, run, last: () => lastSt };
 })();
