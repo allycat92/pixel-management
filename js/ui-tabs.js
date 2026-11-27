@@ -5,6 +5,7 @@
   const { el, icon, itemIcon, mini, bonusText, signed, companyFlag, factionFlag, factionTag, condTags, mercCard } = UI.h;
   const T = UI.tabs;
   const combatStats = ({ hp, atk, def }) => `전투 체력 ${hp} · 공격 ${Math.round(atk)} · 방어 ${Math.round(def)}`;
+  const SECOND_COMPANY_HINT = '용병단을 하나 더 꾸려 대원을 나누면 한쪽이 출격 중일 때 다른 쪽이 의뢰를 맡을 수 있습니다.';
 
   // ───────── 용병단 ─────────
   function memberRow(m, c) {
@@ -53,11 +54,61 @@
         el('div', { class: 'company-status' },
           mi ? el('span', { class: 'tag tag-quest', text: `출격 중 · ${mi.returnDay - s.day}일 후 귀환` }) : el('span', { class: 'tag tag-idle', text: '대기' }),
           mi ? el('div', { class: 'small muted', text: mi.contract.title }) : null)),
-      el('div', { class: 'members' }, ms.length ? ms.map((m) => memberRow(m, c)) : el('div', { class: 'muted small pad', text: '단원이 없습니다. 예비 인원 중 용병대장 1명과 대원을 배속하세요.' })),
+      el('div', { class: 'members' }, ms.length ? ms.map((m) => memberRow(m, c)) : el('div', { class: 'pad' },
+        el('p', { class: 'muted small', text: '대장이 없어도 일반 단원 한 명을 배속하면 첫 출격을 할 수 있습니다.' }),
+        el('div', { class: 'row-inline' },
+          el('button', { class: 'btn small', text: '예비 단원 배속', 'data-fkey': `assign-reserve-${c.id}`, disabled: c.missionId ? 'disabled' : null,
+            onclick: () => openCompanyAssignment(c, true) }),
+          el('button', { class: 'btn small', text: '다른 부대에서 옮기기', 'data-fkey': `assign-transfer-${c.id}`, disabled: c.missionId ? 'disabled' : null,
+            onclick: () => openCompanyAssignment(c, false) })))),
       el('div', { class: 'company-foot' },
         el('button', { class: 'btn small', text: '이름 변경', onclick: () => renameCompany(c) }),
         el('button', { class: 'btn small danger', text: '해산', disabled: c.missionId ? 'disabled' : null,
           onclick: () => UI.confirmBox(`「${c.name}」${josa(c.name, '을', '를')} 해산할까요? 단원들은 예비 인원이 됩니다.`, () => Game.disbandCompany(c.id)) })));
+  }
+
+  function openCompanyAssignment(company, fromReserve) {
+    const title = fromReserve ? '예비 단원 배속' : '다른 부대에서 옮기기';
+    const candidates = fromReserve ? Game.reserve()
+      : Game.ownCompanies().filter((c) => c.id !== company.id).flatMap((c) => Game.members(c));
+    const rows = candidates.map((m) => {
+      const source = fromReserve ? '예비 인원' : Game.company(m.companyId).name;
+      const reason = (m.status === 'quest' ? '출격 중' : null) || Game.slotProblem(m, company);
+      return el('div', { class: 'row' }, mini(m.look),
+        el('div', { class: 'grow' }, el('div', { text: m.name }),
+          el('div', { class: 'small muted', text: `${source} · ${Game.className(m)}${reason ? ` · ${reason}` : ''}` })),
+        el('button', { class: 'btn small', text: fromReserve ? '배속' : '옮기기', disabled: reason ? 'disabled' : null,
+          'aria-label': `${m.name} ${fromReserve ? '배속' : '옮기기'}`,
+          onclick: () => { Game.assign(m.id, company.id); UI.closeModal(); } }));
+    });
+    UI.openModal(el('div', {},
+      el('h2', { text: title }),
+      el('p', { class: 'muted small', text: `받는 용병단 「${company.name}」` }),
+      fromReserve ? null : el('p', { class: 'muted small', text: company.wins + company.losses > 0
+        ? '용병단을 옮기면 양쪽 용병단의 결속도가 떨어집니다.'
+        : '용병단을 옮기면 기존 용병단의 결속도가 떨어집니다.' }),
+      rows.length ? el('div', { class: 'list' }, rows)
+        : el('p', { class: 'muted small', text: fromReserve ? '예비 단원이 없습니다. 모집소에서 대원을 고용할 수 있습니다.' : '다른 부대에 배속된 단원이 없습니다.' }),
+      el('div', { class: 'modal-actions' }, el('button', { class: 'btn', text: '닫기', onclick: UI.closeModal }))));
+  }
+
+  function companyBudget(id, cost) {
+    const left = Game.state.gold - cost;
+    const wages = Game.paydayTotal();
+    return el('div', { id, class: `company-budget small ${left < wages ? 'warn' : 'muted'}`,
+      text: `창설 뒤 남는 금화 ${left} · 다음 정산(${Game.nextPaydayDay()}일) 예상 급료 ${wages}` });
+  }
+
+  function openCompanyCreation() {
+    const cost = Game.companyCost();
+    UI.openModal(el('div', {},
+      el('h2', { text: '용병단 창설' }),
+      el('p', { text: `창설 비용 ${cost} 금화` }),
+      companyBudget('company-budget-confirm', cost),
+      el('div', { class: 'modal-actions' },
+        el('button', { class: 'btn', text: '취소', onclick: UI.closeModal }),
+        el('button', { class: 'btn primary', text: '창설', 'aria-describedby': 'company-budget-confirm',
+          onclick: () => { if (Game.createCompany()) UI.closeModal(); } }))));
   }
 
   function renameCompany(c) {
@@ -110,16 +161,19 @@
     const feast = el('button', { class: 'btn small', disabled: Game.feastReady() && s.gold >= Game.feastCost() ? null : 'disabled',
       title: '길드에 있는 단원 사기 +15, 피로 -15, 서로 친밀도 상승 (주 1회)', onclick: () => Game.feast() },
     Game.feastReady() ? `연회 열기 (${Game.feastCost()})` : `연회 (${7 - (s.day - s.lastFeast)}일 후)`);
-    const create = el('button', { class: 'btn small primary', disabled: own.length >= Game.maxCompanies() || s.gold < Game.companyCost() ? 'disabled' : null,
-      title: own.length >= Game.maxCompanies() ? '병영을 증축하면 더 만들 수 있습니다' : '', onclick: () => Game.createCompany() },
-    `용병단 창설 (${Game.companyCost()})`);
+    const hasRoom = own.length < Game.maxCompanies(), cost = Game.companyCost();
+    const create = el('button', { class: 'btn small primary', disabled: !hasRoom || s.gold < cost ? 'disabled' : null,
+      title: hasRoom ? '' : '병영을 증축하면 더 만들 수 있습니다',
+      'data-fkey': 'create-company', 'aria-describedby': hasRoom ? 'company-budget' : null, onclick: openCompanyCreation },
+    `용병단 창설 (${cost})`);
     root.append(el('div', { class: 'panel-head' },
       el('h2', { text: `직속 용병단 (${own.length}/${Game.maxCompanies()})` }),
       el('div', { class: 'row-inline' },
         el('span', { class: 'muted small', text: `숙소 ${Game.bedsUsed()}/${Game.capacity()} · 주급 ${Game.weeklyWageTotal()}${Game.backPayTotal() ? ` (+미룬 급료 ${Game.backPayTotal()})` : ''} · 유지비 ${Game.weeklyUpkeepTotal()} · 약초 ${s.herbs}` }),
-        feast, create)));
+        feast, create),
+      hasRoom ? companyBudget('company-budget', cost) : null));
     // 용병단이 하나뿐이고 더 만들 수 있으면 한 줄 안내 (주인 결정 7)
-    if (own.length === 1 && own.length < Game.maxCompanies()) root.append(el('p', { class: 'small muted', text: '용병단이 하나뿐이면 의뢰에서 돌아올 때까지 기다리는 날이 많습니다. 용병단을 하나 더 꾸려 대원을 나누면 한쪽이 나가 있는 동안 다른 쪽이 의뢰를 맡을 수 있습니다.' }));
+    if (own.length === 1 && hasRoom) root.append(el('p', { class: 'small muted', text: SECOND_COMPANY_HINT }));
     const grid = el('div', { class: 'company-grid' });
     own.forEach((c) => grid.append(ownCompanyPanel(c)));
     root.append(grid);
@@ -224,8 +278,8 @@
     const lines = [Game.allAway() ? '모든 용병단이 의뢰에 나가 있습니다. 위의 「귀환까지 ▶▶」로 귀환하는 날까지 넘길 수 있습니다.'
       : '지금 보낼 수 있는 용병단이 없습니다 (의뢰에 나갔거나, 남은 용병단에 나갈 수 있는 단원이 없습니다). 위의 「귀환까지 ▶▶」로 귀환하거나 단원이 회복하는 날까지 넘길 수 있습니다.'];
     if (own.length === 1) {
-      if (own.length < Game.maxCompanies()) lines.push(`용병단이 하나뿐이면 귀환을 기다리는 날이 깁니다. 용병단 화면에서 하나 더 꾸리면(금화 ${Game.companyCost()}) 그동안 다른 의뢰를 맡길 수 있습니다.`);
-      else if (s.facilities.barracks < FACILITIES.barracks.max) lines.push('용병단이 하나뿐이면 귀환을 기다리는 날이 깁니다. 병영을 증축하면 용병단을 하나 더 꾸려 그동안 다른 의뢰를 맡길 수 있습니다.');
+      if (own.length < Game.maxCompanies()) lines.push(SECOND_COMPANY_HINT, '용병단 탭의 창설 버튼 옆에서 남는 금화와 다음 정산 급료를 확인할 수 있습니다.');
+      else if (s.facilities.barracks < FACILITIES.barracks.max) lines.push('둘째 용병단을 만들려면 시설 탭에서 병영을 증축하세요.', SECOND_COMPANY_HINT);
     }
     return lines.join(' ');
   }

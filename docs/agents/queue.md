@@ -7,7 +7,7 @@
 
 | 누구 | id | 상태 | 할 일 (자세한 것은 그 줄의 문서) |
 |---|---|---|---|
-| Codex | `C23-second-company-guide` | READY | 둘째 부대 만들기 안내(남는 금화·예상 급료, 빈 부대 배속 버튼): `docs/agents/tasks/C23-second-company-guide.md` |
+| Codex | `C23-second-company-guide` | REVIEW | 둘째 부대 만들기 안내(남는 금화·예상 급료, 빈 부대 배속 버튼): `docs/agents/tasks/C23-second-company-guide.md` |
 | GPT | `C24-battle-injury-loss-fixed` | READY | (코드 일감) 전투 모드 전투 뒤 부상·외부단 귀환 손실도 출격 때 고정: `docs/agents/tasks/C24-battle-injury-loss-fixed.md` |
 
 ## 끝난 일
