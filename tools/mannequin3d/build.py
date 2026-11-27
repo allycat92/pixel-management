@@ -43,6 +43,7 @@ FONTB = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
 SCALE = 0.1654
 CELL, ANCHOR = 96, (48, 92)
 PREVIEW_BG = (58, 70, 60)
+ACTION_SHIFT = 24
 
 JOINTS_OUT = ['hip', 'HN', 'HF', 'kneeN', 'kneeF', 'ankN', 'ankF', 'heelN', 'heelF', 'toetipN', 'toetipF',
               'SN', 'SF', 'elbN', 'elbF', 'wriN', 'wriF', 'handN', 'handF', 'neck0', 'head', 'headtop', 'nose']
@@ -53,14 +54,14 @@ def _warrior_sword_arm(sh, el):
 
 
 def _shield_arm(sh, el):
-    return 44.0 + sh * 0.15, 108.0        # shield arm: forearm across the front of the chest, barely swinging
+    return 36.0 + sh * 0.1, 118.0         # shield arm: forearm across the front of the chest, barely swinging
 
 
 CHARS = {
     'warrior': {
         'sheet': 'sheet/class/warrior', 'gait': 'run_light',
         'arm_N': _warrior_sword_arm, 'arm_F': _shield_arm,
-        'props': [{'hand': 'N', 'kind': 'sword', 'abs_angle': -140.0, 'length': 140.0},
+        'props': [{'hand': 'N', 'kind': 'sword', 'abs_angle': -138.0, 'length': 118.0},
                   {'hand': 'F', 'kind': 'shield', 'radius': 58.0}],
         'actions': True,
     },
@@ -73,8 +74,8 @@ CHARS = {
     'mage': {
         'sheet': 'sheet/class/mage', 'gait': 'run_robe',
         # two-hand staff grip in the chest frame from the neck base (lower hand N at the belt, upper hand F at the chest)
-        'grip': {'N': (44.0, -92.0, 18.0), 'F': (58.0, -38.0, -10.0), 'swing': 8.0},
-        'props': [{'kind': 'staff', 'between': ('N', 'F'), 'length': 250.0, 'back': 70.0}],
+        'grip': {'N': (40.0, -92.0, 18.0), 'F': (50.0, -40.0, -10.0), 'swing': 8.0},
+        'props': [{'kind': 'staff', 'between': ('N', 'F'), 'length': 225.0, 'back': 70.0}],
         'robe': True,
     },
 }
@@ -477,7 +478,7 @@ def build_actions(key, P, cam_run, char, od, log):
         frames = action_frames(keys, P, cam, ib)
         # fix the camera on the READY / first key's hip so the body really moves in the slot
         b0 = fk(P, frames[0][1])
-        cam.dx = -(cam.V @ b0.joints['hip'])[0]
+        cam.dx = -(cam.V @ b0.joints['hip'])[0] - ACTION_SHIFT   # READY hip at x=192-ACTION_SHIFT: room for the strike
         imgs, plain, names, recs = [], [], [], []
         for nm, pose, props, is_key, ok in frames:
             body = fk(P, pose, props=props)
