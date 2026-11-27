@@ -7,6 +7,7 @@
 
 | 누구 | id | 상태 | 할 일 (자세한 것은 그 줄의 문서) |
 |---|---|---|---|
+| GPT | `Q4-ui-sweep` | READY | 관리 화면 전체를 1280·400 두 폭에서 훑어 결함 모으기(출정 창 제외): `docs/agents/tasks/Q4-ui-sweep.md` |
 | Codex | `C10-scaled-mannequin-guides` | READY | 배율이 다른 시트(비요른 0.18)용 마네킹 가이드 + 비요른 요청서: `docs/agents/tasks/C10-scaled-mannequin-guides.md` |
 
 ## 끝난 일
