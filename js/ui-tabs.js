@@ -2,9 +2,10 @@
 'use strict';
 
 (() => {
-  const { el, icon, itemIcon, mini, bonusText, signed, companyFlag, factionFlag, factionTag, condTags, mercCard } = UI.h;
+  const { el, icon, itemIcon, mini, bonusText, signed, companyFlag, factionFlag, factionTag, condTags, mercCard, showK } = UI.h;
   const T = UI.tabs;
-  const combatStats = ({ hp, atk, def }) => `전투 체력 ${hp} · 공격 ${Math.round(atk)} · 방어 ${Math.round(def)}`;
+  // 전투 판정 모드에서만 쓴다: 전투 화면의 피해 숫자와 같은 눈금(×showK)으로 (표시 전용)
+  const combatStats = ({ hp, atk, def }) => { const k = showK(); return `전투 체력 ${Math.round(hp * k)} · 공격 ${Math.round(atk * k)} · 방어 ${Math.round(def * k)}`; };
   const SECOND_COMPANY_HINT = '용병단을 하나 더 꾸려 대원을 나누면 한쪽이 출격 중일 때 다른 쪽이 의뢰를 맡을 수 있습니다.';
 
   // ───────── 용병단 ─────────
@@ -226,11 +227,17 @@
       : null;
   }
 
+  const EXHAUSTED_DISPATCH = '모두 탈진 · 단원 직접 선택 시 파견 가능';
+  const defaultDispatchMembers = (c, avail) => avail.filter((m) => m.fatigue < 80
+    || Game.battleMode() && m.hero && m.hero === c.story?.hero);
+
   function contractCard(c) {
     const s = Game.state;
     const t = QUEST_TYPES[c.type];
     const story = c.story ? HEROES[c.story.hero] : null;
-    const free = s.companies.some((co) => !co.missionId);
+    const free = s.companies.filter((co) => !co.missionId && (co.own
+      ? Game.availableMembers(co).length : !Game.extRefusal(co, c)));
+    const manualOnly = free.length && free.every((co) => co.own && !defaultDispatchMembers(c, Game.availableMembers(co)).length);
     const visual = c.enemy
       ? Sprites.clone(Sprites.monster(c.enemy, 3, 0), 'monster')
       : Sprites.clone(Sprites.merc(UI.h.soldierLook(c.target || c.issuer, c.id), 3, 0, true), 'monster');
@@ -255,14 +262,15 @@
       el('div', { class: 'quest-info' },
         el('div', { class: c.war ? 'war-gold' : '' }, icon('coin'), ` 보상 ${c.reward}`, c.war ? el('span', { class: 'chip war', text: '전쟁' }) : null),
         el('div', {}, icon('star'), ` 명성 +${c.rep}`),
-        Game.battleMode() ? bestWord(c) : el('div', { text: `권장 전투력 ${Game.effectiveReq(c)}` }),
+        Game.battleMode() ? bestWord(c, manualOnly) : el('div', { text: `권장 전투력 ${Game.effectiveReq(c)}` }),
+        !Game.battleMode() && manualOnly ? el('div', { class: 'small warn', text: EXHAUSTED_DISPATCH }) : null,
         el('div', { text: `권장 ${c.size}명 · ${c.days}일` }),
         el('div', { class: 'muted', text: c.final || c.expires === STORY_EXPIRES ? '마감 없음' : c.expires <= s.day ? '오늘 마감' : `마감까지 ${c.expires - s.day}일` })),
       effectPreview(c),
       deathWarning(c),
       el('div', { class: 'card-foot' },
         el('span', { class: 'muted small', text: story ? `${story.name} 필수` : weightHint(c.type) }),
-        el('button', { class: 'btn', text: '파견', 'data-fkey': `dispatch-${c.id}`, disabled: free ? null : 'disabled', onclick: () => openDispatch(c) })));
+        el('button', { class: 'btn', text: '파견', 'data-fkey': `dispatch-${c.id}`, disabled: free.length ? null : 'disabled', onclick: () => openDispatch(c) })));
   }
 
   function weightHint(type) {
@@ -336,12 +344,12 @@
     return el('span', { class: 'bad small', text: `${HEROES[key].name} ${reason}` });
   }
   // 의뢰 카드: 지금 보낼 수 있는 용병단 가운데 가장 나은 예상
-  function bestWord(c) {
+  function bestWord(c, manualOnly) {
     const s = Game.state;
     let best = null;
     s.companies.filter((co) => !co.missionId).forEach((co) => {
       if (co.own) {
-        const ms = Game.availableMembers(co).filter((m) => m.fatigue < 80 || m.hero && m.hero === c.story?.hero);
+        const ms = defaultDispatchMembers(c, Game.availableMembers(co));
         if (!ms.length) return;
         const us = [{ companyId: co.id, memberIds: ms.map((m) => m.id) }];
         if (Game.storyHeroMissing(c, us)) return;
@@ -352,7 +360,10 @@
         if (est && (!best || est.R > best.R)) best = est;
       }
     });
-    if (!best) return el('div', {}, c.story ? storyRequirement(c) : el('span', { class: 'muted', text: '보낼 용병단 없음' }));
+    if (!best) return el('div', {},
+      c.story ? storyRequirement(c) : null,
+      manualOnly ? el('span', { class: 'small warn', text: EXHAUSTED_DISPATCH }) : null,
+      !manualOnly && !c.story ? el('span', { class: 'muted', text: '보낼 용병단 없음' }) : null);
     return el('div', {}, '예상 전황 ', wordEl(best),
       Game.dispatchSlots(c) > 1 ? el('span', { class: 'muted small', text: ' · 1개 부대 기준' }) : null);
   }
@@ -372,8 +383,7 @@
     const slots = Game.dispatchSlots(c); // 일반 의뢰 1개, 결전 2~3개 (직속·외부 합쳐 최대 MAX_DISPATCH)
     const sel = new Map(); // companyId -> Set(memberIds) | true
     const comps = s.companies.filter((co) => !co.missionId);
-    const defaultMembers = (co) => new Set(Game.availableMembers(co)
-      .filter((m) => m.fatigue < 80 || battle && m.hero && m.hero === c.story?.hero).map((m) => m.id));
+    const defaultMembers = (co) => new Set(defaultDispatchMembers(c, Game.availableMembers(co)).map((m) => m.id));
     // 이야기 의뢰: 특별 용병이 있는 용병단을 자동 선택
     if (c.story) {
       const co = comps.find((x) => x.own && Game.availableMembers(x).some((m) => m.hero === c.story.hero));
@@ -428,6 +438,8 @@
         const disabled = refusal || (co.own && !avail.length);
         const on = sel.has(co.id);
         const u = co.own ? { companyId: co.id, memberIds: [...(on ? sel.get(co.id) : defaultMembers(co))] } : { companyId: co.id };
+        const empty = co.own && !u.memberIds.length;
+        const manualOnly = co.own && avail.length && !defaultDispatchMembers(c, avail).length;
         return el('div', { class: `pick ${on ? 'on' : ''} ${disabled ? 'locked' : ''}`,
           role: single ? 'radio' : 'checkbox', 'aria-checked': on ? 'true' : 'false', 'aria-disabled': disabled ? 'true' : null,
           tabindex: disabled ? '-1' : single ? (co === tabStop ? '0' : '-1') : '0',
@@ -439,10 +451,11 @@
             el('div', {}, co.name, co.own ? null : el('span', { class: 'chip small', text: '외부' })),
             el('div', { class: `small ${refusal ? 'bad' : 'muted'}`, text: refusal || (co.own
               ? `출격 가능 ${avail.length}/${Game.members(co).length}명 · 결속도 ${co.cohesion}`
-              : `${co.size}명 · 충성도 ${co.loyalty} · 몫 ${co.share}%${co.sympathy === c.target && c.target ? ' · 동조 세력 공격(충성도 하락)' : ''}`) })),
+              : `${co.size}명 · 충성도 ${co.loyalty} · 몫 ${co.share}%${co.sympathy === c.target && c.target ? ' · 동조 세력 공격(충성도 하락)' : ''}`) }),
+            manualOnly ? el('div', { class: 'small warn', text: EXHAUSTED_DISPATCH }) : null),
           battle ? el('span', { class: 'power' }, Game.storyHeroMissing(c, [u]) ? storyRequirement(c)
-            : [el('span', { class: 'sr-only', text: '예상 ' }), wordEl(disabled ? null : forecastOf(c, [u]))])
-            : el('b', { class: 'power' }, el('span', { class: 'sr-only', text: '전력 ' }), String(Game.unitsPower(c, [u]))));
+            : [el('span', { class: 'sr-only', text: '예상 ' }), wordEl(disabled || empty ? null : forecastOf(c, [u]))])
+            : el('b', { class: 'power' }, el('span', { class: 'sr-only', text: '전력 ' }), disabled || empty ? '—' : String(Game.unitsPower(c, [u]))));
       }));
       if (!comps.length) listBox.append(el('div', { class: 'muted small', text: '대기 중인 용병단이 없습니다.' }));
 
@@ -462,6 +475,15 @@
 
       const us = units();
       const missingHero = Game.storyHeroMissing(c, us);
+      if (sel.size && !us.length) {
+        summary.replaceChildren(...[
+          el('div', { class: 'muted', text: '보낼 단원을 직접 고르세요.' }),
+          missingHero ? storyRequirement(c) : null,
+          deathWarning(c),
+        ].filter(Boolean));
+        go.disabled = true;
+        return;
+      }
       if (battle) {
         const est = us.length && !missingHero ? forecastOf(c, us, true) : null;
         summary.replaceChildren(...[

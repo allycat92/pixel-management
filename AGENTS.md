@@ -1,6 +1,6 @@
 # Notes for coding agents (Codex, Claude, ...)
 
-- Game: vanilla HTML/CSS/JS. Open `index.html` via any static server (`python3 -m http.server`).
+- Game: vanilla HTML/CSS/JS. Open `index.html` via a static server — recommended `python3 tools/serve.py [port]` (Cache-Control: no-cache, so overwritten sheet PNGs are refetched); `python3 -m http.server` also works. `js/art.js` adds `?v=<hash of the manifest entry>` to art URLs — that only covers entry changes (size, layout, anims); a same-size redraw keeps the same URL, so only serve.py's no-cache (or a hard reload) shows it.
 - Art workflow: see `art/README.md` (image agents draw and push PNGs to the `art-inbox` branch;
   `tools/art/process.py` converts portraits/events/backgrounds into `assets/art/`).
 - Battle character sheets: `python3 tools/art/sheets.py` turns `art/inbox/sheet_*.png` (1x4 key-pose strip,

@@ -5,6 +5,16 @@
 const Art = (() => {
   let manifest = {};
   const images = {};
+  // 시트 PNG 는 같은 이름으로 덮어쓴다. manifest 만 새로 받으면 브라우저가 옛 PNG 를 새 칸 정보로 그릴 수 있다(달리기 칸이 비어 보임).
+  // 그래서 그림 주소에 항목 내용의 짧은 해시(?v=)를 붙인다 — 항목(크기·동작)이 바뀌면 주소도 바뀐다.
+  // 항목이 그대로인 다시 그리기(같은 크기·칸)는 주소가 같으므로 tools/serve.py(no-cache)나 강력 새로고침이 있어야 새 PNG 가 보인다.
+  function verOf(entry) {
+    const str = JSON.stringify(entry) || '';
+    let h = 0x811c9dc5;
+    for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }
+    return h.toString(36);
+  }
+  const urlOf = (entry) => (entry && typeof entry.file === 'string' ? `${entry.file}${entry.file.includes('?') ? '&' : '?'}v=${verOf(entry)}` : '');
 
   async function load() {
     try {
@@ -14,7 +24,7 @@ const Art = (() => {
     // 전투 컷인처럼 캔버스·즉시 표시에 쓰는 그림은 미리 받아 둔다
     Object.entries(manifest).forEach(([id, a]) => {
       const im = new Image();
-      im.src = a.file;
+      im.src = urlOf(a);
       images[id] = im;
     });
   }
@@ -24,7 +34,7 @@ const Art = (() => {
   function img(id, cls = '') {
     if (!has(id)) return null;
     const i = document.createElement('img');
-    i.src = manifest[id].file;
+    i.src = urlOf(manifest[id]);
     i.alt = '';
     i.className = `art ${cls}`;
     i.draggable = false;

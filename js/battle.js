@@ -39,6 +39,10 @@ const Battle = (() => {
   const MAX_TIME = 90;               // 시간 제한(초)
   const END_HOLD = 2.2;              // 결판 후 화면 유지(초)
   const ATK_SCALE = 0.55;            // 전투가 너무 빨리 끝나지 않게
+  // 능력치 전투(전투 판정 모드)의 숫자는 옛 연출의 1/10 쯤이라 피해 숫자가 거의 1·0 이다. 화면에만 ×SHOW_K 로 보여 준다
+  // (떠오르는 피해 숫자, 단원 카드의 전투 체력·공격·방어, 보고서의 공헌). 계산·기록·해시에는 쓰지 않는다.
+  const SHOW_K = 10;
+  const showNum = (v) => (v > 0 ? Math.max(1, Math.round(v * SHOW_K)) : 0);
 
   // 직업(싸움 방식)별 기본 능력치 (강도 1 기준). 공격 방식·사거리·재사용은 스킬이 정한다.
   const CLASS_STATS = {
@@ -815,7 +819,7 @@ const Battle = (() => {
     target.taken += dmg;
     target.hp -= dmg;
     target.flash = 0.18;
-    st.fx.push({ kind: 'pop', x: target.x, y: target.y - 18, text: String(Math.round(dmg)), crit, ally: target.side === 0,
+    st.fx.push({ kind: 'pop', x: target.x, y: target.y - 18, text: String(st.real ? showNum(dmg) : Math.round(dmg)), crit, ally: target.side === 0,
       mine: !!(src && src.side === 0 && src.unique), named: !!target.named, t: 0 });
     if (target.hp <= 0) {
       target.alive = false;
@@ -2927,5 +2931,5 @@ const Battle = (() => {
 
   function stop() { if (raf) cancelAnimationFrame(raf); raf = null; }
 
-  return { play, stop, plan, simulate, findBattle, VER, setup, step, begin, record, run, last: () => lastSt };
+  return { play, stop, plan, simulate, findBattle, VER, SHOW_K, showNum, setup, step, begin, record, run, last: () => lastSt };
 })();

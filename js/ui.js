@@ -7,6 +7,7 @@ const FACTION_MARK = { crown: 3, north: 1, cities: 0, church: 1, elves: 2, clans
 const UI = (() => {
   let tab = 'companies';
   let modalOpen = false;
+  let newMode = 'battle'; // 새 게임의 판정 방식 (js/main.js 가 주소 ?resolve= 를 읽어 init 으로 넘긴다)
   const tabs = {};
   const $ = (sel) => document.querySelector(sel);
 
@@ -98,6 +99,9 @@ const UI = (() => {
     return el('div', { class: 'lead-box small' }, el('div', { class: 'muted', text: CAPTAIN_CLASSES[m.cap].desc }));
   }
 
+  // 전투 판정 모드의 화면 눈금 (js/battle.js SHOW_K). 표시 전용
+  const showK = () => (typeof Battle !== 'undefined' && Battle.SHOW_K) || 10;
+
   function condTags(m) {
     const ms = Game.moraleState(m), fs = Game.fatigueState(m);
     return [
@@ -118,12 +122,14 @@ const UI = (() => {
 
   // 전투 능력치 (js/stats.js): 능력치·장비에 개인 컨디션(특성 × 사기 × 피로)을 곱한 체력·공격, 그리고 방어.
   // 전우·지휘·의뢰 적성은 출격할 때 더해진다.
+  // 전투 판정 모드: 전투 화면의 피해 숫자와 같은 눈금(×Battle.SHOW_K)으로 보여 준다 (저장·계산 값은 그대로)
   function battleLine(m) {
-    const sh = Stats.sheet(m), p = sh.parts;
-    const num = (label, v) => el('span', { class: 'bs' }, el('span', { class: 'muted', text: label }), el('b', { text: Math.round(v) }));
+    const sh = Stats.sheet(m), p = sh.parts, bm = Game.battleMode();
+    const k = bm ? showK() : 1;
+    const num = (label, v) => el('span', { class: 'bs' }, el('span', { class: 'muted', text: label }), el('b', { text: Math.round(v * k) }));
     return el('div', { class: 'battle-line small', title: '전투 능력치: 능력치와 장비에 컨디션을 곱한 값입니다. 방어에는 컨디션이 붙지 않습니다.' },
       el('span', { class: 'bs-title', text: '전투' }),
-      num(Game.battleMode() ? '전투 체력' : '체력', sh.hp), num('공격', sh.atk), num('방어', sh.def),
+      num(bm ? '전투 체력' : '체력', sh.hp), num('공격', sh.atk), num('방어', sh.def),
       el('span', { class: `chip cond-chip ${sh.mul > 1.001 ? 'good' : sh.mul < 0.999 ? 'bad' : ''}`,
         title: `컨디션 = 특성·직업 ×${p.trait.toFixed(2)} · 사기 ×${p.morale.toFixed(2)} · 피로 ×${p.fatigue.toFixed(2)}`, text: `컨디션 ×${sh.mul.toFixed(2)}` }));
   }
@@ -440,10 +446,23 @@ const UI = (() => {
     const timedOut = !good && r.battle?.end === 'time';
     const c = r.quest;
     const members = el('div', { class: 'report-members' });
+    // 전투 판정 보고서: 단원마다 피해·처치·치유 (m.bt, 화면 눈금). 피해+치유가 가장 큰 단원에게 ★. 옛 보고서에는 없다
+    const score = (m) => (m.bt ? (m.bt.dealt || 0) + (m.bt.healed || 0) : 0);
+    const topScore = Math.max(0, ...r.members.map(score));
+    const top = topScore > 0 ? r.members.find((m) => score(m) === topScore) : null;
+    const contribLine = (m) => {
+      if (!m.bt) return null;
+      const b = m.bt, parts = [];
+      if (b.dealt || (!b.healed && !b.kills)) parts.push(`피해 ${b.dealt || 0}`);
+      if (b.kills) parts.push(`처치 ${b.kills}`);
+      if (b.healed) parts.push(`치유 ${b.healed}`);
+      return el('div', { class: 'small muted contrib', title: `받은 피해 ${b.taken || 0}` }, m === top ? el('b', { class: 'good', text: '★ ' }) : null, parts.join(' · '));
+    };
     r.members.forEach((m) => {
       members.append(el('div', { class: `report-member ${m.dead ? 'dead' : ''}` },
         Sprites.clone(Sprites.merc(m.look, 3, 0), 'portrait'),
         el('div', { class: 'name', text: m.name }),
+        contribLine(m),
         m.dead ? el('div', { class: 'bad' }, icon('skull'), ' 전사')
           : el('div', {},
             el('div', { class: 'small', text: `경험치 +${m.exp}` }),
@@ -824,9 +843,8 @@ const UI = (() => {
   function newGameNow() {
     Battle.stop();
     Game.clearSave();
-    // 새 게임은 전투 판정 모드. 주소 ?resolve=roll 로 연 창만 예전 확률 판정 (js/main.js)
-    const rq = typeof location !== 'undefined' ? new URLSearchParams(location.search).get('resolve') : null;
-    Game.newGame(rq === 'roll' ? 'roll' : 'battle');
+    // 새 게임은 전투 판정 모드. 주소 ?resolve=roll 로 연 창만 예전 확률 판정 (js/main.js 가 주소를 읽고 지운다)
+    Game.newGame(newMode);
     Game.emit();
   }
   function startNewGame() {
@@ -857,7 +875,8 @@ const UI = (() => {
 
   function setTab(t) { tab = t; $('#panel').scrollTop = 0; render(); }
 
-  function init() {
+  function init(opts = {}) {
+    if (opts.newMode === 'roll' || opts.newMode === 'battle') newMode = opts.newMode;
     document.querySelectorAll('.tab').forEach((b) => b.addEventListener('click', () => setTab(b.dataset.tab)));
     $('#next-day').addEventListener('click', () => { if (!modalOpen) Game.nextDay(); });
     $('#skip-day').addEventListener('click', () => { if (!modalOpen) Game.skipToReturn(); });
@@ -891,6 +910,13 @@ const UI = (() => {
           const v = nameInput.value.trim();
           if (v) { s.guildName = v; Game.save(); toast('이름을 바꿨습니다.'); renderTop(); }
         } })),
+      // 의뢰 결과를 정하는 방식. 예전 확률 판정 저장은 여기서 전투 판정으로 바꿀 수 있다 (되돌리기는 주소 ?resolve=roll 로 한 번 열기, js/main.js)
+      // 바꾼 뒤에도 이미 나간 출격은 떠난 때의 방식으로 끝난다 (js/contract.js resolveMission: spec.bm 인 출격만 전투가 정한다)
+      el('div', { class: 'row-inline option' },
+        el('span', { class: 'small', text: `의뢰 결과: ${battle ? '전투 판정' : '예전 확률 판정'}` }),
+        battle ? null : el('button', { class: 'btn small', text: '전투 판정으로 바꾸기', onclick: () => confirmBox(
+          '지금부터 보내는 출격은 전투로 결과가 정해집니다. 이미 나간 출격은 예전 방식으로 끝납니다. 메뉴에서는 되돌릴 수 없습니다.',
+          () => { Game.setResolve('battle'); Game.save(); toast('이제 의뢰 결과를 전투로 정합니다.'); }) })),
       el('label', { class: 'row-inline option', for: 'opt-battle' }, battleToggle, '의뢰 결과 전투 연출 보기'),
       battle ? el('p', { id: 'battle-preview-help', class: 'small muted', text: '이 설정은 귀환 때 전투 화면을 보여 줄지만 정합니다. 의뢰 결과를 정하는 방식은 바뀌지 않습니다.' }) : null,
       el('div', { class: 'help' },
@@ -911,7 +937,7 @@ const UI = (() => {
 
   return {
     init, render, toast, tabs, setTab,
-    h: { el, icon, itemIcon, portrait, artPortrait, eventArt, mini, bonusText, signed, companyFlag, factionFlag, factionTag, soldierLook, condTags, statusLabel, mercCard, roleBadge, skillList },
+    h: { el, icon, itemIcon, portrait, artPortrait, eventArt, mini, bonusText, signed, companyFlag, factionFlag, factionTag, soldierLook, condTags, statusLabel, mercCard, roleBadge, skillList, showK },
     openModal, closeModal, confirmBox, openMerc,
   };
 })();
