@@ -671,7 +671,8 @@ const Game = {
     this.checkBosses();
 
     // 파산 판정
-    if (s.gold < -300) {
+    // 전투 모드는 빚이 한 주 급료(DEBT_WEEKS)까지는 버틴다 (기본 'roll' 은 오늘처럼 -300)
+    if (s.gold < (s.resolve === 'battle' ? -Math.max(300, Stats.KN.DEBT_WEEKS * this.weeklyWageTotal()) : -300)) {
       s.over = 'bankrupt';
       s.pendingReports.push({ special: 'bankrupt' });
     } else if (s.mercs.length === 0 && !s.companies.some((c) => !c.own) && s.gold < 60) {

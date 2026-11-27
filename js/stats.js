@@ -41,6 +41,8 @@ const Stats = (() => {
     RETREAT_MORALE: 0.5,  // 질서 있게 물러난 실패의 사기 하락 배율 (-6 → -3)
     GRACE_DAYS: 7,      // 패배 뒤 이 날수 동안은 주급 탈주·불만 탈주가 없고, 못 준 급료는 빚이 되지 않는다 (유예 주간)
     GRACE_EVERY: 14,    // 유예 주간은 이 날수에 한 번만 새로 열린다
+    DEBT_WEEKS: 1,      // 전투 모드의 파산선: 빚이 주급 이만큼(주)을 넘을 때 (최소 300, 오늘의 선). 출격 중인 단원의 주급 한 번으로 파산하지 않게
+    BM_FINAL_K: 0.5,    // 전투 모드: 최종 결전의 적 배율 (재앙이 오늘보다 이른 길드 단계에 일어난다 — 길드 성장이 느려서)
     INJ_WIN: 0.6,       // 이긴 전투에서 쓰러진 단원이 다칠 확률 (설계 6장)
     INJ_LOSE: 0.9,      // 진 전투에서 쓰러진 단원이 다칠 확률
     INJ_LOW: 0.3,       // 서 있었지만 체력이 25% 아래인 단원의 가벼운 부상 확률 (1~2일)
@@ -227,7 +229,7 @@ const Stats = (() => {
     // 전투 모드의 별 표는 일반 의뢰에만: 특별한 의뢰(이야기·보스·결전·최종)의 별은 등급·지방이 정하므로 옛 표 그대로 둔다
     const normal = bm && kindOf(q) === 'normal';
     const lv = Math.max(1, (normal ? ELV_BM : ELV)[star]);
-    const low = normal ? (KN.BM_LOW_K[star] || 1) : 1;
+    const low = normal ? (KN.BM_LOW_K[star] || 1) : bm && q.final ? KN.BM_FINAL_K : 1;
     return { lv, k: base * KN.ENEMY_K * (KN.KIND_K[kindOf(q)] || 1) * low, kraw: base };
   }
   // 이긴 것으로 치는 조건: field = 제한 시간 안에 적을 무너뜨려야 한다, hold = 끝까지 버텨도 이긴다

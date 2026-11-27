@@ -23,7 +23,7 @@ const HAS_STATS = FILES.includes('stats.js');
 // extra: 뒤에 덧붙일 파일(예: battle.js), prelude: 앞에 둘 코드(예: UI 대역)
 function makeScript(extra = [], prelude = '') {
   const src = prelude + '\n' + [...FILES, ...extra].map((f) => fs.readFileSync(path.join(ROOT, 'js', f), 'utf8')).join('\n')
-    + '\nthis.Game=Game;this.PROMOTIONS=PROMOTIONS;this.PROMOTE_COST=PROMOTE_COST;this.STARTER_CAPTAINS=STARTER_CAPTAINS;this.MASTERS=MASTERS;this.FACILITIES=FACILITIES;'
+    + '\nthis.Game=Game;this.PROMOTIONS=PROMOTIONS;this.PROMOTE_COST=PROMOTE_COST;this.STARTER_CAPTAINS=STARTER_CAPTAINS;this.MASTERS=MASTERS;this.FACILITIES=FACILITIES;this.CALAMITY_DARKNESS=CALAMITY_DARKNESS;'
     + (HAS_STATS ? 'this.Stats=Stats;' : '')
     + (extra.includes('battle.js') ? 'this.Battle=Battle;' : '');
   return new vm.Script(src, { filename: 'game-bundle.js' });
@@ -173,6 +173,9 @@ function run(seed, days, mode, opts = {}) {
         const band = G.forecast(G.muster(c, units)).band;
         if (!seenOffer.has(c.id)) { seenOffer.add(c.id); bs.offered[band]++; }
         take = band >= 3 || (band === 2 && rnd() < 0.34);
+        // 재앙이 암흑시대 문턱(점령 CALAMITY_DARKNESS-2 이상)에 다가오면: 최종 결전과 재앙 상대 결전은 백중이면 받고, 열세도 3번에 1번
+        const doom = s.calamity && G.provincesOf(s.calamity).length >= ctx.CALAMITY_DARKNESS - 2 && (c.final || (c.campaign && G.isCalamity(c.target)));
+        if (doom && (band === 2 || (band === 1 && rnd() < 0.34))) take = true;
         // 다시 올라온 특별 의뢰(이야기·대장 이야기·보스·최종)에 진 적이 있으면: 예상이 그때보다 나아졌거나 압도일 때만, 아니면 열흘은 쉰다
         const sk = specialKey(c), lost = sk && lostSpecial[sk];
         if (take && lost && band < 4 && band <= lost.band && s.day < lost.day + 10) take = false;
