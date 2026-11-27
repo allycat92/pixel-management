@@ -83,6 +83,7 @@ const Stats = (() => {
     BM_TIME_K: 2,        // S 가 떨어지는 가파름 (0 = 끔: 3단계의 예상 그대로)
     BM_TIME_SLOPE: 10,   // b: 3단계 R → 승률 곡선의 기울기 (logit 승률 = b · ln R; R 1 = 반반)
     BM_TIME_HEAL: 0.6,  // killTime: 적의 치유를 이만큼 빼고 센다 (margin 의 rho 와 같은 0.6)
+    BM_TOP_STEP: 3.5,   // 전투 모드(일반 의뢰) ★11~14 의 별 하나에 오르는 적 레벨 (BM_LATE_STEP 과 같으면 3단계 그대로)
     BM_LATE_OPEN: [150, 30],   // 재앙 없이 높은 별 열기 (S 등급일 때): [★11 이 열리는 날, 별 하나 더 열리는 간격(일)] — 150·180·210·240일에 ★11~14. 간격 0 = 끔 (3단계: ★10 에서 멈춤)
     BM_CAP_AHEAD: 4,    // 전투 모드의 별 상한: 길드 등급 + 이 값 (오늘은 +2. 재앙 뒤에는 LATE_MAX_LEVEL 까지) — 상한 안에 벅찬 의뢰가 들게 (검증 3번)
   };
@@ -123,7 +124,8 @@ const Stats = (() => {
     merge(KN, rest); merge(REF, r); merge(ARCH, a); merge(RANK, k);
   }
   const ELV = ELV0.map((v, i) => (i <= 7 ? v : ELV0[7] + (i - 7) * KN.LATE_STEP) + (i ? KN.ELV_SHIFT : 0));
-  const ELV_BM = ELV0.map((v, i) => (i <= 7 ? v : ELV0[7] + Math.round((i - 7) * KN.BM_LATE_STEP)) + (i ? KN.ELV_SHIFT : 0));   // 전투 모드의 별 → 적 레벨
+  // 전투 모드의 별 → 적 레벨: ★8~10 은 BM_LATE_STEP, ★11~14 는 BM_TOP_STEP 씩 (둘이 같으면 3단계의 표 그대로)
+  const ELV_BM = ELV0.map((v, i) => (i <= 7 ? v : ELV0[7] + Math.round(Math.min(i - 7, 3) * KN.BM_LATE_STEP + Math.max(0, i - 10) * KN.BM_TOP_STEP)) + (i ? KN.ELV_SHIFT : 0));
 
   // ───────── 시드 난수 (전투와 같은 mulberry32) ─────────
   function rng(seed) {
