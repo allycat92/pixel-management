@@ -67,7 +67,7 @@ THE MOVE (owner's three movement classes; light: the accepted run: lean forward,
     YOUR toe tip against these numbers (the size_* images mark them with yellow ticks).
 
 ARMS AND WEAPONS:
-  - Both hands stay on the single katana hilt, near right hand forward and far left hand behind it as in the idle. Carry the hilt close to the belt and tip the blade up and back just enough to clear the slot. Keep the elbows linked by the two-handed grip, with no independent arm pump or slash.
+  - Both hands stay on the single katana hilt, near right hand forward and far left hand behind it as in the idle. Carry the hilt close to the belt, in front of the belt buckle (near hand just under the round guard, the other hand below it at the pommel). The mannequin's two separate arm swings and elbow positions do NOT apply to this character (intended, not a deviation): the shoulders follow the torso lean and the grip rides with the torso, at most about 30 px fore-aft, with no arm pump or slash. Tilt the blade more upright than in the idle so the tip stays left of x=351.
   - The crimson hip wrap and white headband tails trail behind by one frame. Keep both tails clear of the next slot.
   - Face: exactly as in the idle in every frame.
 

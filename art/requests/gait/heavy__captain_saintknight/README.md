@@ -17,7 +17,7 @@
 
 - 부류: **중량** — ivory-white plate armour with gold trim, gauntlets, greaves; star-headed mace. (tools/art/specs/gait_classes.json)
 - 납품: art-inbox `art/inbox/gait/sheet_captain_saintknight_run_a.png` (H1~H4) + `art/inbox/gait/sheet_captain_saintknight_run_b.png` (H5~H8) + `art/inbox/NOTES.md` 절 「gait/sheet_captain_saintknight_run - 엘리노어 — 성광의 기사 (성광 기사) 이동」 + 「## 판정 — gait/sheet_captain_saintknight_run」. 파일 이름은 부류와 상관없이 `_run_` (엔진의 `anims.run`).
-- 팔·무기: 가까운 오른손의 별 철퇴를 가슴 안쪽에 세우고 먼 손은 가드에 둔다. 금빛 머리와 흰 리본, 판금 아래 천을 짧게 흔든다.
+- 팔·무기: 가까운 오른손은 가슴 앞에서 자루를 쥐고(팔꿈치는 허리에 붙임) 철퇴를 곧게 세워 별 머리를 얼굴 바로 앞에 둔다(얼굴·금발과 겹치지 않게, 진한 외곽선). 먼 손은 빈 흰 건틀릿으로 허리 옆에 낮게, 몸 뒤에 거의 가려지게 둔다(방패 없음). 금빛 머리와 흰 리본, 판금 아래 천을 짧게 흔든다.
 - 디딘 발: 한 걸음 원본 142.5px(게임 23.6px) → 디딘 발은 칸마다 **정확히 35.6px**(±3, 게임 5.9px) 뒤로 — 발끝 x 는 Prompt 의 PLANTED FOOT 표. (병과 전사 R5 는 디딘 발이 30px 앞에 그려져 한 번 고쳤다.)
 - 클라우드가 받은 뒤: `python3 tools/art/receive.py gait/sheet_captain_saintknight_run` (검사 + `add_gait.py --dry-run`) → 미리보기를 보고 `add_gait.py` 로 붙인다 (`--pose art/requests/guides/heavy_base/v1/pose.json`).
 
@@ -64,7 +64,7 @@ THE MOVE (owner's three movement classes; heavy: heavy armour / tower shield / v
     YOUR toe tip against these numbers (the size_* images mark them with yellow ticks).
 
 ARMS AND WEAPONS:
-  - Near right hand carries the gold star-headed mace upright close to the chest, elbow tucked as in the idle. Keep the far left hand close in guard, with no added shield. The steel haft follows the short heavy arm motion without a swing.
+  - Near right hand grips the steel haft in front of the chest, elbow tucked at the hip, as in the idle: the mace stands upright just ahead of the breastplate, the gold spiked star head at face height just AHEAD of her face, darkly outlined - it never overlaps her face or golden hair and only rides the body bob. Far left hand: an empty white gauntlet kept low and close at the far side of the waist, mostly hidden behind the torso as in the idle (not raised in a guard fist like the attack wind-up; no shield). Holding it low instead of at the mannequin's chest-high far-hand position is intended, not a deviation. The steel haft follows the short heavy arm motion without a swing.
   - The white ribbon, golden hair and cloth below the plate armour sway softly and settle one footfall frame late. Keep the greaves and boots clear.
   - Face: exactly as in the idle in every frame.
 

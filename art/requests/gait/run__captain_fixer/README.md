@@ -18,7 +18,7 @@
 
 - 부류: **경량** — black leather jacket, trousers, boots, dagger; lean agile build. (tools/art/specs/gait_classes.json)
 - 납품: art-inbox `art/inbox/gait/sheet_captain_fixer_run_a.png` (R1~R4) + `art/inbox/gait/sheet_captain_fixer_run_b.png` (R5~R8) + `art/inbox/NOTES.md` 절 「gait/sheet_captain_fixer_run - 진 — 뒷골목 해결사 (해결사) 이동」 + 「## 판정 — gait/sheet_captain_fixer_run」. 파일 이름은 부류와 상관없이 `_run_` (엔진의 `anims.run`).
-- 팔·무기: 가까운 오른손의 역수 단검은 팔뚝을 따라 뒤로, 먼 손은 빈 가드로 둔다. 후드와 짧은 옷자락은 작게 따라간다.
+- 팔·무기: 가까운 오른손의 역수 단검은 팔뚝을 따라 뒤로(허리 높이), 먼 손은 빈 가드로 둔다. 후드와 얼굴 스카프는 몸에 붙인 채 두고, 짧은 가죽 옷자락만 한 칸 늦게 뒤로 따라간다.
 - 디딘 발: 한 걸음 원본 275px(게임 45.5px) → 디딘 발은 칸마다 **정확히 68.8px**(±3, 게임 11.4px) 뒤로 — 발끝 x 는 Prompt 의 PLANTED FOOT 표. (병과 전사 R5 는 디딘 발이 30px 앞에 그려져 한 번 고쳤다.)
 - 클라우드가 받은 뒤: `python3 tools/art/receive.py gait/sheet_captain_fixer_run` (검사 + `add_gait.py --dry-run`) → 미리보기를 보고 `add_gait.py` 로 붙인다 (`--pose art/requests/guides/run_base/v2/pose.json`).
 
@@ -44,7 +44,7 @@ REFERENCES (load all; if the sheet or a guide does not load, do not draw - write
   - art/requests/guides/run_base/v2/pose.json (the numbers below come from it), art/requests/guides/run_base/v2/run_base_preview.gif (the motion at speed), art/requests/guides/run_base/v2/run_base.aseprite (the mannequin source -
     you may open it as an underlay and draw on your own layers, but the delivered PNGs contain ONLY your drawing).
 
-CHARACTER (unchanged from the accepted sheet): ONE short dagger in the near hand (screen-left arm = the character's right), REVERSE grip (blade leaving the little-finger side, running back along the forearm), exactly as the guide draws it; black hood; grey scarf over the mouth; narrow eyes; short black hair; black leather jacket with grey trim; leather belt and a cross strap; dark trousers, black boots; lean, agile build.
+CHARACTER (unchanged from the accepted sheet): ONE short dagger in the near hand (screen-left arm = the character's right), REVERSE grip (blade leaving the little-finger side, running back along the forearm), exactly as the accepted sheet's idle draws it (fist at the belt, blade pointing back toward screen-left, tip behind the hip - the run mannequin holds no dagger); black hood; grey scarf over the mouth; narrow eyes; short black hair; black leather jacket with grey trim; leather belt and a cross strap; dark trousers, black boots; lean, agile build.
 
 THE MOVE (owner's three movement classes; light: the accepted run: lean forward, press down in flight, rise a little after the landing is caught, hip nearly level, slight float, no hopping. It is already in the mannequin - copy it, do not invent another):
   - Each frame: the legs, the torso lean and the arm swing of that mannequin frame. Joint for joint: hips, knees, ankles, feet,

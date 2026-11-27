@@ -44,7 +44,7 @@ REFERENCES (load all; if the sheet or a guide does not load, do not draw - write
   - art/requests/guides/run_base/v2/pose.json (the numbers below come from it), art/requests/guides/run_base/v2/run_base_preview.gif (the motion at speed), art/requests/guides/run_base/v2/run_base.aseprite (the mannequin source -
     you may open it as an underlay and draw on your own layers, but the delivered PNGs contain ONLY your drawing).
 
-CHARACTER (unchanged from the accepted sheet): a short recurve bow the size of the guide bow, quiver of arrows on the back; long auburn hair in a high ponytail; ochre headband; freckles; olive-green hooded tunic; brown leather vest; rope coil on the belt; dark trousers, brown boots.
+CHARACTER (unchanged from the accepted sheet): a short recurve bow exactly the size and shape of the bow in the idle (held diagonally, top tip about shoulder/chin height, lower tip about knee height; this request has no bow guide), quiver of arrows on the back; long auburn hair in a high ponytail; ochre headband; freckles; olive-green hooded tunic; brown leather vest; rope coil on the belt; dark trousers, brown boots.
 
 THE MOVE (owner's three movement classes; light: the accepted run: lean forward, press down in flight, rise a little after the landing is caught, hip nearly level, slight float, no hopping. It is already in the mannequin - copy it, do not invent another):
   - Each frame: the legs, the torso lean and the arm swing of that mannequin frame. Joint for joint: hips, knees, ankles, feet,

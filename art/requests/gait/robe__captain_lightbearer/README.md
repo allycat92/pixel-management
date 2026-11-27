@@ -15,7 +15,7 @@
 | `art/inbox/sheet_captain_lightbearer.png` | **승인된 전투 시트 원본** — 디자인·색·크기의 기준. 1번 자세가 대기 |
 | `art/requests/guides/robe_base/v1/` (`pose.json`, `robe_base_preview.gif`, `robe_base.aseprite`) | 마네킹 원본 — 숫자·움직임 확인용 |
 
-- 부류: **로브** — layered cream-white robes to the ankle with flame embroidery on the hem; only the shoes show. (tools/art/specs/gait_classes.json)
+- 부류: **로브** — layered cream-white robes to the lower shin with orange flame embroidery on the skirt panels and hem; short cream boots (shaft and foot) show below the hem, and the back cape hangs a little lower on the far side. (tools/art/specs/gait_classes.json)
 - 납품: art-inbox `art/inbox/gait/sheet_captain_lightbearer_run_a.png` (G1~G4) + `art/inbox/gait/sheet_captain_lightbearer_run_b.png` (G5~G8) + `art/inbox/NOTES.md` 절 「gait/sheet_captain_lightbearer_run - 루치아 — 빛을 든 사도 (빛의 사도) 이동」 + 「## 판정 — gait/sheet_captain_lightbearer_run」. 파일 이름은 부류와 상관없이 `_run_` (엔진의 `anims.run`).
 - 팔·무기: 가까운 오른손의 해 모양 셉터를 세우고 먼 손은 비운다. 크림 로브는 무릎을 가리고 베일과 함께 한 칸 늦는다.
 - 디딘 발: 한 걸음 원본 134.2px(게임 22.2px) → 디딘 발은 칸마다 **정확히 33.5px**(±3, 게임 5.5px) 뒤로 — 발끝 x 는 Prompt 의 PLANTED FOOT 표. (병과 전사 R5 는 디딘 발이 30px 앞에 그려져 한 번 고쳤다.)

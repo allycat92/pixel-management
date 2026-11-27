@@ -39,7 +39,7 @@ REFERENCES (load all; if the sheet or a guide does not load, do not draw - write
     the accepted idle (faint) with the mannequin outline on top: the two are the SAME SCALE.
   - art/inbox/sheet_captain_tactician.png (pose 1 = idle) = the accepted battle sheet: design, colours, outline, rendering and SIZE.
     Same character, same pixel size, same palette.
-  - art/requests/phase3/captain_tactician/concept.png = the design draft (design only - not proportions or rendering).
+  - art/requests/phase3/captain_tactician/concept.png = an early design draft only. Its black tricorne and straight hair are OVERRULED (owner 2026-11-26: NOT a tricorne): draw the peaked officer's cap (gold band, gold fleur-de-lis) and the long wavy dark-indigo hair exactly as in the accepted sheet's idle.
   - art/requests/phase3/captain_tactician/portrait.png = the approved portrait (face, hair, colours only).
   - art/requests/guides/run_base/v2/pose.json (the numbers below come from it), art/requests/guides/run_base/v2/run_base_preview.gif (the motion at speed), art/requests/guides/run_base/v2/run_base.aseprite (the mannequin source -
     you may open it as an underlay and draw on your own layers, but the delivered PNGs contain ONLY your drawing).
@@ -67,7 +67,7 @@ THE MOVE (owner's three movement classes; light: the accepted run: lean forward,
     YOUR toe tip against these numbers (the size_* images mark them with yellow ticks).
 
 ARMS AND WEAPONS:
-  - Near right hand holds the gold-knobbed officer's cane close to the hip. Lift its tip clear of the ground throughout and angle it back slightly in the stride. Far left hand stays empty at the belt with a small controlled pump.
+  - Near right hand keeps the idle's grip: the fist sits ON TOP of the gold knob and the shaft hangs below it (never hold it mid-shaft). The cane is CARRIED, never planted: tilt the shaft so the ferrule trails backward (toward screen-left) - where the hand is low (R1, R6, R7, R8) at least 30 deg from vertical (35-40 deg is right) so the ferrule stays clearly off the floor and at or above y=852; where the hand swings up (R2-R5) it may hang nearer vertical. Keep every cane pixel right of x=32. Keep its idle length (about 195 px fist to ferrule); change only its angle, never shorten it. Far left hand stays empty at the belt with a small controlled pump.
   - The charcoal military coat tails and long dark-indigo hair follow the torso one frame late. Keep the epaulettes and the registered hat silhouette steady.
   - Face: exactly as in the idle in every frame.
 

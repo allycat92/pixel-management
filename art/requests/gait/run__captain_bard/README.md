@@ -65,8 +65,8 @@ THE MOVE (owner's three movement classes; light: the accepted run: lean forward,
     YOUR toe tip against these numbers (the size_* images mark them with yellow ticks).
 
 ARMS AND WEAPONS:
-  - Near right hand holds the gold cup-hilt rapier close to the belt. Keep the blade slightly down or back inside the slot, with no thrust. The empty far left hand pumps gently with an open guard. Keep the round lute strapped to the back.
-  - The cream feather, braid, short shoulder cape and plum frock-coat tails trail and settle one frame late.
+  - Near right hand holds the gold cup-hilt rapier at the belt, just in front of the hip, hilt and grip as in the idle. The blade keeps its idle length (about 180 px from fist to tip; never shorten it) and points BACK and DOWN about 35-55 deg below horizontal, behind the hip and rear thigh, so the tip stays right of x=32 and at or above y=852 in every frame (R4/R8 included). Never level, forward or up; no thrust. The empty far left hand pumps gently with an open guard. Keep the round lute strapped to the back.
+  - The cream feather, the short shoulder cape and the plum frock-coat tails trail BACK and settle one frame late (most lift in R1/R5, settled in R3/R7). The braid stays where the idle draws it - over the near shoulder and down the FRONT of the chest beside the jabot to the belt, with the gold tie - and only swings a little with each footfall, one frame late; never throw it behind the back. The loose wavy hair at the nape may lift slightly.
   - Face: exactly as in the idle in every frame.
 
 MUST NOT CHANGE: outfit, colours, proportions, headgear, weapon and shield shapes and sizes, and the SCALE of the accepted

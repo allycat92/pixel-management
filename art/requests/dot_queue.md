@@ -29,6 +29,16 @@ Claude Code 가 받아서 확인한 결과는 `art/requests/feedback.md`에 남�
 | Antigravity | new | `gait/sheet_class_cleric_run` | 병과 성직자 달리기 8프레임. 요청서 `art/requests/gait/run__class_cleric/README.md` |
 | Antigravity | new | `gait/sheet_class_rogue_run` | 병과 도적 달리기 8프레임. 요청서 `art/requests/gait/run__class_rogue/README.md` |
 | Antigravity | DOT_READY | `sheet/captain/liberator/chain-sheet` | 카토 주먹·사슬 시트: 대기 `2391081` 그대로, 준비·접촉·피격 세 컷 추가. [요청서](phase3/captain_liberator/chain_sheet.md). |
+| Antigravity | new | `gait/sheet_captain_lancer_run` | 대장 창기병 중량 이동 8프레임 (C8 요청서, 클라우드 대조 검증 반영). 요청서 `art/requests/gait/heavy__captain_lancer/README.md` |
+| Antigravity | new | `gait/sheet_captain_saintknight_run` | 대장 성광 기사 중량 이동 8프레임 (C8 요청서, 클라우드 대조 검증 반영). 요청서 `art/requests/gait/heavy__captain_saintknight/README.md` |
+| Antigravity | new | `gait/sheet_captain_archmagus_run` | 대장 대현자 로브 이동 8프레임 (C8 요청서, 클라우드 대조 검증 반영). 요청서 `art/requests/gait/robe__captain_archmagus/README.md` |
+| Antigravity | new | `gait/sheet_captain_lightbearer_run` | 대장 빛의 사제 로브 이동 8프레임 (C8 요청서, 클라우드 대조 검증 반영). 요청서 `art/requests/gait/robe__captain_lightbearer/README.md` |
+| Antigravity | new | `gait/sheet_captain_blademaster_run` | 대장 검성 달리기 8프레임 (C8 요청서, 클라우드 대조 검증 반영). 요청서 `art/requests/gait/run__captain_blademaster/README.md` |
+| Antigravity | new | `gait/sheet_captain_huntress_run` | 대장 사냥꾼 달리기 8프레임 (C8 요청서, 클라우드 대조 검증 반영). 요청서 `art/requests/gait/run__captain_huntress/README.md` |
+| Antigravity | new | `gait/sheet_captain_bard_run` | 대장 음유시인 달리기 8프레임 (C8 요청서, 클라우드 대조 검증 반영). 요청서 `art/requests/gait/run__captain_bard/README.md` |
+| Antigravity | new | `gait/sheet_captain_fixer_run` | 대장 해결사 달리기 8프레임 (C8 요청서, 클라우드 대조 검증 반영). 요청서 `art/requests/gait/run__captain_fixer/README.md` |
+| Antigravity | new | `gait/sheet_captain_veteran_run` | 대장 노병 달리기 8프레임 (C8 요청서, 클라우드 대조 검증 반영). 요청서 `art/requests/gait/run__captain_veteran/README.md` |
+| Antigravity | new | `gait/sheet_captain_tactician_run` | 대장 전술가 달리기 8프레임 (C8 요청서, 클라우드 대조 검증 반영). 요청서 `art/requests/gait/run__captain_tactician/README.md` |
 
 수령 완료, 제작 대상 아님: 비요른·카이·해골 병사·사막 도적 (`5520f35`), 고블린·서리 트롤 (`c4cc054`). `C5-art-battle-integration-qa`에서 Codex가 별도 빌드로 반영·실전 확인한다. 최종 등록은 별도다.
 

@@ -200,6 +200,8 @@ def check_requests(spec, man):
                 errs.append(f'{name}: guide_{REQ_PREFIX[cls]}_{h}.png 가 {rel(src)} 와 다르다 — gait_requests.py --write {sid} --force')
             if not os.path.exists(os.path.join(folder, f'size_{REQ_PREFIX[cls]}_{h}.png')):
                 errs.append(f'{name}: size_{REQ_PREFIX[cls]}_{h}.png 가 없다')
+        for m2 in re.finditer(r'the guide (bow|spear|lance|sword|staff|mace|blade|draws)|as long as the guide', text):
+            errs.append(f'{name}/README.md: 「{m2.group(0)}」 - phase3 CHARACTER 줄을 그대로 옮긴 말이다. 이 요청에는 무기 가이드가 없으니 「the idle」 기준으로 바꿀 것')
         if g not in text:
             errs.append(f'{name}/README.md: 부류 마네킹 {g} 를 가리키지 않는다 — --force 로 다시 만들 것')
     return errs
