@@ -25,10 +25,11 @@
           "elbow": 40.0
         },
         "F": {
-          "table_scale": 0.12,
-          "shoulder": 38.0,
+          "table_scale": 0.0,
+          "shoulder": 33.0,
           "elbow": 142.0,
-          "lag": 1
+          "lag": 1,
+          "swing": 4.0
         }
       },
       "props": [
@@ -47,7 +48,7 @@
           "hand": "F",
           "kind": "shield",
           "shape": "round",
-          "radius": 64.0,
+          "radius": 60.0,
           "face": 30.0,
           "offset": 6.0,
           "swing": 3.0,
