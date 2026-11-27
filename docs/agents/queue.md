@@ -7,6 +7,7 @@
 
 | 누구 | id | 상태 | 할 일 (자세한 것은 그 줄의 문서) |
 |---|---|---|---|
+| Codex | `C21-calibration-data` | READY | 예상 보정용 데이터 뽑기(대장 key·원정·보스별, 측정만): `docs/agents/tasks/C21-calibration-data.md` |
 | GPT | `C20-betrayal-loss-fixed` | READY | (코드 일감, 「한 부대 다듬기」 들어간 뒤) 결전 배신·외부단 손실도 출격 때 고정: `docs/agents/tasks/C20-betrayal-loss-fixed.md` |
 | GPT | `Q19-flip-readiness-2` | READY | (C20 다음) 한 부대 초반 다듬기 들어감 — 다른 시드로 사람 플레이 다시: `docs/agents/tasks/Q19-flip-readiness-2.md` |
 
