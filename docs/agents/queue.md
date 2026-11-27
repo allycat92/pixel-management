@@ -9,13 +9,13 @@
 |---|---|---|---|
 | GPT | `Q18-issuer-standoff-check` | READY | (Q17 다음, Q16 보다 먼저) 의뢰주 멸망 정리·전투 멈춤 해소·C14 확인: `docs/agents/tasks/Q18-issuer-standoff-check.md` |
 | GPT | `Q17-cleric-run-ingame` | READY | (짧게, Q16 보다 먼저) 성직자 달리기 앞 타바드·철퇴 위치를 게임에서: `docs/agents/tasks/Q17-cleric-run-ingame.md` |
-| GPT | `Q16-flip-readiness` | READY | 전투 모드를 기본으로 바꿔도 되는지 사람 플레이로 보기(400px 120일, roll 비교): `docs/agents/tasks/Q16-flip-readiness.md` |
 | Codex | `C18-crosscheck-gpt-code` | READY | GPT 가 대신 고친 C14·C16 코드 교차 확인(보고만): `docs/agents/tasks/C18-crosscheck-gpt-code.md` |
 
 ## 끝난 일
 
 | 누구 | id | 결과 |
 |---|---|---|
+| GPT | `Q16-flip-readiness` | **DONE** (11-27, `7402731`): 사람 플레이(400px 전투 120일 / 1280 roll 60일, 직속 1부대) — 의견 **조건부**. 압도 20/20, 우세 13/17(초반 패배 몰림), 백중 3/15. 60일 D·명성 361 vs roll C·746. 60~120일 귀환 기다리는 날 37/61, A·S 미도달(120일 B). 패배 결과창 설명은 roll 보다 재미있음. 유예 주간 안내가 일지에만 있어 놓치기 쉬움 |
 | GPT | `Q15-gait-ingame-2` | **DONE** (11-27, `b84afb0`): 브리긴다·마법사 손질본 PASS(철퇴 머리·다리·장화 분리, 세력 색 번짐 0), 궁수 달리기 PASS + 관찰 하나 — 달리기를 **처음 시작하는 R1→R2** 에서 디딘 발끝이 뒤로 4~6px 당겨짐(이후 ±2px) → 엔진 쪽(달리기 시작 박자), 총괄 목록 |
 | GPT | `C17-monster-gait-requests` | **DONE** (11-27, `790c63c` 골라 합침, GPT 가 Codex 대신): 고블린·서리 트롤(2×2, 0.18 배율 가이드)·사막 도적 이동 요청서, phase3 배율 기록. 기존 요청 가이드는 도구 변경 뒤에도 픽셀 동일. 클라우드 그림 대조 중 |
 | GPT | `C16-tight-time-hint` | **DONE** (11-27, `ab7e289` 골라 합침, GPT 가 Codex 대신): 전투 모드 출정 창에 「시간이 빠듯함 · 적을 제시간에 다 쓰러뜨리지 못할 수 있음」(숫자 없음, 예상 단어·판정 그대로). 봇 표본 0.56% 에서 뜨고, 뜬 전투의 시간 초과 패배 6.25% vs 안 뜬 0.16% |
