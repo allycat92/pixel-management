@@ -17,7 +17,7 @@
 
 - 부류: **경량** — humanoid desert bandit: loose robe-tunic to the hip, leather vest, sash, baggy trousers tucked into boots; scimitar. (tools/art/specs/gait_classes.json)
 - 납품: art-inbox `art/inbox/gait/sheet_monster_desert-bandit_run_a.png` (R1~R4) + `art/inbox/gait/sheet_monster_desert-bandit_run_b.png` (R5~R8) + `art/inbox/NOTES.md` 절 「gait/sheet_monster_desert-bandit_run - 사막 도적 이동」 + 「## 판정 — gait/sheet_monster_desert-bandit_run」. 파일 이름은 부류와 상관없이 `_run_` (엔진의 `anims.run`).
-- 팔·무기: 가까운 손 허리 높이, 굽은 칼날은 뒤아래. 날 폭까지 칸 안, 얼굴·뒤 발과 분리. 얼굴 베일과 긴 앞 허리띠는 앞으로.
+- 팔·무기: 가까운 손 허리 높이(x=158–168, y=673–687), 굽은 칼날은 수평보다 49–53° 아래로 뒤를 향한다 (대기는 앞위 — 의도한 바꿈; 대기에서 49–53° 돌리라는 뜻이 아니다), 자루머리·코등이는 손 앞. 굽음·길이(손에서 끝까지 약 184px) 그대로, 칼 전체 x=32–210, y=640–840 안, 얼굴 아래. R1·R2·R4·R5·R6·R8 은 칼날 뒤쪽 절반이 뒤 정강이·장화를 가로지른다 — 칼날을 장화 위에 짙은 외곽선·밝은 날까지 그려 둘이 따로 읽히게 (장화 뒤로 숨기지 않는다). R3·R7 은 칼날이 비어 있다. 얼굴 베일과 긴 앞 허리띠는 앞으로.
 - 디딘 발: 한 걸음 원본 275px(게임 45.5px) → 디딘 발은 칸마다 **정확히 68.8px**(±3, 게임 11.4px) 뒤로 — 발끝 x 는 Prompt 의 PLANTED FOOT 표. (병과 전사 R5 는 디딘 발이 30px 앞에 그려져 한 번 고쳤다.)
 - 클라우드가 받은 뒤: `python3 tools/art/receive.py gait/sheet_monster_desert-bandit_run` (검사 + `add_gait.py --dry-run`) → 미리보기를 보고 `add_gait.py` 로 붙인다 (`--pose art/requests/guides/run_base/v2/pose.json`).
 
@@ -65,7 +65,7 @@ THE MOVE (owner's three movement classes; light: the accepted run: lean forward,
     YOUR toe tip against these numbers (the size_* images mark them with yellow ticks).
 
 ARMS AND WEAPONS:
-  - Carry the scimitar low in the near hand at x=158–168, y=673–687. Turn the curved blade about 49–53 degrees back and down from that grip; allow for its curved belly and use x=32–210, y=640–840 as the full weapon envelope. The weapon stays below the veiled face and reads separately from the trailing boot. The curve and length stay unchanged.
+  - Carry the scimitar low in the near hand at x=158–168, y=673–687. The idle holds the blade forward and up across the vest. For the run, the blade POINTS back and down at 49–53° below horizontal, pommel and guard forward of the hand (intended change, not a deviation; this is the blade's direction, not a 49–53° rotation from the idle). Keep its curve and length (about 184 px from grip to tip); the whole weapon stays within x=32–210, y=640–840 and below the veiled face. In R1, R2, R4, R5, R6 and R8 the back half of the blade crosses the trailing shin and boot (ankle at about x=98,y=730 / x=129,y=722 / x=84,y=796). Draw the blade OVER that boot with its full dark outline and light edge, so blade and boot stay separate shapes at 64 px; never hide the blade behind the boot. In R3 and R7 the blade runs clear, behind the push-off shin.
   - The near elbow follows the shoulder but the steady grip replaces its swing; adjust the elbow bend, not arm length. The empty far hand follows the free light arm swing and stays separated from the blade.
   - Keep the face veil, vest fronts and the vertical sash in their original front layers. Only short rear headwrap tails and loose tips lag. The baggy trousers separate across both knees and boots; this is light, not robe.
   - Face: keep the same narrow eye slit and veil; do not uncover the nose or mouth.

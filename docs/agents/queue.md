@@ -7,13 +7,15 @@
 
 | 누구 | id | 상태 | 할 일 (자세한 것은 그 줄의 문서) |
 |---|---|---|---|
+| GPT | `Q17-cleric-run-ingame` | READY | (짧게, Q16 보다 먼저) 성직자 달리기 앞 타바드·철퇴 위치를 게임에서: `docs/agents/tasks/Q17-cleric-run-ingame.md` |
+| GPT | `Q16-flip-readiness` | READY | 전투 모드를 기본으로 바꿔도 되는지 사람 플레이로 보기(400px 120일, roll 비교): `docs/agents/tasks/Q16-flip-readiness.md` |
 | Codex | `C18-crosscheck-gpt-code` | READY | GPT 가 대신 고친 C14·C16 코드 교차 확인(보고만): `docs/agents/tasks/C18-crosscheck-gpt-code.md` |
-| GPT | `Q15-gait-ingame-2` | REVIEW | 브리긴다·마법사 손질본과 궁수 달리기를 게임에서 보기: `docs/agents/tasks/Q15-gait-ingame-2.md` |
 
 ## 끝난 일
 
 | 누구 | id | 결과 |
 |---|---|---|
+| GPT | `Q15-gait-ingame-2` | **DONE** (11-27, `b84afb0`): 브리긴다·마법사 손질본 PASS(철퇴 머리·다리·장화 분리, 세력 색 번짐 0), 궁수 달리기 PASS + 관찰 하나 — 달리기를 **처음 시작하는 R1→R2** 에서 디딘 발끝이 뒤로 4~6px 당겨짐(이후 ±2px) → 엔진 쪽(달리기 시작 박자), 총괄 목록 |
 | GPT | `C17-monster-gait-requests` | **DONE** (11-27, `790c63c` 골라 합침, GPT 가 Codex 대신): 고블린·서리 트롤(2×2, 0.18 배율 가이드)·사막 도적 이동 요청서, phase3 배율 기록. 기존 요청 가이드는 도구 변경 뒤에도 픽셀 동일. 클라우드 그림 대조 중 |
 | GPT | `C16-tight-time-hint` | **DONE** (11-27, `ab7e289` 골라 합침, GPT 가 Codex 대신): 전투 모드 출정 창에 「시간이 빠듯함 · 적을 제시간에 다 쓰러뜨리지 못할 수 있음」(숫자 없음, 예상 단어·판정 그대로). 봇 표본 0.56% 에서 뜨고, 뜬 전투의 시간 초과 패배 6.25% vs 안 뜬 0.16% |
 | GPT | `Q11-stage4-check` | **DONE** (11-27, `690bdfe`): 후반 의뢰판 PASS(재앙 없음: 전부 「압도」인 판 30/36→0/36, ★11~14 가 150·180·210·240일에 열림). 시간 제한 예상은 부분 개선 — Q6 거점 공략 재현은 R 1.271→1.139 로 내려갔지만 여전히 「우세」이고 시간 초과로 진다(250조합 중 1~2명 우세 시간 초과 1건씩). 제안: 시간이 빠듯한 「우세」에 이유 표시 |
