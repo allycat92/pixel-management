@@ -19,31 +19,104 @@
       "sheet": "sheet/class/warrior",
       "gait": "run_light",
       "arms": {
-        "N": {"table_scale": 0.55, "shoulder": -6.0, "elbow": 40.0},
-        "F": {"table_scale": 0.12, "shoulder": 54.0, "elbow": 128.0, "lag": 1}
+        "N": {
+          "table_scale": 0.4,
+          "shoulder": 4.0,
+          "elbow": 40.0
+        },
+        "F": {
+          "table_scale": 0.12,
+          "shoulder": 38.0,
+          "elbow": 142.0,
+          "lag": 1
+        }
       },
       "props": [
-        {"hand": "N", "kind": "sword", "abs_angle": -150.0, "yaw": -38.0, "length": 175.0, "back": 28.0, "swing": 5.0, "lag": 1,
-         "measured": "idle sword: fist (-25, 191), tip (116, 301), pommel (-45, 171) -> 179 px beyond the fist, 28 behind; run strips (art-inbox sheet_class_warrior_run_a/b) carry it low behind the hip, blade back and down ~30 deg below horizontal, ~130 px on screen (foreshortened: yaw)"},
-        {"hand": "F", "kind": "shield", "shape": "round", "radius": 64.0, "face": 30.0, "offset": 6.0, "swing": 3.0, "lag": 1,
-         "measured": "idle shield x 35..127, h 156..290: an upright disc ~134 px tall seen at ~45 deg (92 px wide); run strips: centre ~(+104, 261), up to the helmet chin"}
+        {
+          "hand": "N",
+          "kind": "sword",
+          "abs_angle": -145.0,
+          "yaw": 0.0,
+          "length": 135.0,
+          "back": 26.0,
+          "swing": 5.0,
+          "lag": 1,
+          "measured": "idle sword: fist (-25, 191), tip (116, 301), pommel (-45, 171) -> 179 px beyond the fist on the idle; the drawn run / windup / strike / hit show 112-160 px (foreshortened) -> 135 px used so the swing fits the slot band; run strips (art-inbox sheet_class_warrior_run_a/b) carry it low behind the hip, blade back and down ~30 deg below horizontal"
+        },
+        {
+          "hand": "F",
+          "kind": "shield",
+          "shape": "round",
+          "radius": 64.0,
+          "face": 30.0,
+          "offset": 6.0,
+          "swing": 3.0,
+          "lag": 1,
+          "measured": "idle shield x 35..127, h 156..290: an upright disc ~134 px tall seen at ~45 deg (92 px wide); run strips: centre ~(+104, 261), up to the helmet chin",
+          "lift": 20.0
+        }
       ],
-      "ready": {"hand_N": [-25.0, 191.0], "blade_deg": 38.0},
-      "actions": ["attack", "hit"]
+      "ready": {
+        "hand_N": [
+          -25.0,
+          191.0
+        ],
+        "blade_deg": 38.0
+      },
+      "actions": [
+        "attack",
+        "hit"
+      ]
     },
     "ironwall": {
       "sheet": "sheet/captain/ironwall",
       "gait": "run_heavy",
       "chest_counter": 5.0,
       "arms": {
-        "N": {"shoulder": 4.0, "swing": 9.0, "elbow": 74.0, "elbow_swing": 6.0, "lag": 1, "table_scale": 0.0},
-        "F": {"shoulder": 34.0, "swing": 7.0, "elbow": 104.0, "lag": 1, "table_scale": 0.0}
+        "N": {
+          "shoulder": 4.0,
+          "swing": 9.0,
+          "elbow": 74.0,
+          "elbow_swing": 6.0,
+          "lag": 1,
+          "table_scale": 0.0
+        },
+        "F": {
+          "shoulder": 34.0,
+          "swing": 7.0,
+          "elbow": 104.0,
+          "lag": 1,
+          "table_scale": 0.0
+        }
       },
       "props": [
-        {"hand": "N", "kind": "mace", "abs_angle": 72.0, "length": 108.0, "back": 16.0, "head_r": 28.0, "swing": 8.0, "lag": 1,
-         "measured": "idle mace: fist (-45, 196), head centre (55, 251) -> 114 px, spiked head ~60 px across; carried upright at the side in the run so the head stays clear of the shield hand"},
-        {"hand": "F", "kind": "shield", "shape": "tower", "half": [48.0, 122.0], "corner": 16.0, "face": 62.0, "offset": 8.0, "lift": 10.0, "swing": 4.0, "lag": 1,
-         "measured": "idle tower shield x 47..143, h 95..340: a rectangle 95 x 245 seen almost face-on, chamfered corners"}
+        {
+          "hand": "N",
+          "kind": "mace",
+          "abs_angle": 72.0,
+          "length": 108.0,
+          "back": 16.0,
+          "head_r": 28.0,
+          "swing": 8.0,
+          "lag": 1,
+          "measured": "idle mace: fist (-45, 196), head centre (55, 251) -> 114 px, spiked head ~60 px across; carried upright at the side in the run so the head stays clear of the shield hand"
+        },
+        {
+          "hand": "F",
+          "kind": "shield",
+          "shape": "tower",
+          "half": [
+            48.0,
+            122.0
+          ],
+          "corner": 16.0,
+          "face": 62.0,
+          "offset": 8.0,
+          "lift": 10.0,
+          "swing": 4.0,
+          "lag": 1,
+          "measured": "idle tower shield x 47..143, h 95..340: a rectangle 95 x 245 seen almost face-on, chamfered corners"
+        }
       ]
     },
     "mage": {
@@ -52,14 +125,35 @@
       "robe": true,
       "chest_counter": 4.0,
       "arms": {
-        "N": {"shoulder": 30.0, "swing": 6.0, "elbow": 84.0, "elbow_swing": 8.0, "lag": 1, "table_scale": 0.0},
-        "F": {"table_scale": 1.0}
+        "N": {
+          "shoulder": 30.0,
+          "swing": 6.0,
+          "elbow": 84.0,
+          "elbow_swing": 8.0,
+          "lag": 1,
+          "table_scale": 0.0
+        },
+        "F": {
+          "table_scale": 1.0
+        }
       },
       "props": [
-        {"hand": "N", "kind": "staff", "abs_angle": 78.0, "length": 180.0, "back": 140.0, "swing": 4.0, "lag": 1,
-         "measured": "idle staff: butt (20, 118), tip (88, 431) -> 320 px at 78 deg; lower fist (35, 261) -> 144 px below it, the crystal ~180 px above; upper fist (52, 311)"}
+        {
+          "hand": "N",
+          "kind": "staff",
+          "abs_angle": 78.0,
+          "length": 180.0,
+          "back": 140.0,
+          "swing": 4.0,
+          "lag": 1,
+          "measured": "idle staff: butt (20, 118), tip (88, 431) -> 320 px at 78 deg; lower fist (35, 261) -> 144 px below it, the crystal ~180 px above; upper fist (52, 311)"
+        }
       ],
-      "two_hand": {"prop": 0, "other": "F", "along": 52.0}
+      "two_hand": {
+        "prop": 0,
+        "other": "F",
+        "along": 52.0
+      }
     }
   }
 }
