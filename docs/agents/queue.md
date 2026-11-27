@@ -8,7 +8,7 @@
 | 누구 | id | 상태 | 할 일 (자세한 것은 그 줄의 문서) |
 |---|---|---|---|
 | Codex | `C18-crosscheck-gpt-code` | READY | GPT 가 대신 고친 C14·C16 코드 교차 확인(보고만): `docs/agents/tasks/C18-crosscheck-gpt-code.md` |
-| GPT | `Q15-gait-ingame-2` | READY | 브리긴다·마법사 손질본과 궁수 달리기를 게임에서 보기: `docs/agents/tasks/Q15-gait-ingame-2.md` |
+| GPT | `Q15-gait-ingame-2` | REVIEW | 브리긴다·마법사 손질본과 궁수 달리기를 게임에서 보기: `docs/agents/tasks/Q15-gait-ingame-2.md` |
 
 ## 끝난 일
 
