@@ -732,7 +732,7 @@ Object.assign(Game, {
       const target = ch.target && ch.target !== owner && !this.provincesOf(ch.target).length ? null : ch.target;
       let issuer = 'locals';
       if (!target) issuer = this.isCalamity(owner) || this.isDestroyed(owner) ? 'locals' : owner;
-      else if (owner !== target && !FACTIONS[owner].neutral) issuer = owner;
+      else if (owner !== target && !FACTIONS[owner].neutral && !this.isCalamity(owner)) issuer = owner;   // 재앙은 의뢰하지 않는다 (willHire)
       else if (h.faction && h.faction !== target && !this.isDestroyed(h.faction)) issuer = h.faction;   // 멸망한 후원 세력은 의뢰주가 될 수 없다 (QA Q9)
       const level = clamp(Math.max(TIER_LEVELS[PROVINCES[ch.province].tier][0], this.rankIndex() + 2), 1, 10);
       const c = this.makeContract({ province: ch.province, type: ch.type, target, issuer, enemy: ch.enemy, title: ch.title, level, size: 3, noDeadline: true });

@@ -759,6 +759,7 @@ const Battle = (() => {
     for (const o of live) {
       if (o.x <= u.x - rxMax || o.x >= u.x + rxMax || o.y <= u.y - ryMax || o.y >= u.y + ryMax) continue;
       if (o === u || o === tg || !o.alive || o.fled || (o.side === u.side && (u.g.routed || o.g.routed))) continue;
+      if (u.sq && o.side === u.side && !o.moving) continue;   // 비집고 지나가는 중 (SQUEEZE): 서 있는 아군은 돌아가지 않는다
       if (o.moving && (o.vx || 0) * dx + (o.vy || 0) * dy > 0.7 * u.speed * DT) continue;  // 같은 쪽으로 비슷하게 가는 몸은 따라간다
       const same = o.side === u.side, big = sizeOf(u) + sizeOf(o);
       const MX = (same ? SEP_X : SEP_FOE_X) + big * 0.75, MY = (same ? SEP_Y : SEP_FOE_Y) + big * 0.5;
@@ -785,6 +786,7 @@ const Battle = (() => {
   }
   const GHOST_FAR = 20;
   const SQUEEZE = 2;                 // 거듭 막힌 걸음이 서 있는 아군을 지나갈 수 있는 시간(초)
+  const GAIN = 2;                    // 닿지 못한 걸음이 목표와의 거리를 이만큼(px)도 못 줄인 채 1초를 걸으면 막힌 것으로 친다
   // 원거리·치유: 서 있는 아군과 몸이 깊이 겹친 채로는 멈추지 않는다 (조금 더 걸어 나가 선다)
   function crowdedAt(u, live) {
     for (const o of live) {
@@ -981,7 +983,7 @@ const Battle = (() => {
     for (const u of live) {
       u.flash = max(0, u.flash - DT); u.lunge = max(0, u.lunge - DT);
       u.skills.forEach((sk) => { sk.left -= DT; });
-      u.moving = false; u.wantStep = 0; u.far = false;
+      u.moving = false; u.wantStep = 0; u.far = false; u.short = false; u.sq = false;
       const SPD = u.speed * (u.slowUntil > st.t ? SLOW_MUL : 1);   // 거미줄에 걸리면 느리게
       if (u.g.routed) {
         // 자기 진영 쪽 가장자리로 도주
@@ -1042,7 +1044,8 @@ const Battle = (() => {
         if (p) { gx = p.x; gy = p.y; } else { gx = tg.x + u.slotSide * (reach + 14); gy = u.y; }
       }
       const ex = gx - u.x, ey = gy - u.y, ed = len2(ex, ey);
-      u.far = md > reach + GHOST_FAR || u.squeeze > st.t;   // 거듭 막혔던 걸음은 잠깐 서 있는 아군 사이를 비집고 지나간다 (아래 stuckN)
+      u.sq = u.squeeze > st.t; u.short = md > reach; u.md = md;
+      u.far = md > reach + GHOST_FAR || u.sq;   // 거듭 막혔던 걸음은 잠깐 서 있는 아군 사이를 비집고 지나간다 (아래 stuckN)
       if (md > reach || (melee && ed > 3) || (!melee && crowdedAt(u, live))) {
         // 대장 근처로 모이려는 힘을 약간 섞는다 (부대 대형 유지) — 목표에 닿기 전까지만
         let mx = ex / (ed || 1), my = ey / (ed || 1);
@@ -1105,15 +1108,22 @@ const Battle = (() => {
     live.forEach((u) => { u.y = clamp(u.y, TOP, BOTTOM); if (!u.g.routed) { const e = EDGE + sizeOf(u) * EDGE_BIG; u.x = clamp(u.x, e, W - e); } });
     // 앞이 막혀 한 걸음의 3할도 못 나아갔으면 그 자리에 선다 (서 있는 몸에 대고 제자리 달리기하지 않게: 비킬 때까지 기다린다)
     for (const u of live) {
-      if (!u.moving || u.g.routed || !u.wantStep || u.dashed) { if (!u.blocked) u.stuckN = 0; continue; }
-      if (len2(u.x - u.ox, u.y - u.oy) < u.wantStep * 0.3) { u.x = u.ox; u.y = u.oy; u.moving = false; u.blocked = (u.blocked || 0) + DT; }
-      else { u.blocked = 0; u.stuckN = 0; }
+      if (!u.moving || u.g.routed || !u.wantStep || u.dashed) { if (!u.blocked) { u.stuckN = 0; u.jit = 0; u.gt = null; } continue; }
+      const frozen = len2(u.x - u.ox, u.y - u.oy) < u.wantStep * 0.3;
+      if (frozen) { u.x = u.ox; u.y = u.oy; u.moving = false; u.blocked = (u.blocked || 0) + DT; }
+      else {
+        u.blocked = 0;
+        // 걸음마다 3할은 나아가도 두 아군 사이를 피할 쪽만 번갈아 바꾸며 제자리에서 떨 수 있다 (대치의 다른 꼴: 1~5px 왕복).
+        // 목표에 닿지 못한 채 같은 목표와의 거리를 GAIN 만큼도 줄이지 못하면 그 시간도 막힌 시간으로 센다. 줄여야 '걸었다'로 친다
+        if (u.short && u.gt === u.target && u.md > u.gd - GAIN) u.jit += DT;
+        else { u.gt = u.target; u.gd = u.md; u.jit = 0; u.stuckN = 0; }
+      }
       // 1초 넘게 막혀 있으면 자리를 내놓고 다시 고른다 (줄이 얼어붙지 않게).
       // 다시 골라도 같은 자리·같은 길이라 한 걸음도 못 떼고 또 막히면 (stuckN ≥ 2): 서 있는 아군(치유사·수습)이 목표와의 사이를
       // 벽처럼 막은 것이다 — 양쪽이 30px 거리에서 90초까지 멈춰 섰다 (4단계 미해결 '대치'). 그때는 SQUEEZE 초 동안 멀리서 걸어올 때처럼
       // 서 있는 아군을 지나가게 하고 (u.far), 막은 것이 적이면 (적은 지나갈 수 없다) 지금 닿는 적을 목표로 삼는다
-      if (u.blocked > 1) {
-        u.blocked = 0;
+      if (u.blocked > 1 || u.jit > 1) {
+        u.blocked = 0; u.jit = 0;
         if (u.slotOf && u.slotOf.slots && u.slotOf.slots[u.slot] === u) u.slotOf.slots[u.slot] = null; u.slotOf = null; u.slot = -1;
         if ((u.stuckN = (u.stuckN || 0) + 1) >= 2) {
           u.squeeze = st.t + SQUEEZE;
