@@ -796,7 +796,9 @@ The data does not support shortening missions or moving the second company earli
 
 So:
 - **「귀환까지 ▶▶」** (top bar, `index.html` `#skip-day`, `js/ui.js`): shown only when no company can be sent (`Game.waitingForReturn()`:
-  missions out, no own company with an idle member, no free external company). `Game.skipToReturn()` (`js/game.js`) runs `nextDay`
+  missions out, no own company with an idle member, no free external company). A company at home with nobody fit to go (all injured,
+  or a new empty company) counts as unable; the contract-tab hint then says so instead of 「모든 용병단이 의뢰에 나가 있습니다」
+  (`Game.allAway()` tells the two apart), and the skip stops when a member recovers. `Game.skipToReturn()` (`js/game.js`) runs `nextDay`
   until a report or notice is queued (a return included), payday, a new special contract, a company becomes free, or the game ends;
   at most 30 days. Same rules and random numbers as pressing 「다음 날」 that many times; no bot calls it, so both modes' md5 hold.
   Shown in both modes (it changes no rule).
@@ -812,9 +814,16 @@ So:
 - **Popup when a payday defers wages** (`js/game.js` `weeklyPayday`): a new report `{ special: 'grace', until, owed, names }` drawn by
   `specialReportBody` in `js/ui.js` (「유예 주간: 급료를 미뤘습니다」, who, how much, until when, what happens at the next payday).
   The journal line stays. The bots ignore it (no `quest`).
-- **Top-bar chip** 「유예 ~N일」 (`#grace-chip`, title explains) while the grace week is open and it matters (deferred pay, or gold below
-  the next payday: `Game.graceShown()`). Hidden while a mission report is still unseen, so it does not give a defeat away during the
-  battle replay.
+- **Top-bar chip** 「유예 ~N일」 (`#grace-chip`, title explains) while the *next payday* falls inside the grace week and it matters
+  (deferred pay, or gold below the next payday: `Game.graceShown()`; `Game.nextPaydayDay()` = day + `daysToPayday()`). Grace only acts
+  on paydays, so after the last in-grace payday the chip no longer claims protection: if deferred pay is still owed it turns into
+  「미룬 급료 N」 (`Game.backPayShown()`, title: paid with the next payday on day D, members who are not paid then leave). Both are hidden
+  while a mission report is still unseen, so they do not give a defeat away during the battle replay.
+- **Two paydays in one grace week.** A defeat resolved on a payday (day % 7 = 1) defers that payday and, because the week runs to
+  day + 7 inclusive, the next one too. The popup carries `next` (the next payday) and `nextGrace` (whether it is still inside the
+  grace week) and says so: 「그 정산도 유예 주간 안이라 그때 모자라도 다시 미룹니다. 그다음 정산부터는 못 받는 단원이 떠납니다.」 instead of
+  「그때도 못 받는 단원은 떠납니다.」 (which was false there). Two popups in that window are correct (two paydays deferred); the rule is
+  unchanged. Popups saved before this change lack the fields and keep the old sentence.
 
 ### D. Loss pay, always explained (battle mode)
 
@@ -830,6 +839,12 @@ Every battle-mode loss now writes the split (before: only when ≥ 5% of the ene
 either way (level, enemy and title are given). 12 × 365, HEAD: one calamity-issued boss contract per mode (sent in roll); after: 0.
 Roll md5: 6 × 200 `11cadc0c…` and 12 × 365 `ffee253e5364a3e6f882f9aed77254b0` are both unchanged (the one roll game that sent such a
 contract ends with the same summary JSON).
+
+This is more than a label. `effectiveReq` treats a province whose owner is not the issuer as hostile (calamity standing −100), so
+such a boss contract now has req × 1.2 (roll mode, seed 9, day 80, frost province held by the demons: effective req 572 → 686), and in
+battle mode the support group is villagers instead of the calamity's own soldiers. The reward does not change (`doctrine.pay` is 1
+either way). This is the same rule every other contract in a calamity-held province already follows (`js/captains.js:148`,
+`js/contract.js:734`), so it is intended: a calamity does not post bounties on itself, and fighting in its land is harder.
 
 ### Results (evaluation seeds 1, 3101, 4101 — 3101 and 4101 untouched by any fit; 5001 for the starters)
 
