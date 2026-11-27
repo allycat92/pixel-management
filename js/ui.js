@@ -536,11 +536,13 @@ const UI = (() => {
   function openDialog(r, slot = {}) {
     const h = r.hero && HEROES[r.hero];
     const calKey = r.enemy && Object.keys(FACTIONS).find((f) => FACTIONS[f].calamity && FACTIONS[f].leader === r.enemy);
+    // 재앙 대두는 하나의 공지다. 옛 저장도 사건 설명과 목표를 한 화면에 띄운다.
+    const riseNotice = r.special === 'notice' && calKey && r.art === `rise_${calKey}`;
     const portraitImg = h
       ? artPortrait(Art.idOf.hero(r.hero), { cls: HERO_CLASSES[h.hcls].style, hcls: h.hcls, ...h.look }, 'big-portrait', 5)
       : r.captain ? artPortrait(Art.idOf.captain(r.captain), { cls: CAPTAIN_CLASSES[r.captain].style, cap: r.captain, ...CAPTAINS[r.captain].look }, 'big-portrait', 5)
       : (calKey && Art.img(Art.idOf.boss(calKey), 'big-portrait art-portrait')) || Sprites.clone(Sprites.monster(r.enemy, 5, 0), 'big-portrait');
-    let lines = r.lines.slice(), foot = r.foot;
+    let lines = riseNotice ? r.lines.slice(0, 1) : r.lines.slice(), foot = r.foot;
     let line = 0, timer = null, typing = false, choiceDone = !r.choice;
     // 이미 고른 선택지 (효과는 고를 때 한 번만 적용·저장됨): 그 결과 대사부터
     const chosenOpt = r.choice && slot.chosen != null && HEROES[r.choice.hero].chapters[r.choice.ch].choice.options[slot.chosen];
@@ -561,14 +563,19 @@ const UI = (() => {
       speaker.textContent = who || '';
       speaker.style.visibility = who ? 'visible' : 'hidden';
       text.classList.toggle('narration', !who);
-      text.textContent = '';
-      typing = true;
-      let i = 0;
       clearInterval(timer);
-      timer = setInterval(() => {
-        text.textContent = msg.slice(0, ++i);
-        if (i >= msg.length) { clearInterval(timer); typing = false; }
-      }, 26);
+      if (riseNotice) {
+        text.textContent = msg;
+        typing = false;
+      } else {
+        text.textContent = '';
+        typing = true;
+        let i = 0;
+        timer = setInterval(() => {
+          text.textContent = msg.slice(0, ++i);
+          if (i >= msg.length) { clearInterval(timer); typing = false; }
+        }, 26);
+      }
       const last = line === lines.length - 1;
       next.textContent = last ? (choiceDone ? '확인' : '선택하기') : '다음 ▶';
       footer.textContent = last && foot ? Game.guildText(foot) : '';
@@ -724,8 +731,13 @@ const UI = (() => {
         || (b.dataset.tab === 'recruit' && s.recruits.some((r) => r.hero)));
     });
     $('#next-day').disabled = !!s.over;
-    // 귀환까지 넘기기: 보낼 수 있는 용병단이 하나도 없을 때만 보인다 (주인 결정 7)
-    $('#skip-day').hidden = !Game.waitingForReturn();
+    // 외부단만 대기 중이면 직속의 귀환을 기다리는 동작임을 명시한다.
+    const skip = $('#skip-day'), ownReturn = Game.waitingForOwnReturn();
+    skip.hidden = !Game.waitingForReturn();
+    skip.textContent = ownReturn ? '직속 귀환까지 ▶▶' : '귀환까지 ▶▶';
+    skip.title = ownReturn
+      ? '대기 중인 외부단을 보내지 않고 직속 귀환을 기다립니다. 보고·정산·새 특별 의뢰가 있으면 멈춥니다.'
+      : '보낼 수 있는 용병단이 없을 때: 귀환·소식·정산·새 특별 의뢰가 있을 때까지 날짜를 넘깁니다';
     // 유예 주간 표시 (전투 모드, 미룬 급료가 있거나 다음 정산에 돈이 모자랄 때). 아직 보지 않은 의뢰 보고서가 있으면 숨긴다 — 패배를 미리 알리지 않게
     const unseenQuest = (s.reportSlot && s.reportSlot.item && s.reportSlot.item.quest) || s.pendingReports.some((x) => !x.special && x.quest);
     // 유예는 정산 날에만 작용하므로 다음 정산이 유예 주간 안일 때만 「유예」. 그 뒤에도 미룬 급료가 남았으면 「미룬 급료」로 바꿔 경고한다 (그 정산에 못 내면 떠난다)

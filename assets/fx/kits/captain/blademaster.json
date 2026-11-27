@@ -1,0 +1,30 @@
+{
+  "owner": "captain/blademaster", "name": "바렌", "approved": null,
+  "source": "docs/plans/effects_design.md §2.2 (draft kit; not owner-approved yet)",
+  "colours": { "key": "#e8e4d8", "body": "#3a1018", "accent": "#b8323c" },
+  "motif": { "family": "blade", "subform": "single long cut-line that splits the air; torn cloth band ends" },
+  "shape": { "geometry": "linear", "motion": "lateral", "rhythm": "delayed", "density": "one", "edge": "hard" },
+  "never": ["glow rings", "orbiting dots", "multiple parallel arcs", "sparks fans"],
+  "verbs": ["벤다", "늦게 갈라진다", "펄럭인다"],
+  "cadence": "long still hold (120-160ms) then 1-frame cut, the split appears 2 frames late",
+  "screen": { "allowed": ["hitstop", "shake.x"], "forbidden": ["dim", "flash"], "note": "a horizontal micro-shake; silence before the cut" },
+  "ultimate": {
+    "note": "owner 2026-11-28: full-screen staging is allowed only for ultimates. The ultimate adds dim (dark navy, as in the chosen key image) and the letterbox slit; still no flash.",
+    "allowed": ["dim", "unitDim", "letterbox", "hitstop", "shake.x"],
+    "forbidden": ["flash"],
+    "colours": { "tone": "#0a0e1f", "ink": "#04050a" }
+  },
+  "cutin": { "enter": "horizontal slit opening", "frame": "letterbox bar", "backdrop": "kit/band_tail" },
+  "pieces": [
+    { "id": "cutline",   "size": [64, 3],  "frames": 3, "origin": [32, 1],  "use": "the visible slash, drawn with 1px core + 1px ivory edge" },
+    { "id": "split",     "size": [24, 24], "frames": 4, "origin": [12, 12], "use": "air/flesh split that opens late on the target" },
+    { "id": "band_tail", "size": [10, 6],  "frames": 3, "origin": [5, 3],   "use": "wine cloth scrap particle" },
+    { "id": "gleam",     "size": [5, 5],   "frames": 2, "origin": [2, 2],   "use": "edge gleam at the blade tip before the cut" }
+  ],
+  "basic": { "piece": "cutline_short", "frames": 3, "note": "참격: one short cutline, no split" },
+  "nearest": {
+    "captain/pitchampion": "arena brute: wide blunt arcs, blood, crowd roar - round/heavy",
+    "captain/dragonslayer": "fire + execution X, dash - diagonal/heavy",
+    "captain/shadowqueen": "black petals, staccato multi-hits - swarm/stutter"
+  }
+}

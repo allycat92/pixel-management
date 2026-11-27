@@ -39,7 +39,7 @@ sys.path.insert(0, HERE)
 import checks  # noqa: E402
 import fit as fitmod  # noqa: E402
 import report  # noqa: E402
-from common import (CARRY_JSON, CELL, ANCHOR, REPO, load_carry, sheet_scale, game_cell, on_bg, save_gif,  # noqa: E402
+from common import (CARRY_JSON, CELL, ANCHOR, load_carry, sheet_scale, game_cell, on_bg, save_gif,  # noqa: E402
                     strip_of)
 from motions import (gait_spec, gait_frames, robe_hems, action_frames, warrior_attack, warrior_hit, lock_feet,  # noqa: E402
                      leg_factor, carry_props, two_hand, solve_arms)

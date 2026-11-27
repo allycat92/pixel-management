@@ -797,12 +797,18 @@ const Game = {
   },
 
   // ───────── 귀환까지 넘기기 (주인 결정 7: 한 부대 길드는 60~120일의 절반 넘게 귀환만 기다린다, Q16) ─────────
-  // 보낼 수 있는 용병단이 하나도 없고 나가 있는 임무가 있을 때만. 화면 전용 편의 — 날짜 넘기기를 되풀이할 뿐 규칙·난수는 같다 (봇은 쓰지 않는다)
+  // 돌아올 임무가 있고 보낼 용병단이 없거나, 직속이 전부 출격했을 때. 날짜 넘기기를 반복할 뿐 판정은 같다 (봇은 쓰지 않는다)
   // (집에 있어도 보낼 단원이 없는 용병단 — 모두 부상이거나 빈 용병단 — 은 보낼 수 없는 쪽으로 센다. 안내 문구는 allAway() 로 둘을 가른다)
   waitingForReturn() {
     const s = this.state;
     if (s.over || !s.missions.length) return false;
-    return !s.companies.some((c) => !c.missionId && (c.own ? this.availableMembers(c).length > 0 : true));
+    return this.waitingForOwnReturn() || !s.companies.some((c) => !c.missionId && (c.own ? this.availableMembers(c).length > 0 : true));
+  },
+  // 직속이 전부 출격 중이면 대기 중인 외부단이 있어도 직속 귀환을 기다릴 수 있다.
+  waitingForOwnReturn() {
+    const s = this.state, own = this.ownCompanies();
+    return !s.over && s.missions.length > 0 && own.length > 0 && own.every((c) => !!c.missionId)
+      && this.extCompanies().some((c) => !c.missionId);
   },
   allAway() { return this.state.companies.every((c) => !!c.missionId); },
   // 날을 넘기다가 보고서·알림이 쌓이거나(귀환 포함), 정산일이거나, 새 특별 의뢰가 오르거나, 보낼 용병단이 생기면 멈춘다. -> 넘긴 날수

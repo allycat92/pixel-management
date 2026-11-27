@@ -350,7 +350,7 @@ Object.assign(Game, {
     alive.forEach((f) => s.wars.push({ a: key, b: f, score: 0, weariness: 0, start: s.day, nextCampaign: s.day + rand(4, 8), calamity: true }));
     s.contracts = s.contracts.filter((c) => !c.campaign);
     this.log(`☠ ${F.name} 대두! ${F.leader}${josa(F.leader, '이', '가')} 대륙 전체에 전쟁을 선포했습니다. 모든 세력이 칼을 거두고 대동맹을 맺습니다.`, 'world');
-    s.pendingReports.push({ special: 'notice', enemy: F.leader, art: `rise_${key}`, title: `${F.name} 대두`, lines: [[null, F.rise], [null, F.desc]],
+    s.pendingReports.push({ special: 'notice', enemy: F.leader, art: `rise_${key}`, title: `${F.name} 대두`, lines: [[null, F.rise]],
       foot: `모든 세력이 ${F.name}${josa(F.name, '과', '와')} 전쟁에 들어갑니다. ${F.name}${josa(F.name, '이', '가')} 지방 ${CALAMITY_DARKNESS}곳을 차지하면 대륙은 암흑시대에 빠집니다. 최종 결전으로 ${F.leader}${josa(F.leader, '을', '를')} 쓰러뜨리세요.` });
   },
 
