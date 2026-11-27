@@ -7,7 +7,7 @@
 
 | 누구 | id | 상태 | 할 일 (자세한 것은 그 줄의 문서) |
 |---|---|---|---|
-| GPT | `Q3-gait-request-crosscheck` | READY | 첫 이동 요청서 5건을 그림과 대조: `docs/agents/tasks/Q3-gait-request-crosscheck.md` |
+| GPT | `Q3-gait-request-crosscheck` | REVIEW | 첫 이동 요청서 5건을 그림과 대조: `docs/agents/tasks/Q3-gait-request-crosscheck.md` |
 | Codex | `C10-scaled-mannequin-guides` | READY | 배율이 다른 시트(비요른 0.18)용 마네킹 가이드 + 비요른 요청서: `docs/agents/tasks/C10-scaled-mannequin-guides.md` |
 | Codex | `C9-gait-requests-batch3` | REVIEW | 이동 요청서 셋째 묶음(영웅 7·대장 1·괴물 2): `docs/agents/tasks/C9-gait-requests-batch3.md` |
 

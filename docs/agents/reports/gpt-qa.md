@@ -96,3 +96,34 @@ Antigravity가 [`c4cc054`](https://github.com/allycat92/pixel-management/commit/
 | 사막 도적 | 신규판 미확인 / 구판 유지 확인 | 오아시스에 구판 PNG가 그대로 나왔다. 보류된 원본을 반영하거나 그 판의 앵커 수정이 완료됐다고 판정하지 않는다. |
 
 [전투 캡처](shots/Q2/): 두 화면 폭의 국면별 실제 캔버스 캡처와 숲·설원 화면 전체. 각 500 KB 미만. 국면별 캡처의 2×는 픽셀 확대, 배속은 전부 1×.
+
+## Q3 — 2026-11-27
+
+대조 기준: 게임 브랜치 `7cc8bd3`, 등록 시트는 그 커밋의 manifest를 따라 96×96 대기 f0·준비 f4·접촉 f5를 최근접 4배로 확대. 아래 게임 좌표는 **각 96×96 칸 내부**다. 별도로 원본 대기와 가이드·크기 판 A/B를 확인했다. 새 이동 그림의 게임 내 재생 검수는 아니다. 요청서·에셋·코드는 수정하지 않았다.
+
+**공통 확인**: 5건 모두 이동 요청서에는 C8의 ‘없는 무기 가이드’ 참조가 없고, 분류(중량 1, 로브 1, 경량 3)는 시트에서 읽히는 장비와 다리 노출에 맞는다. 두 크기 판 모두 원본 대기와 마네킹을 리사이즈하지 않고 x=192 앵커로 겹친 동일 배율 비교다. 대기 실루엣 높이와 마네킹 머리 높이가 같아야 한다는 뜻은 아니다. 원본/가이드 표준 배율 0.1654, 5건의 guide/size A/B 20파일을 임시 폴더에서 재생성해 전부 바이트 일치. 등록 대기 높이: 브리긴다 68, 마법사 72, 궁수 66, 성직자 66, 도적 63px. 크기 판은 하단 링크.
+
+### heavy__captain_ironwall · FIX
+- 이동 요청서 L47 「about 2 heads tall, ~220 px, and 1 head wide, ~110 px」: 승인 원본 대기 방패 외곽은 약 x=230–323, y=530–780(약 94×250 원본 px), 등록 f0 x≈57–70, y≈35–75. 기준 머리 110px에 딱 맞추면 승인본보다 방패가 짧고 넓어진다. 먼 팔은 방패 뒤에 가려 손가락 위치는 확인 불가, 가까운 손은 f0 (35,56) 부근의 철퇴 자루에서 f4 들기·f5 내리치기까지 연결된다. 땋은 머리와 타바드는 각각 등 뒤(화면 왼쪽)와 앞 허리 그대로. 중량 갑옷 분류는 맞다.
+  - 대체: “Keep the tall gold-rimmed shield on the far arm at the accepted idle's size (approximately 94 px wide and 250 px tall, including the rim in the source idle); the hand stays behind the shield.”
+- L70 「as in the idle (haft about 50 deg from vertical」: 원본 손 중심 약 (140,660) → 철퇴 머리 중심 약 (230,610), 대기 자루는 수직에서 약 60° 전방이다. 50° 자체는 좋은 이동용 조정이지만 원본과 같은 각도가 아니다. H1–H8의 가까운 손 x≈209–229에서 승인 대기 각도를 그대로 쓰면 가장 앞선 H5/H6의 철퇴 가시가 x=351 경계에 닿을 여지가 있다. 따라서 **각도를 이동용 예외로** 표기하고 실제 외곽 확인. 방패도 고정이라고 한 만큼 먼 손/팔꿈치 가이드가 방패 위치보다 우선하지 않도록 영어 본문을 명시하면 좋다.
+  - 대체: “Keep the idle's near-hand grip and full mace length, but carry the head a little more upright for the gait (start at about 45–50° forward from vertical; rotate closer to vertical if needed). Check the entire spiked head against x ≤ 351 in H5/H6. The fixed shield takes priority over the mannequin's far elbow and hand.”
+
+### robe__class_mage · FIX
+- L48–49 「the arm swing ... Joint for joint ... shoulders, elbows」는 L67–68의 고정 양손 자루와 충돌한다. 승인 f0 같은 자루 위 (55,52)·(53,60)에서 두 손을 확인. f4/5에 보이는 열린 먼 손은 **공격 전용**으로, 이동에 옮기면 안 된다. G1 가이드 손 x=207/311, G6 x=244/277로 간격이 104→33px 변해 양손 간격을 유지하는 기준이 될 수 없다.
+  - 대체: “Follow the mannequin for the legs and torso only. Neither mannequin arm swing or elbow path applies: place both arms to keep the accepted idle's two-hand staff grip, with upper hand at the chest, lower at the belt, and no more than 35 px fore-aft motion relative to the torso.”
+- L71 「the sash ends trail back」: 대기 f0 앞쪽(53,60–77), 접촉 f5 앞쪽(49,62–76)에 띠 끝이 로브 앞판으로 내려온다. 이 부분을 뒤로 넘기면 팔·지팡이 뒤에 가려지거나 옆모습이 바뀐다. 외투·소매의 지연은 유지. 뒤에 새 소품을 달 근거는 없고 유일하게 뚜렷한 허리 주머니는 화면 왼쪽 옆(대기 x36–41, y60–66). 무릎이 로브에 가리고 장화만 나오는 로브 분류와 크기 판 맞음.
+  - 대체: “Let the capelet and sleeves lag one frame, but keep the visible sash end hanging on the front of the robe as in the idle, with only a small swing across the front panel.”
+
+### run__class_archer · FIX
+- L68 「roughly upright ... it moves with the far arm ... its front edge left of x=345」: 등록 f0에서 활 쥔 먼 손 (60,59)에서 최전방 활대가 x≈64, 원본에서 손 중심부터 최전방이 약 20px. R1/R7/R8의 먼 손은 칸 내부 x=330.4/334.7/336.4, 가이드 손을 그대로 쓰면 활 외곽 x≈350/355/356으로 x<345 동시 충족 불가(윤곽 1px 여유도 없음). 활 손이 몸 안으로 조금 들어가는 예외 필요. 가까운 손은 f0 (47,61) 빈손, f4/5에는 시위를 당기는 쪽이다. 화살통 깃은 f0 (35,40) 등 뒤로 확인; 가벼운 튜닉, 무릎·장화 노출 및 크기 판 OK.
+  - 대체: “Carry the accepted idle's bow low in the far hand, string inward and no arrow nocked. Keep its full size and idle angle; tuck the far grip to x ≤ 322 in R1/R7/R8 (about 8/13/15 px inboard), or farther in if any bow pixel reaches x=345. The near fist stays empty; the quiver stays on the back.”
+
+### run__class_cleric · FIX
+- L68 「haft about 20-45 deg forward of vertical ... the near arm pumps with the mannequin」: 등록 f0 가까운 손 ≈(50,60), 머리 ≈(59,43), 원본 손→머리 중심 약 115–130px, 돌출부 반폭 약 24px. R3/R4의 가까운 손 x=284.6/288.0(칸 내부)에서 45°를 허용하면 머리 중심만도 x≈366–380으로 x=351을 넘는다. 수직에 더 가깝거나 손을 안으로 넣는 예외가 필요하다. 철퇴 길이를 잘라 맞출 필요는 없다. 먼 손은 대기 (58,64) 허리 빈 주먹, 공격 f5 (80,43) 열린 손. 허리 왼쪽 책(대기 x≈37–46, y≈61–70), 무릎 아래는 바지·장화가 드러나 경량 분류/크기 판 OK.
+  - 대체: “Carry the full-length flanged mace head-up in the near hand at waist height (y=660–700). In R3/R4 start around 15–20° forward from vertical, not 45°; check the outer flange against x ≤ 351 and bring the near grip inward if needed. The empty far hand swings freely.”
+
+### run__class_rogue · OK
+- 등록 f0 가까운 손 (51,58) 뒤로 뻗은 날 x≈42–49, 먼 손 (63,48)은 빈 가드 주먹. f4에서 같은 단검이 머리 뒤, f5에서 같은 팔로 앞을 찌른다. 달릴 때 역수 그립과 빈 먼 손 제안은 시트/원래 요청과 일치. 벨트 띠와 어깨망토 외에 별도 등에 멘 무기는 보이지 않는다. 후드·스카프는 제자리에 남는 지시, 짧은 단검과 얇은 가죽옷/노출된 다리, 크기 판 모두 OK.
+
+근거 (4× 등록 칸 / 크기 판): [브리긴다](shots/Q3/captain_ironwall-poses.png) / [크기](shots/Q3/captain_ironwall-scale.png) · [마법사](shots/Q3/class_mage-poses.png) / [크기](shots/Q3/class_mage-scale.png) · [궁수](shots/Q3/class_archer-poses.png) / [크기](shots/Q3/class_archer-scale.png) · [성직자](shots/Q3/class_cleric-poses.png) / [크기](shots/Q3/class_cleric-scale.png) · [도적](shots/Q3/class_rogue-poses.png) / [크기](shots/Q3/class_rogue-scale.png) · [승인 원본 대기 비교](shots/Q3/source-idle.png).
