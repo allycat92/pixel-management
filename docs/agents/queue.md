@@ -7,13 +7,13 @@
 
 | 누구 | id | 상태 | 할 일 (자세한 것은 그 줄의 문서) |
 |---|---|---|---|
-| Codex | `C25-seam-check-tool` | REVIEW | 프레임 이음매(잘린 몸) 자동 경고 — 도적 R4 를 잡게: `docs/agents/tasks/C25-seam-check-tool.md` |
 | GPT | `C24-battle-injury-loss-fixed` | READY | (코드 일감) 전투 모드 전투 뒤 부상·외부단 귀환 손실도 출격 때 고정: `docs/agents/tasks/C24-battle-injury-loss-fixed.md` |
 
 ## 끝난 일
 
 | 누구 | id | 결과 |
 |---|---|---|
+| Codex | `C25-seam-check-tool` | **DONE** (11-27, `bb24e20` 합침): `check_delivery.py` 가 가로·세로 실루엣 이음매를 WARN — 도적 R4 를 잡고(y=688/712), 등록 이동 띠 48자세·시트 214자세 오탐 0. receive.py 에 확대 컷 경로 출력 |
 | Codex | `C23-second-company-guide` | **DONE** (11-27, `d7fa1d1` 합침): 창설 버튼·확인 창에 「창설 뒤 금화·다음 정산·예상 급료」(모자라면 경고색), 빈 부대에 「예비 단원 배속」「다른 부대에서 옮기기」, 안내 문구 맞춤. roll md5 그대로 |
 | GPT | `Q19-flip-readiness-2` | **DONE** (11-27, `610eb76`): 다른 시드(582901, 브리긴다) 사람 플레이 — 의견 **조건부 찬성**(둘째 부대 만들기 안내 조건 → C23). 초반 우세 17/17, 귀환 대기 60→30일(둘째 부대), 1부대 120일 B / 2부대 113일 S. 유예 주간 알림·미룬 급료 PASS |
 | Codex | `C22-crosscheck-c20` | **DONE** (11-27, `ca62384`): C20 교차 확인 — 전투 결전 배신 고정 PASS(66/66), roll 손실 상관 없음(r≈0, 100만 가상 임무). 남은 틈: 전투 모드 외부단 귀환 손실·전투 뒤 부상이 공유 난수 |
