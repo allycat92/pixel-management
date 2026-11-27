@@ -73,6 +73,10 @@ const Stats = (() => {
     BM_MID_REP: 2.25,   // 명성: 가장 높을 때 ×3.25 (S 를 90~110일로 당기는 값. 2 는 S 112/108일, 2.5 는 107/101일 — 시드 1~12 / 13~24)
     BM_MID_DAYS: [59, 72, 110, 121],   // 사다리꼴 [오르기 시작, 다 오름, 내리기 시작, 다 내림] (날짜. 의뢰가 만들어진 날 기준)
     // ── 4단계: 시간 제한과 후반 게시판 (stage3_notes.md 「Stage 4」) ──
+    // 시간 보정 (Q5 #224, Q6 #721): 시간 안에 적을 무너뜨려야 하는 전투(field)에서 killTime 이 LIMIT × BM_TIME_EDGE 를 넘으면
+    // R 에 (LIMIT × BM_TIME_EDGE / killTime) ^ BM_TIME_EXP 를 곱한다 — 적이 많고 우리가 적은 판은 이길 싸움도 시간이 다해 진다. 버티는 의뢰(hold)는 그대로
+    BM_TIME_EDGE: 0.3,
+    BM_TIME_EXP: 0,     // 0 = 끔
     BM_TIME_HEAL: 0.6,  // killTime: 적의 치유를 이만큼 빼고 센다 (margin 의 rho 와 같은 0.6)
     BM_LATE_OPEN: [150, 30],   // 재앙 없이 높은 별 열기 (S 등급일 때): [★11 이 열리는 날, 별 하나 더 열리는 간격(일)] — 150·180·210·240일에 ★11~14. 간격 0 = 끔 (3단계: ★10 에서 멈춤)
     BM_CAP_AHEAD: 4,    // 전투 모드의 별 상한: 길드 등급 + 이 값 (오늘은 +2. 재앙 뒤에는 LATE_MAX_LEVEL 까지) — 상한 안에 벅찬 의뢰가 들게 (검증 3번)
@@ -321,6 +325,11 @@ const Stats = (() => {
       const olv = lvs.length ? lvs.reduce((a, b) => a + b, 0) / lvs.length : 1;
       const lvStep = KN.BM_CAL_OWNLV.find(([x]) => olv <= x);
       cal *= lvStep ? lvStep[1] : 1;
+      // 4단계 시간 보정: 버티는 의뢰가 아니면, 적을 다 깎는 어림 시간이 길수록 R 을 깎는다
+      if (spec.rule !== 'hold' && KN.BM_TIME_EXP > 0) {
+        const T0 = KN.BM_TIME_EDGE * (spec.limit || KN.LIMIT), tk = killTime(spec.groups);
+        if (tk > T0) cal *= Math.pow(T0 / tk, KN.BM_TIME_EXP);
+      }
     }
     const R = +(margin(spec.groups) * cal).toFixed(3);
     return { R, band: bandOf(R) };
