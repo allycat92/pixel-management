@@ -8,6 +8,7 @@ Checks the dot_queue / package README spec for a 1x4 strip (or a 2x2 grid):
   * pose count, lowest pixel of each pose on y=870 (2x2: y=461 inside each 768x512 quadrant); run strips: --flight-slots 4 makes
     pose 4 a flight frame (lowest pixel >= 18 px above y=870 instead of on it)
   * >= 32 px of magenta between poses and to the border
+  * WARN for a straight break that shifts opposite sides of a pose; enlarged crops go to --work (or a temp folder)
 Optionally exports an .aseprite source with Aseprite (--aseprite) and checks that it equals the PNG.
 
 Usage:
@@ -22,12 +23,15 @@ Only Pillow and the standard library; the Aseprite call uses an argument list (n
 """
 import argparse
 from collections import Counter
+from functools import reduce
 import math
 import os
+from operator import and_, or_
 import re
 import subprocess
 import sys
 import tempfile
+from typing import NamedTuple
 
 try:
     from PIL import Image, ImageChops, ImageDraw, ImageFilter
@@ -199,7 +203,102 @@ FLIGHT_CLEAR = 18   # px: a run's flight frame (both feet off the ground) - tool
 GAIT_STRIP = re.compile(r"_(run|walk)_[ab]\.png$")   # gait frame strips (<sheet stem>_<gait>_a.png): pose 1 is not an idle pose
 
 
-def check_png(path, layout, feet, cell=None, scale=None, flight=()):
+class SeamEdge(NamedTuple):
+    line: int
+    start: int
+    end: int
+    grows: bool
+    left: bool
+
+
+def seam_on_axis(rgb, mask):
+    """Find two long, bare edge changes on opposite sides of a connected silhouette."""
+    w, h = mask.size
+    # Measure relative to the tight pose, so 1x4, 2x2, and different drawing scales use the same test.
+    depth = max(2, round(h * .012))
+    minimum = max(12, round(w * .115))
+    max_spacing = max(6, round(h * .085))
+    edge_margin = round(w * .035)
+    raster = mask.convert("L").tobytes()
+    rows = [int.from_bytes(raster[y:y + w], "little") for y in range(0, len(raster), w)]
+    long_run = re.compile(rb"\xff{%d,}" % minimum)
+    colors = rgb.load()
+    edges = []
+    for y in range(depth, h - depth + 1):
+        upper, lower = rows[y - 1], rows[y]
+        shared = (upper & lower).bit_count() // 8
+        if (shared < w * .21 or shared < max(upper.bit_count(), lower.bit_count()) / 16
+                or (upper ^ lower).bit_count() < 8 * minimum):
+            continue
+        combined = upper | lower
+        left = ((combined & -combined).bit_length() - 1) // 8
+        right = (combined.bit_length() - 1) // 8
+        above, below = rows[y - depth:y], rows[y:y + depth]
+        # A candidate must switch in one row and persist on both sides of the boundary.
+        added = reduce(and_, below) & ~reduce(or_, above)
+        removed = reduce(and_, above) & ~reduce(or_, below)
+        for grows, change in ((True, added), (False, removed)):
+            edge_y, inner_y = (y, y + depth - 1) if grows else (y - 1, y - depth)
+            for run in long_run.finditer(change.to_bytes(w, "little")):
+                start, end = run.span()
+                at_left, at_right = start - left <= edge_margin, right - end + 1 <= edge_margin
+                if at_left == at_right:
+                    continue
+                # A normal drawn outline or shaded hem usually differs from the pixels just inside it.
+                similar = sum(max(abs(a - b) for a, b in zip(colors[x, edge_y], colors[x, inner_y])) <= 30
+                              for x in range(start, end))
+                if similar >= .62 * (end - start):
+                    edges.append(SeamEdge(y, start, end, grows, at_left))
+
+    best, best_width = None, w * .32
+    for i, first in enumerate(edges):
+        for second in edges[i + 1:]:
+            if second.line - first.line > max_spacing:
+                break
+            span = first.end - first.start + second.end - second.start
+            if first.grows != second.grows and first.left != second.left and span >= best_width:
+                best, best_width = (first, second), span
+    return best
+
+
+def report_pose_seams(rgb, mask, box, pose, stem, work, warns):
+    frame, shape = rgb.crop(box), mask.crop(box)
+    for axis in ("horizontal", "vertical"):
+        if axis == "horizontal":
+            sample, silhouette = frame, shape
+            across, along = box[0], box[1]
+        else:
+            sample = frame.transpose(Image.Transpose.TRANSPOSE)
+            silhouette = shape.transpose(Image.Transpose.TRANSPOSE)
+            across, along = box[1], box[0]
+        pair = seam_on_axis(sample, silhouette)
+        if not pair:
+            continue
+        first, second = pair
+        u, v = ("x", "y") if axis == "horizontal" else ("y", "x")
+        coords = " and ".join(f"{v}={along + e.line}, {u}={across + e.start}-{across + e.end - 1}" for e in pair)
+        msg = f"pose {pose}: possible {axis} seam at {coords}"
+        pad = max(12, round(sample.height * .05))
+        a, b = min(e.start for e in pair), max(e.end for e in pair)
+        left, top = max(0, a - pad), max(0, first.line - pad)
+        right, bottom = min(sample.width, b + pad), min(sample.height, second.line + pad)
+        # Crop the original orientation, using the transposed coordinates only for detection.
+        crop_box = (left, top, right, bottom) if axis == "horizontal" else (top, left, bottom, right)
+        crop = frame.crop(crop_box)
+        preview = crop.resize((crop.width * 3, crop.height * 3), Image.Resampling.NEAREST)
+        try:
+            work = work or tempfile.mkdtemp(prefix="check-delivery-")
+            os.makedirs(work, exist_ok=True)
+            path = os.path.join(work, f"{stem}_pose{pose}_{axis}_{along + first.line}-{along + second.line}.png")
+            preview.save(path)
+            msg += f"; enlarged crop: {path}"
+        except OSError as err:
+            msg += f"; could not save enlarged crop: {err}"
+        warns.append(msg)
+    return work
+
+
+def check_png(path, layout, feet, cell=None, scale=None, flight=(), report_seams=False, work=None):
     """flight: 1-based pose numbers of a 1x4 strip that are flight frames of a run (both feet off the ground): their lowest
     pixel must be FLIGHT_CLEAR px or more above the soles line instead of on it."""
     errors, warns, info = [], [], []
@@ -248,13 +347,13 @@ def check_png(path, layout, feet, cell=None, scale=None, flight=()):
     if l < GAP or t < GAP or cw_ - r < GAP or ch_ - b < GAP:
         errors.append(f"figure bbox {whole} is closer than {GAP}px to the border")
 
-    poses = []  # (bbox in canvas coords, quadrant top y, soles line)
+    poses = []  # (bbox in canvas coords, pose mask, quadrant top y, soles line)
     if layout == "1x1":
         fy = feet if feet is not None else (461 if rgb.size[1] == 512 else 870)
-        poses = [(whole, 0, fy)]
+        poses = [(whole, mask, 0, fy)]
     elif layout == "1x4":
         fy = feet if feet is not None else 870
-        poses = [(bb, 0, fy) for bb, _ in components(mask)]
+        poses = [(bb, part, 0, fy) for bb, part in components(mask)]
     else:
         fy = feet if feet is not None else 461
         for y0 in (0, H // 2):
@@ -266,12 +365,13 @@ def check_png(path, layout, feet, cell=None, scale=None, flight=()):
                     continue
                 if bb[0] < 8 or bb[1] < 8 or (W // 2) - bb[2] < 8 or (H // 2) - bb[3] < 8:
                     warns.append(f"quadrant at ({x0},{y0}): figure is within 8px of the quadrant edge")
-                poses.append(((x0 + bb[0], y0 + bb[1], x0 + bb[2], y0 + bb[3]), y0, fy))
+                poses.append(((x0 + bb[0], y0 + bb[1], x0 + bb[2], y0 + bb[3]), mask, y0, fy))
     expected = 1 if layout == "1x1" else 4
     if len(poses) != expected:
         errors.append(f"found {len(poses)} separate figures, expected {expected} poses "
                       "(poses must be >= 32px apart in every direction; no detached effects / projectiles)")
-    for i, (bb, y0, fy) in enumerate(poses, 1):
+    stem = os.path.basename(path)
+    for i, (bb, pose_mask, y0, fy) in enumerate(poses, 1):
         top, low = bb[1], bb[3] - 1
         rel = low - y0
         msg = f"pose {i}: x {bb[0]}-{bb[2] - 1} (w {bb[2] - bb[0]}), top y={top}, lowest pixel y={low}"
@@ -283,7 +383,6 @@ def check_png(path, layout, feet, cell=None, scale=None, flight=()):
             if hh > budget:
                 warns.append(f"pose {i}: {bb[3] - bb[1]} px tall = {hh:.1f} game px, over the {budget} px a {cell} px cell holds "
                              f"(the pose is shrunk or the sheet needs a bigger cell): keep raised weapons below this")
-        stem = os.path.basename(path)
         if i == 1 and layout == "1x4" and stem.startswith(("sheet_captain_", "sheet_hero_")) and not stem.endswith("_mounted.png") \
                 and not GAIT_STRIP.search(stem) and bb[3] - bb[1] < SMALL_IDLE:
             warns.append(f"pose 1 (idle) is {bb[3] - bb[1]} px tall with hat and weapon; the other captains are 385-440 px. The game converts "
@@ -299,6 +398,8 @@ def check_png(path, layout, feet, cell=None, scale=None, flight=()):
             errors.append(f"pose {i}: lowest pixel at y={rel}, expected {fy} (soles on the guide line)")
         elif rel != fy:
             warns.append(f"pose {i}: lowest pixel at y={rel}, guide line is {fy}")
+        if report_seams:
+            work = report_pose_seams(rgb, pose_mask, bb, i, os.path.splitext(stem)[0], work, warns)
     trapped = trapped_key_pixels(rgb)
     info.append(f"magenta pixels enclosed by the figure: {trapped} (fine if they are real gaps, e.g. bow and string)")
     return errors, warns, info
@@ -405,6 +506,7 @@ def main():
                                        "repository the PNG is in (e.g. the 바탕 hash of the dot_queue row)")
     ap.add_argument("--spot", help="declared spot colours (tiny must-show colours), e.g. '#d6455d,#f2c94c'. Default: phase3.json 'spots'")
     ap.add_argument("--cell", type=int, help="game cell size for the height budget (default: phase3.json 'cell', else 96)")
+    ap.add_argument("--work", help="scratch folder for enlarged seam crops (default: a temp folder when a seam is found)")
     ap.add_argument("--export", action="store_true", help="first export --aseprite to the PNG path (then check it)")
     ap.add_argument("--feet", type=int, default=None, help="soles line (default 870 for 1x4, 461 per 2x2 quadrant)")
     ap.add_argument("--flight-slots", default="",
@@ -462,7 +564,7 @@ def main():
     if flight and a.layout != "1x4":
         print("--flight-slots applies to 1x4 strips only")
         return 2
-    errors, warns, info = check_png(a.png, a.layout, a.feet, cell, scale, flight)
+    errors, warns, info = check_png(a.png, a.layout, a.feet, cell, scale, flight, report_seams=True, work=a.work)
     unchecked = None
     rgb = Image.open(a.png).convert("RGB")
     spots = [h for h in (a.spot.split(",") if a.spot is not None else (req.get("spots") or [])) if h.strip()]

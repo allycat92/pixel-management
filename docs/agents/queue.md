@@ -7,7 +7,7 @@
 
 | 누구 | id | 상태 | 할 일 (자세한 것은 그 줄의 문서) |
 |---|---|---|---|
-| Codex | `C25-seam-check-tool` | READY | 프레임 이음매(잘린 몸) 자동 경고 — 도적 R4 를 잡게: `docs/agents/tasks/C25-seam-check-tool.md` |
+| Codex | `C25-seam-check-tool` | REVIEW | 프레임 이음매(잘린 몸) 자동 경고 — 도적 R4 를 잡게: `docs/agents/tasks/C25-seam-check-tool.md` |
 | GPT | `C24-battle-injury-loss-fixed` | READY | (코드 일감) 전투 모드 전투 뒤 부상·외부단 귀환 손실도 출격 때 고정: `docs/agents/tasks/C24-battle-injury-loss-fixed.md` |
 
 ## 끝난 일
