@@ -230,8 +230,8 @@
     },
     "sheet/hero/astel": {
       "gait": "robe",
-      "why": "purple scholar robes with gold embroidery, skirt panels to the shin with a front panel between the legs; staff.",
-      "borderline": "the robe is open and baggy trousers show in the wide idle stance; LIGHT possible. Default robe: described as robes, knees hidden."
+      "why": "purple scholar robe with gold embroidery, split shin-length panels and visible trousers between the panels; staff and an open book at the hip.",
+      "borderline": "a bent trousered knee shows through the opening in idle. Default robe: the long panels suit the short robe gait."
     },
     "sheet/hero/grom": {
       "gait": "light",
@@ -240,23 +240,23 @@
     },
     "sheet/hero/kai": {
       "gait": "light",
-      "why": "elf scout: hooded cloak over a tunic, trousers, boots, bow."
+      "why": "elf scout: green shoulder cloak and split tunic over trousers and boots, with a bow and quiver."
     },
     "sheet/hero/lyra": {
       "gait": "light",
-      "why": "hooded masked outlaw: cloak to the thigh, fitted outfit, boots, daggers."
+      "why": "hooded masked outlaw: short shoulder cape, split rear tails to the thighs, fitted trousers and boots, one visible dagger in idle."
     },
     "sheet/hero/marisol": {
       "gait": "light",
-      "why": "pirate captain: navy coat, trousers, tall boots, bow and pistol."
+      "why": "pirate captain: split navy coat, trousers and tall boots, with a carried bow and holstered pistol."
     },
     "sheet/hero/oswin": {
       "gait": "heavy",
-      "why": "old knight commander in full rusted silver plate armour with greaves and sabatons; longsword; blue cloak."
+      "why": "old knight commander in weathered silver plate with greaves and sabatons, two-handed longsword, rear blue cape and front tabard."
     },
     "sheet/hero/seraphine": {
       "gait": "robe",
-      "why": "torn white saint robes to the shin with a red sash; only the boots show."
+      "why": "torn white saint robes with an uneven hem and red sash; brown wrapped boots show beneath the hem."
     },
     "sheet/monster/가고일": {
       "gait": "none",

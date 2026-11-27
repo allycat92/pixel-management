@@ -35,9 +35,12 @@
 | [`heavy__captain_ironwall/`](heavy__captain_ironwall/README.md) | `sheet/captain/ironwall` 브리긴다 이동 (중량) | 중량 · `art/requests/guides/heavy_base/v1` | `art/inbox/gait/sheet_captain_ironwall_run_a.png` + `_b.png` | 요청 |
 | [`heavy__captain_lancer/`](heavy__captain_lancer/README.md) | `sheet/captain/lancer` 로드릭 — 말을 잃은 기사 (창기병) 이동 | 중량 · `art/requests/guides/heavy_base/v1` | `art/inbox/gait/sheet_captain_lancer_run_a.png` + `_b.png` | 요청 |
 | [`heavy__captain_saintknight/`](heavy__captain_saintknight/README.md) | `sheet/captain/saintknight` 엘리노어 — 성광의 기사 (성광 기사) 이동 | 중량 · `art/requests/guides/heavy_base/v1` | `art/inbox/gait/sheet_captain_saintknight_run_a.png` + `_b.png` | 요청 |
+| [`heavy__hero_oswin/`](heavy__hero_oswin/README.md) | `sheet/hero/oswin` 오스윈 — 몰락한 기사단장 (몰락 기사단장) 이동 | 중량 · `art/requests/guides/heavy_base/v1` | `art/inbox/gait/sheet_hero_oswin_run_a.png` + `_b.png` | 요청 |
 | [`robe__captain_archmagus/`](robe__captain_archmagus/README.md) | `sheet/captain/archmagus` 에우리아 — 마지막 대현자 (대현자) 이동 | 로브 · `art/requests/guides/robe_base/v1` | `art/inbox/gait/sheet_captain_archmagus_run_a.png` + `_b.png` | 요청 |
 | [`robe__captain_lightbearer/`](robe__captain_lightbearer/README.md) | `sheet/captain/lightbearer` 루치아 — 빛을 든 사도 (빛의 사도) 이동 | 로브 · `art/requests/guides/robe_base/v1` | `art/inbox/gait/sheet_captain_lightbearer_run_a.png` + `_b.png` | 요청 |
 | [`robe__class_mage/`](robe__class_mage/README.md) | `sheet/class/mage` 병과 마법사 이동 (로브) | 로브 · `art/requests/guides/robe_base/v1` | `art/inbox/gait/sheet_class_mage_run_a.png` + `_b.png` | 요청 |
+| [`robe__hero_astel/`](robe__hero_astel/README.md) | `sheet/hero/astel` 아스텔 — 마탑의 마지막 제자 (마탑 계승자) 이동 | 로브 · `art/requests/guides/robe_base/v1` | `art/inbox/gait/sheet_hero_astel_run_a.png` + `_b.png` | 요청 |
+| [`robe__hero_seraphine/`](robe__hero_seraphine/README.md) | `sheet/hero/seraphine` 세라핀 — 파문당한 성녀 (파문 성녀) 이동 | 로브 · `art/requests/guides/robe_base/v1` | `art/inbox/gait/sheet_hero_seraphine_run_a.png` + `_b.png` | 요청 |
 | [`run__captain_bard/`](run__captain_bard/README.md) | `sheet/captain/bard` 리코 — 노래하는 검 (음유 검객) 이동 | 경량 · `art/requests/guides/run_base/v2` | `art/inbox/gait/sheet_captain_bard_run_a.png` + `_b.png` | 요청 |
 | [`run__captain_blademaster/`](run__captain_blademaster/README.md) | `sheet/captain/blademaster` 바렌 — 떠돌이 검귀 (검귀) 이동 | 경량 · `art/requests/guides/run_base/v2` | `art/inbox/gait/sheet_captain_blademaster_run_a.png` + `_b.png` | 요청 |
 | [`run__captain_fixer/`](run__captain_fixer/README.md) | `sheet/captain/fixer` 진 — 뒷골목 해결사 (해결사) 이동 | 경량 · `art/requests/guides/run_base/v2` | `art/inbox/gait/sheet_captain_fixer_run_a.png` + `_b.png` | 요청 |
@@ -49,6 +52,12 @@
 | [`run__class_cleric/`](run__class_cleric/README.md) | `sheet/class/cleric` 병과 성직자 달리기 | 경량 · `art/requests/guides/run_base/v2` | `art/inbox/gait/sheet_class_cleric_run_a.png` + `_b.png` | 요청 |
 | [`run__class_rogue/`](run__class_rogue/README.md) | `sheet/class/rogue` 병과 도적 달리기 | 경량 · `art/requests/guides/run_base/v2` | `art/inbox/gait/sheet_class_rogue_run_a.png` + `_b.png` | 요청 |
 | [`run__class_warrior/`](run__class_warrior/README.md) | `sheet/class/warrior` 병과 전사 달리기 | 경량 · `art/requests/guides/run_base/v2` | `art/inbox/gait/sheet_class_warrior_run_a.png` + `_b.png` | 그려짐 · 등록 |
+| [`run__hero_grom/`](run__hero_grom/README.md) | `sheet/hero/grom` 그롬 — 피의 투기장 챔피언 (투기장 패왕) 이동 | 경량 · `art/requests/guides/run_base/v2` | `art/inbox/gait/sheet_hero_grom_run_a.png` + `_b.png` | 요청 |
+| [`run__hero_kai/`](run__hero_kai/README.md) | `sheet/hero/kai` 카이 — 숲을 떠난 엘프 정찰병 (은빛 순찰자) 이동 | 경량 · `art/requests/guides/run_base/v2` | `art/inbox/gait/sheet_hero_kai_run_a.png` + `_b.png` | 요청 |
+| [`run__hero_lyra/`](run__hero_lyra/README.md) | `sheet/hero/lyra` 리라 — 가면 쓴 의적 (가면 의적) 이동 | 경량 · `art/requests/guides/run_base/v2` | `art/inbox/gait/sheet_hero_lyra_run_a.png` + `_b.png` | 요청 |
+| [`run__hero_marisol/`](run__hero_marisol/README.md) | `sheet/hero/marisol` 마리솔 — 닻을 잃은 해적 선장 (해적 선장) 이동 | 경량 · `art/requests/guides/run_base/v2` | `art/inbox/gait/sheet_hero_marisol_run_a.png` + `_b.png` | 요청 |
+| [`run__monster_bandit/`](run__monster_bandit/README.md) | `sheet/monster/산적` 몬스터 — 산적 이동 | 경량 · `art/requests/guides/run_base/v2` | `art/inbox/gait/sheet_monster_bandit_run_a.png` + `_b.png` | 요청 |
+| [`run__monster_skeleton/`](run__monster_skeleton/README.md) | `sheet/monster/해골 병사` 몬스터 — 해골 병사 이동 | 경량 · `art/requests/guides/run_base/v2` | `art/inbox/gait/sheet_monster_skeleton_run_a.png` + `_b.png` | 요청 |
 <!-- index:end -->
 
 `--write` 로 만든 폴더의 구성: `README.md` (한국어 머리말 + 「Prompt for Antigravity」 영어 블록: 참고 그림, CHARACTER, THE MOVE — 기울기·머리 높이·보폭·디딘 발끝 x 표,
