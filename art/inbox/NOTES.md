@@ -1354,3 +1354,21 @@ RISKS AT GAME SIZE: R1의 짧은 뒤 단검 날(`36px`, `-26 deg`)과 R2 무릎 
 본 방법: `rogue_1x3x_check.png`(1x 96x96 및 3x `#2e2b26`/`#58723d` 배경), `rogue_gif_frames.png`(`add_gait --dry-run` 4x GIF 전 8프레임), `work/sheet_class_rogue_preview_x4.png`, `rogue_guide_overlay_a/b.png`, `rogue_tint_mask.png` 육안 대조
 고칠 점: 없음
 남은 걱정: R1 뒤로 뺀 짧은 단검 날이 1x 전투 화면에서 충분히 읽히는지 교차 검수 확인
+
+## sheet/captain/liberator/chain-sheet - 카토 주먹·사슬 4자세 시트
+CHECK:
+  check_delivery.py sheet_captain_liberator_chain.png --layout 1x4 --cell 112 --aseprite aseprite/sheet_captain_liberator_chain.aseprite -> RESULT: PASS (figure colours: 38, dist 198.9, pose 1: x 51-332 top y=451 bot y=870, pose 2: x 428-714 top y=453 bot y=870, pose 3: x 798-1120 top y=483 bot y=870, pose 4: x 1190-1497 top y=481 bot y=870, .aseprite export == PNG (pixel-identical), layers: Background)
+  slot 1 == 2391081 `check_sheet_captain_liberator_idle.png` (0 px diff verified via `np.array_equal`)
+  sheets.py --id sheet/captain/liberator --grid 4x1 --cell 112 --scale 0.18 --dry-run -> 완료 1, 실패 0 (idle: 51x76px, windup: 52x75px, strike: 58x70px, hit: 55x70px; 시트 448x224, 7칸)
+  sheets.py --id sheet/captain/liberator --grid 4x1 --cell 96 --scale 0.1654 --dry-run -> 완료 1, 실패 0 (idle: 47x69px, windup: 47x69px, strike: 53x64px, hit: 51x65px; 시트 384x192, 7칸)
+REFERENCES LOADED: art/requests/phase3/captain_liberator/portrait_800.jpg, art-inbox `2391081` `art/inbox/check_sheet_captain_liberator_idle.png`, `assets/art/sheets/sheet_captain_blademaster.png`, `art/requests/phase3/captain_liberator/guide_strip.png` -> ok
+CHANGED:
+  - Pose 1 (대기): `2391081` 승인 컷을 0px 수정 없이 첫 칸(x 51..332, top y=451, y=870)에 그대로 배치.
+  - Pose 2 (준비): 4등신·38색 팔레트 일치, 앞(오른쪽) 손목 족쇄·굵은 사슬을 앞쪽에 세우고 뒤(왼쪽) 맨주먹·족쇄·4고리 사슬을 엉덩이 뒤 마젠타 위로 크게 빼 가슴과 가죽 띠가 열리도록 구성해 대기와 구분.
+  - Pose 3 (접촉): 앞무릎을 깊게 굽힌 전진 펀치 런지 — 앞쪽 팔 펀치 주먹을 몸 윤곽 밖 오른쪽 마젠타 위로 완전히 뻗고 팔뚝 아래로 굵은 3~4고리 쇠사슬이 휘어 늘어지며 포효. 가랑이 아래 불필요한 칼집 팁 흔적은 정리하고 등 뒤 장검 자루와 폼멜은 일관되게 유지.
+  - Pose 4 (피격): 2026-11-26 피격 규칙 준수 — 두 발 모두 바닥선 y=870에 디딘 채 비대칭 후방 경직(~14° 젖힘), 눈을 질끈 감고(`><`) 이를 악무는 고통 표정으로 변경, 뒤(왼) 팔은 엉덩이 뒤아래로·앞(오른) 팔은 가슴 바깥 앞으로 뻗으며 양손목 족쇄 사슬을 굵게 분리, 등 장검의 둥근 폼멜·칼집 끝 포함.
+## 판정 — sheet/captain/liberator/chain-sheet
+결과: 통과
+본 방법: `kato_chain_fullres_crop.png`(원본 1:1 4자세 크롭), `kato_chain_1x_compare.png`(0.18 셀112 및 0.1654 셀96 다크 `#2a2e26` / 풀 `#58723d` 배경 위 바렌과 나란히 1×·4× 비교), 양쪽 `sheets.py --dry-run` `preview_x4.png` 육안 대조
+고칠 점: 없음
+남은 걱정: `0.18`(대기 51×76px)에서는 바렌보다 덩치가 한 단 크게, `0.1654`(47×69px)에서는 일반 대장 키에 맞춰지는 차이가 있으므로, 전투 화면 실제 배치 크기는 후속 Codex 전투 QA에서 비교 후 확정 필요. 1× 크기에서 양손 사슬·등검·준비↔접촉 구분 모두 선명하게 읽힘.
