@@ -346,6 +346,7 @@ Object.assign(Game, {
     const mission = { id: s.nextId++, contract: c, units: units.map((u) => ({ ...u })), startDay: s.day, returnDay: s.day + days, chance };
     // 전투 입력을 지금(출격 피로가 붙기 전) 굳혀 둔다: mission.spec, mission.est (js/muster.js). 아직은 그림자 — 결과는 chance 가 정한다.
     if (this.freezeMission) this.freezeMission(mission, c, units);
+    if (s.resolve !== 'battle') mission.rseed = this.rollMissionSeed(mission);
     s.missions.push(mission);
     own.forEach((o) => { o.c.missionId = mission.id; });
     ext.forEach((e) => {
@@ -363,9 +364,21 @@ Object.assign(Game, {
   },
 
   // ───────── 판정 ─────────
+  rollMissionSeed(mission) {
+    const c = mission.contract;
+    // 의뢰에 이미 저장된 값과 출격 기록만 읽는다. 세계 난수는 출격할 때 쓰지 않는다.
+    return Stats.mix(0x726f6c6c, this.state.salt || 0, mission.id, c.id, mission.startDay,
+      c.req || 0, c.reward || 0, c.expires || 0, Math.round(mission.chance * 1e6),
+      ...mission.units.map((u) => u.companyId));
+  },
+
   resolveMission(mission) {
     const s = this.state;
     const c = mission.contract;
+    const seeded = !mission.spec?.bm && mission.rseed != null ? Stats.rng(mission.rseed) : null;
+    // 판정의 값은 출격 시드에서, 공유 난수의 소비 위치는 옛 방식 그대로다.
+    // 같은 귀환 경로에서 성장·전리품·세계 사건이 받는 난수가 밀리지 않는다.
+    const resultRoll = seeded ? () => { Math.random(); return seeded(); } : Math.random;
     const { own, ext, allMembers } = this.unitParts(mission.units);
     const report = { quest: c, outcome: null, gold: 0, rep: 0, members: [], ext: [], standing: [], control: [], notes: [], companies: [] };
 
@@ -373,7 +386,7 @@ Object.assign(Game, {
     let chance = mission.chance;
     if (c.campaign) {
       ext.forEach((e) => {
-        if (e.loyalty < 25 && Math.random() < 0.35) {
+        if (e.loyalty < 25 && resultRoll() < 0.35) {
           chance -= 0.25;
           e.loyalty = 0;
           report.notes.push(`「${e.name}」${josa(e.name, '이', '가')} 전투 도중 적에게 돌아섰습니다!`);
@@ -390,7 +403,7 @@ Object.assign(Game, {
     let outcome;
     if (fought) outcome = fought.verdict.outcome;
     else {
-      const roll = Math.random();
+      const roll = resultRoll();
       if (roll < chance * 0.25 * mods.great) outcome = 'great';
       else if (roll < chance) outcome = 'success';
       else if (roll > chance + (1 - chance) * 0.75 && chance < 0.6) outcome = mods.noDisaster ? 'fail' : 'disaster';
@@ -458,7 +471,7 @@ Object.assign(Game, {
       if (f) deathChance = special && outcome === 'disaster' && f.fate === 1 && !dead.some((d) => d.company === m.companyId) && s.mercs.length > KB.GUILD_FLOOR ? KB.DEATH_P * mods.death : 0;
       if (this.isCaptain(m)) deathChance = 0; // 용병대장은 쓰러져도 죽지 않는다 (대신 크게 다친다)
       if (m.trait === 'sturdy') deathChance *= 0.6;
-      if ((!f || deathChance > 0) && Math.random() < deathChance) {   // 옛 판정은 확률이 0 이어도 굴린다 (난수 순서 유지)
+      if ((!f || deathChance > 0) && resultRoll() < deathChance) {   // 옛 판정은 확률이 0 이어도 굴린다 (난수 순서 유지)
         r.dead = true;
         dead.push(r);
         s.stats.fallen++;
@@ -493,8 +506,8 @@ Object.assign(Game, {
       if (m.fatigue >= 80) inj *= 1.5;
       const dm = { great: 6, success: 2, fail: -6, disaster: -12 }[outcome];
       if (dm > 0 || !mods.noMoraleLoss) this.changeMorale(m, dm);
-      if (Math.random() < inj) {
-        r.injury = rand(2, 4) + (outcome === 'disaster' ? 2 : 0);
+      if (resultRoll() < inj) {
+        r.injury = 2 + Math.floor(resultRoll() * 3) + (outcome === 'disaster' ? 2 : 0);
         if (mods.healHalf) r.injury = Math.ceil(r.injury / 2);
         m.status = 'injured'; m.injury = r.injury;
       }

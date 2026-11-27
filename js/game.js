@@ -88,6 +88,13 @@ const Game = {
       this.state = st;
       this.normalizeCompanies(); // 용병단이 4~9명이던 저장: 정원을 넘는 대원은 예비 인원으로
       this.dropDeadTargets();    // 재앙 토벌·멸망 뒤에도 게시판에 남은 의뢰가 있던 저장 (QA Q8)
+      let seedAdded = false;
+      for (const mission of st.missions) {
+        if (mission.spec?.bm || mission.rseed != null) continue;
+        mission.rseed = this.rollMissionSeed(mission);
+        seedAdded = true;
+      }
+      if (seedAdded) this.save();
       return true;
     } catch (e) { return false; }
   },
