@@ -1221,3 +1221,42 @@ RISKS AT GAME SIZE: 게임 64px(1x) 축소 시 G3/G7 교차 순간의 앞·뒤 �
 고칠 점: 없음
 남은 걱정: 없음 (QA 교차검사 시 게임 1x 크기에서 G3/G7 발 겹침과 세력 색 재색칠 시 장화·지팡이 변색 없음 확인)
 캐릭터 메모: 로브 부류 후속 대장(archmagus, lightbearer, astel, seraphine) 역시 치마 밑단 y=840~850 유지 및 `outfit`/`accent` 열쇠 색 엄격 분리 패턴 그대로 적용 가능
+
+
+## gait/sheet_captain_ironwall_run - Q12 가독성 손질 (철퇴 대비·각도, H3/H7 다리 분리)
+CHECK:
+- `python3 tools/art/check_delivery.py art/inbox/gait/sheet_captain_ironwall_run_a.png` -> `RESULT: PASS` (`background #FF00FF: 84.1%`, `figure colours: 39`, `closest figure colour to #FF00FF: distance 209.3 (rule >= 150, recommended >= 170)`, `pose 1: x 89-331 (w 243), top y=440, lowest pixel y=870`, `pose 2: x 472-713 (w 242), top y=447, lowest pixel y=870`, `pose 3: x 856-1095 (w 240), top y=442, lowest pixel y=870`, `pose 4: x 1238-1477 (w 240), top y=441, lowest pixel y=870`, `magenta pixels enclosed by the figure: 745`)
+- `python3 tools/art/check_delivery.py art/inbox/gait/sheet_captain_ironwall_run_b.png` -> `RESULT: PASS` (`background #FF00FF: 84.2%`, `figure colours: 39`, `closest figure colour to #FF00FF: distance 209.3 (rule >= 150, recommended >= 170)`, `pose 1: x 82-323 (w 242), top y=440, lowest pixel y=870`, `pose 2: x 472-709 (w 238), top y=447, lowest pixel y=870`, `pose 3: x 856-1095 (w 240), top y=442, lowest pixel y=870`, `pose 4: x 1238-1481 (w 244), top y=441, lowest pixel y=870`, `magenta pixels enclosed by the figure: 419`)
+- `python3 tools/art/add_gait.py sheet/captain/ironwall --gait run --src art/inbox/gait/sheet_captain_ironwall_run_a.png art/inbox/gait/sheet_captain_ironwall_run_b.png --pose art/requests/guides/heavy_base/v1/pose.json --dry-run` -> `8 프레임, 배율 0.1654, 칸 96x96, anchor 48,92, 팔레트 40색 (시트의 기본 칸에서)` / `프레임별 맨 아래 픽셀 (바닥 줄 위 게임 px): 1:0 2:0 3:0 4:0 5:0 6:0 7:0 8:0` / `sheet.gait = heavy (run 칸이 그려진 마네킹의 부류)` / `sheet/captain/ironwall: 시트 384x384, 15칸 — idle(4), attack(2), hit(1), run(8); runStride 23.6`
+CHANGED: Q12 실전 지적 2곳만 정밀 손질(방패 크기·잡은 손 위치·지지발 바닥 y=870 및 39색 팔레트 그대로 유지):
+- 철퇴 가독성(H1~H8): 손잡이 회전 중심(215, 628)을 유지한 채 `-12°~-17°` 더 세워 머리를 방패 좌상단 금 테두리 옆쪽으로 빼고(턱·얼굴 비접촉), 방패 위 철퇴 자루+머리 외곽에 6px(`~1 게임 px`) `#050113` 윤곽 테두리와 `#8d8890`/`#cba36d` 철·금 하이라이트를 보강해 1x에서도 자루와 이어진 무기로 또렷이 읽힘.
+- H3/H7 다리 분리: H3 지지발(`204`, y=870)·H7 지지발(`209`, y=870) 고정 유지, 먼 다리 명도 감쇠(`0.56배`, `#2e2533`/`#493a43`/`#6a3e36`)와 앞 정강이 하이라이트(`#976343`/`#b56b40`)로 +50~60 휘도 분리 및 겹침 경계에 6px `#090b1d` 윤곽선 삽입. 스쳐 가는 발은 H3(`158, y=858`), H7(`242, y=858`)로 분리해 1x에서 두 다리가 또렷이 구분됨.
+DEVIATIONS:
+- (a) mannequin pose/position: none (H1~H8 발끝 `275, 239, 203, 166, 280, 244, 208, 173`, ±3px 오차 이내, 바닥 0px).
+- (b) sheet design: none (39색 팔레트·방패 크기·의상 변경 없음).
+- (c) ARMS AND WEAPONS: none (철퇴 ~33~38도 세워 방패 위 가독 확보, 전 픽셀 x=82..331).
+
+## 판정 — gait/sheet_captain_ironwall_run
+결과: 통과
+본 방법: `ironwall_q12_compare.png` 어두운(`#2e2b26`)·밝은(`#58723d`) 배경 위 OLD vs NEW 1x/3x 동시 대조 + `sheet_captain_ironwall_preview_x4.png` 확인 (`H1, H3, H5, H7` 모두 1x에서 철퇴 머리와 H3/H7 두 장화 분리 확인)
+고칠 점: 없음
+남은 걱정: 없음
+
+## gait/sheet_class_mage_run - Q12 가독성 손질 (G3/G7 장화 분리)
+CHECK:
+- `python3 tools/art/check_delivery.py art/inbox/gait/sheet_class_mage_run_a.png` -> `RESULT: PASS` (`background #FF00FF: 85.7%`, `figure colours: 30`, `closest figure colour to #FF00FF: distance 205.7 (rule >= 150, recommended >= 170)`, `pose 1: x 47-295 (w 249), top y=438, lowest pixel y=870`, `pose 2: x 422-682 (w 261), top y=440, lowest pixel y=870`, `pose 3: x 814-1051 (w 238), top y=436, lowest pixel y=870`, `pose 4: x 1194-1462 (w 269), top y=435, lowest pixel y=870`, `magenta pixels enclosed by the figure: 3076`)
+- `python3 tools/art/check_delivery.py art/inbox/gait/sheet_class_mage_run_b.png` -> `RESULT: PASS` (`background #FF00FF: 86.8%`, `figure colours: 30`, `closest figure colour to #FF00FF: distance 205.7 (rule >= 150, recommended >= 170)`, `pose 1: x 43-287 (w 245), top y=438, lowest pixel y=870`, `pose 2: x 435-679 (w 245), top y=440, lowest pixel y=870`, `pose 3: x 832-1064 (w 233), top y=436, lowest pixel y=870`, `pose 4: x 1207-1468 (w 262), top y=435, lowest pixel y=870`, `magenta pixels enclosed by the figure: 3632`)
+- `python3 tools/art/add_gait.py sheet/class/mage --gait run --src art/inbox/gait/sheet_class_mage_run_a.png art/inbox/gait/sheet_class_mage_run_b.png --pose art/requests/guides/robe_base/v1/pose.json --dry-run` -> `8 프레임, 배율 0.1654, 칸 96x96, anchor 48,92, 팔레트 33색 (시트의 기본 칸에서), 열쇠 색 7` / `프레임별 맨 아래 픽셀 (바닥 줄 위 게임 px): 1:0 2:0 3:0 4:0 5:0 6:0 7:0 8:0` / `sheet.gait = robe (run 칸이 그려진 마네킹의 부류)` / `sheet/class/mage: 시트 384x384, 15칸 — idle(4), attack(2), hit(1), run(8); runStride 22.2`
+CHANGED: Q12 지적 G3/G7 장화 뭉침만 정밀 손질(밑단 `hem_bot=841..846` 유지·무릎 미노출·30색 및 세력 열쇠 색 7색 분리 100% 유지, `boot_key_bleed=0`):
+- G3(`214, y=870`)·G7(`219, y=870`) 지지발 고정, 먼 장화 `0.50배` 암부(`#3a2e2a`/`#4a3a2e`) 감쇠 + 가까운 앞 장화 발등·발목 상단에 5~6px `#bf8353` 밝은 황갈 테두리 및 겹침 경계 6px `#191413` 외곽 분리를 적용.
+- 스쳐 가는 발을 G3(`232, y=862`), G7(`238, y=860`)로 약 1.5~2 게임 px 더 내밀어 1x(400px) 화면에서도 두 장화가 명확히 분리됨.
+DEVIATIONS:
+- (a) mannequin pose/position: none (G1~G8 발끝 `281, 247, 214, 179, 286, 252, 219, 183`, ±2px 이내, 바닥 0px).
+- (b) sheet design: none (`mage_tint_mask.png`로 세력 열쇠 색 장화 침범 0 확인).
+- (c) ARMS AND WEAPONS: none.
+
+## 판정 — gait/sheet_class_mage_run
+결과: 통과
+본 방법: `mage_q12_compare.png` 어두운/밝은 배경 위 OLD vs NEW 1x/3x 동시 대조 + `sheet_class_mage_preview_x4.png` + `mage_tint_mask.png` 확인 (`G3/G7` 두 장화 분리 및 열쇠 색 비침범 100% 확인)
+고칠 점: 없음
+남은 걱정: 없음
