@@ -114,8 +114,9 @@ Object.assign(Game, {
     if (s.calamityDefeated && !war) catMul *= 1.8; // 재앙 이후 전후 복구 의뢰
     let mul = (1 + s.facilities.board * 0.08) * (s.branches[p] ? 1.1 : 1) * (s.bossDefeated[p] ? 1.1 : 1)
       * this.standingMul(issuer) * catMul * (FACTIONS[issuer].neutral ? 1 : this.doctrine(issuer).pay);
-    // 전투 모드: 60~120일 의뢰는 금화·명성을 조금 더 준다 (주인 결정 5, 59일까지와 121일부터는 그대로). 카드에 보이는 값이 곧 받는 값
-    const mid = s.resolve === 'battle' ? this.midBoost(s.day) : 0;
+    // 전투 모드: 60~120일 의뢰는 금화·명성을 조금 더 준다 (주인 결정 5, 59일까지와 121일부터는 그대로). 카드에 보이는 값이 곧 받는 값.
+    // 마감이 없는 의뢰(이야기·대장 이야기·보스·최종 결전, opts.noDeadline)는 받지 않는다 — 창 안에서 만들어 두고 121일 뒤에 받아 가지 못하게
+    const mid = s.resolve === 'battle' && !opts.noDeadline ? this.midBoost(s.day) : 0;
     if (mid) mul *= 1 + Stats.KN.BM_MID_PAY * mid;
     const c = {
       id: s.nextId++, type: opts.type, cat: t.cat, war, title, level, size, days, req, province: p, issuer, target, enemy,
@@ -127,6 +128,8 @@ Object.assign(Game, {
         * (mid ? 1 + Stats.KN.BM_MID_REP * mid : 1)),
       expires: s.day + rand(3, 6),
     };
+    // 실패해서 잃는 명성은 덤을 뺀 명성으로 센다 (주인 결정 6: 무모를 포함해 패배의 값은 그대로). 덤은 이길 때만 붙는다
+    if (mid) c.repMul = 1 + Stats.KN.BM_MID_REP * mid;
     // 전투 모드: 저장의 소금을 의뢰에 굳혀 둔다 (전투 시드·적 편성. 날마다 바뀌지 않고, 의뢰 번호로 미리 알 수 없다)
     if (s.resolve === 'battle' && s.salt) c.bseed = Stats.mix(s.salt, c.id, 0x5a17);
     if (s.resolve === 'battle' && aim != null) c.aim = aim;
@@ -415,14 +418,14 @@ Object.assign(Game, {
       // 질서 있게 물러난 판(end 'retreat')은 우리 단원이 모두 쓰러졌어도(수습만 물러남) 기본 몫을 받는다 (검증 7번)
       const orderly = fought.rec.end === 'retreat';
       report.gold = Math.round(c.reward * ((outcome === 'fail' || orderly ? KB.LOSS_PAY : 0) + KB.LOSS_PAY_SHARE * fought.share));
-      report.rep = -Math.round(c.rep * (outcome === 'disaster' ? 0.6 : 0.3));
+      report.rep = -Math.round((c.repMul ? c.rep / c.repMul : c.rep) * (outcome === 'disaster' ? 0.6 : 0.3));
       if (fought.share >= 0.05) report.notes.push(`적 전력의 ${Math.round(fought.share * 100)}%를 꺾어 보수 일부(금화 ${report.gold})를 받았습니다.`);
       // 유예 주간은 GRACE_EVERY 일에 한 번만 새로 열린다 (연달아 지는 동안 끝없이 이어지지 않게)
       if (!s.graceStart || s.day >= s.graceStart + KB.GRACE_EVERY) { s.graceStart = s.day; s.graceUntil = s.day + KB.GRACE_DAYS; }
       s.stats.failed++;
     } else {
       report.gold = outcome === 'fail' ? Math.round(c.reward * 0.1) : 0;
-      report.rep = -Math.round(c.rep * (outcome === 'disaster' ? 0.6 : 0.3));
+      report.rep = -Math.round((c.repMul ? c.rep / c.repMul : c.rep) * (outcome === 'disaster' ? 0.6 : 0.3));
       s.stats.failed++;
     }
     s.gold += report.gold;
@@ -654,7 +657,7 @@ Object.assign(Game, {
     const F = FACTIONS[cal];
     const issuer = this.aliveFactions().sort((a, b) => this.strength(b) - this.strength(a))[0] || 'locals';
     const c = this.makeContract({ province: lair, issuer, target: cal, type: 'battle', level: 10, size: FINAL_SIZE, days: 5, enemy: F.leader,
-      title: `최종 결전 — ${F.leader}` });
+      title: `최종 결전 — ${F.leader}`, noDeadline: true });
     c.final = true;
     c.campaign = { id: s.nextId++, attacker: issuer, defender: cal, slots: 3, side: 'attack' };
     c.req = this.finalReq();
@@ -709,7 +712,7 @@ Object.assign(Game, {
       else if (owner !== target && !FACTIONS[owner].neutral) issuer = owner;
       else if (h.faction && h.faction !== target) issuer = h.faction;
       const level = clamp(Math.max(TIER_LEVELS[PROVINCES[ch.province].tier][0], this.rankIndex() + 2), 1, 10);
-      const c = this.makeContract({ province: ch.province, type: ch.type, target, issuer, enemy: ch.enemy, title: ch.title, level, size: 3 });
+      const c = this.makeContract({ province: ch.province, type: ch.type, target, issuer, enemy: ch.enemy, title: ch.title, level, size: 3, noDeadline: true });
       c.story = { hero: m.hero, ch: hs.ch };
       c.expires = STORY_EXPIRES;
       c.reward = Math.round(c.reward * 1.5);
@@ -779,7 +782,7 @@ Object.assign(Game, {
       if ((s.provClears[p] || 0) < b.clears) return;
       if (s.contracts.some((c) => c.boss === p) || s.missions.some((mi) => mi.contract.boss === p)) return;
       const level = TIER_LEVELS[PROVINCES[p].tier][1];
-      const c = this.makeContract({ province: p, type: b.type, enemy: b.enemy, title: b.title, level, size: 4 });
+      const c = this.makeContract({ province: p, type: b.type, enemy: b.enemy, title: b.title, level, size: 4, noDeadline: true });
       c.cat = 'monster';
       c.boss = p;
       c.req = Math.round(c.req * 1.3);

@@ -148,7 +148,7 @@ Object.assign(Game, {
       const issuer = FACTIONS[owner].neutral || this.isCalamity(owner) || this.isDestroyed(owner) ? 'locals' : owner;
       const ph = this.captainPhase(key);
       const level = clamp(Math.max(TIER_LEVELS[PROVINCES[ch.province].tier][0], r + 2, ph.level - 3) + cs.ch, 1, this.maxContractLevel());
-      const c = this.makeContract({ province: ch.province, type: ch.type, issuer, enemy: ch.enemy, title: ch.title, level, size: 3 });
+      const c = this.makeContract({ province: ch.province, type: ch.type, issuer, enemy: ch.enemy, title: ch.title, level, size: 3, noDeadline: true });
       c.capStory = { key, ch: cs.ch };
       c.expires = STORY_EXPIRES;
       c.reward = Math.round(c.reward * 1.3);
