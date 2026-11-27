@@ -676,7 +676,8 @@ the late board wider without new content.
 
 - Roll md5 `21b6184246abf071a0f40918718244b6` with and without `SIM_SHADOW=1`.
 - `node tools/sim/battle.js 100`: miss 0 / soft 0.
-- `node tools/sim/shadow.js 6 365 --resolve battle --check --jobs 4` and the roll-mode run: every invariant 0.
+- `node tools/sim/shadow.js 6 365 --resolve battle --check --jobs 4` (2,764 battles, 8,004 alternative parties) and the roll-mode
+  run (3,944 battles): every invariant 0.
 - `--set` takes the new knobs in `bot.js` and `shadow.js` and refuses unknown names (e.g. the first draft's `BM_TIME_EXP`), wrong
   types and wrong array lengths.
 - The in-game forecast matches the offline formula used for the fit (median difference 0.0002 in R on 26,440 probe rows).
