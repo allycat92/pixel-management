@@ -4,7 +4,7 @@
 
 **왜 (주인 2026-11-26)**: "달리기를 실제 캐릭터 그래픽에 적용할때 캐릭터가 찌그러져 보여. 아마 스탠딩 원화(혹은 기준 에셋)를 조작하는것보다는
 스켈레톤 혹은 마네킹 기준으로 덧그리게 하는게 확실할걸. 그러려고 스프라이트식으로 하자고 한거고"
-→ 대기 그림을 잘라 기울이고 구부리는 코드 이동은 쓰지 않는다. **이동 부류 경량(light)의 확정 마네킹(`art/requests/guides/run_base/v2/`) 8프레임 위에 캐릭터를 프레임마다 덧그린다.** 그린 그림은 찌그러뜨리지 않는다(엔진은 칸을 그대로 넘긴다).
+→ 대기 그림을 잘라 기울이고 구부리는 코드 이동은 쓰지 않는다. **이 폴더의 `guide_run_a.png` / `guide_run_b.png`(이동 부류 경량(light)의 확정 마네킹 `art/requests/guides/run_base/v2/` 를 비요른 배율 x0.919 로 줄인 것) 8프레임 위에 캐릭터를 프레임마다 덧그린다.** 그린 그림은 찌그러뜨리지 않는다(엔진은 칸을 그대로 넘긴다).
 그려 온 띠는 `tools/art/add_gait.py` 가 시트 아래에 `anims.run` 칸으로 붙이고, 엔진(`js/battle.js`)이 80ms 박자로 넘긴다 (뜬 칸 포함).
 
 | 파일 | 내용 |
@@ -13,11 +13,11 @@
 | `size_run_a.png` / `size_run_b.png` | 읽기용: 왼쪽 칸 = 승인된 대기 자세(흐리게, 게임처럼 앵커 열을 x=192 에) 위에 마네킹 R1/R5 윤곽(하늘색) — **같은 배율**. 오른쪽 4칸 = 마네킹 + 바닥 줄·엉덩이 열·x=32/351 선·디딘 발끝 자리(노란 눈금) |
 | `art/requests/phase3/captain_frostjarl/portrait.png` | 승인된 초상화 — 얼굴·머리·색 |
 | `art/inbox/sheet_captain_frostjarl.png` | **승인된 전투 시트 원본** — 디자인·색·크기의 기준. 1번 자세가 대기 |
-| `art/requests/guides/run_base/v2/` (`pose.json`, `run_base_preview.gif`, `run_base.aseprite`) | 마네킹 원본 — 숫자·움직임 확인용 |
+| `art/requests/guides/run_base/v2/` (`pose.json`, `run_base_preview.gif`, `run_base.aseprite`) | 마네킹 원본 — 움직임 확인용. **표준 배율이라 비요른에게 약 9% 크다: `run_base.aseprite` 위에 덧그리지 말 것.** 덧그리기는 이 폴더의 `guide_run_a.png` / `guide_run_b.png`(납품과 같은 캔버스) 위에만, 디딘 발끝 숫자는 이 README / 이 폴더 `pose.json` 의 것 |
 
-- 부류: **경량** — slate-blue 'armoured tunic' drawn as a padded/quilted tunic to mid-thigh, big fur mantle on the shoulders, trousers, fur-trimmed boots, long-hafted axe. (tools/art/specs/gait_classes.json)
+- 부류: **경량** — slate-blue armoured tunic of layered silver-trimmed bands and skirt panels to the upper thigh (front flap to just above the knee), big white fur mantle on the shoulders, baggy dark trousers, brown boots with thick white fur cuffs, long-hafted axe. (tools/art/specs/gait_classes.json)
 - 납품: art-inbox `art/inbox/gait/sheet_captain_frostjarl_run_a.png` (R1~R4) + `art/inbox/gait/sheet_captain_frostjarl_run_b.png` (R5~R8) + `art/inbox/NOTES.md` 절 「gait/sheet_captain_frostjarl_run - 비요른 달리기」 + 「## 판정 — gait/sheet_captain_frostjarl_run」. 파일 이름은 부류와 상관없이 `_run_` (엔진의 `anims.run`).
-- 팔·무기: 양손 도끼는 아래 손을 x=198–228에 두고 위쪽으로 70–80° 세운다. 앞머리 두 갈래는 가슴 앞에 남긴다.
+- 팔·무기: 양손으로 도끼를 쥐되 대기와 달리 몸을 가로질러 뒤로 기울여(받들어총처럼) 들고, 도끼 머리는 머리 뒤 위쪽에 둔다 (아래 손 x=225–245, y=680–700 배 앞, 자루는 뒤쪽으로 50–60°). 자루·날은 얼굴·수염·땋은 머리를 지나지 않는다. 두 팔을 따로 흔들지 않는다. 앞머리 두 갈래는 가슴 앞에 남긴다.
 - 디딘 발: 한 걸음 원본 252.694px(게임 45.5px) → 디딘 발은 칸마다 **정확히 63.2px**(±3, 게임 11.4px) 뒤로 — 발끝 x 는 Prompt 의 PLANTED FOOT 표. (병과 전사 R5 는 디딘 발이 30px 앞에 그려져 한 번 고쳤다.)
 - 클라우드가 받은 뒤: `python3 tools/art/receive.py gait/sheet_captain_frostjarl_run` (검사 + `add_gait.py --dry-run`) → 미리보기를 보고 `add_gait.py` 로 붙인다 (`--pose art/requests/gait/run__captain_frostjarl/pose.json`).
 
@@ -39,14 +39,16 @@ REFERENCES (load all; if the sheet or a guide does not load, do not draw - write
   - art/inbox/sheet_captain_frostjarl.png (pose 1 = idle) = the accepted battle sheet: design, colours, outline, rendering and SIZE.
     Same character, same pixel size, same palette.
   - art/requests/phase3/captain_frostjarl/portrait.png = the approved portrait (face, hair, colours only).
-  - art/requests/gait/run__captain_frostjarl/pose.json (the numbers below come from it), art/requests/guides/run_base/v2/run_base_preview.gif (the motion at speed), art/requests/guides/run_base/v2/run_base.aseprite (the mannequin source -
-    you may open it as an underlay and draw on your own layers, but the delivered PNGs contain ONLY your drawing).
+  - art/requests/gait/run__captain_frostjarl/pose.json (the numbers below come from it), art/requests/guides/run_base/v2/run_base_preview.gif (the motion at speed). art/requests/guides/run_base/v2/run_base.aseprite is at the
+    STANDARD scale and about 9% too large for Bjorn - do NOT trace over it. Trace only over this folder's guide_run_a.png / guide_run_b.png
+    (same canvas as your delivery; draw on your own layers - the delivered PNGs contain ONLY your drawing); the planted-toe numbers are the
+    ones in this README / this folder's pose.json.
 
 CHARACTER (unchanged from the accepted sheet): Bjorn: blond frost jarl with two front braids, blond beard, slate-blue armoured tunic, snowflake pauldron, pale fur mantle and fur-trimmed boots. Copy the long-hafted bearded axe and its two-handed grip from the accepted idle.
 
 THE MOVE (owner's three movement classes; light: the accepted run: lean forward, press down in flight, rise a little after the landing is caught, hip nearly level, slight float, no hopping. It is already in the mannequin - copy it, do not invent another):
-  - Each frame: the legs, the torso lean and the arm swing of that mannequin frame. Joint for joint: hips, knees, ankles, feet,
-    shoulders, elbows (hands: see ARMS - where the text moves a hand, that is intended, not a deviation).
+  - Each frame: the legs, the torso lean and the shoulders of that mannequin frame. Joint for joint: hips, knees, ankles, feet,
+    shoulders (arms, elbows and hands: see ARMS - where the text moves an arm or a hand, that is intended, not a deviation).
     The mannequin's big round head is a placeholder: draw the character's own head on the mannequin's neck, at its own size
     (as in the sheet).
   - R1 contact (near foot lands a little ahead, knee bent) - R2 catch (the hips drop onto the foot: lowest hips, but the torso straightens, so the head top is the HIGHEST of the cycle - see Height) - R3 push-off (stance leg extends behind, heel up) - R4 FLIGHT (both feet clearly off the ground, legs scissored, body pressed forward and leaning the most). R5-R8 = the same with the far foot.
@@ -65,8 +67,8 @@ THE MOVE (owner's three movement classes; light: the accepted run: lean forward,
     YOUR toe tip against these numbers (the size_* images mark them with yellow ticks).
 
 ARMS AND WEAPONS:
-  - Keep both hands on the axe: near right hand lower by the hip, far left hand higher toward the head. The mannequin's two separate arm swings do NOT apply to this character (intended, not a deviation). Keep the lower grip at x=198–228 and y=640–675 in each slot (at most 30 px fore-aft). The axe head spans about 245 px from that grip to its top. Carry the shaft forward and up at 70–80 deg above horizontal; the projected upper end stays left of x=312 before the blade width. Keep the outer edge inside x=351 and the butt above y=852 (no planted axe, no swing).
-  - Both gold-bound braids stay over the FRONT of the chest and bounce lightly. Keep the fur mantle across the shoulders; small trailing locks and the rear tunic hem settle one frame late. Leave the thighs and boots free.
+  - Keep both hands on the axe, about 70 px apart on the shaft as in the idle, but carry it sloped BACK across the body (port arms): the near right hand low in front of the belly at x=225–245, y=680–700 (at most 30 px fore-aft), the shaft rising up and BACK (toward the left) at 50–60 deg above horizontal over the near shoulder, and the far left hand about 70 px up the shaft at the chest (about x=180–210, y=620–645). The axe head rides above and behind the back of the head (all axe pixels between x=60 and x=351, top at or below y=445, butt about 40 px forward-down of the lower hand). The shaft and blade never cross the face, beard or braids; they may overlap only the back hair and the mantle. The idle's forward-up angle does not fit: at any angle it runs the shaft through the running head, which leans forward (intended, not a deviation). The mannequin's two separate arm swings and elbow positions do NOT apply to this character (intended, not a deviation): the shoulders follow the torso lean and the grip rides with the torso, no arm pump, no swing.
+  - Both gold-bound braids stay over the FRONT of the chest (the far forearm passes under their tips) and bounce lightly. Keep the white fur mantle across the shoulders. The long wavy back hair streams back a little and settles one frame late, as do the side and rear tunic panels. The front centre flap hangs between the thighs and swings with the leading thigh; never let it trail back. Leave the trousers and boots free.
   - Face and beard: exactly as in the accepted idle.
 
 MUST NOT CHANGE: outfit, colours, proportions, headgear, weapon and shield shapes and sizes, and the SCALE of the accepted
