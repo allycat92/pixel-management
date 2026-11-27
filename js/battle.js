@@ -759,6 +759,7 @@ const Battle = (() => {
     for (const o of live) {
       if (o.x <= u.x - rxMax || o.x >= u.x + rxMax || o.y <= u.y - ryMax || o.y >= u.y + ryMax) continue;
       if (o === u || o === tg || !o.alive || o.fled || (o.side === u.side && (u.g.routed || o.g.routed))) continue;
+      if (u.sq && o.side === u.side && !o.moving) continue;   // 비집고 지나가는 중 (SQUEEZE): 서 있는 아군은 돌아가지 않는다
       if (o.moving && (o.vx || 0) * dx + (o.vy || 0) * dy > 0.7 * u.speed * DT) continue;  // 같은 쪽으로 비슷하게 가는 몸은 따라간다
       const same = o.side === u.side, big = sizeOf(u) + sizeOf(o);
       const MX = (same ? SEP_X : SEP_FOE_X) + big * 0.75, MY = (same ? SEP_Y : SEP_FOE_Y) + big * 0.5;
@@ -784,6 +785,8 @@ const Battle = (() => {
     return [ax, ay];
   }
   const GHOST_FAR = 20;
+  const SQUEEZE = 2;                 // 거듭 막힌 걸음이 서 있는 아군을 지나갈 수 있는 시간(초)
+  const GAIN = 2, STALL = 3;         // 닿지 못한 걸음이 목표와의 거리를 GAIN(px)도 못 줄인 채 STALL 초를 걸으면 막힌 것으로 친다
   // 원거리·치유: 서 있는 아군과 몸이 깊이 겹친 채로는 멈추지 않는다 (조금 더 걸어 나가 선다)
   function crowdedAt(u, live) {
     for (const o of live) {
@@ -980,7 +983,7 @@ const Battle = (() => {
     for (const u of live) {
       u.flash = max(0, u.flash - DT); u.lunge = max(0, u.lunge - DT);
       u.skills.forEach((sk) => { sk.left -= DT; });
-      u.moving = false; u.wantStep = 0; u.far = false;
+      u.moving = false; u.wantStep = 0; u.far = false; u.short = false; u.sq = false;
       const SPD = u.speed * (u.slowUntil > st.t ? SLOW_MUL : 1);   // 거미줄에 걸리면 느리게
       if (u.g.routed) {
         // 자기 진영 쪽 가장자리로 도주
@@ -1041,7 +1044,8 @@ const Battle = (() => {
         if (p) { gx = p.x; gy = p.y; } else { gx = tg.x + u.slotSide * (reach + 14); gy = u.y; }
       }
       const ex = gx - u.x, ey = gy - u.y, ed = len2(ex, ey);
-      u.far = md > reach + GHOST_FAR;
+      u.sq = u.squeeze > st.t; u.short = md > reach; u.md = md;
+      u.far = md > reach + GHOST_FAR || u.sq;   // 거듭 막혔던 걸음은 잠깐 서 있는 아군 사이를 비집고 지나간다 (아래 stuckN)
       if (md > reach || (melee && ed > 3) || (!melee && crowdedAt(u, live))) {
         // 대장 근처로 모이려는 힘을 약간 섞는다 (부대 대형 유지) — 목표에 닿기 전까지만
         let mx = ex / (ed || 1), my = ey / (ed || 1);
@@ -1104,11 +1108,29 @@ const Battle = (() => {
     live.forEach((u) => { u.y = clamp(u.y, TOP, BOTTOM); if (!u.g.routed) { const e = EDGE + sizeOf(u) * EDGE_BIG; u.x = clamp(u.x, e, W - e); } });
     // 앞이 막혀 한 걸음의 3할도 못 나아갔으면 그 자리에 선다 (서 있는 몸에 대고 제자리 달리기하지 않게: 비킬 때까지 기다린다)
     for (const u of live) {
-      if (!u.moving || u.g.routed || !u.wantStep || u.dashed) continue;
-      if (len2(u.x - u.ox, u.y - u.oy) < u.wantStep * 0.3) { u.x = u.ox; u.y = u.oy; u.moving = false; u.blocked = (u.blocked || 0) + DT; }
-      else u.blocked = 0;
-      // 1초 넘게 막혀 있으면 자리를 내놓고 다시 고른다 (줄이 얼어붙지 않게)
-      if (u.blocked > 1) { u.blocked = 0; if (u.slotOf && u.slotOf.slots && u.slotOf.slots[u.slot] === u) u.slotOf.slots[u.slot] = null; u.slotOf = null; u.slot = -1; }
+      if (!u.moving || u.g.routed || !u.wantStep || u.dashed) { if (!u.blocked) { u.stuckN = 0; u.jit = 0; u.gt = null; } continue; }
+      const frozen = len2(u.x - u.ox, u.y - u.oy) < u.wantStep * 0.3;
+      if (frozen) { u.x = u.ox; u.y = u.oy; u.moving = false; u.blocked = (u.blocked || 0) + DT; }
+      else {
+        u.blocked = 0;
+        // 걸음마다 3할은 나아가도 두 아군 사이를 피할 쪽만 번갈아 바꾸며 제자리에서 떨 수 있다 (대치의 다른 꼴: 1~5px 왕복).
+        // 목표에 닿지 못한 채 같은 목표와의 거리를 GAIN 만큼도 줄이지 못하면 그 시간도 막힌 시간으로 센다. 줄여야 '걸었다'로 친다
+        if (u.short && u.gt === u.target && u.md > u.gd - GAIN) u.jit += DT;
+        else { u.gt = u.target; u.gd = u.md; u.jit = 0; u.stuckN = 0; }
+      }
+      // 1초 넘게 막혀 있거나 STALL 초 동안 목표에 다가가지 못했으면 자리를 내놓고 다시 고른다 (줄이 얼어붙지 않게).
+      // 다시 골라도 같은 자리·같은 길이라 한 걸음도 못 떼고 또 막히면 (stuckN ≥ 2): 서 있는 아군(치유사·수습)이 목표와의 사이를
+      // 벽처럼 막은 것이다 — 양쪽이 30px 거리에서 90초까지 멈춰 섰다 (4단계 미해결 '대치'). 그때는 SQUEEZE 초 동안 멀리서 걸어올 때처럼
+      // 서 있는 아군을 지나가게 하고 (u.far), 막은 것이 적이면 (적은 지나갈 수 없다) 지금 닿는 적을 목표로 삼는다
+      if (u.blocked > 1 || u.jit > STALL) {
+        u.blocked = 0; u.jit = 0;
+        if (u.slotOf && u.slotOf.slots && u.slotOf.slots[u.slot] === u) u.slotOf.slots[u.slot] = null; u.slotOf = null; u.slot = -1;
+        if ((u.stuckN = (u.stuckN || 0) + 1) >= 2) {
+          u.squeeze = st.t + SQUEEZE;
+          const near = u.healer ? null : pickTarget(st, u, u.skills[0], live);
+          if (near && near !== u.target) { u.target = near; u.retarget = SQUEEZE; }
+        }
+      }
     }
     for (const u of live) { u.vx = u.x - u.ox; u.vy = u.y - u.oy; }
     // 투사체
@@ -1353,6 +1375,7 @@ const Battle = (() => {
   const RUN_FLY_MIN = 1 / 8;
   function runCells(u, r, dd, ds, slf) {
     if (r.rq == null) r.rq = (r.rp == null ? r.phase : r.rp) * 4;
+    const q0 = r.rq;
     // 뜸이 없는 부류(중량·로브): 모든 칸이 ds/4 — 다만 4배속은 걸음 수를 2배속 수준까지만(slf = 보폭×fast 가 더 크면 그만큼 칸을 넓힌다, 그때만 약간 미끄러짐).
     const C = gaitClassFor(u, r, useArt() && Art.sheetFor(u)), c = C.hop ? ds / 4 : Math.max(ds, slf) / 4;
     const f = C.hop ? (Math.max(slf, ds / 2 + 2 * ds * RUN_FLY_MIN) - ds / 2) / 2 : c;
@@ -1365,6 +1388,8 @@ const Battle = (() => {
         if (left < room) { r.rq += left / wj; left = 0; } else { r.rq = fl + 1; left -= room; }
       }
     }
+    // rqAdv: 이 움직임 한 번에 넘어간 칸 (pose 가 달리기 칸을 처음 보일 때 칸 안 위치를 이것의 절반에 둔다)
+    if (dd > 0) r.rqAdv = r.rq - q0;
     r.rq = ((r.rq % 8) + 8) % 8;
   }
   // 유닛이 화면에서 실제로 움직인 만큼 걸음을 나아가게 하고(시계가 아니라 거리), 걷는 정도(gait 0..1)를 부드럽게 올리고 내린다.
@@ -1666,7 +1691,8 @@ const Battle = (() => {
     const sh = useArt() && Art.sheetFor(u);
     if (sh) {
       const m = sh.meta;
-      let i, ga, walkFx = false, act = null; // walkFx: 지금 걸음에 쓸 동작 칸이 없는 시트가 움직이는 중 → 그릴 때 몸 높이(walkTf: 그림은 그대로)만 얹는다
+      let i, ga, walkFx = false, act = null, runOn = false; // runOn: 이번 그리기가 그려진 달리기 칸(r.rq)인가 (r.rqOn — 첫 칸을 처음부터)
+      // walkFx: 지금 걸음에 쓸 동작 칸이 없는 시트가 움직이는 중 → 그릴 때 몸 높이(walkTf: 그림은 그대로)만 얹는다
       // act: 공격·피격·준비 칸 — 걷던 몸이면 walkTf 가 몸 높이를 BODY_FADE 에 걸쳐 푼다
       if (force) { const a = force === 'walk' && m.anims.run ? m.anims.run : Art.anim(m, force); i = Math.min(a.to, a.from + 1); }   // 돌진 잔상('walk')은 달리기 칸이 있으면 그것으로
       else if (!u.alive) i = Art.anim(m, 'hit').to;
@@ -1680,7 +1706,17 @@ const Battle = (() => {
         if (ga === 'run') {
           // 달리기 칸: 시트 보폭(runStride)이 있으면 gaitUpdate 의 r.rq (runCells — 디딘 칸은 그려진 보폭대로 넘겨 발이 땅에 붙고, 뜨는 칸이 나머지 거리를 맡는다).
           // 시트 보폭이 없으면 r.rp (한 걸음 = 코드 달리기 보폭 strideOf, 4배속 규칙도 같다).
-          q = m.runStride > 0 && r.rq != null ? r.rq * n / 8 : (r.rp == null ? r.phase : r.rp) * n / 2;
+          // 달리기 칸이 (대기·걷기·공격 칸 뒤에) 처음 보이는 그리기에서는 r.rq 를 지금 칸의 처음 가까이로 옮긴다: 보이지 않는 동안에도
+          // 간 거리만큼 넘어가 있어(r.phase 에서 시작, 걸음이 켜지기 전 몇 틱) 첫 칸이 중간부터 보이면 그 칸의 남은 거리만큼만 몸이 나아가
+          // 다음 칸에서 디딘 발이 뒤로 미끄러졌다(Q15 궁수: 첫 R1→R2 −4~−6px). 칸 안 위치는 움직임 한 번(r.rqAdv)의 절반에 둔다 —
+          // 달리는 중에 칸이 바뀔 때 넘어선 만큼(0..rqAdv)의 가운데라 첫 걸음 잔차가 0 둘레로 달리는 중만큼 좁다(나머지(%)로 두면
+          // 한 번에 0.4~0.6칸 가는 2배속 30fps 에서 첫 칸이 너무 일러 앞으로 +3~4px). 앞으로 갈 때만(뒷걸음은 칸을 아래로 지나 바로 넘어간다).
+          // 칸 하나 안에서 박자만 옮길 뿐 빠르기·그림은 그대로.
+          if (m.runStride > 0 && r.rq != null) {
+            if (!r.rqOn && r.fwd > 0) r.rq = Math.floor(r.rq) + Math.min(1, r.rqAdv > 0 ? r.rqAdv : 0) / 2;
+            runOn = true; q = r.rq * n / 8;
+          }
+          else q = (r.rp == null ? r.phase : r.rp) * n / 2;
         } else {
           // 걷기 칸: 간 거리 ÷ (walkStride × 그리는 배율), 없으면 키에서 어림한다 (28.5%; r.sh 는 이미 배율을 곱한 키)
           const k = sheetK(u, sh), hh = r.sh || m.cell[1] * 0.7 * k;
@@ -1693,6 +1729,7 @@ const Battle = (() => {
         i = frameAt(Art.anim(m, 'idle'), ((view.idleClock != null ? view.idleClock : c) + r.phase) * 1000, false);
         walkFx = r.gait > 0.05;
       }
+      if (!force) r.rqOn = runOn;
       const f = m.frames[i] || m.frames[0];
       const rc = sheetRecolor(sh, u);
       return { img: rc ? rc.img : sh.img, sx: f[0], sy: f[1], sw: m.cell[0], sh: m.cell[1], ax: m.anchor[0], ay: m.anchor[1], face: m.facing,

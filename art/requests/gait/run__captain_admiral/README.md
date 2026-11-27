@@ -17,7 +17,7 @@
 
 - 부류: **경량** — navy officer's coat to the knee over trousers and tall boots; crossbow (normal size). Legs read clearly in every cell. (tools/art/specs/gait_classes.json)
 - 납품: art-inbox `art/inbox/gait/sheet_captain_admiral_run_a.png` (R1~R4) + `art/inbox/gait/sheet_captain_admiral_run_b.png` (R5~R8) + `art/inbox/NOTES.md` 절 「gait/sheet_captain_admiral_run - 마렌 이동」 + 「## 판정 — gait/sheet_captain_admiral_run」. 파일 이름은 부류와 상관없이 `_run_` (엔진의 `anims.run`).
-- 팔·무기: 양손 노궁은 허리 높이 y=690–700에 수평. 먼 손은 총몸 아래. 앞 코트와 크라바트는 제자리에 둔다.
+- 팔·무기: 양손 수평 노궁은 허리 높이, 가까운 손 x=145–150, y=685–692 (더 뒤·아래는 R3/R4/R7/R8 에서 팔이 닿지 않는다). 먼 손은 약 95px 앞 총몸 아래. 개머리는 코트 허리를 가로지른다(의도, 윤곽선 유지). 앞 코트와 크라바트는 제자리에 둔다.
 - 디딘 발: 한 걸음 원본 275px(게임 45.5px) → 디딘 발은 칸마다 **정확히 68.8px**(±3, 게임 11.4px) 뒤로 — 발끝 x 는 Prompt 의 PLANTED FOOT 표. (병과 전사 R5 는 디딘 발이 30px 앞에 그려져 한 번 고쳤다.)
 - 클라우드가 받은 뒤: `python3 tools/art/receive.py gait/sheet_captain_admiral_run` (검사 + `add_gait.py --dry-run`) → 미리보기를 보고 `add_gait.py` 로 붙인다 (`--pose art/requests/guides/run_base/v2/pose.json`).
 
@@ -65,7 +65,8 @@ THE MOVE (owner's three movement classes; light: the accepted run: lean forward,
     YOUR toe tip against these numbers (the size_* images mark them with yellow ticks).
 
 ARMS AND WEAPONS:
-  - Use both hands as in the idle: near hand on the trigger grip, far hand under the stock ahead of it. Rotate the idle crossbow down to a level low carry around y=690–700, near grip x=125–135. Keep the full prod and stock within x=88–344 and y=625–780. The mannequin's two separate arm swings and elbow locations do NOT apply to this character (intended, not a deviation). Let the shoulders follow the torso, keep both hands attached to the weapon, and limit fore-aft travel to 10 px.
+  - Use both hands as in the idle. Rotate the idle crossbow down to a level low carry at hip height: near hand on the trigger grip at x=145–150, y=685–692, the far hand under the fore-stock about 95 px ahead of it. Keep the full prod and stock within x=100–344 and y=625–780. The near arm is almost straight, reaching down and back from the shoulder. Do not put the grip further back or lower, because the arm cannot reach it in the leaning frames R3/R4/R7/R8. The mannequin's two separate arm swings and elbow locations do NOT apply to this character (intended, not a deviation). Let the shoulders follow the torso, keep both hands attached to the weapon, and limit fore-aft travel to 10 px.
+  - The level stock now crosses the navy coat at the belt (intended, not a deviation from the sheet). Keep the wood's dark 1-px outline and a light top edge where it lies over the coat, so stock and coat stay separate at 64 px. The prod and the front of the stock stay on the background in front of the body.
   - The cravat and front gold-braided coat panels stay against the chest and thighs. Only the back tails lag one frame; keep each boot distinct.
   - Face: match the accepted idle in every frame.
 

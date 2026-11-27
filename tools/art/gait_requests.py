@@ -252,8 +252,116 @@ def check_requests(spec, man):
 # ───────── --write: 요청 폴더 만들기 ─────────
 # 캐릭터가 이동하는 동안 손에 든 것·천·얼굴 (phase3 꾸러미 README 의 CHARACTER 줄과 승인된 대기 그림을 보고 적었다).
 # title = 한국어 제목, name = 프롬프트의 이름, character = 영어 CHARACTER, carry = ARMS AND WEAPONS 줄들, cloth = 천·머리의 늦음,
-# face = 얼굴, ko = 한국어 머리말의 팔·무기 요약, refs = 꾸러미에서 더 넣을 참고 그림 (concept 는 늘 넣는다).
+# face = 얼굴, ko = 한국어 머리말의 팔·무기 요약, refs = 꾸러미에서 더 넣을 참고 그림 (concept 는 늘 넣는다),
+# height = (있으면) FORMAT 의 「the figure about as tall as ...」 문장 대신 쓸 키 문장.
+# joints = (있으면) THE MOVE 의 「Each frame ... Joint for joint ... head on the mannequin's neck」 줄들 대신 쓸 줄들
+#          (마네킹과 키·어깨 폭이 크게 달라 관절을 관절에 올릴 수 없는 캐릭터).
 CARRY = {
+    'sheet/monster/고블린': {
+        'title': '고블린 이동', 'name': '고블린', 'refs': [],
+        'character': ('Small green goblin: oversized pointed ears and amber eyes, diagonal leather strap, wrist wraps, '
+                      'ragged front waistcloth, wrapped ankles and bare green toes. The weapon is a knotted wooden club, not a blade.'),
+        'carry': [
+            'Keep the club in the near hand at his own low waist: x=142–147 in each 384-px slot, about 35–45 px above his '
+            'hips (y≈700–715; see the height line in FORMAT - the mannequin-height box y=668–682 would sit at his chest). '
+            'The idle holds it about 22° ABOVE horizontal. For the run, lower it to about 5–10° BELOW horizontal (intended '
+            'change, not a deviation), knob centre about 165–170 px ahead of the grip and 15–30 px below it. Keep the whole '
+            'knob above and ahead of the leading knee in the push and flight frames R3, R4, R7 and R8, clear of the face and '
+            'ears, and within x=105–350. The shaft may cross the near hip (intended). Where the far claw passes the shaft '
+            '(R3–R5), draw the club over the claw, never the claw over the club. Do not let the club touch either boot or knee.',
+            'The fixed carry replaces the near-hand and elbow swing. Bend the elbow as needed from his own shoulder (not the '
+            "mannequin's); keep the far claw free and following its light arm swing. Do not let the club flip between hands.",
+        ],
+        'cloth': ['Keep the diagonal strap and the ragged front waistcloth in front. Only the free ends at the sides lag, '
+                  'without merging the feet.'],
+        'face': 'Face: keep both ears, brow and amber eyes readable, with no club in front of them.',
+        # 마네킹보다 약 90px 작고 다리가 짧다: 관절을 관절에 올리지 않고 각도만 따른다 (브로크처럼 절대 y 를 준다)
+        'joints': [
+            '  - Each frame: the leg and arm ANGLES, the torso lean, the foot placement, the planted-toe x and the bob of that',
+            '    mannequin frame, drawn with HIS OWN limb lengths (hands: see ARMS - where the text moves a hand, that is intended,',
+            '    not a deviation). NOT joint for joint: the goblin is about 90 px shorter than the mannequin, so his head does NOT',
+            "    go on the mannequin's neck and his hips, knees and shoulders do NOT go on its joints - see the height line in FORMAT.",
+        ],
+        'height': (
+            'The goblin is about 90 px shorter than the mannequin and has much shorter legs (hip about 125 px above the sole '
+            "when straight, against the mannequin's 176). Do NOT put his head on the mannequin's neck or his joints on its "
+            "joints. Copy the mannequin's joint ANGLES, torso lean, foot placement, planted-toe x and bob with his own limb "
+            'lengths. His hips sit near y≈740–750 (not 690), his shoulders near y≈620–630 (not 570), and his ear tips near '
+            'y≈520–535 in R1, plus the 9-px bob. Do not stretch his legs, torso or neck to reach the mannequin\'s height; he '
+            'stays about 55–57 game px'
+        ),
+        'ko': ('몽둥이(칼 아님)는 가까운 손, 자기 낮은 허리(x=142–147, 엉덩이보다 35–45px 위 y≈700–715 — 마네킹 높이 y=668–682 는 '
+               '가슴이다)에서 수평보다 5–10° 아래로 (대기는 약 22° 위 — 의도한 바꿈). 옹이 중심은 손에서 165–170px 앞·15–30px 아래, '
+               'R3·R4·R7·R8 앞 무릎보다 위·앞, x=105–350 안, 얼굴·귀·장화·무릎과 분리; R3–R5 먼 손톱이 자루를 지날 때 몽둥이가 위. '
+               '키: 마네킹보다 약 90px 작고 다리가 짧다 — 머리를 마네킹 목에, 관절을 관절에 두지 않고 각도·기울기·발자리·디딘 발끝·'
+               '출렁임만 따른다 (R1 엉덩이 y≈740–750, 어깨 y≈620–630, 귀 끝 y≈520–535). 다리·몸·목을 늘이지 않는다 (게임 55–57px). '
+               '앞 가죽띠·허리천은 앞에.'),
+    },
+    'sheet/monster/서리 트롤': {
+        'title': '서리 트롤 이동', 'name': '서리 트롤', 'refs': [],
+        'character': ('Bare-handed pale-blue frost troll: bald head, heavy brow, protruding tusks, huge shoulders, '
+                      'low massive fists, ragged dark front loincloth and bare feet. No club or ice weapon in any accepted pose.'),
+        'carry': [
+            'Use both bare fists, not a club. Keep the fists low, below the ribs, and clear of the brow, tusks and knee silhouettes.',
+            "The mannequin's shoulders and elbows (x≈156/232) are far narrower than his, so they do NOT give the troll's arm "
+            "positions (intended, not a deviation). Keep the idle's wide shoulders and long arms hanging outside the torso: the "
+            'near fist beside the near thigh (idle x≈35–110, y≈710–780) and the far fist beside the far thigh (idle x≈277–330). '
+            'From the guide take only the small fore-aft swing (its hands move about 10–20 px per cycle) and the body bob, '
+            'bending the elbows a little. The near fist never crosses in front of the loincloth and stays at x>=32 (see the '
+            'near-arm line).',
+            "The NEAR arm (left in the picture, drawn over the body) is the one at the slot's rear edge. In the idle its elbow "
+            'and forearm already reach x≈26 (y≈630–700), and the near fist reaches x≈33 (y≈710–770). Tuck that arm in by at '
+            'least 6–8 px with a slightly more bent elbow, hanging a little closer to the torso, so its whole outline stays at '
+            'x>=32 in every frame, including the frames where it swings back. Do not narrow the shoulders or shrink the fist. '
+            'The far fist (idle right edge x≈330) has about 20 px of room and must stay at x<=351.',
+            'Do not narrow his shoulders or shrink the fists to fit. Adjust the forearm turn before changing the silhouette; '
+            'keep the planted heavy foot and torso positions from the scaled guide.',
+        ],
+        'cloth': ['The dark ragged loincloth wraps the whole waist: a band from hip to hip, with short ragged tatters over the '
+                  'tops of both thighs and a longer pointed front flap hanging between the thighs. It stays in front. Only its '
+                  'free ragged tips lag a little as the thighs move; keep both blue feet separate.'],
+        # 마네킹 어깨가 그보다 훨씬 좁다: 다리만 관절대로, 팔 자리는 ARMS
+        'joints': [
+            '  - Each frame: the legs, the torso lean and the body bob of that mannequin frame. Joint for joint: hips, knees, ankles,',
+            "    feet. Shoulders, elbows and fists: see ARMS - the mannequin's shoulders are far narrower than his, so they do NOT give",
+            '    his arm positions (intended, not a deviation); take only its small fore-aft arm swing.',
+            "    The mannequin's big round head is a placeholder: draw the character's own head on the mannequin's neck, at its own size",
+            '    (as in the sheet).',
+        ],
+        'face': 'Face: keep the bald skull, projecting brow and both tusks unobstructed.',
+        'height': 'Keep the bare-footed troll about as tall as the upper-left idle of the accepted 2×2 sheet (~75 game pixels); '
+                  'retain its broad shoulders and oversized fists.',
+        'ko': ('승인 2×2 왼쪽 위가 대기. 곤봉 없이 맨주먹, 주먹은 늑골 아래. 마네킹 어깨·팔꿈치(x≈156/232)는 그보다 훨씬 좁아 '
+               '팔 자리로 쓰지 않는다(의도): 넓은 어깨, 몸통 밖으로 늘어진 긴 팔 — 가까운 주먹은 가까운 허벅지 옆(x≈35–110, '
+               'y≈710–780), 먼 주먹은 먼 허벅지 옆(x≈277–330); 가이드에서는 작은 앞뒤 흔들림(10–20px)과 출렁임만. 칸 뒤 끝에 닿는 것은 '
+               '가까운 팔(그림 왼쪽, 대기에서 이미 x≈26): 팔꿈치를 조금 더 굽혀 6–8px 이상 안으로, 모든 칸 x>=32. 먼 주먹은 x<=351. '
+               '어두운 허리천은 허리를 두른 띠 + 두 허벅지 위 짧은 너덜 + 가운데 긴 뾰족한 앞자락, 앞에. 맨발.'),
+    },
+    'sheet/monster/사막 도적': {
+        'title': '사막 도적 이동', 'name': '사막 도적', 'refs': [],
+        'character': ('Desert bandit in a wrapped sand-coloured headcloth and face veil, brown vest, wrapped wrists, '
+                      'front sash, separate baggy trousers and dark boots. The weapon is the accepted curved scimitar.'),
+        'carry': [
+            'Carry the scimitar low in the near hand at x=158–168, y=673–687. The idle holds the blade forward and up across '
+            'the vest. For the run, the blade POINTS back and down at 49–53° below horizontal, pommel and guard forward of the '
+            'hand (intended change, not a deviation; this is the blade\'s direction, not a 49–53° rotation from the idle). Keep '
+            'its curve and length (about 184 px from grip to tip); the whole weapon stays within x=32–210, y=640–840 and below '
+            'the veiled face. In R1, R2, R4, R5, R6 and R8 the back half of the blade crosses the trailing shin and boot (ankle '
+            'at about x=98,y=730 / x=129,y=722 / x=84,y=796). Draw the blade OVER that boot with its full dark outline and '
+            'light edge, so blade and boot stay separate shapes at 64 px; never hide the blade behind the boot. In R3 and R7 '
+            'the blade runs clear, behind the push-off shin.',
+            'The near elbow follows the shoulder but the steady grip replaces its swing; adjust the elbow bend, not arm length. '
+            'The empty far hand follows the free light arm swing and stays separated from the blade.',
+        ],
+        'cloth': ['Keep the face veil, vest fronts and the vertical sash in their original front layers. Only short rear headwrap '
+                  'tails and loose tips lag. The baggy trousers separate across both knees and boots; this is light, not robe.'],
+        'face': 'Face: keep the same narrow eye slit and veil; do not uncover the nose or mouth.',
+        'ko': ('가까운 손 허리 높이(x=158–168, y=673–687), 굽은 칼날은 수평보다 49–53° 아래로 뒤를 향한다 (대기는 앞위 — 의도한 '
+               '바꿈; 대기에서 49–53° 돌리라는 뜻이 아니다), 자루머리·코등이는 손 앞. 굽음·길이(손에서 끝까지 약 184px) 그대로, '
+               '칼 전체 x=32–210, y=640–840 안, 얼굴 아래. R1·R2·R4·R5·R6·R8 은 칼날 뒤쪽 절반이 뒤 정강이·장화를 가로지른다 — '
+               '칼날을 장화 위에 짙은 외곽선·밝은 날까지 그려 둘이 따로 읽히게 (장화 뒤로 숨기지 않는다). R3·R7 은 칼날이 비어 있다. '
+               '얼굴 베일과 긴 앞 허리띠는 앞으로.'),
+    },
     'sheet/captain/admiral': {
         'title': '마렌 이동', 'name': '마렌', 'refs': ['portrait.png'],
         'character': (
@@ -261,11 +369,16 @@ CARRY = {
             'tall boots. Keep the accepted wooden crossbow and its steel prod.'
         ),
         'carry': [
-            'Use both hands as in the idle: near hand on the trigger grip, far hand under the stock ahead of it. '
-            'Rotate the idle crossbow down to a level low carry around y=690–700, near grip x=125–135. Keep the '
-            "full prod and stock within x=88–344 and y=625–780. The mannequin's two separate arm swings and elbow "
+            'Use both hands as in the idle. Rotate the idle crossbow down to a level low carry at hip height: near '
+            'hand on the trigger grip at x=145–150, y=685–692, the far hand under the fore-stock about 95 px ahead '
+            'of it. Keep the full prod and stock within x=100–344 and y=625–780. The near arm is almost straight, '
+            'reaching down and back from the shoulder. Do not put the grip further back or lower, because the arm '
+            "cannot reach it in the leaning frames R3/R4/R7/R8. The mannequin's two separate arm swings and elbow "
             'locations do NOT apply to this character (intended, not a deviation). Let the shoulders follow the '
-            'torso, keep both hands attached to the weapon, and limit fore-aft travel to 10 px.'
+            'torso, keep both hands attached to the weapon, and limit fore-aft travel to 10 px.',
+            'The level stock now crosses the navy coat at the belt (intended, not a deviation from the sheet). '
+            "Keep the wood's dark 1-px outline and a light top edge where it lies over the coat, so stock and coat "
+            'stay separate at 64 px. The prod and the front of the stock stay on the background in front of the body.',
         ],
         'cloth': [
             'The cravat and front gold-braided coat panels stay against the chest and thighs. Only the back tails '
@@ -273,74 +386,99 @@ CARRY = {
         ],
         'face': 'Face: match the accepted idle in every frame.',
         'ko': (
-            '양손 노궁은 허리 높이 y=690–700에 수평. 먼 손은 총몸 아래. 앞 코트와 크라바트는 제자리에 둔다.'
+            '양손 수평 노궁은 허리 높이, 가까운 손 x=145–150, y=685–692 (더 뒤·아래는 R3/R4/R7/R8 에서 팔이 닿지 않는다). '
+            '먼 손은 약 95px 앞 총몸 아래. 개머리는 코트 허리를 가로지른다(의도, 윤곽선 유지). 앞 코트와 크라바트는 제자리에 둔다.'
         ),
     },
     'sheet/captain/beastmaster': {
         'title': '오르가 이동', 'name': '오르가', 'refs': ['portrait.png'],
         'character': (
-            'The accepted leather-clad beastmaster has dark tied hair, a pale fur shoulder mantle, short front '
-            'leather panels, a back quiver and a longbow.'
+            'The accepted leather-clad beastmaster has long loose wavy dark-brown hair (no headband) with ONE braid '
+            'that starts behind the ear and hangs down the front of her neck to the gold wolf medallion. She also '
+            'has gold earrings, white face-paint stripes, a pale grey-and-cream fur shoulder mantle, short front '
+            'leather panels, a back quiver and a dark longbow with gold tips.'
         ),
         'carry': [
-            'Use the idle bow hand only, grip x=288–301, y=675–686, with the bow almost upright in front of the '
-            'body. Preserve the idle grip and full bow silhouette: at face height keep all bow pixels at x≥300, '
-            'and fit the entire bow inside x=253–348, y=502–845. Keep the free near hand clear of the string, '
-            'with a short relaxed swing.'
+            'Bow in the FAR hand, gripped exactly as in the idle: fist x≈313–349, y≈673–705, wrapped round the bow '
+            'handle (x≈330–345). The bow stands upright with the string toward the body (string x≈300–309, top tip '
+            'y≈517, bottom gold tip y≈845). The bow hand stays at this idle spot in all 8 frames and does NOT follow '
+            "the mannequin's far-arm swing (intended, not a deviation). At face height (R3/R4/R7/R8, where the head "
+            'leans forward to the neck at x≈248–252) every bow and string pixel stays at x≥300, clear of the face '
+            'and front hair curl. The whole bow fits x=253–349, y=502–845. Keep the free near hand clear of the '
+            'string, with a short relaxed swing.'
         ],
         'cloth': [
-            'Keep the fur across the shoulders and the hanging front leather over the leading thigh. The back '
-            'quiver stays fixed; only rear fur tips and tied hair lag a little.'
+            'The fur stays across both shoulders, and the hanging front leather stays over the leading thigh. The '
+            'front braid stays on the chest beside the medallion: it may sway a few px but never flies back. Only '
+            'the loose rear hair and the rear fur tips lag a little. The back quiver stays fixed.'
         ],
         'face': 'Face: match the accepted idle in every frame.',
         'ko': (
-            '한 손 장궁은 세워 앞쪽에 든다. 활 손 y=675–686, 얼굴 높이의 활은 x≥300. 앞 가죽 자락은 허벅지에 남긴다.'
+            '한 손 장궁은 먼 손에 대기 그대로(주먹 x≈313–349, y≈673–705), 세워 앞쪽에 든다. 활 손은 마네킹 팔 흔들기를 따르지 '
+            '않는다. 얼굴 높이의 활·시위는 x≥300. 앞 땋은 머리는 가슴 메달 옆, 앞 가죽 자락은 허벅지에 남긴다.'
         ),
     },
     'sheet/captain/elfwarden': {
         'title': '세레니엘 이동', 'name': '세레니엘', 'refs': ['portrait.png'],
         'character': (
-            'Sereniel, pale-haired elf in a fitted green tunic and hooded short shoulder cloak, with back quiver, '
-            'exposed trousers and boots. Match the sharply recurved bow.'
+            'Sereniel, pale-haired elf with very long silver hair, a side braid hanging in front, a gold circlet and '
+            'a green leaf hair ornament. Over the shoulders a short leaf-patterned capelet, over a long dark-green '
+            'cream-trimmed cloak that hangs behind her to about the boot tops. A green tunic with short front flaps '
+            'to mid-thigh over dark trousers, brown boots, back quiver. No hood is drawn up. Match the sharply '
+            'recurved bow.'
         ),
         'carry': [
-            'Use the outstretched idle bow hand at x=288–298, y=649–662. Straighten the diagonal idle carry '
-            'enough that the upper recurve sits around x=315–343 at face height; do not shorten the bow. Let the '
-            'lower recurve return toward x=242–280, below the waist. Whole bow and string inside x=235–350, '
-            'y=477–810. Keep the free near hand at the belt with a short swing.'
+            'Bow in the FAR (forward) hand, as in the idle. The idle arm is straight, but at that reach the bow '
+            'would leave the slot. So in every frame bend the far elbow (down and slightly back, beside the ribs) '
+            "and hold the bow grip about a forearm's length in front of the stomach, fist at x=288–298, y=649–662. "
+            "The mannequin's far-arm swing does not apply to this hand (intended, not a deviation). Straighten the "
+            'diagonal idle tilt enough that the upper recurve sits around x=315–343 at face height; do not shorten '
+            'the bow. Let the lower recurve return toward x=242–280, below the waist. Whole bow and string inside '
+            'x=235–350, y=477–810. Keep the free near fist at the rear hip by the belt, as in the idle, with a short '
+            'swing. '
             'The left SIZE panel crops the end of the idle weapon after aligning the hip. Use the original '
             'accepted sheet for its complete silhouette and dimensions.',
         ],
         'cloth': [
-            'Keep the shoulder cloak seated, front hair locks and front tunic edge over the chest and advancing '
-            'thigh. The quiver stays on the back; only the rear tips respond to the step.'
+            'Keep the capelet seated on the shoulders. In every frame keep the side braid hanging in front of the '
+            'chest to the belt, and the short front tunic flap over the advancing thigh. The long loose back hair '
+            'and the long back cloak (hem near the boot tops) trail a little behind the body and swing with the '
+            'step. In R4/R8 their lowest pixel stays at or above y=852. The quiver stays fixed on the back.'
         ],
         'face': 'Face: match the accepted idle in every frame.',
         'ko': (
-            '한 손 반곡궁은 대기보다 세워 윗부분을 x=315–343에 둔다. 손 y=649–662. 앞 머리와 앞자락 자리 유지.'
+            '한 손 반곡궁은 먼 손: 팔꿈치를 굽혀 배 앞에 든다(손 x=288–298, y=649–662, 마네킹 팔 흔들기 안 따름). 대기보다 '
+            '세워 윗부분을 x=315–343에 둔다. 앞 땋은 머리와 앞 튜닉 자락 유지, 긴 뒷머리·긴 뒷망토는 조금 뒤따른다.'
         ),
     },
     'sheet/captain/fieldmedic': {
         'title': '마그다 이동', 'name': '마그다', 'refs': ['portrait.png'],
         'character': (
-            'The accepted dark-haired medic has a red scarf, cream field coat, red front apron, boots, and a long '
-            'star-headed mace.'
+            'The accepted medic has black hair in a high ponytail with a red tie, a white bandage around the '
+            'forehead, a dark-red scarf, a warm-beige (never white) long field coat with a plain dark-red armband on '
+            'the near upper arm, a dark-red front apron, a brown belt with two pouches, dark trousers, brown boots, '
+            'and a long-handled mace whose head is a round iron ball with conical spikes.'
         ),
         'carry': [
-            'Keep the two idle grips on the mace with the lower near hand x=225–235, y=693–706, the other grip '
-            'about 85 px up the shaft. Tip the shaft UP AND BACK, 53–57° above horizontal toward the left. Keep '
-            'the star and shaft inside x=44–280, y=475–780; above y=590 they pass behind the head, with the '
-            "entire weapon left of x=176 there. The mannequin's two separate arm swings and elbow locations do "
-            'NOT apply to this character (intended, not a deviation). Let the shoulders follow the torso, keep '
-            'both hands attached to the weapon, and limit fore-aft travel to 10 px.'
+            'Keep the idle two-hand grip on the mace: the lower near hand (the armband arm) holds near the butt and '
+            'the far hand about 85 px up the shaft. In the idle the lower hand is at x≈190–211, y≈690–720 with the '
+            'head up and FORWARD (about 62°). In the run, move the lower near hand forward to x=225–235, y=693–706 '
+            'and tip the shaft UP AND BACK, 53–57° above horizontal toward the left, so the far hand sits above-left '
+            'of it at about x≈181, y≈630. Keep the spiked ball head and shaft inside x=44–280, y=475–780; above '
+            "y=590 they pass behind the head, with the entire weapon left of x=176 there. The mannequin's two "
+            'separate arm swings and elbow locations do NOT apply to this character (intended, not a deviation). '
+            'Let the shoulders follow the torso, keep both hands attached to the weapon, and limit fore-aft travel '
+            'to 10 px.'
         ],
         'cloth': [
-            'The scarf stays on the neck and the red apron hangs in front between the moving knees. The tied '
-            'ponytail and cream rear coat tails can lag a frame.'
+            'The scarf stays on the neck and the dark-red apron hangs in front between the moving knees. The two '
+            'brown belt pouches (one behind the hip, one in front by the buckle) stay on the belt and may bounce a '
+            'frame. The tied ponytail and the warm-beige rear coat tails can lag a frame.'
         ],
         'face': 'Face: match the accepted idle in every frame.',
         'ko': (
-            '양손 철퇴는 뒤로 53–57° 들어 머리 뒤로 보낸다. 아래 손 y=693–706. 스카프와 붉은 앞치마는 앞에 둔다.'
+            '양손 철퇴(가시 쇠공 머리)는 뒤로 53–57° 들어 머리 뒤로 보낸다. 아래 손은 대기(x≈190–211)보다 앞 x=225–235, '
+            'y=693–706. 스카프와 짙은 붉은 앞치마는 앞에, 허리 주머니 둘은 허리띠에 둔다.'
         ),
     },
     'sheet/captain/khan': {
@@ -350,17 +488,27 @@ CARRY = {
             'back quiver and recurved composite bow.'
         ),
         'carry': [
-            'Keep the idle bow grip at x=289–301, y=666–678. The bow stays nearly upright, with its upper limb '
-            'outside the face at x≥305 above y=590. Allow the lower limb to curve back, whole bow and string '
-            'within x=255–349, y=484–843. The other hand stays unarmed and clear of the string.'
+            'Bow in the FAR hand, gripped exactly as in the idle: fist x≈305–341, y≈625–665 round the handle '
+            '(x≈314–333). The recurved bow stands upright with curled tips and the string toward the body (string '
+            'x≈291–294, top curl y≈468, bottom curl y≈812). The bow hand stays at this idle spot in all 8 frames '
+            "and does NOT follow the mannequin's far-arm swing (intended, not a deviation). In R3/R4/R7/R8 the head "
+            'leans forward onto the mannequin neck at x≈248–252, and no part of the face or front hair may cross '
+            'the string. If it does, move the whole bow forward by up to 8 px, and the stave never goes past '
+            'x=349. The whole bow and string fit x=255–349, y=465–845. The near hand stays an empty fist at the '
+            'chest, clear of the string.'
         ],
         'cloth': [
-            'Keep the decorative front deel panels over the leading thigh and the front hair locks on the '
-            'shoulders. Only the rear coat edge and tied rear hair may lift.'
+            'Keep the two gold-ringed braids hanging down the chest on both sides of the gold medallion, inside the '
+            'cream fur collar: they may sway a few px but never fly back. The fur collar stays round the shoulders. '
+            'The open deel stays split: the long embroidered near panel hangs over the near thigh and between the '
+            'legs to about the knee, the short far panel sits on the far thigh, and the wide trousers show between '
+            'them. Only the loose rear hair locks and the rear coat hem may lift and lag. The back quiver stays '
+            'fixed, with fletchings above the near shoulder.'
         ],
         'face': 'Face: match the accepted idle in every frame.',
         'ko': (
-            '한 손 합성궁 손 y=666–678. 윗 활대는 얼굴 앞 x≥305. 앞 델 자락과 앞 머리는 제자리.'
+            '한 손 합성궁은 먼 손에 대기 그대로(주먹 x≈305–341, y≈625–665), 마네킹 팔 흔들기를 따르지 않는다. 얼굴·앞 머리는 '
+            '시위를 넘지 않는다. 가슴 앞 금고리 땋은 머리 두 가닥과 갈라진 델 자락은 제자리.'
         ),
     },
     'sheet/captain/shadowlord': {
@@ -370,17 +518,25 @@ CARRY = {
             'boots, and a single dagger.'
         ),
         'carry': [
-            'Keep the dagger in the idle near hand, x=140–157 and y=685–710 near the belt. Keep the compact blade '
-            'pointed back and down at 45–55° below horizontal, tucked outside the thigh, all dagger pixels within '
-            'x=48–184, y=659–825. The free far fist may take the short forward swing.'
+            'Keep the dagger in the near hand with the idle grip (gold crossguard just under the fist, blade back '
+            'and down). In the idle the hand is held out behind the hip at x≈72–107, y≈687–725. In the run the arm '
+            'cannot reach that far, so bring the hand in to x=140–157, y=685–710, just behind the hip. Keep the '
+            'full-length light-steel blade (≈80 px from guard to tip, as in the idle; do not shorten it) pointed '
+            'back and down at 45–55° below horizontal, with all dagger pixels within x=48–184, y=659–825. Keep it '
+            'readable as in the idle: lift the back cloak edge behind and above the blade so the blade shows on '
+            'magenta wherever possible. Where it crosses the cloak or the trailing leg, keep its 1-px dark outline '
+            'and the light steel #d8dde3 so it never merges into the dark cloak. The free far fist may take the '
+            'short forward swing.'
         ],
         'cloth': [
-            'The hood and its front gold edge stay around the face; keep the front tunic flap between the knees. '
-            'Only the back cloak edge lifts with the step.'
+            'The hood and its front gold edge stay around the face, with the wavy brown hair spilling out. Keep the '
+            'short brown-trimmed tunic skirt under the belt, and keep the long gold-edged front cloak panel hanging '
+            'between the knees (down to about y≈840 in the idle). Only the back cloak edge lifts with the step.'
         ],
         'face': 'Face: match the accepted idle in every frame.',
         'ko': (
-            '단검은 가까운 손 허리에서 뒤아래 45–55°. 앞 금테와 앞자락 위치 유지.'
+            '단검은 가까운 손을 엉덩이 바로 뒤 x=140–157, y=685–710 으로 당겨 날을 뒤아래 45–55° (날 길이 그대로, 어두운 망토와 '
+            '섞이지 않게). 앞 금테 두건, 짧은 튜닉 치마, 무릎 사이 금테 앞 망토 자락 유지.'
         ),
     },
     'sheet/captain/siegemaster': {
@@ -390,21 +546,31 @@ CARRY = {
             'Keep the full heavy, hand-held crossbow.'
         ),
         'carry': [
-            'Keep both idle grips, near hand at the trigger around x=133–145, y=685–703, far hand supporting the '
-            'stock ahead of it. Keep the stock level and low; keep the wide prod visible, with the entire '
-            "crossbow inside x=90–350, y=622–790. The mannequin's two separate arm swings and elbow locations do "
-            'NOT apply to this character (intended, not a deviation). Let the shoulders follow the torso, keep '
-            'both hands attached to the weapon, and limit fore-aft travel to 12 px.'
-            'The left SIZE panel crops the end of the idle weapon after aligning the hip. Use the original '
-            'accepted sheet for its complete silhouette and dimensions.',
+            'Keep the idle grip shapes (near hand closed on the rear trigger grip, far hand under the fore-stock '
+            'about 93 px ahead of it). Move the whole crossbow back to a level low carry: near hand at x=140–146, '
+            'y=683–688, at hip height. The near arm is almost straight, reaching down and back from the shoulder. '
+            'Do not go further back or lower, because the arm cannot reach in R3/R4/R7/R8. Do not go further '
+            'forward, or the loaded bolt tip (about 203 px ahead of the near hand) passes x=350. Keep the stock '
+            'level and the wide prod visible, with the whole crossbow inside x=125–350, y=615–760. The '
+            "mannequin's two separate arm swings and elbow locations do NOT apply to this character (intended, not "
+            'a deviation). Let the shoulders follow the torso, keep both hands attached to the weapon, and limit '
+            'fore-aft travel to 12 px. '
+            'The left SIZE panel crops the end of the idle weapon after aligning the hip; take its full silhouette '
+            'and size from the original accepted sheet.',
+            'The level stock now crosses the brown coat at the belt (intended, not a deviation from the sheet). '
+            'Keep its dark 1-px outline and the brass/ochre highlights where it lies over the coat, so stock and '
+            'coat separate at 64 px. The prod and the bolt tip stay on the background in front of the body.',
         ],
         'cloth': [
-            'Goggles, helmet, scarf and front lapels stay seated. The moving leg pushes the front edge; only the '
-            'back coat tail lags.'
+            'Goggles, helmet, ochre neckerchief and front lapels stay seated. The steel wrench on its chest strap '
+            'stays visible on the chest in every frame. The leather pouch on the near back hip stays; the near hand '
+            'and forearm pass over or just above its front edge, but do not drop it. The loaded bolt stays in the '
+            'groove as in the idle. The moving leg pushes the front coat edge; only the back coat tail lags.'
         ],
         'face': 'Face: match the accepted idle in every frame.',
         'ko': (
-            '양손 대형 노궁은 무릎 위 허리 높이 y=685–703. 고글·앞깃 유지, 뒷자락만 늦게.'
+            '양손 대형 노궁은 허리 높이에 수평, 가까운 손 x=140–146, y=683–688 (볼트 끝은 x≤350). 개머리는 코트 허리를 '
+            '가로지른다(의도, 윤곽선 유지). 고글·가슴 렌치·뒤 허리 주머니·앞깃 유지, 뒷자락만 늦게.'
         ),
     },
     'sheet/captain/spellblade': {
@@ -414,9 +580,17 @@ CARRY = {
             'boots, and the single straight blue sword.'
         ),
         'carry': [
-            'Keep the idle sword hand near the leading hip at x=250–264, y=675–695. Let the blade extend BACK and '
-            'down 19–24° under the elbow, tip to the rear. Keep full blade width and guard, all sword pixels in '
-            'x=33–300, y=650–812. The open unarmed hand stays free in front.'
+            "Sword in the NEAR (right) hand only, with the idle's gold cross-guard, dark grip, gold pommel and full "
+            "pale-steel runed blade unchanged. The near arm does NOT follow the mannequin's pump: the mannequin's "
+            'near elbow and hand positions do not apply to this arm (intended, not a deviation). The shoulder '
+            'follows the torso lean, the elbow stays above and behind the fist, and the fist sits low in front of '
+            'the hips at x=250–264, y=675–695 in all 8 frames. This is about 70 px further forward and 35 px lower '
+            'than the idle fist, so that the turned blade stays in the slot. Turn the fist so the blade leaves its '
+            'thumb side pointing BACK and down 19–24° below horizontal and passes under the elbow, tip to the rear. '
+            'The cross-guard sits just behind the fist and the pommel just in front of it. All sword pixels stay in '
+            "x=33–300, y=650–812. The FAR (left) hand stays open and follows the mannequin's far arm. In R2–R5 that "
+            'hand passes behind the hips at x=230–265, y=697–707, behind the sword fist, so the near fist and the '
+            'coat hide it. Draw only the part that shows, and never on the hilt.'
         ],
         'cloth': [
             'Hair locks over the front shoulder and the front blue-edged coat lining stay on their own sides. '
@@ -424,7 +598,8 @@ CARRY = {
         ],
         'face': 'Face: match the accepted idle in every frame.',
         'ko': (
-            '외손 검 손 y=675–695. 검끝 뒤아래 19–24°. 앞 머리와 파란 앞선은 제자리.'
+            '외손 검은 가까운 손, 마네킹 팔 흔들기를 따르지 않는다: 주먹은 엉덩이 앞 x=250–264, y=675–695, 검끝 뒤아래 19–24°. '
+            '먼 손은 펴서 마네킹을 따르되 R2–R5 에서는 검 주먹·코트 뒤에 가린다. 앞 머리와 파란 앞선은 제자리.'
         ),
     },
     'sheet/captain/windhunter': {
@@ -434,25 +609,30 @@ CARRY = {
             'quiver, trousers and boots. Preserve the idle longbow.'
         ),
         'carry': [
-            'Bow hand x=289–300, y=672–680. Carry the same bow nearly upright, with its upper limb and string at '
-            'x≥303 at face height. Allow the bottom limb to curve back below the knee; the full bow must fit '
-            'x=250–350, y=512–850. Keep the near hand open or in its relaxed idle grip, without drawing the '
-            'string.'
+            'Bow in the FAR (forward) hand, as in the idle. In every frame the centre of the bow-hand fist (the bow '
+            'spine runs through it) is at x=326–334, y=672–680, about 60 px in front of the far shoulder, with the '
+            "elbow slightly bent. The mannequin's far-arm swing does not apply to this hand (intended, not a "
+            'deviation). Tilt the same bow about 5–8° top-forward from the idle so that at face height (y≤565) the '
+            'upper limb and string stay at x≥300, clear of the face. The bottom limb curves back below the knee. '
+            'The whole bow stays inside x=265–350, y=515–825. Keep the near hand open or in its relaxed idle grip, '
+            'without drawing the string.'
         ],
         'cloth': [
-            'Keep the shoulder mantle and front scarf against the body. Rear hair and the rear cloak tip lag; the '
-            'front flap tracks the leading thigh.'
+            'Keep the shoulder mantle, with its folded-down hood collar, gold toggle clasp and lime leaf brooch, '
+            'seated against the body (there is no scarf). The long rear hair, the two lime headband tails and the '
+            'rear coat tip lag behind. The short front tunic flap tracks the leading thigh.'
         ],
         'face': 'Face: match the accepted idle in every frame.',
         'ko': (
-            '활 손 y=672–680, 얼굴 높이에서는 활·시위 x≥303. 앞 천은 허벅지를 따른다.'
+            '활은 먼 손, 주먹 중심 x=326–334, y=672–680 (마네킹 팔 흔들기 안 따름). 대기보다 5–8° 앞으로 기울여 얼굴 높이에서 '
+            '활·시위 x≥300. 망토 깃·단추·잎 브로치 유지(스카프 없음), 앞 튜닉 자락은 허벅지를 따른다.'
         ),
     },
     'sheet/captain/dragonslayer': {
         'title': '지크린데 이동', 'name': '지크린데', 'refs': ['portrait.png'],
         'character': (
-            'Sieglinde, bare-headed in dark crimson layered dragon-scale armour, with long blond hair, separate '
-            'armoured coat panels and a huge two-handed greatsword.'
+            'Sieglinde, bare-headed in dark crimson layered dragon-scale armour, with long wild blond hair and a '
+            'side braid over her chest, separate armoured coat panels and a huge two-handed greatsword.'
         ),
         'carry': [
             'Carry the sword forward and up, 74–77° above horizontal. Lower grip x=249–254, y=704–714 in front of '
@@ -463,35 +643,53 @@ CARRY = {
             'hands attached to the weapon, and limit fore-aft travel to 5 px.'
         ],
         'cloth': [
-            'Scale plates and front overlap stay over their original body areas; do not blow the front guards '
-            'behind her. Only the rear blond hair tips and rear cloth sway slightly.'
+            'Her thick blond side braid (gold tip) hangs from the near side of her head over the near scale '
+            'pauldron and down the FRONT of her chest, drawn on top of the armour (slot x≈160–185, y≈560–640 in '
+            'the idle): keep it lying on the chest in every frame. It moves only with the torso and never swings '
+            'back. Scale plates and the front coat overlap stay over their original body areas; do not blow the '
+            'front guards behind her. Only the rear tips of the big blond mane and the rear coat panels sway '
+            'slightly.'
         ],
         'face': 'Face: match the accepted idle in every frame.',
         'ko': (
-            '양손 대검은 앞위 74–77°, 아래 손 y=704–714. 얼굴 높이는 날 왼쪽도 x≥267. 앞 비늘갑과 앞자락 유지.'
+            '양손 대검은 앞위 74–77°, 아래 손 y=704–714. 얼굴 높이는 날 왼쪽도 x≥267. 가슴 앞 땋은 머리, 앞 비늘갑과 앞자락 유지.'
         ),
     },
     'sheet/captain/runesmith': {
         'title': '브로크 이동', 'name': '브로크', 'refs': ['portrait.png'],
         'character': (
-            'Brok, stocky bearded dwarf with round steel pauldrons and engraved armour, holding a broad '
-            'two-handed rune warhammer.'
+            'Brok, a stout, barrel-chested, bare-headed man (4 heads tall, short thick legs exactly as in the idle) '
+            'with swept-back copper-orange hair and a huge braided orange beard bound with gold rings, dark-brown '
+            'leather-and-steel armour with big rounded grey steel pauldrons and cyan-engraved plates, holding a '
+            'heavy two-handed rune warhammer (grey steel block head with a cyan rune, dark wrapped haft, gold '
+            'collar).'
         ),
         'carry': [
-            'Keep the two idle hammer grips, lower hand x=220–229, y=678–695, near his belt. Raise the shaft '
-            'forward at about 67–72° above horizontal, with the head centred at x=299–302; its full width must '
-            'fit x=257–348. Keep the shaft ahead of the face above y=580, and the entire hammer within x=190–350, '
-            "y=452–765. The mannequin's two separate arm swings and elbow locations do NOT apply to this "
-            'character (intended, not a deviation). Let the shoulders follow the torso, keep both hands attached '
-            'to the weapon, and limit fore-aft travel to 8 px.'
+            'Keep the two idle hammer grips, lower hand x=220–229, y=678–695, near his belt. Keep the shaft at the '
+            'idle angle (about 70° above horizontal; 67–72° is fine) and move the whole hammer about 16 px left: '
+            'the head (about 98 px wide at this angle, never shrink it) centred at x≈300, its full width inside '
+            'x=251–350, and its left corner at least 6 px ahead of his nose/brow (x≈244 at y=520–560). Keep the '
+            'shaft ahead of the face above y=580, and the entire hammer within x=190–350, y=452–765. The '
+            "mannequin's two separate arm swings and elbow locations do NOT apply to this character (intended, not "
+            'a deviation). Let the shoulders follow the torso, keep both hands attached to the weapon, and limit '
+            'fore-aft travel to 8 px.'
         ],
         'cloth': [
             'Keep his beard, front apron and armoured front flaps over his chest and thighs. Shoulder plates ride '
             'with the torso; back tips sway only slightly.'
         ],
         'face': 'Face: match the accepted idle in every frame.',
+        # FORMAT 의 키 문장 대신 (마네킹 머리보다 머리가 작고 목이 거의 없다)
+        'height': (
+            "the figure about as tall as the idle stood up: Brok has almost no neck and his head is smaller than the "
+            "mannequin's placeholder, so his hair top stays near y≈490–500 (the idle's 499 plus the 7-px bob), about "
+            "50 px BELOW the mannequin's head top (y=440–447). His shoulders/pauldron tops go on the mannequin's "
+            'shoulders (y≈570–585), and his face and beard sit where the mannequin\'s neck is. Do not stretch his '
+            "torso or add a neck to reach the mannequin's height"
+        ),
         'ko': (
-            '양손 룬 망치의 머리는 x=299–302, 전폭 x=257–348. 앞 수염·앞치마·갑옷은 제자리.'
+            '양손 룬 망치는 대기 각도(약 70°)로 약 16px 왼쪽에: 머리 x≈300, 전폭 x=251–350 (머리 폭 약 98px, 줄이지 않는다). '
+            '키는 마네킹 머리보다 약 50px 아래(머리 위 y≈490–500), 목을 늘이지 않는다. 앞 수염·앞치마·갑옷은 제자리.'
         ),
     },
     'sheet/captain/hedgemage': {
@@ -501,9 +699,13 @@ CARRY = {
             'a tall crooked wooden staff.'
         ),
         'carry': [
-            'Keep both idle staff grips, lower grip x=225–235, y=681–694. Carry the staff near vertical, its top '
-            'about 74–78° UP AND FORWARD from the lower hand, beyond the hat brim. Guide the full staff within '
-            "x=183–326, y=401–815; at head and brim height keep x≥270. Do not plant it. The mannequin's two "
+            'Keep both idle staff grips: the lower fist is at x≈195–237, y≈668–700, and the staff passes through it '
+            'at x≈213–222; the upper fist is at x≈220–252, y≈610–645. Carry the staff at the idle angle, about 77° '
+            'up and forward (74–78° allowed). At brim height (y≈495–510) the idle staff spans x≈258–280, just in '
+            'front of the brim tip (x≈253–255). Keep that small gap in every frame, so the staff passes in front of '
+            'the brim and never behind it or through it. If the leaned hat comes further forward, move both hands '
+            'and the staff forward together (within the 10 px fore-aft limit). This shift is intended, not a '
+            "deviation. Guide the full staff within x=183–326, y=401–815. Do not plant it. The mannequin's two "
             'separate arm swings and elbow locations do NOT apply to this character (intended, not a deviation). '
             'Let the shoulders follow the torso, keep both hands attached to the weapon, and limit fore-aft '
             'travel to 10 px.'
@@ -514,7 +716,8 @@ CARRY = {
         ],
         'face': 'Face: match the accepted idle in every frame.',
         'ko': (
-            '양손 지팡이 앞위 74–78°, 모자 높이 x≥270. 허리끈과 앞 로브는 앞쪽 유지.'
+            '양손 지팡이는 대기 그립·각도(앞위 약 77°, 74–78°) 그대로, 모자 챙 높이에서 챙 끝(x≈253–255) 바로 앞(x≈258–280)을 '
+            '지난다. 허리끈과 앞 로브는 앞쪽 유지.'
         ),
     },
     'sheet/captain/pilgrim': {
@@ -524,10 +727,16 @@ CARRY = {
             'long-hafted star-headed mace and the exposed idle grip.'
         ),
         'carry': [
-            'Use the exposed idle weapon hand at x=250–258, y=630–645, above the hip; keep the other hand '
-            'gathered at the front of the cloak. Hold the staff-like mace steeply forward, 80–84° above '
-            'horizontal, with its point and star inside x=254–340, y=400–505. Keep the lower shaft inside '
-            'x=202–267 down to y≤824. Carry it off the floor and move the grip fore-aft by at most 8 px.'
+            'Use the exposed idle weapon hand at x=250–258, y=630–645, above the hip. Only the mace hand shows in '
+            'the accepted idle. Keep the other arm hidden under the cream mantle in every frame and do not draw a '
+            'second hand. The prayer beads and gold cross hang free at the chest over the navy tunic. Hold the '
+            'staff-like mace steeply forward at the idle angle, about 82° above horizontal (80–84°). Keep the star '
+            'head where the idle has it. It is about 88 px wide and 73 px tall: spikes at x≈231–318, y≈404–476, '
+            'with the gold collar below down to y≈506. Its lower-left spike stays just above the hood (the hood '
+            'reaches about x≈245 at y≈500). If the leaned hood comes forward under the star, tip the mace a few '
+            'degrees further forward (no lower than about 77°) so the star stays above and in front of the hood. '
+            'Do not shrink the star or let it overlap the hood. Keep the lower shaft inside x=202–267 down to '
+            'y≤824. Carry it off the floor and move the grip fore-aft by at most 8 px.'
         ],
         'cloth': [
             'The braid stays OVER the front of the cream mantle. Keep the navy front panel in front of the legs, '
@@ -535,7 +744,8 @@ CARRY = {
         ],
         'face': 'Face: match the accepted idle in every frame.',
         'ko': (
-            '긴 별머리 철퇴는 세워 들고 손 y=630–645. 가슴 앞 땋은 머리, 남색 앞자락, 맨발 유지.'
+            '긴 별머리 철퇴는 대기 각도(약 82°)로 세워 들고 손 y=630–645, 별(x≈231–318, y≈404–476)은 두건 위·앞, 줄이지 '
+            '않는다. 다른 손은 망토 속(그리지 않는다). 가슴 앞 땋은 머리·묵주, 남색 앞자락, 맨발 유지.'
         ),
     },
     'sheet/captain/pirateking': {
@@ -545,17 +755,29 @@ CARRY = {
             'trousers, tall boots, and a curved basket-hilt cutlass.'
         ),
         'carry': [
-            'Grip the cutlass in its idle hand at x=213–230, y=699–719. Carry the blade back and down roughly '
-            '20–28° below horizontal; fit the full curved edge and basket guard inside x=64–270, y=675–824. The '
-            'open far hand remains free; keep it away from the hilt and face.'
+            "Cutlass in the NEAR (right) gloved hand only, with the idle's gold basket guard, gold pommel ball and "
+            "curved blade unchanged. The near arm does NOT follow the mannequin's pump: the mannequin's near elbow "
+            'and hand positions do not apply to this arm (intended, not a deviation). The shoulder follows the '
+            'torso lean and the fist stays low at the near hip, x=213–230, y=699–719, in all 8 frames. Turn the '
+            'fist so the curved blade leaves it pointing BACK and down 20–28° below horizontal, tip to the rear, '
+            'with the gold knuckle bow still wrapped round the fist and the pommel ball just in front of it. The '
+            'whole cutlass fits inside x=64–270, y=675–824. The FAR (left) gloved hand stays open and follows the '
+            "mannequin's far arm. In R2–R5 that hand passes behind the hips at x=226–258, y=715–725, behind the "
+            'cutlass fist, so the near fist and the coat hide it. Draw only the part that shows, and never on the '
+            'hilt or the face.'
         ],
         'cloth': [
-            'Keep cream lapels and front hair locks over the chest and coat front. Only back hair and the long '
-            'rear coat tails lag; the hat and its feather keep the accepted silhouette.'
+            'Keep the cream lapels, the ruffled shirt and the gold-buttoned waistcoat on the chest exactly as in the '
+            'idle; no hair lies over the chest. The strand under the hat brim in front of the ear stays with the '
+            'face, and the gold hoop earring stays on. The long wavy crimson hair mass behind the near shoulder and '
+            'down the back lags by one frame, together with the long rear coat tails. The front coat edges stay at '
+            'the front, never thrown back. The black gold-trimmed tricorne with its skull and its cream-and-red '
+            'feather keeps the accepted silhouette.'
         ],
         'face': 'Face: match the accepted idle in every frame.',
         'ko': (
-            '외손 커틀러스 뒤아래 20–28°, 손 y=699–719. 앞깃과 앞 머리는 앞에 둔다.'
+            '외손 커틀러스는 가까운 손, 마네킹 팔 흔들기를 따르지 않는다: 주먹 x=213–230, y=699–719, 날은 뒤아래 20–28°. '
+            '먼 손은 R2–R5 에서 주먹·코트 뒤에 가린다. 앞깃·셔츠·조끼는 가슴에(가슴 위 머리 없음), 긴 머리와 뒷자락만 늦게.'
         ),
     },
     'sheet/captain/frostjarl': {
@@ -904,6 +1126,9 @@ def write_request(sid, out=None, force=False, date=None, spec=None, man=None):
                  f'{frames[4]["frame"]}). A smooth, nearly level glide with a small forward lean and short quick steps - hurried, '
                  'not a stroll.'],
     }[cls]
+    # CARRY 의 'height' = 시트마다 키 문장 (머리·목이 마네킹과 많이 다른 캐릭터)
+    height = c.get('height') or (f'the figure about as tall as the idle stood up (the mannequin\'s head top is near '
+                                 f'y={min(tops)}-{max(tops)})')
     fmt_lines = [f'  - the hip centre of every frame on the slot\'s column x={HIP_X} (the body stays in place, the feet move);']
     if flight:
         fmt_lines += [f'  - {" ".join(f["frame"] for f in frames if f.get("phase") != "flight")}: the sole of the standing foot on '
@@ -917,7 +1142,7 @@ def write_request(sid, out=None, force=False, date=None, spec=None, man=None):
     fmt_lines += ['  - every pixel of a frame between x=32 and x=351 of its slot (at least 32 px of magenta to the slot edges - '
                   'nothing may cross into the next slot, including weapons, cloth and hair);',
                   f'  - head {pose.get("head_px", 110):g} px scale = the scale of the accepted sheet ({sc:g} source -> game: the idle is {geo["game_idle_h"]} game px '
-                  f'tall); the figure about as tall as the idle stood up (the mannequin\'s head top is near y={min(tops)}-{max(tops)}).']
+                  f'tall); {height}.']
     receive = f'python3 tools/art/receive.py gait/{stem}_run'
     notes_h = f'## gait/{stem}_run - {c["title"]}'
     refs_list = [f'guide_{p}_a/b', f'size_{p}_a/b', f'{stem}.png'] + [os.path.basename(r) for r, _ in refs_pkg] + ['pose.json']
@@ -991,10 +1216,11 @@ def write_request(sid, out=None, force=False, date=None, spec=None, man=None):
         f'CHARACTER (unchanged from the accepted sheet): {c["character"]}',
         '',
         f'THE MOVE (owner\'s three movement classes; {cls}: {clsd["summary"]} It is already in the mannequin - copy it, do not invent another):',
-        '  - Each frame: the legs, the torso lean and the arm swing of that mannequin frame. Joint for joint: hips, knees, ankles, feet,',
-        '    shoulders, elbows (hands: see ARMS - where the text moves a hand, that is intended, not a deviation).',
-        '    The mannequin\'s big round head is a placeholder: draw the character\'s own head on the mannequin\'s neck, at its own size',
-        '    (as in the sheet).',
+        *(c.get('joints') or [
+            '  - Each frame: the legs, the torso lean and the arm swing of that mannequin frame. Joint for joint: hips, knees, ankles, feet,',
+            '    shoulders, elbows (hands: see ARMS - where the text moves a hand, that is intended, not a deviation).',
+            '    The mannequin\'s big round head is a placeholder: draw the character\'s own head on the mannequin\'s neck, at its own size',
+            '    (as in the sheet).']),
         *phase_lines,
         f'  - Lean forward (hip to neck): {lean} deg.',
         (f'  - Height: the mannequin\'s head top is at y={"/".join(str(t) for t in tops[:4])} in {fa} (the same in {fb}): '

@@ -7,15 +7,25 @@
 
 | 누구 | id | 상태 | 할 일 (자세한 것은 그 줄의 문서) |
 |---|---|---|---|
-| GPT | `Q14-c13-text-check` | READY | C13 한국어 글 손질을 게임에서 확인: `docs/agents/tasks/Q14-c13-text-check.md` |
-| Codex | `C14-roll-mission-seed` | FIX | roll 모드 귀환 결과를 출격 때 고정(Q13 P1): `docs/agents/tasks/C14-roll-mission-seed.md` |
-| Codex | `C15-gait-requests-batch4` | REVIEW | 이동 요청서 넷째 묶음(대장 13명): `docs/agents/tasks/C15-gait-requests-batch4.md` |
-| GPT | `Q11-stage4-check` | 예고 | 총괄 4단계 수정이 들어가면 READY: `docs/agents/tasks/Q11-stage4-check.md` |
+| GPT | `Q19-flip-readiness-2` | 예고 | 한 부대 초반 다듬기가 들어가면 READY — 다른 시드로 사람 플레이 다시: `docs/agents/tasks/Q19-flip-readiness-2.md` |
+| Codex | `C18-crosscheck-gpt-code` | READY | GPT 가 대신 고친 C14·C16 코드 교차 확인(보고만): `docs/agents/tasks/C18-crosscheck-gpt-code.md` |
+| Codex | `C19-newplayer-texts` | READY | (C18 다음, 「한 부대 다듬기」 들어간 뒤) 처음 하는 사람을 위한 전투 모드 설명: `docs/agents/tasks/C19-newplayer-texts.md` |
 
 ## 끝난 일
 
 | 누구 | id | 결과 |
 |---|---|---|
+| GPT | `Q20-newplayer-clarity` | **DONE** (11-27, `0265bc7`): 다섯 단어 뜻·패배 결과·전사 가능 전투·연출 스위치 뜻이 게임 안에 설명되지 않음 → 화면별 문구 제안 → C19 (Codex) |
+| GPT | `Q18-issuer-standoff-check` | **DONE** (11-27, `9045016`): 의뢰주 멸망 정리 PASS, 전투 멈춤 해소 PASS(90초 시간패 → 24.9초 승), C14 PASS. **FIX**: 재앙이 점령한 지역의 보스 의뢰가 재앙을 의뢰주로 게시됨(`checkBosses`) → 총괄 |
+| GPT | `Q17-cleric-run-ingame` | **DONE** (11-27): 성직자 달리기 FIX — R5~R8 앞 타바드 사라짐(두 걸음마다 옷이 바뀜), R7/R8 철퇴 머리가 얼굴 옆 → Antigravity 손질 맨 위 |
+| GPT | `Q16-flip-readiness` | **DONE** (11-27, `7402731`): 사람 플레이(400px 전투 120일 / 1280 roll 60일, 직속 1부대) — 의견 **조건부**. 압도 20/20, 우세 13/17(초반 패배 몰림), 백중 3/15. 60일 D·명성 361 vs roll C·746. 60~120일 귀환 기다리는 날 37/61, A·S 미도달(120일 B). 패배 결과창 설명은 roll 보다 재미있음. 유예 주간 안내가 일지에만 있어 놓치기 쉬움 |
+| GPT | `Q15-gait-ingame-2` | **DONE** (11-27, `b84afb0`): 브리긴다·마법사 손질본 PASS(철퇴 머리·다리·장화 분리, 세력 색 번짐 0), 궁수 달리기 PASS + 관찰 하나 — 달리기를 **처음 시작하는 R1→R2** 에서 디딘 발끝이 뒤로 4~6px 당겨짐(이후 ±2px) → 엔진 쪽(달리기 시작 박자), 총괄 목록 |
+| GPT | `C17-monster-gait-requests` | **DONE** (11-27, `790c63c` 골라 합침, GPT 가 Codex 대신): 고블린·서리 트롤(2×2, 0.18 배율 가이드)·사막 도적 이동 요청서, phase3 배율 기록. 기존 요청 가이드는 도구 변경 뒤에도 픽셀 동일. 클라우드 그림 대조 중 |
+| GPT | `C16-tight-time-hint` | **DONE** (11-27, `ab7e289` 골라 합침, GPT 가 Codex 대신): 전투 모드 출정 창에 「시간이 빠듯함 · 적을 제시간에 다 쓰러뜨리지 못할 수 있음」(숫자 없음, 예상 단어·판정 그대로). 봇 표본 0.56% 에서 뜨고, 뜬 전투의 시간 초과 패배 6.25% vs 안 뜬 0.16% |
+| GPT | `Q11-stage4-check` | **DONE** (11-27, `690bdfe`): 후반 의뢰판 PASS(재앙 없음: 전부 「압도」인 판 30/36→0/36, ★11~14 가 150·180·210·240일에 열림). 시간 제한 예상은 부분 개선 — Q6 거점 공략 재현은 R 1.271→1.139 로 내려갔지만 여전히 「우세」이고 시간 초과로 진다(250조합 중 1~2명 우세 시간 초과 1건씩). 제안: 시간이 빠듯한 「우세」에 이유 표시 |
+| GPT | `C14-roll-mission-seed` | **DONE** (11-27, `ce683e4` 합침, GPT 가 Codex 대신): 결과·부상/사망·배신만 출격 시드로, 나머지 굴림과 공유 난수 자리는 그대로. 72판 금화 평균 42.5k→40.1k(잡음 안). roll md5 새 기준 `11cadc0c` |
+| GPT | `Q14-c13-text-check` | **DONE** (11-27, `2dcd568` 합침): C13 한국어 글 PASS — 두 폭·두 모드, 개명(받침 두 가지), 영웅 2/2장, 지크린데 4/5 → 다섯째 토벌로 영입 의뢰, 조사(왕국으로부터), 총괄 결정 8개. 제안: 긴 길드 이름일 때 배 이름에 낫표 |
+| Codex | `C15-gait-requests-batch4` | **DONE** (11-27, `c537cb6` 골라 합침): 대장 14명 이동 요청서(해적왕 배율 ×0.894 포함). 클라우드 그림 대조로 14건 모두에서 31곳 수정 — 팔이 닿지 않는 손 위치(석궁 둘), 수평 석궁이 코트를 가로지름(의도 명시), 빠진 장비(렌치·주머니), 활 쥔 손 자리, 앞에 있는 땋은 머리, 룬 대장장이는 드워프가 아님 등. 생성기 CARRY 에도 같이 반영. Antigravity 대기열에 14건 |
 | Codex | `C13-korean-text-fixes` | **DONE** (11-27, `5baea53` 합침): Q7 글 119줄 손질 + 총괄 결정 8개(사제 바르톨로의 장부, 로드릭, 지크린데 5회, 전쟁 중 대사, 노예 시장 둘·교역로 절벽, 리치의 망령, 길드 이름을 칭호·배·노래까지, 영웅 장 수). roll md5 새 기준 `21b61842…`(지크린데가 실제로 합류해서) |
 | Codex | `C10-scaled-mannequin-guides` | **DONE** (11-27, `c57bd07`+FIX `a6e5846`): 배율 요청 가이드 + 비요른 요청서. FIX: 배율은 phase3 명시값에서만(고블린·서리 트롤은 거부), 칸 밖 확대 거부, 배율 요청은 조정 PNG 만 밑그림, 수령 도구가 manifest 로 id 찾기, `--check` 강화 |
 | GPT | `Q13-c11-check` | **DONE** (11-27, `8da4313` 합침): C11 화면 7/7·즉시 저장 40/40 PASS, 전투 모드 결과 고정(12/12). **P1(예전부터 있던 것)**: roll 모드는 귀환 전 저장을 다시 열면 결과가 바뀐다 — C11 이 만든 것은 아니고 1일짜리 출격도 이 경로에 들어오게 됐다 → 총괄 목록(4단계 기본값 결정과 함께) |

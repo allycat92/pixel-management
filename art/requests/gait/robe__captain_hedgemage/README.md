@@ -18,7 +18,7 @@
 
 - 부류: **로브** — purple wizard robe with rope belt and front hem below the knees; trousers and boots show under the split. (tools/art/specs/gait_classes.json)
 - 납품: art-inbox `art/inbox/gait/sheet_captain_hedgemage_run_a.png` (G1~G4) + `art/inbox/gait/sheet_captain_hedgemage_run_b.png` (G5~G8) + `art/inbox/NOTES.md` 절 「gait/sheet_captain_hedgemage_run - 펠릭스 이동」 + 「## 판정 — gait/sheet_captain_hedgemage_run」. 파일 이름은 부류와 상관없이 `_run_` (엔진의 `anims.run`).
-- 팔·무기: 양손 지팡이 앞위 74–78°, 모자 높이 x≥270. 허리끈과 앞 로브는 앞쪽 유지.
+- 팔·무기: 양손 지팡이는 대기 그립·각도(앞위 약 77°, 74–78°) 그대로, 모자 챙 높이에서 챙 끝(x≈253–255) 바로 앞(x≈258–280)을 지난다. 허리끈과 앞 로브는 앞쪽 유지.
 - 디딘 발: 한 걸음 원본 134.2px(게임 22.2px) → 디딘 발은 칸마다 **정확히 33.5px**(±3, 게임 5.5px) 뒤로 — 발끝 x 는 Prompt 의 PLANTED FOOT 표. (병과 전사 R5 는 디딘 발이 30px 앞에 그려져 한 번 고쳤다.)
 - 클라우드가 받은 뒤: `python3 tools/art/receive.py gait/sheet_captain_hedgemage_run` (검사 + `add_gait.py --dry-run`) → 미리보기를 보고 `add_gait.py` 로 붙인다 (`--pose art/requests/guides/robe_base/v1/pose.json`).
 
@@ -66,7 +66,7 @@ THE MOVE (owner's three movement classes; robe: loose long cloth: running in it 
     YOUR toe tip against these numbers (the size_* images mark them with yellow ticks).
 
 ARMS AND WEAPONS:
-  - Keep both idle staff grips, lower grip x=225–235, y=681–694. Carry the staff near vertical, its top about 74–78° UP AND FORWARD from the lower hand, beyond the hat brim. Guide the full staff within x=183–326, y=401–815; at head and brim height keep x≥270. Do not plant it. The mannequin's two separate arm swings and elbow locations do NOT apply to this character (intended, not a deviation). Let the shoulders follow the torso, keep both hands attached to the weapon, and limit fore-aft travel to 10 px.
+  - Keep both idle staff grips: the lower fist is at x≈195–237, y≈668–700, and the staff passes through it at x≈213–222; the upper fist is at x≈220–252, y≈610–645. Carry the staff at the idle angle, about 77° up and forward (74–78° allowed). At brim height (y≈495–510) the idle staff spans x≈258–280, just in front of the brim tip (x≈253–255). Keep that small gap in every frame, so the staff passes in front of the brim and never behind it or through it. If the leaned hat comes further forward, move both hands and the staff forward together (within the 10 px fore-aft limit). This shift is intended, not a deviation. Guide the full staff within x=183–326, y=401–815. Do not plant it. The mannequin's two separate arm swings and elbow locations do NOT apply to this character (intended, not a deviation). Let the shoulders follow the torso, keep both hands attached to the weapon, and limit fore-aft travel to 10 px.
   - Keep rope belt and front robe panel below it; the loose hem follows the leading step, settles one frame late and leaves boots visible below it. The rear pouch and hat tip may bob.
   - Face: match the accepted idle in every frame.
 

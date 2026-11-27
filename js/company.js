@@ -266,19 +266,19 @@ Object.assign(Game, {
 
   // 임무 후 외부 용병단 변화
   // lostN: 전투 모드에서 실제로 잃은 인원 (없으면 옛 굴림)
-  extAfterMission(c, outcome, contract, lostN, random = Math.random) {
+  extAfterMission(c, outcome, contract, lostN) {
     const won = outcome === 'great' || outcome === 'success';
     let d = { great: 8, success: 5, fail: -8, disaster: -15 }[outcome];
     if (c.disposition === 'honor' && won && contract.cat === 'conflict' && contract.type !== 'sabotage') d += 3;
     if (c.disposition === 'faction' && c.sympathy === contract.issuer && won) d += 5;
     if (c.disposition === 'faction' && c.sympathy === contract.target) d -= 15;
     c.loyalty = clamp(c.loyalty + d, 0, 100);
-    if (won) { c.wins++; if (random() < 0.3) c.level++; } else c.losses++;
+    if (won) { c.wins++; if (Math.random() < 0.3) c.level++; } else c.losses++;
     let lost = 0;
     if (lostN != null) lost = lostN;
     else {
-      if (outcome === 'fail' && random() < 0.35) lost = 1;
-      if (outcome === 'disaster') lost = rand(1, 2, random);
+      if (outcome === 'fail' && Math.random() < 0.35) lost = 1;
+      if (outcome === 'disaster') lost = rand(1, 2);
     }
     c.size = Math.max(0, c.size - lost);
     c.missionId = null;

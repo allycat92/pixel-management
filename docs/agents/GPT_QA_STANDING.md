@@ -11,7 +11,9 @@ Talk to the owner in Korean, short and plain. Every time you are told "계속" /
 2. Take the TOP row of 「지금 차례」 whose owner is GPT and whose status is READY or FIX. None -> say "할 일 없음" and stop.
 3. Work on branch agent/gpt-qa (create it from origin/claude/dot-fantasy-management-game-saupju; later merge that branch in first;
    no rebase, no force push).
-4. Do exactly what the row's task file (docs/agents/tasks/<id>.md) says. You test and report; you do not change game code and
+4. Do exactly what the row's task file (docs/agents/tasks/<id>.md) says. You test and report; you do not change game code (EXCEPT a row the lead moved to you whose id starts with `C` - then you
+   fix code for that task exactly like Codex would, with the same test rules: node --check, node tools/sim/battle.js 100 miss=0,
+   bot md5 as the task says; owner decision 2026-11-27) and
    you do not draw. Reproduce in the real UI where possible; give seeds / steps so the lead can repeat it.
 5. Write the report section in docs/agents/reports/gpt-qa.md (screenshots under docs/agents/reports/shots/<id>/, each < 500 KB),
    set the row to REVIEW in your branch's queue.md, commit with a message starting with the task id, push origin agent/gpt-qa.

@@ -17,7 +17,7 @@
 
 - 부류: **경량** — fur mantle over the shoulders only, leather tunic, trousers, boots, longbow. (tools/art/specs/gait_classes.json)
 - 납품: art-inbox `art/inbox/gait/sheet_captain_beastmaster_run_a.png` (R1~R4) + `art/inbox/gait/sheet_captain_beastmaster_run_b.png` (R5~R8) + `art/inbox/NOTES.md` 절 「gait/sheet_captain_beastmaster_run - 오르가 이동」 + 「## 판정 — gait/sheet_captain_beastmaster_run」. 파일 이름은 부류와 상관없이 `_run_` (엔진의 `anims.run`).
-- 팔·무기: 한 손 장궁은 세워 앞쪽에 든다. 활 손 y=675–686, 얼굴 높이의 활은 x≥300. 앞 가죽 자락은 허벅지에 남긴다.
+- 팔·무기: 한 손 장궁은 먼 손에 대기 그대로(주먹 x≈313–349, y≈673–705), 세워 앞쪽에 든다. 활 손은 마네킹 팔 흔들기를 따르지 않는다. 얼굴 높이의 활·시위는 x≥300. 앞 땋은 머리는 가슴 메달 옆, 앞 가죽 자락은 허벅지에 남긴다.
 - 디딘 발: 한 걸음 원본 275px(게임 45.5px) → 디딘 발은 칸마다 **정확히 68.8px**(±3, 게임 11.4px) 뒤로 — 발끝 x 는 Prompt 의 PLANTED FOOT 표. (병과 전사 R5 는 디딘 발이 30px 앞에 그려져 한 번 고쳤다.)
 - 클라우드가 받은 뒤: `python3 tools/art/receive.py gait/sheet_captain_beastmaster_run` (검사 + `add_gait.py --dry-run`) → 미리보기를 보고 `add_gait.py` 로 붙인다 (`--pose art/requests/guides/run_base/v2/pose.json`).
 
@@ -42,7 +42,7 @@ REFERENCES (load all; if the sheet or a guide does not load, do not draw - write
   - art/requests/guides/run_base/v2/pose.json (the numbers below come from it), art/requests/guides/run_base/v2/run_base_preview.gif (the motion at speed), art/requests/guides/run_base/v2/run_base.aseprite (the mannequin source -
     you may open it as an underlay and draw on your own layers, but the delivered PNGs contain ONLY your drawing).
 
-CHARACTER (unchanged from the accepted sheet): The accepted leather-clad beastmaster has dark tied hair, a pale fur shoulder mantle, short front leather panels, a back quiver and a longbow.
+CHARACTER (unchanged from the accepted sheet): The accepted leather-clad beastmaster has long loose wavy dark-brown hair (no headband) with ONE braid that starts behind the ear and hangs down the front of her neck to the gold wolf medallion. She also has gold earrings, white face-paint stripes, a pale grey-and-cream fur shoulder mantle, short front leather panels, a back quiver and a dark longbow with gold tips.
 
 THE MOVE (owner's three movement classes; light: the accepted run: lean forward, press down in flight, rise a little after the landing is caught, hip nearly level, slight float, no hopping. It is already in the mannequin - copy it, do not invent another):
   - Each frame: the legs, the torso lean and the arm swing of that mannequin frame. Joint for joint: hips, knees, ankles, feet,
@@ -65,8 +65,8 @@ THE MOVE (owner's three movement classes; light: the accepted run: lean forward,
     YOUR toe tip against these numbers (the size_* images mark them with yellow ticks).
 
 ARMS AND WEAPONS:
-  - Use the idle bow hand only, grip x=288–301, y=675–686, with the bow almost upright in front of the body. Preserve the idle grip and full bow silhouette: at face height keep all bow pixels at x≥300, and fit the entire bow inside x=253–348, y=502–845. Keep the free near hand clear of the string, with a short relaxed swing.
-  - Keep the fur across the shoulders and the hanging front leather over the leading thigh. The back quiver stays fixed; only rear fur tips and tied hair lag a little.
+  - Bow in the FAR hand, gripped exactly as in the idle: fist x≈313–349, y≈673–705, wrapped round the bow handle (x≈330–345). The bow stands upright with the string toward the body (string x≈300–309, top tip y≈517, bottom gold tip y≈845). The bow hand stays at this idle spot in all 8 frames and does NOT follow the mannequin's far-arm swing (intended, not a deviation). At face height (R3/R4/R7/R8, where the head leans forward to the neck at x≈248–252) every bow and string pixel stays at x≥300, clear of the face and front hair curl. The whole bow fits x=253–349, y=502–845. Keep the free near hand clear of the string, with a short relaxed swing.
+  - The fur stays across both shoulders, and the hanging front leather stays over the leading thigh. The front braid stays on the chest beside the medallion: it may sway a few px but never flies back. Only the loose rear hair and the rear fur tips lag a little. The back quiver stays fixed.
   - Face: match the accepted idle in every frame.
 
 MUST NOT CHANGE: outfit, colours, proportions, headgear, weapon and shield shapes and sizes, and the SCALE of the accepted

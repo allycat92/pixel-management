@@ -122,6 +122,9 @@ h3 { font-size: 14px; margin: 8px 0; }
 .grow { flex: 1; min-width: 0; }
 .row-inline { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 
+#skip-day[hidden], #grace-chip[hidden] { display: none; }   /* .btn·.chip 의 display 가 hidden 속성을 덮지 않게 (귀환까지 넘기기·유예 표시) */
+.grace-chip { margin-left: 6px; cursor: help; }
+
 /* 버튼 */
 .btn {
   display: inline-flex; align-items: center; gap: 4px;

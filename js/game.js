@@ -5,8 +5,8 @@
 const SAVE_KEY = 'pixel-guild-save-v4';
 const SAVE_VERSION = 4;
 
-const rand = (a, b, random = Math.random) => a + Math.floor(random() * (b - a + 1));
-const pick = (arr, random = Math.random) => arr[Math.floor(random() * arr.length)];
+const rand = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const STORY_EXPIRES = 99999;
 
@@ -89,12 +89,11 @@ const Game = {
       this.normalizeCompanies(); // 용병단이 4~9명이던 저장: 정원을 넘는 대원은 예비 인원으로
       this.dropDeadTargets();    // 재앙 토벌·멸망 뒤에도 게시판에 남은 의뢰가 있던 저장 (QA Q8)
       let seedAdded = false;
-      st.missions.forEach((mi) => {
-        if (mi.spec?.bm || mi.rseed != null) return;
-        // 옛 저장은 같은 원본을 다시 불러와도 같은 임무 시드를 얻는다.
-        mi.rseed = Stats.mix(0x726f6c6c, st.salt || 0, mi.id, mi.contract.id, mi.startDay);
+      for (const mission of st.missions) {
+        if (mission.spec?.bm || mission.rseed != null) continue;
+        mission.rseed = this.rollMissionSeed(mission);
         seedAdded = true;
-      });
+      }
       if (seedAdded) this.save();
       return true;
     } catch (e) { return false; }
@@ -134,24 +133,24 @@ const Game = {
   },
 
   // ───────── 용병: 대장과 대원 ─────────
-  uniqueMercName(random) {
+  uniqueMercName() {
     const usedNames = new Set(this.state ? [...this.state.mercs, ...this.state.recruits].map((m) => m.name) : []);
     Object.values(HEROES).forEach((h) => usedNames.add(h.name));
     Object.values(CAPTAINS).forEach((c) => usedNames.add(c.name));
-    let name = pick(NAMES, random), tries = 0;
-    while (usedNames.has(name) && tries++ < 40) name = pick(NAMES, random);
+    let name = pick(NAMES), tries = 0;
+    while (usedNames.has(name) && tries++ < 40) name = pick(NAMES);
     return name;
   },
-  baseMerc(role, cls, stats, random = Math.random) {
+  baseMerc(role, cls, stats) {
     return {
       id: this.state ? this.state.nextId++ : 0,
-      name: this.uniqueMercName(random), role, cls, level: 1, exp: 0,
+      name: this.uniqueMercName(), role, cls, level: 1, exp: 0,
       str: stats.str, dex: stats.dex, int: stats.int, maxHp: stats.hp,
       trait: 'none', grow: { str: 0, dex: 0, int: 0, hp: 0 },
       status: 'idle', injury: 0, missionId: null, quests: 0, bond: 0, companyId: null,
-      fatigue: 0, morale: rand(60, 75, random), rel: {}, lastQuest: this.state ? this.state.day : 1,
+      fatigue: 0, morale: rand(60, 75), rel: {}, lastQuest: this.state ? this.state.day : 1,
       equip: { weapon: null, armor: null, trinket: null },
-      look: { cls, skin: pick(SKIN_TONES, random), hair: pick(HAIR_COLORS, random), longHair: random() < 0.4 },
+      look: { cls, skin: pick(SKIN_TONES), hair: pick(HAIR_COLORS), longHair: Math.random() < 0.4 },
     };
   },
   // 용병 유닛: 같은 직업·레벨이면 능력치가 같다
@@ -162,13 +161,13 @@ const Game = {
   },
   makeMerc(cls, level) { return this.makeUnit(cls, level); },
   // 용병대장: 고유 직업, 높은 성장성
-  makeCaptain(cap, level = 1, random) {
+  makeCaptain(cap, level = 1) {
     const cc = CAPTAIN_CLASSES[cap];
-    const m = this.baseMerc('captain', cc.style, cc.base, random);
+    const m = this.baseMerc('captain', cc.style, cc.base);
     m.cap = cap;
-    m.trait = pick(TRAIT_POOL, random);
+    m.trait = pick(TRAIT_POOL);
     m.look.cap = cap;
-    for (let i = 1; i < level; i++) this.levelUp(m, true, random);
+    for (let i = 1; i < level; i++) this.levelUp(m, true);
     return m;
   },
   isCaptain(m) { return m && m.role === 'captain'; },
@@ -197,7 +196,7 @@ const Game = {
     return g;
   },
 
-  levelUp(m, silent, random = Math.random) {
+  levelUp(m, silent) {
     const g = this.growthOf(m);
     m.level++;
     m.grow = m.grow || { str: 0, dex: 0, int: 0, hp: 0 };
@@ -206,7 +205,7 @@ const Game = {
       let gain;
       if (this.isCaptain(m)) {
         // 대장: 성장률이 보장되고, 운이 좋으면 더 오른다
-        gain = Math.floor(g[k]) + (random() < g[k] % 1 ? 1 : 0) + (random() < 0.15 ? 1 : 0);
+        gain = Math.floor(g[k]) + (Math.random() < g[k] % 1 ? 1 : 0) + (Math.random() < 0.15 ? 1 : 0);
       } else {
         // 대원: 직업 성장률대로 정확히 오른다
         m.grow[k] += g[k] || 0;
@@ -355,14 +354,14 @@ const Game = {
   },
 
   // 레벨업 했으면 true
-  gainExp(m, amount, random) {
+  gainExp(m, amount) {
     if (m.trait === 'genius') amount = Math.round(amount * 1.5);
     m.exp += amount;
     let leveled = false;
     while (m.exp >= this.expToNext(m)) {
       if (this.atCap(m)) { m.exp = this.expToNext(m) - 1; break; } // 레벨 상한: 전직해야 더 자란다
       m.exp -= this.expToNext(m);
-      this.levelUp(m, false, random);
+      this.levelUp(m);
       leveled = true;
     }
     return leveled;
@@ -538,16 +537,16 @@ const Game = {
   },
 
   // ───────── 장비 / 상점 ─────────
-  makeItem(base, tier, random = Math.random) {
+  makeItem(base, tier) {
     const b = ITEM_BASES[base], t = TIERS[tier];
     const bonus = {};
     let anyStat = null;
     Object.entries(b.bonus).forEach(([k, v]) => {
-      const stat = k === 'any' ? (anyStat = pick(['str', 'dex', 'int'], random)) : k;
-      bonus[stat] = (bonus[stat] || 0) + Math.max(1, Math.round(v * t.mul * (0.9 + random() * 0.2)));
+      const stat = k === 'any' ? (anyStat = pick(['str', 'dex', 'int'])) : k;
+      bonus[stat] = (bonus[stat] || 0) + Math.max(1, Math.round(v * t.mul * (0.9 + Math.random() * 0.2)));
     });
     const name = base === 'ring' ? `${t.name} ${STAT_NAMES[anyStat]}의 반지` : `${t.name} ${b.name}`;
-    return { id: this.state.nextId++, base, slot: b.slot, tier, name, bonus, price: Math.round(t.price * (0.9 + random() * 0.2)) };
+    return { id: this.state.nextId++, base, slot: b.slot, tier, name, bonus, price: Math.round(t.price * (0.9 + Math.random() * 0.2)) };
   },
 
   makeUniqueItem(def) {
@@ -757,6 +756,8 @@ const Game = {
         while (owed > Math.max(0, s.gold) && away.length) { const m = away.shift(), w = this.wage(m) + (m.owed || 0); owed -= w; defer(m, w); }
         if (deferred.size) this.log(`유예 주간: 급료(금화 ${[...deferred].reduce((a, m) => a + m.owed, 0)})를 다음 정산으로 미뤘습니다.`, 'bad');
       }
+      // 급료를 미룬 정산은 알림 창으로도 알린다 (주인 결정 7: 일지에만 있어 놓치기 쉬웠다, Q16). 전투 모드에서만 생긴다 (유예 주간이 전투 모드뿐)
+      if (deferred.size) s.pendingReports.push({ special: 'grace', until: s.graceUntil, owed: [...deferred].reduce((a, m) => a + m.owed, 0), names: [...deferred].map((m) => m.name) });
       s.mercs.forEach((m) => { if (!deferred.has(m)) delete m.owed; });   // 받은 단원(또는 빚으로 받은 단원)의 미룬 몫은 끝났다
       s.gold -= owed;
       this.log(`주간 정산: 금화 ${owed} 지급.${s.gold < 0 ? ' 길드가 빚을 지고 있습니다!' : ''}`, s.gold < 0 ? 'bad' : '');
@@ -775,6 +776,35 @@ const Game = {
 
   weeklyWageTotal() { return this.state.mercs.reduce((sum, m) => sum + this.wage(m), 0); },
   backPayTotal() { return this.state.mercs.reduce((sum, m) => sum + (m.owed || 0), 0); },   // 유예 주간에 미룬 급료 (전투 모드)
+  paydayTotal() { return this.weeklyWageTotal() + this.weeklyUpkeepTotal() + this.backPayTotal(); },   // 다음 정산에 낼 돈 (주급 + 유지비 + 미룬 급료)
+  // 전투 모드의 유예 주간이 열려 있고 그게 지금 뜻이 있을 때(미룬 급료가 있거나 다음 정산에 돈이 모자람) 그 마지막 날, 아니면 0 (상단 막대 표시)
+  graceShown() {
+    const s = this.state;
+    if (s.resolve !== 'battle' || !(s.day <= (s.graceUntil || 0))) return 0;
+    return this.backPayTotal() > 0 || s.gold < this.paydayTotal() ? s.graceUntil : 0;
+  },
+
+  // ───────── 귀환까지 넘기기 (주인 결정 7: 한 부대 길드는 60~120일의 절반 넘게 귀환만 기다린다, Q16) ─────────
+  // 보낼 수 있는 용병단이 하나도 없고 나가 있는 임무가 있을 때만. 화면 전용 편의 — 날짜 넘기기를 되풀이할 뿐 규칙·난수는 같다 (봇은 쓰지 않는다)
+  waitingForReturn() {
+    const s = this.state;
+    if (s.over || !s.missions.length) return false;
+    return !s.companies.some((c) => !c.missionId && (c.own ? this.availableMembers(c).length > 0 : true));
+  },
+  // 날을 넘기다가 보고서·알림이 쌓이거나(귀환 포함), 정산일이거나, 새 특별 의뢰가 오르거나, 보낼 용병단이 생기면 멈춘다. -> 넘긴 날수
+  skipToReturn(maxDays = 30) {
+    const s = this.state;
+    const specials = () => new Set(s.contracts.filter((c) => c.story || c.capStory || c.boss || c.campaign).map((c) => c.id));
+    let n = 0;
+    while (n < maxDays && this.waitingForReturn()) {
+      const seen = specials();
+      this.nextDay();
+      n++;
+      if (s.over || s.pendingReports.length || s.reportSlot || s.day % 7 === 1) break;
+      if ([...specials()].some((id) => !seen.has(id))) break;
+    }
+    return n;
+  },
   daysToPayday() { const d = (8 - (this.state.day % 7)) % 7; return d === 0 ? 7 : d; },
 
   toast(msg) { if (typeof UI !== 'undefined') UI.toast(msg); },

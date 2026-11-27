@@ -16,9 +16,9 @@
 | `art/inbox/sheet_captain_fieldmedic.png` | **승인된 전투 시트 원본** — 디자인·색·크기의 기준. 1번 자세가 대기 |
 | `art/requests/guides/run_base/v2/` (`pose.json`, `run_base_preview.gif`, `run_base.aseprite`) | 마네킹 원본 — 숫자·움직임 확인용 |
 
-- 부류: **경량** — long cream field coat with the back tails at the calf, red front apron to the upper shin, dark trousers and boots; mace. (tools/art/specs/gait_classes.json)
+- 부류: **경량** — long warm-beige field coat with the back tails at the calf, red front apron to the upper shin, dark trousers and boots; mace. (tools/art/specs/gait_classes.json)
 - 납품: art-inbox `art/inbox/gait/sheet_captain_fieldmedic_run_a.png` (R1~R4) + `art/inbox/gait/sheet_captain_fieldmedic_run_b.png` (R5~R8) + `art/inbox/NOTES.md` 절 「gait/sheet_captain_fieldmedic_run - 마그다 이동」 + 「## 판정 — gait/sheet_captain_fieldmedic_run」. 파일 이름은 부류와 상관없이 `_run_` (엔진의 `anims.run`).
-- 팔·무기: 양손 철퇴는 뒤로 53–57° 들어 머리 뒤로 보낸다. 아래 손 y=693–706. 스카프와 붉은 앞치마는 앞에 둔다.
+- 팔·무기: 양손 철퇴(가시 쇠공 머리)는 뒤로 53–57° 들어 머리 뒤로 보낸다. 아래 손은 대기(x≈190–211)보다 앞 x=225–235, y=693–706. 스카프와 짙은 붉은 앞치마는 앞에, 허리 주머니 둘은 허리띠에 둔다.
 - 디딘 발: 한 걸음 원본 275px(게임 45.5px) → 디딘 발은 칸마다 **정확히 68.8px**(±3, 게임 11.4px) 뒤로 — 발끝 x 는 Prompt 의 PLANTED FOOT 표. (병과 전사 R5 는 디딘 발이 30px 앞에 그려져 한 번 고쳤다.)
 - 클라우드가 받은 뒤: `python3 tools/art/receive.py gait/sheet_captain_fieldmedic_run` (검사 + `add_gait.py --dry-run`) → 미리보기를 보고 `add_gait.py` 로 붙인다 (`--pose art/requests/guides/run_base/v2/pose.json`).
 
@@ -44,7 +44,7 @@ REFERENCES (load all; if the sheet or a guide does not load, do not draw - write
   - art/requests/guides/run_base/v2/pose.json (the numbers below come from it), art/requests/guides/run_base/v2/run_base_preview.gif (the motion at speed), art/requests/guides/run_base/v2/run_base.aseprite (the mannequin source -
     you may open it as an underlay and draw on your own layers, but the delivered PNGs contain ONLY your drawing).
 
-CHARACTER (unchanged from the accepted sheet): The accepted dark-haired medic has a red scarf, cream field coat, red front apron, boots, and a long star-headed mace.
+CHARACTER (unchanged from the accepted sheet): The accepted medic has black hair in a high ponytail with a red tie, a white bandage around the forehead, a dark-red scarf, a warm-beige (never white) long field coat with a plain dark-red armband on the near upper arm, a dark-red front apron, a brown belt with two pouches, dark trousers, brown boots, and a long-handled mace whose head is a round iron ball with conical spikes.
 
 THE MOVE (owner's three movement classes; light: the accepted run: lean forward, press down in flight, rise a little after the landing is caught, hip nearly level, slight float, no hopping. It is already in the mannequin - copy it, do not invent another):
   - Each frame: the legs, the torso lean and the arm swing of that mannequin frame. Joint for joint: hips, knees, ankles, feet,
@@ -67,8 +67,8 @@ THE MOVE (owner's three movement classes; light: the accepted run: lean forward,
     YOUR toe tip against these numbers (the size_* images mark them with yellow ticks).
 
 ARMS AND WEAPONS:
-  - Keep the two idle grips on the mace with the lower near hand x=225–235, y=693–706, the other grip about 85 px up the shaft. Tip the shaft UP AND BACK, 53–57° above horizontal toward the left. Keep the star and shaft inside x=44–280, y=475–780; above y=590 they pass behind the head, with the entire weapon left of x=176 there. The mannequin's two separate arm swings and elbow locations do NOT apply to this character (intended, not a deviation). Let the shoulders follow the torso, keep both hands attached to the weapon, and limit fore-aft travel to 10 px.
-  - The scarf stays on the neck and the red apron hangs in front between the moving knees. The tied ponytail and cream rear coat tails can lag a frame.
+  - Keep the idle two-hand grip on the mace: the lower near hand (the armband arm) holds near the butt and the far hand about 85 px up the shaft. In the idle the lower hand is at x≈190–211, y≈690–720 with the head up and FORWARD (about 62°). In the run, move the lower near hand forward to x=225–235, y=693–706 and tip the shaft UP AND BACK, 53–57° above horizontal toward the left, so the far hand sits above-left of it at about x≈181, y≈630. Keep the spiked ball head and shaft inside x=44–280, y=475–780; above y=590 they pass behind the head, with the entire weapon left of x=176 there. The mannequin's two separate arm swings and elbow locations do NOT apply to this character (intended, not a deviation). Let the shoulders follow the torso, keep both hands attached to the weapon, and limit fore-aft travel to 10 px.
+  - The scarf stays on the neck and the dark-red apron hangs in front between the moving knees. The two brown belt pouches (one behind the hip, one in front by the buckle) stay on the belt and may bounce a frame. The tied ponytail and the warm-beige rear coat tails can lag a frame.
   - Face: match the accepted idle in every frame.
 
 MUST NOT CHANGE: outfit, colours, proportions, headgear, weapon and shield shapes and sizes, and the SCALE of the accepted

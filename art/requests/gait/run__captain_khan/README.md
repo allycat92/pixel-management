@@ -17,7 +17,7 @@
 
 - 부류: **경량** — brown steppe coat (deel) to the knee/upper shin, open, over wide trousers and boots; heavy fur collar; composite bow. (tools/art/specs/gait_classes.json)
 - 납품: art-inbox `art/inbox/gait/sheet_captain_khan_run_a.png` (R1~R4) + `art/inbox/gait/sheet_captain_khan_run_b.png` (R5~R8) + `art/inbox/NOTES.md` 절 「gait/sheet_captain_khan_run - 테무르 이동」 + 「## 판정 — gait/sheet_captain_khan_run」. 파일 이름은 부류와 상관없이 `_run_` (엔진의 `anims.run`).
-- 팔·무기: 한 손 합성궁 손 y=666–678. 윗 활대는 얼굴 앞 x≥305. 앞 델 자락과 앞 머리는 제자리.
+- 팔·무기: 한 손 합성궁은 먼 손에 대기 그대로(주먹 x≈305–341, y≈625–665), 마네킹 팔 흔들기를 따르지 않는다. 얼굴·앞 머리는 시위를 넘지 않는다. 가슴 앞 금고리 땋은 머리 두 가닥과 갈라진 델 자락은 제자리.
 - 디딘 발: 한 걸음 원본 275px(게임 45.5px) → 디딘 발은 칸마다 **정확히 68.8px**(±3, 게임 11.4px) 뒤로 — 발끝 x 는 Prompt 의 PLANTED FOOT 표. (병과 전사 R5 는 디딘 발이 30px 앞에 그려져 한 번 고쳤다.)
 - 클라우드가 받은 뒤: `python3 tools/art/receive.py gait/sheet_captain_khan_run` (검사 + `add_gait.py --dry-run`) → 미리보기를 보고 `add_gait.py` 로 붙인다 (`--pose art/requests/guides/run_base/v2/pose.json`).
 
@@ -65,8 +65,8 @@ THE MOVE (owner's three movement classes; light: the accepted run: lean forward,
     YOUR toe tip against these numbers (the size_* images mark them with yellow ticks).
 
 ARMS AND WEAPONS:
-  - Keep the idle bow grip at x=289–301, y=666–678. The bow stays nearly upright, with its upper limb outside the face at x≥305 above y=590. Allow the lower limb to curve back, whole bow and string within x=255–349, y=484–843. The other hand stays unarmed and clear of the string.
-  - Keep the decorative front deel panels over the leading thigh and the front hair locks on the shoulders. Only the rear coat edge and tied rear hair may lift.
+  - Bow in the FAR hand, gripped exactly as in the idle: fist x≈305–341, y≈625–665 round the handle (x≈314–333). The recurved bow stands upright with curled tips and the string toward the body (string x≈291–294, top curl y≈468, bottom curl y≈812). The bow hand stays at this idle spot in all 8 frames and does NOT follow the mannequin's far-arm swing (intended, not a deviation). In R3/R4/R7/R8 the head leans forward onto the mannequin neck at x≈248–252, and no part of the face or front hair may cross the string. If it does, move the whole bow forward by up to 8 px, and the stave never goes past x=349. The whole bow and string fit x=255–349, y=465–845. The near hand stays an empty fist at the chest, clear of the string.
+  - Keep the two gold-ringed braids hanging down the chest on both sides of the gold medallion, inside the cream fur collar: they may sway a few px but never fly back. The fur collar stays round the shoulders. The open deel stays split: the long embroidered near panel hangs over the near thigh and between the legs to about the knee, the short far panel sits on the far thigh, and the wide trousers show between them. Only the loose rear hair locks and the rear coat hem may lift and lag. The back quiver stays fixed, with fletchings above the near shoulder.
   - Face: match the accepted idle in every frame.
 
 MUST NOT CHANGE: outfit, colours, proportions, headgear, weapon and shield shapes and sizes, and the SCALE of the accepted

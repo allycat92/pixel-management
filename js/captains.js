@@ -84,9 +84,9 @@ Object.assign(Game, {
   },
 
   // 실제 용병대장 단원 만들기 (이름·외형·성격이 정해져 있다)
-  makeNamedCaptain(key, level, random) {
+  makeNamedCaptain(key, level) {
     const C = CAPTAINS[key];
-    const m = this.makeCaptain(key, level, random);
+    const m = this.makeCaptain(key, level);
     m.name = C.name; m.title = C.title; m.trait = C.trait || m.trait;
     m.look = { cls: m.cls, cap: key, ...C.look };
     return m;
@@ -159,20 +159,20 @@ Object.assign(Game, {
     });
   },
 
-  completeCaptainChapter(story, random) {
+  completeCaptainChapter(story) {
     const s = this.state, C = CAPTAINS[story.key], cs = s.captains[story.key];
     const ch = C.chapters[story.ch];
     cs.ch = story.ch + 1;
-    if (cs.ch >= C.chapters.length) return this.captainJoin(story.key, ch.after, random);
+    if (cs.ch >= C.chapters.length) return this.captainJoin(story.key, ch.after);
     this.log(`${C.name}의 영입 의뢰 「${ch.title}」 완료! (${cs.ch}/${C.chapters.length})`, 'good');
     s.pendingReports.push({ special: 'dialog', captain: story.key, title: `${ch.title} — 완료`, lines: ch.after, foot: '' });
   },
 
-  captainJoin(key, before = [], random) {
+  captainJoin(key, before = []) {
     const s = this.state, C = CAPTAINS[key], cs = s.captains[key];
     const ph = this.captainPhase(key);
     const level = Math.max(ph ? ph.level : 2, this.rankIndex() * 2 + 2);
-    const m = this.makeNamedCaptain(key, level, random);
+    const m = this.makeNamedCaptain(key, level);
     cs.status = 'joined';
     s.mercs.push(m);
     this.log(`용병대장 ${C.title} ${m.name}(${this.className(m)}, Lv.${m.level})${josa(m.name, '이', '가')} 길드에 합류했습니다! 용병단을 맡기세요.`, 'good');

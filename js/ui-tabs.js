@@ -118,6 +118,8 @@
       el('div', { class: 'row-inline' },
         el('span', { class: 'muted small', text: `숙소 ${Game.bedsUsed()}/${Game.capacity()} · 주급 ${Game.weeklyWageTotal()}${Game.backPayTotal() ? ` (+미룬 급료 ${Game.backPayTotal()})` : ''} · 유지비 ${Game.weeklyUpkeepTotal()} · 약초 ${s.herbs}` }),
         feast, create)));
+    // 용병단이 하나뿐이고 더 만들 수 있으면 한 줄 안내 (주인 결정 7)
+    if (own.length === 1 && own.length < Game.maxCompanies()) root.append(el('p', { class: 'small muted', text: '용병단이 하나뿐이면 의뢰에서 돌아올 때까지 기다리는 날이 많습니다. 용병단을 하나 더 꾸려 대원을 나누면 한쪽이 나가 있는 동안 다른 쪽이 의뢰를 맡을 수 있습니다.' }));
     const grid = el('div', { class: 'company-grid' });
     own.forEach((c) => grid.append(ownCompanyPanel(c)));
     root.append(grid);
@@ -208,6 +210,17 @@
     return `${names[Object.keys(names).sort((a, b) => w[b] - w[a])[0]]} 중시`;
   }
 
+  // 귀환을 기다릴 때의 안내: 넘기기 단추, 그리고 용병단이 하나뿐이면 둘째 용병단 (병영·금화가 허락하면)
+  function waitHint() {
+    const s = Game.state, own = Game.ownCompanies();
+    const lines = ['모든 용병단이 의뢰에 나가 있습니다. 위의 「귀환까지 ▶▶」로 귀환하는 날까지 넘길 수 있습니다.'];
+    if (own.length === 1) {
+      if (own.length < Game.maxCompanies()) lines.push(`용병단이 하나뿐이면 귀환을 기다리는 날이 깁니다. 용병단 화면에서 하나 더 꾸리면(금화 ${Game.companyCost()}) 그동안 다른 의뢰를 맡길 수 있습니다.`);
+      else if (s.facilities.barracks < FACILITIES.barracks.max) lines.push('용병단이 하나뿐이면 귀환을 기다리는 날이 깁니다. 병영을 증축하면 용병단을 하나 더 꾸려 그동안 다른 의뢰를 맡길 수 있습니다.');
+    }
+    return lines.join(' ');
+  }
+
   T.contracts = (root) => {
     const s = Game.state;
     root.append(el('div', { class: 'panel-head' },
@@ -218,6 +231,8 @@
       ['세력 분쟁', s.contracts.filter((c) => !c.campaign && !c.story && !c.boss && !c.capStory && c.cat !== 'monster')],
       ['괴물·치안', s.contracts.filter((c) => !c.campaign && !c.story && !c.boss && !c.capStory && c.cat === 'monster')],
     ];
+    // 보낼 용병단이 하나도 없다 (주인 결정 7: 한 부대 길드는 60~120일의 절반 넘게 귀환만 기다린다 — Q16, stage3_notes.md 「One-company polish」)
+    if (Game.waitingForReturn()) root.append(el('p', { class: 'small muted wait-hint', text: waitHint() }));
     if (!s.contracts.length) root.append(el('p', { class: 'empty', text: '지금은 의뢰가 없습니다. 내일 다시 확인하세요.' }));
     groups.forEach(([name, list]) => {
       if (!list.length) return;
@@ -234,10 +249,13 @@
     }
   };
 
-  // 전투 모드(Game.RESOLVE === 'battle'): 성공률 대신 다섯 단어 (압도 우세 백중 열세 무모). 경고 줄은 없다 — 주인 결정 5
+  // 전투 모드(Game.RESOLVE === 'battle'): 성공률 대신 다섯 단어. 시간 안내는 편성을 마친 파견 창에만 표시한다.
   const BAND_CLASS = ['c-worst', 'c-bad', 'c-mid', 'c-good', 'c-great'];
-  function forecastOf(c, units) {
-    try { return Game.forecast(Game.muster(c, units)); } catch (e) { return null; }
+  function forecastOf(c, units, withTimeRisk = false) {
+    try {
+      const spec = Game.muster(c, units), est = Game.forecast(spec);
+      return withTimeRisk ? { ...est, timeRisk: Stats.timeRisk(spec) } : est;
+    } catch (e) { return null; }
   }
   function wordEl(est) {
     return est ? el('b', { class: BAND_CLASS[est.band], text: `「${Stats.BAND_NAMES[est.band]}」` }) : el('b', { class: 'muted', text: '-' });
@@ -377,11 +395,12 @@
       const us = units();
       const missingHero = Game.storyHeroMissing(c, us);
       if (battle) {
-        const est = us.length && !missingHero ? forecastOf(c, us) : null;
+        const est = us.length && !missingHero ? forecastOf(c, us, true) : null;
         summary.replaceChildren(...[
           missingHero ? storyRequirement(c)
             : us.length ? el('div', { class: 'forecast-line' }, '예상 전황 ', wordEl(est), el('span', { class: 'small muted', text: ` · 소요 ${Game.contractDays(c, us)}일` }))
               : el('div', { class: 'muted', text: c.campaign ? `용병단을 최대 ${slots}개까지 고르세요. (직속·외부 합계)` : '용병단을 하나 고르세요.' }),
+          est?.timeRisk ? el('div', { class: 'small warn time-risk', text: '시간이 빠듯함 · 적을 제시간에 다 쓰러뜨리지 못할 수 있음' }) : null,
           est ? el('div', { class: 'forecast-scale', 'aria-hidden': 'true' }, Stats.BAND_NAMES.map((w, i) => el('span', { class: i === est.band ? `on ${BAND_CLASS[i]}` : '', text: w }))) : null,
           us.length && slots > 1 ? el('div', { class: `small ${us.length >= slots ? 'warn' : 'muted'}`, text: `용병단 ${us.length}/${slots}개${us.length >= slots ? ' · 더 보내려면 하나를 빼야 합니다' : ''} (한 전장에 아군 부대는 최대 ${MAX_DISPATCH}개)` }) : null,
           c.campaign && !c.final ? el('div', { class: 'small warn', text: '이 결전을 맡으면 반대 진영의 제안은 사라집니다.' }) : null,

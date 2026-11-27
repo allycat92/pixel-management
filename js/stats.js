@@ -60,10 +60,21 @@ const Stats = (() => {
     BM_CAL_SPECIAL: { boss: 0.912, capStory: 0.952, story: 1.021, final: 0.966, campaign: 1.009 },
     // 머릿수 보정 (검증 1번): 우리 단원(수습·지원 부대 빼고) 1·2·3명일 때 R 에 곱한다 (4명 이상 1). 후퇴 규칙은 우리 단원의 절반이 쓰러지면 물러나므로
     // 한두 명이 나간 판은 한 명만 쓰러져도 끝난다 — 능력치만 보는 margin 은 그것을 모른다 (맞춤 전 R50: 1명 1.07, 2명 1.14, 3명 1.02, 4명 1.00)
-    BM_CAL_HEADS: [1, 0.95, 0.984, 1, 1],
+    // 2명 0.984 → 0.94 (주인 결정 7): 대장 방식·레벨과 함께 다시 맞췄다 (한 부대 봇의 보낸 전투 + 한 부대 시험 전투 + 다부대 봇, 아래 BM_CAL_LEAD).
+    // 2명 파티(부상·탈진으로 줄어든 판)가 백중 29~39%·우세 88~96% 였다. stage3_notes.md 「One-company polish」
+    BM_CAL_HEADS: [1, 0.95, 0.94, 1, 1],
+    // 대장의 싸움 방식 보정 (주인 결정 7): margin 은 적을 치는 기술과 치유만 센다 — 근접 대장은 앞줄로 걸어 들어가 먼저 쓰러지고(3~4명 파티에서는
+    // 대장 하나가 후퇴 규칙의 절반이다), 아군을 북돋는 기술(전술 지시 공격+25%·방어+20%, 철벽 방진 방어+40%, 노병의 호통 ±20%)은 보이지 않는다.
+    // 첫 대장마다 같은 단어가 다르게 맞았다 (한 부대 시험의 백중 승률: 해결사 39%·창기병 48%·검성 51% … 전술가 87%). 용병단마다 대장의 첫 기술이
+    // 사거리 RANGE_MIN 이상(활·마법·치유)이면 ranged, 아니면 melee 를 곱하고(창기병의 창 16 은 근접), 자기 쪽을 북돋는 기술(tgt 'self' + buff)이 있으면
+    // rally 를 더 곱한다. 대장 없는 용병단·외부 용병단은 1. 여러 용병단은 수습을 뺀 인원으로 평균한다. 모두 1 이면 끈다.
+    // 맞춤: 다부대 봇(시드 201~212·301~312 × 365일, 보낸 11,948전)·한 부대 봇(시드 201~212, 보낸 1,638전)·한 부대 시험 전투(첫 대장 9명, 35,109전)를 같은 무게로,
+    // 조각마다 우세 87%·백중 50% 에 가장 가까운 곱 (stage 3 의 calib 방식, 대장 방식·머릿수 2·우리 레벨을 번갈아). 근거: stage3_notes.md 「One-company polish」
+    BM_CAL_LEAD: { melee: 0.992, ranged: 1.119, rally: 1.044, RANGE_MIN: 40 },
     // 우리 레벨 보정 (검증 4번 초반): [우리 단원 평균 레벨 이하, 곱] 의 계단. 레벨이 낮은 파티는 같은 R 에서 더 졌다
-    // (맞춤 전 R50: 1~3레벨 1.08, 4~9레벨 1.02~1.03, 10~16레벨 1.00, 17레벨+ 0.98). 처음에는 적 레벨로 맞췄으나 새 시드의 1~30일이 여전히 우세 78% 였다
-    BM_CAL_OWNLV: [[3, 0.879], [6, 0.928], [9, 0.946], [12, 1], [16, 1.005], [999, 1.034]],
+    // (맞춤 전 R50: 1~3레벨 1.08, 4~9레벨 1.02~1.03, 10~16레벨 1.00, 17레벨+ 0.98). 처음에는 적 레벨로 맞췄으나 새 시드의 1~30일이 여전히 우세 78% 였다.
+    // 주인 결정 7: BM_CAL_LEAD 와 함께 다시 맞췄다 (3단계 값 0.879 / 0.928 / 0.946 / 1 / 1.005 / 1.034 — 원거리 대장이 많은 후반 파티를 높게 읽던 몫이 레벨 계단에 들어 있었다)
+    BM_CAL_OWNLV: [[3, 0.873], [6, 0.923], [9, 0.958], [12, 0.975], [16, 0.988], [999, 0.997]],
     BM_BOARD_EXTRA: 3,  // 전투 모드: 게시판의 일반 의뢰 칸 + 이만큼 (오늘 3 + 게시판 시설)
     // 중반 경제 (주인 결정 5): 60~120일에 만들어진 마감 있는 의뢰의 보수(금화)와 명성에 1 + 값 × 곡선을 곱한다. 곡선은 BM_MID_DAYS 의 사다리꼴
     // (59일까지·121일부터 0 = 오늘 그대로, 72~110일 1). 등급은 명성만 올리므로 S 시기는 명성이 정한다 — 금화만 ×1.5 로는 S 141 → 140일 (시드 1~12).
@@ -73,15 +84,22 @@ const Stats = (() => {
     BM_MID_REP: 2.25,   // 명성: 가장 높을 때 ×3.25 (S 를 90~110일로 당기는 값. 2 는 S 112/108일, 2.5 는 107/101일 — 시드 1~12 / 13~24)
     BM_MID_DAYS: [59, 72, 110, 121],   // 사다리꼴 [오르기 시작, 다 오름, 내리기 시작, 다 내림] (날짜. 의뢰가 만들어진 날 기준)
     // ── 4단계: 시간 제한과 후반 게시판 (stage3_notes.md 「Stage 4」) ──
-    // 시간 보정 (Q5 #224, Q6 #721): 시간 안에 적을 무너뜨려야 하는 전투(field)는 이길 싸움도 시간이 다해 질 수 있다 — 적이 많고 우리가 적은 판.
-    // 확률로 센다: 3단계의 R 이 말하는 승률 p0 = R^b / (1 + R^b) (b = BM_TIME_SLOPE) 에, 시간 안에 끝낼 확률
-    // S = 1 / (1 + ((killTime − EDGE·LIMIT)⁺ / (TAU·LIMIT))^K) 를 곱하고 (p = p0·S), 그 승률을 다시 R = (p / (1 − p))^(1/b) 로 돌린다.
-    // R 에 곱하는 꼴(첫 시안)은 압도·우세에 맞추면 백중·열세가 한 단계 넘게 떨어졌다 (느린 판의 무모 17%·열세 46% 승, 검토 1번) — 확률에 곱하면
-    // 이기기 쉬운 판은 크게, 이미 어려운 판은 조금 깎인다. 버티는 의뢰(hold)는 그대로. 맞춤·근거: stage3_notes.md 「Stage 4」
-    BM_TIME_EDGE: 0.13,  // 이 몫(× LIMIT ≈ 12초)까지는 그대로 (봇이 보낸 field 전투의 killTime 중앙값 11.7초 — 3단계 보정은 이런 판에 맞춰져 있다)
-    BM_TIME_TAU: 0.4,    // EDGE 를 넘은 시간이 TAU × LIMIT 이면 시간 안에 끝낼 확률 반반
-    BM_TIME_K: 2,        // S 가 떨어지는 가파름 (0 = 끔: 3단계의 예상 그대로)
-    BM_TIME_SLOPE: 10,   // b: 3단계 R → 승률 곡선의 기울기 (logit 승률 = b · ln R; R 1 = 반반)
+    // 시간 보정 (Q5 #224, Q6 #721): margin 은 누가 이기는가만 보고 시간을 모른다. 시간 안에 적을 무너뜨려야 하는 전투(field)에서 두 가지를 센다 —
+    //  ① 빠르기 보정: R × (MID·LIMIT / max(killTime, EDGE·LIMIT))^BIAS. 3단계 보정은 모든 field 전투를 한데 맞춰서, 빨리 끝나는 판은 조금 낮게,
+    //     느린 판은 높게 읽었다 (같은 R 에서 killTime 9~15초 판은 R 이 2.5~4% 모자랐고, 25~40초 판은 봇 0~5%·소수 부대 시험 7% 넘쳤다). MID 에서 1 이라 평균은 그대로
+    //  ② 시간 초과: ①의 R 이 말하는 승률 p0 = R^b / (1 + R^b) (b = SLOPE) 에 시간 안에 끝낼 확률
+    //     S = 1 / (1 + ((killTime − EDGE·LIMIT) / (TAU·LIMIT))^K) 를 곱하고 (p = p0·S), 다시 R = (p / (1 − p))^(1/b) 로 돌린다.
+    //     이기기 쉬운 판(압도)은 크게, 이미 어려운 판은 조금만 깎인다 — 느린 판에는 압도가 없다
+    // 버티는 의뢰(hold)는 그대로. 첫 시안(R × (0.22·LIMIT / killTime)^1.5, 한쪽만)은 압도·우세에 맞추느라 느린 판의 무모·열세·백중을
+    // 한 단계 넘게 떨어뜨렸다 (무모 17%·열세 46%·백중 70% 승, 4단계 검토 1번) — 20~30초 판의 패배는 대부분 시간 초과가 아니라 주고받기였다.
+    // 맞춤: 소수 부대 시험(시드 8101~8112, 별을 무모까지 고르게, 20,152 field 전투)과 봇 게임(시드 8501~8512, 보낸 것 + 본 것, 9,212)의
+    // 같은 무게 최대우도. 근거: stage3_notes.md 「Stage 4」
+    BM_TIME_EDGE: 0.13,  // ①의 아래 끝과 ②가 시작하는 곳: LIMIT × 0.13 ≈ 12초
+    BM_TIME_MID: 0.2,    // ①이 1 인 곳: LIMIT × 0.2 = 18초 (이보다 빠르면 R 이 조금 오르고 — 12초 이하 ×1.035 — 느리면 내린다: 30초 ×0.96, 45초 ×0.93)
+    BM_TIME_BIAS: 0.08,  // ①의 지수 (0 = ① 끔)
+    BM_TIME_TAU: 0.77,   // ② EDGE 를 넘은 시간이 TAU × LIMIT(≈ 69초) 이면 시간 안에 끝낼 확률 반반 (killTime 30초 ≈ 0.93, 45초 ≈ 0.80, 80초 ≈ 0.51)
+    BM_TIME_K: 1.9,      // ② S 의 가파름. 0 = 시간 보정 ①② 모두 끔 (3단계의 예상 그대로)
+    BM_TIME_SLOPE: 13,   // ② b: ①의 R → 승률 곡선의 기울기 (logit 승률 = b · ln R, R 1 = 반반. 같은 시험의 맞춤 12.7~14)
     BM_TIME_HEAL: 0.6,  // killTime: 적의 치유를 이만큼 빼고 센다 (margin 의 rho 와 같은 0.6)
     BM_TOP_STEP: 3.5,   // 전투 모드(일반 의뢰) ★11~14 의 별 하나에 오르는 적 레벨 (BM_LATE_STEP 과 같으면 3단계 그대로)
     BM_LATE_OPEN: [150, 30],   // 재앙 없이 높은 별 열기 (S 등급일 때): [★11 이 열리는 날, 별 하나 더 열리는 간격(일)] — 150·180·210·240일에 ★11~14. 간격 0 = 끔 (3단계: ★10 에서 멈춤)
@@ -319,12 +337,38 @@ const Stats = (() => {
   const foeKind = (spec) => (spec.groups.some((g) => g.kind === 'foe' && g.units[0] && g.units[0].mon) ? 'monster' : 'soldier');
   const bandOf = (R) => KN.BANDS.filter((e) => R >= e).length;   // 0 무모 … 4 압도
   // 굳힌 편성 → { R, band }. R = 1 이 '반반'이 되도록 CAL_KIND 로 맞춘다 (보정 전에는 1).
-  // 전투 모드의 편성(spec.bm)은 적 틀·의뢰 갈래·머릿수·우리 레벨 보정을 더한다 (BM_CAL_ARCH, BM_CAL_SPECIAL, BM_CAL_HEADS, BM_CAL_OWNLV)
-  // 4단계 시간 보정: R 이 말하는 승률에 시간 안에 끝낼 확률 S 를 곱해 다시 R 로 (BM_TIME_SLOPE)
+  // 전투 모드의 편성(spec.bm)은 적 틀·의뢰 갈래·머릿수·우리 레벨·대장 방식 보정을 더한다 (BM_CAL_ARCH, BM_CAL_SPECIAL, BM_CAL_HEADS, BM_CAL_OWNLV, BM_CAL_LEAD)
+  // 4단계 시간 보정 ②: R 이 말하는 승률에 시간 안에 끝낼 확률 S 를 곱해 다시 R 로 (BM_TIME_SLOPE). 받은 R 보다 높아지지 않는다
   function fromP(R0, S) {
     const b = KN.BM_TIME_SLOPE, q = Math.pow(Math.max(R0, 1e-6), b), p = (q / (1 + q)) * S;
     const R = +Math.min(R0, Math.pow(p / Math.max(1e-12, 1 - p), 1 / b)).toFixed(3);
     return { R, band: bandOf(R) };
+  }
+  const timeSurvival = (tk, lim, edge) => 1 / (1 + Math.pow((tk - edge) / (KN.BM_TIME_TAU * lim), KN.BM_TIME_K));
+  // 표시는 전투 예상과 같은 시간 보정식에서 온다. 버티는 의뢰에는 해당하지 않는다.
+  function timeRisk(spec) {
+    if (!spec.bm || spec.rule === 'hold' || KN.BM_TIME_K <= 0) return false;
+    const lim = spec.limit || KN.LIMIT, edge = KN.BM_TIME_EDGE * lim, tk = killTime(spec.groups);
+    // 현 보정값에서 약 31초: Q11의 2인 거점 공략부터 이유를 표시한다.
+    return tk > edge && timeSurvival(tk, lim, edge) <= 0.92;
+  }
+  // 대장의 싸움 방식 (BM_CAL_LEAD): 'ranged' (첫 기술이 RANGE_MIN 이상: 활·마법·치유) | 'melee', rally = 자기 쪽을 북돋는 기술이 있다
+  function leadStyle(sk) {
+    if (!sk || !sk.length) return null;
+    return { ranged: (sk[0].range || 0) >= KN.BM_CAL_LEAD.RANGE_MIN, rally: sk.some((k) => k.tgt === 'self' && k.buff) };
+  }
+  // 직속 용병단마다 대장의 방식 곱, 수습을 뺀 인원으로 평균 (대장 없는 용병단·외부 용병단은 1)
+  function leadCal(spec) {
+    const L = KN.BM_CAL_LEAD;
+    let w = 0, f = 0;
+    spec.groups.forEach((g) => {
+      if (g.kind !== 'own' && g.kind !== 'ext') return;
+      const n = g.units.filter((u) => !u.recruit).length;
+      const ld = g.kind === 'own' && g.units.find((u) => u.leader && u.capKey);
+      const st = ld && leadStyle(ld.sk);
+      w += n; f += n * (st ? (st.ranged ? L.ranged : L.melee) * (st.rally ? L.rally : 1) : 1);
+    });
+    return w ? f / w : 1;
   }
   function forecast(spec) {
     let cal = KN.CAL_KIND[foeKind(spec)] || 1;
@@ -338,10 +382,12 @@ const Stats = (() => {
       const olv = lvs.length ? lvs.reduce((a, b) => a + b, 0) / lvs.length : 1;
       const lvStep = KN.BM_CAL_OWNLV.find(([x]) => olv <= x);
       cal *= lvStep ? lvStep[1] : 1;
-      // 4단계 시간 보정: 버티는 의뢰가 아니면, 적을 다 깎는 어림 시간이 EDGE 를 넘을수록 승률을 깎는다 (fromP)
+      cal *= leadCal(spec);
+      // 4단계 시간 보정: 버티는 의뢰가 아니면 적을 다 깎는 어림 시간으로 ① R 을 고치고 ② 시간 초과의 몫만큼 승률을 깎는다
       if (spec.rule !== 'hold' && KN.BM_TIME_K > 0) {
-        const lim = spec.limit || KN.LIMIT, over = killTime(spec.groups) - KN.BM_TIME_EDGE * lim;
-        if (over > 0) return fromP(margin(spec.groups) * cal, 1 / (1 + Math.pow(over / (KN.BM_TIME_TAU * lim), KN.BM_TIME_K)));
+        const lim = spec.limit || KN.LIMIT, T0 = KN.BM_TIME_EDGE * lim, tk = killTime(spec.groups);
+        const R1 = margin(spec.groups) * cal * Math.pow(KN.BM_TIME_MID * lim / Math.max(tk, T0), KN.BM_TIME_BIAS);
+        return tk > T0 ? fromP(R1, timeSurvival(tk, lim, T0)) : { R: +R1.toFixed(3), band: bandOf(+R1.toFixed(3)) };
       }
     }
     const R = +(margin(spec.groups) * cal).toFixed(3);
@@ -389,5 +435,5 @@ const Stats = (() => {
   }
 
   return { KN, KNOBS, REF, ARCH, RANK, ELV, ELV_BM, ARMOR_DEF, BAND_NAMES, rng, mix, raw, parts, sheet, aptOf, aidOf, armorDef, ref, enemy, generic,
-    kindOf, nominalReq, scale, ruleOf, margin, killTime, foeKind, bandOf, forecast, oursOf, judge, monsterSkills, foeShare };
+    kindOf, nominalReq, scale, ruleOf, margin, killTime, timeRisk, foeKind, bandOf, forecast, leadStyle, leadCal, oursOf, judge, monsterSkills, foeShare };
 })();

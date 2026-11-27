@@ -17,7 +17,7 @@
 
 - 부류: **경량** — hooded cloak over a fitted tunic, trousers and boots; recurve longbow; tall slender elf. (tools/art/specs/gait_classes.json)
 - 납품: art-inbox `art/inbox/gait/sheet_captain_elfwarden_run_a.png` (R1~R4) + `art/inbox/gait/sheet_captain_elfwarden_run_b.png` (R5~R8) + `art/inbox/NOTES.md` 절 「gait/sheet_captain_elfwarden_run - 세레니엘 이동」 + 「## 판정 — gait/sheet_captain_elfwarden_run」. 파일 이름은 부류와 상관없이 `_run_` (엔진의 `anims.run`).
-- 팔·무기: 한 손 반곡궁은 대기보다 세워 윗부분을 x=315–343에 둔다. 손 y=649–662. 앞 머리와 앞자락 자리 유지.
+- 팔·무기: 한 손 반곡궁은 먼 손: 팔꿈치를 굽혀 배 앞에 든다(손 x=288–298, y=649–662, 마네킹 팔 흔들기 안 따름). 대기보다 세워 윗부분을 x=315–343에 둔다. 앞 땋은 머리와 앞 튜닉 자락 유지, 긴 뒷머리·긴 뒷망토는 조금 뒤따른다.
 - 디딘 발: 한 걸음 원본 275px(게임 45.5px) → 디딘 발은 칸마다 **정확히 68.8px**(±3, 게임 11.4px) 뒤로 — 발끝 x 는 Prompt 의 PLANTED FOOT 표. (병과 전사 R5 는 디딘 발이 30px 앞에 그려져 한 번 고쳤다.)
 - 클라우드가 받은 뒤: `python3 tools/art/receive.py gait/sheet_captain_elfwarden_run` (검사 + `add_gait.py --dry-run`) → 미리보기를 보고 `add_gait.py` 로 붙인다 (`--pose art/requests/guides/run_base/v2/pose.json`).
 
@@ -42,7 +42,7 @@ REFERENCES (load all; if the sheet or a guide does not load, do not draw - write
   - art/requests/guides/run_base/v2/pose.json (the numbers below come from it), art/requests/guides/run_base/v2/run_base_preview.gif (the motion at speed), art/requests/guides/run_base/v2/run_base.aseprite (the mannequin source -
     you may open it as an underlay and draw on your own layers, but the delivered PNGs contain ONLY your drawing).
 
-CHARACTER (unchanged from the accepted sheet): Sereniel, pale-haired elf in a fitted green tunic and hooded short shoulder cloak, with back quiver, exposed trousers and boots. Match the sharply recurved bow.
+CHARACTER (unchanged from the accepted sheet): Sereniel, pale-haired elf with very long silver hair, a side braid hanging in front, a gold circlet and a green leaf hair ornament. Over the shoulders a short leaf-patterned capelet, over a long dark-green cream-trimmed cloak that hangs behind her to about the boot tops. A green tunic with short front flaps to mid-thigh over dark trousers, brown boots, back quiver. No hood is drawn up. Match the sharply recurved bow.
 
 THE MOVE (owner's three movement classes; light: the accepted run: lean forward, press down in flight, rise a little after the landing is caught, hip nearly level, slight float, no hopping. It is already in the mannequin - copy it, do not invent another):
   - Each frame: the legs, the torso lean and the arm swing of that mannequin frame. Joint for joint: hips, knees, ankles, feet,
@@ -65,8 +65,8 @@ THE MOVE (owner's three movement classes; light: the accepted run: lean forward,
     YOUR toe tip against these numbers (the size_* images mark them with yellow ticks).
 
 ARMS AND WEAPONS:
-  - Use the outstretched idle bow hand at x=288–298, y=649–662. Straighten the diagonal idle carry enough that the upper recurve sits around x=315–343 at face height; do not shorten the bow. Let the lower recurve return toward x=242–280, below the waist. Whole bow and string inside x=235–350, y=477–810. Keep the free near hand at the belt with a short swing.The left SIZE panel crops the end of the idle weapon after aligning the hip. Use the original accepted sheet for its complete silhouette and dimensions.
-  - Keep the shoulder cloak seated, front hair locks and front tunic edge over the chest and advancing thigh. The quiver stays on the back; only the rear tips respond to the step.
+  - Bow in the FAR (forward) hand, as in the idle. The idle arm is straight, but at that reach the bow would leave the slot. So in every frame bend the far elbow (down and slightly back, beside the ribs) and hold the bow grip about a forearm's length in front of the stomach, fist at x=288–298, y=649–662. The mannequin's far-arm swing does not apply to this hand (intended, not a deviation). Straighten the diagonal idle tilt enough that the upper recurve sits around x=315–343 at face height; do not shorten the bow. Let the lower recurve return toward x=242–280, below the waist. Whole bow and string inside x=235–350, y=477–810. Keep the free near fist at the rear hip by the belt, as in the idle, with a short swing. The left SIZE panel crops the end of the idle weapon after aligning the hip. Use the original accepted sheet for its complete silhouette and dimensions.
+  - Keep the capelet seated on the shoulders. In every frame keep the side braid hanging in front of the chest to the belt, and the short front tunic flap over the advancing thigh. The long loose back hair and the long back cloak (hem near the boot tops) trail a little behind the body and swing with the step. In R4/R8 their lowest pixel stays at or above y=852. The quiver stays fixed on the back.
   - Face: match the accepted idle in every frame.
 
 MUST NOT CHANGE: outfit, colours, proportions, headgear, weapon and shield shapes and sizes, and the SCALE of the accepted

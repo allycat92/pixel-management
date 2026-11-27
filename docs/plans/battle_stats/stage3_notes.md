@@ -484,156 +484,246 @@ SIM_SEED=1 SIM_RESOLVE=battle node tools/sim/bot.js 12 365 --jobs 4 --set BM_MID
 
 ## Stage 4: time limit and late board
 
-Date 2026-11-27. Two problems from the play tests, battle mode only. Roll mode is unchanged:
-`SIM_JSON=1 node tools/sim/bot.js 6 200 | md5sum` = `db19b56ed19e852d5bf78fecf3e729f8` with and without `SIM_SHADOW=1`,
-`node tools/sim/battle.js 100` miss 0 / soft 0 in all outcomes. `node tools/sim/shadow.js 6 365 --resolve battle --check --jobs 4`:
-2,890 battles, every invariant 0. Not touched: the battle engine and its 90 s limit, `BANDS`, `CAL_KIND`, every `BM_CAL_*`,
-`BOARD_W` (무모 weight, decision 6), `BM_MID_*` (decision 5).
+Date 2026-11-27. Two problems from the play tests, battle mode only. This section was revised after an adversarial review of the
+first draft (see "Review of the first draft" at the end): the first time term over-corrected and has been replaced.
+
+Roll mode is unchanged: `SIM_JSON=1 node tools/sim/bot.js 6 200 | md5sum` = `21b6184246abf071a0f40918718244b6` with and without
+`SIM_SHADOW=1` (the roll baseline moved from `db19b56e…` to `21b61842…` with C13 in `ab0dec5`, before this revision; the stage-4
+code does not touch it). Not touched: the battle engine and its 90 s limit, `BANDS`, `CAL_KIND`, every `BM_CAL_*`, `BOARD_W`
+(무모 weight, decision 6), `BM_MID_*` (decision 5).
 
 ### A. Time limit: the forecast did not know the clock
 
-**Cause.** `margin()` asks "how many times stronger must the enemy be for an even fight" from dps × effective hp; it has no
-time in it. A field battle (everything but escort / defense / warDefense / envoy) is lost when the clock runs out with the enemy
-standing. A party of 1-2 against 2-3 enemy groups of 3-4 soldiers (siege, raid, rescue, sabotage …) can win every exchange and
-still not finish in 90 s (Q5 #224, Q6 #721: 0 of ours down, 51-62% of the enemy destroyed).
+**Cause.** `margin()` asks "how many times stronger must the enemy be for an even fight" from dps × effective hp; it has no time
+in it. A field battle (everything but escort / defense / warDefense / envoy) is lost when the clock runs out with the enemy
+standing, and a small party against 2-3 enemy groups (siege, raid, rescue, sabotage …) can win every exchange and still not finish
+(Q5 #224, Q6 #721: 0 of ours down, 51-62% of the enemy destroyed).
 
-Measured before the change (seeds 1-12 and 201-212, stage-3 code + the new probe column):
-- In the sensible bot's own games small parties are rare and the effect is small: timeout losses at a 우세-or-better word
-  0.26% of battles (bot sent + looked at, 36,749).
-- A **small-party probe** (scratch `stage4/tools/probe.js`) builds, every 15th day of a bot game, synthetic ordinary contracts of
-  all 12 types at a star in each word 열세-압도 for the top-k members (k = 1-4) and a random pair / single of every company, and runs
-  the battle (45,019 battles on the fit seeds, 22,617 on 301-312, 22,196 on 9001-9012). There: timeout losses at ≥우세 1.8% for
-  a single member and 1.0% for two in field battles (siege single 2.1-3.1%), against 0.3-0.5% for 3-4.
-- Within a word the win rate falls steadily with the estimated kill time (below), not only by timeouts: 우세 wins 92% when
-  `killTime` < 10 s, 77% at 20-30 s, 57% at 40-50 s; 압도 drops to 92% at 25-35 s.
+**What the data says** (`Stats.killTime`: total enemy hp / (our whole side's dps against their defence − 0.6 × their healing), both
+sides at full strength; R-factor = how much the stage-3 R must be scaled for a logit fit with slope 13 to match the wins, stars
+with R 0.75-1.6):
 
-**Change** (`js/stats.js`):
-- `Stats.killTime(groups)`: seconds our whole side (own, external, support, trainees) needs to strip the enemy's total hp at the
-  starting strength of both sides: Σ enemy hp / (our dps against their defence − `BM_TIME_HEAL` × their healing per second).
-  Uses the same `unitRates` / `sideOf` as `margin` (`sideUnitsOf` was factored out of `margin`, arithmetic unchanged).
-- `forecast(spec)`, battle-mode specs only, rule ≠ `hold`: if `killTime` > `BM_TIME_EDGE` × `spec.limit`, R is multiplied by
-  `(BM_TIME_EDGE × limit / killTime) ^ BM_TIME_EXP`. One-sided: fights that end in time are not touched, so the stage-3
-  calibration stays where it was for them. The board's capability table (`Game.capability`) uses the same forecast, so card,
-  dispatch and board aim read the same word.
-- `tools/sim/shadow.js` rows carry `tk` (battle mode); `tools/sim/bot.js` (battle mode) prints win by word per number of our
-  members (from the frozen spec, campaigns count all companies), "lost on time" by members, by members at ≥우세 and by type.
+| killTime | probe R-factor | bot R-factor | probe timeouts | bot timeouts |
+|---|---|---|---|---|
+| 9-12 s | 1.024 | 1.030 | 0% | 0% |
+| 12-15 s | 1.028 | 1.040 | 0.1% | 0% |
+| 15-20 s | 0.991 | 1.017 | 0.4% | 0.2% |
+| 20-25 s | 0.954 | 0.990 | 0.9% | 0.3% |
+| 25-30 s | 0.933 | 0.998 | 2.1% | 2.2% |
+| 30-40 s | 0.925 | 0.953 | 3.9% | 1.2% |
+| 40-60 s | 0.904 | (n 38) | 13% | 5% |
+| > 60 s | 0.827 | - | 54% | - |
+
+Probe = small-party probe (below), seeds 8101-8112 + 8301-8312; bot = sensible bot's sent + looked-at battles, seeds 8501-8512.
+Two things are going on: (1) the stage-3 calibration was fitted on all field battles together, so fights that end fast read a
+little low and slow fights read high, and most of the slow-fight losses at 20-40 s are lost exchanges, not timeouts (old 백중 at
+20-30 s: 30% won, 2% timeouts); (2) real timeouts only take over past ~45 s.
+
+**First draft and why it was replaced.** The first draft multiplied R by `(0.22·LIMIT / killTime)^1.5` above 20 s. Tuned on
+우세/압도 timeouts, it pushed slow fights more than a word down: in the review's probe (which also samples stars that now read
+무모), slow field fights (killTime > 20 s) won 무모 17% / 열세 46% / 백중 70%; the bot's 백중 went 45 → 53% because the
+fast part's under-reading was left alone.
+
+**Change** (`js/stats.js`, `forecast()`, battle-mode specs, rule ≠ `hold`; `Stats.killTime` and the `sideUnitsOf` factoring
+are kept from the first draft):
+1. Speed factor, both ways: `R1 = R × (MID·LIMIT / max(killTime, EDGE·LIMIT))^BIAS` — 1 at 18 s, ×1.035 at 12 s or less,
+   ×0.96 at 30 s, ×0.93 at 45 s. Centred on the bot's typical fight, so the pooled stage-3 calibration does not move.
+2. Timeout, in probability: `p0 = R1^b / (1 + R1^b)` (b = `BM_TIME_SLOPE`), `S = 1 / (1 + ((killTime − EDGE·LIMIT)/(TAU·LIMIT))^K)`,
+   `p = p0·S`, `R = (p / (1 − p))^(1/b)` (never above R1). An easy fight (압도) loses most when the clock is short; a fight that
+   is already hard loses little — so a slow fight cannot read 압도, and a slow 백중 does not fall to 무모. `S` = 0.93 at 30 s,
+   0.80 at 45 s, 0.51 at 80 s.
+3. The board's capability table uses the same forecast, so card, dispatch and board aim read the same word. `BM_TIME_K=0`
+   switches 1 and 2 off (stage-3 forecast).
 
 | Constant | Value | Reason |
 |---|---|---|
-| `BM_TIME_EDGE` | 0.22 (≈ 20 s of 90) | Bot-sent field battles: median `killTime` 11.7 s, 12% above 20 s, so most battles keep their word. Grid over edge 0.12-0.30 × exponent 0.25-3 (and two-sided forms, which were worse) on the probe and bot fit sets; 0.20-0.22 had the lowest slice error on both. |
-| `BM_TIME_EXP` | 1.5 (0 = off) | 1-2 gave the same slice error; 1.5 cut the timeout losses at ≥우세 most without pushing 백중 further up. |
-| `BM_TIME_HEAL` | 0.6 | Enemy healing counted at the same 0.6 as in `margin`'s `rho`. |
+| `BM_TIME_EDGE` | 0.13 (≈ 12 s) | Lower clamp of the speed factor and start of the timeout term. Below it the bins are flat. |
+| `BM_TIME_MID` | 0.2 (18 s) | Speed factor 1 here. ML fit 0.202. |
+| `BM_TIME_BIAS` | 0.08 (0 = speed factor off) | ML fit 0.067 (probe and bot weighted equally); 0.08-0.10 read the same in every slice. |
+| `BM_TIME_TAU` | 0.77 (≈ 69 s past EDGE) | ML fit. |
+| `BM_TIME_K` | 1.9 (0 = whole time term off) | ML fit. |
+| `BM_TIME_SLOPE` | 13 | Slope of logit(win) on ln R; fits on the same data gave 12.7-14 (hold battles 14.7). |
+| `BM_TIME_HEAL` | 0.6 | Enemy healing in `killTime`, the same 0.6 as in `margin`'s `rho`. |
 
-**Out of sample, offline** (the same battles re-worded with the new forecast; seeds never used for the fit):
+Fit: maximum likelihood of `σ(13·ln R1)·S` on probe seeds 8101-8112 (20,152 field battles) and bot seeds 8501-8512 (9,212 field
+battles, both populations weighted equally). One-sided forms were also fitted (pure probability term; probability term with
+a one-sided bias 0.12; `TAU` scaled by R^c): each matched the probe but read the bot's fights 6-12 points safe at 백중, or the
+reverse. The two-sided form was the only one that kept both.
 
-| Probe, seeds 301-312 (22,617) | 백중 | 우세 | 압도 | timeout loss at ≥우세 |
-|---|---|---|---|---|
-| all | 46% → 49% | 87% → 89% | 100% → 100% | 0.9% → 0.3% |
-| 1 member / 2 / 3 / 4+ | 51/42/49/39 → 55/45/53/41% | 88/88/89/82 → 90/90/90/83% | 99/99/100/100 → 100/100/100/100% | 1.5/0.6/0.5/0.2 → 0.5/0.2/0.3/0.1% |
-| field, 1 member / 2 | 49/43 → 55/48% | 86/88 → 90/90% | 99/99 → 100/100% | 2.2/1.0 → 0.7/0.3% |
-| siege (all sizes) / siege 1 member | 43/43 → 49/48% | 87/85 → 90/92% | 99/98 → 99/99% | 1.6/3.1 → 0.6/1.1% |
-| raid / rescue / sabotage / counterspy | 47/47/39/42 → 53/52/44/47% | 87/88/88/86 → 90/92/90/90% | 100/99/100/100 → 100/100/100/100% | 1.3/1.9/1.0/1.7 → 0.4/0.5/0.5/0.7% |
-| hunt / explore / magic | 45/52/45 → 52/59/46% | 87/90/82 → 88/91/83% | 99/99/100 → 100/99/100% | 1.0/0.7/0.8 → 0.2/0.2/0.4% |
-| hold types (escort, defense, warDefense, envoy) | unchanged | unchanged | unchanged | 0 |
+**Small-party probe** (scratch `fix/probe3.js`): every 20th day of a bot game, for each company and each subset (top 1-4 members
+by level and a random 1 and 2), three synthetic ordinary contracts of random type; for each, one star drawn with the old word
+stratified 무모-압도 (old R ≥ 0.5) and one star drawn from the slow field stars (killTime > 15 s). Both forecasts are recorded on
+the same battle. Unlike the first draft's probe, stars that read 무모 are sampled.
 
-Bot battles (sent + looked at) of seeds 301-312 and 401-412 (24,702): 백중 48 → 52%, 우세 88 → 89%, 압도 99 → 99%, timeout loss
-at ≥우세 0.3 → 0.1%; rescue 우세 81 → 86%, sabotage 82 → 84%.
+**Out of sample, in the game** (new code, probe seeds 8401-8412, never used; 26,440 battles; "old" = the stage-3 forecast of
+the same battle). Win rate by word 무모 / 열세 / 백중 / 우세 / 압도, and timeout losses among ≥우세:
 
-**In the game** (new code, the probe on seeds 9001-9012, never used; the board and the bot react to the new words):
-timeout loss at ≥우세 0.8% → 0.5% (field: 1 member 1.7 → 1.1%, 2 members 1.5 → 0.7%, 3-4 0.3-0.5 → 0.2%); words 백중 45 → 50%,
-우세 88 → 88%, 압도 100 → 100%; by members 우세 88/87/92/87 → 89/87/89/83%, 백중 50/41/49/41 → 56/46/52/44%. The remaining
-timeouts at ≥우세 are mostly at a `killTime` of 12-30 s (estimation noise) and a few engine stand-offs (see open issues).
+| Slice | old | new | timeout ≥우세 old → new |
+|---|---|---|---|
+| all (incl. hold) | 0 / 14 / 46 / 88 / 99% | 1 / 15 / 47 / 88 / 100% | 1.2 → 0.7% |
+| field, killTime ≤ 12 s | 11 / 15 / 53 / 94 / 100% | 0 / 11 / 42 / 90 / 100% | 0.1 → 0.1% |
+| field, killTime > 20 s | 0 / 12 / 34 / 75 / 88% | 1 / 16 / 43 / 85 / – | 10.5 → 6.9% |
+| field, 1 member | 0 / 20 / 52 / 88 / 98% | 1 / 21 / 52 / 89 / 100% | 2.8 → 1.8% |
+| field, 2 members | 0 / 11 / 43 / 84 / 99% | 0 / 12 / 43 / 86 / 99% | 1.8 → 1.1% |
+| field, 3 members | 0 / 13 / 48 / 91 / 100% | 0 / 14 / 49 / 90 / 100% | 0.6 → 0.4% |
+| field, 4 members | 1 / 14 / 37 / 84 / 100% | 1 / 15 / 36 / 82 / 100% | 0.1 → 0.1% |
+| slow (> 20 s), 1 member | 0 / 15 / 41 / 74 / 82% | 1 / 19 / 48 / 83 / – | 15.4 → 9.9% |
+| slow, 2 members | 0 / 8 / 28 / 73 / 90% | 0 / 12 / 39 / 85 / – | 8.7 → 5.6% |
+| slow, 3+ members | 0 / 12 / 31 / 81 / 100% | 0 / 15 / 40 / 88 / – | 4.3 → 3.6% |
+| siege (all) / siege with 1-2 members | 0 / 16 / 44 / 85 / 99% · 0 / 15 / 48 / 85 / 99% | 0 / 16 / 44 / 85 / 99% · 0 / 14 / 45 / 87 / 99% | 1.3 → 0.9% · 1.4 → 0.9% |
+| raid / rescue / sabotage / counterspy (백중 · 우세) | 47·86 / 42·88 / 44·83 / 43·86% | 47·87 / 42·87 / 41·83 / 40·87% | 1.5→0.7 / 1.9→1.1 / 1.8→1.4 / 2.8→1.6% |
+| hunt / explore / magic (백중 · 우세) | 47 · 88% | 50 · 88% | 1.4 → 0.9% |
+| hold types | unchanged | unchanged | 0 |
+| Q6 class (old R 1.20-1.35, killTime > 20 s) | 우세 88% (166) | 우세 90% (163) | 9.0 → 7.4% |
 
-Sensible bot, 7 sets × 12 × 365 (before = `--set BM_TIME_EXP=0 --set BM_LATE_OPEN=[150,0]`), sent battles only:
+The probe's 4-member subsets (top four by level) read 백중 36-37% before and after: that is a stage-3 calibration matter of these
+synthetic parties (the bot's 4+ parties read 45%), not time.
+
+**Out of sample, bot battles** (new code, seeds 8601-8612, never used, 12,765 sent + looked-at battles):
+
+| Slice | old | new | timeout ≥우세 |
+|---|---|---|---|
+| all | 1 / 16 / 48 / 89 / 100% | 1 / 16 / 46 / 87 / 100% | 0.19 → 0.14% |
+| field, killTime ≤ 12 s | 33 / 33 / 65 / 91 / 99% | 0 / 29 / 56 / 87 / 99% | 0.11 → 0.10% |
+| field, killTime > 20 s | 0 / 10 / 39 / 83 / 100% (33) | 0 / 15 / 45 / 87 / – | 2.0 → 1.4% |
+| field 3 / 4+ members (백중 · 우세) | 45·86 / 49·89% | 44·87 / 45·87% | 0.70→0.55 / 0.16→0.11% |
+| siege / rescue / sabotage / raid (백중 · 우세) | 59·79 / 41·87 / 51·86 / 52·86% | 55·81 / 33·83 / 46·83 / 49·85% | 1.4→1.3 / 0.5→0.4 / 0.4→0.0 / 0.8→0.8% |
+
+The review's own probe file (seeds 8001-8008, which over-samples stars whose word the first draft changed), re-worded offline,
+field killTime > 20 s: old – / 7 / 31 / 64 / 86%, first draft 17 / 46 / 70 / 91 / 96%, now 4 / 12 / 39 / 77 / –; timeout ≥우세
+11% / 5% / 9%. The words are no longer on the safe side there; they still lean a little optimistic in that sample.
+
+**Sensible bot, 6 sets × 12 games × 365 days** (sets 1, 13, 5001, 6001, 7101, 9201; none used for this fit. Before =
+`--set BM_TIME_K=0 --set 'BM_LATE_OPEN=[150,0]'`, i.e. stage 3):
 
 | | before | after |
 |---|---|---|
-| Win 백중 / 우세 / 압도 (all sets) | 45.3 / 86.8 / 99.6% | 51.4 / 88.1 / 99.7% |
-| 우세 by members 1 / 2 / 3 / 4+ (sets 13, 201, 9101, 9201 [+9001 after]) | 87 (31) / 85 (151) / 88 / 86% | 92 (36) / 87 (107) / 90 / 88% |
-| 백중 by members 1 / 2 / 3 / 4+ | 33 (9) / 49 (39) / 44 / 45% | 70 (10) / 59 (27) / 56 / 51% |
-| Lost on time, all sent battles by members 1 / 2 / 3 / 4+ | 1.5 / 0.6 / 0.4 / 0.2% | 0.0 / 0.0 / 0.1 / 0.1% |
-| Lost on time at ≥우세, members 2 / 3 / 4+ | 0.7 / 0.3 / 0.2% | 0.0 / 0.1 / 0.1% |
-| Lost on time by type: siege / sabotage / rescue / raid / campaign (all sets) | 0.6 / 1.3 / 1.5 / 0.3 / 1.6% | 0.2 / 0.3 / 0.3 / 0.2 / 0.4% |
+| Win 백중 / 우세 / 압도 (pooled) | 45.4 / 87.1 / 99.7% | 46.1 / 86.4 / 99.6% |
+| 우세 by members 1 / 2 / 3 / 4+ | 84 (55) / 90 (307) / 88 / 87% | 97 (60) / 91 (237) / 89 / 86% |
+| 백중 by members 2 / 3 / 4+ (1 member: n 6-7) | 41 (85) / 47 / 45% | 37 (68) / 52 / 45% |
+| Lost on time, all sent, by members 1 / 2 / 3 / 4+ | 0.0 / 0.3 / 0.4 / 0.2% | 0.0 / 0.0 / 0.3 / 0.1% |
+| Lost on time at ≥우세, members 2 / 3 / 4+ | 0.4 / 0.3 / 0.2% | 0.0 / 0.2 / 0.1% |
+| Lost on time by type: siege / sabotage / rescue / raid / campaign | 0.7 / 0.9 / 0.8 / 0.6 / 0.9% | 0.6 / 0.6 / 0.7 / 0.2 / 0.5% |
 
-The word is now on the safe side for small parties: a slow fight reads a word lower, so 백중 wins a bit more than half
-(51% pooled, 55-59% for one or two members in the probe). That is the price of a one-sided term on top of a calibration
-that was fitted without it; `BM_CAL_HEADS` was left as it is (task constraint).
+**Single-member bot** (review's `sbot.js`, STRAT=single, seeds 201-212): 1-member 백중 62.1% (311) → 65.0% (306), 우세 90.6 →
+91.7%, 압도 99.9 → 99.8%; lost on time 0.3 → 0.1%. The 62% before is stage 3's; the time term adds about 3 points (the first
+draft added 7). In the probe, where single members are drawn at random, 1-member 백중 reads 51% (seeds 8101-8401 pooled), so the
+lean belongs to the bot's choice of who goes alone, not to time (see open issues).
 
 ### B. Late board: the high stars waited for a calamity
 
 **Cause.** `battleCap()` was `lateGame() ? 14 : rank + BM_CAP_AHEAD`, clamped to `maxContractLevel()` (10 unless a calamity has
 risen). At rank S that is ★10. In a game where no calamity rises the best company outgrows ★10 by day ~200 and every ordinary
-offer reads 압도 for it (Q8: 13 of 14 boards after day 240). Measured: bot games with the calamity suppressed (scratch
-`stage4/tools/nocal.js`, `riseCalamity` a no-op), seeds 1-12 / 9001-9012, days 241-365: a 열세-or-harder offer on 22% / 32% of
-boards, a 백중-or-harder on 35% / 48%, highest star 9.7-9.8; in normal games, the days without a calamity: 6% / 12%.
+offer reads 압도 for it (Q8: 13 of 14 boards after day 240).
 
-**Change** (`js/muster.js`): `Game.bmMaxLevel()` = 14 after a calamity (as before); otherwise, at rank S, ★11 opens on day
-`BM_LATE_OPEN[0]` and one more star every `BM_LATE_OPEN[1]` days up to ★14; else `maxContractLevel()` (10). `battleCap()` uses it
-(`lateGame() || top > 10 ? top : rank + BM_CAP_AHEAD`, clamped to `top`), and `battleLevel` clamps to it instead of
-`maxContractLevel()`. Ordinary battle-mode contracts only: special contracts, roll mode and `lateGame()` itself (market, recovery
-pay) are unchanged. The enemies still come from the star (decision 1): the stars open by rank and date, not by the roster.
+**Change** (`js/muster.js`, unchanged from the first draft): `Game.bmMaxLevel()` = 14 after a calamity (as before); otherwise, at
+rank S, ★11 opens on day `BM_LATE_OPEN[0]` and one more star every `BM_LATE_OPEN[1]` days up to ★14; else `maxContractLevel()`
+(10). `battleCap()` and the clamp in `battleLevel` use it. Ordinary battle-mode contracts only: special contracts, roll mode and
+`lateGame()` itself (market, recovery pay) are unchanged. The enemies still come from the star (decision 1).
 
 | Constant | Value | Reason |
 |---|---|---|
-| `BM_LATE_OPEN` | [150, 30] (★11 day 150, ★12 180, ★13 210, ★14 240; 0 as the interval = off) | S comes on day ~103; the no-calamity board starts to narrow after day ~180 and is all-easy from ~240. ★14 by day 240 brings the no-calamity late board to the width of a calamity game's. |
+| `BM_LATE_OPEN` | [150, 30] (★11 day 150, ★12 180, ★13 210, ★14 240; interval 0 = off) | S comes on day ~100; the no-calamity board narrows after ~180 and was all-easy from ~240. |
+| `BM_TOP_STEP` | 3.5 (= `BM_LATE_STEP`: the stage-3 table, no change) | Enemy levels per star for ★11-14. A lever, not used: see below. |
 
-| Late board (ordinary offers, best own company, every 3rd day) | ≤열세 | both ≤열세 and ≥우세 | ≤백중 |
-|---|---|---|---|
-| Calamity suppressed, seeds 1-12, days 241-365 | 22% → 60% | 18% → 49% | 35% → 80% |
-| Calamity suppressed, seeds 9001-9012 (never used), days 241-365 | 32% → 64% | 26% → 49% | 48% → 80% |
-| Calamity suppressed, seeds 9001-9012, days 121-240 | 54% → 77% | 46% → 59% | 72% → 90% |
-| 7 normal sets, days 241-365 without a calamity yet / never (441 → 586 boards) | 6% → 29% | 4% → 22% | 12% → 54% |
-| 7 normal sets, days 241-365 after a calamity | 60% → 54% | 47% → 43% | 85% → 78% |
-| 7 normal sets, days 121-240 without / with a calamity | 54 / 83% → 66 / 80% | 45 / 63% → 52 / 62% | 71 / 94% → 83 / 93% |
-| 7 normal sets, days 61-120 | 83% → 87% | 63% → 66% | 92% → 94% |
+Late board, ordinary offers for the best own company, every 3rd day — share of boards with a ≤열세 offer / with both ≤열세 and
+≥우세 / with a ≤백중 offer, and the top star:
 
-With the calamity suppressed the 무모 offers per board on days 241-365 rise from 0.10-0.18 to 0.58 (seeds 1 / 9001): `BOARD_W`
-is untouched, but before the change a 무모 slot found no 무모 star under ★10 and fell back to the top of the cap. Calamity games
-keep 0.17-0.34. In normal games where no calamity had risen by day 241+ the board stays narrower (29%) than in the suppressed
-runs: those are the strongest guilds, and they outgrow ★14 too (the content ceiling noted in stage 3).
+| Case | before | after |
+|---|---|---|
+| 6 normal sets, days 241-365, no calamity (558 boards each) | 5 / 4 / 8%, ★9.8 | 53 / 43 / 74%, ★13.5 |
+| 6 normal sets, days 241-365, after a calamity | 54 / 43 / 78%, ★13.6 | 47 / 37 / 74%, ★13.7 |
+| 6 normal sets, days 121-240, no calamity | 48 / 40 / 63%, ★9.7 | 66 / 54 / 83%, ★10.7 |
+| 6 normal sets, days 121-240, after a calamity | 79 / 63 / 93% | 76 / 60 / 92% |
+| Calamity suppressed, seeds 1-12, days 241-365 | 22 / 18 / 35%, ★9.8 | 66 / 51 / 83%, ★13.4 |
+| Calamity suppressed, seeds 9001-9012, days 241-365 | 32 / 26 / 48%, ★9.7 | 63 / 48 / 83%, ★13.4 |
+| Calamity suppressed, seeds 1 / 9001, days 121-240 | 55 / 44 / 70% · 55 / 47 / 71% | 74 / 59 / 85% · 74 / 59 / 92% |
+
+No-calamity late boards now match calamity games'. The small drop in calamity games (54 → 47%) comes from A, which lifts fast
+fights' R by up to 3.5%, so a given star reads a little easier. With the calamity suppressed, late 무모 offers per board rise from
+0.10-0.18 to 0.42-0.43 (`BOARD_W` untouched: before, a 무모 slot found no 무모 star under ★10).
+
+`BM_TOP_STEP` = 5 (steeper ★11-14) was tried with the calamity suppressed (seeds 1-12, days 241-365, with an interim version of A): ≤열세 56 → 69%, ≤백중
+74 → 86%, but day-365 gold 15.9k → 5.5k (same pay per star for harder enemies). Not adopted; it is the knob if the owner wants
+the late board wider without new content.
 
 ### Economy and safety (sensible bot, 12 × 365 per set, `SIM_RESOLVE=battle`)
 
-Sets: 1, 13, 201 (seeds used for the time-term fit), 301 (check set of the fit), 9001, 9101, 9201 (never used by anyone).
+| Set | 1 | 13 | 5001 | 6001 | 7101 | 9201 | mean |
+|---|---|---|---|---|---|---|---|
+| Day reaching S | 105 → 96 | 105 → 95 | 98 → 101 | 95 → 98 | 100 → 101 | 108 → 101 | 101.8 → 98.7 |
+| Gold day 120 | 6.9k → 6.7k | 5.3k → 12.5k | 7.2k → 4.4k | 7.7k → 5.6k | 3.6k → 4.4k | 3.0k → 6.7k | 5.6k → 6.7k |
+| Gold day 365 | 82.5k → 59.4k | 50.1k → 72.2k | 83.4k → 73.8k | 86.1k → 44.4k | 92.3k → 96.3k | 34.0k → 107.5k | 71.4k → 75.6k |
+| Completed / failed | 432/73 → 407/76 | 420/81 → 437/77 | 471/79 → 415/82 | 478/74 → 422/78 | 427/74 → 408/85 | 402/77 → 416/78 | 438/76 → 418/79 |
 
-| Set | 1 | 13 | 201 | 301 | 9001 | 9101 | 9201 | mean |
-|---|---|---|---|---|---|---|---|---|
-| Day reaching S | 105 → 100 | 105 → 109 | 104 → 104 | 104 → 102 | 115 → 103 | 101 → 95 | 108 → 109 | 106 → 103 |
-| Gold day 120 | 7,151 → 9,345 | 5,349 → 5,782 | 9,842 → 5,238 | 2,779 → 8,263 | 8,131 → 3,716 | 4,711 → 7,483 | 3,002 → 5,201 | 5,852 → 6,433 |
-| Gold day 365 | 81.5k → 76.4k | 50.1k → 104.9k | 85.7k → 96.6k | 48.4k → 67.2k | 59.3k → 92.4k | 77.6k → 109.6k | 34.0k → 73.8k | 62.4k → 88.7k |
-| Completed / failed | 434/73 → 417/63 | 420/81 → 418/63 | 416/79 → 397/62 | 422/82 → 403/71 | 419/66 → 418/67 | 429/77 → 425/68 | 402/77 → 411/57 | 420/76 → 413/64 |
+- Day-365 gold +6% on the mean, 3 sets up and 3 down; per-set swings of −48% to +216% are noise (stage 3 saw ±15-45% per set,
+  and 9201 alone goes 34k → 107k). A only (`--set 'BM_LATE_OPEN=[150,0]'`) on 5001 / 7101 / 9201: 67.2k / 103.9k / 85.9k. No sign
+  of an explosion; Q8's human play (290-400k) remains far above any bot set.
+- Final rank S 12 of 12 in every set; game overs 0; deaths 0 special / 0 other; captains 6.37 → 6.35. Boss wins 57-81% → 70-72%,
+  final battle 90-100% → 82-100% (n 9-12 per set).
+- **No-calamity games are poorer in gold, richer in guild.** Calamity suppressed, seeds 1-12 / 9001-9012: day-365 gold 20.0k →
+  7.1k / 30.1k → 6.9k, S on day 107 → 96 / 122 → 103, captains 5.2 → 6.3 / 5.3 → 5.8, top-3 company power 5,191 → 5,931 /
+  4,629 → 5,832, failures 56 → 76 / 61 → 77, no bankruptcy (lowest gold per run averages 16 after, 91 before). A causes it (A
+  only: 9.1k; B only: 25.1k): the bot reaches S sooner and spends on a larger guild. Q8 already found these games poor (no war pay,
+  no recovery ×1.8).
+- Odd strategies (review's `sbot.js`, seeds 201-212): single members — ranks S 10 / A 2 → S 9 / A 2 plus one darkness game over
+  (the first draft showed the same one; the calamity is defeated in 7 of 12 games in both); reckless (takes every offer) — final
+  ranks get worse (F 2 → 5) and the final battle is attempted 2.4 → 4.8 times per game at R 0.85 (win 41 → 11%); 무모 wins
+  0.4 → 0.6%. The reckless bot ignores the words; it only feels A through the board, which now places a word's stars a little
+  higher for fast fights.
 
-- Final rank S 12 of 12 in every set before and after; game overs 0 (no bankruptcy, no darkness); deaths 0 special / 0 other
-  per game everywhere; captains at the end 5.9 → 6.1.
-- **Day-365 gold +42% pooled** (6 of 7 sets up). It comes from A, not from B: the time term alone (`--set BM_LATE_OPEN=[150,0]`,
-  sets 1, 301, 9001, 9101) gave 95.8k, and B on top of it 86.4k on the same sets (−10%). The time term makes the bot avoid slow
-  fights it used to lose (failures per game 76 → 64) and the early divergence compounds (gold differs from day 30). A milder
-  term (edge 0.25, exponent 1) on sets 13 / 9201 gave 83k / 89k, so the size of the term is not the lever. The means stay inside
-  the range the stage-3 sets already spanned (42-143k); per-set noise is ±15-45% (stage 3). Owner call: whether +42% for the bot
-  is acceptable or the late purse needs a sink (Q8 already asked for sinks rather than lower pay).
-- No-calamity economy: gold day 365 19.2k → 32.4k (seeds 1) and 22.0k → 23.9k (9001): those games are poor (no war pay, no
-  recovery ×1.8), and higher stars pay more.
+### Checks
+
+- Roll md5 `21b6184246abf071a0f40918718244b6` with and without `SIM_SHADOW=1`.
+- `node tools/sim/battle.js 100`: miss 0 / soft 0.
+- `node tools/sim/shadow.js 6 365 --resolve battle --check --jobs 4` (2,764 battles, 8,004 alternative parties) and the roll-mode
+  run (3,944 battles): every invariant 0.
+- `--set` takes the new knobs in `bot.js` and `shadow.js` and refuses unknown names (e.g. the first draft's `BM_TIME_EXP`), wrong
+  types and wrong array lengths.
+- The in-game forecast matches the offline formula used for the fit (median difference 0.0002 in R on 26,440 probe rows).
 
 ### Commands
 
 ```
-SIM_SEED=1 SIM_RESOLVE=battle node tools/sim/bot.js 12 365 --jobs 4                                              # after
-SIM_SEED=1 SIM_RESOLVE=battle node tools/sim/bot.js 12 365 --jobs 4 --set BM_TIME_EXP=0 --set 'BM_LATE_OPEN=[150,0]'   # before
-#   also SIM_SEED=13, 201, 301, 9001, 9101, 9201; time term only: --set 'BM_LATE_OPEN=[150,0]'
-node tools/sim/shadow.js 6 365 --resolve battle --check --jobs 4                                                  # all 0
-# scratch (not in the repo): stage4/tools/probe.js (small-party probe), collect.js (bot sent + looked-at rows with killTime),
-#   nocal.js (calamity suppressed), fit.js / grid2.js (offline re-wording and the grid)
+SIM_SEED=1 SIM_RESOLVE=battle node tools/sim/bot.js 12 365 --jobs 4                                                # after
+SIM_SEED=1 SIM_RESOLVE=battle node tools/sim/bot.js 12 365 --jobs 4 --set BM_TIME_K=0 --set 'BM_LATE_OPEN=[150,0]'   # before (stage 3)
+#   also SIM_SEED=13, 5001, 6001, 7101, 9201; A only: --set 'BM_LATE_OPEN=[150,0]'; B only: --set BM_TIME_K=0
+node tools/sim/shadow.js 6 365 --resolve battle --check --jobs 4                                                    # all 0
+# scratch (not in the repo): fix/probe3.js (small-party probe incl. 무모 stars), fix/collect2.js (bot sent + looked-at rows with
+#   the old R and killTime), tools/nocal.js (calamity suppressed), fix/fit2-5.js (ML fits), fix/ev.js, evn.js, bins.js (re-wording)
 ```
+
+### Review of the first draft (findings and what was done)
+
+1. **The time term over-corrected in its own slice** (slow field fights: 무모 17%, 열세 46%, 백중 70%). Fixed: the term was
+   replaced by the two-part form above, refitted on a probe that samples 무모 stars and on bot battles. Slow fights in the new
+   probe: 열세 16%, 백중 43%, 우세 85%, no 압도.
+2. **One-member parties read on the safe side.** Mostly fixed: the single-member bot reads 백중 62.1% before and 65.0% after (the
+   first draft: 68.7%); in the probe 1 member reads 52% before and after. The remaining lean is stage 3's and shows only in the
+   bot's own single-member choices (open issue).
+3. **"+42% gold comes from A" did not reproduce.** Agreed; the claim is withdrawn. With the new term the 6-set mean is +6% and the
+   per-set direction is mixed.
+4. **B is partial.** Days 241-365 without a calamity: 5% → 53% of boards with a ≤열세 offer, now as wide as calamity games
+   (47%). What is left is the ★14 ceiling, shared with calamity games (`BM_TOP_STEP` measured above, not adopted).
+5. **≥우세 timeouts remain in the slow slice.** Accepted: in the slow slice 우세 now wins 85% with the timeouts counted as losses.
+   A word without any timeout there would have to read 우세 at 90%+, which is the safe-side error of finding 1.
+6. **Reckless bot.** Informational; re-measured above.
+7. **HEAD moved during the review.** The roll baseline is now `21b61842…` (C13); re-checked here.
 
 ### Open issues
 
-- **Engine stand-offs**: a few timeouts happen at a short `killTime` (< 12 s; 6-7 of ~22,000 probe battles per 12 games, ≈ 0.03%):
-  every unit of both sides stops moving from t ≈ 10 s with targets set, 30 px apart, and nothing hits until 90 s (seed 202
-  probe, day 270, rescue ★1, 철벽 수호자 alone with two trainee clerics: our captain deals 0 damage). That is an AI / slot bug in
-  `js/battle.js`, not something a forecast can see; left for an engine fix (not a rule change).
-- The forecast now leans to the safe side for one or two members (백중 55-70% instead of 50%, small n in bot play). A joint
-  refit of `BM_CAL_HEADS` with the time term would bring it back; it was outside this task's constraints.
-- The strongest no-calamity guilds still outgrow ★14 after day ~300 (29% of their boards with a ≤열세 offer); more width would
-  need content above ★14 (`LATE_MAX_LEVEL`, `ELV_BM`).
-- Day-365 gold +42% for the bot (see above). Q8's human play (290-400k) was already far above any bot set.
-- The UI shows no reason for the lower word (e.g. "시간이 빠듯함"); the C12 timeout label on the report is separate work.
+- **Engine stand-offs**: a few timeouts happen at a short `killTime` (≈ 0.03% of probe battles): every unit of both sides stops
+  moving from t ≈ 10 s, 30 px apart, and nothing hits until 90 s (probe seed 202, day 270, rescue ★1, 철벽 수호자 alone with two
+  trainee clerics). An AI / slot bug in `js/battle.js`; no forecast can see it.
+- **Single-member 백중 reads safe for the single-member bot** (62% at stage 3, 65% now) but not in the probe (51%). A
+  `BM_CAL_HEADS[1]` change would trade one for the other; left as it is (calibration constraint).
+- **Slow small-party fights still lean a little optimistic** in the probe (2 members, > 20 s: 백중 39%), while the bot's slow fights
+  read honestly (45%). The probe's synthetic subsets fight slow battles worse than the bot's own parties; the fit splits the
+  difference.
+- **★14 ceiling**: the strongest guilds outgrow ★14 late, with or without a calamity (47-53% of late boards have a ≤열세 offer).
+  `BM_TOP_STEP` or content above ★14 (`LATE_MAX_LEVEL`) would widen it; both are owner calls (gold, see above).
+- **No-calamity economy**: day-365 gold 20-30k → 7k in calamity-suppressed games (larger guild instead). Worth a look if the owner
+  wants those games to feel richer.
+- **No UI reason for a lower word**: a slow fight now reads lower, but the card does not say why (e.g. "시간이 빠듯함").
+- **Q6 #721 not replayed**: the seed 582702 day-150 save is not in the repo; the probe's Q6 class (old R 1.20-1.35, killTime
+  > 20 s) is measured instead.
