@@ -28,10 +28,10 @@
       "at": 0.47, "anchor": "self.tip", "radius": 9, "alpha": 0.32, "colour": "key", "slot": "front", "blend": "lighter" },
     { "id": "cut", "phase": "cut", "per": "victim", "piece": "cutline", "at": 0.60, "anchor": "mark",
       "stagger": { "preset": "place.stagger", "dt": 0, "jit": 0, "order": "nearest" },
-      "clock": { "preset": "clock.hold", "frames": [0, 1, 2], "ms": [170, 70, 70], "mode": "once" },
+      "clock": { "preset": "clock.hold", "frames": [0, 1, 2], "ms": [34, 170, 80], "mode": "once" },
       "slot": "sorted", "zBias": 2, "blend": "source-over", "core": true },
     { "id": "cutglow", "phase": "cut", "per": "victim", "light": { "preset": "curve.attackDecay", "rise": 0.0, "decay": 0.08 },
-      "at": 0.60, "anchor": "mark", "radius": 13, "alpha": 0.2, "colour": "key", "slot": "front", "blend": "lighter" },
+      "at": 0.60, "anchor": "mark", "radius": 14, "alpha": 0.3, "colour": "key", "slot": "front", "blend": "lighter" },
     { "id": "split", "phase": "split", "per": "victim", "piece": "split", "at": 0.71, "anchor": "mark",
       "stagger": { "preset": "place.stagger", "dt": 0.022, "jit": 0.006, "order": "nearest" },
       "clock": { "preset": "clock.hold", "frames": [0, 1, 2, 3], "ms": [55, 70, 70, 90], "mode": "once" },
@@ -41,14 +41,14 @@
       "piece": "band_tail", "pieceClock": { "preset": "clock.hold", "frames": [0, 1, 2, 1], "ms": [90, 90, 90, 90], "mode": "loop" },
       "slot": "front", "blend": "source-over" },
     { "id": "clothSpin", "phase": "spin", "per": "cast", "at": 0.26, "anchor": "self.chest", "dir": "up",
-      "emitter": { "preset": "emit.fan", "n": 3, "spread": 2.6, "sp": [35, 60], "life": [1.0, 1.4], "up": 10, "sway": 4, "swayHz": 1.3, "grav": 45, "drag": 2.0 },
+      "emitter": { "preset": "emit.fan", "n": 3, "spread": 2.6, "sp": [45, 70], "life": [1.0, 1.4], "up": 40, "sway": 4, "swayHz": 1.3, "grav": 45, "drag": 2.0 },
       "piece": "band_tail", "pieceClock": { "preset": "clock.hold", "frames": [0, 1, 2, 1], "ms": [110, 110, 110, 110], "mode": "loop" },
       "slot": "front", "blend": "source-over" }
   ],
   "victimReact": { "after": "split", "anim": "hit", "dur": 0.26, "push": 2 },
   "screen": {
-    "dim": { "preset": "curve.envelope", "at": 0.0, "in": 0.22, "hold": 1.38, "out": 0.4, "alpha": 0.66, "colour": "tone", "only1x": true },
-    "unitDim": { "who": "others", "preset": "curve.envelope", "at": 0.0, "in": 0.22, "hold": 1.38, "out": 0.4, "alpha": 0.42, "colour": "tone", "only1x": true },
+    "dim": { "preset": "curve.envelope", "at": 0.0, "in": 0.22, "hold": 1.38, "out": 0.4, "alpha": 0.8, "colour": "tone", "only1x": true },
+    "unitDim": { "who": "others", "preset": "curve.envelope", "at": 0.0, "in": 0.22, "hold": 1.38, "out": 0.4, "alpha": 0.62, "colour": "tone", "only1x": true },
     "freeze": [
       { "preset": "screen.freeze", "at": 0.45, "dur": 0.15, "why": "still hold before the cut (kit cadence 120-160ms)" },
       { "preset": "screen.freeze", "at": 0.60, "dur": 0.10, "why": "hitstop on the cut" }

@@ -30,18 +30,19 @@ const FxPlaceholders = (() => {
 
   // 조각 정의: size, origin(그릴 기준점), frames, draw(f, px, run)
   const PIECES = {
-    // 가르는 선: 1px 상아 심 + 그 아래 1px 붉은 가장자리, 끝은 50% 머리카락 선. 0 그은 순간 → 1 줄어듦 → 2 끊긴 조각
+    // 가르는 선: 0 지나가는 한 획(칸 전체 머리카락 선, 1~2 프레임) → 1 몸 폭만큼 남은 선(1px 상아 심 + 그 아래 1px 붉은 가장자리, 50% 끝)
+    //          → 2 끊긴 조각
     cutline: {
       size: [64, 3], origin: [32, 1], frames: 3,
       draw(f, px, run) {
         if (f === 0) {
-          run(4, 7, 1, 'key', true); run(56, 59, 1, 'key', true);
-          run(8, 55, 1, 'key');
-          run(10, 53, 2, 'accent');
-          run(14, 49, 0, 'key', true);
+          run(0, 3, 1, 'key', true); run(60, 63, 1, 'key', true);
+          run(4, 59, 1, 'key');
+          run(16, 47, 2, 'accent', true);
         } else if (f === 1) {
-          run(12, 51, 1, 'key');
-          run(12, 49, 2, 'accent'); run(50, 53, 2, 'body');
+          run(10, 13, 1, 'key', true); run(50, 53, 1, 'key', true);
+          run(14, 49, 1, 'key');
+          run(15, 47, 2, 'accent'); run(48, 50, 2, 'body');
         } else {
           [[16, 23], [28, 37], [42, 47]].forEach(([a, b]) => { run(a, b, 1, 'key'); run(a + 1, b, 2, 'accent', true); });
         }
@@ -56,9 +57,9 @@ const FxPlaceholders = (() => {
           run(2, 21, cy - 1, 'key'); run(3, 20, cy, 'tone'); run(2, 21, cy + 1, 'accent');
           return;
         }
-        const hMax = f === 1 ? 2 : f === 2 ? 3 : 4;
-        for (let x = 1; x <= 22; x++) {
-          const h = Math.round(hMax * Math.sin((Math.PI * (x - 0.5)) / 22));
+        const hMax = f === 1 ? 3 : f === 2 ? 4 : 5;
+        for (let x = 0; x <= 23; x++) {
+          const h = Math.round(hMax * Math.sin((Math.PI * (x + 0.5)) / 24));
           const broken = f >= 2 && x % (f === 2 ? 6 : 3) === 0;
           if (f < 3) for (let y = cy - h; y <= cy + h; y++) px(x, y, 'tone', f === 2);
           if (!broken) { px(x, cy - h - 1, 'key', f === 3); px(x, cy + h + 1, 'accent', f === 3); }
