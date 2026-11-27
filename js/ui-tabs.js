@@ -234,10 +234,13 @@
     }
   };
 
-  // 전투 모드(Game.RESOLVE === 'battle'): 성공률 대신 다섯 단어 (압도 우세 백중 열세 무모). 경고 줄은 없다 — 주인 결정 5
+  // 전투 모드(Game.RESOLVE === 'battle'): 성공률 대신 다섯 단어. 시간 안내는 편성을 마친 파견 창에만 표시한다.
   const BAND_CLASS = ['c-worst', 'c-bad', 'c-mid', 'c-good', 'c-great'];
-  function forecastOf(c, units) {
-    try { return Game.forecast(Game.muster(c, units)); } catch (e) { return null; }
+  function forecastOf(c, units, withTimeRisk = false) {
+    try {
+      const spec = Game.muster(c, units), est = Game.forecast(spec);
+      return withTimeRisk ? { ...est, timeRisk: Stats.timeRisk(spec) } : est;
+    } catch (e) { return null; }
   }
   function wordEl(est) {
     return est ? el('b', { class: BAND_CLASS[est.band], text: `「${Stats.BAND_NAMES[est.band]}」` }) : el('b', { class: 'muted', text: '-' });
@@ -377,11 +380,12 @@
       const us = units();
       const missingHero = Game.storyHeroMissing(c, us);
       if (battle) {
-        const est = us.length && !missingHero ? forecastOf(c, us) : null;
+        const est = us.length && !missingHero ? forecastOf(c, us, true) : null;
         summary.replaceChildren(...[
           missingHero ? storyRequirement(c)
             : us.length ? el('div', { class: 'forecast-line' }, '예상 전황 ', wordEl(est), el('span', { class: 'small muted', text: ` · 소요 ${Game.contractDays(c, us)}일` }))
               : el('div', { class: 'muted', text: c.campaign ? `용병단을 최대 ${slots}개까지 고르세요. (직속·외부 합계)` : '용병단을 하나 고르세요.' }),
+          est?.timeRisk ? el('div', { class: 'small warn time-risk', text: '시간이 빠듯함 · 적을 제시간에 다 쓰러뜨리지 못할 수 있음' }) : null,
           est ? el('div', { class: 'forecast-scale', 'aria-hidden': 'true' }, Stats.BAND_NAMES.map((w, i) => el('span', { class: i === est.band ? `on ${BAND_CLASS[i]}` : '', text: w }))) : null,
           us.length && slots > 1 ? el('div', { class: `small ${us.length >= slots ? 'warn' : 'muted'}`, text: `용병단 ${us.length}/${slots}개${us.length >= slots ? ' · 더 보내려면 하나를 빼야 합니다' : ''} (한 전장에 아군 부대는 최대 ${MAX_DISPATCH}개)` }) : null,
           c.campaign && !c.final ? el('div', { class: 'small warn', text: '이 결전을 맡으면 반대 진영의 제안은 사라집니다.' }) : null,
