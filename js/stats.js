@@ -73,15 +73,19 @@ const Stats = (() => {
     BM_MID_REP: 2.25,   // 명성: 가장 높을 때 ×3.25 (S 를 90~110일로 당기는 값. 2 는 S 112/108일, 2.5 는 107/101일 — 시드 1~12 / 13~24)
     BM_MID_DAYS: [59, 72, 110, 121],   // 사다리꼴 [오르기 시작, 다 오름, 내리기 시작, 다 내림] (날짜. 의뢰가 만들어진 날 기준)
     // ── 4단계: 시간 제한과 후반 게시판 (stage3_notes.md 「Stage 4」) ──
-    // 시간 보정 (Q5 #224, Q6 #721): 시간 안에 적을 무너뜨려야 하는 전투(field)는 이길 싸움도 시간이 다해 질 수 있다 — 적이 많고 우리가 적은 판.
-    // 확률로 센다: 3단계의 R 이 말하는 승률 p0 = R^b / (1 + R^b) (b = BM_TIME_SLOPE) 에, 시간 안에 끝낼 확률
-    // S = 1 / (1 + ((killTime − EDGE·LIMIT)⁺ / (TAU·LIMIT))^K) 를 곱하고 (p = p0·S), 그 승률을 다시 R = (p / (1 − p))^(1/b) 로 돌린다.
-    // R 에 곱하는 꼴(첫 시안)은 압도·우세에 맞추면 백중·열세가 한 단계 넘게 떨어졌다 (느린 판의 무모 17%·열세 46% 승, 검토 1번) — 확률에 곱하면
-    // 이기기 쉬운 판은 크게, 이미 어려운 판은 조금 깎인다. 버티는 의뢰(hold)는 그대로. 맞춤·근거: stage3_notes.md 「Stage 4」
-    BM_TIME_EDGE: 0.13,  // 이 몫(× LIMIT ≈ 12초)까지는 그대로 (봇이 보낸 field 전투의 killTime 중앙값 11.7초 — 3단계 보정은 이런 판에 맞춰져 있다)
-    BM_TIME_TAU: 0.4,    // EDGE 를 넘은 시간이 TAU × LIMIT 이면 시간 안에 끝낼 확률 반반
-    BM_TIME_K: 2,        // S 가 떨어지는 가파름 (0 = 끔: 3단계의 예상 그대로)
-    BM_TIME_SLOPE: 10,   // b: 3단계 R → 승률 곡선의 기울기 (logit 승률 = b · ln R; R 1 = 반반)
+    // 시간 보정 (Q5 #224, Q6 #721): 시간 안에 적을 무너뜨려야 하는 전투(field)는 적이 많고 우리가 적으면 이길 싸움도 진다. 두 가지를 센다 —
+    //  ① 느린 판은 주고받기부터 예상보다 나쁘다 (오래 맞는 동안 소수가 깎인다): R × (EDGE·LIMIT / killTime)^BIAS
+    //  ② 시간이 다한다: 그 R 이 말하는 승률 p0 = R^b / (1 + R^b) (b = SLOPE) 에 시간 안에 끝낼 확률
+    //     S = 1 / (1 + ((killTime − EDGE·LIMIT) / (TAU·LIMIT))^K) 를 곱하고 (p = p0·S), 다시 R = (p / (1 − p))^(1/b) 로 돌린다.
+    // killTime ≤ EDGE·LIMIT 이면 그대로 (3단계 보정이 맞춰진 판). 버티는 의뢰(hold)도 그대로.
+    // 첫 시안(R × (0.22·LIMIT / killTime)^1.5)은 압도·우세에 맞추느라 느린 판의 백중·열세를 한 단계 넘게 떨어뜨렸다 (무모 17%·열세 46%·백중 70% 승 —
+    // 검토 1번). 실제로 20~30초 판의 패배는 대부분 시간 초과가 아니라 주고받기였고 (백중 30% 승, 시간 초과 2%), 시간 초과는 45초 넘어서야 반을 넘는다.
+    // 맞춤: 소수 부대 시험(시드 8101~8112, 별을 무모까지 고르게 뽑은 20,152 field 전투)의 최대우도. 근거: stage3_notes.md 「Stage 4」
+    BM_TIME_EDGE: 0.16,  // 이 몫(× LIMIT ≈ 14초)까지는 그대로 (봇이 보낸 field 전투의 killTime 중앙값 11.7초)
+    BM_TIME_BIAS: 0.12,  // ① 느린 판의 주고받기 보정 지수 (killTime 30초 ≈ ×0.92, 45초 ≈ ×0.87)
+    BM_TIME_TAU: 0.75,   // ② EDGE 를 넘은 시간이 TAU × LIMIT(≈ 68초) 이면 시간 안에 끝낼 확률 반반 (killTime 30초 ≈ 0.90, 45초 ≈ 0.77)
+    BM_TIME_K: 1.5,      // ② S 의 가파름. 0 = 시간 보정 전부 끔 (3단계의 예상 그대로)
+    BM_TIME_SLOPE: 13,   // ② b: 3단계 R → 승률 곡선의 기울기 (logit 승률 = b · ln R, R 1 = 반반. 같은 시험의 맞춤 12.7~14)
     BM_TIME_HEAL: 0.6,  // killTime: 적의 치유를 이만큼 빼고 센다 (margin 의 rho 와 같은 0.6)
     BM_TOP_STEP: 3.5,   // 전투 모드(일반 의뢰) ★11~14 의 별 하나에 오르는 적 레벨 (BM_LATE_STEP 과 같으면 3단계 그대로)
     BM_LATE_OPEN: [150, 30],   // 재앙 없이 높은 별 열기 (S 등급일 때): [★11 이 열리는 날, 별 하나 더 열리는 간격(일)] — 150·180·210·240일에 ★11~14. 간격 0 = 끔 (3단계: ★10 에서 멈춤)
@@ -320,7 +324,7 @@ const Stats = (() => {
   const bandOf = (R) => KN.BANDS.filter((e) => R >= e).length;   // 0 무모 … 4 압도
   // 굳힌 편성 → { R, band }. R = 1 이 '반반'이 되도록 CAL_KIND 로 맞춘다 (보정 전에는 1).
   // 전투 모드의 편성(spec.bm)은 적 틀·의뢰 갈래·머릿수·우리 레벨 보정을 더한다 (BM_CAL_ARCH, BM_CAL_SPECIAL, BM_CAL_HEADS, BM_CAL_OWNLV)
-  // 4단계 시간 보정: R 이 말하는 승률에 시간 안에 끝낼 확률 S 를 곱해 다시 R 로 (BM_TIME_SLOPE)
+  // 4단계 시간 보정 ②: R 이 말하는 승률에 시간 안에 끝낼 확률 S 를 곱해 다시 R 로 (BM_TIME_SLOPE). 3단계 R 보다 높아지지 않는다
   function fromP(R0, S) {
     const b = KN.BM_TIME_SLOPE, q = Math.pow(Math.max(R0, 1e-6), b), p = (q / (1 + q)) * S;
     const R = +Math.min(R0, Math.pow(p / Math.max(1e-12, 1 - p), 1 / b)).toFixed(3);
@@ -338,10 +342,13 @@ const Stats = (() => {
       const olv = lvs.length ? lvs.reduce((a, b) => a + b, 0) / lvs.length : 1;
       const lvStep = KN.BM_CAL_OWNLV.find(([x]) => olv <= x);
       cal *= lvStep ? lvStep[1] : 1;
-      // 4단계 시간 보정: 버티는 의뢰가 아니면, 적을 다 깎는 어림 시간이 EDGE 를 넘을수록 승률을 깎는다 (fromP)
+      // 4단계 시간 보정: 버티는 의뢰가 아니면, 적을 다 깎는 어림 시간이 EDGE 를 넘을수록 ① R 과 ② 승률을 깎는다
       if (spec.rule !== 'hold' && KN.BM_TIME_K > 0) {
-        const lim = spec.limit || KN.LIMIT, over = killTime(spec.groups) - KN.BM_TIME_EDGE * lim;
-        if (over > 0) return fromP(margin(spec.groups) * cal, 1 / (1 + Math.pow(over / (KN.BM_TIME_TAU * lim), KN.BM_TIME_K)));
+        const T0 = KN.BM_TIME_EDGE * (spec.limit || KN.LIMIT), tk = killTime(spec.groups);
+        if (tk > T0) {
+          const R1 = margin(spec.groups) * cal * Math.pow(T0 / tk, KN.BM_TIME_BIAS);
+          return fromP(R1, 1 / (1 + Math.pow((tk - T0) / (KN.BM_TIME_TAU * (spec.limit || KN.LIMIT)), KN.BM_TIME_K)));
+        }
       }
     }
     const R = +(margin(spec.groups) * cal).toFixed(3);
