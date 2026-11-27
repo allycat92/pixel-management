@@ -825,8 +825,9 @@ const UI = (() => {
     Battle.stop();
     Game.clearSave();
     Game.newGame();
-    // 시험용 주소 ?resolve=battle 로 연 창이면 새 게임도 전투 모드 (js/main.js)
-    if (typeof location !== 'undefined' && new URLSearchParams(location.search).get('resolve') === 'battle') Game.setResolve('battle');
+    // 새 게임은 전투 판정 모드. 주소 ?resolve=roll 로 연 창만 예전 확률 판정 (js/main.js)
+    const rq = typeof location !== 'undefined' ? new URLSearchParams(location.search).get('resolve') : null;
+    Game.setResolve(rq === 'roll' ? 'roll' : 'battle');
     Game.emit();
   }
   function startNewGame() {

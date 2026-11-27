@@ -6,7 +6,8 @@
 'use strict';
 
 // 결과를 정하는 방식: 'roll' (기본, 오늘의 성공 확률 판정) | 'battle' (출격 때 굳힌 편성의 능력치 전투).
-// 저장에 남는다(state.resolve). 새 게임은 아무것도 묻지 않고 'roll' 로 시작한다. 시험용: 주소 ?resolve=battle (js/main.js), Game.setResolve('battle').
+// 저장에 남는다(state.resolve, 없으면 'roll'). 브라우저의 새 게임은 'battle' 로 시작한다(js/main.js·ui.js newGameNow, 주소 ?resolve=roll 이면 'roll').
+// Game.newGame() 자체는 'roll' 그대로 — 봇·시뮬레이터(tools/sim)의 회귀 기준(md5)을 지키려는 것이다.
 Object.defineProperty(Game, 'RESOLVE', {
   configurable: true,
   get() { return this.state && this.state.resolve === 'battle' ? 'battle' : 'roll'; },
