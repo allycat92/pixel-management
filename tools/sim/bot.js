@@ -57,6 +57,7 @@ const CHECK_DAYS_BM = [30, 60, 90, 120, 180, 240, 300, 365];   // 전투 모드�
 // opts.script: makeScript() 결과, opts.onReport(report, Game, ctx): 의뢰 보고서가 나올 때마다
 // opts.shadow: false 면 그림자 전투를 끈다 (true 면 SIM_SHADOW 가 꺼져 있어도 켠다), opts.equipGuard: true 면 출격 중 장비 잠금을 켠다
 // opts.onStart(Game, ctx): 새 게임을 만든 직후, opts.onOffer(contract, units, chance, Game, ctx): 봇이 의뢰 하나를 저울질할 때마다 (보내기 전)
+// opts.onBattleOffer(contract, units, spec, estimate, Game, ctx): 전투 모드에서 최종 편성으로 평가한 의뢰마다 호출
 // opts.resolve: 'battle' 이면 전투 모드 (없으면 --resolve / SIM_RESOLVE)
 function run(seed, days, mode, opts = {}) {
   const rnd = mulberry(seed);
@@ -195,7 +196,8 @@ function run(seed, days, mode, opts = {}) {
           let bestR = -1;
           sorted.forEach((x) => { const R = G.forecast(G.muster(c, [x.u])).R; if (R > bestR) { bestR = R; units = [x.u]; } });
         }
-        const est = G.forecast(G.muster(c, units)), band = est.band;
+        const spec = G.muster(c, units), est = G.forecast(spec), band = est.band;
+        if (opts.onBattleOffer) opts.onBattleOffer(c, units, spec, est, G, ctx);
         takenR = est.R;
         if (!seenOffer.has(c.id)) { seenOffer.add(c.id); bs.offered[band]++; }
         take = band >= 3 || (band === 2 && rnd() < 0.34);
