@@ -7,14 +7,17 @@
 
 | 누구 | id | 상태 | 할 일 (자세한 것은 그 줄의 문서) |
 |---|---|---|---|
-| Codex | `C27-crosscheck-c24` | READY | (C26 보다 먼저 — 기본 전환이 기다림) GPT 의 C24 교차 확인: 부상 분포·전투 모드 경제 변화: `docs/agents/tasks/C27-crosscheck-c24.md` |
-| GPT | `Q26-visible-battle-ingame` | REVIEW | 「전투 모드가 보이게」 실제 플레이 확인: 메뉴 모드 전환, 숫자 ×10, 단원별 활약·★, 보정 3.1: `docs/agents/tasks/Q26-visible-battle-ingame.md` |
+| GPT | `C27-crosscheck-c24` | REVIEW | (11-28 주인: Codex 주간 한도 → GPT 가 다시) C24 검증 — 새 스크립트·새 시드, 금화 변화의 기전, 총괄이 합치기 전에 따로 재봄: `docs/agents/tasks/C27-crosscheck-c24.md` |
+| GPT | `C29-report-end-reason` | READY | (주인 11-28: 시스템 개선·QA 는 GPT) 결과창에 「왜 끝났나」 한 줄, 관전 「아군 후퇴」: `docs/agents/tasks/C29-report-end-reason.md` |
+| GPT | `C30-replay-preload` | READY | 관전 시작 전에 시트 그림 미리 받기(새로고침 직후 옛 코드 그림 방지): `docs/agents/tasks/C30-replay-preload.md` |
+| GPT | `Q27-battle-default-longrun` | READY | 전투 판정 기본으로 사람처럼 1~200일(새 시드, 다부대): `docs/agents/tasks/Q27-battle-default-longrun.md` |
 | GPT | `C24-battle-injury-loss-fixed` | REVIEW | (Codex C27 교차 확인 대기) 전투 뒤 부상·외부단 손실 고정 |
 
 ## 끝난 일
 
 | 누구 | id | 결과 |
 |---|---|---|
+| GPT | `Q26-visible-battle-ingame` | **DONE** (11-28, `b2a7abc` 보고만 가져옴): 메뉴 전환 PASS(나간 출격은 옛 판정, 새 출격부터 전투), ×10 눈금·활약·★ 209/209 일치, 해시 4/4. 30~60일 백중 8/11·우세 11/11. 보완 2건(후퇴 표시, ★ 는 직속만) → 총괄이 바로 반영 |
 | GPT | `C28-exhausted-dispatch` | **DONE** (11-28, `5d2f9f6` 의 `js/ui-tabs.js` 만 합침): 모두 탈진한 부대 — 카드·부대 줄에 「모두 탈진 · 단원 직접 선택 시 파견 가능」, 빈 편성은 예상·전투력 「—」, 고르기 전 출격 꺼짐, 보낼 사람이 아무도 없으면 카드 버튼 꺼짐. 수동 파견 유지. 400/1280·전투/roll 8세션 PASS, roll md5 그대로 |
 | GPT | `Q25-healer-timeout` | **DONE** (11-28, `3ad22f5` 보고만 가져옴): 2치유 편성 표시 「우세」 시간패 28/837(3.3%), 모두 병사 의뢰 — 적 치유가 받은 피해의 80% 회복, 치유형 대장의 공격 특기가 사거리에 못 붙음(치유 이동 규칙). 경고는 13/28 만 잡음. 치유 대원→마법사면 19/28 승. → 총괄: 전투 쪽(치유형 대장의 공격 가동, 적 치유 압박)을 2·5단계와 함께 |
 | GPT | `Q24-tactics-headroom` | **DONE** (11-28, `d064bed` 보고만 가져옴): 10,142판 측정 — 자리만 바꾸면 백중 +10.2%p·우세 +1.7%p, 조합(직업 능력치 반영) +5~18%p, 격려 대장의 격려 자체가 +15~28%p. 의무관+치유 대원 우세 4.7% 시간 초과. 2단계는 배치부터, 5단계는 새 시너지 OFF/ON 비교로 |

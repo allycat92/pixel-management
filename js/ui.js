@@ -456,7 +456,7 @@ const UI = (() => {
       if (b.dealt || (!b.healed && !b.kills)) parts.push(`피해 ${b.dealt || 0}`);
       if (b.kills) parts.push(`처치 ${b.kills}`);
       if (b.healed) parts.push(`치유 ${b.healed}`);
-      return el('div', { class: 'small muted contrib', title: `받은 피해 ${b.taken || 0}` }, m === top ? el('b', { class: 'good', text: '★ ' }) : null, parts.join(' · '));
+      return el('div', { class: 'small muted contrib', title: `받은 피해 ${b.taken || 0}` }, m === top ? el('b', { class: 'good', title: '직속 단원 가운데 피해+치유가 가장 큰 단원', text: '★ ' }) : null, parts.join(' · '));
     };
     r.members.forEach((m) => {
       members.append(el('div', { class: `report-member ${m.dead ? 'dead' : ''}` },
@@ -469,7 +469,9 @@ const UI = (() => {
             m.levelUp ? el('div', { class: 'good small', text: '레벨 상승!' }) : null,
             // 전투 모드: 전투에서 실제로 쓰러진 단원만 표시한다 (부상은 쓰러졌거나 크게 다친 단원에게만 생긴다)
             m.down ? el('div', { class: 'bad small', text: m.injury ? `쓰러짐 · 부상 ${m.injury}일` : '쓰러짐' })
-              : m.injury ? el('div', { class: 'bad small', text: `부상 ${m.injury}일` }) : null)));
+              : m.injury ? el('div', { class: 'bad small', text: `부상 ${m.injury}일` })
+              // 전투 모드: 살아서 물러난 단원 (쓰러짐과 다르다 — Q26)
+              : m.fled ? el('div', { class: 'warn small', text: '후퇴' }) : null)));
     });
     r.ext.forEach((e) => {
       members.append(el('div', { class: `report-member ext ${e.betrayed ? 'dead' : ''}` },
