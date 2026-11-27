@@ -32,6 +32,7 @@ import glob
 import json
 import os
 import re
+import shlex
 import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -109,10 +110,13 @@ def status(spec, man):
             row['state'] = 'done' if dc == cls else ('redraw' if dc else 'needed')
             folder = f'art/requests/gait/{REQ_PREFIX[cls]}__{short}'
             g, gs = guide_of(cls, spec)
+            local = f'{folder}/pose.json'
+            if os.path.isfile(os.path.join(ROOT, local)):
+                g = local
             row.update(request=folder, request_exists=os.path.isdir(os.path.join(ROOT, folder)), guide=g, guide_state=gs,
                        delivery=[f'art/inbox/gait/{stem}_run_a.png', f'art/inbox/gait/{stem}_run_b.png'],
                        receive=f'python3 tools/art/receive.py gait/{stem}_run',
-                       attach=f'python3 tools/art/add_gait.py {sid} --gait run --src art/inbox/gait/{stem}_run_a.png '
+                       attach=f'python3 tools/art/add_gait.py {shlex.quote(sid)} --gait run --src art/inbox/gait/{stem}_run_a.png '
                               f'art/inbox/gait/{stem}_run_b.png --pose {g}')
         rows.append(row)
     return rows
@@ -166,6 +170,7 @@ def check_requests(spec, man):
     """art/requests/gait/*__*/: 머리 줄의 시트가 등록·분류되어 있고, README 가 가리키는 파일이 있고(납품 art/inbox/gait/ 는 빼고),
     --write 로 만든 폴더는 guide_<p>_a/b.png 가 지금 부류 마네킹 띠와 바이트까지 같고 size_<p>_a/b.png 가 있는지 본다."""
     import filecmp
+    from run_request_guides import Fail, scale_pose, scale_strip, sheet_scale
     errs = []
     for d in sorted(glob.glob(os.path.join(ROOT, 'art', 'requests', 'gait', '*__*', 'README.md'))):
         folder = os.path.dirname(d)
@@ -193,16 +198,21 @@ def check_requests(spec, man):
             continue
         g, _ = guide_of(cls, spec)
         pose = load(g)
-        sheet_scale = phase3_item(sid).get('scale')
-        if not sheet_scale:
-            from run_request_guides import geometry
-            sheet_scale = geometry(sid, man)['scale']
-        scaled = abs(sheet_scale / pose['scale'] - 1) > 0.01
+        try:
+            sc = sheet_scale(sid)
+        except Fail as e:
+            errs.append(f'{name}: {e}')
+            continue
+        scaled = abs(sc / pose['scale'] - 1) > 0.01
         local = os.path.join(folder, 'pose.json')
+        expected = pose
         if scaled:
-            from run_request_guides import scale_pose, scale_strip
-            expected = scale_pose(g, pose, sheet_scale)
-            if not os.path.isfile(local) or load(local) != expected:
+            expected = scale_pose(g, pose, sc)
+            try:
+                saved = load(local)
+            except (OSError, ValueError):
+                saved = None
+            if saved != expected:
                 errs.append(f'{name}: 요청 폴더 pose.json 이 없거나 오래됐다 — --force 로 다시 만들 것')
         elif os.path.isfile(local):
             errs.append(f'{name}: 표준 배율 요청에 별도 pose.json 이 있다')
@@ -215,8 +225,11 @@ def check_requests(spec, man):
                     import numpy as np
                     from PIL import Image
                     original = np.asarray(Image.open(src).convert('RGB'))
-                    matches = np.array_equal(np.asarray(Image.open(gp).convert('RGB')),
-                                             scale_strip(original, pose['scale'] / sheet_scale))
+                    try:
+                        matches = np.array_equal(np.asarray(Image.open(gp).convert('RGB')),
+                                                 scale_strip(original, pose['scale'] / sc))
+                    except (Fail, OSError) as e:
+                        errs.append(f'{name}: {e}')
                 else:
                     matches = filecmp.cmp(gp, src, shallow=False)
             if not matches:
@@ -226,8 +239,13 @@ def check_requests(spec, man):
         for m2 in re.finditer(r'the guide (bow|spear|lance|sword|staff|mace|blade|draws)|as long as the guide', text):
             errs.append(f'{name}/README.md: 「{m2.group(0)}」 - phase3 CHARACTER 줄을 그대로 옮긴 말이다. 이 요청에는 무기 가이드가 없으니 「the idle」 기준으로 바꿀 것')
         expected_path = rel(local) if scaled else g
-        if f'--pose {expected_path}' not in text:
+        poses = re.findall(r"""--pose\s+["']?([^\s`"'<>]+)""", text)
+        if not poses or any(p != expected_path for p in poses):
             errs.append(f'{name}/README.md: 마네킹 {expected_path} 를 가리키지 않는다 — --force 로 다시 만들 것')
+        actual = [line.strip() for line in text.splitlines()
+                  if line.lstrip().startswith(('- Stride:', 'near foot:', 'far foot:'))]
+        if actual != [stride_line(expected, sc).strip(), *(line.strip() for line in toe_lines(expected))]:
+            errs.append(f'{name}/README.md: 보폭 또는 디딤 발끝 숫자가 pose.json 과 다르다')
     return errs
 
 
@@ -242,19 +260,27 @@ CARRY = {
                      'pauldron, pale fur mantle and fur-trimmed boots. Copy the long-hafted bearded axe and its two-handed '
                      'grip from the accepted idle.',
         'carry': [
-            'Keep both hands on the axe: near right hand lower by the hip, far left hand higher toward the head. '
-            'The mannequin\'s two separate arm swings do NOT apply to this character (intended, not a deviation). '
-            'Keep the lower grip at x=198–228 and y=640–675 in each slot (at most 30 px fore-aft). The axe head spans '
-            'about 245 px from that grip to its top. Carry the shaft forward and up at 70–80 deg above horizontal; '
-            'the projected upper end stays left of x=312 before the blade width. Keep the outer edge inside x=351 '
-            'and the butt above y=852 (no planted axe, no swing).',
+            'Keep both hands on the axe, about 70 px apart on the shaft as in the idle, but carry it sloped BACK '
+            'across the body (port arms): the near right hand low in front of the belly at x=225–245, y=680–700 (at '
+            'most 30 px fore-aft), the shaft rising up and BACK (toward the left) at 50–60 deg above horizontal over '
+            'the near shoulder, and the far left hand about 70 px up the shaft at the chest (about x=180–210, '
+            'y=620–645). The axe head rides above and behind the back of the head (all axe pixels between x=60 and '
+            'x=351, top at or below y=445, butt about 40 px forward-down of the lower hand). The shaft and blade '
+            "never cross the face, beard or braids; they may overlap only the back hair and the mantle. The idle's "
+            'forward-up angle does not fit: at any angle it runs the shaft through the running head, which leans '
+            "forward (intended, not a deviation). The mannequin's two separate arm swings and elbow positions do NOT "
+            'apply to this character (intended, not a deviation): the shoulders follow the torso lean and the grip '
+            'rides with the torso, no arm pump, no swing.',
         ],
         'cloth': [
-            'Both gold-bound braids stay over the FRONT of the chest and bounce lightly. Keep the fur mantle across '
-            'the shoulders; small trailing locks and the rear tunic hem settle one frame late. Leave the thighs and boots free.',
+            'Both gold-bound braids stay over the FRONT of the chest (the far forearm passes under their tips) and '
+            'bounce lightly. Keep the white fur mantle across the shoulders. The long wavy back hair streams back a '
+            'little and settles one frame late, as do the side and rear tunic panels. The front centre flap hangs '
+            'between the thighs and swings with the leading thigh; never let it trail back. Leave the trousers and '
+            'boots free.',
         ],
         'face': 'Face and beard: exactly as in the accepted idle.',
-        'ko': '양손 도끼는 아래 손을 x=198–228에 두고 위쪽으로 70–80° 세운다. 앞머리 두 갈래는 가슴 앞에 남긴다.',
+        'ko': "양손으로 도끼를 쥐되 대기와 달리 몸을 가로질러 뒤로 기울여(받들어총처럼) 들고, 도끼 머리는 머리 뒤 위쪽에 둔다 (아래 손 x=225–245, y=680–700 배 앞, 자루는 뒤쪽으로 50–60°). 자루·날은 얼굴·수염·땋은 머리를 지나지 않는다. 두 팔을 따로 흔들지 않는다. 앞머리 두 갈래는 가슴 앞에 남긴다.",
     },
     'sheet/captain/ironwall': {
         'title': '브리긴다 이동 (중량)', 'name': 'Briginda (브리긴다), the iron-wall brigade commander', 'refs': ['portrait.png'],
@@ -445,6 +471,22 @@ def fmt_x(v):
     return f'{v:.0f}'
 
 
+def toe_lines(pose):
+    lines = []
+    for leg, seq, rear in planted_rows(pose):
+        s = ' -> '.join(f'{fr} x={fmt_x(x)}' for fr, x in seq)
+        if rear:
+            s += f'  (-> {rear[0]} x={fmt_x(rear[1])} as the REAR foot, heel up, toe still on the floor)'
+        lines.append(f'      {leg} foot: {s}')
+    return lines
+
+
+def stride_line(pose, scale):
+    step = pose['step_px']
+    return (f'  - Stride: one step = {step:g} source px = {step * scale:.1f} game px; '
+            f'8 frames = two steps, {pose["nominal_ms"]} ms a frame in the game.')
+
+
 def write_request(sid, out=None, force=False, date=None, spec=None, man=None):
     """요청 폴더 하나 → (폴더 rel, CARRY 표에서 왔는가)"""
     sys.path.insert(0, os.path.join(ROOT, 'tools', 'art'))
@@ -493,7 +535,7 @@ def write_request(sid, out=None, force=False, date=None, spec=None, man=None):
     work = '<temp dir>'
     fl = ' --flight-slots 4' if flight else ''
     checks = [f'python3 tools/art/check_delivery.py {dl[0]}{fl}', f'python3 tools/art/check_delivery.py {dl[1]}{fl}',
-              f'python3 tools/art/add_gait.py {sid} --gait run --src {dl[0]} {dl[1]} --pose {geo["pose"]} --dry-run --work {work}']
+              f'python3 tools/art/add_gait.py {shlex.quote(sid)} --gait run --src {dl[0]} {dl[1]} --pose {shlex.quote(geo["pose"])} --dry-run --work {work}']
     clsd = spec['classes'][cls]
     ko_cls = KO[cls]
     rel_folder = rel(folder) if folder.startswith(ROOT) else folder
@@ -511,12 +553,6 @@ def write_request(sid, out=None, force=False, date=None, spec=None, man=None):
     dtop = ', '.join(f'{f["frame"]} {t - t0:+d}' for f, t in zip(frames[:4], tops[:4]))
     bob = max(tops) - min(tops)
     rows = planted_rows(pose)
-    toe_lines = []
-    for leg, seq, rear in rows:
-        s = ' -> '.join(f'{fr} x={fmt_x(x)}' for fr, x in seq)
-        if rear:
-            s += f'  (-> {rear[0]} x={fmt_x(rear[1])} as the REAR foot, heel up, toe still on the floor)'
-        toe_lines.append(f'      {leg} foot: {s}')
     retreats = []
     for leg, seq, rear in rows:
         xs = [x for _, x in seq] + ([rear[1]] if rear else [])
@@ -593,7 +629,11 @@ def write_request(sid, out=None, force=False, date=None, spec=None, man=None):
     for r, what in refs_pkg:
         ko_files.append(f'| `{r}` | {"승인된 초상화 — 얼굴·머리·색" if "portrait" in r else "디자인 초안 — 디자인만"} |')
     ko_files.append(f'| `art/inbox/{stem}.png` | **승인된 전투 시트 원본** — 디자인·색·크기의 기준. 1번 자세가 대기 |')
-    ko_files.append(f'| `{gdir}/` (`pose.json`, `{pose["set"]}_preview.gif`, `{pose["set"]}.aseprite`) | 마네킹 원본 — 숫자·움직임 확인용 |')
+    if geo['scaled']:
+        ko_files.append(f'| `{geo["pose"]}`, `{gif}` | 이 요청의 좌표·보폭과 원본 움직임. 덧그리기는 이 폴더의 '
+                        f'`guide_{p}_a.png` / `guide_{p}_b.png` 위에만 한다. |')
+    else:
+        ko_files.append(f'| `{gdir}/` (`pose.json`, `{pose["set"]}_preview.gif`, `{pose["set"]}.aseprite`) | 마네킹 원본 — 숫자·움직임 확인용 |')
     lines = [
         f'# {c["title"]} · `{sid}` → `gait/{stem}_run`',
         '',
@@ -601,7 +641,8 @@ def write_request(sid, out=None, force=False, date=None, spec=None, man=None):
         '그림만으로 끝낼 수 있게 적었다. 규칙 충돌 시 `art/requests/gpt_handoff_notes.md` 「Rules changed」가 우선.',
         '',
         f'**왜 (주인 2026-11-26)**: {WHY_KO}',
-        f'→ 대기 그림을 잘라 기울이고 구부리는 코드 이동은 쓰지 않는다. **이동 부류 {ko_cls}({cls})의 확정 마네킹(`{gdir}/`) 8프레임 위에 '
+        f'→ 대기 그림을 잘라 기울이고 구부리는 코드 이동은 쓰지 않는다. **이동 부류 {ko_cls}({cls})의 '
+        f'{"이 폴더의 조정된 가이드" if geo["scaled"] else f"확정 마네킹(`{gdir}/`)"} 8프레임 위에 '
         '캐릭터를 프레임마다 덧그린다.** 그린 그림은 찌그러뜨리지 않는다(엔진은 칸을 그대로 넘긴다).',
         f'그려 온 띠는 `tools/art/add_gait.py` 가 시트 아래에 `anims.run` 칸으로 붙이고, 엔진(`js/battle.js`)이 {ms}ms 박자로 넘긴다'
         f'{" (뜬 칸 포함)" if flight else " (디딘 발이 붙어 있게: 칸마다 한 걸음의 1/4)"}.',
@@ -637,8 +678,11 @@ def write_request(sid, out=None, force=False, date=None, spec=None, man=None):
         f'  - art/inbox/{stem}.png (pose 1 = idle) = the accepted battle sheet: design, colours, outline, rendering and SIZE.',
         '    Same character, same pixel size, same palette.',
         *[f'  - {r} = {what}.' for r, what in refs_pkg],
-        f'  - {geo["pose"]} (the numbers below come from it), {gif} (the motion at speed), {ase} (the mannequin source -',
-        '    you may open it as an underlay and draw on your own layers, but the delivered PNGs contain ONLY your drawing).',
+        *([f'  - {geo["pose"]} (the scaled coordinates and stride), {gif} (motion reference only).',
+           f'    Draw only over this folder\'s guide_{p}_a.png and guide_{p}_b.png.']
+          if geo['scaled'] else
+          [f'  - {geo["pose"]} (the numbers below come from it), {gif} (the motion at speed), {ase} (the mannequin source -',
+           '    you may open it as an underlay and draw on your own layers, but the delivered PNGs contain ONLY your drawing).']),
         '',
         f'CHARACTER (unchanged from the accepted sheet): {c["character"]}',
         '',
@@ -654,13 +698,13 @@ def write_request(sid, out=None, force=False, date=None, spec=None, man=None):
          f'  - Height: the mannequin\'s head top is at y={"/".join(str(t) for t in tops[:4])} in {fa} and '
          f'{"/".join(str(t) for t in tops[4:])} in {fb}: ')
         + f'{dtop} px from {frames[0]["frame"]} (+ = lower) - move your head top by the same amounts (bob {bob} px).',
-        f'  - Stride: one step = {step:g} source px = {step * sc:.1f} game px; 8 frames = two steps, {ms} ms a frame in the game.',
+        stride_line(pose, sc),
         f'  - PLANTED FOOT (the rule the class warrior\'s R5 needed a fix for): a foot on the floor never slides in the drawing. From its',
         f'    contact frame on, the SAME boot moves LEFT by exactly step/4 = {q:.1f} px per frame (the mannequin: {rmin:.0f}-{rmax:.0f} px;',
         f'    tolerance 3 px) - the engine moves the unit {q * sc:.1f} game px per frame, so the boot stays still on the ground.',
         '    Toe tip of the planted boot = its FRONT-MOST pixel (the toe; on a tapered boot it may sit a few px above y=870, as on the '
         '    mannequin) = the yellow tick in size_*.png; x in the 384-px slot:',
-        *toe_lines,
+        *toe_lines(pose),
         *([f'      ({" / ".join(flight)}: flight - no foot on the floor; the next contact lands ahead again)'] if flight else []),
         '    Draw the planted boot once, then copy it from frame to frame and only shift it (lift the heel in the push frame); measure',
         '    YOUR toe tip against these numbers (the size_* images mark them with yellow ticks).',

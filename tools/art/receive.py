@@ -59,6 +59,7 @@ import argparse
 import json
 import os
 import re
+import shlex
 import shutil
 import subprocess
 import sys
@@ -692,7 +693,7 @@ CLASS_BASE = {'light': 'run_base', 'heavy': 'heavy_base', 'robe': 'robe_base'}  
 def gait_class(sheet):
     """the sheet's movement class from tools/art/specs/gait_classes.json (sheets.<sheet id>.gait: light / heavy / robe / none), or None"""
     body = sheet[len('sheet_'):]
-    sid = 'sheet/' + body.replace('_', '/', 1)
+    sid = sheet_id(body)
     try:
         with open(GAIT_CLASSES, encoding='utf-8') as f:
             return ((json.load(f).get('sheets') or {}).get(sid) or {}).get('gait')
@@ -713,6 +714,8 @@ def gait_pose(sheet, gait):
         if os.path.isfile(requested):
             with open(requested, encoding='utf-8') as f:
                 pose = json.load(f)
+            if not isinstance(pose, dict):
+                raise ValueError(f'{requested}: expected a JSON object')
             if pose.get('scaled_from'):
                 return requested, pose
     for set_name in (f'{gait}_{body}', f'{gait}_{body.split("_")[-1]}', base):
@@ -794,8 +797,16 @@ def gait_delivery(rel, work, exe, tip):
     if ('_a.png' in got) != ('_b.png' in got):
         print('  FAIL: only one strip delivered - a gait set is _a.png (frames 1-4) AND _b.png (frames 5-8)')
         rc = 1
+    sid = sheet_id(sheet[len('sheet_'):])
+    if not sid:
+        print(f'  FAIL: {sheet}.png is not registered in the manifest')
+        return 1
     cls = gait_class(sheet)
-    pose_path, pose = gait_pose(sheet, gait)
+    try:
+        pose_path, pose = gait_pose(sheet, gait)
+    except (OSError, ValueError) as e:
+        print(f'  FAIL: cannot read the gait pose for {sid}: {e}')
+        return 1
     # only the light run has a flight frame (slot 4 in the air); heavy / robe run frames stand on y=870 in every slot
     lifted = gait == 'run' and (pose.get('gait') == 'run' if pose_path else cls not in ('heavy', 'robe'))
     flight = ['--flight-slots', '4'] if lifted else []
@@ -846,7 +857,7 @@ def gait_delivery(rel, work, exe, tip):
         rc = strip_check(p, os.path.basename(p) + (' (--flight-slots 4)' if flight else ''), flight + cellarg) or rc
     src = [got['_a.png'], got['_b.png']] if '_a.png' in got and '_b.png' in got else ([got['.aseprite']] if '.aseprite' in got else [])
     if src:
-        cmd = [sys.executable, os.path.join(ROOT, 'tools', 'art', 'add_gait.py'), sheet, '--gait', gait, '--src', *src,
+        cmd = [sys.executable, os.path.join(ROOT, 'tools', 'art', 'add_gait.py'), sid, '--gait', gait, '--src', *src,
                '--dry-run', '--work', os.path.join(work, 'add_gait'), '--aseprite-bin', exe] + (['--extra-guides', extra] if extra else [])
         if pose_path:
             cmd += ['--pose', pose_path]
@@ -864,7 +875,7 @@ def gait_delivery(rel, work, exe, tip):
         if rc:
             print('- NOT ready to register: fix the FAIL lines above and deliver again')
         else:
-            print(f'- register after judging (copy the files in first): python3 tools/art/add_gait.py {sheet} --gait {gait} --src art/inbox/gait/'
+            print(f'- register after judging (copy the files in first): python3 tools/art/add_gait.py {shlex.quote(sid)} --gait {gait} --src art/inbox/gait/'
                   + (f'{stem}_a.png art/inbox/gait/{stem}_b.png' if len(src) == 2 else f'{stem}.aseprite')
                   + (f' --pose {os.path.relpath(pose_path, ROOT)}' if pose_path else ' --stride <game px>'))
     print(f'- work folder: {work}')

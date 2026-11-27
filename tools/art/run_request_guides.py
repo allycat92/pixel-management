@@ -25,6 +25,7 @@ on the anchor) corrected by how far the registered idle's sole centre sits from 
 import argparse
 import glob
 import json
+import math
 import os
 import re
 import shutil
@@ -112,6 +113,13 @@ def request_item(sid):
     return {}
 
 
+def sheet_scale(sid):
+    scale = request_item(sid).get('scale')
+    if not isinstance(scale, (int, float)) or isinstance(scale, bool) or not math.isfinite(scale) or scale <= 0:
+        raise Fail(f'{sid}: no recorded scale in {PHASE3}; record the registration scale before making a gait guide')
+    return scale
+
+
 def fig_mask(rgb):
     return np.sqrt(((rgb.astype(int) - MAG) ** 2).sum(-1)) > 60
 
@@ -126,6 +134,7 @@ def feet_x(mask):
 def geometry(sid, man=None):
     """everything the guides and the README need about one sheet, derived from the files (no per-character table)"""
     man = man or load_json(MANIFEST)
+    scale = sheet_scale(sid)
     e = man[sid]
     meta = e['sheet']
     stem = os.path.splitext(os.path.basename(e['file']))[0]
@@ -153,13 +162,12 @@ def geometry(sid, man=None):
     gys = np.nonzero(ga.any(1))[0]
     req = request_item(sid)
     reg_scale = (gys.max() - gys.min() + 1) / (ys.max() - ys.min() + 1)
-    scale = req.get('scale') or round(reg_scale, 4)
     ax, ay = meta['anchor']
     anchor_col = x0 + feet_x(idle) + (ax - feet_x(ga)) / scale
     return {
         'sheet': sid, 'stem': stem, 'short': stem[len('sheet_'):], 'source': src_rel, 'registered': e['file'],
         'idle_x': [x0, x1], 'idle_top': int(ys.min()), 'idle_low': int(ys.max()), 'anchor_col': round(float(anchor_col), 1),
-        'scale': scale, 'scale_src': 'phase3.json' if req.get('scale') else 'registered idle height',
+        'scale': scale, 'scale_src': 'phase3.json',
         'scale_registered': round(float(reg_scale), 4), 'cell': [cw, ch], 'anchor': [ax, ay],
         'game_idle_h': int(gys.max() - gys.min() + 1), 'tint': req.get('tint') or meta.get('tint'),
         'spots': req.get('spots'), 'package': req.get('package'), 'name_ko': req.get('name'),
@@ -284,6 +292,12 @@ def scale_strip(strip, ratio):
     out[:] = MAG
     for slot in range(strip.shape[1] // SLOT):
         offset = slot * SLOT
+        ys, xs = np.nonzero(fig_mask(strip[:, offset:offset + SLOT]))
+        left, right = HIP + (np.array([xs.min(), xs.max()]) - HIP) * ratio
+        top = FLOOR + (ys.min() - FLOOR) * ratio
+        if left < BAND or right > SLOT - 1 - BAND or top < 0:
+            raise Fail(f'scaled mannequin slot {slot + 1} exceeds x={BAND}..{SLOT - 1 - BAND} or top y=0 '
+                       f'(x={left:.1f}..{right:.1f}, top={top:.1f})')
         out[np.ix_(np.flatnonzero(valid_y), np.flatnonzero(valid_x) + offset)] = (
             strip[np.ix_(sy[valid_y], sx[valid_x] + offset)])
     return out
@@ -314,13 +328,15 @@ def build(sid, outdir, cls=None, man=None, force=False):
     f_reg = ImageFont.truetype(FONT, 22)
     f_small = ImageFont.truetype(FONT, 18)
     f_big = ImageFont.truetype(FONTB, 28)
+    guide_strips = [np.asarray(Image.open(path(p)).convert('RGB')) for p in strips]
     if scaled:
         pose = scale_pose(source_pose, pose, geo['scale'])
+        guide_strips = [scale_strip(strip, pose['scale_ratio']) for strip in guide_strips]
         local_pose = os.path.join(outdir, 'pose.json')
-        pj = os.path.relpath(local_pose, REPO).replace(os.sep, '/')
-        with open(local_pose, 'w', encoding='utf-8', newline='\n') as f:
-            json.dump(pose, f, ensure_ascii=False, indent=2)
-            f.write('\n')
+        try:
+            pj = os.path.relpath(local_pose, REPO).replace(os.sep, '/')
+        except ValueError:  # --out may be on another Windows drive
+            pj = local_pose.replace(os.sep, '/')
     elif force:
         local_pose = os.path.join(outdir, 'pose.json')
         if os.path.isfile(local_pose) and load_json(local_pose).get('scaled_from'):
@@ -328,10 +344,9 @@ def build(sid, outdir, cls=None, man=None, force=False):
     frames = pose['frames']
     flight_any = any(fr.get('phase') == 'flight' for fr in frames)
     for k, half in enumerate('ab'):
-        strip = np.asarray(Image.open(path(strips[k])).convert('RGB'))
+        strip = guide_strips[k]
         guide = os.path.join(outdir, f'guide_{p}_{half}.png')
         if scaled:
-            strip = scale_strip(strip, pose['scale_ratio'])
             Image.fromarray(strip).save(guide, optimize=True)
         else:
             shutil.copyfile(path(strips[k]), guide)
@@ -411,6 +426,10 @@ def build(sid, outdir, cls=None, man=None, force=False):
                 y += 30
         d.text((10, 310), 'SIZE (idle + mannequin)', font=f_reg, fill=(255, 255, 255))
         im.save(os.path.join(outdir, f'size_{p}_{half}.png'), optimize=True)
+    if scaled:
+        with open(local_pose, 'w', encoding='utf-8', newline='\n') as f:
+            json.dump(pose, f, ensure_ascii=False, indent=2)
+            f.write('\n')
     geo.update(cls=cls, prefix=p, pose=pj, source_pose=source_pose, scaled=scaled, strips=strips, idle_offset=ox, files=names)
     return geo
 

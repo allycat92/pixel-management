@@ -44,7 +44,7 @@
 | [`run__captain_bard/`](run__captain_bard/README.md) | `sheet/captain/bard` 리코 — 노래하는 검 (음유 검객) 이동 | 경량 · `art/requests/guides/run_base/v2` | `art/inbox/gait/sheet_captain_bard_run_a.png` + `_b.png` | 요청 |
 | [`run__captain_blademaster/`](run__captain_blademaster/README.md) | `sheet/captain/blademaster` 바렌 — 떠돌이 검귀 (검귀) 이동 | 경량 · `art/requests/guides/run_base/v2` | `art/inbox/gait/sheet_captain_blademaster_run_a.png` + `_b.png` | 요청 |
 | [`run__captain_fixer/`](run__captain_fixer/README.md) | `sheet/captain/fixer` 진 — 뒷골목 해결사 (해결사) 이동 | 경량 · `art/requests/guides/run_base/v2` | `art/inbox/gait/sheet_captain_fixer_run_a.png` + `_b.png` | 요청 |
-| [`run__captain_frostjarl/`](run__captain_frostjarl/README.md) | `sheet/captain/frostjarl` 비요른 달리기 | 경량 · `art/requests/guides/run_base/v2` | `art/inbox/gait/sheet_captain_frostjarl_run_a.png` + `_b.png` | 요청 |
+| [`run__captain_frostjarl/`](run__captain_frostjarl/README.md) | `sheet/captain/frostjarl` 비요른 달리기 | 경량 · `art/requests/gait/run__captain_frostjarl` | `art/inbox/gait/sheet_captain_frostjarl_run_a.png` + `_b.png` | 요청 |
 | [`run__captain_huntress/`](run__captain_huntress/README.md) | `sheet/captain/huntress` 키아라 — 숲의 덫꾼 (덫사냥꾼) 이동 | 경량 · `art/requests/guides/run_base/v2` | `art/inbox/gait/sheet_captain_huntress_run_a.png` + `_b.png` | 요청 |
 | [`run__captain_shadowqueen/`](run__captain_shadowqueen/README.md) | `sheet/captain/shadowqueen` 니클라 달리기 | 경량 · `art/requests/guides/run_base/v2` | `art/inbox/gait/sheet_captain_shadowqueen_run_a.png` + `_b.png` | 그려짐 · 등록 |
 | [`run__captain_tactician/`](run__captain_tactician/README.md) | `sheet/captain/tactician` 이사벨 — 퇴역 참모 (전술가) 이동 | 경량 · `art/requests/guides/run_base/v2` | `art/inbox/gait/sheet_captain_tactician_run_a.png` + `_b.png` | 요청 |
