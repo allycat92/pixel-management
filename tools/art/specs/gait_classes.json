@@ -268,7 +268,7 @@
     },
     "sheet/monster/고블린": {
       "gait": "light",
-      "why": "small goblin with a crude blade, leather scraps (enemy_tpl imp default light); registered 2026-11-27 (Antigravity c4cc054)."
+      "why": "small lean goblin with a knotted wooden club and leather scraps (enemy_tpl imp default light); registered 2026-11-27 (Antigravity c4cc054)."
     },
     "sheet/monster/들늑대": {
       "gait": "none",
@@ -289,7 +289,7 @@
     },
     "sheet/monster/서리 트롤": {
       "gait": "heavy",
-      "why": "big frost troll, massive body and club (enemy_tpl brute -> heavy by body size, same as the other brutes); registered 2026-11-27 (Antigravity c4cc054)."
+      "why": "big bare-handed frost troll, massive shoulders and fists (enemy_tpl brute -> heavy by body size, same as the other brutes); registered 2026-11-27 (Antigravity c4cc054)."
     },
     "sheet/monster/하피": {
       "gait": "none",
