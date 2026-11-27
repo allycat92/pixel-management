@@ -9,7 +9,7 @@
 |---|---|---|---|
 | GPT | `C20-betrayal-loss-fixed` | READY | (코드 일감, 「한 부대 다듬기」 들어간 뒤) 결전 배신·외부단 손실도 출격 때 고정: `docs/agents/tasks/C20-betrayal-loss-fixed.md` |
 | GPT | `Q19-flip-readiness-2` | READY | (C20 다음) 한 부대 초반 다듬기 들어감 — 다른 시드로 사람 플레이 다시: `docs/agents/tasks/Q19-flip-readiness-2.md` |
-| Codex | `C19-newplayer-texts` | READY | (C18 다음, 「한 부대 다듬기」 들어간 뒤) 처음 하는 사람을 위한 전투 모드 설명: `docs/agents/tasks/C19-newplayer-texts.md` |
+| Codex | `C19-newplayer-texts` | REVIEW | (C18 다음, 「한 부대 다듬기」 들어간 뒤) 처음 하는 사람을 위한 전투 모드 설명: `docs/agents/tasks/C19-newplayer-texts.md` |
 
 ## 끝난 일
 

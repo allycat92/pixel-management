@@ -437,6 +437,7 @@ const UI = (() => {
   function missionReport(r) {
     const titles = { great: '대성공!', success: '의뢰 성공', fail: '의뢰 실패', disaster: '대실패...' };
     const good = r.outcome === 'great' || r.outcome === 'success';
+    const timedOut = !good && r.battle?.end === 'time';
     const c = r.quest;
     const members = el('div', { class: 'report-members' });
     r.members.forEach((m) => {
@@ -463,9 +464,10 @@ const UI = (() => {
     return el('div', { class: 'report' },
       // 첫 초점은 제목(확인 버튼이 아니라): 「결과 보기」에서 Enter 를 두 번 눌러도 보고서가 바로 닫히지 않는다
       el('div', { class: `report-banner ${good ? 'good' : 'bad'} ${r.outcome}`, text: titles[r.outcome], tabindex: '-1', 'data-autofocus': '' }),
+      timedOut ? el('p', { class: 'small bad', text: '제한 시간 안에 적을 쓰러뜨리지 못해 패배했습니다.' }) : null,
       el('h3', { text: c.title }),
       el('div', { class: 'small muted', text: `${PROVINCES[c.province].name} · 의뢰주 ${FACTIONS[c.issuer].name}${c.target ? ` · 대상 ${FACTIONS[c.target].name}` : ''}` }),
-      r.battle ? el('div', { class: 'small muted', text: `출격 때 예상 「${Stats.BAND_NAMES[r.battle.band]}」 · ${!good && r.battle.end === 'time' ? `시간 초과(${Math.round(r.battle.t)}초)` : `전투 ${Math.round(r.battle.t)}초`} · 쓰러진 단원 ${r.members.filter((m) => m.down).length}명` }) : null,
+      r.battle ? el('div', { class: 'small muted', text: `출격 당시 예상 전황 「${Stats.BAND_NAMES[r.battle.band]}」 · ${timedOut ? `시간 초과(${Math.round(r.battle.t)}초)` : `전투 ${Math.round(r.battle.t)}초`} · 쓰러진 단원 ${r.members.filter((m) => m.down).length}명` }) : null,
       members,
       el('div', { class: 'report-rewards' },
         el('span', {}, icon('coin'), ` ${signed(r.gold)}`),
@@ -877,7 +879,9 @@ const UI = (() => {
   function openMenu() {
     const s = Game.state;
     const nameInput = el('input', { id: 'guild-name-input', class: 'input', value: s.guildName, maxlength: 16 });
+    const battle = Game.battleMode();
     const battleToggle = el('input', { type: 'checkbox', id: 'opt-battle', checked: s.settings.battle ? 'checked' : null,
+      'aria-describedby': battle ? 'battle-preview-help' : null,
       onchange: (e) => { s.settings.battle = e.target.checked; Game.save(); } });
     openModal(el('div', {},
       el('h2', { text: '메뉴' }),
@@ -888,6 +892,7 @@ const UI = (() => {
           if (v) { s.guildName = v; Game.save(); toast('이름을 바꿨습니다.'); renderTop(); }
         } })),
       el('label', { class: 'row-inline option', for: 'opt-battle' }, battleToggle, '의뢰 결과 전투 연출 보기'),
+      battle ? el('p', { id: 'battle-preview-help', class: 'small muted', text: '이 설정은 귀환 때 전투 화면을 보여 줄지만 정합니다. 의뢰 결과를 정하는 방식은 바뀌지 않습니다.' }) : null,
       el('div', { class: 'help' },
         el('h3', { text: '플레이 방법' }),
         el('ul', {},
@@ -896,6 +901,7 @@ const UI = (() => {
           el('li', { text: '의뢰는 용병단 단위로 맡깁니다. 의뢰를 완수하면 의뢰를 낸 세력에서 길드 평판이 오르고, 상대 세력에서는 떨어질 수 있습니다.' }),
           el('li', { text: '의뢰 결과에 따라 지방의 장악도가 바뀌고, 전쟁 중이면 지방이 다른 세력에게 넘어갑니다. 세계는 길드가 개입하지 않아도 움직입니다.' }),
           el('li', { text: '대규모 결전에는 의뢰에 따라 용병단을 최대 2개 또는 3개까지 보낼 수 있습니다. 양쪽 중 한 진영만 선택할 수 있습니다.' }),
+          battle ? el('li', { text: '쓰러진 단원은 그 전투에서 더 싸우지 못하며, 전투가 끝난 뒤 부상으로 쉬어야 할 수 있습니다. 일반 의뢰에서는 전사하지 않지만, 보스 토벌·최종 결전·개인 이야기의 마지막 전투에서 대패하면 전사할 수 있습니다.' }) : null,
           el('li', { text: '평판이 높은 세력은 혜택을 주고, 적대 세력은 의뢰를 끊고 보복합니다.' }),
           el('li', { text: '7일마다 주급과 계약 유지비를 냅니다. 금화가 -300 아래로 떨어지면 파산합니다. 스페이스바로 다음 날로 넘어갑니다.' }))),
       el('div', { class: 'modal-actions' },
