@@ -7,7 +7,7 @@
 
 | 누구 | id | 상태 | 할 일 (자세한 것은 그 줄의 문서) |
 |---|---|---|---|
-| Codex | `C27-crosscheck-c24` | READY | (C26 보다 먼저 — 기본 전환이 기다림) GPT 의 C24 교차 확인: 부상 분포·전투 모드 경제 변화: `docs/agents/tasks/C27-crosscheck-c24.md` |
+| GPT | `C27-crosscheck-c24` | READY | (11-28 주인: Codex 주간 한도 → GPT 가 다시) C24 검증 — 새 스크립트·새 시드, 금화 변화의 기전, 총괄이 합치기 전에 따로 재봄: `docs/agents/tasks/C27-crosscheck-c24.md` |
 | GPT | `C29-report-end-reason` | READY | (주인 11-28: 시스템 개선·QA 는 GPT) 결과창에 「왜 끝났나」 한 줄, 관전 「아군 후퇴」: `docs/agents/tasks/C29-report-end-reason.md` |
 | GPT | `C30-replay-preload` | READY | 관전 시작 전에 시트 그림 미리 받기(새로고침 직후 옛 코드 그림 방지): `docs/agents/tasks/C30-replay-preload.md` |
 | GPT | `Q27-battle-default-longrun` | READY | 전투 판정 기본으로 사람처럼 1~200일(새 시드, 다부대): `docs/agents/tasks/Q27-battle-default-longrun.md` |
