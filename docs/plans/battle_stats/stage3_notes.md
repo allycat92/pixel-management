@@ -769,7 +769,8 @@ exported. The board's capability table uses the same forecast, so card, dispatch
 |---|---|---|---|
 | `BM_CAL_LEAD` (new) | – | melee 0.98, ranged 1.082, rally 1.035, `RANGE_MIN` 40 | Fit below. All 1 = off. `--set BM_CAL_LEAD.ranged=1` etc. |
 | `BM_CAL_HEADS[2]` | 0.984 | 0.94 | 2-member parties, refitted together with the style term. |
-| `BM_CAL_OWNLV` | ≤3 0.879, ≤6 0.928, ≤9 0.946, ≤12 1, ≤16 1.005, more 1.034 | 0.887, 0.944, 0.969, 0.99, 0.983, 0.977 | Refitted jointly: part of the old high-level step (1.034) was the ranged captains that late parties have more of. |
+| `BM_CAL_HEADS[1]` | 0.95 | 0.9 | Review fix: a lone fighter read 백중 33% / 우세 76% (one-company probe, about 1,300 offers). |
+| `BM_CAL_OWNLV` | ≤3 0.879, ≤6 0.928, ≤9 0.946, ≤12 1, ≤16 1.005, more 1.034 | 0.887, 0.944, **0.958**, 0.99, 0.983, 0.977 | Refitted jointly: part of the old high-level step (1.034) was the ranged captains that late parties have more of. ≤9 was 0.969 in the first draft; the review moved it (below). |
 
 **Fit.** Stage 3's target matching (per slice the factor closest to 우세 87% and 백중 50%, weakly 열세 17% / 압도 99%, shrunk by
 n / (n + 150), alternating dimensions five times), parametrised as melee, ranged, rally, the 2-member factor and the six level
