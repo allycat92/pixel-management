@@ -21,7 +21,6 @@ Claude Code 가 받아서 확인한 결과는 `art/requests/feedback.md`에 남�
 
 | 누구 | 종류 | id | 할 일 (자세한 것은 그 줄의 요청서) |
 |---|---|---|---|
-| Antigravity | new | `gait/sheet_captain_ironwall_run` | **요청서 고침 (11-27, GPT 대조 Q3) — 이미 시작했으면 README 의 ARMS 절을 다시 읽을 것.** **브리긴다 중량 이동 8프레임** — 확정 중량 마네킹(`heavy_base/v1`) 위에 덧그린다. 주인이 기다리는 것(맨 마네킹에 실제 갑옷·탑방패를 입혀 보기). 요청서 `art/requests/gait/heavy__captain_ironwall/README.md`(SELF-CHECK 포함). 납품 `art/inbox/gait/sheet_captain_ironwall_run_a.png` + `_b.png` |
 | Antigravity | new | `gait/sheet_class_mage_run` | **요청서 고침 (11-27, GPT 대조 Q3) — 이미 시작했으면 README 의 ARMS 절을 다시 읽을 것.** 병과 마법사 로브 이동 8프레임 — `robe_base/v1` 위에. 요청서 `art/requests/gait/robe__class_mage/README.md`(옷자락 부피는 대기 그림대로, 마네킹의 좁은 치마는 자리 안내일 뿐) |
 | Antigravity | new | `gait/sheet_class_archer_run` | **요청서 고침 (11-27, GPT 대조 Q3) — 이미 시작했으면 README 의 ARMS 절을 다시 읽을 것.** 병과 궁수 달리기 8프레임 — `run_base/v2` 위에. 요청서 `art/requests/gait/run__class_archer/README.md` |
 | Antigravity | new | `gait/sheet_class_cleric_run` | **요청서 고침 (11-27, GPT 대조 Q3) — 이미 시작했으면 README 의 ARMS 절을 다시 읽을 것.** 병과 성직자 달리기 8프레임. 요청서 `art/requests/gait/run__class_cleric/README.md` |
@@ -47,7 +46,7 @@ Claude Code 가 받아서 확인한 결과는 `art/requests/feedback.md`에 남�
 | Antigravity | new | `gait/sheet_monster_skeleton_run` | 해골 병사 달리기 8프레임 (C9 요청서, 클라우드 대조 검증 반영). 요청서 `art/requests/gait/run__monster_skeleton/README.md` |
 | Antigravity | new | `gait/sheet_monster_bandit_run` | 산적 달리기 8프레임 (C9 요청서, 클라우드 대조 검증 반영). 요청서 `art/requests/gait/run__monster_bandit/README.md` |
 
-수령 완료, 제작 대상 아님: 사막 도적 다시·고블린 대비 손질 (`7c73a04`, 11-27 등록 — 헤드 판정 통과, 기술 검사 통과),  비요른·카이·해골 병사·사막 도적 (`5520f35`), 고블린·서리 트롤 (`c4cc054`). `C5-art-battle-integration-qa`에서 Codex가 별도 빌드로 반영·실전 확인한다. 최종 등록은 별도다.
+수령 완료, 제작 대상 아님: 브리긴다 중량 이동 8프레임 (`657d73c`, 11-27 등록 — 첫 중량 이동, 헤드 판정·기술 검사 통과),  사막 도적 다시·고블린 대비 손질 (`7c73a04`, 11-27 등록 — 헤드 판정 통과, 기술 검사 통과),  비요른·카이·해골 병사·사막 도적 (`5520f35`), 고블린·서리 트롤 (`c4cc054`). `C5-art-battle-integration-qa`에서 Codex가 별도 빌드로 반영·실전 확인한다. 최종 등록은 별도다.
 
 ## 주인에게 물을 것 (모아서 — 답이 없으면 「기본」대로 진행한다)
 

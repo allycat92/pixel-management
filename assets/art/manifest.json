@@ -1401,7 +1401,7 @@
   },
   "sheet/captain/ironwall": {
     "file": "assets/art/sheets/sheet_captain_ironwall.png",
-    "h": 192,
+    "h": 384,
     "sheet": {
       "anchor": [
         48,
@@ -1432,6 +1432,20 @@
             240
           ],
           "to": 3
+        },
+        "run": {
+          "from": 7,
+          "ms": [
+            101,
+            101,
+            101,
+            101,
+            101,
+            101,
+            101,
+            101
+          ],
+          "to": 14
         }
       },
       "cell": [
@@ -1467,8 +1481,57 @@
         [
           192,
           96
+        ],
+        [
+          0,
+          192
+        ],
+        [
+          96,
+          192
+        ],
+        [
+          192,
+          192
+        ],
+        [
+          288,
+          192
+        ],
+        [
+          0,
+          288
+        ],
+        [
+          96,
+          288
+        ],
+        [
+          192,
+          288
+        ],
+        [
+          288,
+          288
         ]
-      ]
+      ],
+      "gait": "heavy",
+      "gaits": {
+        "run": {
+          "center": 192,
+          "class": "heavy",
+          "floor": 870,
+          "ms": 101,
+          "pose": "art/requests/guides/heavy_base/v1/pose.json",
+          "src": [
+            "art/inbox/gait/sheet_captain_ironwall_run_a.png",
+            "art/inbox/gait/sheet_captain_ironwall_run_b.png"
+          ],
+          "step_px": 142.5,
+          "stride": 23.6
+        }
+      },
+      "runStride": 23.6
     },
     "w": 384
   },
