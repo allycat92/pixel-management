@@ -7,7 +7,6 @@
 
 | 누구 | id | 상태 | 할 일 (자세한 것은 그 줄의 문서) |
 |---|---|---|---|
-| GPT | `Q12-ironwall-run-ingame` | READY | 브리긴다 중량 이동(첫 중량)을 게임에서 보기: `docs/agents/tasks/Q12-ironwall-run-ingame.md` |
 | GPT | `Q11-stage4-check` | 예고 | 총괄 4단계 수정이 들어가면 READY: `docs/agents/tasks/Q11-stage4-check.md` |
 | Codex | `C10-scaled-mannequin-guides` | REVIEW | 배율이 다른 시트(비요른 0.18)용 마네킹 가이드 + 비요른 요청서: `docs/agents/tasks/C10-scaled-mannequin-guides.md` |
 | Codex | `C11-ui-fixes-q4` | READY | Q4 화면 결함 6건 + 관리 조작 즉시 저장 (3단계 합쳐진 뒤 최신에서 시작): `docs/agents/tasks/C11-ui-fixes-q4.md` |
@@ -18,6 +17,7 @@
 
 | 누구 | id | 결과 |
 |---|---|---|
+| GPT | `Q12-ironwall-run-ingame` | **DONE** (11-27, `a37378d` 합침): 브리긴다 중량 이동 — 중량감·접지·대기↔이동↔공격 PASS, 미끄러짐 중앙값 −0.5px. FIX: 철퇴 머리가 방패 면에 묻힘, H3/H7 다리 한 덩어리. 마법사 로브 이동 — 걸음·밑단·세력 색 다시 칠하기 PASS, FIX: G3/G7 장화 한 덩어리 → Antigravity 대기열 맨 위 손질 2줄 |
 | GPT | `Q9-post-calamity-check` | **DONE** (11-27, `e716e5c` 합침): 재앙 토벌·세력 멸망 뒤 정리 PASS(두 재현, 즉시 멸망, 옛 저장·다음 날·출격 방어, 출격 중 의뢰는 그대로 정산). **남은 틈(P2): 의뢰주가 멸망한 의뢰**(살아 있는 상대에게)는 여전히 출격 가능하고, 카이 이야기가 멸망한 엘프를 의뢰주로 다시 게시 → 총괄이 고친다 |
 | GPT | `Q10-goblin-bandit-ingame` | **DONE** (11-27, `7d59b6e` 합침): 고블린 PASS(어두운 숲에서 몸·귀·몽둥이가 갈라짐, 크기 유지) · 사막 도적 PASS(접촉 칼끝이 칸 안 x=91, 피격 앞발 접지) — Q2 의 FIX·미확인이 풀림 |
 | GPT | `Q6-battle-mode-midgame` | **DONE** (11-27, `f01297b` 합침): 보상 조정 뒤 두 폭 200일 — S 105·87일. 카드 = 정산(3,088 표시·467 귀환 일치), 이미 받은 카드의 숫자는 안 바뀜, 59~121일 곡선 확인. 60~120일 빚·파산 0이나 빠듯함(1,254금 vs 주간 1,330). 니클라 2/2·우르그 1/2 합류(부족 연합 멸망으로 영구 실패 1). 100~200일 의뢰판은 대체로 섞임. 소수 부대 거점 공략 시간 초과 패배 재현(80개 중 1) → 총괄 핵심 코딩 목록. 영입 조건 안내·시간 초과 보고 → C12 |

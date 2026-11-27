@@ -21,6 +21,8 @@ Claude Code 가 받아서 확인한 결과는 `art/requests/feedback.md`에 남�
 
 | 누구 | 종류 | id | 할 일 (자세한 것은 그 줄의 요청서) |
 |---|---|---|---|
+| Antigravity | 손질 | `gait/sheet_captain_ironwall_run` | **GPT 실전 점검 Q12 (11-27)**: ① 철퇴 머리가 방패의 잿빛 면 안쪽에 겹쳐 게임 크기에서 무기로 읽히지 않는다(H1~H8, 특히 H3/H7) → 방패 크기·잡은 손은 그대로 두고, 머리를 금 테두리 옆으로 조금 빼거나 가장자리 대비를 올려 자루와 이어 보이게. ② H3/H7 두 다리가 한 덩어리로 보인다 → 지지발·바닥 y 는 그대로, 가려지는 부츠나 정강이에만 1~2 게임 px 명암·외곽 차이. 캡처 `docs/agents/reports/shots/Q12/`. 납품은 같은 이름(`art/inbox/gait/sheet_captain_ironwall_run_a/_b.png`) |
+| Antigravity | 손질 | `gait/sheet_class_mage_run` | **GPT Q12**: G3/G7 에서 디딘 장화와 스쳐 가는 장화가 밑단 아래 같은 갈색 덩어리로 보인다 → 밑단을 올리거나 무릎을 그리지 말고, 먼 장화 앞코나 장화 윗선만 1~2 게임 px 밝기·외곽 차이. 세력 색 다시 칠하기는 PASS(그대로). 납품은 같은 이름 |
 | Antigravity | new | `gait/sheet_class_archer_run` | **요청서 고침 (11-27, GPT 대조 Q3) — 이미 시작했으면 README 의 ARMS 절을 다시 읽을 것.** 병과 궁수 달리기 8프레임 — `run_base/v2` 위에. 요청서 `art/requests/gait/run__class_archer/README.md` |
 | Antigravity | new | `gait/sheet_class_cleric_run` | **요청서 고침 (11-27, GPT 대조 Q3) — 이미 시작했으면 README 의 ARMS 절을 다시 읽을 것.** 병과 성직자 달리기 8프레임. 요청서 `art/requests/gait/run__class_cleric/README.md` |
 | Antigravity | new | `gait/sheet_class_rogue_run` | 병과 도적 달리기 8프레임. 요청서 `art/requests/gait/run__class_rogue/README.md` |
