@@ -16,7 +16,7 @@
 
 - 부류: **경량** — small lean goblin with a knotted wooden club and leather scraps (enemy_tpl imp default light); registered 2026-11-27 (Antigravity c4cc054). (tools/art/specs/gait_classes.json)
 - 납품: art-inbox `art/inbox/gait/sheet_monster_goblin_run_a.png` (R1~R4) + `art/inbox/gait/sheet_monster_goblin_run_b.png` (R5~R8) + `art/inbox/NOTES.md` 절 「gait/sheet_monster_goblin_run - 고블린 이동」 + 「## 판정 — gait/sheet_monster_goblin_run」. 파일 이름은 부류와 상관없이 `_run_` (엔진의 `anims.run`).
-- 팔·무기: 몽둥이(칼 아님)는 가까운 손 허리 높이에서 앞아래로. 굵은 옹이까지 x=350 안, 얼굴·귀와 발에서 분리. 앞 가죽띠·허리천은 앞에.
+- 팔·무기: 몽둥이(칼 아님)는 가까운 손, 자기 낮은 허리(x=142–147, 엉덩이보다 35–45px 위 y≈700–715 — 마네킹 높이 y=668–682 는 가슴이다)에서 수평보다 5–10° 아래로 (대기는 약 22° 위 — 의도한 바꿈). 옹이 중심은 손에서 165–170px 앞·15–30px 아래, R3·R4·R7·R8 앞 무릎보다 위·앞, x=105–350 안, 얼굴·귀·장화·무릎과 분리; R3–R5 먼 손톱이 자루를 지날 때 몽둥이가 위. 키: 마네킹보다 약 90px 작고 다리가 짧다 — 머리를 마네킹 목에, 관절을 관절에 두지 않고 각도·기울기·발자리·디딘 발끝·출렁임만 따른다 (R1 엉덩이 y≈740–750, 어깨 y≈620–630, 귀 끝 y≈520–535). 다리·몸·목을 늘이지 않는다 (게임 55–57px). 앞 가죽띠·허리천은 앞에.
 - 디딘 발: 한 걸음 원본 275px(게임 45.5px) → 디딘 발은 칸마다 **정확히 68.8px**(±3, 게임 11.4px) 뒤로 — 발끝 x 는 Prompt 의 PLANTED FOOT 표. (병과 전사 R5 는 디딘 발이 30px 앞에 그려져 한 번 고쳤다.)
 - 클라우드가 받은 뒤: `python3 tools/art/receive.py gait/sheet_monster_goblin_run` (검사 + `add_gait.py --dry-run`) → 미리보기를 보고 `add_gait.py` 로 붙인다 (`--pose art/requests/guides/run_base/v2/pose.json`).
 
@@ -43,10 +43,10 @@ REFERENCES (load all; if the sheet or a guide does not load, do not draw - write
 CHARACTER (unchanged from the accepted sheet): Small green goblin: oversized pointed ears and amber eyes, diagonal leather strap, wrist wraps, ragged front waistcloth, wrapped ankles and bare green toes. The weapon is a knotted wooden club, not a blade.
 
 THE MOVE (owner's three movement classes; light: the accepted run: lean forward, press down in flight, rise a little after the landing is caught, hip nearly level, slight float, no hopping. It is already in the mannequin - copy it, do not invent another):
-  - Each frame: the legs, the torso lean and the arm swing of that mannequin frame. Joint for joint: hips, knees, ankles, feet,
-    shoulders, elbows (hands: see ARMS - where the text moves a hand, that is intended, not a deviation).
-    The mannequin's big round head is a placeholder: draw the character's own head on the mannequin's neck, at its own size
-    (as in the sheet).
+  - Each frame: the leg and arm ANGLES, the torso lean, the foot placement, the planted-toe x and the bob of that
+    mannequin frame, drawn with HIS OWN limb lengths (hands: see ARMS - where the text moves a hand, that is intended,
+    not a deviation). NOT joint for joint: the goblin is about 90 px shorter than the mannequin, so his head does NOT
+    go on the mannequin's neck and his hips, knees and shoulders do NOT go on its joints - see the height line in FORMAT.
   - R1 contact (near foot lands a little ahead, knee bent) - R2 catch (the hips drop onto the foot: lowest hips, but the torso straightens, so the head top is the HIGHEST of the cycle - see Height) - R3 push-off (stance leg extends behind, heel up) - R4 FLIGHT (both feet clearly off the ground, legs scissored, body pressed forward and leaning the most). R5-R8 = the same with the far foot.
   - The hips stay nearly level: the top of the head stays within about 10 px of the same height in all 8 frames. NO hopping, no bouncing up and down.
   - Lean forward (hip to neck): R1/R5 24, R2/R6 19.4, R3/R7 29.1, R4/R8 31.4 deg.
@@ -63,8 +63,8 @@ THE MOVE (owner's three movement classes; light: the accepted run: lean forward,
     YOUR toe tip against these numbers (the size_* images mark them with yellow ticks).
 
 ARMS AND WEAPONS:
-  - Keep the club in the near hand at low waist height, x=142–147 and y=668–682 in each 384-px slot. The club points forward and about 23–27 degrees below horizontal; keep the full knob, handle and outline within x=105–350 and below the chest. The shaft may cross the near hip (intended); the broad knotted end must read on the background in front. It must not cross the face or ears or touch either boot.
-  - The fixed carry replaces the near-hand and elbow swing. Bend the elbow as needed from the guide shoulder; keep the far claw free and following its light arm swing. Do not let the club flip between hands.
+  - Keep the club in the near hand at his own low waist: x=142–147 in each 384-px slot, about 35–45 px above his hips (y≈700–715; see the height line in FORMAT - the mannequin-height box y=668–682 would sit at his chest). The idle holds it about 22° ABOVE horizontal. For the run, lower it to about 5–10° BELOW horizontal (intended change, not a deviation), knob centre about 165–170 px ahead of the grip and 15–30 px below it. Keep the whole knob above and ahead of the leading knee in the push and flight frames R3, R4, R7 and R8, clear of the face and ears, and within x=105–350. The shaft may cross the near hip (intended). Where the far claw passes the shaft (R3–R5), draw the club over the claw, never the claw over the club. Do not let the club touch either boot or knee.
+  - The fixed carry replaces the near-hand and elbow swing. Bend the elbow as needed from his own shoulder (not the mannequin's); keep the far claw free and following its light arm swing. Do not let the club flip between hands.
   - Keep the diagonal strap and the ragged front waistcloth in front. Only the free ends at the sides lag, without merging the feet.
   - Face: keep both ears, brow and amber eyes readable, with no club in front of them.
 
@@ -77,7 +77,7 @@ front three-quarter view, light from the upper left, exactly the placement of gu
   - R1 R2 R3 R5 R6 R7: the sole of the standing foot on y=870 (lowest pixel), the other foot well above it;
   - R4 / R8 (FLIGHT): NOTHING touches y=870 - the lowest pixel of the whole figure (boots, weapon, cloth) at or above y=852;
   - every pixel of a frame between x=32 and x=351 of its slot (at least 32 px of magenta to the slot edges - nothing may cross into the next slot, including weapons, cloth and hair);
-  - head 110 px scale = the scale of the accepted sheet (0.1654 source -> game: the idle is 55 game px tall); Keep the short, big-eared body the same size as the accepted idle (~55 game pixels including the ears)..
+  - head 110 px scale = the scale of the accepted sheet (0.1654 source -> game: the idle is 55 game px tall); The goblin is about 90 px shorter than the mannequin and has much shorter legs (hip about 125 px above the sole when straight, against the mannequin's 176). Do NOT put his head on the mannequin's neck or his joints on its joints. Copy the mannequin's joint ANGLES, torso lean, foot placement, planted-toe x and bob with his own limb lengths. His hips sit near y≈740–750 (not 690), his shoulders near y≈620–630 (not 570), and his ear tips near y≈520–535 in R1, plus the 9-px bob. Do not stretch his legs, torso or neck to reach the mannequin's height; he stays about 55–57 game px.
 STYLE: crisp pixel art like the accepted sheet - about 40 colours, hard pixel edges, no anti-aliasing into the background.
 BACKGROUND: perfectly flat #FF00FF. Every figure colour at RGB distance >= 170 from #FF00FF (hard minimum 150).
 NO effects: no dust, speed lines, motion blur, afterimages, shadows, floor, text or guide lines in the delivery.

@@ -58,6 +58,9 @@ Claude Code 가 받아서 확인한 결과는 `art/requests/feedback.md`에 남�
 | Antigravity | new | `gait/sheet_captain_runesmith_run` | 룬 대장장이 중량 이동 8프레임 (C15 요청서, 클라우드 그림 대조 반영). 요청서 `art/requests/gait/heavy__captain_runesmith/README.md` |
 | Antigravity | new | `gait/sheet_captain_hedgemage_run` | 떠돌이 마법사 로브 이동 8프레임 (C15 요청서, 클라우드 그림 대조 반영). 요청서 `art/requests/gait/robe__captain_hedgemage/README.md` |
 | Antigravity | new | `gait/sheet_captain_pilgrim_run` | 순례 기사 로브 이동 8프레임 (C15 요청서, 클라우드 그림 대조 반영). 요청서 `art/requests/gait/robe__captain_pilgrim/README.md` |
+| Antigravity | new | `gait/sheet_monster_goblin_run` | 고블린 달리기 8프레임 (C17, 클라우드 대조 반영: **작은 몸 그대로** — 마네킹은 관절 각도만, 키 55~57 게임 px). 요청서 `art/requests/gait/run__monster_goblin/README.md` |
+| Antigravity | new | `gait/sheet_monster_desert-bandit_run` | 사막 도적 달리기 8프레임 (C17, 대조 반영: 칼은 뒤아래, 뒤 부츠 위에 겹쳐 외곽선으로 분리). 요청서 `art/requests/gait/run__monster_desert-bandit/README.md` |
+| Antigravity | new | `gait/sheet_monster_frost-troll_run` | 서리 트롤 중량 이동 8프레임 (C17, **배율 요청 ×0.919** — 이 폴더 guide 위에만; 팔은 대기처럼 넓게, 마네킹 어깨를 따르지 않음). 요청서 `art/requests/gait/heavy__monster_frost-troll/README.md` |
 
 수령 완료, 제작 대상 아님: 병과 궁수 달리기 8프레임 (`34c9aef`, 11-27 등록),  Q12 손질(브리긴다 철퇴 대비·H3/H7 다리, 마법사 G3/G7 장화, `2cba486`),  병과 마법사 로브 이동 8프레임 (`59117b5`, 11-27 등록 — 첫 로브 이동),  브리긴다 중량 이동 8프레임 (`657d73c`, 11-27 등록 — 첫 중량 이동, 헤드 판정·기술 검사 통과),  사막 도적 다시·고블린 대비 손질 (`7c73a04`, 11-27 등록 — 헤드 판정 통과, 기술 검사 통과),  비요른·카이·해골 병사·사막 도적 (`5520f35`), 고블린·서리 트롤 (`c4cc054`). `C5-art-battle-integration-qa`에서 Codex가 별도 빌드로 반영·실전 확인한다. 최종 등록은 별도다.
 
