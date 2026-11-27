@@ -757,7 +757,9 @@ const Game = {
         if (deferred.size) this.log(`유예 주간: 급료(금화 ${[...deferred].reduce((a, m) => a + m.owed, 0)})를 다음 정산으로 미뤘습니다.`, 'bad');
       }
       // 급료를 미룬 정산은 알림 창으로도 알린다 (주인 결정 7: 일지에만 있어 놓치기 쉬웠다, Q16). 전투 모드에서만 생긴다 (유예 주간이 전투 모드뿐)
-      if (deferred.size) s.pendingReports.push({ special: 'grace', until: s.graceUntil, owed: [...deferred].reduce((a, m) => a + m.owed, 0), names: [...deferred].map((m) => m.name) });
+      // next: 다음 정산 날, nextGrace: 그 정산도 유예 주간 안인가 (패배한 날이 정산 날이면 유예 한 주가 정산 두 번을 덮는다)
+      if (deferred.size) s.pendingReports.push({ special: 'grace', until: s.graceUntil, owed: [...deferred].reduce((a, m) => a + m.owed, 0), names: [...deferred].map((m) => m.name),
+        next: s.day + 7, nextGrace: s.day + 7 <= s.graceUntil });
       s.mercs.forEach((m) => { if (!deferred.has(m)) delete m.owed; });   // 받은 단원(또는 빚으로 받은 단원)의 미룬 몫은 끝났다
       s.gold -= owed;
       this.log(`주간 정산: 금화 ${owed} 지급.${s.gold < 0 ? ' 길드가 빚을 지고 있습니다!' : ''}`, s.gold < 0 ? 'bad' : '');
@@ -777,20 +779,30 @@ const Game = {
   weeklyWageTotal() { return this.state.mercs.reduce((sum, m) => sum + this.wage(m), 0); },
   backPayTotal() { return this.state.mercs.reduce((sum, m) => sum + (m.owed || 0), 0); },   // 유예 주간에 미룬 급료 (전투 모드)
   paydayTotal() { return this.weeklyWageTotal() + this.weeklyUpkeepTotal() + this.backPayTotal(); },   // 다음 정산에 낼 돈 (주급 + 유지비 + 미룬 급료)
-  // 전투 모드의 유예 주간이 열려 있고 그게 지금 뜻이 있을 때(미룬 급료가 있거나 다음 정산에 돈이 모자람) 그 마지막 날, 아니면 0 (상단 막대 표시)
+  nextPaydayDay() { return this.state.day + this.daysToPayday(); },
+  // 다음 정산이 전투 모드의 유예 주간 안에 있고 그게 지금 뜻이 있을 때(미룬 급료가 있거나 다음 정산에 돈이 모자람) 유예 주간의 마지막 날, 아니면 0 (상단 막대 표시).
+  // 유예는 정산 날에만 작용한다 — 유예 안의 마지막 정산이 지나면 보호는 끝났으므로 보이지 않는다 (그때 남은 미룬 급료는 backPayShown)
   graceShown() {
     const s = this.state;
-    if (s.resolve !== 'battle' || !(s.day <= (s.graceUntil || 0))) return 0;
+    if (s.resolve !== 'battle' || this.nextPaydayDay() > (s.graceUntil || 0)) return 0;
     return this.backPayTotal() > 0 || s.gold < this.paydayTotal() ? s.graceUntil : 0;
+  },
+  // 미룬 급료가 남았는데 다음 정산이 유예 주간 밖일 때 그 금액 (상단 막대: 그 정산에 못 내면 단원이 떠난다), 아니면 0
+  backPayShown() {
+    const s = this.state;
+    if (s.resolve !== 'battle' || this.graceShown()) return 0;
+    return this.backPayTotal();
   },
 
   // ───────── 귀환까지 넘기기 (주인 결정 7: 한 부대 길드는 60~120일의 절반 넘게 귀환만 기다린다, Q16) ─────────
   // 보낼 수 있는 용병단이 하나도 없고 나가 있는 임무가 있을 때만. 화면 전용 편의 — 날짜 넘기기를 되풀이할 뿐 규칙·난수는 같다 (봇은 쓰지 않는다)
+  // (집에 있어도 보낼 단원이 없는 용병단 — 모두 부상이거나 빈 용병단 — 은 보낼 수 없는 쪽으로 센다. 안내 문구는 allAway() 로 둘을 가른다)
   waitingForReturn() {
     const s = this.state;
     if (s.over || !s.missions.length) return false;
     return !s.companies.some((c) => !c.missionId && (c.own ? this.availableMembers(c).length > 0 : true));
   },
+  allAway() { return this.state.companies.every((c) => !!c.missionId); },
   // 날을 넘기다가 보고서·알림이 쌓이거나(귀환 포함), 정산일이거나, 새 특별 의뢰가 오르거나, 보낼 용병단이 생기면 멈춘다. -> 넘긴 날수
   skipToReturn(maxDays = 30) {
     const s = this.state;

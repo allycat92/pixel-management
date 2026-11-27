@@ -727,3 +727,207 @@ node tools/sim/shadow.js 6 365 --resolve battle --check --jobs 4                
 - **No UI reason for a lower word**: a slow fight now reads lower, but the card does not say why (e.g. "시간이 빠듯함").
 - **Q6 #721 not replayed**: the seed 582702 day-150 save is not in the repo; the probe's Q6 class (old R 1.20-1.35, killTime
   > 20 s) is measured instead.
+
+## One-company polish (owner decision 7)
+
+Date 2026-11-27. Base `ea5304a` (roll md5 `11cadc0cceafa5e4262773fdadf780f9`). Owner decision 7: before battle mode becomes the
+default, fix the one-company early game that Q16 played (seed 582702, 바렌, one direct company, 120 days): 우세 lost 4 of 17 early,
+백중 won 3 of 15, 37 of 61 days in days 60-120 were spent waiting for the only company, the grace week was only in the journal, and
+the partial pay on a loss was explained inconsistently. Plus QA Q18 item 2 (a boss contract issued by the active calamity).
+
+Battle-mode gameplay only, except the boss-contract issuer (a real bug in both modes). Not touched: `js/battle.js`, the board code,
+`BANDS`, `CAL_KIND`, `BM_CAL_ARCH`, `BM_CAL_SPECIAL`, `BOARD_W`, `BM_MID_*`, the time term, casualty rules.
+
+### What the measurement said (before the change)
+
+A scratch one-company bot (`one.js`, "human" strategy: first direct company only, barracks first, one facility a week, picks by
+(reward + 6·명성) × word weight ÷ days with 압도 1 / 우세 .85 / 백중 .7, 열세 only when rich, never 무모; `--probe` also fights every
+board offer headless with the day's party) took the same word mix as Q16 (압도 40 / 우세 30 / 백중 26 / 열세 3%).
+
+- **Q16's 우세 losses were mostly bad luck**: 바렌 with one company won 89-91% at 우세 on days 1-30 (13 or fewer wins in 17 has an
+  8-14% chance at that rate). Nothing is missing for early or small rosters as such; one-company forecasts were on average
+  *pessimistic* (probe 백중 61-68%, 우세 94-96%).
+- **The missing term was the captain's fighting style.** Same word, one company, by first captain (probe, 3-4 members): 백중 won
+  39% (fixer), 48% (lancer), 51% (blademaster = 바렌) … 78% (fieldmedic), 87% (tactician). `margin` counts only skills that hit an enemy
+  and heals: a melee captain walks into the front and is downed first (with 3-4 members one downed captain is half the retreat
+  rule), and rally buffs (전술 지시 공격 +25% / 방어 +20%, 철벽 방진 방어 +40%, 노병의 호통 ±20%) are invisible. The many-company bot shows
+  the same split (melee captains 백중 33-34% / 우세 79-82%, ranged 68-71% / 95-96%). Stage 3 fitted the mix, so each starter carried a
+  fixed ±10-20% error in R from day 1.
+- **2-member parties** (a member injured or exhausted) read optimistic: 백중 39-42%.
+- **Waiting is structural**: a company redispatched the day it returns waits 1 − 1/length of the time; mission length grows from
+  1.5 days (days 1-30) to 2.5-2.7 (days 61+) because ★6+ adds a day. Q16's 37 of 61 matches the bots exactly.
+
+### A. Forecast: captain style, 2 members, our-level steps (`js/stats.js`)
+
+`forecast()` (battle-mode specs only) multiplies the calibration by `leadCal(spec)`: for each own company group its captain's
+factor — `ranged` if the captain's first skill has range ≥ `RANGE_MIN` (bows, magic, heals), else `melee` (the lancer's 16-range
+spear is melee) — times `rally` if any captain skill is a self-side buff (`tgt 'self'` + `buff`); groups without a captain and
+external companies count 1; groups are averaged by their non-recruit members. `Stats.leadStyle(sk)` / `Stats.leadCal(spec)` are
+exported. The board's capability table uses the same forecast, so card, dispatch and board aim keep reading the same word.
+
+| Constant | Before | After | Reason |
+|---|---|---|---|
+| `BM_CAL_LEAD` (new) | – | melee 0.98, ranged 1.082, rally 1.035, `RANGE_MIN` 40 | Fit below. All 1 = off. `--set BM_CAL_LEAD.ranged=1` etc. |
+| `BM_CAL_HEADS[2]` | 0.984 | 0.94 | 2-member parties, refitted together with the style term. |
+| `BM_CAL_OWNLV` | ≤3 0.879, ≤6 0.928, ≤9 0.946, ≤12 1, ≤16 1.005, more 1.034 | 0.887, 0.944, 0.969, 0.99, 0.983, 0.977 | Refitted jointly: part of the old high-level step (1.034) was the ranged captains that late parties have more of. |
+
+**Fit.** Stage 3's target matching (per slice the factor closest to 우세 87% and 백중 50%, weakly 열세 17% / 압도 99%, shrunk by
+n / (n + 150), alternating dimensions five times), parametrised as melee, ranged, rally, the 2-member factor and the six level
+steps, offline re-banding of R. Two populations with equal weight, both *every offer looked at*, fought headless (not only sent):
+the many-company sensible bot (seeds 201-212, 301-312, 401-412 × 365 days, 24,383 battles) and the one-company probe (9 first
+captains, seeds 1001 / 2001 × 120 days plus the human bot on seeds 201-212, 35,109 battles). None of the evaluation seeds below.
+
+**First draft and why it was replaced.** A first fit that used the bot's *sent* battles (it never sends 열세, so re-banding a ranged
+captain's 열세 up into 백중 had no rows to move) gave ranged 1.119 / rally 1.044. In the game the sensible bot's pooled 백중 fell
+46.8 → 41.1% and 우세 87.4 → 86.3% (3 sets). Refitted on looked-at offers it is the table above.
+
+Offline, in sample: many-company probe 백중 / 우세 50 / 90% → 49 / 90% (days 241-365 44 / 87 → 48 / 90; melee captains 33 / 82 →
+46 / 88; ranged 68 / 96 → 53 / 92); one-company probe 61 / 94 → 50 / 91% (days 1-30 59 / 94 → 48 / 91).
+
+### B. Waiting days: a skip button and the second-company hint (UI only)
+
+The data does not support shortening missions or moving the second company earlier:
+- **Shorter missions** (dropping the ★6+ extra day in battle mode) would cut days 61-120 waiting from about 61% to 48%, but raise
+  명성 per day by about 30% for every guild (a decision-5 retune) and cut rewards 7-10% through the (1 + 0.12·days) factor.
+- **A second company is already reachable early**: barracks 1 allows two direct companies (`maxCompanies` = 1 + barracks) and one
+  costs `companyCost()` = 200. A "human2" bot that opens it when the new hint would (only one company, room for another, gold for it
+  plus 4 weeks of pay + 600) opened it on day 10-35 (median 16) — and that removes about half the waiting (table below). What Q16 lacked
+  was the reason to do it.
+
+So:
+- **「귀환까지 ▶▶」** (top bar, `index.html` `#skip-day`, `js/ui.js`): shown only when no company can be sent (`Game.waitingForReturn()`:
+  missions out, no own company with an idle member, no free external company). `Game.skipToReturn()` (`js/game.js`) runs `nextDay`
+  until a report or notice is queued (a return included), payday, a new special contract, a company becomes free, or the game ends;
+  at most 30 days. Same rules and random numbers as pressing 「다음 날」 that many times; no bot calls it, so both modes' md5 hold.
+  Shown in both modes (it changes no rule).
+- **Hint lines**: on the contract tab while waiting (`waitHint()` in `js/ui-tabs.js`: the skip button, and with one company either
+  "build another company here (금화 N)" or "upgrade the barracks to have another"), and on the company tab when there is one company
+  and room for another.
+
+### C. Grace week, visible (battle mode)
+
+- **Report note when a defeat opens the grace week** (`js/contract.js`) and gold after the loss pay is below the next payday
+  (`Game.paydayTotal()` = wages + upkeep + deferred pay): 「유예 주간(N일까지): 급료가 모자라도 단원이 떠나지 않습니다. 못 준 급료는
+  다음 정산에 함께 냅니다.」
+- **Popup when a payday defers wages** (`js/game.js` `weeklyPayday`): a new report `{ special: 'grace', until, owed, names }` drawn by
+  `specialReportBody` in `js/ui.js` (「유예 주간: 급료를 미뤘습니다」, who, how much, until when, what happens at the next payday).
+  The journal line stays. The bots ignore it (no `quest`).
+- **Top-bar chip** 「유예 ~N일」 (`#grace-chip`, title explains) while the grace week is open and it matters (deferred pay, or gold below
+  the next payday: `Game.graceShown()`). Hidden while a mission report is still unseen, so it does not give a defeat away during the
+  battle replay.
+
+### D. Loss pay, always explained (battle mode)
+
+Every battle-mode loss now writes the split (before: only when ≥ 5% of the enemy was beaten, and the whole sum was labelled
+「적 전력의 N%를 꺾어」):
+- fail or orderly retreat: 「패배 보수 금화 X = 기본 10% (a) + 꺾은 적 전력 N%의 몫 (b)」 (a = reward × `LOSS_PAY`, b = X − a);
+- disaster without a retreat: 「패배 보수 금화 X: 전멸이라 기본 몫은 없고 꺾은 적 전력 N%의 몫만 받았습니다.」
+
+### E. Boss contract issuer (QA Q18 item 2, both modes)
+
+`checkBosses()` now passes `issuer`: the province owner, or `'locals'` if the owner is the active calamity or destroyed (the rule of
+`js/captains.js:148` and `js/contract.js:734`). Missions already out are not touched. `makeContract` draws the same random numbers
+either way (level, enemy and title are given). 12 × 365, HEAD: one calamity-issued boss contract per mode (sent in roll); after: 0.
+Roll md5: 6 × 200 `11cadc0c…` and 12 × 365 `ffee253e5364a3e6f882f9aed77254b0` are both unchanged (the one roll game that sent such a
+contract ends with the same summary JSON).
+
+### Results (evaluation seeds 1, 3101, 4101 — 3101 and 4101 untouched by any fit; 5001 for the starters)
+
+**One-company human bot, 3 × 12 games × 365 days, before → after** (sent battles; probe = every board offer, days 1-120):
+
+| | 백중 | 우세 | 압도 |
+|---|---|---|---|
+| sent, days 1-30 | 75% (109) → 61% (116) | 92% (212) → 90% (221) | 100% → 100% |
+| sent, days 31-60 | 76% (101) → 59% (85) | 97% (174) → 96% (185) | 100% → 100% |
+| sent, days 61-120 | 58% (158) → 50% (137) | 88% (257) → 89% (283) | 100% → 100% |
+| sent, days 121-365 | 46% (645) → 54% (684) | 90% (1180) → 92% (1169) | 100% → 100% |
+| probe, days 1-30 / 31-60 / 61-120 | 67 / 76 / 63% → 58 / 61 / 56% | 95 / 96 / 92% → 93 / 95 / 91% | 100% |
+| sent, 2 members | 32% (129) → 59% (149) | 84% (206) → 94% (228) | 100% |
+| sent, blademaster (바렌) | 32% (315) → 49% (332) | 84% (540) → 88% (570) | 100% |
+| sent, ironwall | 52% (271) → 58% (266) | 91% (504) → 94% (487) | 100% |
+| sent, tactician | 71% (427) → 55% (424) | 96% (779) → 93% (801) | 100% |
+
+Rank days C / B / A / S: 42 / 74 / 106 / 165 (35 of 36 reach S) → 43 / 74 / 103 / 175 (36 of 36); rank on day 120: A 30 → 32 of 36;
+losses 16.7 → 16.8% of missions; no bankruptcy; gold on day 30 / 60 / 120: 2.8k / 6.1k / 10.8k → 3.0k / 6.0k / 11.2k.
+
+**By first captain** (one company, probe, 3-4 members, seed 5001 × 8 games × 120 days, never used):
+
+| starter | 백중 | 우세 | 열세 |
+|---|---|---|---|
+| fixer | 44% → 43% | 88% → 87% | 10% → 15% |
+| lancer | 54% → 47% | 92% → 93% | 23% → 18% |
+| blademaster (바렌) | 51% → 56% | 91% → 92% | 14% → 18% |
+| hedgemage | 73% → 33% | 96% → 89% | 24% → 11% |
+| veteran | 53% → 56% | 92% → 94% | 32% → 23% |
+| ironwall | 61% → 54% | 97% → 97% | 29% → 19% |
+| huntress | 64% → 44% | 97% → 88% | 33% → 11% |
+| fieldmedic | 81% → 61% | 98% → 95% | 48% → 16% |
+| tactician | 87% → 53% | 100% → 96% | 62% → 22% |
+| all (n ≈ 1,250 / 2,540 / 1,000) | 64% → 50% | 95% → 92% | 31% → 17% |
+
+The spread of 백중 across starters goes from 44-87% to 33-61% (hedgemage and huntress now read a little optimistic, n 116-131).
+
+**Waiting** (per game; "clicks" = clicks needed to get through the waiting days with 「귀환까지 ▶▶」, which stops at returns and paydays):
+
+| days | human: waiting | sent | clicks with the button | human2 (opens a 2nd company): waiting | sent |
+|---|---|---|---|---|---|
+| 1-30 | 9.4 | 20.0 | 8.2 | 6.4 | 21.8 |
+| 31-60 | 14.2 | 13.1 | 9.5 | 6.3 | 20.8 |
+| 61-120 | 32.8 | 20.1 | 18.9 | 18.0 | 35.0 |
+| 121-365 | 135 | 79 | 79 | 73 | 133 |
+
+Most waiting runs are 1-2 days, so the button saves about 40% of the waiting clicks (61-120: 33 → 19). Opening the second company
+halves the waiting and brings S from day 175 to 114 (human2: C 37, B 61, A 84; S by day 120 in 27 of 36 games); losses rise from 11
+to 21% on days 31-60 (the second company starts without a captain). That is why the hint points there.
+
+**Sensible bot (many companies), 3 × 12 × 365, before → after:**
+
+| | 1 | 3101 | 4101 | pooled |
+|---|---|---|---|---|
+| win 백중 | 43.8 → 47.7% | 48.8 → 48.2% | 47.8 → 49.5% | 46.8 → 48.4% (n ≈ 3,000) |
+| win 우세 | 86.1 → 89.4% | 87.6 → 89.0% | 88.3 → 87.6% | 87.4 → 88.7% (n ≈ 9,000) |
+| win 압도 | 99.7 → 99.5% | 99.3 → 99.7% | 99.8 → 99.4% | 99.6 → 99.5% |
+| win, all sent, days 1-30 / 61-120 / 241-365 | 94 / 87 / 79 → 92 / 84 / 85% | 93 / 86 / 84 → 90 / 81 / 86% | 93 / 90 / 82 → 88 / 84 / 85% | 93 / 88 / 82 → 90 / 83 / 86% |
+| day reaching S | 92 → 98 | 100 → 100 | 86 → 97 | 92.7 → 98.3 |
+| gold day 120 / 365 | 8.1k / 50.9k → 8.3k / 64.3k | 10.1k / 93.3k → 8.7k / 114.3k | 11.9k / 65.6k → 5.1k / 90.2k | 10.0k / 69.9k → 7.4k / 89.6k |
+| boss / final won | 83 / 100% → 76 / 85% | 69 / 100% → 72 / 100% | 85 / 100% → 73 / 100% | 78 / 100% → 74 / 94% (n 230-243 / 27-34) |
+| captains at the end | 7.3 → 6.4 | 6.8 → 6.6 | 7.3 → 5.8 | 7.2 → 6.3 |
+
+Final rank S in all 36 games before and after; no bankruptcy, no darkness, deaths 0 / 0. By captain style (seed 3101, sent): melee
+백중 / 우세 34 / 79% → 44 / 86%, ranged 71 / 96% → 59 / 92%, ranged + rally 66 / 94% → 39 / 86% (n 85). By day (seed 3101, sent): days
+61-120 56 / 87% → 41 / 83%, days 241-365 45 / 88% → 49 / 91%.
+
+### Checks
+
+- Roll: `SIM_JSON=1 node tools/sim/bot.js 6 200 | md5sum` = `11cadc0cceafa5e4262773fdadf780f9` with and without `SIM_SHADOW=1`;
+  12 × 365 `ffee253e5364a3e6f882f9aed77254b0` before and after.
+- `node tools/sim/battle.js 100`: miss 0 / soft 0.
+- `node tools/sim/shadow.js 6 365 --resolve battle --check --jobs 4`: 2,943 battles, 8,624 alternative parties, every invariant 0.
+- `--set BM_CAL_LEAD.melee=1`, `--set 'BM_CAL_LEAD={…}'`, `--set 'BM_CAL_HEADS=[…]'` accepted; `BM_CAL_LEAD.foo` refused.
+- Browser (400 × 800, `?resolve=battle`): the skip button appears when the only company is out and jumps to the return day's report;
+  the wait hint shows; the grace popup and the 「유예 ~N일」 chip render; no console error, no horizontal overflow.
+
+### Open issues
+
+- **Days 61-120 for the many-company bot lean optimistic after the refit** (seed 3101 sent: 백중 41%, 우세 83%; all sent battles on
+  days 61-120 win 83% against 88% before), while late days moved the other way (241-365 86% against 82%). The one-company bot on the
+  same days reads 50 / 89%. In the offline fit the mid-level step (≤ 9) carried this: `BM_CAL_OWNLV` ≤ 9 between 0.946 and 0.969 is the
+  knob if the owner prefers the many-company mid-game safe. S moved from day 92.7 to 98.3 (decision 5 target 90-110).
+- **The one-company early game still reads a little safe** (probe 백중 56-61%, 우세 91-95% on days 1-120). A day term would fix it but
+  the per-starter spread was the larger error and is gone (바렌 백중 32 → 49% sent).
+- **Boss contracts** stay below target at 우세 (74% pooled, n 243); the ranged captains of strong late companies read easier now.
+  Same open issue as stage 3/4 (boss-scale enemies need their own term).
+- **Captains recruited** 7.2 → 6.3 per game (the gamble conditions read the word at dispatch); stage 4 measured 6.35, so before may
+  have been the high one.
+- **Ranged + rally in the many-company bot** over-corrects (백중 39%, n 85) while the one-company tactician is right (53-55%):
+  `rally` is a compromise between the two populations.
+
+### Commands
+
+```
+SIM_SEED=1 SIM_RESOLVE=battle node tools/sim/bot.js 12 365 --jobs 4        # also SIM_SEED=3101, 4101; before = SIM_ROOT of ea5304a
+node tools/sim/shadow.js 6 365 --resolve battle --check --jobs 4
+SIM_JSON=1 node tools/sim/bot.js 6 200 | md5sum                             # 11cadc0cceafa5e4262773fdadf780f9
+# scratch (not in the repo): one.js (one-company bot: human / human2 / sens1, --probe, --starter), collect2.js (many-company bot,
+#   every looked-at offer fought headless), fit2.js (joint target matching, PARAM=1), ana.js / stt.js (tables), bosscheck.js
+```
