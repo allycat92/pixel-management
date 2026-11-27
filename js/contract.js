@@ -346,6 +346,7 @@ Object.assign(Game, {
     const mission = { id: s.nextId++, contract: c, units: units.map((u) => ({ ...u })), startDay: s.day, returnDay: s.day + days, chance };
     // 전투 입력을 지금(출격 피로가 붙기 전) 굳혀 둔다: mission.spec, mission.est (js/muster.js). 아직은 그림자 — 결과는 chance 가 정한다.
     if (this.freezeMission) this.freezeMission(mission, c, units);
+    if (s.resolve !== 'battle') mission.rseed = rand(1, 0xffffffff);
     s.missions.push(mission);
     own.forEach((o) => { o.c.missionId = mission.id; });
     ext.forEach((e) => {
@@ -366,6 +367,7 @@ Object.assign(Game, {
   resolveMission(mission) {
     const s = this.state;
     const c = mission.contract;
+    const random = mission.spec?.bm || mission.rseed == null ? Math.random : Stats.rng(mission.rseed);
     const { own, ext, allMembers } = this.unitParts(mission.units);
     const report = { quest: c, outcome: null, gold: 0, rep: 0, members: [], ext: [], standing: [], control: [], notes: [], companies: [] };
 
@@ -373,7 +375,7 @@ Object.assign(Game, {
     let chance = mission.chance;
     if (c.campaign) {
       ext.forEach((e) => {
-        if (e.loyalty < 25 && Math.random() < 0.35) {
+        if (e.loyalty < 25 && random() < 0.35) {
           chance -= 0.25;
           e.loyalty = 0;
           report.notes.push(`「${e.name}」${josa(e.name, '이', '가')} 전투 도중 적에게 돌아섰습니다!`);
@@ -390,7 +392,7 @@ Object.assign(Game, {
     let outcome;
     if (fought) outcome = fought.verdict.outcome;
     else {
-      const roll = Math.random();
+      const roll = random();
       if (roll < chance * 0.25 * mods.great) outcome = 'great';
       else if (roll < chance) outcome = 'success';
       else if (roll > chance + (1 - chance) * 0.75 && chance < 0.6) outcome = mods.noDisaster ? 'fail' : 'disaster';
@@ -398,7 +400,7 @@ Object.assign(Game, {
     }
     const won = outcome === 'great' || outcome === 'success';
     report.outcome = outcome;
-    report.seed = rand(1, 1e9); // 전투 연출용 시드 (옛 재생용. 전투 모드는 report.battle.spec 을 그대로 재생한다)
+    report.seed = rand(1, 1e9, random); // 전투 연출용 시드 (옛 재생용. 전투 모드는 report.battle.spec 을 그대로 재생한다)
     // 그림자 전투: 굳혀 둔 편성으로 능력치 전투를 한 번 돌려 report.shadow 에 적는다 (결과·화면·난수와 무관, js/muster.js)
     if (!fought && this.shadowResolve) this.shadowResolve(mission, report, mods);
     const fates = fought ? this.fatesOf(fought.spec, fought.rec) : null;
@@ -414,8 +416,8 @@ Object.assign(Game, {
       report.gold = Math.round(gold - share);
       report.rep = Math.round(c.rep * (outcome === 'great' ? 1.5 : 1));
       s.stats.completed++;
-      if (Math.random() < mods.loot) {
-        const it = this.makeItem(pick(Object.keys(ITEM_BASES)), this.shopMaxTier());
+      if (random() < mods.loot) {
+        const it = this.makeItem(pick(Object.keys(ITEM_BASES), random), this.shopMaxTier(), random);
         s.inventory.push(it);
         report.notes.push(`보물 사냥: 「${it.name}」 획득`);
       }
@@ -438,7 +440,7 @@ Object.assign(Game, {
     s.rep = Math.max(0, s.rep + report.rep);
 
     // 세력 영향
-    this.applyContractEffects(c, outcome, report);
+    this.applyContractEffects(c, outcome, report, random);
 
     // 직속 단원
     const baseExp = (15 + c.level * 18) * (this.perk('clans') ? 1.2 : 1);
@@ -458,7 +460,7 @@ Object.assign(Game, {
       if (f) deathChance = special && outcome === 'disaster' && f.fate === 1 && !dead.some((d) => d.company === m.companyId) && s.mercs.length > KB.GUILD_FLOOR ? KB.DEATH_P * mods.death : 0;
       if (this.isCaptain(m)) deathChance = 0; // 용병대장은 쓰러져도 죽지 않는다 (대신 크게 다친다)
       if (m.trait === 'sturdy') deathChance *= 0.6;
-      if ((!f || deathChance > 0) && Math.random() < deathChance) {   // 옛 판정은 확률이 0 이어도 굴린다 (난수 순서 유지)
+      if ((!f || deathChance > 0) && random() < deathChance) {   // 옛 판정은 확률이 0 이어도 굴린다 (난수 순서 유지)
         r.dead = true;
         dead.push(r);
         s.stats.fallen++;
@@ -468,7 +470,7 @@ Object.assign(Game, {
         return;
       }
       r.exp = Math.round(baseExp * expMul);
-      r.levelUp = this.gainExp(m, r.exp);
+      r.levelUp = this.gainExp(m, r.exp, random);
       if (f) {
         // 전투 모드의 부상 (설계 6장): 쓰러짐 — 이기면 0.6, 지면 0.9 (대참사 +2일), 서 있었지만 체력 25% 미만 — 0.3 (1~2일), 물러남 — 없음.
         let inj = f.fate === 1 ? (won ? KB.INJ_WIN : KB.INJ_LOSE) : f.fate === 0 && f.hp < 25 ? KB.INJ_LOW : 0;
@@ -493,8 +495,8 @@ Object.assign(Game, {
       if (m.fatigue >= 80) inj *= 1.5;
       const dm = { great: 6, success: 2, fail: -6, disaster: -12 }[outcome];
       if (dm > 0 || !mods.noMoraleLoss) this.changeMorale(m, dm);
-      if (Math.random() < inj) {
-        r.injury = rand(2, 4) + (outcome === 'disaster' ? 2 : 0);
+      if (random() < inj) {
+        r.injury = rand(2, 4, random) + (outcome === 'disaster' ? 2 : 0);
         if (mods.healHalf) r.injury = Math.ceil(r.injury / 2);
         m.status = 'injured'; m.injury = r.injury;
       }
@@ -549,7 +551,7 @@ Object.assign(Game, {
         if (!won) for (let i = 0; i < downN; i++) if (Math.random() >= KB.EXT_KEEP) lostN++;
         lostN = Math.min(KB.EXT_LOST_CAP, lostN);
       }
-      const lost = e.betrayed ? 0 : this.extAfterMission(e, outcome, c, lostN);
+      const lost = e.betrayed ? 0 : this.extAfterMission(e, outcome, c, lostN, random);
       if (e.betrayed) { e.missionId = null; this.state.companies = this.state.companies.filter((x) => x.id !== e.id); }
       report.ext.push({ name: e.name, color: e.color, look: e.captain.look, lost, loyalty: e.loyalty - before, betrayed: !!e.betrayed });
       report.companies.push({ name: e.name, color: e.color, own: false, size: e.size + lost, level: e.level, look: e.captain.look, betrayed: !!e.betrayed });
@@ -563,7 +565,7 @@ Object.assign(Game, {
 
     if (c.final && !won && s.calamity) s.contracts.unshift({ ...c, id: s.nextId++ });
     if (c.capStory) {
-      if (won) this.completeCaptainChapter(c.capStory);
+      if (won) this.completeCaptainChapter(c.capStory, random);
       else s.contracts.unshift({ ...c, id: s.nextId++ });
     }
     if (c.boss) {
@@ -581,7 +583,7 @@ Object.assign(Game, {
   },
 
   // ───────── 세력 영향 적용 ─────────
-  applyContractEffects(c, outcome, report) {
+  applyContractEffects(c, outcome, report, random = Math.random) {
     const won = outcome === 'great' || outcome === 'success';
     const eff = (CONTRACT_EFFECTS[c.cat === 'monster' ? 'monster' : c.type] || CONTRACT_EFFECTS.monster)[won ? 'win' : 'lose'];
     const boost = outcome === 'great' ? 1.3 : 1;
@@ -589,7 +591,7 @@ Object.assign(Game, {
     if (eff.issuer) this.changeStanding(c.issuer, Math.round(eff.issuer * (eff.issuer > 0 ? boost : 1)), out);
     if (eff.target && c.target) this.changeStandingWithAllies(c.target, eff.target, out);
     // 공작은 성공해도 정체가 드러날 수 있다
-    if (c.type === 'sabotage' && won && c.target && Math.random() < 0.3) {
+    if (c.type === 'sabotage' && won && c.target && random() < 0.3) {
       this.changeStanding(c.target, -9, out);
       report.notes.push(`${FACTIONS[c.target].name}에 길드의 개입이 드러났습니다.`);
     }

@@ -5,8 +5,8 @@
 const SAVE_KEY = 'pixel-guild-save-v4';
 const SAVE_VERSION = 4;
 
-const rand = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
-const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+const rand = (a, b, random = Math.random) => a + Math.floor(random() * (b - a + 1));
+const pick = (arr, random = Math.random) => arr[Math.floor(random() * arr.length)];
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const STORY_EXPIRES = 99999;
 
@@ -88,6 +88,14 @@ const Game = {
       this.state = st;
       this.normalizeCompanies(); // 용병단이 4~9명이던 저장: 정원을 넘는 대원은 예비 인원으로
       this.dropDeadTargets();    // 재앙 토벌·멸망 뒤에도 게시판에 남은 의뢰가 있던 저장 (QA Q8)
+      let seedAdded = false;
+      st.missions.forEach((mi) => {
+        if (mi.spec?.bm || mi.rseed != null) return;
+        // 옛 저장은 같은 원본을 다시 불러와도 같은 임무 시드를 얻는다.
+        mi.rseed = Stats.mix(0x726f6c6c, st.salt || 0, mi.id, mi.contract.id, mi.startDay);
+        seedAdded = true;
+      });
+      if (seedAdded) this.save();
       return true;
     } catch (e) { return false; }
   },
@@ -126,24 +134,24 @@ const Game = {
   },
 
   // ───────── 용병: 대장과 대원 ─────────
-  uniqueMercName() {
+  uniqueMercName(random) {
     const usedNames = new Set(this.state ? [...this.state.mercs, ...this.state.recruits].map((m) => m.name) : []);
     Object.values(HEROES).forEach((h) => usedNames.add(h.name));
     Object.values(CAPTAINS).forEach((c) => usedNames.add(c.name));
-    let name = pick(NAMES), tries = 0;
-    while (usedNames.has(name) && tries++ < 40) name = pick(NAMES);
+    let name = pick(NAMES, random), tries = 0;
+    while (usedNames.has(name) && tries++ < 40) name = pick(NAMES, random);
     return name;
   },
-  baseMerc(role, cls, stats) {
+  baseMerc(role, cls, stats, random = Math.random) {
     return {
       id: this.state ? this.state.nextId++ : 0,
-      name: this.uniqueMercName(), role, cls, level: 1, exp: 0,
+      name: this.uniqueMercName(random), role, cls, level: 1, exp: 0,
       str: stats.str, dex: stats.dex, int: stats.int, maxHp: stats.hp,
       trait: 'none', grow: { str: 0, dex: 0, int: 0, hp: 0 },
       status: 'idle', injury: 0, missionId: null, quests: 0, bond: 0, companyId: null,
-      fatigue: 0, morale: rand(60, 75), rel: {}, lastQuest: this.state ? this.state.day : 1,
+      fatigue: 0, morale: rand(60, 75, random), rel: {}, lastQuest: this.state ? this.state.day : 1,
       equip: { weapon: null, armor: null, trinket: null },
-      look: { cls, skin: pick(SKIN_TONES), hair: pick(HAIR_COLORS), longHair: Math.random() < 0.4 },
+      look: { cls, skin: pick(SKIN_TONES, random), hair: pick(HAIR_COLORS, random), longHair: random() < 0.4 },
     };
   },
   // 용병 유닛: 같은 직업·레벨이면 능력치가 같다
@@ -154,13 +162,13 @@ const Game = {
   },
   makeMerc(cls, level) { return this.makeUnit(cls, level); },
   // 용병대장: 고유 직업, 높은 성장성
-  makeCaptain(cap, level = 1) {
+  makeCaptain(cap, level = 1, random) {
     const cc = CAPTAIN_CLASSES[cap];
-    const m = this.baseMerc('captain', cc.style, cc.base);
+    const m = this.baseMerc('captain', cc.style, cc.base, random);
     m.cap = cap;
-    m.trait = pick(TRAIT_POOL);
+    m.trait = pick(TRAIT_POOL, random);
     m.look.cap = cap;
-    for (let i = 1; i < level; i++) this.levelUp(m, true);
+    for (let i = 1; i < level; i++) this.levelUp(m, true, random);
     return m;
   },
   isCaptain(m) { return m && m.role === 'captain'; },
@@ -189,7 +197,7 @@ const Game = {
     return g;
   },
 
-  levelUp(m, silent) {
+  levelUp(m, silent, random = Math.random) {
     const g = this.growthOf(m);
     m.level++;
     m.grow = m.grow || { str: 0, dex: 0, int: 0, hp: 0 };
@@ -198,7 +206,7 @@ const Game = {
       let gain;
       if (this.isCaptain(m)) {
         // 대장: 성장률이 보장되고, 운이 좋으면 더 오른다
-        gain = Math.floor(g[k]) + (Math.random() < g[k] % 1 ? 1 : 0) + (Math.random() < 0.15 ? 1 : 0);
+        gain = Math.floor(g[k]) + (random() < g[k] % 1 ? 1 : 0) + (random() < 0.15 ? 1 : 0);
       } else {
         // 대원: 직업 성장률대로 정확히 오른다
         m.grow[k] += g[k] || 0;
@@ -347,14 +355,14 @@ const Game = {
   },
 
   // 레벨업 했으면 true
-  gainExp(m, amount) {
+  gainExp(m, amount, random) {
     if (m.trait === 'genius') amount = Math.round(amount * 1.5);
     m.exp += amount;
     let leveled = false;
     while (m.exp >= this.expToNext(m)) {
       if (this.atCap(m)) { m.exp = this.expToNext(m) - 1; break; } // 레벨 상한: 전직해야 더 자란다
       m.exp -= this.expToNext(m);
-      this.levelUp(m);
+      this.levelUp(m, false, random);
       leveled = true;
     }
     return leveled;
@@ -530,16 +538,16 @@ const Game = {
   },
 
   // ───────── 장비 / 상점 ─────────
-  makeItem(base, tier) {
+  makeItem(base, tier, random = Math.random) {
     const b = ITEM_BASES[base], t = TIERS[tier];
     const bonus = {};
     let anyStat = null;
     Object.entries(b.bonus).forEach(([k, v]) => {
-      const stat = k === 'any' ? (anyStat = pick(['str', 'dex', 'int'])) : k;
-      bonus[stat] = (bonus[stat] || 0) + Math.max(1, Math.round(v * t.mul * (0.9 + Math.random() * 0.2)));
+      const stat = k === 'any' ? (anyStat = pick(['str', 'dex', 'int'], random)) : k;
+      bonus[stat] = (bonus[stat] || 0) + Math.max(1, Math.round(v * t.mul * (0.9 + random() * 0.2)));
     });
     const name = base === 'ring' ? `${t.name} ${STAT_NAMES[anyStat]}의 반지` : `${t.name} ${b.name}`;
-    return { id: this.state.nextId++, base, slot: b.slot, tier, name, bonus, price: Math.round(t.price * (0.9 + Math.random() * 0.2)) };
+    return { id: this.state.nextId++, base, slot: b.slot, tier, name, bonus, price: Math.round(t.price * (0.9 + random() * 0.2)) };
   },
 
   makeUniqueItem(def) {
