@@ -2735,10 +2735,12 @@ const Battle = (() => {
     const won = report.outcome === 'great' || report.outcome === 'success';
     // 전투 모드(3단계): 결과를 정한 바로 그 전투를 재생한다 — 굳힌 편성(report.battle.spec)으로 같은 setup·step. 찾기(findBattle)는 없다.
     // 먼저 화면 없이 한 번 돌려 해시를 맞춰 본다: 엔진이 바뀌어 다른 판이 나오는 옛 보고서는 재생하지 않고 바로 보고서로 간다.
+    // 이 세션에서 방금 판정한 전투(Game.judgedHere)는 같은 엔진이 돌린 것이라 다시 돌리지 않는다 (휴대폰에서 전투 한 판 몫을 아낀다, 검증 6번)
     const real = report.battle && report.battle.spec;
     if (real) {
-      const rec = run(real);
-      if (rec.ver !== report.battle.ver || rec.hash !== report.battle.hash) {
+      const fresh = typeof Game !== 'undefined' && Game.judgedHere && Game.judgedHere.has(report.battle);
+      const rec = fresh ? null : run(real);
+      if (rec && (rec.ver !== report.battle.ver || rec.hash !== report.battle.hash)) {
         const skip = document.createElement('div');
         setTimeout(onDone, 0);
         return skip;

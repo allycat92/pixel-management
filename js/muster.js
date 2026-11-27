@@ -21,6 +21,9 @@ Object.assign(Game, {
   // 그 판을 그대로 재현해야 하는 회귀 기준(md5)을 전투가 결과를 정하는 단계까지 지키려는 것이다.
   equipGuard: true,
 
+  // 이 세션에서 battleResolve 가 돌린 report.battle (저장하지 않는다. 다시 불러온 보고서는 재생 전에 한 번 다시 돌려 해시를 맞춰 본다)
+  judgedHere: typeof WeakSet !== 'undefined' ? new WeakSet() : { add() {}, has() { return false; } },
+
   battleMode() { return !!(this.state && this.state.resolve === 'battle'); },
   // 전투 모드를 켜거나 끈다. 켤 때 저장마다 하나인 비밀 소금(salt)을 정한다 — 의뢰가 생길 때 전투 시드에 굳혀 넣는다 (예측할 수 없고, 날마다 바뀌지 않는다)
   setResolve(mode) {
@@ -203,6 +206,7 @@ Object.assign(Game, {
       const share = Stats.foeShare(spec, rec);
       report.battle = { v: 1, ver: rec.ver, tab: rec.tab, hash: rec.hash, winner: rec.winner, t: rec.t, end: rec.end,
         R: est.R, band: est.band, foeShare: +share.toFixed(3), spec };
+      this.judgedHere.add(report.battle);   // 이 화면에서 방금 판정한 전투: 재생 전에 다시 돌려 보지 않는다 (Battle.play, 검증 6번)
       return { spec, rec, verdict, est, share };
     } catch (e) {
       if (typeof console !== 'undefined') console.error('[battle]', e);
@@ -246,18 +250,29 @@ Object.assign(Game, {
     this._cap = out;
     return out;
   },
-  // 전투 모드의 의뢰 별 등급: 강한 용병단 하나(BOARD_TOP 중 무작위)의 눈금에서 예상 단계(BOARD_W 비율)를 하나 뽑아, 그 단계에 드는 별 가운데
-  // 높은 쪽 셋 중 하나를 고른다. 등급이 연 상한(오늘과 같은 rank+2, 재앙 뒤 rank+6)을 넘지 않는다.
+  // 전투 모드의 별 상한: 길드 등급 + BM_CAP_AHEAD (재앙 뒤에는 LATE_MAX_LEVEL 까지). 등급이 오르면 더 높은 별이 열린다.
+  // 오늘의 +2 는 상한 별까지 모두 압도라 게시판에 벅찬 의뢰가 없었다 (검증 3번: 1~30일 열세 이하 0%)
+  battleCap() {
+    return clamp(this.lateGame() ? LATE_MAX_LEVEL : this.rankIndex() + Stats.KN.BM_CAP_AHEAD, 1, this.maxContractLevel());
+  },
+  // 전투 모드의 의뢰 별 등급. 게시판이 쉬운 것부터 벅찬 것까지 늘 펼쳐지도록 층을 나눠 뽑는다:
+  //  1) 게시판의 일반 의뢰가 이미 겨냥한 단계(c.aim)를 세어, BOARD_W 비율에 가장 모자란 단계를 (모자란 만큼의 가중치로) 하나 뽑는다
+  //  2) 백중·열세·무모(어려운 쪽)는 가장 강한 용병단의 눈금으로, 우세·압도(쉬운 쪽)는 상위 BOARD_TOP 중 하나의 눈금으로 별을 고른다
+  //     — 어려운 의뢰는 가장 강한 용병단에게도 어렵고, 약한 용병단에게도 이길 만한 의뢰가 오른다
+  //  3) 그 단계에 드는 별 가운데 높은 쪽 셋 중 하나. 상한(battleCap)을 넘지 않는다
   // 적은 별 등급이 정한다 — 용병단을 따라 세지지 않는다. 용병단이 크면 같은 별이 쉬워지고, 더 높은 별이 게시판에 오른다.
+  // 고른 단계는 this._aim 에 남긴다 (makeContract 가 c.aim 으로 굳힌다)
   battleLevel(p, bonus = 0) {
-    const r = this.rankIndex(), late = this.lateGame();
-    const cap = clamp(late ? r + 6 : r + 2, 1, this.maxContractLevel());
+    const cap = this.battleCap();
     const cp = this.capability();
     if (!cp.tabs.length) return null;
-    const tab = cp.tabs[Math.floor(Math.random() * cp.tabs.length)];
     const w = Stats.KN.BOARD_W;
-    let x = Math.random() * w.reduce((a, b) => a + b, 0), band = 0;
-    for (; band < w.length - 1; band++) { x -= w[band]; if (x <= 0) break; }
+    const aims = this.state.contracts.filter((c) => c.aim != null && !c.relief).map((c) => c.aim);
+    const need = w.map((x, b) => Math.max(0, x * (aims.length + 1) - aims.filter((a) => a === b).length));
+    const tot = need.reduce((a, b) => a + b, 0);
+    let x = Math.random() * tot, band = 0;
+    for (; band < w.length - 1; band++) { x -= need[band]; if (x <= 0 && need[band] > 0) break; }
+    const tab = band <= 2 ? cp.tabs[0] : cp.tabs[Math.floor(Math.random() * cp.tabs.length)];
     const levels = [];
     for (let L = 1; L <= cap; L++) levels.push(L);
     const inBand = levels.filter((L) => Stats.bandOf(tab.R[L]) === band);
@@ -265,6 +280,7 @@ Object.assign(Game, {
     if (inBand.length) L = pick(inBand.slice(-3));
     else if (band > Stats.bandOf(tab.R[1])) L = 1;                       // 가장 쉬운 별도 그 단계보다 어렵다
     else L = pick(levels.slice(-2));                                     // 열린 별이 모두 그 단계보다 쉽다: 열린 가장 높은 별 둘 중 하나
+    this._aim = band;
     return clamp(L + bonus, 1, this.maxContractLevel());
   },
   // 구호 의뢰: 길드에 대장만 남으면, 대장 혼자서도 이길 만한 쉬운 의뢰를 하나 걸어 둔다 (보수 ×1.5, 5일)
@@ -275,7 +291,7 @@ Object.assign(Game, {
     const cp = this.capability();
     if (!cp.tabs.length) return;
     const tab = cp.tabs[0];
-    const cap = clamp(this.lateGame() ? this.rankIndex() + 6 : this.rankIndex() + 2, 1, this.maxContractLevel());
+    const cap = this.battleCap();
     let level = 1;
     for (let L = 1; L <= cap; L++) if (tab.R[L] >= Stats.KN.BANDS[3]) level = L;
     const home = PROVINCE_KEYS.find((k) => PROVINCES[k].home) || PROVINCE_KEYS[0];

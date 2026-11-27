@@ -86,7 +86,9 @@ Object.assign(Game, {
     const t = QUEST_TYPES[opts.type];
     const issuer = opts.issuer || this.owner(p);
     const target = opts.target || null;
+    this._aim = null;
     const level = opts.level || this.contractLevel(p, this.isCalamity(target) ? 1 : 0); // 재앙 토벌은 한 단계 더 험하다
+    const aim = this._aim;   // 전투 모드: battleLevel 이 겨냥한 예상 단계 (게시판의 층 나누기)
     const enemy = t.cat === 'monster' ? (opts.enemy || this.monsterEnemy(opts.type, p, level))
       : this.isCalamity(target) ? (opts.enemy || pick(FACTIONS[target].monsters)) : (opts.enemy || null);
     const size = opts.size || ({ monster: rand(2, 3), conflict: { raid: 3, siege: rand(3, 4), sabotage: 2, rescue: 3, warDefense: rand(3, 4), counterspy: 2 }[opts.type], diplomacy: 3 }[t.cat]) || 3;
@@ -115,6 +117,7 @@ Object.assign(Game, {
     };
     // 전투 모드: 저장의 소금을 의뢰에 굳혀 둔다 (전투 시드·적 편성. 날마다 바뀌지 않고, 의뢰 번호로 미리 알 수 없다)
     if (s.resolve === 'battle' && s.salt) c.bseed = Stats.mix(s.salt, c.id, 0x5a17);
+    if (s.resolve === 'battle' && aim != null) c.aim = aim;
     return c;
   },
 
@@ -360,7 +363,8 @@ Object.assign(Game, {
 
     const mods = this.partyMods(allMembers.length ? allMembers : []);
     // 전투 모드(Game.RESOLVE === 'battle'): 굳혀 둔 편성의 전투가 결과를 정한다 (js/muster.js battleResolve). 그 밖에는 오늘의 판정 그대로
-    const fought = s.resolve === 'battle' ? this.battleResolve(mission, report, mods) : null;
+    // 결과를 정하는 방식은 출격한 때의 것이다 (검증 7번): 전투 모드에서 굳힌 편성(spec.bm)만 전투가 정하고, 'roll' 때 떠난 출격은 모드를 바꿔도 판정으로 끝난다
+    const fought = mission.spec && mission.spec.bm ? this.battleResolve(mission, report, mods) : null;
     let outcome;
     if (fought) outcome = fought.verdict.outcome;
     else {
@@ -395,7 +399,9 @@ Object.assign(Game, {
       }
     } else if (fought) {
       // 전투 모드: 무찌른 적 전력만큼 보수를 받는다 (실패 10% + 비율 × 0.5, 대참사는 비율 몫만). 패배 뒤 한 주는 탈주가 없다
-      report.gold = Math.round(c.reward * ((outcome === 'fail' ? KB.LOSS_PAY : 0) + KB.LOSS_PAY_SHARE * fought.share));
+      // 질서 있게 물러난 판(end 'retreat')은 우리 단원이 모두 쓰러졌어도(수습만 물러남) 기본 몫을 받는다 (검증 7번)
+      const orderly = fought.rec.end === 'retreat';
+      report.gold = Math.round(c.reward * ((outcome === 'fail' || orderly ? KB.LOSS_PAY : 0) + KB.LOSS_PAY_SHARE * fought.share));
       report.rep = -Math.round(c.rep * (outcome === 'disaster' ? 0.6 : 0.3));
       if (fought.share >= 0.05) report.notes.push(`적 전력의 ${Math.round(fought.share * 100)}%를 꺾어 보수 일부(금화 ${report.gold})를 받았습니다.`);
       // 유예 주간은 GRACE_EVERY 일에 한 번만 새로 열린다 (연달아 지는 동안 끝없이 이어지지 않게)
@@ -443,13 +449,13 @@ Object.assign(Game, {
       r.levelUp = this.gainExp(m, r.exp);
       if (f) {
         // 전투 모드의 부상 (설계 6장): 쓰러짐 — 이기면 0.6, 지면 0.9 (대참사 +2일), 서 있었지만 체력 25% 미만 — 0.3 (1~2일), 물러남 — 없음.
-        // 대참사에서 쓰러진 대장, 그리고 특별하지 않은 전투의 대참사에서 쓰러진 단원(사망 대신)은 반드시 다친다.
         let inj = f.fate === 1 ? (won ? KB.INJ_WIN : KB.INJ_LOSE) : f.fate === 0 && f.hp < 25 ? KB.INJ_LOW : 0;
         inj *= mods.injury;
         if (m.trait === 'sturdy' || m.trait === 'coward' || m.trait === 'northknight') inj *= 0.5;
-        if (f.fate === 1 && outcome === 'disaster' && (this.isCaptain(m) || !special)) inj = 1;
+        // 죽지 않은 단원: 대장이든, 특별하지 않은 전투든, 길드 인원 하한·용병단당 한 명 규칙에 막혔든 (설계 6장 규칙 5) 반드시 다친다
+        if (f.fate === 1 && outcome === 'disaster') inj = 1;
         let dm = { great: 6, success: 2, fail: -6, disaster: -12 }[outcome];
-        if (outcome === 'fail' && fought.rec.end === 'retreat') dm = Math.round(dm * KB.RETREAT_MORALE);   // 질서 있게 물러났다
+        if (!won && fought.rec.end === 'retreat') dm = Math.round(dm * KB.RETREAT_MORALE);   // 질서 있게 물러났다 (대참사도: 남은 수습이 데리고 물러났다)
         if (dm > 0 || !mods.noMoraleLoss) this.changeMorale(m, dm);
         if (inj > 0 && Math.random() < inj) {
           r.injury = f.fate === 1 ? rand(2, 4) + (outcome === 'disaster' ? 2 : 0) : rand(1, 2);

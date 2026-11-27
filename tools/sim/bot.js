@@ -10,6 +10,7 @@
 //                  봇은 의뢰를 다섯 단어 예상으로 고른다 (우세·압도는 받고, 백중은 가끔). 요약에 단어별 승률·날짜 구간·부상·사망을 더한다.
 //                  기본 'roll' 은 오늘 게임 그대로다 (md5 기준 불변).
 //   --jobs N — 판을 N 개 프로세스로 나눠 돌린다 (결과는 같다. 전투 모드는 한 판에 수십 초)
+//   --set KEY=VALUE — 조정값 덮어쓰기 (js/stats.js KN 등, 여러 번). 예: --set BOARD_W=[0.05,0.15,0.2,0.3,0.3] --set BM_CAP_AHEAD=3
 // 게임 스크립트(js/*.js)를 vm 으로 읽어 들이고, UI·그림 없이 Game 만 돌린다.
 'use strict';
 const fs = require('fs');
@@ -62,7 +63,8 @@ function run(seed, days, mode, opts = {}) {
   const ctx = { localStorage: { setItem() {}, getItem() { return null; }, removeItem() {} }, console, Math: M };
   vm.createContext(ctx);
   const battle = (opts.resolve || RESOLVE) === 'battle';
-  (opts.script || (battle ? (SCRIPT_BATTLE = SCRIPT_BATTLE || makeScript(['battle.js'])) : (SCRIPT = SCRIPT || makeScript(SHADOW ? ['battle.js'] : [])))).runInContext(ctx);
+  const knobbed = opts.knobs && Object.keys(opts.knobs).length ? makeScript(battle || SHADOW ? ['battle.js'] : [], `var STAT_KNOBS = ${JSON.stringify(opts.knobs)};`) : null;
+  (opts.script || knobbed || (battle ? (SCRIPT_BATTLE = SCRIPT_BATTLE || makeScript(['battle.js'])) : (SCRIPT = SCRIPT || makeScript(SHADOW ? ['battle.js'] : [])))).runInContext(ctx);
   const G = ctx.Game;
   // 옛 봇은 출격 중인 단원에게도 장비를 갈아 끼운다. 그 판을 그대로 재현해야 md5 기준이 유지되므로 장비 잠금(js/muster.js)을 끈다.
   // opts.equipGuard: true 면 실제 게임처럼 잠근다 (결과가 기준과 달라진다).
@@ -163,6 +165,7 @@ function run(seed, days, mode, opts = {}) {
       const ch = G.successChance(c, units);
       if (opts.onOffer) opts.onOffer(c, units, ch, G, ctx);
       let take = ch >= (c.campaign ? 0.55 : 0.6);
+      let takenR = 0;   // 전투 모드: 보낸 편성의 예상 전력비 R ('avg success chance' 줄 대신)
       if (battle) {
         // 다섯 단어로 고른다: 전력 순 상위 두 용병단 중 예상이 나은 쪽 (결전은 상위 slots 개를 함께), 우세·압도는 받고 백중은 3번에 1번
         if (!c.story && !c.campaign) {
@@ -170,7 +173,8 @@ function run(seed, days, mode, opts = {}) {
           let bestR = -1;
           sorted.forEach((x) => { const R = G.forecast(G.muster(c, [x.u])).R; if (R > bestR) { bestR = R; units = [x.u]; } });
         }
-        const band = G.forecast(G.muster(c, units)).band;
+        const est = G.forecast(G.muster(c, units)), band = est.band;
+        takenR = est.R;
         if (!seenOffer.has(c.id)) { seenOffer.add(c.id); bs.offered[band]++; }
         take = band >= 3 || (band === 2 && rnd() < 0.34);
         // 재앙이 암흑시대 문턱(점령 CALAMITY_DARKNESS-2 이상)에 다가오면: 최종 결전과 재앙 상대 결전은 백중이면 받고, 열세도 3번에 1번
@@ -185,9 +189,9 @@ function run(seed, days, mode, opts = {}) {
         const before = s.missions.length;
         G.dispatch(c.id, units);
         if (s.missions.length > before) {
-          chances.push(ch);
+          chances.push(battle ? takenR : ch);
           units.forEach((u) => groupSizes.push(u.memberIds ? u.memberIds.length : G.company(u.companyId).size));
-          if (c.final) { finalTries++; finalChance += ch; }
+          if (c.final) { finalTries++; finalChance += battle ? takenR : ch; }
           if (c.campaign && !c.final) takenCamp.add(c.campaign.id);
           if (c.campaign) campaigns++; else if (c.cat === 'monster') monster++; else conflict++;
         }
@@ -247,6 +251,23 @@ function run(seed, days, mode, opts = {}) {
   };
 }
 
+// --set KEY=VALUE (js/stats.js KN, REF, ARCH, RANK — 점으로 깊이: BM_CAL_SPECIAL.boss=0.9, 배열은 JSON: BOARD_W=[0.05,0.15,0.2,0.3,0.3]).
+// 없는 이름은 거부한다 (오타로 기본값을 재는 일이 없게). 자세한 형식 검사는 tools/sim/shadow.js --set 과 같다
+function setKnob(knobs, input) {
+  const i = input ? input.indexOf('=') : -1;
+  if (i <= 0) throw new Error(`expected KEY=VALUE: ${input}`);
+  const key = input.slice(0, i), raw = input.slice(i + 1).trim();
+  const val = /^[\[{]/.test(raw) ? JSON.parse(raw) : !isNaN(+raw) && raw ? +raw : raw;
+  const c = {}; makeScript().runInNewContext(c);
+  let o = { ...c.Stats.KN, REF: c.Stats.REF, ARCH: c.Stats.ARCH, RANK: c.Stats.RANK };
+  key.split('.').forEach((k) => { if (o == null || typeof o !== 'object' || !Object.hasOwn(o, k)) throw new Error(`unknown knob: ${key}`); o = o[k]; });
+  if (typeof o !== typeof val || Array.isArray(o) !== Array.isArray(val) || (Array.isArray(o) && o.length !== val.length)) throw new Error(`invalid knob ${key}: expected ${Array.isArray(o) ? `array of ${o.length}` : typeof o}`);
+  const ks = key.split('.');
+  let d = knobs;
+  ks.slice(0, -1).forEach((k) => { d = d[k] = d[k] || {}; });
+  d[ks[ks.length - 1]] = val;
+}
+
 function summarize(res, days) {
   const N = res.length;
   const avg = (f) => res.reduce((a, r) => a + (f(r) || 0), 0) / N;
@@ -266,10 +287,12 @@ function summarize(res, days) {
     ['mercs / own companies / ext (end)', `${fmt(avg((r) => r.mercs), 1)} / ${fmt(avg((r) => r.comps), 1)} / ${fmt(avg((r) => r.ext), 1)}`],
     ...CHECK_DAYS.filter((d) => d <= days).map((d) => [`top-3 company power @ day ${d}`, fmt(avg((r) => r.powerAt[d]))]),
     ['campaigns offered / taken', `${fmt(avg((r) => r.campSeen), 1)} / ${fmt(avg((r) => r.campTaken), 1)}`],
-    ['final battle attempts (avg chance)', `${fmt(avg((r) => r.finalTries), 2)} (${fmt(avg((r) => r.finalChance) * 100 * N / Math.max(1, res.filter((r) => r.finalTries).length), 1)}%)`],
+    // 전투 모드: 확률 대신 보낸 편성의 예상 전력비 R 의 평균 (1 = 반반)
+    res.every((r) => r.battle) ? ['final battle attempts (avg forecast R)', `${fmt(avg((r) => r.finalTries), 2)} (${fmt(avg((r) => r.finalChance) * N / Math.max(1, res.filter((r) => r.finalTries).length), 2)})`]
+      : ['final battle attempts (avg chance)', `${fmt(avg((r) => r.finalTries), 2)} (${fmt(avg((r) => r.finalChance) * 100 * N / Math.max(1, res.filter((r) => r.finalTries).length), 1)}%)`],
     ['avg own company size (end)', fmt(avg((r) => r.avgCompanySize), 2)],
     ['avg dispatched group size', fmt(avg((r) => r.avgGroup), 2)],
-    ['avg success chance of taken contracts', `${fmt(avg((r) => r.avgChance) * 100, 1)}%`],
+    res.every((r) => r.battle) ? ['avg forecast R of taken contracts', fmt(avg((r) => r.avgChance), 2)] : ['avg success chance of taken contracts', `${fmt(avg((r) => r.avgChance) * 100, 1)}%`],
     ['contracts taken: monster / conflict / campaign', `${fmt(avg((r) => r.monster))} / ${fmt(avg((r) => r.conflict))} / ${fmt(avg((r) => r.campaigns))}`],
     ['completed / failed / fallen', `${fmt(avg((r) => r.completed))} / ${fmt(avg((r) => r.failed))} / ${fmt(avg((r) => r.fallen), 1)}`],
     ['bosses slain', fmt(avg((r) => r.bosses), 1)],
@@ -305,14 +328,16 @@ function summarize(res, days) {
 
 if (require.main === module) {
   if (process.argv[2] === '--worker') {
-    process.on('message', (m) => { process.send(run(m.seed, m.days, m.mode, { resolve: m.resolve }), () => process.exit(0)); });
+    process.on('message', (m) => { process.send(run(m.seed, m.days, m.mode, { resolve: m.resolve, knobs: m.knobs }), () => process.exit(0)); });
   } else {
     // 위치 인자: [runs] [days] [mode]. --resolve X, --jobs N 은 어디에 두어도 된다
     const argv = process.argv.slice(2), pos = [];
     let jobs = 1;
+    const knobs = {};
     for (let i = 0; i < argv.length; i++) {
       if (argv[i] === '--resolve') i++;
       else if (argv[i] === '--jobs') jobs = Math.max(1, +argv[++i] || 1);
+      else if (argv[i] === '--set') setKnob(knobs, argv[++i]);
       else pos.push(argv[i]);
     }
     const N = +pos[0] || 12;
@@ -321,11 +346,11 @@ if (require.main === module) {
     const seed0 = +process.env.SIM_SEED || 1;
     const done = (res) => {
       if (process.env.SIM_JSON) console.log(JSON.stringify(res, null, 1));
-      else console.log(`root: ${ROOT}${RESOLVE === 'battle' ? ' | resolve: battle' : ''}\n${summarize(res, days)}`);
+      else console.log(`root: ${ROOT}${RESOLVE === 'battle' ? ' | resolve: battle' : ''}${Object.keys(knobs).length ? ` | knobs ${JSON.stringify(knobs)}` : ''}\n${summarize(res, days)}`);
     };
     if (jobs <= 1) {
       const res = [];
-      for (let i = 0; i < N; i++) res.push(run(seed0 + i, days, mode));
+      for (let i = 0; i < N; i++) res.push(run(seed0 + i, days, mode, { knobs }));
       done(res);
     } else {
       const { fork } = require('child_process');
@@ -338,7 +363,7 @@ if (require.main === module) {
         const ch = fork(__filename, ['--worker'], { stdio: ['ignore', 'inherit', 'inherit', 'ipc'] });
         ch.on('message', (m) => { res[i] = m; });
         ch.on('exit', (code) => { live--; if (code || !res[i]) { console.error(`worker ${seed0 + i} failed`); process.exit(1); } spawn(); });
-        ch.send({ seed: seed0 + i, days, mode, resolve: RESOLVE });
+        ch.send({ seed: seed0 + i, days, mode, resolve: RESOLVE, knobs });
       };
       for (let j = 0; j < jobs; j++) spawn();
     }

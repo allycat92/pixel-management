@@ -688,11 +688,13 @@ const Game = {
     const s = this.state;
     const wages = this.weeklyWageTotal();
     const upkeep = this.weeklyUpkeepTotal();
-    const total = wages + upkeep;
+    // 전투 모드의 유예 주간에 미룬 급료(m.owed)는 다음 정산에 함께 갚는다 (검증 2번: 미루는 것이지 탕감이 아니다). 'roll' 에는 m.owed 가 없다 (0)
+    const back = this.backPayTotal();
+    const total = wages + upkeep + back;
     if (s.gold >= total) {
       s.gold -= total;
-      s.mercs.forEach((m) => this.changeMorale(m, 3));
-      this.log(`주간 정산: 단원 주급 ${wages}, 계약 용병단 유지비 ${upkeep} 지급.`);
+      s.mercs.forEach((m) => { this.changeMorale(m, 3); delete m.owed; });
+      this.log(`주간 정산: 단원 주급 ${wages}, 계약 용병단 유지비 ${upkeep} 지급.${back ? ` 미뤄 둔 급료 ${back}도 갚았습니다.` : ''}`);
     } else {
       // 돈이 모자라면 계약 용병단부터 떠나고, 대기 중인 단원도 떠난다. 남은 금액은 빚.
       let owed = total;
@@ -702,12 +704,16 @@ const Game = {
         this.releaseCompany(c.id, '유지비를 받지 못해 계약을 파기했습니다!', 'bad');
       });
       const sorted = s.mercs.filter((m) => m.status !== 'quest' && !this.isCaptain(m)).sort((a, b) => this.wage(b) - this.wage(a)); // 대장은 길드를 떠나지 않는다
-      // 전투 모드: 패배 뒤 한 주(graceUntil, js/contract.js)는 주급을 못 받아도 떠나지 않는다 — 급료를 미루고(빚이 되지 않는다) 실망만 한다
+      // 전투 모드: 패배 뒤 한 주(graceUntil, js/contract.js)는 주급을 못 받아도 떠나지 않는다 — 급료(이미 미룬 몫 포함)를 m.owed 로 미루고 실망한다.
+      // 미룬 급료는 빚이 되지도, 사라지지도 않는다: 다음 정산에 주급과 함께 청구된다 (그때 못 받으면 여느 때처럼 떠난다)
       const grace = s.resolve === 'battle' && s.day <= (s.graceUntil || 0);
+      const deferred = new Set();
+      const defer = (m, w) => { m.owed = w; deferred.add(m); };
       while (s.gold < owed && sorted.length) {
         const m = sorted.shift();
-        owed -= this.wage(m);
-        if (grace) { this.changeMorale(m, -10); this.log(`${m.name}${josa(m.name, '이', '가')} 급료를 받지 못했지만, 패배 직후라 길드 곁에 남았습니다. (사기 -10)`, 'bad'); }
+        const w = this.wage(m) + (m.owed || 0);
+        owed -= w;
+        if (grace) { defer(m, w); this.changeMorale(m, -10); this.log(`${m.name}${josa(m.name, '이', '가')} 급료(금화 ${w})를 받지 못했지만, 패배 직후라 다음 정산까지 기다리기로 했습니다. (사기 -10)`, 'bad'); }
         else this.removeMerc(m, '주급을 받지 못해 길드를 떠났습니다!', 'bad');
       }
       // 대장은 떠나지 않는 대신 급료를 미루고 크게 실망한다
@@ -718,8 +724,13 @@ const Game = {
         this.changeMorale(m, -25);
         this.log(`용병대장 ${m.name}${josa(m.name, '이', '가')} 급료를 받지 못했습니다. 떠나지는 않았지만 몹시 실망했습니다. (사기 -25)`, 'bad');
       }
-      // 전투 모드의 유예 주간: 못 준 급료(출격 중인 단원 몫 포함)는 미뤄 두고 빚으로 넘기지 않는다
-      if (grace && owed > Math.max(0, s.gold)) owed = Math.max(0, s.gold);
+      // 전투 모드의 유예 주간: 출격 중인 단원 몫도 빚 대신 미룬다 (주급이 큰 단원부터)
+      if (grace && owed > Math.max(0, s.gold)) {
+        const away = s.mercs.filter((m) => m.status === 'quest' && !this.isCaptain(m)).sort((a, b) => this.wage(b) - this.wage(a));
+        while (owed > Math.max(0, s.gold) && away.length) { const m = away.shift(), w = this.wage(m) + (m.owed || 0); owed -= w; defer(m, w); }
+        if (deferred.size) this.log(`유예 주간: 급료(금화 ${[...deferred].reduce((a, m) => a + m.owed, 0)})를 다음 정산으로 미뤘습니다.`, 'bad');
+      }
+      s.mercs.forEach((m) => { if (!deferred.has(m)) delete m.owed; });   // 받은 단원(또는 빚으로 받은 단원)의 미룬 몫은 끝났다
       s.gold -= owed;
       this.log(`주간 정산: 금화 ${owed} 지급.${s.gold < 0 ? ' 길드가 빚을 지고 있습니다!' : ''}`, s.gold < 0 ? 'bad' : '');
     }
@@ -736,6 +747,7 @@ const Game = {
   },
 
   weeklyWageTotal() { return this.state.mercs.reduce((sum, m) => sum + this.wage(m), 0); },
+  backPayTotal() { return this.state.mercs.reduce((sum, m) => sum + (m.owed || 0), 0); },   // 유예 주간에 미룬 급료 (전투 모드)
   daysToPayday() { const d = (8 - (this.state.day % 7)) % 7; return d === 0 ? 7 : d; },
 
   toast(msg) { if (typeof UI !== 'undefined') UI.toast(msg); },

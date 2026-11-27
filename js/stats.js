@@ -55,7 +55,11 @@ const Stats = (() => {
     // 전투 모드의 예상 보정 (CAL_KIND 에 더 곱한다): 반반 지점(R50)의 역수. 전투 모드 12판×365일 10,597전(보낸 것 + 살펴본 것)의 로지스틱 맞춤
     BM_CAL_ARCH: { soldier: 1, grunt: 1.087, beast: 1.044, brute: 1.152, armored: 1.202, caster: 0.977, blob: 0.968 },
     // 특별한 의뢰 갈래 (적 틀 보정 뒤에 남은 R50 의 역수, 표본이 작다: 보스 107, 대장 이야기 123, 이야기 224, 최종 17): 큰 적과 싸우는 판은 같은 R 에서 더 진다
-    BM_CAL_SPECIAL: { boss: 0.86, capStory: 0.87, story: 0.92, final: 0.92 },
+    BM_CAL_SPECIAL: { boss: 0.86, capStory: 0.87, story: 0.92, final: 0.92, campaign: 1 },
+    // 머릿수 보정 (검증 1번): 우리 단원(수습·지원 부대 빼고) 1·2·3명일 때 R 에 곱한다 (4명 이상 1). 후퇴 규칙은 우리 단원의 절반이 쓰러지면 물러나므로
+    // 한두 명이 나간 판은 한 명만 쓰러져도 끝난다 — 능력치만 보는 margin 은 그것을 모른다
+    BM_CAL_HEADS: [1, 1, 1, 1, 1],
+    BM_CAP_AHEAD: 4,    // 전투 모드의 별 상한: 길드 등급 + 이 값 (오늘은 +2. 재앙 뒤에는 LATE_MAX_LEVEL 까지) — 상한 안에 벅찬 의뢰가 들게 (검증 3번)
   };
   // 능력치 공식의 계수
   const ATK_W = [1, 0.3, 0.1];            // 공격 = 가장 높은 능력치 + 0.3·둘째 + 0.1·셋째
@@ -210,9 +214,11 @@ const Stats = (() => {
   function monsterSkills(u) {
     const d = ENEMIES[u.mon] || {}, tpl = d.tpl, arch = u.arch || d.arch || 'grunt';
     const shot = SHOT_OF_TPL[tpl] || 'curse';
-    const basic = arch === 'caster' && !u.boss ? SK.shot('공격', shot, 1, 70, 1.4) : SK.melee('공격', 1, 1.0, { range: u.bigMon ? 16 : 11 });
-    if (u.boss) return [basic, arch === 'caster' || tpl === 'drake' || tpl === 'demon' ? SK.shot('파멸의 숨결', shot === 'fire' ? 'fire' : 'curse', 1.6, 70, 7, { aoe: 26, stun: 0.6 })
-      : SK.melee('대지 분쇄', 1.8, 7, { aoe: 24, stun: 0.6, range: 18 })];
+    // 보스도 틀을 따른다 (검증 7번): 주술 보스(늪의 마녀)는 기본 공격부터 쏘고 숨결도 쏜다. 주술이 아닌 보스의 큰 기술은 가까이서 휩쓰는 범위 공격이다 —
+    // 이름만 그림 틀을 따른다 (고룡 이그니스·마왕 베르녹스는 brute 라 숨결을 멀리서 쏘지 않는다)
+    const basic = arch === 'caster' ? SK.shot('공격', shot, 1, 70, 1.4) : SK.melee('공격', 1, 1.0, { range: u.bigMon ? 16 : 11 });
+    if (u.boss) return [basic, arch === 'caster' ? SK.shot('파멸의 숨결', shot === 'fire' ? 'fire' : 'curse', 1.6, 70, 7, { aoe: 26, stun: 0.6 })
+      : SK.melee(tpl === 'drake' ? '화염 숨결' : tpl === 'demon' ? '마왕의 강타' : '대지 분쇄', 1.8, 7, { aoe: 24, stun: 0.6, range: 18 })];
     if (u.bigMon) return [basic, SK.melee('포효', 1.1, 9, { aoe: 20, stun: 0.4, range: 16 })];
     if (u.mon === '거대 거미') return [basic, SK.shot('거미줄 뿜기', 'web', 0.4, 70, 8, { slow: 2.5 })];
     return [basic];
@@ -284,6 +290,8 @@ const Stats = (() => {
       const foe = spec.groups.find((g) => g.kind === 'foe'), lead = foe && foe.units[0];
       cal *= KN.BM_CAL_ARCH[(lead && lead.arch) || 'soldier'] || 1;
       cal *= KN.BM_CAL_SPECIAL[spec.kind] || 1;
+      const n = spec.groups.filter((g) => g.kind === 'own' || g.kind === 'ext').reduce((a, g) => a + g.units.filter((u) => !u.recruit).length, 0);
+      cal *= KN.BM_CAL_HEADS[Math.min(n, KN.BM_CAL_HEADS.length - 1)] || 1;
     }
     const R = +(margin(spec.groups) * cal).toFixed(3);
     return { R, band: bandOf(R) };

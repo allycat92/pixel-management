@@ -7,7 +7,9 @@ const STAT_NAMES_CAP = {
   counterspy: '방첩 성공', campaign: '대규모 결전 승리', calamity: '재앙 세력 상대 의뢰 성공',
 };
 // 전투 모드(Game.RESOLVE === 'battle'): 확률 대신 출전 화면의 다섯 단어로 적는다 (출격 때 굳힌 예상 mission.est.band 로 센다)
-const STAT_NAMES_CAP_BATTLE = { hardStreak: '예상 「백중」 이하 의뢰 연속 성공', gambles: '예상 「열세」 이하 의뢰 성공', bigGambles: '예상 「무모」 의뢰 성공' };
+// 승률이 옛 문턱(성공률 80% / 40% / 25% 미만)에 가까운 단어로: 백중(약 50%) 이하 연속, 백중 이하, 열세(약 17%) 이하. 옛 대응(열세 이하 / 무모)은
+// 무모 승률이 0.5% 라 거인·그림자 여왕의 과제를 사실상 막았다 (stage3_notes.md)
+const STAT_NAMES_CAP_BATTLE = { hardStreak: '예상 「백중」 이하 의뢰 연속 성공', gambles: '예상 「백중」 이하 의뢰 성공', bigGambles: '예상 「열세」 이하 의뢰 성공' };
 
 Object.assign(Game, {
   // s.captains[key] = { status: 'candidate' | 'locked' | 'challenge' | 'pursuing' | 'joined' | 'lost', ch, phase, why }
@@ -34,10 +36,11 @@ Object.assign(Game, {
     if (deaths) t.lastDeath = this.state.day;
     if (!won) { t.streak = 0; t.hardStreak = 0; return; }
     t.streak++;
-    const est = this.battleMode && this.battleMode() && mission.est;
+    // 전투가 정한 출격(굳힌 편성 spec.bm)은 출격 때의 예상 단어로 센다
+    const est = mission.spec && mission.spec.bm && mission.est;
     if (est ? est.band <= 2 : mission.chance < 0.8) t.hardStreak = (t.hardStreak || 0) + 1;
-    if (est ? est.band <= 1 : mission.chance < 0.4) t.gambles++;
-    if (est ? est.band === 0 : mission.chance < 0.25) t.bigGambles++;
+    if (est ? est.band <= 2 : mission.chance < 0.4) t.gambles++;
+    if (est ? est.band <= 1 : mission.chance < 0.25) t.bigGambles++;
     if (c.cat === 'monster') t.monster++;
     if (c.type === 'magic') t.magic++;
     if (c.type === 'raid') t.raid++;

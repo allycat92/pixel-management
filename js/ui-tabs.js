@@ -101,7 +101,7 @@
     root.append(el('div', { class: 'panel-head' },
       el('h2', { text: `직속 용병단 (${own.length}/${Game.maxCompanies()})` }),
       el('div', { class: 'row-inline' },
-        el('span', { class: 'muted small', text: `숙소 ${Game.bedsUsed()}/${Game.capacity()} · 주급 ${Game.weeklyWageTotal()} · 유지비 ${Game.weeklyUpkeepTotal()} · 약초 ${s.herbs}` }),
+        el('span', { class: 'muted small', text: `숙소 ${Game.bedsUsed()}/${Game.capacity()} · 주급 ${Game.weeklyWageTotal()}${Game.backPayTotal() ? ` (+미룬 급료 ${Game.backPayTotal()})` : ''} · 유지비 ${Game.weeklyUpkeepTotal()} · 약초 ${s.herbs}` }),
         feast, create)));
     const grid = el('div', { class: 'company-grid' });
     own.forEach((c) => grid.append(ownCompanyPanel(c)));
