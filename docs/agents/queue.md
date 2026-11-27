@@ -10,14 +10,14 @@
 | GPT | `Q13-c11-check` | READY | C11 화면 수정과 즉시 저장 교차 확인(새로고침 꼼수 포함): `docs/agents/tasks/Q13-c11-check.md` |
 | Codex | `C10-scaled-mannequin-guides` | FIX | 클라우드 검토(`docs/agents/reports/c10_tool_review.md`) — 아래 C10 FIX 절대로: `docs/agents/tasks/C10-scaled-mannequin-guides.md` |
 | GPT | `Q11-stage4-check` | 예고 | 총괄 4단계 수정이 들어가면 READY: `docs/agents/tasks/Q11-stage4-check.md` |
-| Codex | `C11-ui-fixes-q4` | REVIEW | Q4 화면 결함 6건 + 관리 조작 즉시 저장: `docs/agents/tasks/C11-ui-fixes-q4.md` |
-| Codex | `C12-stage4-cleanup` | READY | 전투 모드의 남은 옛 표시 정리 + 휴대폰 비용 측정 (C11 뒤): `docs/agents/tasks/C12-stage4-cleanup.md` |
+| Codex | `C11-ui-fixes-q4` | REVIEW | Q4 화면 결함 6건 + 관리 조작 즉시 저장 (합침, GPT Q13 확인 중): `docs/agents/tasks/C11-ui-fixes-q4.md` |
 | Codex | `C13-korean-text-fixes` | READY | Q7 한국어 글 고치기 + 총괄의 설정 결정 8개 반영 (C12 뒤): `docs/agents/tasks/C13-korean-text-fixes.md` |
 
 ## 끝난 일
 
 | 누구 | id | 결과 |
 |---|---|---|
+| Codex | `C12-stage4-cleanup` | **DONE** (11-27, `e6907f7` 합침): 전투 모드 옛 표시 정리(전투력 → 체력·공격·방어 합, 최종전 「1개 부대 기준」, 「전투 체력」, 특성·직업 효과를 실제 전투 효과로), 카이 없는 이야기 의뢰는 예상 대신 배속 안내, 최종전 경고 제거, 영입 조건 멸망 안내, 「시간 초과(90초)」 보고. roll 화면 그대로. 휴대폰(CPU ×4) 다음 날: 귀환 0건 76ms · 1건 202ms · 3건 424ms(클릭 기준; 3건은 battleResolve 420ms) — 3건 경로는 4단계에서 계산 나누기 검토 |
 | GPT | `Q12-ironwall-run-ingame` | **DONE** (11-27, `a37378d` 합침): 브리긴다 중량 이동 — 중량감·접지·대기↔이동↔공격 PASS, 미끄러짐 중앙값 −0.5px. FIX: 철퇴 머리가 방패 면에 묻힘, H3/H7 다리 한 덩어리. 마법사 로브 이동 — 걸음·밑단·세력 색 다시 칠하기 PASS, FIX: G3/G7 장화 한 덩어리 → Antigravity 대기열 맨 위 손질 2줄 |
 | GPT | `Q9-post-calamity-check` | **DONE** (11-27, `e716e5c` 합침): 재앙 토벌·세력 멸망 뒤 정리 PASS(두 재현, 즉시 멸망, 옛 저장·다음 날·출격 방어, 출격 중 의뢰는 그대로 정산). **남은 틈(P2): 의뢰주가 멸망한 의뢰**(살아 있는 상대에게)는 여전히 출격 가능하고, 카이 이야기가 멸망한 엘프를 의뢰주로 다시 게시 → 총괄이 고친다 |
 | GPT | `Q10-goblin-bandit-ingame` | **DONE** (11-27, `7d59b6e` 합침): 고블린 PASS(어두운 숲에서 몸·귀·몽둥이가 갈라짐, 크기 유지) · 사막 도적 PASS(접촉 칼끝이 칸 안 x=91, 피격 앞발 접지) — Q2 의 FIX·미확인이 풀림 |

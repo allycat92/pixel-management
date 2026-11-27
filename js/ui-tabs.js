@@ -4,6 +4,7 @@
 (() => {
   const { el, icon, itemIcon, mini, bonusText, signed, companyFlag, factionFlag, factionTag, condTags, mercCard } = UI.h;
   const T = UI.tabs;
+  const combatStats = ({ hp, atk, def }) => `전투 체력 ${hp} · 공격 ${Math.round(atk)} · 방어 ${Math.round(def)}`;
 
   // ───────── 용병단 ─────────
   function memberRow(m, c) {
@@ -30,14 +31,22 @@
     const leader = Game.leader(c);
     const units = Game.unitsOf(c);
     const ms = leader ? [leader, ...units] : units;
+    const battle = Game.battleMode();
+    const lead = leader && Game.leadOf(leader);
+    const leadText = lead && describeLead(lead, battle);
+    const stats = battle && ms.reduce((sum, m) => {
+      const sh = Stats.sheet(m);
+      return { hp: sum.hp + sh.hp, atk: sum.atk + sh.atk, def: sum.def + sh.def };
+    }, { hp: 0, atk: 0, def: 0 });
     const mi = c.missionId && s.missions.find((x) => x.id === c.missionId);
     return el('div', { class: 'company-panel', style: `--cc:${c.color}` },
       el('div', { class: 'company-head' },
         companyFlag(c, 3),
         el('div', { class: 'grow' },
           el('div', { class: 'cname', text: c.name }),
-          el('div', { class: `small ${leader ? 'muted' : 'bad'}`, text: `${leader ? `대장 ${leader.name}(${Game.className(leader)})` : '대장 없음 (전투력 -15%)'} · 대원 ${units.length}/${Game.unitSlots()}${Game.unitSlots() < 3 ? '(병영 1단계부터 3명)' : ''} · 전적 ${c.wins}승 ${c.losses}패 · 기본 전투력 ${ms.length ? Game.ownCompanyPower(c, ms, null) : 0}` }),
-          leader ? el('div', { class: 'small lead-line', title: Game.leadOf(leader).desc }, '지휘 ', el('b', { text: `「${Game.leadOf(leader).name}」` }), ` ${Game.leadOf(leader).desc}${Game.leadScale(leader) > 1 ? ' (×1.5)' : ''}`) : null,
+          el('div', { class: `small ${leader ? 'muted' : 'bad'}`, text: `${leader ? `대장 ${leader.name}(${Game.className(leader)})` : battle ? '대장 없음' : '대장 없음 (전투력 -15%)'} · 대원 ${units.length}/${Game.unitSlots()}${Game.unitSlots() < 3 ? '(병영 1단계부터 3명)' : ''} · 전적 ${c.wins}승 ${c.losses}패${battle ? '' : ` · 기본 전투력 ${ms.length ? Game.ownCompanyPower(c, ms, null) : 0}`}` }),
+          battle && ms.length ? el('div', { class: 'small muted', text: `단원 합계 · ${combatStats(stats)}` }) : null,
+          lead ? el('div', { class: 'small lead-line', title: leadText }, '지휘 ', el('b', { text: `「${lead.name}」` }), ` ${leadText}${Game.leadScale(leader) > 1 ? ' (×1.5)' : ''}`) : null,
           el('div', { class: 'cohesion' }, el('span', { class: 'small muted', text: '결속도' }),
             el('div', { class: 'bar thin' }, el('div', { class: 'bar-fill f-cohesion', style: `width:${c.cohesion}%` })),
             el('span', { class: 'small', text: c.cohesion }))),
@@ -64,12 +73,14 @@
     const s = Game.state;
     const mi = c.missionId && s.missions.find((x) => x.id === c.missionId);
     const left = c.contractEnd - s.day;
+    const battle = Game.battleMode();
     return el('div', { class: `company-panel ext ${market ? 'market' : ''}`, style: `--cc:${c.color}` },
       el('div', { class: 'company-head' },
         el('div', { class: 'portrait-wrap' }, Sprites.clone(Sprites.merc(c.captain.look, 3, 0), 'portrait')),
         el('div', { class: 'grow' },
           el('div', { class: 'cname' }, companyFlag(c, 1), ` ${c.name}`),
-          el('div', { class: 'small muted', text: `단장 ${c.captain.name}${c.captain.cap ? `(${CAPTAIN_CLASSES[c.captain.cap].name})` : ""} · Lv.${c.level} · ${c.size}/${c.maxSize}명 · 기본 전투력 ${Game.extPower(c, null)}` }),
+          el('div', { class: 'small muted', text: `단장 ${c.captain.name}${c.captain.cap ? `(${CAPTAIN_CLASSES[c.captain.cap].name})` : ""} · Lv.${c.level} · ${c.size}/${c.maxSize}명${battle ? '' : ` · 기본 전투력 ${Game.extPower(c, null)}`}` }),
+          battle ? el('div', { class: 'small muted', text: `단장 기본 · ${combatStats(Stats.generic(c.captain.look.cls, c.level, 'leader'))}` }) : null,
           el('div', { class: 'small' },
             el('span', { class: 'chip', text: `특기: ${QUEST_TYPES[c.specialty].name}` }), ' ',
             el('span', { class: 'chip', title: DISPOSITIONS[c.disposition].desc, text: `성향: ${DISPOSITIONS[c.disposition].name}` }), ' ',
@@ -231,22 +242,33 @@
   function wordEl(est) {
     return est ? el('b', { class: BAND_CLASS[est.band], text: `「${Stats.BAND_NAMES[est.band]}」` }) : el('b', { class: 'muted', text: '-' });
   }
+  function storyRequirement(c) {
+    const key = c.story.hero;
+    const m = Game.state.mercs.find((member) => member.hero === key);
+    const reason = !m || m.companyId == null ? '배속 필요'
+      : m.status === 'quest' ? '귀환 대기' : m.status === 'injured' ? '회복 필요' : '출격 편성에 포함 필요';
+    return el('span', { class: 'bad small', text: `${HEROES[key].name} ${reason}` });
+  }
   // 의뢰 카드: 지금 보낼 수 있는 용병단 가운데 가장 나은 예상
   function bestWord(c) {
     const s = Game.state;
     let best = null;
     s.companies.filter((co) => !co.missionId).forEach((co) => {
       if (co.own) {
-        const ms = Game.availableMembers(co).filter((m) => m.fatigue < 80);
+        const ms = Game.availableMembers(co).filter((m) => m.fatigue < 80 || m.hero && m.hero === c.story?.hero);
         if (!ms.length) return;
-        const est = forecastOf(c, [{ companyId: co.id, memberIds: ms.map((m) => m.id) }]);
+        const us = [{ companyId: co.id, memberIds: ms.map((m) => m.id) }];
+        if (Game.storyHeroMissing(c, us)) return;
+        const est = forecastOf(c, us);
         if (est && (!best || est.R > best.R)) best = est;
-      } else if (!Game.extRefusal(co, c)) {
+      } else if (!c.story && !Game.extRefusal(co, c)) {
         const est = forecastOf(c, [{ companyId: co.id }]);
         if (est && (!best || est.R > best.R)) best = est;
       }
     });
-    return el('div', {}, '예상 ', best ? wordEl(best) : el('span', { class: 'muted', text: '보낼 용병단 없음' }));
+    if (!best) return el('div', {}, c.story ? storyRequirement(c) : el('span', { class: 'muted', text: '보낼 용병단 없음' }));
+    return el('div', {}, '예상 ', wordEl(best),
+      Game.dispatchSlots(c) > 1 ? el('span', { class: 'muted small', text: ' · 1개 부대 기준' }) : null);
   }
 
   function chanceLabel(c) {
@@ -260,10 +282,12 @@
   // 파견 창: 용병단 고르기 (결전이면 여러 개), 직속 용병단은 출격 단원 고르기
   function openDispatch(c) {
     const s = Game.state;
+    const battle = Game.battleMode();
     const slots = Game.dispatchSlots(c); // 일반 의뢰 1개, 결전 2~3개 (직속·외부 합쳐 최대 MAX_DISPATCH)
     const sel = new Map(); // companyId -> Set(memberIds) | true
     const comps = s.companies.filter((co) => !co.missionId);
-    const defaultMembers = (co) => new Set(Game.availableMembers(co).filter((m) => m.fatigue < 80).map((m) => m.id));
+    const defaultMembers = (co) => new Set(Game.availableMembers(co)
+      .filter((m) => m.fatigue < 80 || battle && m.hero && m.hero === c.story?.hero).map((m) => m.id));
     // 이야기 의뢰: 특별 용병이 있는 용병단을 자동 선택
     if (c.story) {
       const co = comps.find((x) => x.own && Game.availableMembers(x).some((m) => m.hero === c.story.hero));
@@ -330,7 +354,8 @@
             el('div', { class: `small ${refusal ? 'bad' : 'muted'}`, text: refusal || (co.own
               ? `출격 가능 ${avail.length}/${Game.members(co).length}명 · 결속도 ${co.cohesion}`
               : `${co.size}명 · 충성도 ${co.loyalty} · 몫 ${co.share}%${co.sympathy === c.target && c.target ? ' · 동조 세력 공격(충성도 하락)' : ''}`) })),
-          Game.battleMode() ? el('span', { class: 'power' }, el('span', { class: 'sr-only', text: '예상 ' }), wordEl(disabled ? null : forecastOf(c, [u])))
+          battle ? el('span', { class: 'power' }, Game.storyHeroMissing(c, [u]) ? storyRequirement(c)
+            : [el('span', { class: 'sr-only', text: '예상 ' }), wordEl(disabled ? null : forecastOf(c, [u]))])
             : el('b', { class: 'power' }, el('span', { class: 'sr-only', text: '전력 ' }), String(Game.unitsPower(c, [u]))));
       }));
       if (!comps.length) listBox.append(el('div', { class: 'muted small', text: '대기 중인 용병단이 없습니다.' }));
@@ -350,30 +375,29 @@
       if (keep && document.activeElement !== active) focusKey(keep);
 
       const us = units();
+      const missingHero = Game.storyHeroMissing(c, us);
+      if (battle) {
+        const est = us.length && !missingHero ? forecastOf(c, us) : null;
+        summary.replaceChildren(...[
+          missingHero ? storyRequirement(c)
+            : us.length ? el('div', { class: 'forecast-line' }, '예상 전황 ', wordEl(est), el('span', { class: 'small muted', text: ` · 소요 ${Game.contractDays(c, us)}일` }))
+              : el('div', { class: 'muted', text: c.campaign ? `용병단을 최대 ${slots}개까지 고르세요. (직속·외부 합계)` : '용병단을 하나 고르세요.' }),
+          est ? el('div', { class: 'forecast-scale', 'aria-hidden': 'true' }, Stats.BAND_NAMES.map((w, i) => el('span', { class: i === est.band ? `on ${BAND_CLASS[i]}` : '', text: w }))) : null,
+          us.length && slots > 1 ? el('div', { class: `small ${us.length >= slots ? 'warn' : 'muted'}`, text: `용병단 ${us.length}/${slots}개${us.length >= slots ? ' · 더 보내려면 하나를 빼야 합니다' : ''} (한 전장에 아군 부대는 최대 ${MAX_DISPATCH}개)` }) : null,
+          c.campaign && !c.final ? el('div', { class: 'small warn', text: '이 결전을 맡으면 반대 진영의 제안은 사라집니다.' }) : null,
+        ].filter(Boolean));
+        go.disabled = !us.length || missingHero;
+        return;
+      }
       const pw = Game.unitsPower(c, us);
       const req = Game.effectiveReq(c);
       const ch = Game.successChance(c, us);
       const [label, cls] = chanceLabel(ch);
       const head = Game.unitsHeadcount(us);
-      const missingHero = Game.storyHeroMissing(c, us);
       const owner = Game.owner(c.province);
       const hostile = req > c.req;
       const { allMembers } = Game.unitParts(us);
       const tired = allMembers.filter((m) => m.fatigue >= 50);
-      if (Game.battleMode()) {
-        // 전투 모드: 고른 편성 그대로 굳혀 본 예상 한 단어. 인원·피로·적대 지역은 따로 경고하지 않는다 (예상에 이미 들어 있다)
-        const est = us.length ? forecastOf(c, us) : null;
-        summary.replaceChildren(...[
-          us.length ? el('div', { class: 'forecast-line' }, '예상 전황 ', wordEl(est), el('span', { class: 'small muted', text: ` · 소요 ${Game.contractDays(c, us)}일` }))
-            : el('div', { class: 'muted', text: c.campaign ? `용병단을 최대 ${slots}개까지 고르세요. (직속·외부 합계)` : '용병단을 하나 고르세요.' }),
-          us.length && est ? el('div', { class: 'forecast-scale', 'aria-hidden': 'true' }, Stats.BAND_NAMES.map((w, i) => el('span', { class: i === est.band ? `on ${BAND_CLASS[i]}` : '', text: w }))) : null,
-          us.length && slots > 1 ? el('div', { class: `small ${us.length >= slots ? 'warn' : 'muted'}`, text: `용병단 ${us.length}/${slots}개${us.length >= slots ? ' · 더 보내려면 하나를 빼야 합니다' : ''} (한 전장에 아군 부대는 최대 ${MAX_DISPATCH}개)` }) : null,
-          missingHero ? el('div', { class: 'bad small', text: `${HEROES[c.story.hero].name}${josa(HEROES[c.story.hero].name, '이', '가')} 출격 단원에 있어야 합니다.` }) : null,
-          c.campaign ? el('div', { class: 'small warn', text: '이 결전을 맡으면 반대 진영의 제안은 사라집니다.' }) : null,
-        ].filter(Boolean));
-        go.disabled = !us.length || missingHero;
-        return;
-      }
       summary.replaceChildren(...[
         el('div', {}, '총 전투력 ', el('b', { text: pw }), ` / 권장 ${req}`, el('span', { class: `small ${head < c.size ? 'bad' : 'muted'}`, text: ` · 인원 ${head}/${c.size}` })),
         el('div', { class: 'bar big' }, el('div', { class: 'bar-fill f-power', style: `width:${Math.min(100, (pw / req) * 50)}%` }), el('div', { class: 'bar-mark' })),
@@ -517,7 +541,8 @@
           el('span', { class: `chip ${provs.length >= CALAMITY_DARKNESS - 2 ? 'bad' : 'warn'}`, text: `점령 ${provs.length}/${CALAMITY_DARKNESS} (도달 시 암흑시대)` }),
           el('span', { class: 'chip', text: `${s.day - s.calamityDay + 1}일째` })),
         fin ? el('div', { class: 'row-inline' },
-          el('span', { class: 'small', text: `최종 결전 요구 전투력 ${fin.req} — 재앙의 영토를 빼앗을수록 낮아집니다.` }),
+          Game.battleMode() ? bestWord(fin)
+            : el('span', { class: 'small', text: `최종 결전 요구 전투력 ${fin.req} — 재앙의 영토를 빼앗을수록 낮아집니다.` }),
           el('button', { class: 'btn small primary', text: '최종 결전', onclick: () => openDispatch(fin) })) : null));
   }
 
@@ -592,7 +617,10 @@
       joined: '합류', lost: cs.why ? `떠남 — ${cs.why}` : '영입 불가',
     }[cs.status];
     const lookOf = { cls: CC.style, cap: key, ...C.look };
-    const ch = CAPTAIN_CHALLENGES[key] && (cs.status === 'challenge' || cs.status === 'locked') ? Game.challengeOf(key) : null;
+    const challenge = CAPTAIN_CHALLENGES[key], battle = Game.battleMode();
+    const lostStanding = battle && challenge && challenge.conds.some((c) => c.t === 'standing' && Game.isDestroyed(c.f));
+    const ch = challenge && (cs.status === 'challenge' || cs.status === 'locked' || cs.status === 'lost' && lostStanding)
+      ? Game.challengeOf(key) : null;
     return el('div', { class: `card cap-card st-${cs.status}` },
       el('div', { class: 'card-head' },
         el('div', { class: 'portrait-wrap' }, UI.h.artPortrait(Art.idOf.captain(key), lookOf)),
@@ -602,9 +630,16 @@
           el("div", { class: `small cap-status s-${cs.status}`, text: statusText }))),
       ch ? el('div', { class: 'challenge small' },
         el('div', { class: 'challenge-name' }, el('b', { text: `과제 「${ch.name}」` }), ch.ok ? el('span', { class: 'good', text: ' 달성!' }) : null),
-        ch.conds.map((c) => el('div', { class: c.ok ? 'good' : c.dead ? 'bad' : 'muted', text: `${c.ok ? '✔' : c.dead ? '✘' : '·'} ${c.text}` }))) : null,
+        ch.conds.map((c, i) => {
+          const cd = challenge.conds[i], standing = battle && cd.t === 'standing';
+          const unavailable = standing && c.dead;
+          const text = standing ? `${c.text} · ${unavailable ? '세력 멸망으로 영입 불가' : '세력이 멸망하면 영입 불가'}` : c.text;
+          return el('div', { class: unavailable ? 'bad' : c.ok ? 'good' : c.dead ? 'bad' : 'muted',
+            text: `${unavailable ? '✘' : c.ok ? '✔' : c.dead ? '✘' : '·'} ${text}` });
+        })) : null,
       el('div', { class: 'small muted', text: CC.desc }),
-      UI.h.skillList({ actives: CC.acts.map((b) => ({ name: b.name, battle: describeBattle(b) })), passive: { name: CC.lead.name, desc: `지휘: ${CC.lead.desc}`, lead: true } }, { compact: true }),
+      UI.h.skillList({ actives: CC.acts.map((b) => ({ name: b.name, battle: describeBattle(b) })),
+        passive: { name: CC.lead.name, desc: `지휘: ${describeLead(CC.lead, battle)}`, lead: true } }, { compact: true }),
       cs.status === 'pursuing' && C.chapters[cs.ch] ? el('div', { class: 'small warn', text: `다음: 「${C.chapters[cs.ch].title}」 — ${PROVINCES[C.chapters[cs.ch].province].name}` }) : null);
   }
 
@@ -648,7 +683,7 @@
             el('div', { class: 'name', text: C.name }),
             el('div', { class: 'small muted', text: `힘 ${lv1.str} · 민첩 ${lv1.dex} · 지력 ${lv1.int} · 체력 ${lv1.maxHp}` }))),
         el('p', { class: 'small', text: C.desc }),
-        UI.h.skillList({ actives: [{ name: CLASS_SKILLS[cls].name, battle: describeBattle(CLASS_SKILLS[cls].b), mission: describeFx(CLASS_SKILLS[cls].fx) }] }, { compact: true }),
+        UI.h.skillList({ actives: [{ name: CLASS_SKILLS[cls].name, battle: describeBattle(CLASS_SKILLS[cls].b), mission: describeFx(CLASS_SKILLS[cls].fx, Game.battleMode()) }] }, { compact: true }),
         el('div', { class: 'small muted', text: `승급: ${PROMOTIONS[cls].map((p) => `${p.name} → ${MASTERS[p.key].map((x) => x.name).join('/')}`).join(' · ')}` }),
         el('div', { class: 'card-foot' },
           el('button', { class: 'btn small', disabled: full || s.gold < costN ? 'disabled' : null, onclick: () => Game.hireUnit(cls, false) }, icon('coin'), ` ${costN} 신병 Lv.1`),
@@ -674,9 +709,9 @@
       const card = mercCard(m, { recruit: true, actions: [btn, noBed ? lodgingHint() : null] });
       const h = m.hero && HEROES[m.hero];
       const desc = m.elite
-        ? el('p', { class: 'small desc hero-desc' }, factionFlag(m.elite, 1), ` ${FACTIONS[m.elite].name} 정예 대원 · ${TRAITS[m.trait].name}: ${TRAITS[m.trait].desc} · 평판이 0 아래로 떨어지면 소환됨`)
+        ? el('p', { class: 'small desc hero-desc' }, factionFlag(m.elite, 1), ` ${FACTIONS[m.elite].name} 정예 대원 · ${TRAITS[m.trait].name}: ${describeTrait(m.trait, Game.battleMode())} · 평판이 0 아래로 떨어지면 소환됨`)
         : h
-        ? el('p', { class: 'small desc hero-desc' }, `특별 용병 · ${TRAITS[m.trait].name}: ${TRAITS[m.trait].desc}`, h.faction ? el('span', { class: 'muted' }, ` · 연고: ${FACTIONS[h.faction].name}`) : null)
+        ? el('p', { class: 'small desc hero-desc' }, `특별 용병 · ${TRAITS[m.trait].name}: ${describeTrait(m.trait, Game.battleMode())}`, h.faction ? el('span', { class: 'muted' }, ` · 연고: ${FACTIONS[h.faction].name}`) : null)
         : null;
       if (desc) card.insertBefore(desc, card.querySelector('.stats'));
       grid.append(card);

@@ -230,18 +230,19 @@ const Game = {
   },
   // 화면에 보여줄 스킬: 액티브(전투 + 의뢰 효과)와 패시브
   skillsOf(m) {
+    const battle = this.battleMode();
     if (this.isCaptain(m)) {
       const C = CAPTAIN_CLASSES[m.cap], k = this.leadScale(m);
       return { actives: C.acts.map((b) => ({ name: b.name, battle: describeBattle(b) })),
-        passive: { name: C.lead.name, desc: `지휘: ${C.lead.desc}${k > 1 ? ' (×1.5)' : ` — Lv.${CAPTAIN_AWAKEN}부터 ×1.5`}`, lead: true } };
+        passive: { name: C.lead.name, desc: `지휘: ${describeLead(C.lead, battle)}${k > 1 ? ' (×1.5)' : ` — Lv.${CAPTAIN_AWAKEN}부터 ×1.5`}`, lead: true } };
     }
     if (m.hcls) {
       const H = HERO_CLASSES[m.hcls], sc = 1 + this.heroCh(m) * 0.25;
       return { actives: H.acts.map((b) => ({ name: b.name, battle: describeBattle(b) })),
-        passive: { name: H.skill, desc: `${describeFx(H.fx)}${sc > 1 ? ` (효과 ×${sc})` : ''}` } };
+        passive: { name: H.skill, desc: `${describeFx(H.fx, battle)}${sc > 1 ? ` (효과 ×${sc})` : ''}` } };
     }
     const c = this.currentClass(m);
-    return { actives: [{ name: c.skill, battle: describeBattle(c.b), mission: describeFx(c.fx) }], passive: null };
+    return { actives: [{ name: c.skill, battle: describeBattle(c.b), mission: describeFx(c.fx, battle) }], passive: null };
   },
   // 전투에서 쓰는 액티브 스킬 [기본기, 특기?]
   battleSkillsOf(m) {

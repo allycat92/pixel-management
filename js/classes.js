@@ -35,21 +35,26 @@ function describeBattle(b) {
 }
 
 // 의뢰 효과(fx): self.all / self.types (본인 전투력), party.* (파티 전체)
-function describeFx(fx) {
+function describePartyAttack(success) {
+  const bonus = Number(((Stats.aidOf(success) - 1) * 100).toFixed(1));
+  return `파티 공격 +${bonus}% (합산 최대 ${pct(Stats.KN.AID_CAP)})`;
+}
+
+function describeFx(fx, battle = false) {
   if (!fx) return '';
   const out = [];
   const self = fx.self || {}, p = fx.party || {};
-  if (self.all) out.push(`본인 전투력 +${pct(self.all)}`);
+  if (self.all) out.push(`본인 ${battle ? '전투 체력·공격' : '전투력'} +${pct(self.all)}`);
   if (self.types) {
     const groups = {};
     Object.entries(self.types).forEach(([t, v]) => { (groups[v] = groups[v] || []).push(QUEST_TYPES[t].name); });
-    Object.entries(groups).forEach(([v, ts]) => out.push(`${ts.join('·')}에서 본인 +${pct(Number(v))}`));
+    Object.entries(groups).forEach(([v, ts]) => out.push(`${ts.join('·')}에서 본인${battle ? ' 전투 체력·공격' : ''} +${pct(Number(v))}`));
   }
-  if (p.success) out.push(`파티 성공률 +${pct(p.success)}`);
+  if (p.success) out.push(battle ? describePartyAttack(p.success) : `파티 성공률 +${pct(p.success)}`);
   if (p.injury != null) out.push(`부상 확률 -${pct(1 - p.injury)}`);
   if (p.death != null) out.push(p.death === 0 ? '사망 위험 없음' : `사망 위험 -${pct(1 - p.death)}`);
   if (p.gold) out.push(`보상 금화 +${pct(p.gold)}`);
-  if (p.great) out.push(`대성공 확률 ×${p.great}`);
+  if (p.great) out.push(battle ? `대성공 필요 체력 ÷${p.great}` : `대성공 확률 ×${p.great}`);
   if (p.greatGold) out.push(`대성공 보상 +${pct(p.greatGold)}`);
   if (p.days) out.push(`이동 ${p.days}일`);
   if (p.noDisaster) out.push('대실패 방지');
@@ -60,9 +65,9 @@ function describeFx(fx) {
 }
 
 // 대장의 지휘(패시브)
-function describeLead(l) {
+function describeLead(l, battle = false) {
   const out = [];
-  if (l.power) out.push(`용병단 전투력 +${pct(l.power)}`);
+  if (l.power) out.push(`용병단 ${battle ? '전투 체력·공격' : '전투력'} +${pct(l.power)}`);
   if (l.types) {
     const groups = {};
     Object.entries(l.types).forEach(([t, v]) => { (groups[v] = groups[v] || []).push(QUEST_TYPES[t].name); });
@@ -74,7 +79,7 @@ function describeLead(l) {
     Object.entries(groups).forEach(([v, cs]) => out.push(`${cs.join('·')} 계열 대원 +${pct(Number(v))}`));
   }
   if (l.vsCalamity) out.push(`재앙 세력·재앙급 괴물 상대 +${pct(l.vsCalamity)}`);
-  const pf = describeFx({ party: l.party });
+  const pf = describeFx({ party: l.party }, battle);
   if (pf) out.push(pf);
   return out.join(', ');
 }

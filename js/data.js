@@ -62,6 +62,16 @@ const TRAITS = {
 };
 const TRAIT_POOL = ['brave', 'coward', 'sturdy', 'lucky', 'greedy', 'genius', 'lazy', 'diligent', 'none', 'none'];
 
+function describeTrait(key, battle) {
+  const desc = TRAITS[key].desc;
+  if (!battle) return desc;
+  if (key === 'lucky' || key === 'sylvan') return describePartyAttack(0.05);
+  if (key === 'hawkeye') return describePartyAttack(0.08);
+  if (key === 'arcane') return '전투 체력·공격 +10%, 마법 조사에서는 +35%';
+  if (key === 'commander') return '같은 용병단의 전투 체력·공격 +8%';
+  return desc.replace('전투력', '전투 체력·공격');
+}
+
 const NAMES = [
   '레온', '아리아', '카엘', '세릴', '브란', '미라', '토린', '엘리스', '가렌', '루나',
   '하른', '실비아', '드레이크', '이벨', '오스카', '리안', '페이', '볼드', '니아', '케인',
