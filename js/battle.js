@@ -1375,6 +1375,7 @@ const Battle = (() => {
   const RUN_FLY_MIN = 1 / 8;
   function runCells(u, r, dd, ds, slf) {
     if (r.rq == null) r.rq = (r.rp == null ? r.phase : r.rp) * 4;
+    const q0 = r.rq;
     // 뜸이 없는 부류(중량·로브): 모든 칸이 ds/4 — 다만 4배속은 걸음 수를 2배속 수준까지만(slf = 보폭×fast 가 더 크면 그만큼 칸을 넓힌다, 그때만 약간 미끄러짐).
     const C = gaitClassFor(u, r, useArt() && Art.sheetFor(u)), c = C.hop ? ds / 4 : Math.max(ds, slf) / 4;
     const f = C.hop ? (Math.max(slf, ds / 2 + 2 * ds * RUN_FLY_MIN) - ds / 2) / 2 : c;
@@ -1387,6 +1388,8 @@ const Battle = (() => {
         if (left < room) { r.rq += left / wj; left = 0; } else { r.rq = fl + 1; left -= room; }
       }
     }
+    // rqAdv: 이 움직임 한 번에 넘어간 칸 (pose 가 달리기 칸을 처음 보일 때 칸 안 위치를 이만큼 안으로 줄인다)
+    if (dd > 0) r.rqAdv = r.rq - q0;
     r.rq = ((r.rq % 8) + 8) % 8;
   }
   // 유닛이 화면에서 실제로 움직인 만큼 걸음을 나아가게 하고(시계가 아니라 거리), 걷는 정도(gait 0..1)를 부드럽게 올리고 내린다.
@@ -1688,7 +1691,8 @@ const Battle = (() => {
     const sh = useArt() && Art.sheetFor(u);
     if (sh) {
       const m = sh.meta;
-      let i, ga, walkFx = false, act = null; // walkFx: 지금 걸음에 쓸 동작 칸이 없는 시트가 움직이는 중 → 그릴 때 몸 높이(walkTf: 그림은 그대로)만 얹는다
+      let i, ga, walkFx = false, act = null, runOn = false; // runOn: 이번 그리기가 그려진 달리기 칸(r.rq)인가 (r.rqOn — 첫 칸을 처음부터)
+      // walkFx: 지금 걸음에 쓸 동작 칸이 없는 시트가 움직이는 중 → 그릴 때 몸 높이(walkTf: 그림은 그대로)만 얹는다
       // act: 공격·피격·준비 칸 — 걷던 몸이면 walkTf 가 몸 높이를 BODY_FADE 에 걸쳐 푼다
       if (force) { const a = force === 'walk' && m.anims.run ? m.anims.run : Art.anim(m, force); i = Math.min(a.to, a.from + 1); }   // 돌진 잔상('walk')은 달리기 칸이 있으면 그것으로
       else if (!u.alive) i = Art.anim(m, 'hit').to;
@@ -1702,7 +1706,15 @@ const Battle = (() => {
         if (ga === 'run') {
           // 달리기 칸: 시트 보폭(runStride)이 있으면 gaitUpdate 의 r.rq (runCells — 디딘 칸은 그려진 보폭대로 넘겨 발이 땅에 붙고, 뜨는 칸이 나머지 거리를 맡는다).
           // 시트 보폭이 없으면 r.rp (한 걸음 = 코드 달리기 보폭 strideOf, 4배속 규칙도 같다).
-          q = m.runStride > 0 && r.rq != null ? r.rq * n / 8 : (r.rp == null ? r.phase : r.rp) * n / 2;
+          // 달리기 칸이 (대기·걷기·공격 칸 뒤에) 처음 보이는 그리기에서는 r.rq 를 지금 칸의 처음 가까이로 되돌린다: 보이지 않는 동안에도
+          // 간 거리만큼 넘어가 있어(r.phase 에서 시작, 걸음이 켜지기 전 몇 틱) 첫 칸이 중간부터 보이면 그 칸의 남은 거리만큼만 몸이 나아가
+          // 다음 칸에서 디딘 발이 뒤로 미끄러졌다(Q15 궁수: 첫 R1→R2 −4~−6px). 칸 안 위치는 움직임 한 번(r.rqAdv) 안으로만 남긴다 —
+          // 달리는 중에 칸이 바뀔 때처럼(넘어선 만큼). 칸 하나 안에서 박자만 늦출 뿐 빠르기·그림은 그대로.
+          if (m.runStride > 0 && r.rq != null) {
+            if (!r.rqOn) r.rq = Math.floor(r.rq) + (r.rqAdv > 0 ? (r.rq % 1) % r.rqAdv : 0);
+            runOn = true; q = r.rq * n / 8;
+          }
+          else q = (r.rp == null ? r.phase : r.rp) * n / 2;
         } else {
           // 걷기 칸: 간 거리 ÷ (walkStride × 그리는 배율), 없으면 키에서 어림한다 (28.5%; r.sh 는 이미 배율을 곱한 키)
           const k = sheetK(u, sh), hh = r.sh || m.cell[1] * 0.7 * k;
@@ -1715,6 +1727,7 @@ const Battle = (() => {
         i = frameAt(Art.anim(m, 'idle'), ((view.idleClock != null ? view.idleClock : c) + r.phase) * 1000, false);
         walkFx = r.gait > 0.05;
       }
+      if (!force) r.rqOn = runOn;
       const f = m.frames[i] || m.frames[0];
       const rc = sheetRecolor(sh, u);
       return { img: rc ? rc.img : sh.img, sx: f[0], sy: f[1], sw: m.cell[0], sh: m.cell[1], ax: m.anchor[0], ay: m.anchor[1], face: m.facing,
