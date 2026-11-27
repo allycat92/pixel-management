@@ -47,7 +47,8 @@ Object.assign(Game, {
   // 편성 규칙은 옛 전투의 plan() (js/battle.js) 과 같다: 양쪽 최대 3부대, 부대마다 3~4명.
   // 다른 점: 적·지원 부대·아군 외형이 저마다 따로 난수를 쓴다 — 누구를 보내든 적 편성은 같다 (다시 굴릴 수 없다).
   // day: 전투 시드에 섞는 날 (기본 오늘. 옛 저장의 출격은 출발한 날)
-  muster(c, units, day) {
+  // missionId: 실제 출격에서만 주는 번호. 의뢰판 예상에는 배신을 아직 드러내지 않는다.
+  muster(c, units, day, missionId) {
     const s = this.state;
     const MAX_GROUPS = 3, GROUP_MIN = 3, GROUP_MAX = 4;
     const { own, ext, allMembers } = this.unitParts(units);
@@ -146,11 +147,12 @@ Object.assign(Game, {
         groups.push({ side: 1, kind: 'foe', name: `${FACTIONS[f].short} ${FACTIONS[f].unitName} ${i + 1}대`, color: FACTIONS[f].color, units: us });
       }
     }
-    return {
+    const spec = {
       v: 1, seed: bm ? Stats.mix(salt, 0xb7) : Stats.mix(foeSeed, day == null ? s.day : day, 0xb7), terrain: PROVINCES[c.province] ? PROVINCES[c.province].terrain : null,
       rule: Stats.ruleOf(c), limit: Stats.KN.LIMIT, lv: sc.lv, k: +sc.k.toFixed(3), need: c.size, heads: this.unitsHeadcount(units),
       ...(bm ? { bm: 1, kind: Stats.kindOf(c) } : {}), groups,   // 전투 모드 편성 표시 (예상 보정이 읽는다)
     };
+    return bm && c.campaign && missionId != null ? this.battleBetrayalSpec(spec, c, missionId, ext, true) : spec;
   },
 
   // 굳힌 편성의 예상 전력비 { R, band } — 능력치와 스킬 빈도만 읽는다 (위치·시드·배신 없음)
@@ -161,12 +163,23 @@ Object.assign(Game, {
   // 파견할 때: 전투 입력을 굳혀 출격 기록에 붙인다. 지금은 그림자라, 실패해도 파견은 그대로 간다.
   freezeMission(mission, c, units) {
     try {
-      mission.spec = this.muster(c, units);
+      mission.spec = this.muster(c, units, undefined, mission.id);
       mission.est = this.forecast(mission.spec);
     } catch (e) {
       delete mission.spec; delete mission.est;
       if (typeof console !== 'undefined') console.error('[muster]', e);
     }
+  },
+
+  // 편성의 전투 시드와 출격·외부단 번호를 섞되 세계 난수는 쓰지 않는다.
+  // 새 출격은 동조 세력에 따른 충성도 차감을 미리 반영한다. 옛 출격은 이미 차감했다.
+  battleBetrayalSpec(spec, c, missionId, ext, dispatching = false) {
+    const traitors = new Set(ext.filter((e) => {
+      const loss = dispatching && e.disposition === 'faction' && e.sympathy === c.target ? 10 : 0;
+      return e.loyalty - loss < 25 && Stats.rng(Stats.mix(spec.seed, 0xbe7a, missionId, e.id))() < 0.35;
+    }).map((e) => e.id));
+    return { ...spec, betrayalsFixed: true, groups: spec.groups.map((g) =>
+      g.kind === 'ext' && traitors.has(g.companyId) ? { ...g, betray: true } : g) };
   },
 
   // 귀환할 때: 굳혀 둔 편성으로 능력치 전투를 한 번 돌리고 등급을 매겨 report.shadow 에 짧게 적는다.
@@ -197,10 +210,8 @@ Object.assign(Game, {
   battleResolve(mission, report, mods) {
     if (typeof Battle === 'undefined' || !Battle.run) return null;
     try {
-      let spec = mission.spec || this.muster(mission.contract, mission.units, mission.startDay);
+      const spec = mission.spec || this.muster(mission.contract, mission.units, mission.startDay);
       const est = mission.est || this.forecast(spec);
-      const traitors = new Set(mission.units.map((u) => this.company(u.companyId)).filter((e) => e && !e.own && e.betrayed).map((e) => e.id));
-      if (traitors.size) spec = { ...spec, groups: spec.groups.map((g) => (g.kind === 'ext' && traitors.has(g.companyId) ? { ...g, betray: true } : g)) };
       const rec = Battle.run(spec);
       const verdict = this.judge(spec, rec, mods);
       const share = Stats.foeShare(spec, rec);
