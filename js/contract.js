@@ -508,10 +508,17 @@ Object.assign(Game, {
         let dm = { great: 6, success: 2, fail: -6, disaster: -12 }[outcome];
         if (!won && fought.rec.end === 'retreat') dm = Math.round(dm * KB.RETREAT_MORALE);   // 질서 있게 물러났다 (대참사도: 남은 수습이 데리고 물러났다)
         if (dm > 0 || !mods.noMoraleLoss) this.changeMorale(m, dm);
-        if (inj > 0 && Math.random() < inj) {
-          r.injury = f.fate === 1 ? rand(2, 4) + (outcome === 'disaster' ? 2 : 0) : rand(1, 2);
-          if (mods.healHalf) r.injury = Math.ceil(r.injury / 2);
-          m.status = 'injured'; m.injury = r.injury;
+        if (inj > 0) {
+          // 공용 난수는 옛 부상 굴림과 그 굴림이 열던 기간 굴림 자리에만 소비한다.
+          // 실제 부상 여부와 기간은 출격 시드·단원별 난수열을 쓴다.
+          if (Math.random() < inj) Math.random();
+          const injuryRoll = Stats.rng(Stats.mix(fought.spec.seed, 0x696e6a, m.id));
+          if (injuryRoll() < inj) {
+            const duration = injuryRoll();
+            r.injury = f.fate === 1 ? 2 + Math.floor(duration * 3) + (outcome === 'disaster' ? 2 : 0) : 1 + Math.floor(duration * 2);
+            if (mods.healHalf) r.injury = Math.ceil(r.injury / 2);
+            m.status = 'injured'; m.injury = r.injury;
+          }
         }
         report.members.push(r);
         return;
@@ -575,7 +582,13 @@ Object.assign(Game, {
       if (fought) {
         const downN = this.extDownOf(fought.spec, fought.rec).get(e.id) || 0;
         lostN = 0;
-        if (!won) for (let i = 0; i < downN; i++) if (Math.random() >= KB.EXT_KEEP) lostN++;
+        if (!won && downN > 0) {
+          const lossRoll = Stats.rng(Stats.mix(fought.spec.seed, 0x657874, e.id));
+          for (let i = 0; i < downN; i++) {
+            Math.random();   // 세계 난수의 옛 소비 자리는 그대로
+            if (lossRoll() >= KB.EXT_KEEP) lostN++;
+          }
+        }
         lostN = Math.min(KB.EXT_LOST_CAP, lostN);
       }
       const lost = e.betrayed ? 0 : this.extAfterMission(e, outcome, c, lostN, resultRoll);

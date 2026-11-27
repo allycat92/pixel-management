@@ -7,14 +7,18 @@
 
 | 누구 | id | 상태 | 할 일 (자세한 것은 그 줄의 문서) |
 |---|---|---|---|
-| Codex | `C22-crosscheck-c20` | READY | GPT 의 C20 교차 확인 — roll 금화 하락이 상관 때문인지: `docs/agents/tasks/C22-crosscheck-c20.md` |
-| GPT | `C20-betrayal-loss-fixed` | REVIEW | (Codex C22 교차 확인 대기) 결전 배신·외부단 손실 고정 |
-| GPT | `Q19-flip-readiness-2` | REVIEW | (C20 다음) 한 부대 초반 다듬기 들어감 — 다른 시드로 사람 플레이 다시: `docs/agents/tasks/Q19-flip-readiness-2.md` |
+| Codex | `C26-gait-requests-last` | READY | 마지막 이동 요청서 5건 + 카토 분류·요청서: `docs/agents/tasks/C26-gait-requests-last.md` |
+| GPT | `C24-battle-injury-loss-fixed` | REVIEW | (코드 일감) 전투 모드 전투 뒤 부상·외부단 귀환 손실도 출격 때 고정: `docs/agents/tasks/C24-battle-injury-loss-fixed.md` |
 
 ## 끝난 일
 
 | 누구 | id | 결과 |
 |---|---|---|
+| Codex | `C25-seam-check-tool` | **DONE** (11-27, `bb24e20` 합침): `check_delivery.py` 가 가로·세로 실루엣 이음매를 WARN — 도적 R4 를 잡고(y=688/712), 등록 이동 띠 48자세·시트 214자세 오탐 0. receive.py 에 확대 컷 경로 출력 |
+| Codex | `C23-second-company-guide` | **DONE** (11-27, `d7fa1d1` 합침): 창설 버튼·확인 창에 「창설 뒤 금화·다음 정산·예상 급료」(모자라면 경고색), 빈 부대에 「예비 단원 배속」「다른 부대에서 옮기기」, 안내 문구 맞춤. roll md5 그대로 |
+| GPT | `Q19-flip-readiness-2` | **DONE** (11-27, `610eb76`): 다른 시드(582901, 브리긴다) 사람 플레이 — 의견 **조건부 찬성**(둘째 부대 만들기 안내 조건 → C23). 초반 우세 17/17, 귀환 대기 60→30일(둘째 부대), 1부대 120일 B / 2부대 113일 S. 유예 주간 알림·미룬 급료 PASS |
+| Codex | `C22-crosscheck-c20` | **DONE** (11-27, `ca62384`): C20 교차 확인 — 전투 결전 배신 고정 PASS(66/66), roll 손실 상관 없음(r≈0, 100만 가상 임무). 남은 틈: 전투 모드 외부단 귀환 손실·전투 뒤 부상이 공유 난수 |
+| GPT | `C20-betrayal-loss-fixed` | **DONE** (11-27, `11e1ad5` 합침): 전투 결전 배신·roll 외부단 손실을 출격 때 고정. roll md5 새 기준 `f1712f75` |
 | Codex | `C21-calibration-data` | **DONE** (11-27, `826f6c8` 합침): 보정 데이터 128,126행(`data/C21/`, 대장 key·원정 부대 수·보스별) + 수집기 `tools/sim/collect-calibration.js`. 눈에 띄는 것: 3부대 원정 백중 22~29%, 순례 기사 우세 54~64%, 안개 늪 보스 70%, sensible 의 blademaster·tactician 백중 34~41% |
 | Codex | `C19-newplayer-texts` | **DONE** (11-27, `380a4cb` 합침): 「예상 전황이란?」 도움말, 카드·파견·결과 제목 통일, 시간 초과 문구, 쓰러짐·부상·전사·연출 스위치 설명, 전사 가능 전투 표시(`Game.specialBattle`, 7종 대조), 접근성. roll 화면·md5 그대로 |
 | Codex | `C18-crosscheck-gpt-code` | **DONE** (11-27, `9bbc82e`): GPT 의 C14·C16 교차 확인 — C14 꼼수 고정 3/3, 24판 금화 평균 50.5k→60.7k(한 방향 아님), C16 경계 30.86초·숨김 조건 PASS. 남은 틈: **전투 모드 결전 배신이 새로고침에 바뀜**, roll 외부단 손실 재굴림 → C20 (GPT) |

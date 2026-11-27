@@ -1681,6 +1681,79 @@
     },
     "w": 448
   },
+  "sheet/captain/liberator": {
+    "file": "assets/art/sheets/sheet_captain_liberator.png",
+    "h": 192,
+    "sheet": {
+      "anchor": [
+        48,
+        92
+      ],
+      "anims": {
+        "attack": {
+          "from": 4,
+          "ms": [
+            150,
+            260
+          ],
+          "to": 5
+        },
+        "hit": {
+          "from": 6,
+          "ms": [
+            220
+          ],
+          "to": 6
+        },
+        "idle": {
+          "from": 0,
+          "ms": [
+            240,
+            240,
+            240,
+            240
+          ],
+          "to": 3
+        }
+      },
+      "cell": [
+        96,
+        96
+      ],
+      "facing": 1,
+      "frames": [
+        [
+          0,
+          0
+        ],
+        [
+          96,
+          0
+        ],
+        [
+          192,
+          0
+        ],
+        [
+          288,
+          0
+        ],
+        [
+          0,
+          96
+        ],
+        [
+          96,
+          96
+        ],
+        [
+          192,
+          96
+        ]
+      ]
+    },
+    "w": 384
+  },
   "sheet/captain/lightbearer": {
     "file": "assets/art/sheets/sheet_captain_lightbearer.png",
     "h": 192,
@@ -3213,7 +3286,7 @@
   },
   "sheet/class/rogue": {
     "file": "assets/art/sheets/sheet_class_rogue.png",
-    "h": 384,
+    "h": 192,
     "sheet": {
       "anchor": [
         48,
@@ -3244,20 +3317,6 @@
             240
           ],
           "to": 3
-        },
-        "run": {
-          "from": 7,
-          "ms": [
-            80,
-            80,
-            80,
-            80,
-            80,
-            80,
-            80,
-            80
-          ],
-          "to": 14
         }
       },
       "cell": [
@@ -3293,57 +3352,8 @@
         [
           192,
           96
-        ],
-        [
-          0,
-          192
-        ],
-        [
-          96,
-          192
-        ],
-        [
-          192,
-          192
-        ],
-        [
-          288,
-          192
-        ],
-        [
-          0,
-          288
-        ],
-        [
-          96,
-          288
-        ],
-        [
-          192,
-          288
-        ],
-        [
-          288,
-          288
         ]
       ],
-      "gait": "light",
-      "gaits": {
-        "run": {
-          "center": 192,
-          "class": "light",
-          "floor": 870,
-          "ms": 80,
-          "pose": "art/requests/guides/run_base/v2/pose.json",
-          "src": [
-            "art/inbox/gait/sheet_class_rogue_run_a.png",
-            "art/inbox/gait/sheet_class_rogue_run_b.png"
-          ],
-          "step_px": 275.0,
-          "stride": 45.5
-        }
-      },
-      "runStride": 45.5,
       "tint": {
         "accent": [
           "#3f7a6c",
