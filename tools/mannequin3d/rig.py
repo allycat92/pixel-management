@@ -104,6 +104,7 @@ class Body:
         self.frames = {}
         self.prims = []
         self.ghosts = []      # see-through extras (props, robe) drawn over the body as outlines + light fill
+        self.grips = set()    # hands ('N' / 'F') that hold a prop (render marks them)
 
     def add_capsule(self, a, b, r0, r1, mat, part, ghost=False):
         (self.ghosts if ghost else self.prims).append(
@@ -153,7 +154,7 @@ def ankle_on_floor(P, tip, pitch):
 
 def fk(P, pose, props=None, robe=None):
     """forward kinematics. P = proportions, pose = angle dict (see module doc), props = list of prop dicts,
-    robe = None or {'hem': height above floor, 'flare': extra radius, 'lag': [dxN, dxF]} (a see-through cloth proxy)."""
+    robe = None or {'hem_h', 'front', 'back', 'depth'} (see robe_rings; a see-through cloth proxy)."""
     q = full_pose(pose)
     B = Body()
     J, Fm = B.joints, B.frames
@@ -250,31 +251,54 @@ def fk(P, pose, props=None, robe=None):
 
 
 PROP_LEN = {'sword': 150.0, 'mace': 120.0, 'staff': 330.0, 'shield': 0.0}
+PROP_BACK = {'sword': 22.0, 'mace': 14.0, 'staff': 140.0}
+
+
+def add_slab(B, c, u, v, half, corner, mat, part, ghost=True):
+    """flat rounded rectangle (a disc when corner = both halves): centre c, width axis u, height axis v (unit vectors)"""
+    u = np.asarray(u, float) / np.linalg.norm(u)
+    v = np.asarray(v, float) / np.linalg.norm(v)
+    n = np.cross(u, v)
+    (B.ghosts if ghost else B.prims).append(
+        {'type': 'slab', 'c': np.asarray(c, float), 'R': np.stack([u, v, n], 1), 'half': [float(half[0]), float(half[1])],
+         'corner': float(corner), 'mat': mat, 'part': part})
 
 
 def add_prop(B, P, pr):
-    """held weapon: a bone that leaves the fist perpendicular to the forearm (sword/mace) or runs through it (staff)."""
+    """held prop. kind:
+      shield  strapped on the forearm of pr['hand']: shape 'round' (a disc of `radius`) or 'tower' (rounded rectangle
+              `half` = [half width, half height], `corner`); its face turned `face` deg from forward toward the viewer
+              (world, about the vertical), centre at the forearm middle + `lift` px up, `offset` px out along its normal.
+      sword / mace / staff  a bone from the fist: direction from `abs_angle` (deg from forward-horizontal, + = up, in the
+              world sagittal plane), or `angle`/`roll` in the hand frame, or `between` two wrists; `length` beyond the
+              fist, `back` px behind it (pommel / staff butt below the hand)."""
     J, Fm = B.joints, B.frames
     s = pr.get('hand', 'N')
     kind = pr.get('kind', 'sword')
+    B.grips.add(s if not pr.get('between') else pr['between'][0])
+    if kind == 'shield':
+        n = turn(pr.get('face', 30.0)) @ FWD
+        up = UP
+        u = np.cross(up, n)
+        c = (J['elb' + s] * 0.45 + J['wri' + s] * 0.55) + n * (P['r_forearm'][1] + pr.get('offset', 4.0)) + UP * pr.get('lift', 0.0)
+        if pr.get('shape', 'round') == 'tower':
+            hw, hh = pr.get('half', [48.0, 120.0])
+            add_slab(B, c, u, up, (hw, hh), pr.get('corner', 14.0), 'prop', 'shield')
+        else:
+            r = pr.get('radius', 62.0)
+            add_slab(B, c, u, up, (r, r), r, 'prop', 'shield')
+        J['prop_base'], J['prop_tip'] = c, c + up * (pr.get('half', [0, pr.get('radius', 62.0)])[1])
+        J['shield_c'] = c
+        return
     R_hd = Fm['hand' + s]
     grip = J['hand' + s]
-    if kind == 'shield':
-        # flat disc on the forearm, its face turned like the chest (toward the viewer-front)
-        R = Fm['chest'] @ turn(pr.get('angle', 0.0))
-        c = (J['wri' + s] * 0.5 + J['elb' + s] * 0.5) + R @ np.array([pr.get('offset', 6.0), 0.0, 0.0])
-        rad = pr.get('radius', 62.0)
-        h = pr.get('height', rad)
-        J['prop_base'], J['prop_tip'] = c, c + R @ np.array([0.0, h, 0.0])
-        B.add_ellipsoid(c, R, [6.0, h, rad], 'prop', 'shield', ghost=True)
-        return
     if pr.get('between'):
         a_, b_ = (J['wri' + h] for h in pr['between'])
         d = (b_ - a_) / max(np.linalg.norm(b_ - a_), 1e-9)
         grip = a_
         R = np.eye(3)
     elif pr.get('abs_angle') is not None:
-        # direction fixed in the world sagittal plane (deg from forward-horizontal, + = up), turned like the pelvis
+        # direction fixed in the world sagittal plane (deg from forward-horizontal, + = up), optionally turned by `yaw`
         a_ = math.radians(pr['abs_angle'])
         d = turn(pr.get('yaw', 0.0)) @ np.array([math.cos(a_), math.sin(a_), 0.0])
         R = np.eye(3)
@@ -282,34 +306,63 @@ def add_prop(B, P, pr):
         R = R_hd @ rx(pr.get('roll', 0.0)) @ rz(pr.get('angle', 0.0))
         d = R @ FWD
     L = pr.get('length', PROP_LEN[kind])
-    back = pr.get('back', {'sword': 22.0, 'mace': 14.0, 'staff': 140.0}[kind])
+    back = pr.get('back', PROP_BACK[kind])
     base, tip = grip - d * back, grip + d * L
-    J['prop_base'], J['prop_tip'] = base, tip
+    J['prop_base'], J['prop_tip'], J['prop_grip'] = base, tip, grip
+    J['prop_dir_' + kind] = d
     if kind == 'sword':
+        J['blade_a'], J['blade_b'] = grip + d * 14, tip
+        side = np.cross(d, UP if abs(d[1]) < 0.9 else FWD)
+        side = side / max(np.linalg.norm(side), 1e-9)
         B.add_capsule(base, grip + d * 12, 4.5, 4.5, 'prop', 'grip', ghost=True)
-        B.add_capsule(grip + d * 12 + R @ np.array([0, 0, 18.0]), grip + d * 12 - R @ np.array([0, 0, 18.0]), 4, 4, 'prop', 'guard', ghost=True)
+        B.add_capsule(grip + d * 12 + side * 18.0, grip + d * 12 - side * 18.0, 4, 4, 'prop', 'guard', ghost=True)
         B.add_capsule(grip + d * 14, tip, 7.0, 2.5, 'prop', 'blade', ghost=True)
     elif kind == 'mace':
-        B.add_capsule(base, tip, 5.0, 5.0, 'prop', 'haft', ghost=True)
-        B.add_ellipsoid(tip, R, [22.0, 22.0, 22.0], 'prop', 'mace_head', ghost=True)
+        hr = pr.get('head_r', 22.0)
+        B.add_capsule(base, tip - d * hr * 0.6, 5.0, 5.0, 'prop', 'haft', ghost=True)
+        B.add_ellipsoid(tip, np.eye(3), [hr, hr, hr], 'prop', 'mace_head', ghost=True)
     else:  # staff
         B.add_capsule(base, tip, 6.0, 5.0, 'prop', 'staff', ghost=True)
-        B.add_ellipsoid(tip, R, [10.0, 10.0, 10.0], 'prop', 'staff_head', ghost=True)
+        B.add_ellipsoid(tip, np.eye(3), [10.0, 12.0, 10.0], 'prop', 'staff_head', ghost=True)
+
+
+def add_skirt(B, rings, mat, part):
+    """cloth surface of revolution-ish: rings = [(y, cx, cz, a, c), ...] from the top down; between rings the centre and
+    the half widths (a along x, c along z) change linearly. Rendered as a see-through ghost."""
+    B.ghosts.append({'type': 'skirt', 'rings': np.asarray(rings, float), 'mat': mat, 'part': part})
+
+
+def robe_rings(B, P, robe):
+    """the robe proxy for one frame: (capelet rings, robe rings).
+    robe = {'hem_h': hem height above the floor, 'front': hem front x (world), 'back': hem back x, 'depth': hem half depth}.
+    The capelet hangs from the neck over the shoulders to the upper chest (flaring); the robe hangs from the chest and
+    widens in a straight line (A-line) to the hem - widest at the hem, no bulge."""
+    J, Fm = B.joints, B.frames
+    up = Fm['chest'] @ UP
+    nk = J['neck0']
+    chest = J['chest']
+    sh_w = P['shoulder_w'] + P['r_shoulder']
+    cap_top = nk + up * 4.0
+    cap_bot = nk - up * (P['shoulder_drop'] + P['chest'] * 0.42)
+    capelet = [(cap_top[1], cap_top[0], 0.0, P['r_neck'] * 1.7, P['r_neck'] * 1.7),
+               (nk[1] - P['shoulder_drop'] * 0.6, nk[0] - 2.0, 0.0, P['chest_r'][0] * 1.08, sh_w * 1.05),
+               (cap_bot[1], cap_bot[0] - 2.0, 0.0, P['chest_r'][0] * 1.32, sh_w * 1.22)]
+    top = chest + up * (P['chest'] * 0.12)
+    a_top, c_top = P['chest_r'][0] * 1.06, P['chest_r'][2] * 1.02
+    hem_mid = (robe['front'] + robe['back']) / 2.0
+    a_hem = max((robe['front'] - robe['back']) / 2.0, a_top * 1.3)
+    c_hem = max(robe.get('depth', 0.0), c_top * 1.25)
+    robe_r = [(top[1], top[0], 0.0, a_top, c_top), (robe['hem_h'], hem_mid, 0.0, a_hem, c_hem)]
+    return capelet, robe_r
 
 
 def add_robe(B, P, robe):
-    """see-through cloth proxy for long robes: a cone from the waist to the hem, the hem trailing the knees."""
-    J = B.joints
-    hem_h = robe.get('hem', 40.0)
-    lag = robe.get('lag', 0.0)
-    kx = [J['kneeN'][0], J['kneeF'][0], J['ankN'][0], J['ankF'][0]]
-    front, back = max(kx) + 14.0, min(kx) - 14.0 - robe.get('trail', 10.0)
-    mid = (front + back) / 2 - lag
-    hem_r = max(28.0, (front - back) / 2 + robe.get('flare', 6.0))
-    top = J['pelvis'] + np.array([0.0, P['pelvis_r'][1] * 0.6, 0.0])
-    hem = np.array([mid, hem_h + 6.0, 0.0])
-    B.add_capsule(top, hem + np.array([0.0, hem_r * 0.6, 0.0]), P['pelvis_r'][2] * 1.05, hem_r, 'robe', 'robe', ghost=True)
-    B.ghosts[-1]['clip_below'] = hem_h
+    capelet, robe_r = robe_rings(B, P, robe)
+    add_skirt(B, robe_r, 'robe', 'robe')
+    B.ghosts[-1]['hem_lift'] = (robe.get('lift_front', 0.0), robe.get('lift_back', 0.0))
+    add_skirt(B, capelet, 'robe', 'capelet')
+    B.joints['hem_front'] = np.array([robe['front'], robe['hem_h'], 0.0])
+    B.joints['hem_back'] = np.array([robe['back'], robe['hem_h'], 0.0])
 
 
 # ---------------------------------------------------------------- IK
