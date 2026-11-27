@@ -1327,3 +1327,30 @@ CHANGED:
 본 방법: `cleric_1x3x_check.png`(1x 96x96 및 3x `#2e2b26`/`#58723d` 배경), `cleric_gif_frames.png`(`add_gait --dry-run` 4x GIF 전 8프레임), `cleric_guide_overlay_a/b.png`, `cleric_tint_mask.png`, 96x96 셀 앞판 열쇠 픽셀 계측 대조
 고칠 점: 없음
 남은 걱정: 없음
+
+
+## gait/sheet_class_rogue_run - 병과 도적 달리기
+CHECK:
+  check_delivery.py sheet_class_rogue_run_a.png --flight-slots 4 -> RESULT: PASS (32 colours, dist 205.7, pose 4 flight 24 px above guide >= 18; poses x=39..303 / 448..637 / 820..1037 / 1199..1462, top_y 453, 450, 457, 459, bot_y 870, 870, 870, 846)
+  check_delivery.py sheet_class_rogue_run_b.png --flight-slots 4 -> RESULT: PASS (32 colours, dist 205.7, pose 4 flight 25 px above guide >= 18; poses x=40..296 / 441..692 / 818..1076 / 1191..1464, top_y 453, 450, 457, 459, bot_y 870, 870, 870, 845)
+  add_gait.py sheet/class/rogue --gait run --dry-run -> 프레임별 맨 아래 픽셀 (바닥 줄 위 게임 px): 1:0 2:0 3:0 4:4 5:0 6:0 7:0 8:4 / sheet.gait = light / sheet/class/rogue: 시트 384x384, 15칸 — idle(4), attack(2), hit(1), run(8); runStride 45.5
+REFERENCES LOADED: guide_run_a/b, size_run_a/b, sheet_class_rogue.png, concept.png, pose.json -> ok
+CHANGED: 8-frame LIGHT run (`R1-R8`, `32` unique fg colours, strict 7 key separation: `outfit_4` royal-blue hood / darker `#263459`/`#394b78`-clamped mouth scarf / short shoulder cape, `accent_3` thin teal waist sash `1173..1486 px`, `non_key_25` brown leather chest armour & strap / brass buckle / bare fists / reverse-grip steel dagger / strapped dark-brown trousers & boots / outline `#191413` with `boot_bleed=0`, two warm golden eye glints `#f4d583` `8..57 px` inside dark face cavity).
+  - R1: near contact (`top_y=453`, planted near sole `218..291` toe `290` `y=870`, far kicked leg behind `bot_y=796` `0.62x` darkened + smooth crotch arch, near rear fist at hip holding `36px` reverse-grip steel dagger angled `-26 deg` (`x=39`) cleanly onto magenta, empty bare far fist forward).
+  - R2: near catch (`top_y=450`, intact near vertical sole `151..223` toe `222` `y=870`, far bent rear leg `bot_y=800` `0.62x` darkened, near forearm forward with dagger trailing back-down along outer forearm).
+  - R3: near push (`top_y=457`, near push sole `117..156` toe `155` `y=870`, far bent knee driving forward `bot_y=811` `0.62x` darkened + `6px` `#191413` overlap separator, near forearm forward with trailing reverse-grip dagger).
+  - R4 (FLIGHT): `top_y=459`, `bot_y=846 <= 852` (`24 px` / `4` game px airborne clear; near rear leg `bot_y=835` bright, far forward leg `bot_y=846` darkened, beveled front hip seam, near reverse-grip dagger forward along outer forearm).
+  - R5: opp far contact (`top_y=453`, far stride sole `223..296` toe `295` `y=870` `0.62x` darkened + crotch arch, near kicked leg behind `bot_y=795` bright + rim highlight, leaned upper with lagged short blue cape and near reverse-grip dagger forward).
+  - R6: opp far catch (`top_y=450`, far vertical sole `156..228` toe `227` `y=870` `0.62x` darkened, near bent leg `bot_y=797` bright + rim, near arm swung back-down with `64px` silver reverse-grip dagger `-15 deg` onto magenta, empty bare far fist forward).
+  - R7: opp far push (`top_y=457`, far push sole `120..159` toe `158` `y=870` `0.62x` darkened + `6px` separator, near knee forward `bot_y=809` bright, near reverse-grip dagger `-12 deg` onto magenta, empty bare far fist forward).
+  - R8 (FLIGHT): `top_y=459`, `bot_y=845 <= 852` (`25 px` / `4` game px airborne clear; near forward leg `bot_y=845` bright, far rear leg `bot_y=838` darkened, unclipped pointed hood `r0c3`, near reverse-grip dagger `-28 deg` (`x=39`) cleanly onto magenta, empty bare far fist forward).
+DEVIATIONS:
+  - (a) from mannequin pose/position: none (toes `290, 222, 155` / `295, 227, 158`, `top_y=[453, 450, 457, 459]` x2, R4/R8 flight `846/845 <= 852`).
+  - (b) from sheet design: none (`Pose 1` royal-blue hood & clamped darker blue mouth scarf `#263459/#394b78`, not `concept.png` teal hood; short shoulder cape and single thin teal waist sash preserved).
+  - (c) from ARMS AND WEAPONS: none (`R1` rear dagger angled `-26 deg` with `36px` blade so tip clears `x=39 >= 32`; single reverse-grip dagger in near hand only, far fist bare empty in all 8 frames).
+RISKS AT GAME SIZE: R1의 짧은 뒤 단검 날(`36px`, `-26 deg`)과 R2 무릎 접힘 안쪽 작은 틈은 `1x/3x` 어두운/풀밭 배경 및 `4x` GIF에서 구분 가능하나, 실제 전투 화면(`1x`)에서 R1 칼끝 시인성은 교차 검수 시 한 번 더 확인 권장.
+## 판정 — gait/sheet_class_rogue_run
+결과: 통과
+본 방법: `rogue_1x3x_check.png`(1x 96x96 및 3x `#2e2b26`/`#58723d` 배경), `rogue_gif_frames.png`(`add_gait --dry-run` 4x GIF 전 8프레임), `work/sheet_class_rogue_preview_x4.png`, `rogue_guide_overlay_a/b.png`, `rogue_tint_mask.png` 육안 대조
+고칠 점: 없음
+남은 걱정: R1 뒤로 뺀 짧은 단검 날이 1x 전투 화면에서 충분히 읽히는지 교차 검수 확인
