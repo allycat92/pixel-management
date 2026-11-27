@@ -7,7 +7,7 @@
 
 | 누구 | id | 상태 | 할 일 (자세한 것은 그 줄의 문서) |
 |---|---|---|---|
-| GPT | `Q8-battle-mode-endgame` | READY | 전투 모드 200~365일·재앙·최종 결전·사망 규칙 점검: `docs/agents/tasks/Q8-battle-mode-endgame.md` |
+| GPT | `Q8-battle-mode-endgame` | REVIEW | 전투 모드 200~365일·재앙·최종 결전·사망 규칙 점검: `docs/agents/tasks/Q8-battle-mode-endgame.md` |
 | GPT | `Q6-battle-mode-midgame` | 예고 | 보상 조정이 들어가면 READY — 전투 모드 100~200일 점검: `docs/agents/tasks/Q6-battle-mode-midgame.md` |
 | Codex | `C10-scaled-mannequin-guides` | READY | 배율이 다른 시트(비요른 0.18)용 마네킹 가이드 + 비요른 요청서: `docs/agents/tasks/C10-scaled-mannequin-guides.md` |
 | Codex | `C11-ui-fixes-q4` | READY | Q4 화면 결함 6건 + 관리 조작 즉시 저장 (3단계 합쳐진 뒤 최신에서 시작): `docs/agents/tasks/C11-ui-fixes-q4.md` |
