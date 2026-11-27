@@ -1197,3 +1197,27 @@ RISKS AT GAME SIZE: 게임 64px(1x) 축소 시 H3/H7 교차 구간에서 두 부
 고칠 점: 없음
 남은 걱정: 없음 (QA 교차검사 시 게임 1x 크기에서 H3/H7 교차 프레임의 앞·뒷다리 톤 분리와 H1/H5 접촉 프레임 전환감만 확인 요망)
 캐릭터 메모: 중량 방패·철퇴 실루엣 유지 시 상체 흔들림을 과하게 주면 방패가 좌우로 튀므로, 후속 피격·이동기에서도 방패 수직축 고정 원칙 유지
+
+
+## gait/sheet_class_mage_run - 병과 마법사 이동 (로브)
+CHECK:
+- `python3 tools/art/check_delivery.py art/inbox/gait/sheet_class_mage_run_a.png` -> `RESULT: PASS` (`background #FF00FF: 85.7%`, `figure colours: 30`, `closest figure colour to #FF00FF: distance 205.7 (rule >= 150, recommended >= 170)`, `pose 1: x 47-295 (w 249), top y=438, lowest pixel y=870`, `pose 2: x 422-682 (w 261), top y=440, lowest pixel y=870`, `pose 3: x 814-1051 (w 238), top y=436, lowest pixel y=870`, `pose 4: x 1194-1462 (w 269), top y=435, lowest pixel y=870`, `magenta pixels enclosed by the figure: 2977`)
+- `python3 tools/art/check_delivery.py art/inbox/gait/sheet_class_mage_run_b.png` -> `RESULT: PASS` (`background #FF00FF: 86.8%`, `figure colours: 30`, `closest figure colour to #FF00FF: distance 205.7 (rule >= 150, recommended >= 170)`, `pose 1: x 43-287 (w 245), top y=438, lowest pixel y=870`, `pose 2: x 435-679 (w 245), top y=440, lowest pixel y=870`, `pose 3: x 832-1064 (w 233), top y=436, lowest pixel y=870`, `pose 4: x 1207-1468 (w 262), top y=435, lowest pixel y=870`, `magenta pixels enclosed by the figure: 3504`)
+- `python3 tools/art/add_gait.py sheet/class/mage --gait run --src art/inbox/gait/sheet_class_mage_run_a.png art/inbox/gait/sheet_class_mage_run_b.png --pose art/requests/guides/robe_base/v1/pose.json --dry-run` -> `8 프레임, 배율 0.1654, 칸 96x96, anchor 48,92, 팔레트 33색 (시트의 기본 칸에서), 열쇠 색 7` / `프레임별 맨 아래 픽셀 (바닥 줄 위 게임 px): 1:0 2:0 3:0 4:0 5:0 6:0 7:0 8:0` / `sheet.gait = robe (run 칸이 그려진 마네킹의 부류)` / `sheet/class/mage: 시트 384x384, 15칸 — idle(4), attack(2), hit(1), run(8); runStride 22.2`
+REFERENCES LOADED: guide_robe_a/b, size_robe_a/b, sheet_class_mage.png, concept.png, pose.json -> ok
+CHANGED: `robe_base/v1` 마네킹(G1~G8)에 맞춰 `sheet_class_mage.png` 대기 1번 자세의 실루엣·로브 부피·30색 팔레트로 8프레임 신규 제작:
+- 세력 열쇠 색 7색(`outfit` `#263459 #394b78 #52679c #7489be`, `accent` `#3f7a6c #5ea590 #96d1bb`)은 로브·모자·케이프·소매 및 장식·앞 허리끈·밑단에만 분리 적용(`mage_tint_mask.png` 및 `boot_key_bleed=0` 전 8칸 확인; 장화·지팡이·허리주머니·손·수정·얼굴 그림자·외곽선 침범 0).
+- 얼굴은 고깔모자 챙과 높은 깃 사이 순흑 그림자(`#191413`)로 눈·피부 미노출 유지; 모자 끝 높이 `G1/G5=438`, `G2/G6=440`(+2), `G3/G7=436`(-2), `G4/G8=435`(-3). 치마 밑단(`hem_bot`) `y=841..846`(규칙 `840..850`)으로 전 8칸 무릎·허벅지 완전 차폐 및 G2/G6 밑단 지연(flare) 유지.
+- 동일 디딘 장화 복사·이동(`G1->G2->G3`, `G5->G6->G7`) 및 먼 장화 명도 감쇠·z-order 분리: 측정된 바닥(y=870) 발끝 x `G1 281`(뒷발 `149`), `G2 247`(든 뒷발 `158`, y=864), `G3 214`(스치는 먼 발 `222`, y=862), `G4 179`(앞 뻗는 먼 발 `260`, y=864), `G5 286`(뒷발 `146`), `G6 252`(든 뒷발 `154`, y=861), `G7 219`(앞으로 스치는 가까운 발 `228`, y=860), `G8 183`(앞 뻗는 가까운 발 `266`, y=864).
+DEVIATIONS:
+- (a) mannequin pose/position: none (측정 발끝 x 오차 모두 +0..+2px 이내 — `pose.json` 허용 오차 ±3px 준수; 모자 끝 높이 438/440/436/435 및 G1/G5 양발 접지 준수).
+- (b) sheet design: none (`sheet_class_mage.png` 동일 30색, 고깔모자·어깨 케이프·허리끈·좌측 가죽주머니·호박색 수정 지팡이 유지).
+- (c) ARMS AND WEAPONS: none (대기와 동일한 양손 대각 지팡이 파지 유지 — 열린 빈 손 미사용, 수정 위쪽·발광 없음, 지팡이 하단 밑단 위 유지).
+RISKS AT GAME SIZE: 게임 64px(1x) 축소 시 G3/G7 교차 순간의 앞·뒤 장화 겹침 간격과 얇은 청록 밑단 선명도 확인 필요(4x 미리보기에서는 앞·뒷발 및 치마 밑단 모두 뚜렷이 분리됨).
+
+## 판정 — gait/sheet_class_mage_run
+결과: 통과
+본 방법: `size_robe_a/b` 1:1 마네킹 오버레이(`mage_guide_overlay_a/b.png`), 세력 색 마스크 검증(`mage_tint_mask.png`), `add_gait.py --dry-run` `sheet_class_mage_preview_x4.png`(대기·공격과 동시 4x 대조) 및 `sheet_class_mage_run_x4.gif` 전 8프레임 확인
+고칠 점: 없음
+남은 걱정: 없음 (QA 교차검사 시 게임 1x 크기에서 G3/G7 발 겹침과 세력 색 재색칠 시 장화·지팡이 변색 없음 확인)
+캐릭터 메모: 로브 부류 후속 대장(archmagus, lightbearer, astel, seraphine) 역시 치마 밑단 y=840~850 유지 및 `outfit`/`accent` 열쇠 색 엄격 분리 패턴 그대로 적용 가능
