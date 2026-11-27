@@ -8,7 +8,7 @@
 | 누구 | id | 상태 | 할 일 (자세한 것은 그 줄의 문서) |
 |---|---|---|---|
 | GPT | `C14-roll-mission-seed` | REVIEW | roll 모드 귀환 결과를 출격 때 고정(Q13 P1): `docs/agents/tasks/C14-roll-mission-seed.md` |
-| GPT | `Q11-stage4-check` | READY | (4단계 들어감, C14 다음에) 시간 제한 예상·후반 의뢰판 확인: `docs/agents/tasks/Q11-stage4-check.md` |
+| GPT | `Q11-stage4-check` | REVIEW | (4단계 들어감, C14 다음에) 시간 제한 예상·후반 의뢰판 확인: `docs/agents/tasks/Q11-stage4-check.md` |
 
 ## 끝난 일
 
