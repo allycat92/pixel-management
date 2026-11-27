@@ -1286,3 +1286,29 @@ RISKS AT GAME SIZE: 없음 (1x/3x 어두운·밝은 배경 대조 및 `add_gait`
 본 방법: `archer_1x3x_check.png`(1x 96x96 및 3x 어두운 `#2e2b26`/밝은 `#58723d` 배경), `archer_gif_frames.png`(`sheet_class_archer_run_x4.gif` 전 8프레임), `archer_guide_overlay_a/b.png`, `archer_tint_mask.png` 육안 대조.
 고칠 점: 없음
 남은 걱정: 없음
+
+## gait/sheet_class_cleric_run - 병과 성직자 달리기
+CHECK:
+  check_delivery.py sheet_class_cleric_run_a.png --flight-slots 4 -> RESULT: PASS (31 colours, dist 205.7, pose 4 flight 24 px above guide >= 18; pose 1..4 top_y 453, 450, 457, 459, bot_y 870, 870, 870, 846)
+  check_delivery.py sheet_class_cleric_run_b.png --flight-slots 4 -> RESULT: PASS (30 colours, dist 205.7, pose 4 flight 25 px above guide >= 18; pose 1..4 top_y 453, 450, 457, 459, bot_y 870, 870, 870, 845)
+  add_gait.py sheet/class/cleric --gait run --dry-run -> 프레임별 맨 아래 픽셀 (바닥 줄 위 게임 px): 1:0 2:0 3:0 4:4 5:0 6:0 7:0 8:4 / sheet.gait = light / sheet/class/cleric: 시트 384x384, 15칸 — idle(4), attack(2), hit(1), run(8); runStride 45.5
+REFERENCES LOADED: art/inbox/sheet_class_cleric.png, art/requests/gait/run__class_cleric/size_run_a.png, art/requests/gait/run__class_cleric/size_run_b.png, art/requests/guides/run_base/v2/pose.json -> ok
+CHANGED: 8-frame LIGHT run (`R1-R8`, `31` unique fg colours, strict 7 key separation: `outfit_4` blue cowl/veil/tabard cloth only, `accent_3` teal brow/collar trim + tabard border + plain filled circle chest disc, `non_key_25` neutral grey chainmail sleeves/hauberk, steel mace, bare skin hands, brown belt book/bracers/boots, dark eye shadow cavity, `#191413` outline with `boot_bleed=0`).
+  - R1: near contact (`top_y=453`, near sole `217..290` `y=870`, far kicked leg behind `bot_y=788` `0.62x` darkened + lagged rear tabard corner, near hand at belt holding ~199px upright flanged mace at `24 deg`, empty calm bare far hand forward).
+  - R2: near catch (`top_y=450`, near vertical boot sole `154..222` `y=870`, far bent rear leg `bot_y=799` `0.62x` darkened, mace `24 deg`).
+  - R3: near push (`top_y=457`, near push sole `113..155` `y=870`, far knee driving forward `bot_y=811` `0.62x` darkened + `6px` `#191413` overlap separator, mace angled `17.5 deg`, intact bare far fist forward).
+  - R4 (FLIGHT): `top_y=459`, `bot_y=846 <= 852` (`24 px` / `4` game px airborne clear; near rear leg `bot_y=835` bright, far forward knee/boot `bot_y=846` darkened, mace angled `17.5 deg`, intact bare far fist).
+  - R5: opp far contact (`top_y=453`, far sole `222..295` `y=870` `0.62x` darkened, near kicked leg behind `bot_y=787` bright + rim + lagged trailing tabard corner, near mace `29.5 deg` clear of hood face cavity).
+  - R6: opp far catch (`top_y=450`, far vertical boot sole `159..227` `y=870` `0.62x` darkened, near bent leg `bot_y=796` bright + rim, mace `29.5 deg`).
+  - R7: opp far push (`top_y=457`, far push sole `116..158` `y=870` `0.62x` darkened + `6px` separator, near knee forward `bot_y=809` bright, mace `29.5 deg`).
+  - R8 (FLIGHT): `top_y=459`, `bot_y=845 <= 852` (`25 px` / `4` game px airborne clear; near forward knee/boot `bot_y=845` bright, far rear leg `bot_y=838` darkened, intact hood brow, mace `29.5 deg`).
+DEVIATIONS:
+- (a) mannequin pose/position: R1~R3 toe `290, 222, 155`, R5~R7 toe `295, 227, 158`, R4/R8 flight `846/845 <= 852`, `top_y` `[453, 450, 457, 459]` exact. R5~R8 keeps near mace hand at belt hip height (`~y=666`) with empty bare far hand pumping forward so the upright weapon silhouette avoids stabbing through torso/face across alternation.
+- (b) sheet design: none (`Pose 1` 파란 두건+베일, 틸 테두리·민무늬 원형 가슴 문양, 중립 회색 사슬 갑옷(팔뚝/몸통 파랑 오염 0 `cleric_tint_mask.png` 확인), 허리띠 책·가죽 토시·맨손·갈색 부츠 유지).
+- (c) ARMS AND WEAPONS: none (`Pose 1` 길이 ~199px 쇠 플랜지 메이스, R3/R4 17.5 deg · 나머지 24~29.5 deg <= 30 deg, 외곽 플랜지 `x <= 321 <= 351`, R5~R8도 어두운 안면 개구부 침범 없이 시인성 확보).
+RISKS AT GAME SIZE: 없음 (R7 허리띠 손잡이 인접부 극소 ~2px 마젠타 점 외 1x/3x 어두운·밝은 배경 대조 및 `add_gait` 4x GIF 전 프레임에서 결함 없음 확인).
+## 판정 — gait/sheet_class_cleric_run
+결과: 통과
+본 방법: `cleric_1x3x_check.png`(1x 96x96 및 3x `#2e2b26`/`#58723d` 배경), `cleric_gif_frames.png`(`sheet_class_cleric_run_x4.gif` 전 8프레임), `cleric_guide_overlay_a/b.png`, `cleric_tint_mask.png` 육안 대조
+고칠 점: 없음
+남은 걱정: 없음
