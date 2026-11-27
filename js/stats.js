@@ -333,6 +333,14 @@ const Stats = (() => {
     const R = +Math.min(R0, Math.pow(p / Math.max(1e-12, 1 - p), 1 / b)).toFixed(3);
     return { R, band: bandOf(R) };
   }
+  const timeSurvival = (tk, lim, edge) => 1 / (1 + Math.pow((tk - edge) / (KN.BM_TIME_TAU * lim), KN.BM_TIME_K));
+  // 표시는 전투 예상과 같은 시간 보정식에서 온다. 버티는 의뢰에는 해당하지 않는다.
+  function timeRisk(spec) {
+    if (!spec.bm || spec.rule === 'hold' || KN.BM_TIME_K <= 0) return false;
+    const lim = spec.limit || KN.LIMIT, edge = KN.BM_TIME_EDGE * lim, tk = killTime(spec.groups);
+    // 현 보정값에서 약 31초: Q11의 2인 거점 공략부터 이유를 표시한다.
+    return tk > edge && timeSurvival(tk, lim, edge) <= 0.92;
+  }
   function forecast(spec) {
     let cal = KN.CAL_KIND[foeKind(spec)] || 1;
     if (spec.bm) {
@@ -349,7 +357,7 @@ const Stats = (() => {
       if (spec.rule !== 'hold' && KN.BM_TIME_K > 0) {
         const lim = spec.limit || KN.LIMIT, T0 = KN.BM_TIME_EDGE * lim, tk = killTime(spec.groups);
         const R1 = margin(spec.groups) * cal * Math.pow(KN.BM_TIME_MID * lim / Math.max(tk, T0), KN.BM_TIME_BIAS);
-        return tk > T0 ? fromP(R1, 1 / (1 + Math.pow((tk - T0) / (KN.BM_TIME_TAU * lim), KN.BM_TIME_K))) : { R: +R1.toFixed(3), band: bandOf(+R1.toFixed(3)) };
+        return tk > T0 ? fromP(R1, timeSurvival(tk, lim, T0)) : { R: +R1.toFixed(3), band: bandOf(+R1.toFixed(3)) };
       }
     }
     const R = +(margin(spec.groups) * cal).toFixed(3);
@@ -397,5 +405,5 @@ const Stats = (() => {
   }
 
   return { KN, KNOBS, REF, ARCH, RANK, ELV, ELV_BM, ARMOR_DEF, BAND_NAMES, rng, mix, raw, parts, sheet, aptOf, aidOf, armorDef, ref, enemy, generic,
-    kindOf, nominalReq, scale, ruleOf, margin, killTime, foeKind, bandOf, forecast, oursOf, judge, monsterSkills, foeShare };
+    kindOf, nominalReq, scale, ruleOf, margin, killTime, timeRisk, foeKind, bandOf, forecast, oursOf, judge, monsterSkills, foeShare };
 })();
