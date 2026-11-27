@@ -67,7 +67,7 @@ Object.assign(Game, {
     }
     st.standing = clamp(Math.round(st.standing + d), -100, 100);
     if (out) out.push({ f, d: st.standing - before });
-    if (before > -60 && st.standing <= -60) this.log(`${FACTIONS[f].name}이(가) 길드를 적으로 간주하기 시작했습니다!`, 'bad');
+    if (before > -60 && st.standing <= -60) this.log(`${FACTIONS[f].name}${josa(FACTIONS[f].name, '이', '가')} 길드를 적으로 간주하기 시작했습니다!`, 'bad');
     if (before < 45 && st.standing >= 45) this.log(`${FACTIONS[f].name}의 신뢰를 얻었습니다! 혜택: ${FACTIONS[f].perk.desc}`, 'good');
   },
 
@@ -105,15 +105,15 @@ Object.assign(Game, {
           it.loan = f; it.loanKey = key;
           s.inventory.push(it);
           s.loans[key] = true;
-          this.log(`${FACTIONS[f].name}이(가) 길드에 「${it.name}」을(를) 대여했습니다. (평판이 ${def.at - LOAN_RECALL_MARGIN} 아래로 떨어지면 회수)`, 'good');
+          this.log(`${FACTIONS[f].name}${josa(FACTIONS[f].name, '이', '가')} 길드에 「${it.name}」${josa(it.name, '을', '를')} 대여했습니다. (평판이 ${def.at - LOAN_RECALL_MARGIN} 아래로 떨어지면 회수)`, 'good');
           s.pendingReports.push({ special: 'news', title: '장비 대여', factions: [f],
-            text: `${FACTIONS[f].name}의 무기고에서 「${it.name}」(${Object.entries(it.bonus).map(([k, b]) => `${STAT_NAMES[k]}+${b}`).join(' ')})을(를) 보내왔습니다. 평판이 떨어지면 회수됩니다.` });
+            text: `${FACTIONS[f].name}의 무기고에서 「${it.name}」(${Object.entries(it.bonus).map(([k, b]) => `${STAT_NAMES[k]}+${b}`).join(' ')})${josa(it.name, '을', '를')} 보내왔습니다. 평판이 떨어지면 회수됩니다.` });
         } else if (s.loans[key] && v < def.at - LOAN_RECALL_MARGIN) {
           const found = this.findLoan(f, i);
           if (found) {
             if (found.merc) found.merc.equip[found.slot] = null;
             else s.inventory = s.inventory.filter((x) => x !== found.item);
-            this.log(`${FACTIONS[f].name}이(가) 대여했던 「${found.item.name}」을(를) 회수해 갔습니다.`, 'bad');
+            this.log(`${FACTIONS[f].name}${josa(FACTIONS[f].name, '이', '가')} 대여했던 「${found.item.name}」${josa(found.item.name, '을', '를')} 회수해 갔습니다.`, 'bad');
           }
           delete s.loans[key];
         }
@@ -144,7 +144,7 @@ Object.assign(Game, {
     this.aliveFactions().forEach((f) => {
       if (this.standing(f) >= ELITE_AT && !s.recruits.some((r) => r.elite === f)) {
         s.recruits.unshift(this.makeElite(f));
-        this.log(`${FACTIONS[f].name}이(가) 정예 용병을 모집소로 보냈습니다.`, 'good');
+        this.log(`${FACTIONS[f].name}${josa(FACTIONS[f].name, '이', '가')} 정예 용병을 모집소로 보냈습니다.`, 'good');
       }
     });
     // 관계가 틀어지면 정예 용병은 본국으로 소환된다
@@ -225,7 +225,7 @@ Object.assign(Game, {
     pr.control = 35;
     const war = this.war(from, to);
     if (war) { war.score += war.a === to ? 15 : -15; war.weariness += 6; }
-    this.log(`⚔ ${FACTIONS[to].name}이(가) ${FACTIONS[from].name}로부터 「${PROVINCES[p].name}」을(를) 빼앗았습니다!`, 'world');
+    this.log(`⚔ ${FACTIONS[to].name}${josa(FACTIONS[to].name, '이', '가')} ${FACTIONS[from].name}로부터 「${PROVINCES[p].name}」${josa(PROVINCES[p].name, '을', '를')} 빼앗았습니다!`, 'world');
     // 그 지방의 기존 의뢰 중 의뢰주가 바뀐 것은 무효
     this.state.contracts = this.state.contracts.filter((c) => c.story || c.boss || c.campaign || c.final || c.province !== p || c.issuer === to || c.cat === 'conflict');
     if (FACTION_KEYS.includes(from) && !this.provincesOf(from).length) this.destroyFaction(from, to);
@@ -241,10 +241,10 @@ Object.assign(Game, {
     s.wars.push({ a, b, score: 0, weariness: 0, start: s.day, nextCampaign: s.day + rand(6, 10) });
     this.state.relations[relKey(a, b)] = Math.min(this.relation(a, b), -60);
     if (!silent) {
-      this.log(`⚔ ${FACTIONS[a].name}이(가) ${FACTIONS[b].name}에 전쟁을 선포했습니다!`, 'world');
+      this.log(`⚔ ${FACTIONS[a].name}${josa(FACTIONS[a].name, '이', '가')} ${FACTIONS[b].name}에 전쟁을 선포했습니다!`, 'world');
       const da = this.doctrine(a);
       s.pendingReports.push({ special: 'news', title: '전쟁 발발', factions: [a, b],
-        text: `「${da.motto}」 — ${FACTIONS[a].name}이(가) ${da.name}의 기치 아래 ${FACTIONS[b].name}에 전쟁을 선포했습니다. 양측 모두 용병을 찾기 시작할 것입니다.` });
+        text: `「${da.motto}」 — ${FACTIONS[a].name}${josa(FACTIONS[a].name, '이', '가')} ${da.name}의 기치 아래 ${FACTIONS[b].name}에 전쟁을 선포했습니다. 양측 모두 용병을 찾기 시작할 것입니다.` });
     }
   },
   endWar(a, b, reason) {
@@ -257,8 +257,8 @@ Object.assign(Game, {
     s.contracts = s.contracts.filter((c) => !(c.campaign && ((c.issuer === a && c.target === b) || (c.issuer === b && c.target === a))));
     const winner = w.score >= 60 ? w.a : w.score <= -60 ? w.b : null;
     const text = winner
-      ? `${FACTIONS[winner].name}의 우세 속에 ${FACTIONS[a].name}과(와) ${FACTIONS[b].name}이(가) 강화 조약을 맺었습니다.`
-      : `${FACTIONS[a].name}과(와) ${FACTIONS[b].name}이(가) ${reason || '전쟁에 지쳐'} 휴전했습니다.`;
+      ? `${FACTIONS[winner].name}의 우세 속에 ${FACTIONS[a].name}${josa(FACTIONS[a].name, '과', '와')} ${FACTIONS[b].name}${josa(FACTIONS[b].name, '이', '가')} 강화 조약을 맺었습니다.`
+      : `${FACTIONS[a].name}${josa(FACTIONS[a].name, '과', '와')} ${FACTIONS[b].name}${josa(FACTIONS[b].name, '이', '가')} ${reason || '전쟁에 지쳐'} 휴전했습니다.`;
     this.log(`🕊 ${text}`, 'world');
     s.pendingReports.push({ special: 'news', title: '강화 조약', factions: [a, b], text });
   },
@@ -278,7 +278,7 @@ Object.assign(Game, {
     });
     s.recruits = s.recruits.filter((r) => r.elite !== f);
     s.mercs.filter((m) => m.elite === f && m.status !== 'quest').forEach((m) => this.removeMerc(m, '고국이 멸망하자 길을 떠났습니다.', 'bad'));
-    const text = `${FACTIONS[f].name}이(가) ${by ? `${FACTIONS[by].name}에 의해 ` : ''}멸망했습니다. 「${DOCTRINES[f].motto}」 — 그 외침은 이제 역사 속으로 사라집니다.`;
+    const text = `${FACTIONS[f].name}${josa(FACTIONS[f].name, '이', '가')} ${by ? `${FACTIONS[by].name}에 의해 ` : ''}멸망했습니다. 「${DOCTRINES[f].motto}」 — 그 외침은 이제 역사 속으로 사라집니다.`;
     this.log(`☠ ${text}`, 'world');
     s.pendingReports.push({ special: 'news', title: `${FACTIONS[f].name} 멸망`, factions: [f], text });
     this.checkCalamity();
@@ -332,9 +332,9 @@ Object.assign(Game, {
     alive.forEach((a) => alive.forEach((b) => { if (a < b) this.changeRelation(a, b, 30); }));
     alive.forEach((f) => s.wars.push({ a: key, b: f, score: 0, weariness: 0, start: s.day, nextCampaign: s.day + rand(4, 8), calamity: true }));
     s.contracts = s.contracts.filter((c) => !c.campaign);
-    this.log(`☠ ${F.name} 대두! ${F.leaderTitle} ${F.leader}이(가) 대륙 전체에 전쟁을 선포했습니다. 모든 세력이 칼을 거두고 대동맹을 맺습니다.`, 'world');
+    this.log(`☠ ${F.name} 대두! ${F.leaderTitle} ${F.leader}${josa(F.leader, '이', '가')} 대륙 전체에 전쟁을 선포했습니다. 모든 세력이 칼을 거두고 대동맹을 맺습니다.`, 'world');
     s.pendingReports.push({ special: 'notice', enemy: F.leader, art: `rise_${key}`, title: `${F.name} 대두`, lines: [[null, F.rise], [null, F.desc]],
-      foot: `모든 세력이 ${F.name}과(와) 전쟁에 들어갑니다. ${F.name}이(가) 지방 ${CALAMITY_DARKNESS}곳을 차지하면 대륙은 암흑시대에 빠집니다. 최종 결전으로 ${F.leader}을(를) 쓰러뜨리세요.` });
+      foot: `모든 세력이 ${F.name}${josa(F.name, '과', '와')} 전쟁에 들어갑니다. ${F.name}${josa(F.name, '이', '가')} 지방 ${CALAMITY_DARKNESS}곳을 차지하면 대륙은 암흑시대에 빠집니다. 최종 결전으로 ${F.leader}${josa(F.leader, '을', '를')} 쓰러뜨리세요.` });
   },
 
   defeatCalamity() {
@@ -356,7 +356,7 @@ Object.assign(Game, {
     s.wars = s.wars.filter((w) => !w.calamity);
     s.calamity = null;
     s.calamityDefeated = key;
-    this.log(`☀ ${F.leader} 토벌! ${F.name}이(가) 무너지고 대륙에 다시 아침이 찾아옵니다.`, 'world');
+    this.log(`☀ ${F.leader} 토벌! ${F.name}${josa(F.name, '이', '가')} 무너지고 대륙에 다시 아침이 찾아옵니다.`, 'world');
     s.pendingReports.push({ special: 'savior', calamity: key });
   },
 
@@ -426,7 +426,7 @@ Object.assign(Game, {
     const sa = this.strength(att), sb = this.strength(def);
     if (Math.random() < sa / (sa + sb)) {
       // 수도는 길드가 개입하지 않은 결전으로는 함락되지 않는다 (포위만 된다)
-      if (this.owner(p) === def && this.isGuardedCapital(p, att)) { this.changeControl(p, -30); this.log(`「${PROVINCES[p].name}」 결전: ${FACTIONS[att].name}이(가) 수도를 포위했지만 함락시키지 못했습니다.`, 'world'); return; }
+      if (this.owner(p) === def && this.isGuardedCapital(p, att)) { this.changeControl(p, -30); this.log(`「${PROVINCES[p].name}」 결전: ${FACTIONS[att].name}${josa(FACTIONS[att].name, '이', '가')} 수도를 포위했지만 함락시키지 못했습니다.`, 'world'); return; }
       // 길드가 빠진 결전은 결정타가 되지 못한다: 장악도를 크게 깎을 뿐
       this.log(`「${PROVINCES[p].name}」 결전: ${FACTIONS[att].name}의 승리 (길드는 참전하지 않았습니다)`, 'world');
       if (this.owner(p) === def) this.changeControl(p, this.isCapital(p) ? -20 : -35, att);
@@ -434,7 +434,7 @@ Object.assign(Game, {
       this.changeControl(p, 20);
       const w = this.war(att, def);
       if (w) w.score += w.a === def ? 10 : -10;
-      this.log(`「${PROVINCES[p].name}」 결전: ${FACTIONS[def].name}이(가) 방어에 성공 (길드는 참전하지 않았습니다)`, 'world');
+      this.log(`「${PROVINCES[p].name}」 결전: ${FACTIONS[def].name}${josa(FACTIONS[def].name, '이', '가')} 방어에 성공 (길드는 참전하지 않았습니다)`, 'world');
     }
   },
 
@@ -479,7 +479,7 @@ Object.assign(Game, {
       if (pairs.length) {
         const [a, b] = pick(pairs);
         this.changeRelation(a, b, -rand(10, 20));
-        this.log(`국경 분쟁: ${FACTIONS[a].name}과(와) ${FACTIONS[b].name} 사이에 충돌이 일어났습니다. (관계 악화)`, 'world');
+        this.log(`국경 분쟁: ${FACTIONS[a].name}${josa(FACTIONS[a].name, '과', '와')} ${FACTIONS[b].name} 사이에 충돌이 일어났습니다. (관계 악화)`, 'world');
       }
     }
     alive.forEach((f) => {
@@ -505,7 +505,7 @@ Object.assign(Game, {
       if (!idle.length) return;
       const m = pick(idle);
       m.status = 'injured'; m.injury = rand(2, 4);
-      this.log(`${FACTIONS[f].name}의 자객이 ${m.name}을(를) 습격했습니다! (부상 ${m.injury}일)`, 'bad');
+      this.log(`${FACTIONS[f].name}의 자객이 ${m.name}${josa(m.name, '을', '를')} 습격했습니다! (부상 ${m.injury}일)`, 'bad');
     }
   },
 

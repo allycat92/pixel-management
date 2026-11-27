@@ -1,5 +1,14 @@
 # 카토 — 쇠사슬을 끊은 자 (해방 검투사) · `sheet/captain/liberator`
 
+## THIS ROUND
+
+**Antigravity · `sheet/captain/liberator/idle-redraw` · 새 디자인 대기 1컷만.** 주인의 11-26 결정(사슬과 주먹, 장검은 초상화처럼 등에)에 따른 별도 시안이다. 아래 옛 요청의 손에 든 장검, 칼·방패의 팔 동작, 네 자세를 전부 그리라는 지시는 이번 라운드에는 적용하지 않는다. 이전 장검 납품은 손질하거나 덮어쓰지 않는다.
+
+- `portrait_800.jpg`를 디자인 기준으로 반드시 연다. 민머리·흉터·근육질 맨상체, 가죽 띠와 와인색 어깨 천, 양쪽 쇠 족쇄, 등 뒤 장검을 유지. [등록 화풍 기준](../../../../assets/art/sheets/sheet_captain_blademaster.png)은 화풍만 본다. `guide_1_idle.png`는 4등신 체격·크기·발 기준만 참고한다. 초상화가 열리지 않으면 그리지 말고 납품 메모에 막힘을 남긴다.
+- 오른쪽을 보는 3/4 검투사 대기. 손은 빈 주먹이며 쇠사슬이 손·몸과 한 덩어리로 읽히지 않게 한다. 장검은 등에 고정된 소품(손에 들지 않음), 방패 없음. 타격 방식·사슬 궤적·나머지 자세는 이번에 만들지 않는다. 안전하게 비교할 수 있는 한 컷만 제안한다.
+- 384×1024, `#FF00FF` 평면, 최저 픽셀 y=870, 캔버스 사방 최소 32px 여백. 4등신, 머리 약 110px, 기존 기준의 대기 몸 높이 약 400px. 등록 계획의 축소율 0.18/칸 112로 축소한 1×에서 주먹·사슬·등의 장검이 각각 읽히는지 확인. 글자·잔상·효과 없음.
+- `art/inbox/check_sheet_captain_liberator_idle.png`와 `art/inbox/aseprite/check_sheet_captain_liberator_idle.aseprite`를 art-inbox의 새 파일로만 납품. `python tools/art/check_delivery.py art/inbox/check_sheet_captain_liberator_idle.png --layout 1x1 --cell 112` 를 실행한다. NOTES에 CHECK, 참고 이미지, 1×에서 남은 걱정과 `## 판정 — sheet/captain/liberator/idle-redraw`를 적는다. 엔진 반영이나 게임 전투 확인은 이번 요청이 아니다.
+
 도트 납품 대기열(`art/requests/dot_queue.md`) 항목. 규칙은 `art/requests/gpt_handoff_notes.md`가 우선이다.
 
 | 파일 | 내용 |

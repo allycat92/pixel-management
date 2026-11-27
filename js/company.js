@@ -27,7 +27,7 @@ Object.assign(Game, {
   slotProblem(m, c) {
     if (this.isCaptain(m)) {
       const cap = this.captainOf(c);
-      return cap && cap.id !== m.id ? `이미 용병대장 ${cap.name}이(가) 이끌고 있습니다.` : null;
+      return cap && cap.id !== m.id ? `이미 용병대장 ${cap.name}${josa(cap.name, '이', '가')} 이끌고 있습니다.` : null;
     }
     return this.unitsOf(c).filter((x) => x.id !== m.id).length >= this.unitSlots() ? `대원 정원이 가득 찼습니다. (최대 ${this.unitSlots()}명)` : null;
   },
@@ -53,7 +53,7 @@ Object.assign(Game, {
     const color = COMPANY_COLORS.find((c) => !used.has(c)) || pick(COMPANY_COLORS);
     const co = { id: s.nextId++, own: true, name: this.uniqueCompanyName(), color, leaderId: null, cohesion: 20, wins: 0, losses: 0, missionId: null };
     s.companies.push(co);
-    if (!free) { this.log(`길드 직속 「${co.name}」을(를) 창설했습니다.`, 'good'); this.emit(); }
+    if (!free) { this.log(`길드 직속 「${co.name}」${josa(co.name, '을', '를')} 창설했습니다.`, 'good'); this.emit(); }
     return co;
   },
 
@@ -62,7 +62,7 @@ Object.assign(Game, {
     if (!c || !c.own || c.missionId) return;
     this.members(c).forEach((m) => { m.companyId = null; });
     s.companies = s.companies.filter((x) => x.id !== id);
-    this.log(`「${c.name}」을(를) 해산했습니다. 단원들은 예비 인원이 됩니다.`);
+    this.log(`「${c.name}」${josa(c.name, '을', '를')} 해산했습니다. 단원들은 예비 인원이 됩니다.`);
     this.emit();
   },
 
@@ -138,11 +138,11 @@ Object.assign(Game, {
     const moved = [];
     this.ownCompanies().forEach((c) => moved.push(...this.trimCompany(c)));
     if (moved.length) {
-      this.log(`용병단 편제 개편: 용병단은 대장 1명과 대원 ${this.unitSlots()}명까지입니다. ${moved.map((m) => m.name).join(', ')}이(가) 예비 인원으로 옮겨졌습니다.`, 'event');
+      this.log(`용병단 편제 개편: 용병단은 대장 1명과 대원 ${this.unitSlots()}명까지입니다. ${moved.map((m) => m.name).join(', ')}${josa(moved.map((m) => m.name).join(', '), '이', '가')} 예비 인원으로 옮겨졌습니다.`, 'event');
     }
     const away = this.ownCompanies().filter((c) => c.missionId && this.unitsOf(c).length > this.unitSlots());
     if (away.length) {
-      this.log(`용병단 편제 개편: 출격 중인 ${away.map((c) => `「${c.name}」`).join(', ')}은(는) 귀환하면 정원을 넘는 대원을 예비 인원으로 옮깁니다.`, 'event');
+      this.log(`용병단 편제 개편: 출격 중인 ${away.map((c) => `「${c.name}」`).join(', ')}${josa(away[away.length - 1].name, '은', '는')} 귀환하면 정원을 넘는 대원을 예비 인원으로 옮깁니다.`, 'event');
     }
     // 외부 용병단(계약 중·시장): 4명까지 줄이고 계약금·유지비를 한 번만 다시 매긴다.
     // 단원 한 명의 몫이 EXT_MEMBER_MUL 배가 되었으니, 값도 (새 인원 × 배율 / 옛 인원) 비율로 고친다.
@@ -225,7 +225,7 @@ Object.assign(Game, {
     s.market = s.market.filter((x) => x.id !== id);
     c.contractEnd = s.day + 28;
     s.companies.push(c);
-    this.log(`외부 용병단 「${c.name}」과(와) 4주 계약을 맺었습니다. (계약금 -${c.signFee}, 주간 유지비 ${c.upkeep}, 보상 몫 ${c.share}%)`, 'good');
+    this.log(`외부 용병단 「${c.name}」${josa(c.name, '과', '와')} 4주 계약을 맺었습니다. (계약금 -${c.signFee}, 주간 유지비 ${c.upkeep}, 보상 몫 ${c.share}%)`, 'good');
     this.emit();
   },
 
@@ -239,7 +239,7 @@ Object.assign(Game, {
     s.gold -= cost;
     c.contractEnd = Math.max(c.contractEnd, s.day) + 28;
     c.loyalty = Math.min(100, c.loyalty + 5);
-    this.log(`「${c.name}」과(와) 재계약했습니다. (-${cost} 금화)`);
+    this.log(`「${c.name}」${josa(c.name, '과', '와')} 재계약했습니다. (-${cost} 금화)`);
     this.emit();
   },
 
@@ -247,7 +247,7 @@ Object.assign(Game, {
     const s = this.state, c = this.company(id);
     if (!c || c.own || c.missionId) return;
     s.companies = s.companies.filter((x) => x.id !== id);
-    this.log(`외부 용병단 「${c.name}」이(가) ${reason}`, kind);
+    this.log(`외부 용병단 「${c.name}」${josa(c.name, '이', '가')} ${reason}`, kind);
     this.emit();
   },
 
@@ -265,7 +265,8 @@ Object.assign(Game, {
   },
 
   // 임무 후 외부 용병단 변화
-  extAfterMission(c, outcome, contract) {
+  // lostN: 전투 모드에서 실제로 잃은 인원 (없으면 옛 굴림)
+  extAfterMission(c, outcome, contract, lostN) {
     const won = outcome === 'great' || outcome === 'success';
     let d = { great: 8, success: 5, fail: -8, disaster: -15 }[outcome];
     if (c.disposition === 'honor' && won && contract.cat === 'conflict' && contract.type !== 'sabotage') d += 3;
@@ -274,13 +275,16 @@ Object.assign(Game, {
     c.loyalty = clamp(c.loyalty + d, 0, 100);
     if (won) { c.wins++; if (Math.random() < 0.3) c.level++; } else c.losses++;
     let lost = 0;
-    if (outcome === 'fail' && Math.random() < 0.35) lost = 1;
-    if (outcome === 'disaster') lost = rand(1, 2);
+    if (lostN != null) lost = lostN;
+    else {
+      if (outcome === 'fail' && Math.random() < 0.35) lost = 1;
+      if (outcome === 'disaster') lost = rand(1, 2);
+    }
     c.size = Math.max(0, c.size - lost);
     c.missionId = null;
     if (c.size === 0) {
       this.state.companies = this.state.companies.filter((x) => x.id !== c.id);
-      this.log(`외부 용병단 「${c.name}」이(가) 괴멸했습니다.`, 'bad');
+      this.log(`외부 용병단 「${c.name}」${josa(c.name, '이', '가')} 괴멸했습니다.`, 'bad');
     }
     return lost;
   },

@@ -62,6 +62,14 @@ const FACTIONS = {
     desc: '어느 세력에도 속하지 않은 마을과 순례자들.',
   },
 };
+
+// 세력 병사의 외형: 세력의 병과·피부·머리색을 i 번째 순서대로 (전투 연출, 출격 편성 js/muster.js)
+function factionSoldierLook(f, i) {
+  const sd = FACTIONS[f].soldier || FACTIONS.crown.soldier;
+  const cls = sd.classes[i % sd.classes.length];
+  return { cls, skin: sd.skins[i % sd.skins.length], hair: sd.hairs[(i * 7) % sd.hairs.length], longHair: i % 3 === 1, tint: { outfit: FACTIONS[f].color, accent: FACTIONS[f].accent } };
+}
+
 const FACTION_KEYS = ['crown', 'north', 'cities', 'church', 'elves', 'clans'];
 const CALAMITY_KEYS = ['beasts', 'demons'];
 const CALAMITY_TRIGGER = 3;        // 이만큼 세력이 멸망하면 재앙이 대두

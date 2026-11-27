@@ -7,12 +7,19 @@
 
 | 누구 | id | 상태 | 할 일 (자세한 것은 그 줄의 문서) |
 |---|---|---|---|
-| Codex | `C2-playtest-fixes` | READY | 플레이테스트에서 나온 자잘한 오류 12가지 고치기: `docs/agents/tasks/C2-playtest-fixes.md` |
-| GPT | `Q1-verify-c2` | REVIEW | C2 의 수정 12가지를 실제 화면(1280·400 폭)에서 하나씩 확인: 작업 문서 `docs/agents/tasks/C2-playtest-fixes.md` 의 항목 번호대로 통과/미통과와 스크린샷 |
+| GPT | `Q2-new-art-ingame` | READY | 새로 등록한 그림 열 장을 실제 게임에서 보기: `docs/agents/tasks/Q2-new-art-ingame.md` |
+| Codex | `C8-gait-requests-batch2` | READY | 이동 그림 요청서 둘째 묶음(대장 10명): `docs/agents/tasks/C8-gait-requests-batch2.md` |
 
 ## 끝난 일
 
 | 누구 | id | 결과 |
 |---|---|---|
+| Codex | `C7-forecast-calibration` | **DONE** (11-27, `4b61ad3` 합침): 적 갈래별 반반 지점 측정(괴물 R 0.774, 병사 0.909) → 보정·단계 경계·대성공 조건 제안. 클라우드가 채택해 다른 시드에서 확인: 무모 1% · 열세 21% · 백중 58% · 우세 87% · 압도 100% |
+| Codex | `C5-art-battle-integration-qa` | **DONE** (11-27): 6종 격리 반영·실전 확인 — 비요른·해골 PASS, 카이·서리 트롤 미확인(세부·걸음), 사막 도적·고블린 FIX → 클라우드가 5종 등록(사막 도적 보류), 고칠 둘은 Antigravity 대기열로 |
+| Codex | `C6-shadow-sweep-tooling` | **DONE** (11-27, 합침): 노브 경로·형 검사, digest 갱신, 표 이름, 문서 |
+| Codex | `C4-shadow-baseline` | **DONE** (2026-11-27, `9bc62b9`): 전환 전 기준선 — 전투 재현 400판×2 불일치 0, 봇 12판×365일×2: 모두 S 등급, 파산 0, 평균 S 도달 73·69일, 365일 금화 4.7만·5.2만, 수락 의뢰 표시 성공률 95.5·95.9%. 전환 뒤 같은 시드로 비교한다 (대리 총괄이 배정) |
+| Codex | `C3-hire-button-when-full` | **DONE** (2026-11-27, `8afbfcb` 합침): 숙소가 가득 차면 특별 용병·정예 영입 버튼을 끄고 이유 표시. GPT 가 두 화면 폭에서 확인 |
+| Codex | `C2-playtest-fixes` | **DONE** (2026-11-26, `94a0fe6` 합침): 플레이테스트 오류 12가지 수정. 승패 재현 불일치 0, 봇 동일 |
+| GPT | `Q1-verify-c2` | **DONE** (2026-11-26, `6ff4afb`): 12항목 모두 1280·400 폭에서 통과. 추가 발견 1건 → C3 |
 | Antigravity | `A1-playtest` | **DONE** (2026-11-26, `b04eb97`): 두 번 주행(76일·109일), 런타임 오류 0. 문제 17가지 — 자잘한 12가지는 C2(Codex), 전투 뭉침·배치는 전술 작업(클라우드), 성장 속도는 밸런싱, 고블린·서리 트롤 화풍은 그림 대기열로 |
 | Codex | `C1-walker-yields` | **DONE** (2026-11-26, `54ac32d` 합침): 서 있는 유닛 밀림 20.07% → 0.04%, 승패 재현 400판 불일치 0, 봇 동일, 전투 길이 +4~10%, 탐색 시간 그대로. GPT 독립 QA(`2d5bd59`) 통과 |

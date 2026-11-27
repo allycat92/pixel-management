@@ -6,6 +6,8 @@ const STAT_NAMES_CAP = {
   monster: '괴물·치안 의뢰 성공', magic: '마법 조사 성공', raid: '습격 성공', siege: '거점 공략 성공',
   counterspy: '방첩 성공', campaign: '대규모 결전 승리', calamity: '재앙 세력 상대 의뢰 성공',
 };
+// 전투 모드(Game.RESOLVE === 'battle'): 확률 대신 출전 화면의 다섯 단어로 적는다 (출격 때 굳힌 예상 mission.est.band 로 센다)
+const STAT_NAMES_CAP_BATTLE = { hardStreak: '예상 「백중」 이하 의뢰 연속 성공', gambles: '예상 「열세」 이하 의뢰 성공', bigGambles: '예상 「무모」 의뢰 성공' };
 
 Object.assign(Game, {
   // s.captains[key] = { status: 'candidate' | 'locked' | 'challenge' | 'pursuing' | 'joined' | 'lost', ch, phase, why }
@@ -32,9 +34,10 @@ Object.assign(Game, {
     if (deaths) t.lastDeath = this.state.day;
     if (!won) { t.streak = 0; t.hardStreak = 0; return; }
     t.streak++;
-    if (mission.chance < 0.8) t.hardStreak = (t.hardStreak || 0) + 1;
-    if (mission.chance < 0.4) t.gambles++;
-    if (mission.chance < 0.25) t.bigGambles++;
+    const est = this.battleMode && this.battleMode() && mission.est;
+    if (est ? est.band <= 2 : mission.chance < 0.8) t.hardStreak = (t.hardStreak || 0) + 1;
+    if (est ? est.band <= 1 : mission.chance < 0.4) t.gambles++;
+    if (est ? est.band === 0 : mission.chance < 0.25) t.bigGambles++;
     if (c.cat === 'monster') t.monster++;
     if (c.type === 'magic') t.magic++;
     if (c.type === 'raid') t.raid++;
@@ -61,7 +64,7 @@ Object.assign(Game, {
       case 'dayMax': return { ok: s.day <= cd.v, dead: s.day > cd.v, text: `${cd.v}일차 안에 (현재 ${s.day}일차)` };
       case 'mercsMax': return { ok: s.mercs.length <= cd.v, text: `길드 인원 ${cd.v}명 이하 (현재 ${s.mercs.length}명)` };
       case 'companies': return { ok: this.ownCompanies().length >= cd.min, text: `직속 용병단 ${cd.min}개 이상 (현재 ${this.ownCompanies().length})` };
-      case 'stat': { const v = t[cd.k] || 0; return { ok: v >= cd.min, text: `${STAT_NAMES_CAP[cd.k]} ${cd.k.endsWith('treak') ? '' : '누적 '}${own(v, cd.min)}` }; }
+      case 'stat': { const v = t[cd.k] || 0; return { ok: v >= cd.min, text: `${(this.battleMode && this.battleMode() && STAT_NAMES_CAP_BATTLE[cd.k]) || STAT_NAMES_CAP[cd.k]} ${cd.k.endsWith('treak') ? '' : '누적 '}${own(v, cd.min)}` }; }
       case 'noDeath': { const v = s.day - (t.lastDeath || 0); return { ok: v >= cd.days, text: `최근 ${cd.days}일간 전사자 없음 (${Math.min(v, cd.days)}/${cd.days}일)` }; }
       case 'adv': { const v = s.mercs.filter((m) => m.adv).length; return { ok: v >= cd.min, text: `상급 이상 대원 ${own(v, cd.min)}` }; }
       case 'masters': { const v = s.mercs.filter((m) => m.master).length; return { ok: v >= cd.min, text: `최상급 대원 ${own(v, cd.min)}` }; }
@@ -95,7 +98,7 @@ Object.assign(Game, {
     s.mercs.push(m);
     const co = this.ownCompanies()[0];
     if (co) { m.companyId = co.id; co.leaderId = m.id; }
-    this.log(`${CAPTAINS[key].title} ${m.name}이(가) 첫 용병대장이 되었습니다. 다른 후보 ${STARTER_CAPTAINS.length - 1}명은 각자의 길을 찾아 떠났습니다.`, 'good');
+    this.log(`${CAPTAINS[key].title} ${m.name}${josa(m.name, '이', '가')} 첫 용병대장이 되었습니다. 다른 후보 ${STARTER_CAPTAINS.length - 1}명은 각자의 길을 찾아 떠났습니다.`, 'good');
     this.emit();
   },
 
@@ -120,7 +123,7 @@ Object.assign(Game, {
       const ch = this.challengeOf(key);
       if (ch.ok) {
         cs.status = 'pursuing';
-        this.log(`영입 과제 「${ch.name}」 달성! ${CAPTAINS[key].title} ${CAPTAINS[key].name}이(가) 길드를 찾아왔습니다. 영입 의뢰를 완수하면 합류합니다.`, 'good');
+        this.log(`영입 과제 「${ch.name}」 달성! ${CAPTAINS[key].title} ${CAPTAINS[key].name}${josa(CAPTAINS[key].name, '이', '가')} 길드를 찾아왔습니다. 영입 의뢰를 완수하면 합류합니다.`, 'good');
         s.pendingReports.push({ special: 'dialog', captain: key, title: `${CAPTAINS[key].title} ${CAPTAINS[key].name}`, lines: CAPTAINS[key].intro,
           foot: `영입 과제 「${ch.name}」 달성 — 영입 의뢰가 의뢰 목록에 올라옵니다.` });
       } else if (ch.dead) {
@@ -148,7 +151,7 @@ Object.assign(Game, {
       c.reward = Math.round(c.reward * 1.3);
       c.rep *= 2;
       s.contracts.unshift(c);
-      this.log(`영입 의뢰 「${ch.title}」 (${C.name} ${cs.ch + 1}/${C.chapters.length}장)이(가) 올라왔습니다.`, 'event');
+      this.log(`영입 의뢰 「${ch.title}」 (${C.name} ${cs.ch + 1}/${C.chapters.length}장)이 올라왔습니다.`, 'event');
       s.pendingReports.push({ special: 'dialog', captain: key, title: `영입 의뢰: ${ch.title}`, lines: ch.before, foot: '아무 용병단이나 보낼 수 있습니다. 마감은 없습니다.' });
     });
   },
@@ -169,7 +172,7 @@ Object.assign(Game, {
     const m = this.makeNamedCaptain(key, level);
     cs.status = 'joined';
     s.mercs.push(m);
-    this.log(`용병대장 ${C.title} ${m.name}(${this.className(m)}, Lv.${m.level})이(가) 길드에 합류했습니다! 용병단을 맡기세요.`, 'good');
+    this.log(`용병대장 ${C.title} ${m.name}(${this.className(m)}, Lv.${m.level})${josa(m.name, '이', '가')} 길드에 합류했습니다! 용병단을 맡기세요.`, 'good');
     s.pendingReports.push({ special: 'dialog', captain: key, title: `${C.title} ${C.name} 합류`, lines: [...before, ...C.join],
       foot: `예비 인원으로 대기합니다. 대장 자리가 빈 용병단에 배속하거나, 용병단을 새로 창설하세요.` });
   },

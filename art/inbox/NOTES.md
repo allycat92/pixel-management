@@ -821,3 +821,315 @@ RISKS AT GAME SIZE: 실제 전투 재생에서 80ms R5→R6 접지가 덜 미끄
 - 새 테스트 세이브, 바렌 시작 → 「왕립 창고 성벽 수비」 파견 → 이틀 뒤 1× 자연 재생. 두 빌드 모두 성공 보고·JS 오류 0. **자력 이동이 없는 틱에 충돌 보정으로 움직인 수**가 전체 유닛·틱 기준 700/5096(13.74%) → 0/6081(0%); 한 전투 관측치라 Codex의 400판 집계와 분리. 재생 25.15→32.70초로 이 사례는 약 30% 길어졌다(400판의 결과 종류별 평균은 +4~10%).
 - 속도: 브라우저 종료 뒤 같은 기기에서 순서를 뒤집어 400판씩 두 쌍을 쟀다. 평균 51.37→51.01 / 55.18→51.68ms, 최댓값 387.10→422.43 / 398.50→408.96ms(+9.1% / +2.6%, 두 번 모두 +15% 이내). 상위 1% 경계는 각각 약 +5~6%. 이 표본(최대 24유닛)에는 통합을 막을 성능 재현이 없었다.
 - 제안: 전술이 더 들어올 때는 같은 고정 보고서를 남겨, **멈춘 유닛 밀림 감소와 1배속 교전 길이**를 따로 회귀 확인하면 좋다. 장시간 화면 정체·더 큰 편성은 이번 1× 검증 밖이다. 테스트 사본 외 코드·세이브·브랜치 변경 없음.
+
+
+## guide/heavy_base - 중량 이동 마네킹 다듬기 (Aseprite)
+CHECK: RESULT: PASS
+- `check_skeleton.py heavy_base.aseprite --gait heavy --pose art/requests/guides/heavy_base/draft/pose.json --base art/requests/guides/heavy_base/draft/heavy_base.aseprite`: RESULT: PASS (경고 0, posekit 경고 0)
+- 8 frames, 384x1024, durations [101] ms, layers: Background · arm_far · leg_far · leg_near · torso · head · arm_near · joints(숨김)
+- step 142 / 143 px (= 23.6 game px, step/4 = 35.5 / 35.8) · hip height 180.0 170.5 176.5 179.5 180.0 170.5 176.5 179.5 -> bob 9.5 px (1.6 game px), contact -> down +9.5 px, push - contact -0.5 px · lean 4.9-5.9 deg (range 1.0), neck x 10-12 px · lifted sole 4 9 5 6 11 5 px · elbows 61-111 deg, hand fore-aft near 21.0 / far 7.0 px, hand height near 175-204 / far 210-230 px · head drift 0.0 1.6 2.0 3.0 px, tilt +0.0..+1.8 deg · silhouette 37% 20% 26% 22% 35% 24% 26% 25%
+CHANGED: 클라우드 초안(`art/requests/guides/heavy_base/draft/heavy_base.aseprite`, `gait8.py --style heavy`)에서 요청서 약점 세 가지를 다듬음(보폭 141.9px·101ms·H1/H5 접촉·H4/H8 밀어냄 엉덩이 높이와 좌우 대칭 유지, 모든 관절 점 동시 이동):
+- **방패 팔(`arm_far`, H1~H8 전 프레임)**: 초안에서 앞으로 뻗은 막대처럼 보이던 먼 팔을 옆구리 쪽으로 당겨 접음 (`FAR_ST` 위팔 -2~+4°→-17~-12°·팔꿈치 98~104°→106~110°, `FAR_SW` +5~-2°→-11~-16°·106~110°). 먼 손 x가 가슴 쪽으로 약 20px(게임 3.3px) 가까워졌고, 가슴 높이(210~230px)와 작은 흔들림(7.0px) 유지.
+- **내려앉음 "쿵" 강화(H2·H6) 및 복원(H3·H7)**: H2·H6 엉덩이 높이를 173.0→170.5px(`HIP` 1.535→1.515, 가라앉음 7.0→9.5px = 게임 1.6px)로 내려 무게가 떨어지는 한 박자가 게임 크기에서도 읽히게 함(H3·H7 지나감 178.0→176.5px로 천천히 복원, H4·H8 밀어냄 179.5px 그대로 유지해 솟지 않음). 가까운 무기 팔도 H2·H6 팔꿈치 64°→61°(H3·H7 68°→67°)로 무게에 맞춰 살짝 가라앉힘. 상체 기울기 `LEAN` [0.05, 0.062, 0.052, 0.045], 머리 `TILT` [-0.02, -0.026, -0.02, -0.015].
+- **들린 뒷발 낮춤(H2·H6, H3·H7)**: H2·H6 들린 발 발목 높이 0.34→0.255머리·발끝 각도 34°→21°(들린 발바닥 7/10→4/6px), H3·H7 지나감 발목 높이 0.27→0.23머리·각도 12°→8°(11/13→9/11px)로 낮춰 무거운 장화가 바닥을 낮게 끌며 지나가게 다듬음.
+- 지침 판: 2026-11-26f
+
+## 판정 — guide/heavy_base
+결과: 통과
+본 방법: 게임 크기(0.1654x)·4배 확대 101ms 미리보기 GIF, 경량 달리기(`run_base/v2`)·초안·다듬기 3열 비교 GIF(고정 + 바닥 전진), H1~H8 전 프레임 비교 띠 확인
+남은 걱정: 맨손 마네킹이라 실제 중량 시트(큰 방패·무거운 무기)를 덧그릴 때 방패 아랫단(바닥 위 100px 이상) 아래로 두 정강이와 장화가 겹치지 않고 읽히는지 첫 중량 시트에서 교차 검수할 것
+
+
+## guide/atk__class_warrior - 팔 고침 2차 마무리 (Aseprite)
+CHECK: RESULT: PASS
+- `check_skeleton.py atk__class_warrior.aseprite --motion attack --set atk__class_warrior`: RESULT: PASS (경고 0, posekit warnings 0, face 0%)
+- arms (posekit natural-arms 2): in N 82/+51/+0.00 F 38/+75/+0.02 · hold N 177/+1/-0.04 F 39/+74/+0.39 · swing N 148/+17/-0.00 F 80/+51/+0.60 · contact N 119/+31/+0.18 F 31/+79/+0.36 · follow N 59/+63/+0.03 F 30/+79/-0.01 · recover N 86/+48/-0.02 F 40/+74/+0.01 · settle N 91/+46/-0.01 F 47/+70/+0.01
+- contact at f03 contact (weapon_front crosses strike line + furthest tip 347, hold->follow 263 deg, follow-through 30 deg); warrior vs ironwall IoU hold 0.776 / contact 0.754 (<= 0.800)
+CHANGED: `round2_wip` 스크립트(`posekit natural-arms 2`) 기준으로 재빌드·검증 완료. hold 에서 칼 손은 엉덩이 뒤 낮게(`handN [-0.76, 1.07]`, `wa 122`) 두어 1차의 얼굴 가로지름·머리 위 치켜듦을 없앴고, swing 방패 밀치기 → contact 방패 밑 낮게 베기 → follow 가슴 앞 지나침까지 모든 팔이 자연 꺾임(+1~+79°)·얼굴 가림 0%. `contact`/`follow`의 `elbF` 강제 지정 제거.
+
+## 판정 — guide/atk__class_warrior
+결과: 통과
+본 방법: 원본 7프레임 시트, 게임 크기(0.1654x·4배) 전체 컷 비교 시트 및 70·160·50·70·90·90·70ms 미리보기 확인
+남은 걱정: 없음
+
+## guide/atk__captain_shadowqueen - 팔 고침 2차 마무리 (Aseprite)
+CHECK: RESULT: PASS (1 warning(s))
+- `check_skeleton.py atk__captain_shadowqueen.aseprite --motion attack --set atk__captain_shadowqueen`: RESULT: PASS (1 warning: `WARN: f03 contact: only 41% of weapon_back is clear of the body`, 이전 납품 10%·1차 30%에서 개선; posekit warnings 0, face 0%)
+- arms (posekit natural-arms 2): in N 66/+59/+0.10 F 40/+74/+0.25 · hold N 153/+14/+0.22 F 148/+16/+0.34 · swing N 80/+51/+0.33 F 32/-79/-0.45 cocked · contact N 81/+52/+0.18 F 35/-77/-0.35 cocked · follow N 68/+58/+0.21 F 39/-73/-0.29 cocked · recover N 90/+46/-0.00 F 128/+26/-0.17 · settle N 105/+39/-0.01 F 140/+20/-0.15
+- contact at f03 contact (두 칼날 모두 타격선 통과 + 최대 도달 349/323, hold->follow 184 deg, follow-through 30/30 deg)
+CHANGED: `round2_wip` 스크립트(`posekit natural-arms 2`) 기준으로 재빌드·검증 완료. hold 머리 위 X 교차에서 `elbN` 강제 제거해 양팔 자연 꺾임 유지, swing~follow 낮게 돌진해 가위 닫힘, recover/settle 의 들린 먼 팔꿈치 제거(`handF [1.85, 1.05]` / `[1.75, 1.12]` 로 몸 옆 자연스럽게 내림).
+
+## 판정 — guide/atk__captain_shadowqueen
+결과: 통과
+본 방법: 원본 7프레임 시트, 게임 크기(0.1654x·4배) 전체 컷 비교 시트 및 60·110·50·60·80·80·60ms 미리보기 확인
+남은 걱정: contact 에서 먼 단검(`weapon_back`)이 몸통 바깥 41% 로 노출되어 가위 닫힘 자체는 게임 크기에서 읽히지만, 본 그림 덧그릴 때 먼 칼날 밝기를 높여 배경·어깨와 뚜렷이 분리할 것
+
+## guide/atk__captain_ironwall - 팔 고침 2차 마무리 및 contact/follow 철퇴 팔 손질 (Aseprite)
+CHECK: RESULT: PASS
+- `check_skeleton.py atk__captain_ironwall.aseprite --motion attack --set atk__captain_ironwall`: RESULT: PASS (경고 0, posekit warnings 0, face 0%)
+- arms (posekit natural-arms 2): in N 37/+75/+0.07 F 39/+74/+0.06 · hold N 32/+80/+0.18 F 39/+75/+0.43 · swing N 37/+74/+0.12 F 38/+75/+0.42 · contact N 30/+80/+0.01 F 34/+77/+0.50 · follow N 30/+79/+0.01 F 26/+82/+0.09 · recover N 38/+74/+0.10 F 38/+74/+0.34 · settle N 41/+73/+0.05 F 39/+74/+0.06
+- contact at f03 contact (shield front x 348 최대 도달, follow hip +4px, weapon_back 12 deg carried along — not a cut); warrior vs ironwall IoU hold 0.776 / contact 0.754 (<= 0.800)
+CHANGED: `round2_wip` 에서 `contact`/`follow` 의 가까운 팔이 `elbN [-0.3, 1.0]` 때문에 등 뒤로 153° 뒤집혀 접히던 문제(`hinge +74° -> -79° -> +74°`, 팔꿈치 31° 급접힘)를 고침:
+- **contact**: `elbN` 제거, `handN [0.58, 1.98]`·`wa 128°` 로 전진하는 어깨를 따라 자연 꺾임(`+80°`, 얼굴 가림 0%) 유지하면서 철퇴 머리가 어깨 뒤 높이에서 60%+ 또렷이 보이게 함. 몸은 더 낮게 웅크리고(`hip [0.36, 1.05]`) 탑방패를 앞으로 8° 기울여 밀어붙임(`handF [1.34, 2.02]`, `shield_ang -8°`, 방패 앞면 x 348).
+- **follow**: `elbN` 제거, `handN [0.64, 2.04]`·`wa 128°`·`hip [0.40, 1.12]`·`handF [1.32, 1.84]`·`shield_ang -5°` 로 자연 반동·연속성 유지.
+
+## 판정 — guide/atk__captain_ironwall
+결과: 통과
+본 방법: 원본 7프레임 시트, 게임 크기(0.1654x·4배) 전체 컷 비교 시트, 70·170·50·80·80·90·70ms 미리보기, 전사 대비 hold/contact 실루엣 IoU 측정(0.776 / 0.754) 확인
+남은 걱정: 없음
+
+## guide/atk__class_archer - 팔 고침 2차 마무리 및 follow 시위 팔 완화 (Aseprite)
+CHECK: RESULT: PASS
+- `check_skeleton.py atk__class_archer.aseprite --motion attack --set atk__class_archer`: RESULT: PASS (경고 0, posekit warnings 0, face 0%)
+- arms (posekit natural-arms 2; bow string arm N): nock N 84/+50/+0.23 F 132/+25/+0.29 · raise N 41/+73/+0.17 F 70/+57/+0.18 · hold N 46/-71/-0.38 draw F 152/+14/+0.62 · release N 44/-71/-0.61 draw F 170/+5/+0.62 · follow N 43/-72/-0.40 cocked F 170/+5/+0.62 · lower N 58/+64/-0.01 F 88/+48/+0.33 · settle N 97/+43/-0.03 F 103/+39/+0.24
+- draw length (bow hand - draw hand): 60 79 154 213 238 86 83 px (release 시위 손 -62px 후퇴)
+CHANGED: `round2_wip` 스크립트(`posekit natural-arms 2`, `_solve_sides` 비활성·`bow_draw` 적용) 기준으로 재빌드하고, `follow` 에서 시위 팔꿈치가 30.4° 로 지나치게 좁혀져 보이던 것을 `handN [-0.90, 2.58]`·`elbN [-1.0, 0.2]` 로 풀어 `inner 43°` 의 자연스러운 발사 후 반동으로 다듬음.
+
+## 판정 — guide/atk__class_archer
+결과: 통과
+본 방법: 원본 7프레임 띠, 게임 크기(0.1654x·4배) 80·80·200·60·110·100·70ms 미리보기 확인
+남은 걱정: 없음
+
+## guide/hit__class_warrior - 팔 고침 2차 마무리 (Aseprite)
+CHECK: RESULT: PASS
+- `check_skeleton.py hit__class_warrior.aseprite --motion hit --set hit__class_warrior`: RESULT: PASS (경고 0, posekit warnings 0, face 0%)
+- arms (posekit natural-arms 2): K1 impact N 94/+44/-0.01 F 39/+74/+0.17 · K2 peak N 58/+64/-0.03 F 40/+74/+0.01 · K3 recover N 94/+44/-0.02 F 38/+75/-0.00 · K4 settle N 92/+45/-0.02 F 48/+69/-0.01
+- hit (hip drop / head away / lean back / front knee rise / back foot slide): K1 14/32/-2.2/0/+0 · K2 21/46/1.2/0/+0 · K3 10/19/-3.7/0/+0 · K4 2/4/-5.9/0/+0
+CHANGED: `round2_wip` 스크립트(`posekit natural-arms 2`) 기준으로 재빌드·검증 완료. K1~K4 전 프레임에서 검 팔의 닭 날개를 없애 자연 꺾임(`inner 58~94°`, `hinge +44~+64°`)으로 정리했고, 두 발 고정·무릎 들림 0·방패 전면 유지 그대로.
+
+## 판정 — guide/hit__class_warrior
+결과: 통과
+본 방법: 게임 크기(0.1654x·4배) 대기 유령 겹침 비교 시트 및 70·100·80·70ms 전후 맥락 GIF 확인
+남은 걱정: 없음
+
+## guide/hit__captain_shadowqueen - 팔 고침 2차 마무리 (Aseprite)
+CHECK: RESULT: PASS
+- `check_skeleton.py hit__captain_shadowqueen.aseprite --motion hit --set hit__captain_shadowqueen`: RESULT: PASS (경고 0, posekit warnings 0, face 0%)
+- arms (posekit natural-arms 2): K1 impact N 111/+35/+0.08 F 100/+41/-0.02 · K2 stagger N 94/+44/-0.03 F 88/+48/-0.03 · K3 recover N 105/+39/+0.01 F 113/+34/-0.01 · K4 settle N 113/+34/+0.07 F 111/+36/-0.03
+- hit (hip drop / head away / lean back / front knee rise / back foot slide): K1 18/50/1.2/-2.0/0 · K2 26/69/6.2/-1.0/-34 · K3 14/33/-0.2/-1.0/-16 · K4 3/6/-5.7/-1.0/-2
+CHANGED: `round2_wip` 스크립트(`posekit natural-arms 2`) 기준으로 재빌드·검증 완료. K1~K4 전 프레임에서 먼 팔의 닭 날개·팔꿈치 들림을 없애 양팔 자연 꺾임(`inner 88~113°`, `hinge +34~+48°`)으로 정리, 가벼움 뒷발 미끄럼(-34px)과 쌍검 각도 흐름 유지.
+
+## 판정 — guide/hit__captain_shadowqueen
+결과: 통과
+본 방법: 게임 크기(0.1654x·4배) 대기 유령 겹침 비교 시트 및 60·110·90·80ms 미리보기 확인
+남은 걱정: 없음
+
+## guide/robe_base - 로브 이동 마네킹 다듬기 (Aseprite)
+CHECK: RESULT: PASS
+- `check_skeleton.py robe_base.aseprite --gait robe --pose art/requests/guides/robe_base/draft/pose.json --base art/requests/guides/robe_base/draft/robe_base.aseprite`: RESULT: PASS (경고 0, posekit warnings 0)
+- 8 frames, 384x1024, durations [96] ms, layers: Background · arm_far · leg_far · leg_near · torso · cloth_front · head · arm_near · joints(숨김)
+- step 134 / 136 px (= 22.3 game px, step/4 = 33.5 / 34.0) · hip height 182.5 180.5 185.0 185.5 -> bob 5.0 px (0.8 game px) · lean 6.9-7.5 deg (range 0.6) · lifted sole 6 8 5 9 10 5 px · elbows 71-76 deg, hand fore-aft near 32.0 / far 36.0 px, hand height near 195-222 / far 181-204 px · hem 46 41 40 45 px (G1~G4/G5~G8), edges G1 74/-87 G2 71/-84 G3 58/-79 G4 71/-59 G5 79/-85 G6 76/-83 G7 60/-79 G8 67/-59 · cloth_front change 8% 7% 12% 8% 6% 7% 9% 8% · head drift 0.0 2.7 1.3 0.6 px, tilt -1.5..+0.4 deg · silhouette 13% 15% 17% 15% 12% 16% 15% 13%
+CHANGED: 클라우드 초안(`art/requests/guides/robe_base/draft/robe_base.aseprite`)에서 다리·몸통·팔·관절 점·96ms 박자·보폭(134.2px)은 그대로 두고 `cloth_front` 레이어만 G1~G8 전 프레임 손질:
+- **자락 외곽 곡선화(G1~G8)**: 딱딱한 10각 사다리꼴을 허리띠 아래는 깔끔히 붙고 앞 무릎에 밀리는 곳은 둥글게 감기며 뒤로는 부드럽게 끌리는 열린 Catmull-Rom 곡선으로 다듬음. 아랫단에도 걸음 위상에 맞는 미세한 물결을 주어 천의 흐름을 살리되 바닥 위 40~46px(기준 38~52px)·두 무릎 완전 가림 유지.
+- **내려앉음(G2·G6) 뻣뻣함 완화**: G1→G2(G5→G6)에서 자락이 완전히 얼어 보이지 않도록 앞·뒤 끝을 약 2~3px(허용 ±4px 안)만 미세하게 가라앉혀 한 박자 늦음은 유지하면서도 살아 있는 천 움직임(이웃 변화 6~12%)으로 정리.
+- 지침 판: 2026-11-26f
+
+## 판정 — guide/robe_base
+결과: 통과
+본 방법: 게임 크기(0.1654x)·4배 확대 96ms 미리보기 GIF, 경량 달리기(`run_base/v2`)·초안·다듬기 3열 비교 GIF(고정 + 바닥 전진), G1~G8 전 프레임 비교 띠 확인
+남은 걱정: 맨손 마네킹이라 실제 마법사·사제 시트 덧그릴 때 지팡이 끝(G1·G5 접지)과 로브 앞자락 끝이 겹치지 않는지 첫 로브 시트에서 교차 검수할 것
+
+## sheet/captain/frostjarl - 도끼 날 ~30% 확대 손질 (Aseprite)
+CHECK: RESULT: PASS (with warnings)
+- `check_delivery.py sheet_captain_frostjarl.png --aseprite aseprite/sheet_captain_frostjarl.aseprite --base <b476149>`: RESULT: PASS (with warnings)
+- background #FF00FF: 85.6%, figure colours: 39, closest to #FF00FF: 182.1
+- pose 1: x 32-367 (w 336), pose 2: x 378-703 (w 326), pose 3: x 736-1141 (w 406), pose 4: x 1174-1503 (w 330), lowest y=870
+- against the base: silhouette changed 6622 px, colour changed 5745 px (per pose silhouette/colour: 2170/1373, 1176/1296, 1746/1594, 1530/1482)
+- .aseprite export == PNG (pixel-identical), layers: Background / original_ref (hidden), hidden layer original_ref == base PNG
+- WARN: pose 1 (idle) is 373 px tall (기존 베이스와 동일한 키 경고; 이번 손질 범위 밖)
+- `sheets.py --dry-run`: 384x192, 7칸, 40색, 완료 1, 실패 0 (idle 60x67, windup 59x84, strike 73x65, hit 59x69)
+CHANGED: 베이스(`b476149`)의 자세·체격·외곽·자루 위치는 그대로 두고 4자세의 수염도끼(bearded axe) 쇠날만 자루 소켓 기준 약 30~32% 확대:
+- P1(대기)·P2(예비): 날과 수염 갈고리 전체를 1.32배 확대(소켓 이음새 유지).
+- P3(타격)·P4(피격): 소켓 바깥쪽을 기준점으로 1.30배 확대해 P3~P4 사이 32px+ 여백(1141~1174)과 좌우 테두리 32px 규칙을 지키면서 날 볼륨을 키웠고, 자루 주변 미세 점(1px)을 정리.
+- 지침 판: 2026-11-26c
+
+## 판정 — sheet/captain/frostjarl
+결과: 통과
+본 방법: 원본 4자세 2배 확대 비교 시트 + `sheets.py --dry-run` 게임 크기(0.1800x)·4배 미리보기(`preview_x4.png`) 확인
+남은 걱정: 없음
+
+## sheet/hero/kai - 타격(3번) 시위 손 뒤로 26px 이동 손질 (Aseprite)
+CHECK: RESULT: PASS (with warnings)
+- `check_delivery.py sheet_hero_kai.png --aseprite aseprite/sheet_hero_kai.aseprite --base <09d981f>`: RESULT: PASS (with warnings)
+- background #FF00FF: 84.3%, figure colours: 111683 (기존 파일럿 베이스 유지), closest to #FF00FF: 150.0
+- pose 1: x 35-327 (w 293), pose 2: x 426-719 (w 294), pose 3: x 814-1114 (w 301), pose 4: x 1153-1503 (w 351), lowest y=870
+- against the base: silhouette changed 679 px, colour changed 4066 px (per pose silhouette/colour: 0/0, 0/0, 679/4066, 0/0)
+- .aseprite export == PNG (pixel-identical), layers: Background / original_ref (hidden), hidden layer original_ref == base PNG
+- WARN: figure colours / 150-170 distance (기존 GPT 파일럿 베이스 `09d981f` 고유 경고; 색 추가 없음)
+- `sheets.py --dry-run`: 384x192, 7칸, 40색, 완료 1, 실패 0 (idle 48x65, windup 49x62, strike 50x61, hit 58x63)
+CHANGED: 베이스(`09d981f`)에서 1·2·4번 자세는 0px 변경, 3번(타격·시위 놓기) 자세의 오른팔(가죽 팔보호대+펼친 시위 손)만 왼쪽(뒤)으로 26px 이동해 2번(당김)과 3번(발사 반동)의 차이가 게임 크기에서 바로 읽히도록 조정. 드러난 턱 아래 목·금발 옆머리 가닥·크림색 칼라 테두리·초록 망토 어깨는 같은 시트 1번 자세의 가려지지 않은 동일 부위를 얼굴 기준으로 정확히 맞춰 복원.
+- 지침 판: 2026-11-26c
+
+## 판정 — sheet/hero/kai
+결과: 통과
+본 방법: P2·P3 원본 1:1 나란히 비교 + 게임 크기(0.1654x)·4배 비교 및 `sheets.py --dry-run` `preview_x4.png` 확인
+남은 걱정: 없음
+
+## sheet/monster/skeleton - 타격(3번) 검 각도 조정으로 96px 칸 맞춤 (Aseprite)
+CHECK: RESULT: PASS
+- `check_delivery.py sheet_monster_skeleton.png --aseprite aseprite/sheet_monster_skeleton.aseprite --base <ea6fe20>`: RESULT: PASS (오류 0, 경고 0)
+- background #FF00FF: 83.7%, figure colours: 39, closest to #FF00FF: 210.4
+- pose 1: x 32-334 (w 303), pose 2: x 281-648 (w 368), pose 3: x 682-1113 (w 432), pose 4: x 1172-1503 (w 332), lowest y=870
+- spot #ff4a3a: 202 px exact, 202 px within 40, nearest other colour at distance 108.1
+- against the base: silhouette changed 5302 px, colour changed 1885 px (per pose silhouette/colour: 0/0, 0/0, 5302/1885, 0/0)
+- .aseprite export == PNG (pixel-identical), layers: Background / original_ref (hidden), hidden layer original_ref == base PNG
+- `sheets.py --dry-run`: 384x192, 7칸, 38색, 완료 1, 실패 0 — `strike: 71x62px` (`+2px 밀어 넣음` 경고 완전히 해소, 점 색 #ff4a3a 4자세 모두 유지)
+CHANGED: 베이스(`ea6fe20`)에서 1·2·4번 자세·눈 점색(`#ff4a3a`)·몸통·발 위치는 0px 변경, 3번(타격) 자세의 코등이+녹슨 검날만 손잡이 이음새(1004, 726) 기준으로 시계방향 +13° 아래로 꺾어 3번 폭을 456px→432px로 줄이고(x 끝 1137→1113) 손가락/코등이 사이 미세 틈은 기존 팔레트 외곽색(`#2e2a28`)으로 마감.
+- 지침 판: 2026-11-26c
+
+## 판정 — sheet/monster/skeleton
+결과: 통과
+본 방법: P3 전후 비교 시트 + 게임 크기 4배 비교 및 `sheets.py --dry-run` `preview_x4.png`(밀어 넣음 경고 0 확인) 확인
+남은 걱정: 없음
+
+## sheet/monster/desert-bandit - 3·4번 자세 겹침 해소 (Aseprite)
+CHECK: RESULT: PASS
+- `check_delivery.py sheet_monster_desert-bandit.png --aseprite aseprite/sheet_monster_desert-bandit.aseprite --base <87744c1>`: RESULT: PASS (오류 0, 경고 0)
+- background #FF00FF: 84.4%, figure colours: 36, closest to #FF00FF: 216.8
+- pose 1: x 32-335 (w 304), pose 2: x 357-669 (w 313), pose 3: x 707-1158 (w 452), pose 4: x 1158-1503 (w 346), lowest y=870
+- against the base: silhouette changed 27322 px, colour changed 41335 px (per pose silhouette/colour: 0/0, 2849/1119, 24191/40197, 282/19)
+- .aseprite export == PNG (pixel-identical), layers: Background / original_ref (hidden), hidden layer original_ref == base PNG
+- `sheets.py --dry-run`: 384x192, 7칸, 40색, 완료 1, 실패 0 (idle 50x66, windup 52x74, strike 75x63, hit 57x68)
+CHANGED: 요청 메모는 4번(피격)을 오른쪽으로 미는 안을 적었으나 베이스(`87744c1`)에서 4번 오른쪽 끝이 이미 x=1503(우측 테두리 최소 여백 32px 한계선)이라 오른쪽 이동 시 테두리 검사에 걸림. 대신 여유가 59px 있던 2~3번 사이 공간을 활용해 **3번(타격) 자세 전체를 왼쪽으로 22px 이동**(x 729..1180 → 707..1158)하여 2~3번 간격 37px(≥32px)과 3~4번 칼끝-피격 간격(2D ≥44px)을 모두 확보하고 `check_delivery.py` 기존 FAIL을 0오류·0경고 PASS로 해소. 그림·색·자세 내용은 무변경.
+- 지침 판: 2026-11-26c
+
+## 판정 — sheet/monster/desert-bandit
+결과: 통과
+본 방법: `check_delivery.py` 0오류·0경고 PASS 및 `sheets.py --dry-run` `preview_x4.png` 4자세 정상 분리·변환 확인
+남은 걱정: 3번 자세 자체 폭(452px)은 원래 그대로라 `sheets.py` 변환 시 기존과 동일한 `+3px` 칸 맞춤 안내가 남음(이번 요청은 3·4번 분리 목적이라 자세 변형 없이 위치만 이동함; 필요 시 해골처럼 칼 각도만 살짝 줄일 수 있음)
+
+## sheet/monster/goblin - 고블린 전투 시트 신규 4자세
+CHECK: RESULT: PASS
+- `check_delivery.py art/inbox/sheet_monster_goblin.png --layout 1x4 --cell 96 --aseprite art/inbox/aseprite/sheet_monster_goblin.aseprite`: RESULT: PASS (오류 0, 경고 0)
+- background #FF00FF: 88.4%, figure colours: 38, closest to #FF00FF: distance 197.6
+- pose 1: x 48-323 (w 276), top y=545, lowest pixel y=870 (대기 높이 326px, 요청 310-350px 안)
+- pose 2: x 380-705 (w 326), top y=446, lowest pixel y=870
+- pose 3: x 762-1165 (w 404), top y=547, lowest pixel y=870
+- pose 4: x 1222-1487 (w 266), top y=513, lowest pixel y=870
+- .aseprite export == PNG (pixel-identical), layers: Background
+- `sheets.py art/inbox/sheet_monster_goblin.png --id sheet/monster/goblin --grid 4x1 --scale 0.1654 --cell 96 --dry-run`: 완료 1, 실패 0 — 강제 위치 보정(밀어 넣음)·잘림 0 (idle 46x54px, windup 54x70px, strike 67x54px, hit 43x59px; 시트 384x192, 7칸, 40색)
+CHANGED: `ENEMIES['고블린']` / `MONSTER_TPL.imp` 설계와 `sheet_monster_skeleton`·`sheet_monster_desert-bandit` 화풍(어두운 외곽선·좌상단 광원·38색 경계 명암)에 맞춰 일반 고블린 4자세를 신규 제작.
+- **외형**: 작고 웅크린 탁한 이끼녹색 피부, 좌우로 길게 뻗어 실루엣에서 분리된 뾰족귀, 밝은 황금빛 눈(`#f2c94c` 보존), 닳은 흙갈색 누더기 옷·손발 붕대, 몸 바깥으로 분리된 짧은 옹이 나무 둔기(왕관·장식 없음).
+- **4자세**: P1 대기(무릎 굽힌 웅크림·둔기 옆 준비), P2 준비(뒷발로 무게 이동·둔기 어깨 뒤로 끌어올림), P3 타격(앞발 디디며 둔기 앞으로 휘두름), P4 피격(눈 질끈 감고 입 벌린 찡그림·귀와 상체 뒤로 젖힘·두 발 접지 유지·둔기 아래로 늘어뜨려 공격 오인 방지).
+- 지침 판: 2026-11-26c
+
+## 판정 — sheet/monster/goblin
+결과: 통과
+본 방법: `sheets.py --dry-run` `preview_x4.png` 및 어두운 전장 바닥 위 해골 병사(66px)·서리 트롤(74px)과 나란히 3배 비교(`battlefield_compare_x3.png`) 확인 — 54px 소형 체격·뾰족귀·황금 눈·나무 둔기와 4자세 구분이 뚜렷함
+남은 걱정: 없음
+
+## sheet/monster/frost-troll - 서리 트롤 전투 시트 신규 4자세
+CHECK: RESULT: PASS
+- `check_delivery.py art/inbox/sheet_monster_frost-troll.png --layout 2x2 --cell 96 --aseprite art/inbox/aseprite/sheet_monster_frost-troll.aseprite`: RESULT: PASS (오류 0, 경고 0)
+- background #FF00FF: 78.9%, figure colours: 38, closest to #FF00FF: distance 213.1
+- pose 1 (TL): x 231-535 (w 305), top y=50, lowest pixel y=461 (y=461 in quadrant; 대기 높이 412px, 요청 400-425px 안)
+- pose 2 (TR): x 972-1331 (w 360), top y=40, lowest pixel y=461 (y=461 in quadrant)
+- pose 3 (BL): x 159-567 (w 409), top y=572, lowest pixel y=973 (y=461 in quadrant)
+- pose 4 (BR): x 958-1345 (w 388), top y=559, lowest pixel y=973 (y=461 in quadrant)
+- .aseprite export == PNG (pixel-identical), layers: Background
+- `sheets.py art/inbox/sheet_monster_frost-troll.png --id sheet/monster/frost-troll --grid 2x2 --scale 0.1800 --cell 96 --dry-run`: 완료 1, 실패 0 — 강제 위치 보정(밀어 넣음)·잘림 0 (idle 55x74px, windup 65x76px, strike 74x72px, hit 70x75px; 시트 384x192, 7칸, 40색)
+CHANGED: `ENEMIES['서리 트롤']` / `MONSTER_TPL.brute` (`big: true`) 설계와 기존 몬스터 시트 화풍에 맞춰 서리 트롤 2x2 4자세를 신규 제작.
+- **외형**: 인간형보다 크고 넓은 어깨·긴 맨팔과 거대한 맨주먹, 차가운 얼음빛 청회색 피부(38색·어두운 외곽선), 깊은 청색 눈과 드러난 상아색 아래 송곳니, 낡은 어두운 남청색 허리천(무기·갑옷·뿔·발광 없음).
+- **4자세**: TL 대기(어깨·팔을 낮춰 무게를 바닥에 둔 육중한 자세, 게임 74px), TR 준비(어깨를 틀고 치는 팔을 뒤·위로 끌어올려 힘 모음), BL 타격(거대한 맨주먹을 앞·아래 대각선으로 강하게 내리침 — 주먹이 몸 실루엣에서 완전히 분리되며 팔꿈치 각도를 가다듬어 96px 칸 안 강제 보정 0 달성), BR 피격(상체 뒤로 밀리고 눈 감고 송곳니 드러낸 찡그림·두 발 접지·양팔 비대칭 반동).
+- 지침 판: 2026-11-26c
+
+## 판정 — sheet/monster/frost-troll
+결과: 통과
+본 방법: `sheets.py --dry-run` `preview_x4.png`, 타격 팔꿈치 원본 확대 검수 및 어두운 전장 바닥 위 고블린(54px)·해골 병사(66px)·서리 트롤(74px) 3종 크기 비교 확인 — `big: true` 체격 차이와 4자세 실루엣이 선명함
+남은 걱정: 없음
+
+## sheet/captain/liberator/idle-redraw - 카토 새 디자인 대기 1컷 (쇠사슬과 주먹, 장검은 등에)
+CHECK: RESULT: PASS
+- `check_delivery.py art/inbox/check_sheet_captain_liberator_idle.png --layout 1x1 --cell 112 --aseprite art/inbox/aseprite/check_sheet_captain_liberator_idle.aseprite`: RESULT: PASS (오류 0, 경고 0)
+- canvas: 384x1024, background #FF00FF: 83.3%, figure colours: 38, closest to #FF00FF: distance 198.9
+- pose 1: x 51-332 (w 282, 좌우 여백 51px ≥ 32px), top y=451 (머리 꼭대기~발바닥 몸 높이 402px, 칼자루 끝 포함 420px), lowest pixel y=870
+- .aseprite export == PNG (pixel-identical), layers: Background
+REFERENCES LOADED:
+- `art/requests/phase3/captain_liberator/portrait_800.jpg` (디자인 기준: 민머리·두피/뺨 흉터·짧은 수염·근육질 맨상체·가슴 대각 가죽 띠와 사각 쇠버클·어깨 와인색 천·양손목 굵은 쇠 족쇄와 끊어진 사슬·등 뒤 장검 자루)
+- `assets/art/sheets/sheet_captain_blademaster.png` 및 `art/inbox/sheet_captain_blademaster.png` (화풍·외곽·4등신 기준)
+- `art/requests/phase3/captain_liberator/guide_1_idle.png` (4등신 체격·발 기준 y=870 참고; 마네킹의 든 검·방패는 제외)
+CHANGED: 주인 11-26 결정(쇠사슬과 주먹, 장검은 등에)에 따라 기존 `sheet_captain_liberator.png`는 건드리지 않고 새 대기 1컷 시안(`check_sheet_captain_liberator_idle.png` + `.aseprite`)을 신규 작성.
+- **빈 주먹 가드**: 방패·손에 든 무기 없이 두 맨주먹을 검투사 가드로 쥐고, 앞(오른쪽) 주먹을 마젠타 바깥으로 명확히 분리해 1×에서도 주먹 실루엣이 바로 읽히게 함.
+- **양손목 쇠 족쇄·끊어진 사슬**: 밝은 은회색 쇠 족쇄와 굵은 사슬 고리(앞손 4고리·뒷손 3고리)를 아래로 길게 늘어뜨려 주먹·갈색 몸통과 뭉치지 않고 따로 읽히도록 배치.
+- **등 뒤 장검**: 초상화와 같은 와인색 손잡이·둥근 쇠 폼멜·십자 코등이를 뒷어깨 위로, 칼집 끝을 반대편 허리 뒤로 대각선 배치해 등에 멘 고정 소품임이 한눈에 읽히게 함.
+- 지침 판: 2026-11-26c
+
+## 판정 — sheet/captain/liberator/idle-redraw
+결과: 통과
+본 방법: 원본 384×1024 검수 + `scale 0.18`·칸 112 기준 1×(51×76px) 및 4× 어두운 전장 바닥 위 바렌·비요른과 나란히 비교 확인 — 주먹·쇠사슬·등 뒤 장검 세 요소가 1×에서도 각각 또렷하게 분리되어 읽힘
+남은 걱정: ① `0.18` 배율에서는 몸 높이 402px가 약 72px(칼자루 포함 76px)로 바렌(64px)·비요른(67px)보다 머리 반 개가량 크게 서므로, 4자세 본 제작 때 덩치 큰 검투사 컨셉으로 0.18을 유지할지 일반 대장 키에 맞춰 0.1654를 쓸지 등록 배율만 확정하면 됨 ② 앞손목에서 늘어지는 사슬 고리가 1×에서 폭 2~3px 수준이므로, 본 공격·피격 프레임 제작 시에도 사슬이 1px 실선으로 얇아지지 않게 현재 굵기를 유지할 것
+
+## 막힘 - sheet/captain/liberator/chain-sheet
+- 원인: 신규 3자세(준비·접촉·피격) 원화 제작 중 `image-generator` 모델 할당량 초과(`HTTP 429 RESOURCE_EXHAUSTED`, 약 4시간 6분 뒤 초기화)가 발생함.
+- 자체 확인: 승인된 대기 1컷(`2391081`)을 파츠 분할·변형해 3자세를 임시 조립해 보았으나, 타격 팔·어깨 이음새와 사슬 질감이 대기 컷의 수작업 도트 품질에 크게 못 미쳐 애니메이션 헤드 기준으로 납품 보류(반려)함.
+- 다음 조치: ① 약 4시간 뒤 할당량 초기화 후 재개하거나, ② 그사이 이미지 생성이 필요 없는 Aseprite 손질·마네킹·기존 시트 교정 일감이 있으면 먼저 올려 주시면 바로 작업 가능함.
+
+## sheet/hero/oswin - 피격(4번) 들린 무릎 낮춤 손질 (Aseprite)
+CHECK: RESULT: PASS
+- `check_delivery.py sheet_hero_oswin.png --aseprite aseprite/sheet_hero_oswin.aseprite --base <cd09ed7>`: RESULT: PASS (오류 0, 경고 0; RGB 저장으로 기존 P모드 경고도 해소)
+- background #FF00FF: 84.1%, figure colours: 39, closest to #FF00FF: 185.5
+- pose 1: x 32-329 (w 298), pose 2: x 362-694 (w 333), pose 3: x 727-1142 (w 416), pose 4: x 1175-1490 (w 316), lowest pixel y=870
+- against the base: silhouette changed 5542 px, colour changed 6980 px (per pose silhouette/colour: 0/0, 0/0, 0/0, 5542/6980)
+- .aseprite export == PNG (pixel-identical), layers: Background / original_ref  (hidden: original_ref), hidden layer original_ref == base PNG
+- `sheets.py --dry-run`: 완료 1, 실패 0 (idle 49x70, windup 55x78, strike 69x62, hit 52x67, 시트 384x192, 40색)
+CHANGED: 바탕 `art-inbox` `cd09ed7`(RGB 변환 후 유지)에서 1~3번 자세는 0px 변경, 4번(피격) 자세의 높게 들려 있던 앞쪽(오른쪽) 다리만 손질:
+- 고관절 아래 허벅지·무릎갑을 시계 방향(+26°)으로 내려 튀어 보이던 무릎 높이를 약 18px 낮추고, 정강이·장화를 내려진 무릎에 자연스럽게 이어 앞발 바닥이 `y=822`(지상 48px 위) → `y=866`(지상 4px 위)으로 땅에 가깝게 닿도록 정리. 허리 갑주 치마(tasset)와 다리 사이 어두운 이음새 및 39색 팔레트 유지.
+- 참고: 없음
+- 지침 판: 2026-11-26f
+
+## 판정 — sheet/hero/oswin
+결과: 통과
+본 방법: P4 1:1 원본 전후 비교 및 0.1654×(4배) `preview_x4.png` 확인 — 들린 무릎이 차분하게 내려와 비틀거리는 피격 발디딤으로 읽힘
+남은 걱정: 없음
+
+## sheet/hero/seraphine - 준비(2번) 철퇴 낮춰 칸 75px 안 맞춤 (Aseprite)
+CHECK: RESULT: PASS
+- `check_delivery.py sheet_hero_seraphine.png --aseprite aseprite/sheet_hero_seraphine.aseprite --base <6505e61>`: RESULT: PASS (오류 0, 경고 0)
+- background #FF00FF: 82.7%, figure colours: 39, closest to #FF00FF: 183.3
+- pose 1: x 32-304 (w 273), pose 2: x 377-657 (w 281, top y=408→429), pose 3: x 690-1147 (w 458), pose 4: x 1204-1486 (w 283), lowest pixel y=870
+- against the base: silhouette changed 2436 px, colour changed 2822 px (per pose silhouette/colour: 40/0, 2396/2822, 0/0, 0/0 — x<384 변화분 40px은 P2 철퇴 손잡이 끝 좌표)
+- .aseprite export == PNG (pixel-identical), layers: Background / original_ref  (hidden: original_ref), hidden layer original_ref == base PNG
+- `sheets.py --dry-run`: 완료 1, 실패 0 — **`windup: 46x73px`** (77px → 73px, 칸 96 내 75px 이하 달성)
+CHANGED: 바탕 `art-inbox` `6505e61`에서 1·3·4번 자세는 그대로 두고 2번(준비) 자세의 오른손+플랜지 철퇴만 약 12px 아래로 내리고 시계 방향(+10°)으로 살짝 눕혀 베일과 부딪히지 않고 전체 높이를 463px → 442px(게임 73px ≤ 75px)로 낮춤. 내려온 손목과 흰 소매 자락 이음새를 자연스럽게 잇고, 기존 39색 팔레트 유지.
+- 참고: 없음
+- 지침 판: 2026-11-26f
+
+## 판정 — sheet/hero/seraphine
+결과: 통과
+본 방법: P2 1:1 원본 전후 비교 + `sheets.py --dry-run` `preview_x4.png` (windup 46×73px) 확인 — 준비 자세 느낌 그대로 칸 상단 여백 확보
+남은 걱정: 없음
+
+## sheet/hero/grom - 준비(2번) 대검 기울여 칸 75px 안 맞춤 (Aseprite)
+CHECK: RESULT: PASS
+- `check_delivery.py sheet_hero_grom.png --aseprite aseprite/sheet_hero_grom.aseprite --base <7a86b4a>`: RESULT: PASS (오류 0, 경고 0)
+- background #FF00FF: 82.7%, figure colours: 40, closest to #FF00FF: 181.7
+- pose 1: x 32-327 (w 296), pose 2: x 363-713 (w 351, top y=407→438), pose 3: x 746-1175 (w 430), pose 4: x 1209-1503 (w 295), lowest pixel y=870
+- against the base: silhouette changed 7652 px, colour changed 7110 px (per pose silhouette/colour: 709/0, 6943/7110, 0/0, 0/0 — x<384 변화분 709px은 P2 검끝 이동분, P1 x≤327은 0px)
+- .aseprite export == PNG (pixel-identical), layers: Background / original_ref  (hidden: original_ref), hidden layer original_ref == base PNG
+- `sheets.py --dry-run`: 완료 1, 실패 0 — **`windup: 58x72px`** (77px → 72px, 칸 96 내 75px 이하 달성)
+CHANGED: 바탕 `art-inbox` `7a86b4a`에서 1·3·4번 자세는 그대로 두고 2번(준비) 자세의 양손+양손 대검을 반시계 방향(-7.5°)으로 기울이고 P1과의 최소 여백(36px ≥ 32px) 유지를 위해 검 길이 폭만 5% 이내로 다듬어 높이를 464px → 433px(게임 72px ≤ 75px)로 낮춤. 머리 위로 검을 쥔 양팔 자세·레게머리·기존 40색 팔레트 그대로 유지.
+- 참고: 없음
+- 지침 판: 2026-11-26f
+
+## 판정 — sheet/hero/grom
+결과: 통과
+본 방법: P2 1:1 원본 전후 비교 + `sheets.py --dry-run` `preview_x4.png` (windup 58×72px) 확인 — 매끄러운 칼날과 머리 위 준비 실루엣 유지
+남은 걱정: 없음
+
+## sheet/hero/astel - 준비(2번) 지팡이 낮춰 칸 75px 안 맞춤 (Aseprite)
+CHECK: RESULT: PASS
+- `check_delivery.py sheet_hero_astel.png --aseprite aseprite/sheet_hero_astel.aseprite --base <67fc9a4>`: RESULT: PASS (오류 0, 경고 0)
+- background #FF00FF: 81.6%, figure colours: 39, closest to #FF00FF: 179.6
+- pose 1: x 32-333 (w 302), pose 2: x 367-670 (w 304, top y=347→422), pose 3: x 718-1104 (w 387), pose 4: x 1137-1503 (w 367), lowest pixel y=870
+- against the base: silhouette changed 9822 px, colour changed 3040 px (per pose silhouette/colour: 597/0, 9225/3040, 0/0, 0/0 — x<384 변화분 597px은 P2 지팡이 고리 기울임분, P1 x≤333은 0px)
+- .aseprite export == PNG (pixel-identical), layers: Background / original_ref  (hidden: original_ref), hidden layer original_ref == base PNG
+- `sheets.py --dry-run`: 완료 1, 실패 0 — **`windup: 50x74px`** (87px → 74px, 칸 96 내 75px 이하 달성)
+CHANGED: 바탕 `art-inbox` `67fc9a4`에서 1·3·4번 자세는 그대로 두고 2번(준비) 자세의 오른손과 지팡이만 손질:
+- 지나치게 높던 위쪽 나무 막대 구간을 약 42px 줄이고 손+지팡이 전체를 뒤(-17°)·아래(17px)로 기울여(P1과 여백 34px ≥ 32px 유지) 고리 보석 장식과 자세 느낌은 그대로 두면서도 최고점 `y=347` → `y=422`(게임 **74px ≤ 75px**)로 낮춤. 지팡이에 가려졌던 은발 뒷머리와 보라 로브 소매 자리는 주변 색으로 이어 39색 팔레트를 지킴.
+- 참고: 없음
+- 지침 판: 2026-11-26f
+
+## 판정 — sheet/hero/astel
+결과: 통과
+본 방법: P2 1:1 원본 전후 비교 + `sheets.py --dry-run` `preview_x4.png` (windup 50×74px) 확인 — 지팡이 고리 보석·안경·마도서와 시전 준비 자세가 96px 칸에 여유 있게 들어옴
+남은 걱정: 없음

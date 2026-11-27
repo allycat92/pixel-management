@@ -25,7 +25,7 @@
     "heavy": {
       "ko": "중량",
       "summary": "heavy armour / tower shield / very large weapon: cannot really run. Fastest natural gait for that body = a heavy, purposeful, FAST trudge (not a stroll): NO flight phase (one foot always on the ground), torso upright, short stride, the weight dropped onto each footfall, arms held close and high.",
-      "guide": "art/requests/guides/heavy_base/draft/pose.json (cloud draft until the PC delivers v1)",
+      "guide": "art/requests/guides/heavy_base/v1/pose.json",
       "flight_phase": "none - every cell has one foot planted; both feet down at contact (double support)",
       "torso": "upright: lean 5 deg (4-6) from the hip to the neck, the same in every cell (draft 4.8-5.6); head level",
       "hip": "the weight drops ONLY at down (contact -> down -7 px source), then comes back up slowly; the push is never above contact; bob 4-10 px source (draft 7)",
@@ -39,7 +39,7 @@
     "robe": {
       "ko": "로브",
       "summary": "loose long cloth: running in it looks unnatural. Fastest natural gait = a hurried, purposeful glide (not a stroll): NO flight phase, NO big knee lift, a small forward lean, short quick steps; the hem swings and hides the knees, only the feet flick out at the hem.",
-      "guide": "art/requests/guides/robe_base/draft/pose.json (cloud draft until the PC delivers v1)",
+      "guide": "art/requests/guides/robe_base/v1/pose.json",
       "flight_phase": "none - one foot always on the ground; both feet down at contact",
       "torso": "small hurrying lean: 7 deg (5-8) from the hip to the neck (draft 6.8-7.6)",
       "hip": "smooth, nearly level glide: bob 0-8 px source (draft 5)",
@@ -266,6 +266,10 @@
       "gait": "none",
       "why": "giant spider (tpl 'bug' -> quad/multi-leg gait, no jumping)."
     },
+    "sheet/monster/고블린": {
+      "gait": "light",
+      "why": "small goblin with a crude blade, leather scraps (enemy_tpl imp default light); registered 2026-11-27 (Antigravity c4cc054)."
+    },
     "sheet/monster/들늑대": {
       "gait": "none",
       "why": "wolf (tpl 'beast' -> quad gait, bounds when running)."
@@ -282,6 +286,10 @@
     "sheet/monster/산적": {
       "gait": "light",
       "why": "humanoid bandit: leather jerkin, trousers, boots, hand axe, small buckler."
+    },
+    "sheet/monster/서리 트롤": {
+      "gait": "heavy",
+      "why": "big frost troll, massive body and club (enemy_tpl brute -> heavy by body size, same as the other brutes); registered 2026-11-27 (Antigravity c4cc054)."
     },
     "sheet/monster/하피": {
       "gait": "none",

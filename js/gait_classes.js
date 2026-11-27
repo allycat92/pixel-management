@@ -121,10 +121,12 @@ const GAIT_CLASSES = {
   "sheet/hero/seraphine": "robe",
   "sheet/monster/가고일": "none",
   "sheet/monster/거대 거미": "none",
+  "sheet/monster/고블린": "light",
   "sheet/monster/들늑대": "none",
   "sheet/monster/망령": "none",
   "sheet/monster/사막 도적": "light",
   "sheet/monster/산적": "light",
+  "sheet/monster/서리 트롤": "heavy",
   "sheet/monster/하피": "none",
   "sheet/monster/해골 병사": "light"
  }

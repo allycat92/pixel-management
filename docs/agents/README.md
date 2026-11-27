@@ -14,6 +14,7 @@
 
 ## 공통 규칙 (두 에이전트 모두)
 - **게임 브랜치 `claude/dot-fantasy-management-game-saupju` 에는 절대 푸시하지 않는다.**
+  - **예외 (주인 결정 2026-11-27)**: 주인이 클라우드가 쉬는 동안(사용량 제한 등) **대리 총괄**을 맡긴 에이전트는, 그 기간에 한해 게임 브랜치에 대기열·요청서·일감 문서(`art/requests/dot_queue.md`, `art/requests/phase3/*/README.md`, `docs/agents/queue.md`, `docs/agents/tasks/*`)를 올릴 수 있다. 게임 코드·`assets/`·그림 등록은 하지 않는다. 커밋 메시지에 `(acting lead)` 를 붙이고, 끝낼 때 보고 파일에 대리 시작·끝 시각과 한 일을 적는다. 클라우드는 돌아오면 그 커밋들을 읽고 이어받는다.
   - 그 브랜치에서 갈라 만든 자기 브랜치(`agent/<이름>`)에만 푸시한다.
   - 강제 푸시(`--force`)는 하지 않는다.
   - `art-inbox` 브랜치는 Codex 가 건드리지 않는다. 그곳은 GPT 그림, PC Aseprite, 헤드 Antigravity 의 그림·판정을 받는 곳이다(`art/inbox/` 만).
@@ -23,7 +24,7 @@
   - 남이 만든 완성 에셋이나 코드는 게임에 넣지 않는다.
   - 토큰이나 개인정보는 파일·로그에 남기지 않는다.
 - `assets/` 는 고치지 않는다. 그림 등록은 클라우드가 한다(Antigravity 의 그림·판정은 `art-inbox` 의 `art/inbox/` 로만).
-- 전투 코드(`js/battle.js`)를 바꾸면 아래 두 시험을 반드시 돌리고, 결과 줄을 보고에 붙인다.
+- 전투 코드(`js/battle.js`, `js/stats.js`, `js/muster.js`)를 바꾸면 아래 시험을 반드시 돌리고, 결과 줄을 보고에 붙인다. 능력치 전투(그림자)를 건드렸으면 `SIM_SHADOW=1 node tools/sim/bot.js 6 200` 의 md5 도 같아야 하고 `node tools/sim/shadow.js 6 200 --check` 가 0 이어야 한다.
   - `node tools/sim/battle.js 100`
   - `node tools/sim/bot.js`
 - 보고와 질문은 한국어로 짧게 쓴다. 코드 주석은 주변 코드의 말을 따른다.
@@ -78,3 +79,15 @@
 - **Aseprite MCP 안전 규칙**(주인의 기존 결정, Antigravity 에도 그대로): 검토를 마친 고정 커밋만 쓰고, 위험 도구 다섯(`run_lua_script`, `audit_animation`, `animation_sanitize`, `start_preview_server`, `stop_preview_server`)은 끈다 — `tools/aseprite-mcp/README.md`. Aseprite 실행 파일은 저장소에 올리지 않는다.
 - **판정**: 납품 메모 끝에 「판정 — id」 절로 스스로 통과·다시를 적는다(게임 속도로 본 것을 근거로). 클라우드는 기술 검사(검사기·규격·마네킹 베끼기)를 하고, 필요하면 GPT(QA)에게 교차 검수를 시킨다. 엇갈리면 주인이 정한다.
 - 플레이테스트·화면 QA 는 이제 GPT(QA)의 일이다(Antigravity 의 A1 은 GPT 로 옮겼다).
+
+## 자동 반복 (주인 결정 2026-11-26: 에이전트끼리 주기적으로 감지하고 주고받는다)
+주인이 매번 「계속」을 보내지 않아도 일이 이어지게 한다.
+- **에이전트 쪽**: 자기 일감을 다 하면 대기 명령을 돌린다(상시 지시문 7번). 일감 표가 바뀔 때까지 멈춰 있다가 새 일이 생기면 돌아와 계속한다.
+  ```
+  git fetch origin; git show origin/claude/dot-fantasy-management-game-saupju:tools/agents/wait_for_work.py | python - --agent antigravity
+  ```
+  (`codex`, `gpt` 도 같은 방식.) 60초마다 확인하고, 20분 동안 새 일이 없으면 `IDLE` 을 찍고 끝난다 — 그러면 같은 명령을 다시 돌린다. 기다리는 동안은 거의 비용이 들지 않는다.
+- **클라우드 쪽**: `tools/art/watch_inbox.sh`(그림 납품)와 `tools/agents/watch_agents.sh`(에이전트 브랜치)를 감시로 걸어 두고, 새 커밋이 오면 받아서 검토·등록하고 일감 표를 고친다. 세션이 쉬는 동안은 한 시간마다 정기 점검이 같은 일을 한다.
+- **흐름**: 클라우드가 일감을 올림 → 에이전트의 대기 명령이 깨어남 → 작업·납품 → 클라우드의 감시가 알아챔 → 검토 뒤 다음 일감(또는 고칠 점)을 올림 → 반복.
+- **상태 맞추기**: 에이전트가 자기 브랜치에서 `REVIEW` 로 바꾼 줄은 클라우드가 게임 브랜치의 표에도 반영한다(그래야 대기 명령이 같은 일을 다시 깨우지 않는다).
+- 멈추려면 그 창에 「멈춰」라고 한다.

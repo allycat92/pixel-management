@@ -56,6 +56,18 @@ SET = {
 # ducks behind it; the table had 0.23 / 0.30): K1 shield hand x +0.55 -> +0.62 head (253 -> 260 px), K2 +0.48 -> +0.60 (245 -> 258 px).
 # Heights, the K1/K2 body (posekit HIT_KEYS k1_mid / k2_mid), K3, K4, the sword and every ms are the README's.
 
+# ---------------------------------------------------------------- ARMS: table changes for posekit natural-arms 2 (README 「팔 고침」 2차)
+# the frame keys below replace the table's (None removes the key); "*" = set-level keys
+ARMS_FIX = {"*": {"preview_idle": {"name": "idle", "ms": 400, "hip": [0.00, 1.40], "lean": 0.08, "tilt": 0.0, "handN": [0.26, 1.71], "handF": [0.86, 2.12], "wa": 38}}, "K1 impact": {"handN": [0.18, 1.60], "handF": [0.72, 2.25]}, "K2 peak": {"handN": [0.02, 1.92], "handF": [0.62, 2.12]}, "K3 recover": {"handN": [0.20, 1.62], "handF": [0.72, 2.16]}, "K4 settle": {"handN": [0.24, 1.70], "handF": [0.86, 2.12]}}
+_T = globals().get("SET") or globals().get("CFG")
+_T.update(ARMS_FIX.get("*", {}))
+for _f in _T["frames"]:
+    for _k, _v in ARMS_FIX.get(_f["name"], {}).items():
+        if _v is None:
+            _f.pop(_k, None)
+        else:
+            _f[_k] = _v
+# ---------------------------------------------------------------- /ARMS
 repo = sys.argv[1]
 if len(sys.argv) >= 4:
     setf, out = sys.argv[2], sys.argv[3]
@@ -65,6 +77,7 @@ else:
     cfg = SET
 sys.path.insert(0, os.path.join(repo, 'tools', 'pixelart'))
 import posekit as pk  # noqa: E402
+assert getattr(pk, 'ARMS_VERSION', '').startswith('posekit natural-arms 2'), 'pull the repo: this table needs posekit natural-arms 2 (tools/pixelart/posekit.py)'  # ARMS
 import walk8 as w8  # noqa: E402
 
 HEAD, SLOT, H, BASE, SCALE = w8.HEAD_PX, w8.SLOT, w8.SH_, w8.BASELINE, w8.SCALE
@@ -113,6 +126,7 @@ def make_pose(f, lift=(0.0, 0.0)):
         dv = (up - hup) * 0.55 * B.hs
         ho = p.get('head_off', (0.0, 0.0))
         p['head_off'] = (ho[0] + dv[0], ho[1] - dv[1])
+    p['arms'] = 'natural'      # ARMS: posekit natural-arms 2 - the elbow bends the anatomical way (SPEC 10.3b)
     p['z'] = f.get('z', {'farfore': 'back'})
     return p
 

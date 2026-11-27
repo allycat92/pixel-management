@@ -37,6 +37,9 @@ Object.assign(Game, {
   maxContractLevel() { return this.lateGame() ? LATE_MAX_LEVEL : 10; },
 
   contractLevel(p, bonus = 0) {
+    // 전투 모드: 길드 전력에 맞춰 쉬운 것부터 벅찬 것까지 (js/muster.js battleLevel). 용병단이 없으면 아래 옛 규칙
+    const bl = this.battleMode && this.battleMode() ? this.battleLevel(p, bonus) : null;
+    if (bl) return bl;
     const r = this.rankIndex(), late = this.lateGame();
     const [lo0, hi0] = TIER_LEVELS[PROVINCES[p].tier];
     const hi = late ? Math.min(hi0 + 4, r + 6) : Math.min(hi0, r + 2);
@@ -90,7 +93,9 @@ Object.assign(Game, {
     const days = opts.days || this.travelDays(p) + (level > 5 ? 1 : 0);
     const title = opts.title || pick(t.titles)
       .replace('{e}', enemy || '').replace('{p}', pick(PROVINCES[p].places))
-      .replace('{t}', target ? FACTIONS[target].short : '').replace('{i}', FACTIONS[issuer].short);
+      .replace('{t}', target ? FACTIONS[target].short : '')
+      .replace('{tWith}', target ? josa(FACTIONS[target].short, '과', '와') : '')
+      .replace('{i}', FACTIONS[issuer].short);
     // 권장 인원이 용병단 크기에 맞춰 줄었으므로(옛 4~6명 → 2~4명) 요구 전투력은 옛 인원 기준(×1.25)으로 매긴다
     const req = Math.round(24 * Math.pow(1.4, level - 1) * (0.9 + Math.random() * 0.2) * (0.8 + Math.min(size * 1.25, 6) * 0.1));
     // 금화는 전쟁에서 나온다: 전쟁 의뢰 ×1.5, 평시 분쟁 ×0.7, 외교 ×0.6, 괴물·치안 ×0.3
@@ -99,7 +104,7 @@ Object.assign(Game, {
     if (s.calamityDefeated && !war) catMul *= 1.8; // 재앙 이후 전후 복구 의뢰
     const mul = (1 + s.facilities.board * 0.08) * (s.branches[p] ? 1.1 : 1) * (s.bossDefeated[p] ? 1.1 : 1)
       * this.standingMul(issuer) * catMul * (FACTIONS[issuer].neutral ? 1 : this.doctrine(issuer).pay);
-    return {
+    const c = {
       id: s.nextId++, type: opts.type, cat: t.cat, war, title, level, size, days, req, province: p, issuer, target, enemy,
       reward: Math.round((40 + level * 30 + level * level * 3) * (0.85 + Math.random() * 0.3) * (1 + days * 0.12) * mul),
       // 큰 의뢰 명성 보너스: 옛 기준(4명 이상)을 줄어든 권장 인원에 맞춰 3명 이상으로 — 이야기·보스·분쟁 의뢰는 예전처럼 받는다.
@@ -108,6 +113,9 @@ Object.assign(Game, {
       rep: Math.round((4 + level * 3 + (size >= 3 && t.cat !== 'diplomacy' && t.cat !== 'monster' ? 2 : 0)) * (t.cat === 'monster' ? 1 : 1.2)),
       expires: s.day + rand(3, 6),
     };
+    // 전투 모드: 저장의 소금을 의뢰에 굳혀 둔다 (전투 시드·적 편성. 날마다 바뀌지 않고, 의뢰 번호로 미리 알 수 없다)
+    if (s.resolve === 'battle' && s.salt) c.bseed = Stats.mix(s.salt, c.id, 0x5a17);
+    return c;
   },
 
   // 세력 분쟁 의뢰 시도: 의뢰 세력이 전쟁 중이거나 적대 세력이 있으면 그 상대를 겨냥
@@ -191,6 +199,7 @@ Object.assign(Game, {
       if (!force && Math.random() < 0.45) break;
       s.contracts.push(this.makeRandomContract());
     }
+    if (s.resolve === 'battle') this.reliefCheck();   // 전투 모드: 대장만 남은 길드에 구호 의뢰
   },
 
   // ───────── 대규모 결전 ─────────
@@ -222,7 +231,7 @@ Object.assign(Game, {
       offered++;
     });
     if (offered) {
-      this.log(`⚔ 대규모 결전 임박: 「${PROVINCES[p].name}」에서 ${FACTIONS[attacker].name}과(와) ${FACTIONS[defender].name}이(가) 맞붙습니다. 양측이 용병단을 모집합니다! (5일 내 결정)`, 'event');
+      this.log(`⚔ 대규모 결전 임박: 「${PROVINCES[p].name}」에서 ${FACTIONS[attacker].name}${josa(FACTIONS[attacker].name, '과', '와')} ${FACTIONS[defender].name}${josa(FACTIONS[defender].name, '이', '가')} 맞붙습니다. 양측이 용병단을 모집합니다! (5일 내 결정)`, 'event');
     }
   },
 
@@ -310,6 +319,8 @@ Object.assign(Game, {
     const days = this.contractDays(c, units);
     s.contracts = s.contracts.filter((x) => x.id !== contractId && (!c.campaign || !x.campaign || x.campaign.id !== c.campaign.id));
     const mission = { id: s.nextId++, contract: c, units: units.map((u) => ({ ...u })), startDay: s.day, returnDay: s.day + days, chance };
+    // 전투 입력을 지금(출격 피로가 붙기 전) 굳혀 둔다: mission.spec, mission.est (js/muster.js). 아직은 그림자 — 결과는 chance 가 정한다.
+    if (this.freezeMission) this.freezeMission(mission, c, units);
     s.missions.push(mission);
     own.forEach((o) => { o.c.missionId = mission.id; });
     ext.forEach((e) => {
@@ -340,23 +351,32 @@ Object.assign(Game, {
         if (e.loyalty < 25 && Math.random() < 0.35) {
           chance -= 0.25;
           e.loyalty = 0;
-          report.notes.push(`「${e.name}」이(가) 전투 도중 적에게 돌아섰습니다!`);
-          this.log(`배신! 「${e.name}」이(가) 결전 도중 ${FACTIONS[c.target].name} 편으로 돌아섰습니다.`, 'bad');
+          report.notes.push(`「${e.name}」${josa(e.name, '이', '가')} 전투 도중 적에게 돌아섰습니다!`);
+          this.log(`배신! 「${e.name}」${josa(e.name, '이', '가')} 결전 도중 ${FACTIONS[c.target].name} 편으로 돌아섰습니다.`, 'bad');
           e.betrayed = true;
         }
       });
     }
 
     const mods = this.partyMods(allMembers.length ? allMembers : []);
-    const roll = Math.random();
+    // 전투 모드(Game.RESOLVE === 'battle'): 굳혀 둔 편성의 전투가 결과를 정한다 (js/muster.js battleResolve). 그 밖에는 오늘의 판정 그대로
+    const fought = s.resolve === 'battle' ? this.battleResolve(mission, report, mods) : null;
     let outcome;
-    if (roll < chance * 0.25 * mods.great) outcome = 'great';
-    else if (roll < chance) outcome = 'success';
-    else if (roll > chance + (1 - chance) * 0.75 && chance < 0.6) outcome = mods.noDisaster ? 'fail' : 'disaster';
-    else outcome = 'fail';
+    if (fought) outcome = fought.verdict.outcome;
+    else {
+      const roll = Math.random();
+      if (roll < chance * 0.25 * mods.great) outcome = 'great';
+      else if (roll < chance) outcome = 'success';
+      else if (roll > chance + (1 - chance) * 0.75 && chance < 0.6) outcome = mods.noDisaster ? 'fail' : 'disaster';
+      else outcome = 'fail';
+    }
     const won = outcome === 'great' || outcome === 'success';
     report.outcome = outcome;
-    report.seed = rand(1, 1e9); // 전투 연출용 시드
+    report.seed = rand(1, 1e9); // 전투 연출용 시드 (옛 재생용. 전투 모드는 report.battle.spec 을 그대로 재생한다)
+    // 그림자 전투: 굳혀 둔 편성으로 능력치 전투를 한 번 돌려 report.shadow 에 적는다 (결과·화면·난수와 무관, js/muster.js)
+    if (!fought && this.shadowResolve) this.shadowResolve(mission, report, mods);
+    const fates = fought ? this.fatesOf(fought.spec, fought.rec) : null;
+    const KB = Stats.KN;
 
     // 금화: 외부 용병단 몫을 전력 비율대로 떼어 준다
     if (won) {
@@ -373,6 +393,13 @@ Object.assign(Game, {
         s.inventory.push(it);
         report.notes.push(`보물 사냥: 「${it.name}」 획득`);
       }
+    } else if (fought) {
+      // 전투 모드: 무찌른 적 전력만큼 보수를 받는다 (실패 10% + 비율 × 0.5, 대참사는 비율 몫만). 패배 뒤 한 주는 탈주가 없다
+      report.gold = Math.round(c.reward * ((outcome === 'fail' ? KB.LOSS_PAY : 0) + KB.LOSS_PAY_SHARE * fought.share));
+      report.rep = -Math.round(c.rep * (outcome === 'disaster' ? 0.6 : 0.3));
+      if (fought.share >= 0.05) report.notes.push(`적 전력의 ${Math.round(fought.share * 100)}%를 꺾어 보수 일부(금화 ${report.gold})를 받았습니다.`);
+      s.graceUntil = s.day + KB.GRACE_DAYS;
+      s.stats.failed++;
     } else {
       report.gold = outcome === 'fail' ? Math.round(c.reward * 0.1) : 0;
       report.rep = -Math.round(c.rep * (outcome === 'disaster' ? 0.6 : 0.3));
@@ -389,14 +416,20 @@ Object.assign(Game, {
     const expMul = { great: 1.5, success: 1, fail: 0.5, disaster: 0.3 }[outcome];
     const injuryBase = { great: 0.05, success: 0.15, fail: 0.4, disaster: 0.7 }[outcome];
     const dead = [];
+    const special = fought && this.specialBattle(c);
     allMembers.forEach((m) => {
       const r = { id: m.id, name: m.name, cls: m.cls, look: m.look, exp: 0, levelUp: false, injury: 0, dead: false, company: m.companyId };
       m.missionId = null; m.status = 'idle'; m.quests++;
       if (won && m.hero) m.bond += HEROES[m.hero].faction && this.standing(HEROES[m.hero].faction) >= 45 ? 2 : 1;
+      // 전투 모드: 실제로 쓰러진 단원만 다치거나(죽거나) 한다. 편성에 들지 못한 단원(옛 저장의 큰 용병단)은 서 있던 것으로 본다
+      const f = fates ? (fates.get(m.id) || { fate: 0, hp: 100 }) : null;
+      if (f) { r.down = f.fate === 1; r.fled = f.fate === 2; }
       let deathChance = (outcome === 'disaster' ? 0.3 : 0) * mods.death;
+      // 전투 모드의 사망: 특별한 전투의 대참사에서 쓰러진 단원만, 용병단마다 한 명까지, 길드 인원이 GUILD_FLOOR 아래로는 안 된다 (설계 6장 + 주인 결정 2)
+      if (f) deathChance = special && outcome === 'disaster' && f.fate === 1 && !dead.some((d) => d.company === m.companyId) && s.mercs.length > KB.GUILD_FLOOR ? KB.DEATH_P * mods.death : 0;
       if (this.isCaptain(m)) deathChance = 0; // 용병대장은 쓰러져도 죽지 않는다 (대신 크게 다친다)
       if (m.trait === 'sturdy') deathChance *= 0.6;
-      if (Math.random() < deathChance) {
+      if ((!f || deathChance > 0) && Math.random() < deathChance) {   // 옛 판정은 확률이 0 이어도 굴린다 (난수 순서 유지)
         r.dead = true;
         dead.push(r);
         s.stats.fallen++;
@@ -407,6 +440,24 @@ Object.assign(Game, {
       }
       r.exp = Math.round(baseExp * expMul);
       r.levelUp = this.gainExp(m, r.exp);
+      if (f) {
+        // 전투 모드의 부상 (설계 6장): 쓰러짐 — 이기면 0.6, 지면 0.9 (대참사 +2일), 서 있었지만 체력 25% 미만 — 0.3 (1~2일), 물러남 — 없음.
+        // 대참사에서 쓰러진 대장, 그리고 특별하지 않은 전투의 대참사에서 쓰러진 단원(사망 대신)은 반드시 다친다.
+        let inj = f.fate === 1 ? (won ? KB.INJ_WIN : KB.INJ_LOSE) : f.fate === 0 && f.hp < 25 ? KB.INJ_LOW : 0;
+        inj *= mods.injury;
+        if (m.trait === 'sturdy' || m.trait === 'coward' || m.trait === 'northknight') inj *= 0.5;
+        if (f.fate === 1 && outcome === 'disaster' && (this.isCaptain(m) || !special)) inj = 1;
+        let dm = { great: 6, success: 2, fail: -6, disaster: -12 }[outcome];
+        if (outcome === 'fail' && fought.rec.end === 'retreat') dm = Math.round(dm * KB.RETREAT_MORALE);   // 질서 있게 물러났다
+        if (dm > 0 || !mods.noMoraleLoss) this.changeMorale(m, dm);
+        if (inj > 0 && Math.random() < inj) {
+          r.injury = f.fate === 1 ? rand(2, 4) + (outcome === 'disaster' ? 2 : 0) : rand(1, 2);
+          if (mods.healHalf) r.injury = Math.ceil(r.injury / 2);
+          m.status = 'injured'; m.injury = r.injury;
+        }
+        report.members.push(r);
+        return;
+      }
       let inj = injuryBase * mods.injury;
       if (m.trait === 'sturdy' || m.trait === 'coward' || m.trait === 'northknight') inj *= 0.5;
       if (this.isCaptain(m) && outcome === 'disaster') inj = 1;
@@ -428,15 +479,15 @@ Object.assign(Game, {
         const before = this.rel(a, b);
         const d = this.traitsClash(a, b) ? -6 : (outcome === 'great' ? 8 : won ? 5 : 3) * (a.companyId === b.companyId ? 1 : 0.5);
         this.addRel(a, b, d);
-        if (before < FRIEND_REL && this.rel(a, b) >= FRIEND_REL) this.log(`${a.name}와(과) ${b.name}이(가) 전우가 되었습니다!`, 'good');
-        if (before > RIVAL_REL && this.rel(a, b) <= RIVAL_REL) this.log(`${a.name}와(과) ${b.name}의 사이가 틀어졌습니다.`, 'bad');
+        if (before < FRIEND_REL && this.rel(a, b) >= FRIEND_REL) this.log(`${a.name}${josa(a.name, '과', '와')} ${b.name}${josa(b.name, '이', '가')} 전우가 되었습니다!`, 'good');
+        if (before > RIVAL_REL && this.rel(a, b) <= RIVAL_REL) this.log(`${a.name}${josa(a.name, '과', '와')} ${b.name}의 사이가 틀어졌습니다.`, 'bad');
       }
     }
     dead.forEach((r) => {
       s.mercs.forEach((m) => {
         const grief = (m.rel && m.rel[r.id]) >= FRIEND_REL;
         this.changeMorale(m, grief ? -25 : -8);
-        if (grief) this.log(`${m.name}이(가) 전우 ${r.name}의 죽음에 깊이 슬퍼합니다.`, 'bad');
+        if (grief) this.log(`${m.name}${josa(m.name, '이', '가')} 전우 ${r.name}의 죽음에 깊이 슬퍼합니다.`, 'bad');
       });
     });
     // 용병단 기록과 결속도
@@ -448,7 +499,7 @@ Object.assign(Game, {
       // 옛 저장에서 출격 중이던 큰 용병단은 귀환 후 정원에 맞춘다
       const moved = this.trimCompany(o.c);
       if (moved.length) {
-        const note = `편제 개편: 「${o.c.name}」의 ${moved.map((m) => m.name).join(', ')}이(가) 예비 인원으로 옮겨졌습니다.`;
+        const note = `편제 개편: 「${o.c.name}」의 ${moved.map((m) => m.name).join(', ')}${josa(moved.map((m) => m.name).join(', '), '이', '가')} 예비 인원으로 옮겨졌습니다.`;
         report.notes.push(note);
         this.log(note, 'event');
       }
@@ -461,7 +512,15 @@ Object.assign(Game, {
     });
     ext.forEach((e) => {
       const before = e.loyalty;
-      const lost = e.betrayed ? 0 : this.extAfterMission(e, outcome, c);
+      // 전투 모드: 잃는 인원은 실제로 쓰러진 단원 (진 전투에서 각자 EXT_KEEP 확률로 돌아오고 최대 EXT_LOST_CAP 명, 이기면 잃지 않는다)
+      let lostN;
+      if (fought) {
+        const downN = this.extDownOf(fought.spec, fought.rec).get(e.id) || 0;
+        lostN = 0;
+        if (!won) for (let i = 0; i < downN; i++) if (Math.random() >= KB.EXT_KEEP) lostN++;
+        lostN = Math.min(KB.EXT_LOST_CAP, lostN);
+      }
+      const lost = e.betrayed ? 0 : this.extAfterMission(e, outcome, c, lostN);
       if (e.betrayed) { e.missionId = null; this.state.companies = this.state.companies.filter((x) => x.id !== e.id); }
       report.ext.push({ name: e.name, color: e.color, look: e.captain.look, lost, loyalty: e.loyalty - before, betrayed: !!e.betrayed });
       report.companies.push({ name: e.name, color: e.color, own: false, size: e.size + lost, level: e.level, look: e.captain.look, betrayed: !!e.betrayed });
@@ -486,7 +545,7 @@ Object.assign(Game, {
       if (won) this.completeStory(c.story);
       else if (!s.heroes[c.story.hero].dead) {
         s.contracts.unshift({ ...c, id: s.nextId++ });
-        this.log(`「${c.title}」은(는) 다시 도전할 수 있습니다.`);
+        this.log(`「${c.title}」${josa(c.title, '은', '는')} 다시 도전할 수 있습니다.`);
       }
     }
   },
@@ -636,8 +695,8 @@ Object.assign(Game, {
       c.reward = Math.round(c.reward * 1.5);
       c.rep *= 2;
       s.contracts.unshift(c);
-      this.log(`${m.name}의 개인 의뢰 「${ch.title}」이(가) 올라왔습니다!`, 'event');
-      s.pendingReports.push({ special: 'dialog', hero: m.hero, title: `개인 의뢰: ${ch.title}`, lines: ch.before, foot: `${m.name}이(가) 속한 용병단을 보내야 합니다.` });
+      this.log(`${m.name}의 개인 의뢰 「${ch.title}」${josa(ch.title, '이', '가')} 올라왔습니다!`, 'event');
+      s.pendingReports.push({ special: 'dialog', hero: m.hero, title: `개인 의뢰: ${ch.title}`, lines: ch.before, foot: `${m.name}${josa(m.name, '이', '가')} 속한 용병단을 보내야 합니다.` });
     });
   },
 
@@ -708,7 +767,7 @@ Object.assign(Game, {
       c.rep *= 3;
       c.expires = STORY_EXPIRES;
       s.contracts.unshift(c);
-      this.log(`재앙 출현! 「${PROVINCES[p].name}」에 「${b.name}」이(가) 나타났습니다.`, 'event');
+      this.log(`재앙 출현! 「${PROVINCES[p].name}」에 「${b.name}」${josa(b.name, '이', '가')} 나타났습니다.`, 'event');
       s.pendingReports.push({ special: 'notice', enemy: b.enemy, title: `재앙 출현: ${b.name}`, lines: [[null, b.intro]], foot: '의뢰 목록에 토벌 의뢰가 올라왔습니다. 마감은 없습니다.' });
     });
   },

@@ -73,13 +73,14 @@ const SKIN_TONES = ['#f2c9a0', '#e0ac7e', '#c68a5c', '#8d5a3b', '#f5d6b8'];
 const HAIR_COLORS = ['#2b1d14', '#5a3720', '#a8642a', '#e3c565', '#c9c2b8', '#8c2f2f', '#3a3f6b'];
 
 // 의뢰 유형: 스탯 가중치가 다르다
+// rule: 능력치 전투(js/stats.js)에서 이긴 것으로 치는 조건 — 'hold' 는 끝까지 버텨도 승리, 없으면 'field'(시간 안에 적을 무너뜨려야 승리)
 const QUEST_TYPES = {
   hunt: {
     cat: 'monster', name: '토벌', icon: 'sword', weights: { str: 1.3, dex: 0.8, int: 0.6, hp: 0.12 },
     titles: ['{e} 토벌', '{e} 소굴 소탕', '{e} 무리 퇴치', '날뛰는 {e} 처치'],
   },
   escort: {
-    cat: 'monster', name: '호위', icon: 'shield', weights: { str: 1.0, dex: 0.9, int: 0.6, hp: 0.2 },
+    cat: 'monster', name: '호위', icon: 'shield', weights: { str: 1.0, dex: 0.9, int: 0.6, hp: 0.2 }, rule: 'hold',
     titles: ['{p}까지 상단 호위', '{p}행 순례자 호위', '귀족 마차 호위 ({p})', '{p} 보급품 수송 호위'],
   },
   explore: {
@@ -91,7 +92,7 @@ const QUEST_TYPES = {
     titles: ['{p}의 저주 해제', '{p} 마력 이상 조사', '{p} 봉인 강화', '{p}의 유령 퇴마'],
   },
   defense: {
-    cat: 'monster', name: '방어', icon: 'shield', weights: { str: 1.1, dex: 0.6, int: 0.7, hp: 0.3 },
+    cat: 'monster', name: '방어', icon: 'shield', weights: { str: 1.1, dex: 0.6, int: 0.7, hp: 0.3 }, rule: 'hold',
     titles: ['{p} 방어전', '{e}의 습격 저지', '{p} 성벽 수비', '{p} 피난민 보호'],
   },
   // ── 세력 분쟁 의뢰: {t} 대상 세력, {i} 의뢰 세력, {p} 장소 ──
@@ -112,7 +113,7 @@ const QUEST_TYPES = {
     titles: ['{t}에 잡힌 포로 구출', '{p} 감옥 습격', '{t} 진영의 인질 구출'],
   },
   warDefense: {
-    cat: 'conflict', name: '방어전', icon: 'shield', weights: { str: 1.1, dex: 0.6, int: 0.7, hp: 0.3 },
+    cat: 'conflict', name: '방어전', icon: 'shield', weights: { str: 1.1, dex: 0.6, int: 0.7, hp: 0.3 }, rule: 'hold',
     titles: ['{t}의 침공으로부터 {p} 방어', '{p} 성벽 수비 ({t} 공세)', '{p} 피난민 호송 ({t} 추격)'],
   },
   counterspy: {
@@ -120,8 +121,8 @@ const QUEST_TYPES = {
     titles: ['{p}에 잠입한 {t} 첩자 색출', '{t} 밀정 체포', '{p}의 {t} 선동꾼 추적'],
   },
   envoy: {
-    cat: 'diplomacy', name: '사절 호위', icon: 'star', weights: { str: 0.9, dex: 0.9, int: 1.0, hp: 0.15 },
-    titles: ['{t}와(과)의 강화 사절 호위', '{p} 회담장 경호', '{t}행 밀사 호위'],
+    cat: 'diplomacy', name: '사절 호위', icon: 'star', weights: { str: 0.9, dex: 0.9, int: 1.0, hp: 0.15 }, rule: 'hold',
+    titles: ['{t}{tWith}의 강화 사절 호위', '{p} 회담장 경호', '{t}행 밀사 호위'],
   },
   battle: {
     cat: 'campaign', name: '결전', icon: 'sword', weights: { str: 1.1, dex: 0.8, int: 0.8, hp: 0.2 },
