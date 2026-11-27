@@ -1788,8 +1788,9 @@
         "prompt": "1boy, solo, dark-skinned muscular man, shaved head, broken shackles still on his wrists, chain weapon, red outfit, grey trim, four heads tall, full body, three-quarter view, facing right, wide stance, bent knees, fighting stance, muted colors, desaturated, dark fantasy, game sprite, pixel art, simple background, flat magenta background, no shadow",
         "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
       },
-      "scale": 0.18,
-      "cell": 112
+      "scale": 0.1654,
+      "cell": 96,
+      "gait_source": "sheet_captain_liberator_chain.png"
     },
     {
       "kind": "sheet",
@@ -1999,7 +2000,8 @@
         "negative": "lowres, bad anatomy, bad hands, text, watermark, signature, logo, multiple views, reference sheet, cropped, out of frame, blurry, background scenery, floor, ground shadow, drop shadow, extra arms, extra legs, gradient background"
       },
       "scale": 0.1654,
-      "cell": 112
+      "cell": 112,
+      "gait_split": "components"
     }
   ]
 }
