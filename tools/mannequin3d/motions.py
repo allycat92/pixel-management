@@ -23,7 +23,7 @@ import math
 
 import numpy as np
 
-from rig import leg_ik, fk, full_pose, foot_points, rz, leg_len, CANON
+from rig import leg_ik, fk, full_pose, foot_points, rz, CANON
 
 CANON_LEG = CANON['thigh'] + CANON['shin'] + CANON['ankle_h']
 
@@ -320,10 +320,10 @@ def warrior_attack(P, char):
     windup = dict(base, hip_h=170 * k, x=-12.0, pelvis_pitch=-2, spine_pitch=-4, chest_pitch=-4, chest_yaw=base['chest_yaw'] + 14,
                   shoulder_N=165, elbow_N=105, shoulder_F=40, elbow_F=95, wrist_N=-20, head_pitch=2)
     strike = dict(base, hip_h=152 * k, x=12.0, pelvis_pitch=14, spine_pitch=8, chest_pitch=6, chest_yaw=base['chest_yaw'] - 12,
-                  shoulder_N=78, elbow_N=8, shoulder_F=-10, elbow_F=80, wrist_N=-8, head_pitch=4)
+                  shoulder_N=58, elbow_N=14, shoulder_F=-10, elbow_F=80, wrist_N=-8, head_pitch=4)
     sword = lambda a: [{'hand': 'N', 'kind': 'sword', 'angle': a, 'length': 125.0}, {'hand': 'F', 'kind': 'shield', 'radius': 58.0}]
     keys = [('ready', ready, sword(60.0), feet), ('windup', windup, sword(125.0), feet),
-            ('strike', strike, sword(285.0), feet_lunge)]
+            ('strike', strike, sword(292.0), feet_lunge)]
     return keys, {1: 2}
 
 

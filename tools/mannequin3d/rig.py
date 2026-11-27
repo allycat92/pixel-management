@@ -235,7 +235,7 @@ def add_prop(B, P, pr):
     if kind == 'shield':
         # flat disc on the forearm, its face turned like the chest (toward the viewer-front)
         R = Fm['chest'] @ turn(pr.get('angle', 0.0))
-        c = (J['wri' + s] * 0.6 + J['elb' + s] * 0.4) + R @ np.array([14.0, 0.0, 0.0])
+        c = (J['wri' + s] * 0.5 + J['elb' + s] * 0.5) + R @ np.array([pr.get('offset', 6.0), 0.0, 0.0])
         rad = pr.get('radius', 62.0)
         h = pr.get('height', rad)
         J['prop_base'], J['prop_tip'] = c, c + R @ np.array([0.0, h, 0.0])

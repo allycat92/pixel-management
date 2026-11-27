@@ -62,7 +62,7 @@ CHARS = {
         'sheet': 'sheet/class/warrior', 'gait': 'run_light',
         'arm_N': _warrior_sword_arm, 'arm_F': _shield_arm,
         'props': [{'hand': 'N', 'kind': 'sword', 'abs_angle': -138.0, 'length': 118.0},
-                  {'hand': 'F', 'kind': 'shield', 'radius': 58.0}],
+                  {'hand': 'F', 'kind': 'shield', 'radius': 54.0}],
         'actions': True,
     },
     'ironwall': {
@@ -248,9 +248,9 @@ def contact_sheet(name, rgb_src, mask_src, info, P, cam, char, rep, path):
     ov[edge] = (0, 200, 255)
     y0, y1 = 360, 905
     W = SLOT_W * 3 + 40
-    sheet = Image.new('RGB', (W, (y1 - y0) + 150), (30, 30, 36))
+    sheet = Image.new('RGB', (W, (y1 - y0) + 190), (30, 30, 36))
     d = ImageDraw.Draw(sheet)
-    f, fb, fs = font(15), font(17, True), font(13)
+    fs = font(13)
     for i, (im, lab) in enumerate(((Image.fromarray(idle), 'accepted idle (art/inbox, source px)'),
                                    (man_img, '3D mannequin, fitted, idle stance'),
                                    (Image.fromarray(ov), 'overlay: idle faint + mannequin outline'))):
@@ -266,8 +266,10 @@ def contact_sheet(name, rgb_src, mask_src, info, P, cam, char, rep, path):
              f"hip {m['hip_h']} ({m['hip_method']}), lower leg {m.get('leg_w')} px, reach front/back {m['reach_front']}/{m['reach_back']}",
              f"fitted  : height {fm['height']}, head {fm['head']}, shoulder {fm['shoulder_h']}, hip {fm['hip_h']}, lower leg {fm.get('leg_w')}",
              'factors : ' + ', '.join(f'{k} {v}' for k, v in rep['factors'].items())]
-    for i, t in enumerate(lines):
-        d.text((10, 30 + (y1 - y0) + 10 + i * 22), t, font=fs, fill=(230, 230, 230))
+    import textwrap
+    wrapped = [w for t in lines for w in textwrap.wrap(t, 150, subsequent_indent='          ')]
+    for i, t in enumerate(wrapped):
+        d.text((10, 30 + (y1 - y0) + 10 + i * 20), t, font=fs, fill=(230, 230, 230))
     sheet.save(path)
 
 

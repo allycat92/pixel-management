@@ -233,10 +233,9 @@ def measure(mask, anchor_col, heads=4):
 
 def idle_pose(P):
     """the mannequin's measuring pose: wide idle stance like the battle sheets"""
-    from motions import lock_feet
     return {'hip_h': (P['thigh'] + P['shin'] + P['ankle_h']) * 0.9, 'chest_yaw': 35.0, 'pelvis_pitch': 4,
-            'shoulder_N': 12, 'elbow_N': 70, 'shoulder_F': 20, 'elbow_F': 80, 'head_pitch': 4,
-            '_feet': {'N': (-80.0 * P['thigh'] / CANON['thigh'], -8.0), 'F': (110.0 * P['thigh'] / CANON['thigh'], 0.0)}}
+            'shoulder_N': 12, 'elbow_N': 70, 'shoulder_F': 30, 'elbow_F': 105, 'head_pitch': 4,
+            '_feet': {'N': (-100.0 * P['thigh'] / CANON['thigh'], -8.0), 'F': (118.0 * P['thigh'] / CANON['thigh'], 0.0)}}
 
 
 def render_mask(P, pose, yaw=15.0):
@@ -266,7 +265,6 @@ def fit(sid, yaw=15.0, verbose=False):
     P['head_r'] = [v * kh for v in P['head_r']]
     P['head_c'] *= kh
     # legs from the hip height (keep the ankle height), trunk from shoulder - hip
-    leg_c = CANON['thigh'] + CANON['shin'] + CANON['ankle_h']
     hip_c = cm['hip_h']
     kl = (m['hip_h'] / hip_c) / k if not m['hip_method'].startswith('0.43') else 1.0
     kl = float(np.clip(kl, 0.85, 1.15))
