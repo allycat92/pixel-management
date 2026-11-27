@@ -2,12 +2,12 @@
 // 예상(forecast)·판정(judge)·전투(Battle.run)가 모두 이 spec 하나만 읽는다. 여기서는 Math.random 을 쓰지 않고 상태도 바꾸지 않는다.
 // 지금은 '그림자' 단계: 의뢰 결과는 여전히 판정(성공 확률)이 정하고, 능력치 전투는 귀환 때 한 번 돌려 report.shadow 에 적기만 한다.
 // 설계: docs/plans/battle_stats/design.md 5장, 만든 것: stage01_notes.md
-// 3단계(스위치 뒤): Game.RESOLVE === 'battle' 이면 굳힌 편성의 전투가 결과를 정한다 (battleResolve). 기본 'roll' 은 오늘 게임 그대로 — stage3_notes.md
+// 3단계: Game.RESOLVE === 'battle' 이면 굳힌 편성의 전투가 결과를 정한다 (battleResolve). 브라우저의 새 게임 기본(11-27). 'roll' 은 예전 판정 — stage3_notes.md
 'use strict';
 
 // 결과를 정하는 방식: 'roll' (기본, 오늘의 성공 확률 판정) | 'battle' (출격 때 굳힌 편성의 능력치 전투).
-// 저장에 남는다(state.resolve, 없으면 'roll'). 브라우저의 새 게임은 'battle' 로 시작한다(js/main.js·ui.js newGameNow, 주소 ?resolve=roll 이면 'roll').
-// Game.newGame() 자체는 'roll' 그대로 — 봇·시뮬레이터(tools/sim)의 회귀 기준(md5)을 지키려는 것이다.
+// 저장에 남는다(state.resolve, 없으면 'roll'). 브라우저의 새 게임은 Game.newGame('battle') 로 시작한다(js/main.js·ui.js newGameNow, 주소 ?resolve=roll 이면 'roll').
+// 인자 없는 Game.newGame() 은 'roll' 그대로 — 봇·시뮬레이터(tools/sim)의 회귀 기준(md5)을 지키려는 것이다.
 Object.defineProperty(Game, 'RESOLVE', {
   configurable: true,
   get() { return this.state && this.state.resolve === 'battle' ? 'battle' : 'roll'; },

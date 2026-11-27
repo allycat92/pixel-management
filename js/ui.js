@@ -824,10 +824,9 @@ const UI = (() => {
   function newGameNow() {
     Battle.stop();
     Game.clearSave();
-    Game.newGame();
     // 새 게임은 전투 판정 모드. 주소 ?resolve=roll 로 연 창만 예전 확률 판정 (js/main.js)
     const rq = typeof location !== 'undefined' ? new URLSearchParams(location.search).get('resolve') : null;
-    Game.setResolve(rq === 'roll' ? 'roll' : 'battle');
+    Game.newGame(rq === 'roll' ? 'roll' : 'battle');
     Game.emit();
   }
   function startNewGame() {
@@ -904,7 +903,7 @@ const UI = (() => {
           el('li', { text: '대규모 결전에는 의뢰에 따라 용병단을 최대 2개 또는 3개까지 보낼 수 있습니다. 양쪽 중 한 진영만 선택할 수 있습니다.' }),
           battle ? el('li', { text: '쓰러진 단원은 그 전투에서 더 싸우지 못하며, 전투가 끝난 뒤 부상으로 쉬어야 할 수 있습니다. 일반 의뢰에서는 전사하지 않지만, 보스 토벌·최종 결전·개인 이야기의 마지막 전투에서 대패하면 전사할 수 있습니다.' }) : null,
           el('li', { text: '평판이 높은 세력은 혜택을 주고, 적대 세력은 의뢰를 끊고 보복합니다.' }),
-          el('li', { text: '7일마다 주급과 계약 유지비를 냅니다. 금화가 -300 아래로 떨어지면 파산합니다. 스페이스바로 다음 날로 넘어갑니다.' }))),
+          el('li', { text: battle ? '7일마다 주급과 계약 유지비를 냅니다. 빚이 300금과 한 주 주급 중 큰 금액을 넘으면 파산합니다. 스페이스바로 다음 날로 넘어갑니다.' : '7일마다 주급과 계약 유지비를 냅니다. 금화가 -300 아래로 떨어지면 파산합니다. 스페이스바로 다음 날로 넘어갑니다.' }))),
       el('div', { class: 'modal-actions' },
         el('button', { class: 'btn danger', text: '새 게임', onclick: () => confirmBox('정말 처음부터 다시 시작할까요? 저장된 진행이 지워집니다.', newGameNow) }),
         el('button', { class: 'btn primary', text: '닫기', onclick: closeModal }))));

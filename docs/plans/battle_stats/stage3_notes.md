@@ -9,7 +9,7 @@ measurements of the fixed code; the first implementation's numbers are kept only
 
 ## The switch
 
-`Game.RESOLVE` is `'roll'` (default) or `'battle'`.
+`Game.RESOLVE` is `'roll'` or `'battle'`. **Since 2026-11-27 (owner: ship the passed work) a new browser game starts in `'battle'`** (`Game.newGame('battle')`, before the first board is filled); `?resolve=roll` starts/switches to roll; existing saves keep their stored mode. `Game.newGame()` with no argument is still roll, so bots/sims and the roll md5 are unchanged.
 
 - It is a getter/setter on `Game` (`js/muster.js`) backed by `state.resolve`, so it is saved with the game. A new game
   asks nothing and starts in `'roll'`; `state.resolve` is absent in roll saves, so roll saves are byte-for-byte the
