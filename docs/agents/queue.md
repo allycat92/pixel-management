@@ -8,6 +8,7 @@
 | 누구 | id | 상태 | 할 일 (자세한 것은 그 줄의 문서) |
 |---|---|---|---|
 | Codex | `C27-crosscheck-c24` | READY | (C26 보다 먼저 — 기본 전환이 기다림) GPT 의 C24 교차 확인: 부상 분포·전투 모드 경제 변화: `docs/agents/tasks/C27-crosscheck-c24.md` |
+| GPT | `C28-exhausted-dispatch` | READY | 모두 탈진한 부대: 카드 「보낼 용병단 없음」인데 파견 버튼이 눌리고 빈 편성 「무모」가 보임: `docs/agents/tasks/C28-exhausted-dispatch.md` |
 | GPT | `C24-battle-injury-loss-fixed` | REVIEW | (Codex C27 교차 확인 대기) 전투 뒤 부상·외부단 손실 고정 |
 
 ## 끝난 일
