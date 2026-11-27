@@ -786,7 +786,7 @@ const Battle = (() => {
   }
   const GHOST_FAR = 20;
   const SQUEEZE = 2;                 // 거듭 막힌 걸음이 서 있는 아군을 지나갈 수 있는 시간(초)
-  const GAIN = 2;                    // 닿지 못한 걸음이 목표와의 거리를 이만큼(px)도 못 줄인 채 1초를 걸으면 막힌 것으로 친다
+  const GAIN = 2, STALL = 3;         // 닿지 못한 걸음이 목표와의 거리를 GAIN(px)도 못 줄인 채 STALL 초를 걸으면 막힌 것으로 친다
   // 원거리·치유: 서 있는 아군과 몸이 깊이 겹친 채로는 멈추지 않는다 (조금 더 걸어 나가 선다)
   function crowdedAt(u, live) {
     for (const o of live) {
@@ -1118,11 +1118,11 @@ const Battle = (() => {
         if (u.short && u.gt === u.target && u.md > u.gd - GAIN) u.jit += DT;
         else { u.gt = u.target; u.gd = u.md; u.jit = 0; u.stuckN = 0; }
       }
-      // 1초 넘게 막혀 있으면 자리를 내놓고 다시 고른다 (줄이 얼어붙지 않게).
+      // 1초 넘게 막혀 있거나 STALL 초 동안 목표에 다가가지 못했으면 자리를 내놓고 다시 고른다 (줄이 얼어붙지 않게).
       // 다시 골라도 같은 자리·같은 길이라 한 걸음도 못 떼고 또 막히면 (stuckN ≥ 2): 서 있는 아군(치유사·수습)이 목표와의 사이를
       // 벽처럼 막은 것이다 — 양쪽이 30px 거리에서 90초까지 멈춰 섰다 (4단계 미해결 '대치'). 그때는 SQUEEZE 초 동안 멀리서 걸어올 때처럼
       // 서 있는 아군을 지나가게 하고 (u.far), 막은 것이 적이면 (적은 지나갈 수 없다) 지금 닿는 적을 목표로 삼는다
-      if (u.blocked > 1 || u.jit > 1) {
+      if (u.blocked > 1 || u.jit > STALL) {
         u.blocked = 0; u.jit = 0;
         if (u.slotOf && u.slotOf.slots && u.slotOf.slots[u.slot] === u) u.slotOf.slots[u.slot] = null; u.slotOf = null; u.slot = -1;
         if ((u.stuckN = (u.stuckN || 0) + 1) >= 2) {
