@@ -78,6 +78,14 @@ Object.assign(Game, {
     return list[0];
   },
 
+  // 전투 모드의 중반 보상 곡선 (주인 결정 5): BM_MID_DAYS [a, b, c, d] — a 일까지 0, b 일까지 0 → 1 로 오르고, c 일까지 1, d 일에 다시 0.
+  // 의뢰가 만들어지는 날로 정한다 (게시판에 오른 보상은 그 뒤로 바뀌지 않는다). 'roll' 모드에서는 부르지 않는다
+  midBoost(day) {
+    const [a, b, c, d] = Stats.KN.BM_MID_DAYS;
+    if (day <= a || day >= d) return 0;
+    return day < b ? (day - a) / (b - a) : day <= c ? 1 : (d - day) / (d - c);
+  },
+
   // ───────── 의뢰 만들기 ─────────
   // opts: { province, issuer, target, type, enemy, title, level, size, ... }
   makeContract(opts) {
@@ -104,15 +112,19 @@ Object.assign(Game, {
     const war = t.cat === 'campaign' || (!!target && this.atWar(issuer, target));
     let catMul = war ? 1.5 : t.cat === 'conflict' ? 0.7 : t.cat === 'diplomacy' ? 0.6 : 0.3;
     if (s.calamityDefeated && !war) catMul *= 1.8; // 재앙 이후 전후 복구 의뢰
-    const mul = (1 + s.facilities.board * 0.08) * (s.branches[p] ? 1.1 : 1) * (s.bossDefeated[p] ? 1.1 : 1)
+    let mul = (1 + s.facilities.board * 0.08) * (s.branches[p] ? 1.1 : 1) * (s.bossDefeated[p] ? 1.1 : 1)
       * this.standingMul(issuer) * catMul * (FACTIONS[issuer].neutral ? 1 : this.doctrine(issuer).pay);
+    // 전투 모드: 60~120일 의뢰는 금화·명성을 조금 더 준다 (주인 결정 5, 59일까지와 121일부터는 그대로). 카드에 보이는 값이 곧 받는 값
+    const mid = s.resolve === 'battle' ? this.midBoost(s.day) : 0;
+    if (mid) mul *= 1 + Stats.KN.BM_MID_PAY * mid;
     const c = {
       id: s.nextId++, type: opts.type, cat: t.cat, war, title, level, size, days, req, province: p, issuer, target, enemy,
       reward: Math.round((40 + level * 30 + level * level * 3) * (0.85 + Math.random() * 0.3) * (1 + days * 0.12) * mul),
       // 큰 의뢰 명성 보너스: 옛 기준(4명 이상)을 줄어든 권장 인원에 맞춰 3명 이상으로 — 이야기·보스·분쟁 의뢰는 예전처럼 받는다.
       // 외교 의뢰는 인원을 줄이지 않았으므로 예전처럼 없고, 괴물 의뢰(옛 2~4명 중 1/3만 받던 것)는 뺀다:
       // 3~4인 편제로 이미 등급이 빨리 오르므로(봇 S등급 79일 → 73일), 괴물 의뢰에 다시 주면 68일로 더 빨라진다.
-      rep: Math.round((4 + level * 3 + (size >= 3 && t.cat !== 'diplomacy' && t.cat !== 'monster' ? 2 : 0)) * (t.cat === 'monster' ? 1 : 1.2)),
+      rep: Math.round((4 + level * 3 + (size >= 3 && t.cat !== 'diplomacy' && t.cat !== 'monster' ? 2 : 0)) * (t.cat === 'monster' ? 1 : 1.2)
+        * (mid ? 1 + Stats.KN.BM_MID_REP * mid : 1)),
       expires: s.day + rand(3, 6),
     };
     // 전투 모드: 저장의 소금을 의뢰에 굳혀 둔다 (전투 시드·적 편성. 날마다 바뀌지 않고, 의뢰 번호로 미리 알 수 없다)

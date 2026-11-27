@@ -51,6 +51,7 @@ function mulberry(seed) {
 }
 
 const CHECK_DAYS = [30, 60, 120, 180, 240, 300, 365];
+const CHECK_DAYS_BM = [30, 60, 90, 120, 180, 240, 300, 365];   // 전투 모드는 90일 금화도 적는다 (중반 경제, 주인 결정 5). 'roll' 의 JSON 은 그대로
 
 // opts.script: makeScript() 결과, opts.onReport(report, Game, ctx): 의뢰 보고서가 나올 때마다
 // opts.shadow: false 면 그림자 전투를 끈다 (true 면 SIM_SHADOW 가 꺼져 있어도 켠다), opts.equipGuard: true 면 출격 중 장비 잠금을 켠다
@@ -240,6 +241,7 @@ function run(seed, days, mode, opts = {}) {
     }
     s.pendingReports = [];
     if (s.calamityDefeated && !calDefDay) calDefDay = s.day;
+    if (bs && s.day === 90) goldAt[90] = s.gold;
     if (CHECK_DAYS.includes(s.day)) {
       goldAt[s.day] = s.gold;
       // 가장 강한 용병단 셋의 결전 전투력 합 (최종 결전·결전에 보낼 전력)
@@ -296,7 +298,7 @@ function summarize(res, days) {
     ...['D', 'C', 'B', 'A', 'S'].map((k) => [`day reaching ${k}`, rankDay(k)]),
     ['bankruptcies', res.filter((r) => r.over === 'bankrupt').length],
     ['captains (avg, end)', fmt(avg((r) => r.caps), 2)],
-    ...CHECK_DAYS.filter((d) => d <= days).map((d) => [`gold @ day ${d}`, fmt(avg((r) => r.goldAt[d] ?? r.gold))]),
+    ...(res.every((r) => r.battle) ? CHECK_DAYS_BM : CHECK_DAYS).filter((d) => d <= days).map((d) => [`gold @ day ${d}`, fmt(avg((r) => r.goldAt[d] ?? r.gold))]),
     ['lowest gold (avg of run minima)', fmt(avg((r) => r.minGold))],
     ['weekly wages (end)', fmt(avg((r) => r.wage))],
     ['mercs / own companies / ext (end)', `${fmt(avg((r) => r.mercs), 1)} / ${fmt(avg((r) => r.comps), 1)} / ${fmt(avg((r) => r.ext), 1)}`],
