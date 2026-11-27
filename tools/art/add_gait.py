@@ -550,6 +550,10 @@ def draft_masks(exe=None):
 
     for sdir in sorted(glob.glob(os.path.join(GUIDES, '*'))):
         strips(sorted(glob.glob(os.path.join(sdir, '*.png'))))
+    for pose_path in sorted(glob.glob(os.path.join(ROOT, 'art', 'requests', 'gait', '*', 'pose.json'))):
+        with open(pose_path, encoding='utf-8') as f:
+            if json.load(f).get('scaled_from'):
+                strips(sorted(glob.glob(os.path.join(os.path.dirname(pose_path), 'guide_*_?.png'))))
     # 세트 아래의 하위 폴더 모두: v<n>/ (받아들인 판), draft/ (heavy_base·robe_base 처럼 PC 가 아직 다듬지 않은 클라우드 초안), 앞으로 생길 다른 이름도
     for vdir in sorted(glob.glob(os.path.join(GUIDES, '*', '*'))):
         if not os.path.isdir(vdir):

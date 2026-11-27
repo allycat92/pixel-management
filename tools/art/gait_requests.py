@@ -193,17 +193,41 @@ def check_requests(spec, man):
             continue
         g, _ = guide_of(cls, spec)
         pose = load(g)
+        sheet_scale = phase3_item(sid).get('scale')
+        if not sheet_scale:
+            from run_request_guides import geometry
+            sheet_scale = geometry(sid, man)['scale']
+        scaled = abs(sheet_scale / pose['scale'] - 1) > 0.01
+        local = os.path.join(folder, 'pose.json')
+        if scaled:
+            from run_request_guides import scale_pose, scale_strip
+            expected = scale_pose(g, pose, sheet_scale)
+            if not os.path.isfile(local) or load(local) != expected:
+                errs.append(f'{name}: 요청 폴더 pose.json 이 없거나 오래됐다 — --force 로 다시 만들 것')
+        elif os.path.isfile(local):
+            errs.append(f'{name}: 표준 배율 요청에 별도 pose.json 이 있다')
         for h in 'ab':
             gp = os.path.join(folder, f'guide_{REQ_PREFIX[cls]}_{h}.png')
             src = os.path.join(ROOT, os.path.dirname(g), f'{pose["set"]}_{h}.png')
-            if not os.path.exists(gp) or not filecmp.cmp(gp, src, shallow=False):
+            matches = False
+            if os.path.exists(gp):
+                if scaled:
+                    import numpy as np
+                    from PIL import Image
+                    original = np.asarray(Image.open(src).convert('RGB'))
+                    matches = np.array_equal(np.asarray(Image.open(gp).convert('RGB')),
+                                             scale_strip(original, pose['scale'] / sheet_scale))
+                else:
+                    matches = filecmp.cmp(gp, src, shallow=False)
+            if not matches:
                 errs.append(f'{name}: guide_{REQ_PREFIX[cls]}_{h}.png 가 {rel(src)} 와 다르다 — gait_requests.py --write {sid} --force')
             if not os.path.exists(os.path.join(folder, f'size_{REQ_PREFIX[cls]}_{h}.png')):
                 errs.append(f'{name}: size_{REQ_PREFIX[cls]}_{h}.png 가 없다')
         for m2 in re.finditer(r'the guide (bow|spear|lance|sword|staff|mace|blade|draws)|as long as the guide', text):
             errs.append(f'{name}/README.md: 「{m2.group(0)}」 - phase3 CHARACTER 줄을 그대로 옮긴 말이다. 이 요청에는 무기 가이드가 없으니 「the idle」 기준으로 바꿀 것')
-        if g not in text:
-            errs.append(f'{name}/README.md: 부류 마네킹 {g} 를 가리키지 않는다 — --force 로 다시 만들 것')
+        expected_path = rel(local) if scaled else g
+        if f'--pose {expected_path}' not in text:
+            errs.append(f'{name}/README.md: 마네킹 {expected_path} 를 가리키지 않는다 — --force 로 다시 만들 것')
     return errs
 
 
@@ -212,6 +236,26 @@ def check_requests(spec, man):
 # title = 한국어 제목, name = 프롬프트의 이름, character = 영어 CHARACTER, carry = ARMS AND WEAPONS 줄들, cloth = 천·머리의 늦음,
 # face = 얼굴, ko = 한국어 머리말의 팔·무기 요약, refs = 꾸러미에서 더 넣을 참고 그림 (concept 는 늘 넣는다).
 CARRY = {
+    'sheet/captain/frostjarl': {
+        'title': '비요른 달리기', 'name': '비요른', 'refs': ['portrait.png'],
+        'character': 'Bjorn: blond frost jarl with two front braids, blond beard, slate-blue armoured tunic, snowflake '
+                     'pauldron, pale fur mantle and fur-trimmed boots. Copy the long-hafted bearded axe and its two-handed '
+                     'grip from the accepted idle.',
+        'carry': [
+            'Keep both hands on the axe: near right hand lower by the hip, far left hand higher toward the head. '
+            'The mannequin\'s two separate arm swings do NOT apply to this character (intended, not a deviation). '
+            'Keep the lower grip at x=198–228 and y=640–675 in each slot (at most 30 px fore-aft). The axe head spans '
+            'about 245 px from that grip to its top. Carry the shaft forward and up at 70–80 deg above horizontal; '
+            'the projected upper end stays left of x=312 before the blade width. Keep the outer edge inside x=351 '
+            'and the butt above y=852 (no planted axe, no swing).',
+        ],
+        'cloth': [
+            'Both gold-bound braids stay over the FRONT of the chest and bounce lightly. Keep the fur mantle across '
+            'the shoulders; small trailing locks and the rear tunic hem settle one frame late. Leave the thighs and boots free.',
+        ],
+        'face': 'Face and beard: exactly as in the accepted idle.',
+        'ko': '양손 도끼는 아래 손을 x=198–228에 두고 위쪽으로 70–80° 세운다. 앞머리 두 갈래는 가슴 앞에 남긴다.',
+    },
     'sheet/captain/ironwall': {
         'title': '브리긴다 이동 (중량)', 'name': 'Briginda (브리긴다), the iron-wall brigade commander', 'refs': ['portrait.png'],
         'character': 'sturdy, broad-shouldered woman; open steel helmet with gold trim; long auburn hair in a thick braid hanging down '
@@ -437,7 +481,7 @@ def write_request(sid, out=None, force=False, date=None, spec=None, man=None):
                                  or '(no CHARACTER line found - describe the idle of the accepted sheet)'),
              'carry': GENERIC_CARRY[cls], 'cloth': GENERIC_CLOTH[cls], 'face': 'Face: exactly as in the idle in every frame.',
              'ko': '(CARRY 표에 없음 — 부류 기본 문장. 손에 든 것·천을 확인하고 tools/art/gait_requests.py 의 CARRY 에 적은 뒤 다시 만들 것)'}
-    gdir = os.path.dirname(geo['pose'])
+    gdir = os.path.dirname(geo['source_pose'])
     fa = ' '.join(f['frame'] for f in frames[:4])
     fb = ' '.join(f['frame'] for f in frames[4:])
     flight = [f['frame'] for f in frames if f.get('phase') == 'flight']
@@ -532,13 +576,14 @@ def write_request(sid, out=None, force=False, date=None, spec=None, man=None):
                       f'{pose.get("other_foot_max_px", 13)} px above it; nothing below y={FLOOR_Y} (no weapon tip, no hem);']
     fmt_lines += ['  - every pixel of a frame between x=32 and x=351 of its slot (at least 32 px of magenta to the slot edges - '
                   'nothing may cross into the next slot, including weapons, cloth and hair);',
-                  f'  - head 110 px scale = the scale of the accepted sheet ({sc:g} source -> game: the idle is {geo["game_idle_h"]} game px '
+                  f'  - head {pose.get("head_px", 110):g} px scale = the scale of the accepted sheet ({sc:g} source -> game: the idle is {geo["game_idle_h"]} game px '
                   f'tall); the figure about as tall as the idle stood up (the mannequin\'s head top is near y={min(tops)}-{max(tops)}).']
     receive = f'python3 tools/art/receive.py gait/{stem}_run'
     notes_h = f'## gait/{stem}_run - {c["title"]}'
     refs_list = [f'guide_{p}_a/b', f'size_{p}_a/b', f'{stem}.png'] + [os.path.basename(r) for r, _ in refs_pkg] + ['pose.json']
     ko_files = [
-        f'| `guide_{p}_a.png` / `guide_{p}_b.png` | **자세·자리 가이드** = 확정 {ko_cls} 마네킹 띠 그대로({frames[0]["frame"]}'
+        f'| `guide_{p}_a.png` / `guide_{p}_b.png` | **자세·자리 가이드** = 확정 {ko_cls} 마네킹 띠'
+        f'{"를 시트 배율에 맞춰 조정" if geo["scaled"] else " 그대로"}({frames[0]["frame"]}'
         f'~{frames[3]["frame"]} / {frames[4]["frame"]}~{frames[7]["frame"]}). 1536x1024, 384px 칸 4개, 칸마다 엉덩이 열 x=192, 디딘 발바닥 '
         f'y=870{", " + "·".join(flight) + " 은 공중" if flight else ", 뜨는 칸 없음"} |',
         f'| `size_{p}_a.png` / `size_{p}_b.png` | 읽기용: 왼쪽 칸 = 승인된 대기 자세(흐리게, 게임처럼 앵커 열을 x=192 에) 위에 마네킹 '
