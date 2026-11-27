@@ -7,12 +7,14 @@
 
 | 누구 | id | 상태 | 할 일 (자세한 것은 그 줄의 문서) |
 |---|---|---|---|
-| GPT | `Q19-flip-readiness-2` | READY | (C20 다음) 한 부대 초반 다듬기 들어감 — 다른 시드로 사람 플레이 다시: `docs/agents/tasks/Q19-flip-readiness-2.md` |
+| Codex | `C23-second-company-guide` | READY | 둘째 부대 만들기 안내(남는 금화·예상 급료, 빈 부대 배속 버튼): `docs/agents/tasks/C23-second-company-guide.md` |
+| GPT | `C24-battle-injury-loss-fixed` | READY | (코드 일감) 전투 모드 전투 뒤 부상·외부단 귀환 손실도 출격 때 고정: `docs/agents/tasks/C24-battle-injury-loss-fixed.md` |
 
 ## 끝난 일
 
 | 누구 | id | 결과 |
 |---|---|---|
+| GPT | `Q19-flip-readiness-2` | **DONE** (11-27, `610eb76`): 다른 시드(582901, 브리긴다) 사람 플레이 — 의견 **조건부 찬성**(둘째 부대 만들기 안내 조건 → C23). 초반 우세 17/17, 귀환 대기 60→30일(둘째 부대), 1부대 120일 B / 2부대 113일 S. 유예 주간 알림·미룬 급료 PASS |
 | Codex | `C22-crosscheck-c20` | **DONE** (11-27, `ca62384`): C20 교차 확인 — 전투 결전 배신 고정 PASS(66/66), roll 손실 상관 없음(r≈0, 100만 가상 임무). 남은 틈: 전투 모드 외부단 귀환 손실·전투 뒤 부상이 공유 난수 |
 | GPT | `C20-betrayal-loss-fixed` | **DONE** (11-27, `11e1ad5` 합침): 전투 결전 배신·roll 외부단 손실을 출격 때 고정. roll md5 새 기준 `f1712f75` |
 | Codex | `C21-calibration-data` | **DONE** (11-27, `826f6c8` 합침): 보정 데이터 128,126행(`data/C21/`, 대장 key·원정 부대 수·보스별) + 수집기 `tools/sim/collect-calibration.js`. 눈에 띄는 것: 3부대 원정 백중 22~29%, 순례 기사 우세 54~64%, 안개 늪 보스 70%, sensible 의 blademaster·tactician 백중 34~41% |
