@@ -849,6 +849,10 @@ either way). This is the same rule every other contract in a calamity-held provi
 
 ### Results (evaluation seeds 1, 3101, 4101 — 3101 and 4101 untouched by any fit; 5001 for the starters)
 
+These are the **first draft** ("v1": ≤9 step 0.969, 1 member 0.95). The QA re-check changed both; the numbers after that, on six
+many-company and five one-company seed sets, are in "Review fixes" below. The many-company gold and S-day columns here are inside
+seed-set noise (see there) and are not findings.
+
 **One-company human bot, 3 × 12 games × 365 days, before → after** (sent battles; probe = every board offer, days 1-120):
 
 | | 백중 | 우세 | 압도 |
@@ -909,34 +913,137 @@ to 21% on days 31-60 (the second company starts without a captain). That is why 
 | boss / final won | 83 / 100% → 76 / 85% | 69 / 100% → 72 / 100% | 85 / 100% → 73 / 100% | 78 / 100% → 74 / 94% (n 230-243 / 27-34) |
 | captains at the end | 7.3 → 6.4 | 6.8 → 6.6 | 7.3 → 5.8 | 7.2 → 6.3 |
 
-Final rank S in all 36 games before and after; no bankruptcy, no darkness, deaths 0 / 0. By captain style (seed 3101, sent): melee
+Final rank S in all 36 games before and after; no bankruptcy, no darkness, deaths 1 / 0 (the one death is on seed set 3101 before:
+0.08 per game; the first write-up said 0 / 0). By captain style (seed 3101, sent): melee
 백중 / 우세 34 / 79% → 44 / 86%, ranged 71 / 96% → 59 / 92%, ranged + rally 66 / 94% → 39 / 86% (n 85). By day (seed 3101, sent): days
 61-120 56 / 87% → 41 / 83%, days 241-365 45 / 88% → 49 / 91%.
 
+### Review fixes (QA re-check of the first draft)
+
+QA re-checked the first draft ("v1") on fresh seeds and raised seven points. "v2" is the code after this section. Before = `ea5304a`.
+
+1. **Days 61-120 백중 optimistic** — *confirmed for the many-company bot, not for one company; fixed in part.* More fresh data,
+   all with v1 code: the many-company bot's every looked-at offer (seeds 7101-7601, 6 × 12 games × 365 days, 48,207 offers) and the
+   one-company probe (seeds 7101-7301 × 12 × 120 plus 9 starters × 6 on 7401, 16,610 offers). Days 61-120, 백중 / 우세 / 열세:
+   many-company 45% (n 767) / 86% / 13%; one company 55% (n 328) / 92% / 23% (sent 51%, n 180). QA's one-company 37% sent (6101/6201)
+   is one seed set: the same games under v2 read 53%, and with the evaluation sets pooled v1 read 45% sent / 53% probe. The two
+   populations disagree at the same level — at average level 6-9 the one-company probe reads 52-57% and the many-company one 43-45% —
+   so no level step fixes both, and the equal-weight joint fit stays at 0.969. Changes:
+   - `BM_CAL_OWNLV` ≤ 9: 0.969 → **0.958**, tilting half-way to the safe side (offline on all probe rows: many-company 61-120 백중
+     45 → 47%, level 6-9 45 → 49%; one company 51 → 53%, level 6-9 52 → 56%).
+   - `BM_CAL_HEADS[1]`: 0.95 → **0.9**. QA's "1 member 34%" was real: a lone fighter read 백중 33% / 우세 76% (one-company probe,
+     about 1,300 offers); now 53% / 85%.
+   What is left (open issues): the many-company bot's rally captains (ranged + rally 백중 35-37% against 60-62% for the one-company
+   tactician) and multi-company campaign parties (61-120 probe 백중 34%, n 120; the best single multi-company factor is only 0.985).
+2. **Economy and S-day claims inside noise** — *accepted.* The results above are now labelled first draft and not findings; the
+   table below has six many-company sets with the per-set ranges.
+3. **Grace chip claimed protection that had ended** — *fixed* (§C): the chip shows only while the next payday is inside the grace
+   week; after that, owed back pay shows as 「미룬 급료 N」 with the true consequence. Forced-poverty check (`grace2.js`, seeds 11-14):
+   52 chip days, 0 with the next payday outside the grace week (QA's v1 count: 39 of 84); 61 back-pay chip days, 0 wrong.
+4. **Popup wrong when one grace week covers two paydays** — *fixed* (§C): `next` / `nextGrace` and the matching sentence; 9 popups,
+   1 of them with the next payday still in grace, 0 mismatches. Two popups in such a window are kept (two paydays were deferred).
+5. **The issuer fix changes req and support, not only the label** — *accepted, documented* (§E). No code change: it is the rule
+   every other contract in a calamity-held province follows.
+6. **Wait hint untrue with an unfit company at home** — *fixed* (§B): `Game.allAway()` picks the sentence; 286 waiting days in the
+   forced-poverty runs, 0 mismatches.
+7. **Losing ★10 campaign battles pays 3-5k and drains 명성** — *not changed here (pre-existing, outside decision 7).* The battle seed is
+   fixed per contract (`contractSalt`, so waiting does not reroll it): re-sending a near-identical party to the same campaign battle
+   replays nearly the same fight, so nine losses in a row are one bad seed replayed by a bot that does not learn. Loss pay is reward ×
+   (10% + `LOSS_PAY_SHARE` × share), large for ★10 campaigns, and each loss costs 30-60% of the contract's 명성, which the bot's
+   rank F on day 120 shows; a player farming it loses rank. Whether a loss may out-pay ordinary wins is a loss-pay (stage 3)
+   decision for the owner; listed under open issues.
+
+**One company, before / v1 / v2, days 1-120** (human bot; five seed sets pooled: 1, 3101, 4101 × 12 × 365, QA's 6101 × 12 and
+6201 × 16 × 120, new 8201 × 12 × 120; none used by a fit):
+
+| | before | v1 | v2 |
+|---|---|---|---|
+| sent 백중, days 1-30 | 73% (234) | 61% (222) | 61% (225) |
+| sent 백중, days 31-60 | 71% (218) | 58% (193) | 60% (198) |
+| sent 백중, days 61-120 | 58% (360) | 45% (319) | 53% (330) |
+| sent 우세, days 1-60 / 61-120 | 95 / 90% | 93 / 89% | 94 / 89% (n 850 / 579) |
+| sent 열세, days 61-120 | 27% (113) | 14% (101) | 14% (106) |
+| probe 백중, days 1-60 / 61-120 | 70 / 63% | 60 / 53% | 61 / 55% (n 686 / 629) |
+| probe 우세 / 열세, days 61-120 | 93 / 29% | 92 / 22% | 93 / 25% |
+| probe, 1 member: 백중 / 우세 | 52 / 79% | 37 / 81% | 53 / 87% (n 87 / 92) |
+| probe, 2 members: 백중 | 46% | 55% | 59% (n 126) |
+| missions lost | 11.9% | 14.4% | 13.8% |
+
+Sent 백중 on days 61-120 by set, v1 → v2: evaluation 50 → 58%, QA 6101/6201 37 → 53%, 8201 54 → 43% (n 58-145 each: one set
+moves ±8 points). Evaluation sets over 365 days: S on day 175 → 176 (36 of 36), rank A or better on day 120 in 32 → 34 of 36.
+
+**Many companies, before / v1 / v2** (sensible bot, six sets × 12 games × 365 days: 8101 new, QA's 9101 and 9001, and 1, 3101,
+4101; sent battles):
+
+| | before | v1 | v2 |
+|---|---|---|---|
+| 백중, all days | 47% (6184) | 48% (5975) | 48% (6031) |
+| 우세, all days | 87% | 88% | 89% (17,411) |
+| 백중, days 1-60 | 62% (496) | 51% (468) | 52% (499) |
+| 백중, days 61-120 | 57% (940) | 42% (876) | 45% (899) |
+| 백중, days 121-240 / 241-365 | 47 / 39% | 47 / 49% | 48 / 47% (n 2188 / 2420) |
+| 우세, days 61-120 | 87% (2197) | 85% (2039) | 85% (2081) |
+| all sent, days 61-120 | 87% | 84% | 84% |
+| boss sent at 우세 or 압도, won | 88% (285) | 85% (307) | 83% (325) |
+| final / campaign won | 98 / 87% | 94 / 77% | 94 / 82% |
+| day reaching S (set means) | 95.2 (86.1-101.3) | 99.7 (96.8-104.7) | 98.5 (96.6-101.6) |
+| gold day 120 / 180 / 365 | 7.4k / 21.9k / 69.4k | 5.7k / 16.6k / 75.3k | 5.4k / 19.0k / 85.5k |
+| gold day 365, set range | 46-94k | 54-114k | 48-134k |
+| captains at the end | 6.8 | 6.1 | 6.5 |
+| bankrupt / dark age / deaths | 0 / 0 / 1 | 0 / 0 / 0 | 0 / 0 / 0 |
+
+Final rank S in all 72 games for each version. The gold sets overlap so widely (one set's day-365 mean goes 93.5k → 53.7k under v1,
+another 65.6k → 90.2k) that none of the gold changes is a result; S stays inside decision 5's 90-110 in every set and version except
+before's 86.1.
+
+**By first captain, before / v1 / v2** (one company, probe, 3-4 members, seed 5001 × 8 games × 120 days, never used by a fit):
+
+| starter | 백중 | 우세 | 열세 |
+|---|---|---|---|
+| fixer | 44 / 43 / 49% | 88 / 87 / 87% | 10 / 15 / 16% |
+| lancer | 54 / 47 / 48% | 92 / 93 / 94% | 23 / 18 / 19% |
+| blademaster (바렌) | 51 / 56 / 53% | 91 / 92 / 94% | 14 / 18 / 21% |
+| hedgemage | 73 / 33 / 36% | 96 / 89 / 89% | 24 / 11 / 10% |
+| veteran | 53 / 56 / 52% | 92 / 94 / 95% | 32 / 23 / 19% |
+| ironwall | 61 / 54 / 57% | 97 / 97 / 97% | 29 / 19 / 24% |
+| huntress | 64 / 44 / 45% | 97 / 88 / 89% | 33 / 11 / 12% |
+| fieldmedic | 81 / 61 / 61% | 98 / 95 / 95% | 48 / 16 / 17% |
+| tactician | 87 / 53 / 58% | 100 / 96 / 97% | 62 / 22 / 22% |
+| all (v2 n 1,139 / 2,544 / 979) | 64 / 50 / 51% | 95 / 92 / 93% | 31 / 17 / 18% |
+
+The starter spread at 백중 stays 36-61% (before 44-87%); hedgemage and huntress still read a little optimistic (open issue of v1).
+
 ### Checks
 
+v2 (after the review fixes):
 - Roll: `SIM_JSON=1 node tools/sim/bot.js 6 200 | md5sum` = `11cadc0cceafa5e4262773fdadf780f9` with and without `SIM_SHADOW=1`;
-  12 × 365 `ffee253e5364a3e6f882f9aed77254b0` before and after.
-- `node tools/sim/battle.js 100`: miss 0 / soft 0.
-- `node tools/sim/shadow.js 6 365 --resolve battle --check --jobs 4`: 2,943 battles, 8,624 alternative parties, every invariant 0.
-- `--set BM_CAL_LEAD.melee=1`, `--set 'BM_CAL_LEAD={…}'`, `--set 'BM_CAL_HEADS=[…]'` accepted; `BM_CAL_LEAD.foo` refused.
+  12 × 365 `ffee253e5364a3e6f882f9aed77254b0`, the same as before the change.
+- `node tools/sim/battle.js 100`: miss 0 / soft 0 for all four outcomes.
+- `node tools/sim/shadow.js 6 365 --resolve battle --check --jobs 4`: 2,867 battles, 8,335 alternative parties, every invariant 0
+  (v1: 2,943 / 8,624; the forecast changes which offers the bots take).
+- `node --check` on every `js/*.js`.
+- `--set BM_CAL_LEAD.melee=1`, `--set 'BM_CAL_LEAD={…}'`, `--set 'BM_CAL_HEADS=[…]'`, `--set 'BM_CAL_OWNLV=[[…]]'` accepted;
+  `BM_CAL_LEAD.foo` and `BM_CAL_HEADS.9` refused.
 - Browser (400 × 800, `?resolve=battle`): the skip button appears when the only company is out and jumps to the return day's report;
-  the wait hint shows; the grace popup and the 「유예 ~N일」 chip render; no console error, no horizontal overflow.
+  the wait hint shows, and reads 「지금 보낼 수 있는 용병단이 없습니다 …」 with an all-injured second company at home; 「유예 ~N일」 while
+  the next payday is in grace, 「미룬 급료 N」 after it; the grace popup's two sentences; no console error, no horizontal overflow.
 
 ### Open issues
 
-- **Days 61-120 for the many-company bot lean optimistic after the refit** (seed 3101 sent: 백중 41%, 우세 83%; all sent battles on
-  days 61-120 win 83% against 88% before), while late days moved the other way (241-365 86% against 82%). The one-company bot on the
-  same days reads 50 / 89%. In the offline fit the mid-level step (≤ 9) carried this: `BM_CAL_OWNLV` ≤ 9 between 0.946 and 0.969 is the
-  knob if the owner prefers the many-company mid-game safe. S moved from day 92.7 to 98.3 (decision 5 target 90-110).
-- **The one-company early game still reads a little safe** (probe 백중 56-61%, 우세 91-95% on days 1-120). A day term would fix it but
-  the per-starter spread was the larger error and is gone (바렌 백중 32 → 49% sent).
-- **Boss contracts** stay below target at 우세 (74% pooled, n 243); the ranged captains of strong late companies read easier now.
-  Same open issue as stage 3/4 (boss-scale enemies need their own term).
-- **Captains recruited** 7.2 → 6.3 per game (the gamble conditions read the word at dispatch); stage 4 measured 6.35, so before may
-  have been the high one.
-- **Ranged + rally in the many-company bot** over-corrects (백중 39%, n 85) while the one-company tactician is right (53-55%):
-  `rally` is a compromise between the two populations.
+- **Many-company days 61-120 still read a little optimistic** (v2 sent 백중 45%, 우세 85%; before 57 / 87%). The remaining error is
+  population-specific and no level step fixes it without making the one-company game read safer still: the many-company bot's
+  ranged + rally captains (백중 35-37% against 60-62% for the one-company tactician; `rally` is a compromise) and multi-company
+  campaign parties (probe 백중 34% on days 61-120, n 120; a whole-game multi-company factor would only be 0.985). A per-captain or
+  multi-group term needs the captain key in the rows, which this measurement does not record.
+- **The one-company game reads a little safe** (v2 probe 백중 61% on days 1-60 and 55% on days 61-120, 우세 93%), on purpose at the ≤ 9
+  step (above). The per-starter spread, which was the larger error, stays small (table above).
+- **Sent battles read worse than looked-at offers** (one company, days 61-120: sent 53% against probe 55%; many companies 45% against
+  about 47%). Part of it is persistent contracts: a campaign or boss battle that was lost stays on the board with the same seed, and
+  the bots re-send nearly the same party into it.
+- **Losing a ★10 campaign battle can pay more than most wins** (3-4k gold, QA game 6104; pre-existing): loss pay is a share of the
+  contract reward. It is self-limiting through the 명성 loss, but whether a loss may out-pay an ordinary win is the owner's call.
+- **Boss contracts** stay below target at 우세 (v2 83% won when sent at 우세 or 압도, n 325). Same open issue as stage 3/4.
+- **Captains recruited** 6.8 → 6.5 per game (v1 6.1); inside set noise (5.5-7.3 per set).
 
 ### Commands
 
@@ -946,4 +1053,6 @@ node tools/sim/shadow.js 6 365 --resolve battle --check --jobs 4
 SIM_JSON=1 node tools/sim/bot.js 6 200 | md5sum                             # 11cadc0cceafa5e4262773fdadf780f9
 # scratch (not in the repo): one.js (one-company bot: human / human2 / sens1, --probe, --starter), collect2.js (many-company bot,
 #   every looked-at offer fought headless), fit2.js (joint target matching, PARAM=1), ana.js / stt.js (tables), bosscheck.js
+# review fixes: collect3.js (as collect2, with star), collect4.js (many-company sent rows + summary, NOPROBE=1), fit3.js (refit
+#   relative to the current constants; EVAL='{…}' to score a candidate), fin1.js / fin2.js (the review tables), grace2.js, ui2.js
 ```
