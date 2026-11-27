@@ -7,14 +7,14 @@
 
 | 누구 | id | 상태 | 할 일 (자세한 것은 그 줄의 문서) |
 |---|---|---|---|
-| Codex | `C10-scaled-mannequin-guides` | REVIEW | 클라우드 검토(`docs/agents/reports/c10_tool_review.md`) — 아래 C10 FIX 절대로: `docs/agents/tasks/C10-scaled-mannequin-guides.md` |
 | GPT | `Q11-stage4-check` | 예고 | 총괄 4단계 수정이 들어가면 READY: `docs/agents/tasks/Q11-stage4-check.md` |
-| Codex | `C13-korean-text-fixes` | REVIEW | Q7 한국어 글 고치기 + 총괄의 설정 결정 8개 반영 (C12 뒤): `docs/agents/tasks/C13-korean-text-fixes.md` |
 
 ## 끝난 일
 
 | 누구 | id | 결과 |
 |---|---|---|
+| Codex | `C13-korean-text-fixes` | **DONE** (11-27, `5baea53` 합침): Q7 글 119줄 손질 + 총괄 결정 8개(사제 바르톨로의 장부, 로드릭, 지크린데 5회, 전쟁 중 대사, 노예 시장 둘·교역로 절벽, 리치의 망령, 길드 이름을 칭호·배·노래까지, 영웅 장 수). roll md5 새 기준 `21b61842…`(지크린데가 실제로 합류해서) |
+| Codex | `C10-scaled-mannequin-guides` | **DONE** (11-27, `c57bd07`+FIX `a6e5846`): 배율 요청 가이드 + 비요른 요청서. FIX: 배율은 phase3 명시값에서만(고블린·서리 트롤은 거부), 칸 밖 확대 거부, 배율 요청은 조정 PNG 만 밑그림, 수령 도구가 manifest 로 id 찾기, `--check` 강화 |
 | GPT | `Q13-c11-check` | **DONE** (11-27, `8da4313` 합침): C11 화면 7/7·즉시 저장 40/40 PASS, 전투 모드 결과 고정(12/12). **P1(예전부터 있던 것)**: roll 모드는 귀환 전 저장을 다시 열면 결과가 바뀐다 — C11 이 만든 것은 아니고 1일짜리 출격도 이 경로에 들어오게 됐다 → 총괄 목록(4단계 기본값 결정과 함께) |
 | Codex | `C11-ui-fixes-q4` | **DONE** (11-27, `674cb8f` 합침, GPT Q13 확인): Q4 결함 6건 + Q5 제목, 관리 조작 즉시 저장 |
 | Codex | `C12-stage4-cleanup` | **DONE** (11-27, `e6907f7` 합침): 전투 모드 옛 표시 정리(전투력 → 체력·공격·방어 합, 최종전 「1개 부대 기준」, 「전투 체력」, 특성·직업 효과를 실제 전투 효과로), 카이 없는 이야기 의뢰는 예상 대신 배속 안내, 최종전 경고 제거, 영입 조건 멸망 안내, 「시간 초과(90초)」 보고. roll 화면 그대로. 휴대폰(CPU ×4) 다음 날: 귀환 0건 76ms · 1건 202ms · 3건 424ms(클릭 기준; 3건은 battleResolve 420ms) — 3건 경로는 4단계에서 계산 나누기 검토 |
