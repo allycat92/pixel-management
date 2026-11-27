@@ -7,6 +7,7 @@
 
 | 누구 | id | 상태 | 할 일 (자세한 것은 그 줄의 문서) |
 |---|---|---|---|
+| Codex | `C26-gait-requests-last` | READY | 마지막 이동 요청서 5건 + 카토 분류·요청서: `docs/agents/tasks/C26-gait-requests-last.md` |
 | GPT | `C24-battle-injury-loss-fixed` | READY | (코드 일감) 전투 모드 전투 뒤 부상·외부단 귀환 손실도 출격 때 고정: `docs/agents/tasks/C24-battle-injury-loss-fixed.md` |
 
 ## 끝난 일
