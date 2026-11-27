@@ -82,7 +82,8 @@ const UI = (() => {
 
   function skillLine(m) {
     return el('div', {}, skillList(Game.skillsOf(m)),
-      m.awakened ? el('div', { class: 'skill-line small' }, el('span', { class: 'skill awake', title: '각성: 전투력 +15%', text: '각성' })) : null);
+      m.awakened ? el('div', { class: 'skill-line small' }, el('span', { class: 'skill awake',
+        title: Game.battleMode() ? '각성: 전투 체력·공격 +15%' : '각성: 전투력 +15%', text: '각성' })) : null);
   }
 
   function roleBadge(m) {
@@ -120,7 +121,8 @@ const UI = (() => {
     const sh = Stats.sheet(m), p = sh.parts;
     const num = (label, v) => el('span', { class: 'bs' }, el('span', { class: 'muted', text: label }), el('b', { text: Math.round(v) }));
     return el('div', { class: 'battle-line small', title: '전투 능력치: 능력치와 장비에 컨디션을 곱한 값입니다. 방어에는 컨디션이 붙지 않습니다.' },
-      el('span', { class: 'bs-title', text: '전투' }), num('체력', sh.hp), num('공격', sh.atk), num('방어', sh.def),
+      el('span', { class: 'bs-title', text: '전투' }),
+      num(Game.battleMode() ? '전투 체력' : '체력', sh.hp), num('공격', sh.atk), num('방어', sh.def),
       el('span', { class: `chip cond-chip ${sh.mul > 1.001 ? 'good' : sh.mul < 0.999 ? 'bad' : ''}`,
         title: `컨디션 = 특성·직업 ×${p.trait.toFixed(2)} · 사기 ×${p.morale.toFixed(2)} · 피로 ×${p.fatigue.toFixed(2)}`, text: `컨디션 ×${sh.mul.toFixed(2)}` }));
   }
@@ -151,7 +153,8 @@ const UI = (() => {
         el('div', { class: 'card-title' },
           el('div', { class: 'name' }, m.name, el('span', { class: 'lv', text: ` Lv.${m.level}` })),
           el('div', { class: 'sub' }, roleBadge(m), ' ', el('span', { class: `cls cls-${m.cls} ${m.adv || m.cap ? 'adv' : ''}`, text: Game.className(m) }), ' ',
-            m.trait !== 'none' ? el('span', { class: `trait ${TRAITS[m.trait].unique ? 'unique' : ''}`, title: TRAITS[m.trait].desc, text: TRAITS[m.trait].name }) : null),
+            m.trait !== 'none' ? el('span', { class: `trait ${TRAITS[m.trait].unique ? 'unique' : ''}`,
+              title: describeTrait(m.trait, Game.battleMode()), text: TRAITS[m.trait].name }) : null),
           opts.recruit ? null : el('div', { class: 'row-inline small' }, statusLabel(m), co ? el('span', { class: 'muted', text: co.name }) : el('span', { class: 'muted', text: '예비 인원' })))),
       heroLine(m),
       m.elite ? el('div', { class: 'hero-line' }, factionFlag(m.elite, 1), el('span', { class: 'hero-title', text: ` ${m.title}` })) : null,
@@ -238,7 +241,7 @@ const UI = (() => {
         Object.entries(bonus).flatMap(([k, v]) => [' ', el('span', { class: 'stat-token', text: `${statName[k]}+${v}` })])) : null,
       foot);
     const baseLook = { ...m.look, adv: undefined, master: undefined };
-    const skillText = (c) => `전투: ${describeBattle(c.b)} / 의뢰: ${describeFx(c.fx)}`;
+    const skillText = (c) => `전투: ${describeBattle(c.b)} / 의뢰: ${describeFx(c.fx, Game.battleMode())}`;
     // 계통도: 기본 직업 → 두 갈래 상급 → 각각의 최상급
     const tree = el('div', { class: 'class-tree' },
       el('div', { class: 'tree-col' }, el('div', { class: 'tree-title', text: `기본 (상한 Lv.${UNIT_TIERS[0].cap})` }),
@@ -461,7 +464,7 @@ const UI = (() => {
       el('div', { class: `report-banner ${good ? 'good' : 'bad'} ${r.outcome}`, text: titles[r.outcome], tabindex: '-1', 'data-autofocus': '' }),
       el('h3', { text: c.title }),
       el('div', { class: 'small muted', text: `${PROVINCES[c.province].name} · 의뢰주 ${FACTIONS[c.issuer].name}${c.target ? ` · 대상 ${FACTIONS[c.target].name}` : ''}` }),
-      r.battle ? el('div', { class: 'small muted', text: `출격 때 예상 「${Stats.BAND_NAMES[r.battle.band]}」 · 전투 ${Math.round(r.battle.t)}초 · 쓰러진 단원 ${r.members.filter((m) => m.down).length}명` }) : null,
+      r.battle ? el('div', { class: 'small muted', text: `출격 때 예상 「${Stats.BAND_NAMES[r.battle.band]}」 · ${!good && r.battle.end === 'time' ? `시간 초과(${Math.round(r.battle.t)}초)` : `전투 ${Math.round(r.battle.t)}초`} · 쓰러진 단원 ${r.members.filter((m) => m.down).length}명` }) : null,
       members,
       el('div', { class: 'report-rewards' },
         el('span', {}, icon('coin'), ` ${signed(r.gold)}`),
@@ -484,7 +487,8 @@ const UI = (() => {
         el('div', { class: 'small muted', text: C.title }),
         el('div', { class: 'skill adv', text: CC.name }),
         el('div', { class: 'small', text: CC.desc }),
-        skillList({ actives: CC.acts.map((b) => ({ name: b.name, battle: describeBattle(b) })), passive: { name: CC.lead.name, desc: `지휘: ${CC.lead.desc}`, lead: true } }, { compact: true }),
+        skillList({ actives: CC.acts.map((b) => ({ name: b.name, battle: describeBattle(b) })),
+          passive: { name: CC.lead.name, desc: `지휘: ${describeLead(CC.lead, Game.battleMode())}`, lead: true } }, { compact: true }),
         el('div', { class: 'small muted', text: `힘 ${CC.base.str} · 민첩 ${CC.base.dex} · 지력 ${CC.base.int} · 체력 ${CC.base.hp}` }),
         el('div', { class: 'small pitch', text: `“${C.pitch[0][1]}”` }),
         el('button', { class: 'btn primary', onclick: () => { Game.state.reportSlot = null; Game.chooseStarter(k); finishSlot(); } }, `${C.name}${josa(C.name, '과', '와')} 시작한다`));
