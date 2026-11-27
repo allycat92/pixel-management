@@ -1260,3 +1260,29 @@ DEVIATIONS:
 본 방법: `mage_q12_compare.png` 어두운/밝은 배경 위 OLD vs NEW 1x/3x 동시 대조 + `sheet_class_mage_preview_x4.png` + `mage_tint_mask.png` 확인 (`G3/G7` 두 장화 분리 및 열쇠 색 비침범 100% 확인)
 고칠 점: 없음
 남은 걱정: 없음
+
+## gait/sheet_class_archer_run - 병과 궁수 달리기
+CHECK:
+  check_delivery.py sheet_class_archer_run_a.png --flight-slots 4 -> RESULT: PASS (29 colours, dist 205.7, pose 4 flight 24 px above guide >= 18; pose 1..4 top_y 453, 450, 457, 459, bot_y 870, 870, 870, 846)
+  check_delivery.py sheet_class_archer_run_b.png --flight-slots 4 -> RESULT: PASS (30 colours, dist 205.7, pose 4 flight 25 px above guide >= 18; pose 1..4 top_y 453, 450, 457, 459, bot_y 870, 870, 870, 845)
+  add_gait.py sheet/class/archer --gait run --dry-run -> 프레임별 맨 아래 픽셀 (바닥 줄 위 게임 px): 1:0 2:0 3:0 4:4 5:0 6:0 7:0 8:4 / sheet.gait = light / sheet/class/archer: 시트 384x384, 15칸 — idle(4), attack(2), hit(1), run(8); runStride 45.5
+REFERENCES LOADED: guide_run_a/b, size_run_a/b, sheet_class_archer.png, concept.png, pose.json -> ok
+CHANGED: 8-frame LIGHT run (`R1-R8`, `30` unique fg colours, strict 7 key separation: `outfit_4` hood/lower-mask/tunic/sleeves, `accent_3` bottom tunic hem ONLY `y=700..780`, `non_key_25` eye cavity shadow/quiver/white fletchings/vest/straps/gloves/trousers/boots/bow/white bowstring with `boot_bleed=0`).
+  - R1: near contact (`top_y=453`, near sole `223..290` `y=870`, far kicked high behind `bot_y=797` `0.58x` darkened, near fist back, short upright bow low in far hand with single white string, no arrow).
+  - R2: near catch (`top_y=450`, near vertical sole `155..222` `y=870`, far bent behind `bot_y=799` `0.58x` darkened).
+  - R3: near push (`top_y=457`, near push sole `111..155` `y=870`, far knee driving high forward `bot_y=811` `0.58x` darkened + `6px` `#191413` overlap separator, near fist chest/fwd, bow low in far hand).
+  - R4 (FLIGHT): `top_y=459`, `bot_y=846 <= 852` (`24 px` / `4` game px airborne clear; near rear `bot_y=835` bright, far forward knee/boot `bot_y=846` darkened, lower bow tip safely above flight soles).
+  - R5: opp far contact (`top_y=453`, far sole `228..295` `y=870` `0.58x` darkened, near kicked behind `bot_y=795` bright + highlight rim).
+  - R6: opp far catch (`top_y=450`, far vertical sole `160..227` `y=870` `0.58x` darkened, near bent behind `bot_y=795` bright + highlight rim).
+  - R7: opp far push (`top_y=457`, far push sole `114..158` `y=870` `0.58x` darkened + `6px` separator, near knee driving forward `bot_y=809` bright).
+  - R8 (FLIGHT): `top_y=459`, `bot_y=845 <= 852` (`25 px` / `4` game px airborne clear; near forward knee/boot `bot_y=845` bright, far rear `bot_y=838` darkened, near fist back, short upright bow low forward in far hand `x<=338`).
+DEVIATIONS:
+- (a) mannequin pose/position: none (R1~R3 `290, 222, 155`, R5~R7 `295, 227, 158`, R4/R8 flight <= 852, `top_y` `[453, 450, 457, 459]` exact).
+- (b) sheet design: none (`archer_tint_mask.png`로 후드/얼굴/가죽조끼/화살깃/활/장화 키 침범 0 및 튜닉 밑단만 `accent_3` 확인).
+- (c) ARMS AND WEAPONS: none (빈 앞손 주먹 펌핑 + 먼 손 낮은 위치 세운 단궁·화살 미장전·흰 시위 1가닥, R4/R8 활 아랫끝 <= 852 및 `x <= 342`).
+RISKS AT GAME SIZE: 없음 (1x/3x 어두운·밝은 배경 대조 및 `add_gait` 4x GIF 전 프레임 검수 완료).
+## 판정 — gait/sheet_class_archer_run
+결과: 통과
+본 방법: `archer_1x3x_check.png`(1x 96x96 및 3x 어두운 `#2e2b26`/밝은 `#58723d` 배경), `archer_gif_frames.png`(`sheet_class_archer_run_x4.gif` 전 8프레임), `archer_guide_overlay_a/b.png`, `archer_tint_mask.png` 육안 대조.
+고칠 점: 없음
+남은 걱정: 없음
