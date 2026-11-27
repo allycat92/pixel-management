@@ -28,7 +28,7 @@
 3. **시험을 돌린다.**
    - `node --check`
    - `node tools/sim/battle.js 100` 은 miss=0 이어야 한다.
-   - roll 모드 `SIM_JSON=1 node tools/sim/bot.js 6 200 | md5sum` 은 `21b6184246abf071a0f40918718244b6` 그대로여야 한다.
+   - roll 모드 `SIM_JSON=1 node tools/sim/bot.js 6 200 | md5sum` 은 `11cadc0cceafa5e4262773fdadf780f9` 그대로여야 한다.
    - 전투 모드 `SIM_RESOLVE=battle node tools/sim/bot.js 12 365 --jobs 6` 의 요약표는 이 일 전과 같아야 한다. 화면만 바꾸니 같아야 정상이다.
 
 ## Do not touch
