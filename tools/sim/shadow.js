@@ -13,6 +13,8 @@
 //                          굳힌 편성이 귀환 때까지 그대로, 편성·그림자 전투가 Math.random 과 게임 상태를 건드리지 않음. 위반이 있으면 종료 코드 1
 //     --jobs N             시드를 N 개 프로세스로 나눠 돌린다 (기본 1)
 //     --out FILE.json      파견별 행을 JSON 으로 (기본: 임시 폴더). --csv FILE.csv 로 CSV 도 낸다
+//     --resolve battle     3단계 전투 모드로 돌린다 (또는 SIM_RESOLVE=battle): 그림자가 아니라 결과를 정한 실제 전투(js/muster.js battleResolve)를 잰다.
+//                          봇은 다섯 단어로 의뢰를 고른다 (tools/sim/bot.js). rolled·chance 열은 이때 뜻이 없다. --offers 는 봇이 살펴보고 보내지 않은 의뢰.
 // 표: 성공 확률 십분위별 / 날짜 구간별 / 예상 전력비(R) 구간별 / 적 갈래별 (+ 의뢰 갈래, ★) — docs/plans/battle_stats/feasibility.md 의 표와 같은 꼴
 'use strict';
 const fs = require('fs');
@@ -27,7 +29,7 @@ function parseArgs(argv) {
   for (let i = 0; i < argv.length; i++) {
     const v = argv[i];
     if (v === '--set' || v === '--sweep') a[v.slice(2)].push(argv[++i]);
-    else if (['--seed0', '--jobs', '--out', '--csv'].includes(v)) a.flags[v.slice(2)] = argv[++i];
+    else if (['--seed0', '--jobs', '--out', '--csv', '--resolve'].includes(v)) a.flags[v.slice(2)] = argv[++i];
     else if (v.startsWith('--')) a.flags[v.slice(2)] = true;
     else a.pos.push(v);
   }
@@ -88,8 +90,10 @@ function playSeed(seed, days, cfg) {
     rule: spec.rule, lv: spec.lv, k: spec.k, R: est.R, band: est.band, win: rec.winner === 0 ? 1 : 0, tier: v.outcome, t: rec.t, end: rec.end,
     ours: v.ours, down: v.down, fled: v.fled, low: v.low, downShare: v.ours ? +(v.down / v.ours).toFixed(3) : 0, hash: rec.hash, ...extra,
   });
+  const battle = cfg.resolve === 'battle';
+  const sentIds = new Set();   // 전투 모드: 보낸 의뢰 번호 (--offers 에서 뺀다)
   const res = run(seed, days, 'all', {
-    script, shadow: true, equipGuard: !!cfg.guard,
+    script, shadow: !battle, equipGuard: !!cfg.guard, resolve: battle ? 'battle' : 'roll',
     onStart(G, ctx) {
       const St = ctx.Stats, B = ctx.Battle, M = ctx.Math;
       // 편성·그림자 전투가 도는 동안에는 게임의 난수를 세기만 하는 것으로 바꿔 둔다 (--check)
@@ -115,15 +119,20 @@ function playSeed(seed, days, cfg) {
         alts.forEach((us) => { chk.rosterN++; if (guarded(() => foes(G.muster(c, us))) !== base) chk.roster++; });
         if (JSON.stringify(guarded(() => G.muster(c, units))) !== JSON.stringify(mission.spec)) chk.roster++;   // 같은 입력이면 같은 편성
       };
-      const shadow = G.shadowResolve;
-      G.shadowResolve = function (mission, report, mods) {
+      // 전투 모드는 결과를 정하는 battleResolve 를, 기본은 그림자 shadowResolve 를 잰다 (둘 다 { spec, rec, verdict } 를 돌려준다)
+      const hook = battle ? 'battleResolve' : 'shadowResolve';
+      const shadow = G[hook];
+      G[hook] = function (mission, report, mods) {
         const t0 = process.hrtime.bigint();
         const out = guarded(() => shadow.call(this, mission, report, mods));
         ms += Number(process.hrtime.bigint() - t0) / 1e6;
         if (!out) { chk.err++; return out; }
         const { spec, rec, verdict } = out, c = mission.contract;
-        rows.push(rowOf(c, spec, { R: report.shadow.R, band: report.shadow.band }, rec, verdict, St, {
-          id: mission.id, day: mission.startDay, ret: G.state.day, chance: +mission.chance.toFixed(4), rolled: report.outcome, sent: 1 }));
+        const est = battle ? out.est : { R: report.shadow.R, band: report.shadow.band };
+        sentIds.add(c.id);
+        rows.push(rowOf(c, spec, est, rec, verdict, St, {
+          id: mission.id, cid: c.id, day: mission.startDay, ret: G.state.day, chance: +mission.chance.toFixed(4), rolled: battle ? verdict.outcome : report.outcome, sent: 1,
+          ...(battle ? { foeShare: +out.share.toFixed(3), special: G.specialBattle(c) ? 1 : 0 } : {}) }));
         if (cfg.check) {
           chk.battles++;
           if (frozen.get(mission.id) !== JSON.stringify(mission.spec)) chk.thawed++;
@@ -143,15 +152,16 @@ function playSeed(seed, days, cfg) {
       };
     },
     onOffer: cfg.offers ? (c, units, ch, G, ctx) => {
-      if (ch >= (c.campaign ? 0.55 : 0.6)) return;   // 보낼 의뢰는 귀환 때 잡힌다
+      if (!battle && ch >= (c.campaign ? 0.55 : 0.6)) return;   // 보낼 의뢰는 귀환 때 잡힌다 (전투 모드는 끝에서 보낸 의뢰를 뺀다)
       const key = `${c.id}:${units.map((u) => u.companyId).join(',')}`;
       if (seen.has(key)) return;
       seen.add(key);
       const St = ctx.Stats, spec = G.muster(c, units), est = G.forecast(spec), rec = ctx.Battle.run(spec);
       const v = G.judge(spec, rec, G.partyMods(G.unitParts(units).allMembers));
-      offers.push(rowOf(c, spec, est, rec, v, St, { id: c.id, day: G.state.day, ret: 0, chance: +ch.toFixed(4), rolled: null, sent: 0 }));
+      offers.push(rowOf(c, spec, est, rec, v, St, { id: c.id, cid: c.id, day: G.state.day, ret: 0, chance: +ch.toFixed(4), rolled: null, sent: 0 }));
     } : null,
   });
+  if (battle) { const keep = offers.filter((o) => !sentIds.has(o.cid)); offers.length = 0; offers.push(...keep); }
   return { seed, res: { day: res.day, over: res.over, rank: res.rank, gold: res.gold, mercs: res.mercs, completed: res.completed, failed: res.failed, fallen: res.fallen },
     rows, offers, chk, ms };
 }
@@ -245,11 +255,13 @@ async function main() {
   const seed0 = +args.flags.seed0 || +process.env.SIM_SEED || 1;
   const seeds = Array.from({ length: N }, (_, i) => seed0 + i);
   const jobs = Math.max(1, +args.flags.jobs || 1);
-  const base = { offers: !!args.flags.offers, guard: !!args.flags.guard, check: !!args.flags.check };
+  const resolve = (args.flags.resolve || process.env.SIM_RESOLVE) === 'battle' ? 'battle' : 'roll';
+  const base = { offers: !!args.flags.offers, guard: !!args.flags.guard, check: !!args.flags.check, resolve };
   let commit = '?';
   try { commit = execFileSync('git', ['-C', ROOT, 'rev-parse', '--short', 'HEAD'], { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim(); } catch (e) { /* git 없이도 돈다 */ }
   console.log(`command: node tools/sim/shadow.js ${process.argv.slice(2).join(' ')}${process.env.STAT_KNOBS ? `   (STAT_KNOBS=${process.env.STAT_KNOBS})` : ''}`);
-  console.log(`root ${ROOT} | commit ${commit} | seeds ${seeds[0]}..${seeds[N - 1]} x ${days} days | equip guard ${base.guard ? 'on' : 'off (same games as the bot md5 baseline)'}`);
+  console.log(`root ${ROOT} | commit ${commit} | seeds ${seeds[0]}..${seeds[N - 1]} x ${days} days | equip guard ${base.guard ? 'on' : 'off (same games as the bot md5 baseline)'}`
+    + ` | resolve ${resolve}${resolve === 'battle' ? ' (the battle decides; "rolled" = the battle verdict)' : ''}`);
   const t0 = Date.now();
 
   // 값 훑기: 조합마다 한 줄

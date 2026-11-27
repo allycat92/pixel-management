@@ -239,6 +239,11 @@ h3 { font-size: 14px; margin: 8px 0; }
 .c-mid { color: var(--gold); }
 .c-bad { color: #f0955a; }
 .c-worst { color: var(--bad); }
+/* 전투 모드의 예상 다섯 단어 (출전 창) */
+.forecast-line b { font-size: 1.15em; }
+.forecast-scale { display: flex; gap: 4px; margin: 4px 0 2px; }
+.forecast-scale span { flex: 1; text-align: center; font-size: 11px; padding: 2px 0; border: 1px solid rgba(255,255,255,0.12); border-radius: 3px; opacity: 0.45; }
+.forecast-scale span.on { opacity: 1; font-weight: bold; border-color: currentColor; }
 
 .report { text-align: center; }
 .report-banner {

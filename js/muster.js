@@ -48,9 +48,9 @@ Object.assign(Game, {
     const s = this.state;
     const MAX_GROUPS = 3, GROUP_MIN = 3, GROUP_MAX = 4;
     const { own, ext, allMembers } = this.unitParts(units);
-    const sc = Stats.scale(c, this.effectiveReq(c));
     // 전투 모드: 적 편성과 전투 시드가 저장의 소금에서 나온다 (의뢰 번호만으로는 예측할 수 없고, 날짜를 섞지 않아 하루가 지나도 같다)
     const bm = this.battleMode(), salt = bm ? this.contractSalt(c) : 0;
+    const sc = Stats.scale(c, this.effectiveReq(c), bm);
     const foeSeed = bm ? Stats.mix(salt, 0xf0e) : c.foe || c.id * 7919 + 17;   // 의뢰마다 하나
     const rInt = (r, a, b) => a + Math.floor(r() * (b - a + 1));
     const rPick = (r, arr) => arr[Math.floor(r() * arr.length)];
@@ -145,7 +145,8 @@ Object.assign(Game, {
     }
     return {
       v: 1, seed: bm ? Stats.mix(salt, 0xb7) : Stats.mix(foeSeed, day == null ? s.day : day, 0xb7), terrain: PROVINCES[c.province] ? PROVINCES[c.province].terrain : null,
-      rule: Stats.ruleOf(c), limit: Stats.KN.LIMIT, lv: sc.lv, k: +sc.k.toFixed(3), need: c.size, heads: this.unitsHeadcount(units), groups,
+      rule: Stats.ruleOf(c), limit: Stats.KN.LIMIT, lv: sc.lv, k: +sc.k.toFixed(3), need: c.size, heads: this.unitsHeadcount(units),
+      ...(bm ? { bm: 1, kind: Stats.kindOf(c) } : {}), groups,   // 전투 모드 편성 표시 (예상 보정이 읽는다)
     };
   },
 
@@ -221,40 +222,39 @@ Object.assign(Game, {
     return out;
   },
 
-  // 길드 전력 눈금: 가장 강한 직속 용병단(단원 전부)이 별 등급마다 받을 예상 전력비 R. 기준 의뢰는 본거지의 고블린 토벌.
-  // 하루에 한 번 잰다 (단원 수가 바뀌면 다시). -> { companyId, R: [, R1, R2, … R14] }
+  // 길드 전력 눈금: 전력이 높은 직속 용병단 (최대 BOARD_TOP 개, 단원 전부)이 별 등급마다 받을 예상 전력비 R. 기준 의뢰는 본거지의 고블린 토벌.
+  // 하루에 한 번 잰다 (단원 수가 바뀌면 다시). -> { companyId(가장 강한 용병단), tabs: [{ companyId, R: [, R1 … R14] }] (강한 순) }
   capability() {
     const s = this.state;
     const c0 = this._cap;
     if (c0 && c0.st === s && c0.day === s.day && c0.n === s.mercs.length) return c0;
-    const out = { st: s, day: s.day, n: s.mercs.length, companyId: 0, R: [] };
-    let best = null, bp = -1;
-    this.ownCompanies().forEach((co) => {
-      const ms = this.members(co);
-      if (!ms.length) return;
-      const p = this.ownCompanyPower(co, ms, 'hunt');
-      if (p > bp) { bp = p; best = co; }
-    });
-    if (best) {
-      out.companyId = best.id;
-      const units = [{ companyId: best.id, memberIds: this.members(best).map((m) => m.id) }];
-      const home = PROVINCE_KEYS.find((k) => PROVINCES[k].home) || PROVINCE_KEYS[0];
+    const out = { st: s, day: s.day, n: s.mercs.length, companyId: 0, tabs: [] };
+    const home = PROVINCE_KEYS.find((k) => PROVINCES[k].home) || PROVINCE_KEYS[0];
+    const cos = this.ownCompanies().filter((co) => this.members(co).length)
+      .map((co) => ({ co, p: this.ownCompanyPower(co, this.members(co), 'hunt') })).sort((a, b) => b.p - a.p).slice(0, Stats.KN.BOARD_TOP);
+    cos.forEach(({ co }) => {
+      const units = [{ companyId: co.id, memberIds: this.members(co).map((m) => m.id) }];
+      const R = [];
       for (let L = 1; L <= LATE_MAX_LEVEL; L++) {
         const ref = { id: 0, bseed: 0x5eed, foe: 0x5eed, type: 'hunt', cat: 'monster', level: L, size: 3, days: 2, req: Math.round(Stats.nominalReq({ level: L })),
           province: home, issuer: this.owner(home), target: null, enemy: '고블린' };
-        out.R[L] = Stats.forecast(this.muster(ref, units)).R;
+        R[L] = Stats.forecast(this.muster(ref, units)).R;
       }
-    }
+      out.tabs.push({ companyId: co.id, R });
+    });
+    out.companyId = out.tabs.length ? out.tabs[0].companyId : 0;
     this._cap = out;
     return out;
   },
-  // 전투 모드의 의뢰 별 등급: 길드 전력 눈금에서 예상 단계(BOARD_W 비율)를 하나 뽑아 그 단계에 드는 별을 고른다. 등급이 연 상한을 넘지 않는다.
-  // 적은 별 등급이 정한다 — 용병단을 따라 세지지 않는다. 길드가 크면 같은 별이 쉬워지고, 더 높은 별이 게시판에 오른다.
+  // 전투 모드의 의뢰 별 등급: 강한 용병단 하나(BOARD_TOP 중 무작위)의 눈금에서 예상 단계(BOARD_W 비율)를 하나 뽑아, 그 단계에 드는 별 가운데
+  // 높은 쪽 셋 중 하나를 고른다. 등급이 연 상한(오늘과 같은 rank+2, 재앙 뒤 rank+6)을 넘지 않는다.
+  // 적은 별 등급이 정한다 — 용병단을 따라 세지지 않는다. 용병단이 크면 같은 별이 쉬워지고, 더 높은 별이 게시판에 오른다.
   battleLevel(p, bonus = 0) {
     const r = this.rankIndex(), late = this.lateGame();
     const cap = clamp(late ? r + 6 : r + 2, 1, this.maxContractLevel());
-    const tab = this.capability();
-    if (!tab.companyId) return null;
+    const cp = this.capability();
+    if (!cp.tabs.length) return null;
+    const tab = cp.tabs[Math.floor(Math.random() * cp.tabs.length)];
     const w = Stats.KN.BOARD_W;
     let x = Math.random() * w.reduce((a, b) => a + b, 0), band = 0;
     for (; band < w.length - 1; band++) { x -= w[band]; if (x <= 0) break; }
@@ -262,12 +262,9 @@ Object.assign(Game, {
     for (let L = 1; L <= cap; L++) levels.push(L);
     const inBand = levels.filter((L) => Stats.bandOf(tab.R[L]) === band);
     let L;
-    if (inBand.length) L = pick(inBand);
-    else {
-      // 그 단계에 드는 별이 없으면 단계 가운데에 가장 가까운 별 (등급 상한이 막으면 상한의 별)
-      const E = Stats.KN.BANDS, mid = [E[0] * 0.85, (E[0] + E[1]) / 2, (E[1] + E[2]) / 2, (E[2] + E[3]) / 2, E[3] * 1.2][band];
-      L = levels.reduce((a, b) => (Math.abs(Math.log(tab.R[b] / mid)) < Math.abs(Math.log(tab.R[a] / mid)) ? b : a), levels[0]);
-    }
+    if (inBand.length) L = pick(inBand.slice(-3));
+    else if (band > Stats.bandOf(tab.R[1])) L = 1;                       // 가장 쉬운 별도 그 단계보다 어렵다
+    else L = pick(levels.slice(-2));                                     // 열린 별이 모두 그 단계보다 쉽다: 열린 가장 높은 별 둘 중 하나
     return clamp(L + bonus, 1, this.maxContractLevel());
   },
   // 구호 의뢰: 길드에 대장만 남으면, 대장 혼자서도 이길 만한 쉬운 의뢰를 하나 걸어 둔다 (보수 ×1.5, 5일)
@@ -275,8 +272,9 @@ Object.assign(Game, {
     const s = this.state;
     if (!s.mercs.length || s.mercs.some((m) => !this.isCaptain(m))) return;
     if (s.contracts.some((c) => c.relief) || s.missions.some((mi) => mi.contract.relief)) return;
-    const tab = this.capability();
-    if (!tab.companyId) return;
+    const cp = this.capability();
+    if (!cp.tabs.length) return;
+    const tab = cp.tabs[0];
     const cap = clamp(this.lateGame() ? this.rankIndex() + 6 : this.rankIndex() + 2, 1, this.maxContractLevel());
     let level = 1;
     for (let L = 1; L <= cap; L++) if (tab.R[L] >= Stats.KN.BANDS[3]) level = L;

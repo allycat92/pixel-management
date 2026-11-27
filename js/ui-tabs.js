@@ -178,7 +178,7 @@
       el('div', { class: 'quest-info' },
         el('div', { class: c.war ? 'war-gold' : '' }, icon('coin'), ` 보상 ${c.reward}`, c.war ? el('span', { class: 'chip war', text: '전쟁' }) : null),
         el('div', {}, icon('star'), ` 명성 +${c.rep}`),
-        el('div', { text: `권장 전투력 ${Game.effectiveReq(c)}` }),
+        Game.battleMode() ? bestWord(c) : el('div', { text: `권장 전투력 ${Game.effectiveReq(c)}` }),
         el('div', { text: `권장 ${c.size}명 · ${c.days}일` }),
         el('div', { class: 'muted', text: c.final || c.expires === STORY_EXPIRES ? '마감 없음' : c.expires <= s.day ? '오늘 마감' : `마감까지 ${c.expires - s.day}일` })),
       effectPreview(c),
@@ -218,6 +218,32 @@
         el('span', { class: 'tag tag-quest', text: `${mi.returnDay - s.day}일 후 귀환` })))));
     }
   };
+
+  // 전투 모드(Game.RESOLVE === 'battle'): 성공률 대신 다섯 단어 (압도 우세 백중 열세 무모). 경고 줄은 없다 — 주인 결정 5
+  const BAND_CLASS = ['c-worst', 'c-bad', 'c-mid', 'c-good', 'c-great'];
+  function forecastOf(c, units) {
+    try { return Game.forecast(Game.muster(c, units)); } catch (e) { return null; }
+  }
+  function wordEl(est) {
+    return est ? el('b', { class: BAND_CLASS[est.band], text: `「${Stats.BAND_NAMES[est.band]}」` }) : el('b', { class: 'muted', text: '-' });
+  }
+  // 의뢰 카드: 지금 보낼 수 있는 용병단 가운데 가장 나은 예상
+  function bestWord(c) {
+    const s = Game.state;
+    let best = null;
+    s.companies.filter((co) => !co.missionId).forEach((co) => {
+      if (co.own) {
+        const ms = Game.availableMembers(co).filter((m) => m.fatigue < 80);
+        if (!ms.length) return;
+        const est = forecastOf(c, [{ companyId: co.id, memberIds: ms.map((m) => m.id) }]);
+        if (est && (!best || est.R > best.R)) best = est;
+      } else if (!Game.extRefusal(co, c)) {
+        const est = forecastOf(c, [{ companyId: co.id }]);
+        if (est && (!best || est.R > best.R)) best = est;
+      }
+    });
+    return el('div', {}, '예상 ', best ? wordEl(best) : el('span', { class: 'muted', text: '보낼 용병단 없음' }));
+  }
 
   function chanceLabel(c) {
     if (c >= 0.9) return ['확실', 'c-great'];
@@ -300,7 +326,8 @@
             el('div', { class: `small ${refusal ? 'bad' : 'muted'}`, text: refusal || (co.own
               ? `출격 가능 ${avail.length}/${Game.members(co).length}명 · 결속도 ${co.cohesion}`
               : `${co.size}명 · 충성도 ${co.loyalty} · 몫 ${co.share}%${co.sympathy === c.target && c.target ? ' · 동조 세력 공격(충성도 하락)' : ''}`) })),
-          el('b', { class: 'power' }, el('span', { class: 'sr-only', text: '전력 ' }), String(Game.unitsPower(c, [u]))));
+          Game.battleMode() ? el('span', { class: 'power' }, el('span', { class: 'sr-only', text: '예상 ' }), wordEl(disabled ? null : forecastOf(c, [u])))
+            : el('b', { class: 'power' }, el('span', { class: 'sr-only', text: '전력 ' }), String(Game.unitsPower(c, [u]))));
       }));
       if (!comps.length) listBox.append(el('div', { class: 'muted small', text: '대기 중인 용병단이 없습니다.' }));
 
@@ -329,6 +356,20 @@
       const hostile = req > c.req;
       const { allMembers } = Game.unitParts(us);
       const tired = allMembers.filter((m) => m.fatigue >= 50);
+      if (Game.battleMode()) {
+        // 전투 모드: 고른 편성 그대로 굳혀 본 예상 한 단어. 인원·피로·적대 지역은 따로 경고하지 않는다 (예상에 이미 들어 있다)
+        const est = us.length ? forecastOf(c, us) : null;
+        summary.replaceChildren(...[
+          us.length ? el('div', { class: 'forecast-line' }, '예상 전황 ', wordEl(est), el('span', { class: 'small muted', text: ` · 소요 ${Game.contractDays(c, us)}일` }))
+            : el('div', { class: 'muted', text: c.campaign ? `용병단을 최대 ${slots}개까지 고르세요. (직속·외부 합계)` : '용병단을 하나 고르세요.' }),
+          us.length && est ? el('div', { class: 'forecast-scale', 'aria-hidden': 'true' }, Stats.BAND_NAMES.map((w, i) => el('span', { class: i === est.band ? `on ${BAND_CLASS[i]}` : '', text: w }))) : null,
+          us.length && slots > 1 ? el('div', { class: `small ${us.length >= slots ? 'warn' : 'muted'}`, text: `용병단 ${us.length}/${slots}개${us.length >= slots ? ' · 더 보내려면 하나를 빼야 합니다' : ''} (한 전장에 아군 부대는 최대 ${MAX_DISPATCH}개)` }) : null,
+          missingHero ? el('div', { class: 'bad small', text: `${HEROES[c.story.hero].name}${josa(HEROES[c.story.hero].name, '이', '가')} 출격 단원에 있어야 합니다.` }) : null,
+          c.campaign ? el('div', { class: 'small warn', text: '이 결전을 맡으면 반대 진영의 제안은 사라집니다.' }) : null,
+        ].filter(Boolean));
+        go.disabled = !us.length || missingHero;
+        return;
+      }
       summary.replaceChildren(...[
         el('div', {}, '총 전투력 ', el('b', { text: pw }), ` / 권장 ${req}`, el('span', { class: `small ${head < c.size ? 'bad' : 'muted'}`, text: ` · 인원 ${head}/${c.size}` })),
         el('div', { class: 'bar big' }, el('div', { class: 'bar-fill f-power', style: `width:${Math.min(100, (pw / req) * 50)}%` }), el('div', { class: 'bar-mark' })),

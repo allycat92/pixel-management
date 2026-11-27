@@ -35,7 +35,7 @@ const Stats = (() => {
     // ── 3단계: 전투가 결과를 정하는 모드(Game.RESOLVE === 'battle')에서만 읽는 값. 'roll' 모드에서는 아무 데서도 읽지 않는다 ──
     // 설명과 근거: docs/plans/battle_stats/stage3_notes.md
     BOARD_W: [0.04, 0.16, 0.25, 0.30, 0.25],   // 새 의뢰의 예상 단계 비율 (무모 열세 백중 우세 압도): 쉬운 것부터 벅찬 것까지 늘 보이게
-    BOARD_REACH: 1.0,   // 길드 전력 눈금을 재는 용병단: 1 = 가장 강한 용병단
+    BOARD_TOP: 3,       // 길드 전력 눈금을 재는 용병단 수 (전력 순 상위). 의뢰마다 그중 하나에 맞춘다 — 약한 용병단에게도 맞는 의뢰가 오른다
     LOSS_PAY: 0.1,      // 실패한 의뢰의 기본 보수 비율 (오늘과 같다)
     LOSS_PAY_SHARE: 0.5,  // + 무찌른 적 전력 비율 × 이 값 (적의 절반을 꺾고 물러나면 보수의 35%)
     RETREAT_MORALE: 0.5,  // 질서 있게 물러난 실패의 사기 하락 배율 (-6 → -3)
@@ -47,6 +47,11 @@ const Stats = (() => {
     GUILD_FLOOR: 3,     // 사망으로 길드 인원이 이 아래로 내려가지 않는다
     EXT_KEEP: 0.5,      // 진 전투에서 쓰러진 외부 용병단원이 돌아올 확률 (최대 EXT_LOST_CAP 명 잃는다, 이기면 잃지 않는다)
     EXT_LOST_CAP: 2,
+    BM_LATE_STEP: 3,    // 전투 모드(일반 의뢰): ★8 부터 별 하나에 오르는 적 레벨 (기본 표는 1 — 후반에는 가장 높은 별도 쉬워 어려운 의뢰가 없었다)
+    BM_LOW_K: [1, 0.6, 0.75, 0.9],   // 전투 모드(일반 의뢰): ★1·★2·★3 적 배율 (갓 만든 1레벨 용병단도 ★1 은 이길 만하게. ★4 부터 1)
+    // 전투 모드의 예상 보정 (CAL_KIND 에 더 곱한다): 반반 지점(R50)의 역수. 전투 모드 12판×365일 10,597전(보낸 것 + 살펴본 것)의 로지스틱 맞춤
+    BM_CAL_ARCH: { soldier: 1, grunt: 1.087, beast: 1.044, brute: 1.152, armored: 1.202, caster: 0.977, blob: 0.968 },
+    BM_CAL_SPECIAL: 0.92,   // 보스·이야기·대장 이야기·최종 결전 (R50 1.07~1.14): 큰 적 하나와 싸우는 판은 같은 R 에서 더 진다
   };
   // 능력치 공식의 계수
   const ATK_W = [1, 0.3, 0.1];            // 공격 = 가장 높은 능력치 + 0.3·둘째 + 0.1·셋째
@@ -85,6 +90,7 @@ const Stats = (() => {
     merge(KN, rest); merge(REF, r); merge(ARCH, a); merge(RANK, k);
   }
   const ELV = ELV0.map((v, i) => (i <= 7 ? v : ELV0[7] + (i - 7) * KN.LATE_STEP) + (i ? KN.ELV_SHIFT : 0));
+  const ELV_BM = ELV0.map((v, i) => (i <= 7 ? v : ELV0[7] + (i - 7) * KN.BM_LATE_STEP) + (i ? KN.ELV_SHIFT : 0));   // 전투 모드의 별 → 적 레벨
 
   // ───────── 시드 난수 (전투와 같은 mulberry32) ─────────
   function rng(seed) {
@@ -211,11 +217,16 @@ const Stats = (() => {
   const kindOf = (q) => (q.final ? 'final' : q.campaign ? 'campaign' : q.boss ? 'boss' : q.story ? 'story' : q.capStory ? 'capStory' : 'normal');
   const nominalReq = (q) => 24 * Math.pow(1.4, q.level - 1) * 1.175 * (q.boss ? 1.3 : 1);
   // 의뢰 → 적 레벨과 배율: ★ 이 레벨을 정하고, 요구 전투력의 나머지(±10% 굴림, 규모, 적대 영토 ×1.2, 결전 ×1.05)가 k 로 간다.
-  function scale(q, effReq) {
+  // bm: 전투 모드 (일반 의뢰만: ★8+ 의 레벨 간격 BM_LATE_STEP, ★1~3 배율 BM_LOW_K)
+  function scale(q, effReq, bm) {
     const req = effReq || q.req;
     const base = clampN(q.final ? req / KN.FINAL_REQ : req / nominalReq(q), 0.7, 1.6);
-    const lv = Math.max(1, ELV[q.final ? 14 : clampN(q.level, 1, 14)]);
-    return { lv, k: base * KN.ENEMY_K * (KN.KIND_K[kindOf(q)] || 1), kraw: base };
+    const star = q.final ? 14 : clampN(q.level, 1, 14);
+    // 전투 모드의 별 표는 일반 의뢰에만: 특별한 의뢰(이야기·보스·결전·최종)의 별은 등급·지방이 정하므로 옛 표 그대로 둔다
+    const normal = bm && kindOf(q) === 'normal';
+    const lv = Math.max(1, (normal ? ELV_BM : ELV)[star]);
+    const low = normal ? (KN.BM_LOW_K[star] || 1) : 1;
+    return { lv, k: base * KN.ENEMY_K * (KN.KIND_K[kindOf(q)] || 1) * low, kraw: base };
   }
   // 이긴 것으로 치는 조건: field = 제한 시간 안에 적을 무너뜨려야 한다, hold = 끝까지 버텨도 이긴다
   const ruleOf = (q) => (q.boss || q.final ? 'field' : (QUEST_TYPES[q.type] && QUEST_TYPES[q.type].rule) || 'field');
@@ -262,8 +273,15 @@ const Stats = (() => {
   const foeKind = (spec) => (spec.groups.some((g) => g.kind === 'foe' && g.units[0] && g.units[0].mon) ? 'monster' : 'soldier');
   const bandOf = (R) => KN.BANDS.filter((e) => R >= e).length;   // 0 무모 … 4 압도
   // 굳힌 편성 → { R, band }. R = 1 이 '반반'이 되도록 CAL_KIND 로 맞춘다 (보정 전에는 1).
+  // 전투 모드의 편성(spec.bm)은 적 틀과 의뢰 갈래 보정을 더한다 (BM_CAL_ARCH, BM_CAL_SPECIAL)
   function forecast(spec) {
-    const R = +(margin(spec.groups) * (KN.CAL_KIND[foeKind(spec)] || 1)).toFixed(3);
+    let cal = KN.CAL_KIND[foeKind(spec)] || 1;
+    if (spec.bm) {
+      const foe = spec.groups.find((g) => g.kind === 'foe'), lead = foe && foe.units[0];
+      cal *= KN.BM_CAL_ARCH[(lead && lead.arch) || 'soldier'] || 1;
+      if (spec.kind && spec.kind !== 'normal' && spec.kind !== 'campaign') cal *= KN.BM_CAL_SPECIAL;
+    }
+    const R = +(margin(spec.groups) * cal).toFixed(3);
     return { R, band: bandOf(R) };
   }
 
@@ -307,6 +325,6 @@ const Stats = (() => {
     return tot ? clampN(gone / tot, 0, 1) : 0;
   }
 
-  return { KN, KNOBS, REF, ARCH, RANK, ELV, ARMOR_DEF, BAND_NAMES, rng, mix, raw, parts, sheet, aptOf, aidOf, armorDef, ref, enemy, generic,
+  return { KN, KNOBS, REF, ARCH, RANK, ELV, ELV_BM, ARMOR_DEF, BAND_NAMES, rng, mix, raw, parts, sheet, aptOf, aidOf, armorDef, ref, enemy, generic,
     kindOf, nominalReq, scale, ruleOf, margin, foeKind, bandOf, forecast, oursOf, judge, monsterSkills, foeShare };
 })();

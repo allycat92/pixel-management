@@ -438,7 +438,9 @@ const UI = (() => {
           : el('div', {},
             el('div', { class: 'small', text: `EXP +${m.exp}` }),
             m.levelUp ? el('div', { class: 'good small', text: 'LEVEL UP!' }) : null,
-            m.injury ? el('div', { class: 'bad small', text: `부상 ${m.injury}일` }) : null)));
+            // 전투 모드: 전투에서 실제로 쓰러진 단원만 표시한다 (부상은 쓰러졌거나 크게 다친 단원에게만 생긴다)
+            m.down ? el('div', { class: 'bad small', text: m.injury ? `쓰러짐 · 부상 ${m.injury}일` : '쓰러짐' })
+              : m.injury ? el('div', { class: 'bad small', text: `부상 ${m.injury}일` }) : null)));
     });
     r.ext.forEach((e) => {
       members.append(el('div', { class: `report-member ext ${e.betrayed ? 'dead' : ''}` },
@@ -454,6 +456,7 @@ const UI = (() => {
       el('div', { class: `report-banner ${good ? 'good' : 'bad'} ${r.outcome}`, text: titles[r.outcome], tabindex: '-1', 'data-autofocus': '' }),
       el('h3', { text: c.title }),
       el('div', { class: 'small muted', text: `${PROVINCES[c.province].name} · 의뢰주 ${FACTIONS[c.issuer].name}${c.target ? ` · 대상 ${FACTIONS[c.target].name}` : ''}` }),
+      r.battle ? el('div', { class: 'small muted', text: `출격 때 예상 「${Stats.BAND_NAMES[r.battle.band]}」 · 전투 ${Math.round(r.battle.t)}초 · 쓰러진 단원 ${r.members.filter((m) => m.down).length}명` }) : null,
       members,
       el('div', { class: 'report-rewards' },
         el('span', {}, icon('coin'), ` ${signed(r.gold)}`),
@@ -777,6 +780,8 @@ const UI = (() => {
     Battle.stop();
     Game.clearSave();
     Game.newGame();
+    // 시험용 주소 ?resolve=battle 로 연 창이면 새 게임도 전투 모드 (js/main.js)
+    if (typeof location !== 'undefined' && new URLSearchParams(location.search).get('resolve') === 'battle') Game.setResolve('battle');
     Game.emit();
   }
   function startNewGame() {
