@@ -541,6 +541,6 @@ Object.assign(Game, {
     s.gold -= cost;
     s.branches[p] = true;
     this.log(`「${PROVINCES[p].name}」에 길드 지부를 열었습니다! 이 지방 의뢰가 늘고 이동이 빨라집니다. (-${cost} 금화)`, 'good');
-    this.emit();
+    this.saveManagement();
   },
 });

@@ -8,15 +8,16 @@
   // ───────── 용병단 ─────────
   function memberRow(m, c) {
     const cap = Game.isCaptain(m);
-    return el('div', { class: `mrow ${m.status} ${cap ? 'captain-row' : ''}`, onclick: () => UI.openMerc(m.id) },
+    return el('button', { type: 'button', class: `mrow ${m.status} ${cap ? 'captain-row' : ''}`,
+      'data-fkey': `merc-${m.id}`, 'aria-label': `${m.name} 상세`, onclick: () => UI.openMerc(m.id) },
       mini(m.look),
-      el('div', { class: 'grow' },
-        el('div', { class: 'mname' }, cap ? el('span', { class: 'crown', title: '용병대장', text: '♛' }) : null, m.name,
+      el('span', { class: 'grow' },
+        el('span', { class: 'mname' }, cap ? el('span', { class: 'crown', title: '용병대장', text: '♛' }) : null, m.name,
           el('span', { class: 'lv', text: ` Lv.${m.level}` }), m.hero ? el('span', { class: 'hero-mark', text: ' ★' }) : null),
-        el('div', { class: 'small muted' }, cap
+        el('span', { class: 'small muted' }, cap
           ? `${Game.className(m)} · 지휘 「${Game.leadOf(m).name}」${m.trait !== 'none' ? ` · ${TRAITS[m.trait].name}` : ''}`
           : `${Game.className(m)} (${m.hcls ? `특별 · 이야기 ${Game.heroCh(m)}장` : UNIT_TIERS[Game.classTier(m)].name})${m.trait !== 'none' ? ` · ${TRAITS[m.trait].name}` : ''}`)),
-      el('div', { class: 'mtags' },
+      el('span', { class: 'mtags' },
         m.status === 'injured' ? el('span', { class: 'tag tag-injured', text: `부상 ${Math.ceil(m.injury)}일` }) : null,
         m.status === 'quest' ? el('span', { class: 'tag tag-quest', text: '출격' }) : null,
         (Game.canPromote(m) || Game.canMaster(m)) && m.status !== 'quest' ? el('span', { class: 'tag tag-promo', text: Game.canMaster(m) ? '최상급 전직 가능' : '전직 가능' })
@@ -85,7 +86,10 @@
         : [
           el('button', { class: 'btn small', disabled: c.loyalty < 30 || s.gold < Game.renewCost(c) ? 'disabled' : null, onclick: () => Game.renewCompany(c.id) }, icon('coin'), ` ${Game.renewCost(c)} 재계약 (+4주)`),
           el('button', { class: 'btn small danger', text: '계약 해지', disabled: c.missionId ? 'disabled' : null,
-            onclick: () => UI.confirmBox(`「${c.name}」${josa(c.name, '과', '와')}의 계약을 해지할까요? 계약금은 돌려받지 못합니다.`, () => Game.releaseCompany(c.id, '계약 해지로 떠났습니다.')) }),
+            onclick: () => UI.confirmBox(`「${c.name}」${josa(c.name, '과', '와')}의 계약을 해지할까요? 계약금은 돌려받지 못합니다.`, () => {
+              Game.releaseCompany(c.id, '계약 해지로 떠났습니다.');
+              Game.save();
+            }) }),
         ]));
   }
 
@@ -441,9 +445,18 @@
           el('button', { class: 'btn small', text: '파견', onclick: () => openDispatch(c) }))) : el('div', { class: 'muted small', text: '의뢰가 없습니다.' })) : null,
       ].filter(Boolean));
     };
-    const cvs = WorldMap.create((p) => fill(p));
-    fill(WorldMap.selected);
-    root.append(el('div', { class: 'map-layout' }, el('div', { class: 'map-wrap' }, cvs), info));
+    const select = el('select', { id: 'map-region', class: 'input', onchange: (e) => pickRegion(e.target.value) },
+      PROVINCE_KEYS.map((p) => el('option', { value: p, text: PROVINCES[p].name })));
+    function pickRegion(p) {
+      WorldMap.selected = p;
+      select.value = p;
+      fill(p);
+    }
+    const cvs = WorldMap.create(pickRegion);
+    pickRegion(WorldMap.selected);
+    root.append(el('div', { class: 'map-layout' }, el('div', {},
+      el('div', { class: 'map-region-control' }, el('label', { for: 'map-region', text: '지역' }), select),
+      el('div', { class: 'map-wrap' }, cvs)), info));
   };
 
   // ───────── 세력 ─────────

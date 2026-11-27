@@ -196,7 +196,7 @@ const UI = (() => {
         onclick: () => confirmBox(Game.isCaptain(m) ? `용병대장 ${m.name}${josa(m.name, '을', '를')} 내보낼까요? 대장은 단 한 명뿐인 인물이라 다시는 영입할 수 없습니다.`
           : `${m.name}${josa(m.name, '을', '를')} 해고할까요? 장착한 장비는 창고로 돌아옵니다.`, () => Game.dismiss(m.id)) }));
     }
-    openModal(el('div', {}, mercCard(m, { actions }),
+    openModal(el('div', { class: 'merc-detail' }, mercCard(m, { actions }),
       el('div', { class: 'modal-actions' }, el('button', { class: 'btn primary', text: '닫기', onclick: closeModal }))));
   }
 
@@ -216,7 +216,7 @@ const UI = (() => {
     });
     rows.push(el('div', { class: 'row' }, el('div', { class: 'grow', text: '예비 인원 (출격하지 않음)' }),
       el('button', { class: 'btn small', disabled: m.companyId == null ? 'disabled' : null, onclick: () => { Game.assign(m.id, null); closeModal(); } }, '빼기')));
-    openModal(el('div', {},
+    openModal(el('div', { class: 'merc-detail' },
       el('h2', {}, mini(m.look), ` ${m.name} 배속 이동`),
       el('p', { class: 'muted small', text: '용병단을 옮기면 양쪽 용병단의 결속도가 조금 떨어집니다.' }),
       el('div', { class: 'list' }, rows),
@@ -229,13 +229,13 @@ const UI = (() => {
     const m = s.mercs.find((x) => x.id === mercId);
     if (!m || Game.isCaptain(m) || m.hcls) return;
     const statName = { str: '힘', dex: '민첩', int: '지력', maxHp: '체력' };
-    const bonusTxt = (b) => Object.entries(b).map(([k, v]) => `${statName[k]}+${v}`).join(' ');
     const card = (look, name, skill, desc, bonus, foot, current) => el('div', { class: `promo-card ${current ? 'current' : ''}` },
       el('div', { class: 'portrait-wrap' }, Sprites.clone(Sprites.merc(look, 4, 0), 'promo-portrait')),
       el('div', { class: 'name', text: name }),
       el('div', { class: 'skill act', text: `◆ ${skill}` }),
       el('div', { class: 'small', text: desc }),
-      bonus ? el('div', { class: 'small good', text: `즉시 ${bonusTxt(bonus)}` }) : null,
+      bonus ? el('div', { class: 'small good' }, '즉시',
+        Object.entries(bonus).flatMap(([k, v]) => [' ', el('span', { class: 'stat-token', text: `${statName[k]}+${v}` })])) : null,
       foot);
     const baseLook = { ...m.look, adv: undefined, master: undefined };
     const skillText = (c) => `전투: ${describeBattle(c.b)} / 의뢰: ${describeFx(c.fx)}`;
@@ -280,7 +280,7 @@ const UI = (() => {
     const s = Game.state;
     const m = s.mercs.find((x) => x.id === mercId);
     if (!m) return;
-    const body = el('div', {},
+    const body = el('div', { class: 'merc-detail' },
       el('h2', {}, mini(m.look), ` ${m.name}의 장비`),
       el('p', { class: 'muted small', text: `힘 ${Game.eff(m, 'str')} · 민첩 ${Game.eff(m, 'dex')} · 지력 ${Game.eff(m, 'int')} · 체력 ${Game.eff(m, 'maxHp')} (장비 포함)` }));
     ['weapon', 'armor', 'trinket'].forEach((slot) => {
@@ -344,13 +344,18 @@ const UI = (() => {
     if (r.special) return openModal(specialReport(r), true);
     if (slot.stage === 'battle') {
       // 전투 연출 중에는 상단 막대·소식줄이 이 보고서 이전 값을 보여 준다 (결과를 미리 알리지 않도록)
-      openModal(Battle.play(r, () => {
+      const battle = Battle.play(r, () => {
         if (Game.state.reportSlot !== slot) return;
         slot.stage = 'report';
         Game.save();
         openModal(missionReport(r), true);
         renderTop();
-      }), true);
+      });
+      const head = battle.querySelector('.battle-head');
+      head.firstChild.replaceWith(
+        el('span', { class: 'battle-title', text: r.quest.title }), ' — ',
+        el('span', { class: 'battle-region', text: PROVINCES[r.quest.province].name }));
+      openModal(battle, true);
       renderTop();
     } else openModal(missionReport(r), true);
   }
@@ -721,6 +726,7 @@ const UI = (() => {
     nameDialog(body, content);
     m.classList.remove('hidden');
     m.dataset.sticky = sticky ? '1' : '';
+    body.scrollTop = 0;
     focusModal();
   }
   // 화면 읽기용 창 이름: 제목이 있으면 aria-labelledby, 없으면 첫 글(문단·이름)로 aria-label
@@ -749,8 +755,14 @@ const UI = (() => {
   function focusModal() {
     const body = $('#modal .modal-body');
     const list = focusables(body);
-    const target = body.querySelector('[data-autofocus]:not([disabled])') || list[0] || body;
-    target.focus({ preventScroll: target === body });
+    const explicit = body.querySelector('[data-autofocus]:not([disabled])');
+    if (!explicit && body.scrollHeight > body.clientHeight) {
+      const title = document.getElementById(body.getAttribute('aria-labelledby'));
+      if (title) title.tabIndex = -1;
+      (title || body).focus({ preventScroll: true });
+      return;
+    }
+    (explicit || list[0] || body).focus({ preventScroll: true });
   }
   function hideModal() {
     modalOpen = false;
@@ -832,12 +844,12 @@ const UI = (() => {
 
   function openMenu() {
     const s = Game.state;
-    const nameInput = el('input', { class: 'input', value: s.guildName, maxlength: 16 });
+    const nameInput = el('input', { id: 'guild-name-input', class: 'input', value: s.guildName, maxlength: 16 });
     const battleToggle = el('input', { type: 'checkbox', id: 'opt-battle', checked: s.settings.battle ? 'checked' : null,
       onchange: (e) => { s.settings.battle = e.target.checked; Game.save(); } });
     openModal(el('div', {},
       el('h2', { text: '메뉴' }),
-      el('label', { class: 'small muted', text: '길드 이름' }),
+      el('label', { class: 'small muted', for: 'guild-name-input', text: '길드 이름' }),
       el('div', { class: 'row-inline' }, nameInput,
         el('button', { class: 'btn small', text: '변경', onclick: () => {
           const v = nameInput.value.trim();
