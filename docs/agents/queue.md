@@ -7,6 +7,7 @@
 
 | 누구 | id | 상태 | 할 일 (자세한 것은 그 줄의 문서) |
 |---|---|---|---|
+| GPT | `Q12-ironwall-run-ingame` | READY | 브리긴다 중량 이동(첫 중량)을 게임에서 보기: `docs/agents/tasks/Q12-ironwall-run-ingame.md` |
 | GPT | `Q11-stage4-check` | 예고 | 총괄 4단계 수정이 들어가면 READY: `docs/agents/tasks/Q11-stage4-check.md` |
 | Codex | `C10-scaled-mannequin-guides` | READY | 배율이 다른 시트(비요른 0.18)용 마네킹 가이드 + 비요른 요청서: `docs/agents/tasks/C10-scaled-mannequin-guides.md` |
 | Codex | `C11-ui-fixes-q4` | READY | Q4 화면 결함 6건 + 관리 조작 즉시 저장 (3단계 합쳐진 뒤 최신에서 시작): `docs/agents/tasks/C11-ui-fixes-q4.md` |
