@@ -1,4 +1,4 @@
-# C17 — 고블린·서리 트롤·사막 도적 이동 요청서 (Codex)
+# C17 — 고블린·서리 트롤·사막 도적 이동 요청서 (GPT — Codex 병목으로 넘김, 주인 결정 11-27)
 
 ## Why
 C10 FIX 이후 배율은 phase3.json 의 명시값만 믿는다. 고블린과 서리 트롤은 phase3.json 에 배율이 없어서 요청서를 만들 수 없었다. 사막 도적도 아직 요청서가 없다.
@@ -31,7 +31,7 @@ C10 FIX 이후 배율은 phase3.json 의 명시값만 믿는다. 고블린과 �
 `assets/`, 등록된 시트, `art/inbox/`, `dot_queue.md`, 게임 코드.
 
 ## Deliver
-- 브랜치 `agent/codex` 에 올린다.
+- 브랜치 `agent/gpt-qa` 에 올린다. 보고서는 `docs/agents/reports/gpt-qa.md` 에 쓴다.
 - 보고서 `## C17 — <날짜>` 를 쓴다.
 - 이 줄을 REVIEW 로 바꾼다.
 - 대기열에는 클라우드가 그림 대조 검증을 한 뒤에 올린다.
