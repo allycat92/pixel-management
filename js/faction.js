@@ -30,11 +30,12 @@ Object.assign(Game, {
   isDestroyed(f) { return (this.state.destroyed || []).includes(f); },
   isCalamity(f) { return !!(f && FACTIONS[f] && FACTIONS[f].calamity); },
   aliveFactions() { return FACTION_KEYS.filter((f) => !this.isDestroyed(f)); },
-  // 상대가 사라진 의뢰: 멸망한 세력이나 이미 토벌된 재앙을 겨냥한 의뢰 (QA Q8). 게시판에서 내리고 출격도 막는다.
-  // 이미 떠난 의뢰(s.missions)는 건드리지 않는다 — 굳혀 둔 확률·전투·보수 그대로 판정한다
+  // 상대가 사라진 의뢰: 멸망한 세력이나 이미 토벌된 재앙을 겨냥한 의뢰 (QA Q8), 또는 의뢰주가 멸망한 의뢰 (QA Q9).
+  // 게시판에서 내리고 출격도 막는다. 이미 떠난 의뢰(s.missions)는 건드리지 않는다 — 굳혀 둔 확률·전투·보수 그대로 판정한다
+  deadIssuer(c) { return !!(c && c.issuer && this.isDestroyed(c.issuer)); },
   deadTarget(c) {
     const t = c && c.target;
-    return !!t && (this.isDestroyed(t) || (this.isCalamity(t) && this.state.calamity !== t));
+    return this.deadIssuer(c) || (!!t && (this.isDestroyed(t) || (this.isCalamity(t) && this.state.calamity !== t)));
   },
   dropDeadTargets() {
     const s = this.state;

@@ -211,7 +211,7 @@ Object.assign(Game, {
     const s = this.state;
     // 전투 모드: 게시판이 BM_BOARD_EXTRA 칸 넓다 — 벅찬 의뢰가 이길 만한 일감의 자리를 빼앗지 않게 (검증 3·5번)
     const max = 3 + s.facilities.board + (s.resolve === 'battle' ? Stats.KN.BM_BOARD_EXTRA : 0);
-    s.contracts = s.contracts.filter((c) => c.expires >= s.day && !this.deadTarget(c)); // 상대가 사라진 의뢰도 내린다 (옛 저장)
+    s.contracts = s.contracts.filter((c) => c.expires >= s.day && !this.deadTarget(c)); // 상대나 의뢰주가 사라진 의뢰도 내린다 (옛 저장)
     const normal = () => s.contracts.filter((c) => !c.story && !c.boss && !c.campaign).length;
     let guard = 0;
     while (normal() < max && guard++ < 12) {
@@ -327,9 +327,10 @@ Object.assign(Game, {
     const c = s.contracts.find((x) => x.id === contractId);
     if (!c || !units.length || this.storyHeroMissing(c, units)) return;
     if (this.deadTarget(c)) {
-      // 옛 저장 등에 남은, 상대가 이미 사라진 의뢰 (QA Q8)
+      // 옛 저장 등에 남은, 상대나 의뢰주가 이미 사라진 의뢰 (QA Q8·Q9)
       s.contracts = s.contracts.filter((x) => x.id !== contractId);
-      this.toast(`${FACTIONS[c.target].name}${josa(FACTIONS[c.target].name, '은', '는')} 이미 사라져 이 의뢰는 맡을 수 없습니다. 게시판에서 내렸습니다.`);
+      const gone = FACTIONS[this.deadIssuer(c) ? c.issuer : c.target].name;
+      this.toast(`${gone}${josa(gone, '은', '는')} 이미 사라져 이 의뢰는 맡을 수 없습니다. 게시판에서 내렸습니다.`);
       return this.emit();
     }
     const slots = this.dispatchSlots(c);
@@ -561,19 +562,21 @@ Object.assign(Game, {
     this.log(`[${c.title}] ${label}! 금화 ${report.gold >= 0 ? '+' : ''}${report.gold}, 명성 ${report.rep >= 0 ? '+' : ''}${report.rep}`, won ? 'good' : 'bad');
     s.pendingReports.push(report);
 
-    if (c.final && !won && s.calamity) s.contracts.unshift({ ...c, id: s.nextId++ });
+    // 의뢰주·상대가 그새 사라졌으면 옛 의뢰를 다시 걸지 않는다 — checkFinalBattle·checkCaptains·checkBosses·checkHeroes 가
+    // 살아 있는 의뢰주(또는 자경단)로 새로 올린다 (QA Q8·Q9)
+    const repost = !this.deadTarget(c);
+    if (c.final && !won && s.calamity && repost) s.contracts.unshift({ ...c, id: s.nextId++ });
     if (c.capStory) {
       if (won) this.completeCaptainChapter(c.capStory);
-      else s.contracts.unshift({ ...c, id: s.nextId++ });
+      else if (repost) s.contracts.unshift({ ...c, id: s.nextId++ });
     }
     if (c.boss) {
       if (won) this.defeatBoss(c.boss);
-      else s.contracts.unshift({ ...c, id: s.nextId++ });
+      else if (repost) s.contracts.unshift({ ...c, id: s.nextId++ });
     }
     if (c.story) {
       if (won) this.completeStory(c.story);
-      // 상대 세력이 그새 사라졌으면 옛 의뢰를 다시 걸지 않는다 — checkHeroes 가 같은 장을 새로 올린다 (QA Q8)
-      else if (!s.heroes[c.story.hero].dead && !this.deadTarget(c)) {
+      else if (!s.heroes[c.story.hero].dead && repost) {
         s.contracts.unshift({ ...c, id: s.nextId++ });
         this.log(`「${c.title}」${josa(c.title, '은', '는')} 다시 도전할 수 있습니다.`);
       }
@@ -717,7 +720,7 @@ Object.assign(Game, {
       let issuer = 'locals';
       if (!target) issuer = this.isCalamity(owner) || this.isDestroyed(owner) ? 'locals' : owner;
       else if (owner !== target && !FACTIONS[owner].neutral) issuer = owner;
-      else if (h.faction && h.faction !== target) issuer = h.faction;
+      else if (h.faction && h.faction !== target && !this.isDestroyed(h.faction)) issuer = h.faction;   // 멸망한 후원 세력은 의뢰주가 될 수 없다 (QA Q9)
       const level = clamp(Math.max(TIER_LEVELS[PROVINCES[ch.province].tier][0], this.rankIndex() + 2), 1, 10);
       const c = this.makeContract({ province: ch.province, type: ch.type, target, issuer, enemy: ch.enemy, title: ch.title, level, size: 3, noDeadline: true });
       c.story = { hero: m.hero, ch: hs.ch };
