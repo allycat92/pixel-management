@@ -7,7 +7,6 @@
 
 | 누구 | id | 상태 | 할 일 (자세한 것은 그 줄의 문서) |
 |---|---|---|---|
-| GPT | `Q14-c13-text-check` | REVIEW | C13 한국어 글 손질을 게임에서 확인: `docs/agents/tasks/Q14-c13-text-check.md` |
 | GPT | `C14-roll-mission-seed` | FIX | roll 모드 귀환 결과를 출격 때 고정(Q13 P1): `docs/agents/tasks/C14-roll-mission-seed.md` |
 | GPT | `Q11-stage4-check` | 예고 | 총괄 4단계 수정이 들어가면 READY: `docs/agents/tasks/Q11-stage4-check.md` |
 
@@ -15,6 +14,7 @@
 
 | 누구 | id | 결과 |
 |---|---|---|
+| GPT | `Q14-c13-text-check` | **DONE** (11-27, `2dcd568` 합침): C13 한국어 글 PASS — 두 폭·두 모드, 개명(받침 두 가지), 영웅 2/2장, 지크린데 4/5 → 다섯째 토벌로 영입 의뢰, 조사(왕국으로부터), 총괄 결정 8개. 제안: 긴 길드 이름일 때 배 이름에 낫표 |
 | Codex | `C15-gait-requests-batch4` | **DONE** (11-27, `c537cb6` 골라 합침): 대장 14명 이동 요청서(해적왕 배율 ×0.894 포함). 클라우드 그림 대조로 14건 모두에서 31곳 수정 — 팔이 닿지 않는 손 위치(석궁 둘), 수평 석궁이 코트를 가로지름(의도 명시), 빠진 장비(렌치·주머니), 활 쥔 손 자리, 앞에 있는 땋은 머리, 룬 대장장이는 드워프가 아님 등. 생성기 CARRY 에도 같이 반영. Antigravity 대기열에 14건 |
 | Codex | `C13-korean-text-fixes` | **DONE** (11-27, `5baea53` 합침): Q7 글 119줄 손질 + 총괄 결정 8개(사제 바르톨로의 장부, 로드릭, 지크린데 5회, 전쟁 중 대사, 노예 시장 둘·교역로 절벽, 리치의 망령, 길드 이름을 칭호·배·노래까지, 영웅 장 수). roll md5 새 기준 `21b61842…`(지크린데가 실제로 합류해서) |
 | Codex | `C10-scaled-mannequin-guides` | **DONE** (11-27, `c57bd07`+FIX `a6e5846`): 배율 요청 가이드 + 비요른 요청서. FIX: 배율은 phase3 명시값에서만(고블린·서리 트롤은 거부), 칸 밖 확대 거부, 배율 요청은 조정 PNG 만 밑그림, 수령 도구가 manifest 로 id 찾기, `--check` 강화 |
