@@ -92,6 +92,25 @@ class Refusal(unittest.TestCase):
             import add_gait
             self.assertIsNotNone(add_gait.mannequin3d_reason(p))
 
+    def test_recoloured_3d_guide_caught_by_silhouette(self):
+        # a colour-swapped mannequin escapes the palette check, but matches its handed-out 3D guide at IoU ~1 > M3D_IOU
+        import add_gait
+        _, g, _ = run('warrior')
+        strip = np.asarray(strip_of(g['plain'][:4]).convert('RGB')).copy()
+        body = ~np.all(strip == np.array([255, 0, 255], np.uint8), -1)
+        strip[body] = 255 - strip[body] // 2                  # every body colour changed
+        with tempfile.TemporaryDirectory() as tmp:
+            from PIL import Image
+            p = os.path.join(tmp, 'recoloured.png')
+            Image.fromarray(strip).save(p)
+            self.assertIsNone(signature.mannequin3d_reason(p))
+            arr = np.asarray(Image.open(p).convert('RGBA'))
+            frames = [arr[:, k * 384:(k + 1) * 384] for k in range(4)]
+            guide = np.asarray(strip_of(g['plain'][:4]).convert('RGBA'))
+            drafts = [(f'g{k}', add_gait._crop(add_gait.frame_mask(guide[:, k * 384:(k + 1) * 384]))) for k in range(4)]
+            iou = add_gait.best_guide_match(frames, stop=add_gait.M3D_IOU, drafts=drafts)[0]
+            self.assertGreater(iou, add_gait.M3D_IOU)
+
     def test_painted_like_image_passes(self):
         rng = np.random.default_rng(1)
         arr = rng.integers(0, 255, (1024, 1536, 3), dtype=np.uint8)

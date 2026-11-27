@@ -216,6 +216,7 @@ def fk(P, pose, props=None, robe=None):
     M = {'N': 'near', 'F': 'far'}
     for s in 'FN':   # far first (order does not matter for the z-buffer; kept for readability)
         m = M[s]
+        sg = SIDES[s]
         # thigh starts a little down the bone with a smaller cap, so its top stays inside the pelvis (no knob in front
         # of the belt when the thigh swings forward)
         tdir = (J['knee' + s] - J['H' + s]) / max(np.linalg.norm(J['knee' + s] - J['H' + s]), 1e-9)
@@ -226,8 +227,10 @@ def fk(P, pose, props=None, robe=None):
         B.add_capsule(J['heel' + s], J['toe' + s], P['r_foot'], P['r_foot'] * TOE_TAPER, m + '_foot', 'foot' + s)
         B.add_capsule(J['ank' + s], J['heel' + s] * 0.55 + J['toe' + s] * 0.45 + Fm['foot' + s] @ np.array([0.0, 2.0, 0.0]),
                       P['r_shin'][1] * 0.92, P['r_foot'] * 0.85, m + '_foot', 'instep' + s)
-        # the knob never reaches below the sole (bulky fits have thick shins but the same ankle height)
-        B.add_ellipsoid(J['ank' + s], Fm['foot' + s], [min(P['r_shin'][1] * 1.18, P['ankle_h'] - 3.0)] * 3, m, 'ankle' + s)
+        # ankle bone (malleolus): a knob on the outer side, so it shows even on thick (fitted) shins; never below the sole
+        rk = min(P['r_shin'][1] * 1.12, P['ankle_h'] - 3.0)
+        B.add_ellipsoid(J['ank' + s] + np.array([0.0, 2.0, sg * P['r_shin'][1] * 0.45]), Fm['foot' + s], [rk] * 3, m,
+                        'ankle' + s)
         B.add_capsule(J['S' + s], J['elb' + s], *P['r_upper_arm'], m, 'upper_arm' + s)
         B.add_capsule(J['elb' + s], J['wri' + s], *P['r_forearm'], m, 'forearm' + s)
         B.add_ellipsoid(J['hand' + s], Fm['hand' + s], [P['r_hand'] * 0.8, P['r_hand'], P['r_hand'] * 0.7], m, 'hand' + s)
