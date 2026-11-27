@@ -572,7 +572,8 @@ Object.assign(Game, {
     }
     if (c.story) {
       if (won) this.completeStory(c.story);
-      else if (!s.heroes[c.story.hero].dead) {
+      // 상대 세력이 그새 사라졌으면 옛 의뢰를 다시 걸지 않는다 — checkHeroes 가 같은 장을 새로 올린다 (QA Q8)
+      else if (!s.heroes[c.story.hero].dead && !this.deadTarget(c)) {
         s.contracts.unshift({ ...c, id: s.nextId++ });
         this.log(`「${c.title}」${josa(c.title, '은', '는')} 다시 도전할 수 있습니다.`);
       }

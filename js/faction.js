@@ -281,7 +281,9 @@ Object.assign(Game, {
     if (this.isDestroyed(f)) return;
     s.destroyed.push(f);
     s.wars.filter((w) => w.a === f || w.b === f).forEach((w) => { s.wars = s.wars.filter((x) => x !== w); });
+    const before = s.contracts.length;
     s.contracts = s.contracts.filter((c) => c.issuer !== f && c.target !== f);
+    const dropped = before - s.contracts.length;
     // 대여 장비 회수, 정예 용병은 고국을 잃고 떠난다
     (FACTION_LOANS[f] || []).forEach((def, i) => {
       const found = this.findLoan(f, i);
@@ -292,6 +294,7 @@ Object.assign(Game, {
     s.mercs.filter((m) => m.elite === f && m.status !== 'quest').forEach((m) => this.removeMerc(m, '고국이 멸망하자 길을 떠났습니다.', 'bad'));
     const text = `${FACTIONS[f].name}${josa(FACTIONS[f].name, '이', '가')} ${by ? `${FACTIONS[by].name}에 의해 ` : ''}멸망했습니다. 「${DOCTRINES[f].motto}」 — 그 외침은 이제 역사 속으로 사라집니다.`;
     this.log(`☠ ${text}`, 'world');
+    if (dropped) this.log(`${FACTIONS[f].name}${josa(FACTIONS[f].name, '이', '가')} 사라져 그들이 낸 의뢰나 그들을 상대로 한 의뢰 ${dropped}건이 게시판에서 내려갔습니다.`, 'world');
     s.pendingReports.push({ special: 'news', title: `${FACTIONS[f].name} 멸망`, factions: [f], text });
     this.checkCalamity();
   },
@@ -369,7 +372,8 @@ Object.assign(Game, {
     s.calamity = null;
     s.calamityDefeated = key;
     this.log(`☀ ${F.leader} 토벌! ${F.name}${josa(F.name, '이', '가')} 무너지고 대륙에 다시 아침이 찾아옵니다.`, 'world');
-    const dropped = this.dropDeadTargets();
+    const dropped = s.contracts.filter((c) => c.target === key).length; // 이 재앙을 상대로 한 것만 센다
+    this.dropDeadTargets();
     if (dropped) this.log(`${F.name}${josa(F.name, '이', '가')} 사라져 그들을 상대로 한 의뢰 ${dropped}건이 게시판에서 내려갔습니다.`, 'world');
     s.pendingReports.push({ special: 'savior', calamity: key });
   },
