@@ -609,7 +609,8 @@ const UI = (() => {
       return el('div', { class: 'report' },
         el('div', { class: 'report-banner bad', text: '유예 주간: 급료를 미뤘습니다' }),
         el('p', { text: `금화가 모자라 ${r.names.join(', ')}의 급료(금화 ${r.owed})를 다음 정산으로 미뤘습니다.` }),
-        el('p', { text: `패배 직후의 유예 주간(${r.until}일까지)이라 단원이 떠나지 않습니다. 미룬 급료는 다음 정산에 그 주의 급료와 함께 냅니다. 그때도 못 받는 단원은 떠납니다.` }),
+        el('p', { text: `패배 직후의 유예 주간(${r.until}일까지)이라 단원이 떠나지 않습니다. 미룬 급료는 다음 정산${r.next ? `(${r.next}일)` : ''}에 그 주의 급료와 함께 냅니다. `
+          + (r.nextGrace ? '그 정산도 유예 주간 안이라 그때 모자라도 다시 미룹니다. 그다음 정산부터는 못 받는 단원이 떠납니다.' : '그때도 못 받는 단원은 떠납니다.') }),
         el('p', { class: 'muted small', text: '미룬 급료는 용병단 화면의 주급 옆에도 보입니다.' }),
         el('div', { class: 'modal-actions' }, el('button', { class: 'btn primary', text: '확인', onclick: finishSlot })));
     }
@@ -696,12 +697,16 @@ const UI = (() => {
     $('#skip-day').hidden = !Game.waitingForReturn();
     // 유예 주간 표시 (전투 모드, 미룬 급료가 있거나 다음 정산에 돈이 모자랄 때). 아직 보지 않은 의뢰 보고서가 있으면 숨긴다 — 패배를 미리 알리지 않게
     const unseenQuest = (s.reportSlot && s.reportSlot.item && s.reportSlot.item.quest) || s.pendingReports.some((x) => !x.special && x.quest);
-    const graceTo = unseenQuest ? 0 : Game.graceShown();
+    // 유예는 정산 날에만 작용하므로 다음 정산이 유예 주간 안일 때만 「유예」. 그 뒤에도 미룬 급료가 남았으면 「미룬 급료」로 바꿔 경고한다 (그 정산에 못 내면 떠난다)
+    const graceTo = unseenQuest ? 0 : Game.graceShown(), back = unseenQuest ? 0 : Game.backPayShown();
     const chip = $('#grace-chip');
-    chip.hidden = !graceTo;
+    chip.hidden = !graceTo && !back;
     if (graceTo) {
       chip.textContent = `유예 ~${graceTo}일`;
-      chip.title = `패배 뒤 유예 주간(${graceTo}일까지): 급료가 모자라도 단원이 떠나지 않습니다. 못 준 급료${Game.backPayTotal() ? `(${Game.backPayTotal()})` : ''}는 다음 정산에 함께 냅니다.`;
+      chip.title = `패배 뒤 유예 주간(${graceTo}일까지): 다음 정산(${Game.nextPaydayDay()}일)에 급료가 모자라도 단원이 떠나지 않습니다. 못 준 급료${Game.backPayTotal() ? `(${Game.backPayTotal()})` : ''}는 그다음 정산에 함께 냅니다.`;
+    } else if (back) {
+      chip.textContent = `미룬 급료 ${back}`;
+      chip.title = `유예 주간에 미룬 급료(금화 ${back})는 다음 정산(${Game.nextPaydayDay()}일)에 그 주 급료와 함께 냅니다. 유예 주간이 끝나서, 그때 못 받는 단원은 떠납니다.`;
     }
   }
 
