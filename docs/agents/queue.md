@@ -7,13 +7,14 @@
 
 | 누구 | id | 상태 | 할 일 (자세한 것은 그 줄의 문서) |
 |---|---|---|---|
+| GPT | `C31-return-skip-calamity-popup` | READY | 직속이 다 나가고 외부단만 남았을 때 「귀환까지 ▶▶」 보이기, 재앙 알림 두 번 뜨는 것 합치기: `docs/agents/tasks/C31-return-skip-calamity-popup.md` |
 | GPT | `C30-replay-preload` | REVIEW | (`e018be4`) 관전 전에 그 전투의 우선 시트만 최대 1.5초 기다림 — 코드 그림 283/867 → 0/791, 게이트 전부 그대로. 클라우드: 진행 중인 엔진 수정(밀림)이 끝난 뒤 합침(같은 `js/battle.js`) |
-| GPT | `Q27-battle-default-longrun` | READY | 전투 판정 기본으로 사람처럼 1~200일(새 시드, 다부대): `docs/agents/tasks/Q27-battle-default-longrun.md` |
 
 ## 끝난 일
 
 | 누구 | id | 결과 |
 |---|---|---|
+| GPT | `Q27-battle-default-longrun` | **DONE** (11-28, `491070a` 보고만): 전투 판정 기본 200일 PASS — 109일 S, 114일 고룡 결전 승, 160귀환 시간패·전사·막힘 0. 우세 43/50(86%)·백중 17/28·압도 82/82, 파견 예상=보고서 160/160, ★ 160/160. 남은 것 2건 → C31 |
 | GPT | `C29-report-end-reason` | **DONE** (11-28, `da1c092` 의 표시 변경만 합침): 결과창 제목 아래 끝 이유(적 패주/적 전멸/아군 전멸/아군 패주/아군 후퇴/시간 초과/거점 방어), 관전 「아군 후퇴」 한 번(표시 상태만, 해시 무관), 「아군 전멸」 보수 문구. 게이트 전부 그대로 |
 | GPT | `C27-crosscheck-c24` | **DONE** (11-28, `8ab5881`): 다시 열기 고정 PASS, 부상·손실 분포 치우침 없음(관측=기대), 금화 변화는 부상 하나가 파견·세계 경로를 갈라 생긴 것(새 36쌍 평균 +2.8k·중앙 −7.4k). 총괄 독립 재측정: 1001 묶음 98,293→54,811 일치, roll md5·battle.js·shadow --check 0 |
 | GPT | `C24-battle-injury-loss-fixed` | **DONE** (11-28, `81c45fa` 의 `js/contract.js` 합침): 전투 모드 전투 뒤 직속 부상·외부단 손실을 출격 시드로 고정 — 다시 열어도 바뀌지 않음. roll md5 그대로 |
