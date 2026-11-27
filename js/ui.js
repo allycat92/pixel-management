@@ -604,6 +604,15 @@ const UI = (() => {
         el('p', { text: r.text }),
         el('div', { class: 'modal-actions' }, el('button', { class: 'btn primary', text: '확인', onclick: finishSlot })));
     }
+    if (r.special === 'grace') {
+      // 유예 주간에 급료를 미룬 정산 (전투 모드, js/game.js weeklyPayday)
+      return el('div', { class: 'report' },
+        el('div', { class: 'report-banner bad', text: '유예 주간: 급료를 미뤘습니다' }),
+        el('p', { text: `금화가 모자라 ${r.names.join(', ')}의 급료(금화 ${r.owed})를 다음 정산으로 미뤘습니다.` }),
+        el('p', { text: `패배 직후의 유예 주간(${r.until}일까지)이라 단원이 떠나지 않습니다. 미룬 급료는 다음 정산에 그 주의 급료와 함께 냅니다. 그때도 못 받는 단원은 떠납니다.` }),
+        el('p', { class: 'muted small', text: '미룬 급료는 용병단 화면의 주급 옆에도 보입니다.' }),
+        el('div', { class: 'modal-actions' }, el('button', { class: 'btn primary', text: '확인', onclick: finishSlot })));
+    }
     if (r.special === 'win') {
       return el('div', { class: 'report' },
         el('div', { class: 'report-banner good great', text: 'S 등급 달성!' }),
@@ -683,6 +692,17 @@ const UI = (() => {
         || (b.dataset.tab === 'recruit' && s.recruits.some((r) => r.hero)));
     });
     $('#next-day').disabled = !!s.over;
+    // 귀환까지 넘기기: 보낼 수 있는 용병단이 하나도 없을 때만 보인다 (주인 결정 7)
+    $('#skip-day').hidden = !Game.waitingForReturn();
+    // 유예 주간 표시 (전투 모드, 미룬 급료가 있거나 다음 정산에 돈이 모자랄 때). 아직 보지 않은 의뢰 보고서가 있으면 숨긴다 — 패배를 미리 알리지 않게
+    const unseenQuest = (s.reportSlot && s.reportSlot.item && s.reportSlot.item.quest) || s.pendingReports.some((x) => !x.special && x.quest);
+    const graceTo = unseenQuest ? 0 : Game.graceShown();
+    const chip = $('#grace-chip');
+    chip.hidden = !graceTo;
+    if (graceTo) {
+      chip.textContent = `유예 ~${graceTo}일`;
+      chip.title = `패배 뒤 유예 주간(${graceTo}일까지): 급료가 모자라도 단원이 떠나지 않습니다. 못 준 급료${Game.backPayTotal() ? `(${Game.backPayTotal()})` : ''}는 다음 정산에 함께 냅니다.`;
+    }
   }
 
   // ───────── 키보드 초점 ─────────
@@ -833,6 +853,7 @@ const UI = (() => {
   function init() {
     document.querySelectorAll('.tab').forEach((b) => b.addEventListener('click', () => setTab(b.dataset.tab)));
     $('#next-day').addEventListener('click', () => { if (!modalOpen) Game.nextDay(); });
+    $('#skip-day').addEventListener('click', () => { if (!modalOpen) Game.skipToReturn(); });
     $('#menu-btn').addEventListener('click', openMenu);
     $('#modal').addEventListener('click', (e) => {
       if (e.target.id === 'modal' && !$('#modal').dataset.sticky) closeModal();

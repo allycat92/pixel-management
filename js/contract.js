@@ -439,9 +439,18 @@ Object.assign(Game, {
       const orderly = fought.rec.end === 'retreat';
       report.gold = Math.round(c.reward * ((outcome === 'fail' || orderly ? KB.LOSS_PAY : 0) + KB.LOSS_PAY_SHARE * fought.share));
       report.rep = -Math.round((c.repMul ? c.rep / c.repMul : c.rep) * (outcome === 'disaster' ? 0.6 : 0.3));
-      if (fought.share >= 0.05) report.notes.push(`적 전력의 ${Math.round(fought.share * 100)}%를 꺾어 보수 일부(금화 ${report.gold})를 받았습니다.`);
+      // 패배 보수는 늘 나눠 적는다 (주인 결정 7, Q16 P3): 기본 몫(실패·질서 있는 후퇴)과 꺾은 적 전력의 몫. 전멸(대참사, 후퇴 아님)은 꺾은 몫만
+      const pct = Math.round(fought.share * 100);
+      if (outcome === 'fail' || orderly) {
+        const base = Math.round(c.reward * KB.LOSS_PAY);
+        report.notes.push(`패배 보수 금화 ${report.gold} = 기본 ${Math.round(KB.LOSS_PAY * 100)}% (${base}) + 꺾은 적 전력 ${pct}%의 몫 (${report.gold - base})`);
+      } else report.notes.push(`패배 보수 금화 ${report.gold}: 전멸이라 기본 몫은 없고 꺾은 적 전력 ${pct}%의 몫만 받았습니다.`);
       // 유예 주간은 GRACE_EVERY 일에 한 번만 새로 열린다 (연달아 지는 동안 끝없이 이어지지 않게)
-      if (!s.graceStart || s.day >= s.graceStart + KB.GRACE_EVERY) { s.graceStart = s.day; s.graceUntil = s.day + KB.GRACE_DAYS; }
+      if (!s.graceStart || s.day >= s.graceStart + KB.GRACE_EVERY) {
+        s.graceStart = s.day; s.graceUntil = s.day + KB.GRACE_DAYS;
+        // 다음 정산에 낼 돈이 모자라 보이면 보고서에서 바로 알린다 (주인 결정 7: 일지에만 있어 놓치기 쉬웠다, Q16)
+        if (s.gold + report.gold < this.paydayTotal()) report.notes.push(`유예 주간(${s.graceUntil}일까지): 급료가 모자라도 단원이 떠나지 않습니다. 못 준 급료는 다음 정산에 함께 냅니다.`);
+      }
       s.stats.failed++;
     } else {
       report.gold = outcome === 'fail' ? Math.round(c.reward * 0.1) : 0;
@@ -805,7 +814,11 @@ Object.assign(Game, {
       if ((s.provClears[p] || 0) < b.clears) return;
       if (s.contracts.some((c) => c.boss === p) || s.missions.some((mi) => mi.contract.boss === p)) return;
       const level = TIER_LEVELS[PROVINCES[p].tier][1];
-      const c = this.makeContract({ province: p, type: b.type, enemy: b.enemy, title: b.title, level, size: 4, noDeadline: true });
+      // 의뢰주는 그 지방의 주인. 재앙(또는 멸망한 세력)이 차지한 지방이면 주민이 낸다 — 재앙은 의뢰하지 않는다 (QA Q18 2번; js/captains.js 와 같은 규칙).
+      // 이미 나간 임무는 건드리지 않는다. level·enemy·title 이 정해져 있어 makeContract 의 난수 순서는 의뢰주와 무관하다
+      const owner = this.owner(p);
+      const issuer = this.isCalamity(owner) || this.isDestroyed(owner) ? 'locals' : owner;
+      const c = this.makeContract({ province: p, issuer, type: b.type, enemy: b.enemy, title: b.title, level, size: 4, noDeadline: true });
       c.cat = 'monster';
       c.boss = p;
       c.req = Math.round(c.req * 1.3);

@@ -756,6 +756,8 @@ const Game = {
         while (owed > Math.max(0, s.gold) && away.length) { const m = away.shift(), w = this.wage(m) + (m.owed || 0); owed -= w; defer(m, w); }
         if (deferred.size) this.log(`유예 주간: 급료(금화 ${[...deferred].reduce((a, m) => a + m.owed, 0)})를 다음 정산으로 미뤘습니다.`, 'bad');
       }
+      // 급료를 미룬 정산은 알림 창으로도 알린다 (주인 결정 7: 일지에만 있어 놓치기 쉬웠다, Q16). 전투 모드에서만 생긴다 (유예 주간이 전투 모드뿐)
+      if (deferred.size) s.pendingReports.push({ special: 'grace', until: s.graceUntil, owed: [...deferred].reduce((a, m) => a + m.owed, 0), names: [...deferred].map((m) => m.name) });
       s.mercs.forEach((m) => { if (!deferred.has(m)) delete m.owed; });   // 받은 단원(또는 빚으로 받은 단원)의 미룬 몫은 끝났다
       s.gold -= owed;
       this.log(`주간 정산: 금화 ${owed} 지급.${s.gold < 0 ? ' 길드가 빚을 지고 있습니다!' : ''}`, s.gold < 0 ? 'bad' : '');
@@ -774,6 +776,35 @@ const Game = {
 
   weeklyWageTotal() { return this.state.mercs.reduce((sum, m) => sum + this.wage(m), 0); },
   backPayTotal() { return this.state.mercs.reduce((sum, m) => sum + (m.owed || 0), 0); },   // 유예 주간에 미룬 급료 (전투 모드)
+  paydayTotal() { return this.weeklyWageTotal() + this.weeklyUpkeepTotal() + this.backPayTotal(); },   // 다음 정산에 낼 돈 (주급 + 유지비 + 미룬 급료)
+  // 전투 모드의 유예 주간이 열려 있고 그게 지금 뜻이 있을 때(미룬 급료가 있거나 다음 정산에 돈이 모자람) 그 마지막 날, 아니면 0 (상단 막대 표시)
+  graceShown() {
+    const s = this.state;
+    if (s.resolve !== 'battle' || !(s.day <= (s.graceUntil || 0))) return 0;
+    return this.backPayTotal() > 0 || s.gold < this.paydayTotal() ? s.graceUntil : 0;
+  },
+
+  // ───────── 귀환까지 넘기기 (주인 결정 7: 한 부대 길드는 60~120일의 절반 넘게 귀환만 기다린다, Q16) ─────────
+  // 보낼 수 있는 용병단이 하나도 없고 나가 있는 임무가 있을 때만. 화면 전용 편의 — 날짜 넘기기를 되풀이할 뿐 규칙·난수는 같다 (봇은 쓰지 않는다)
+  waitingForReturn() {
+    const s = this.state;
+    if (s.over || !s.missions.length) return false;
+    return !s.companies.some((c) => !c.missionId && (c.own ? this.availableMembers(c).length > 0 : true));
+  },
+  // 날을 넘기다가 보고서·알림이 쌓이거나(귀환 포함), 정산일이거나, 새 특별 의뢰가 오르거나, 보낼 용병단이 생기면 멈춘다. -> 넘긴 날수
+  skipToReturn(maxDays = 30) {
+    const s = this.state;
+    const specials = () => new Set(s.contracts.filter((c) => c.story || c.capStory || c.boss || c.campaign).map((c) => c.id));
+    let n = 0;
+    while (n < maxDays && this.waitingForReturn()) {
+      const seen = specials();
+      this.nextDay();
+      n++;
+      if (s.over || s.pendingReports.length || s.reportSlot || s.day % 7 === 1) break;
+      if ([...specials()].some((id) => !seen.has(id))) break;
+    }
+    return n;
+  },
   daysToPayday() { const d = (8 - (this.state.day % 7)) % 7; return d === 0 ? 7 : d; },
 
   toast(msg) { if (typeof UI !== 'undefined') UI.toast(msg); },
