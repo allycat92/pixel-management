@@ -1312,3 +1312,18 @@ RISKS AT GAME SIZE: 없음 (R7 허리띠 손잡이 인접부 극소 ~2px 마젠�
 본 방법: `cleric_1x3x_check.png`(1x 96x96 및 3x `#2e2b26`/`#58723d` 배경), `cleric_gif_frames.png`(`sheet_class_cleric_run_x4.gif` 전 8프레임), `cleric_guide_overlay_a/b.png`, `cleric_tint_mask.png` 육안 대조
 고칠 점: 없음
 남은 걱정: 없음
+
+## gait/sheet_class_cleric_run - 병과 성직자 달리기 (Q17 손질)
+CHECK:
+  check_delivery.py sheet_class_cleric_run_a.png --flight-slots 4 -> RESULT: PASS (31 colours, dist 205.7, pose 4 flight 24 px above guide >= 18; pose 1..4 top_y 453, 450, 457, 459, bot_y 870, 870, 870, 846)
+  check_delivery.py sheet_class_cleric_run_b.png --flight-slots 4 -> RESULT: PASS (30 colours, dist 205.7, pose 4 flight 25 px above guide >= 18; pose 1..4 top_y 453, 450, 457, 459, bot_y 870, 870, 870, 845)
+  add_gait.py sheet/class/cleric --gait run --dry-run -> 프레임별 맨 아래 픽셀 (바닥 줄 위 게임 px): 1:0 2:0 3:0 4:4 5:0 6:0 7:0 8:4 / sheet.gait = light / sheet/class/cleric: 시트 384x384, 15칸 — idle(4), attack(2), hit(1), run(8); runStride 45.5
+  Q17 96x96 셀 정면 앞판(x=44..59, y=58..81) 열쇠 픽셀(R1..R8): 139 / 124 / 75 / 105 / 123 / 117 / 44 / 79 (기존 R5~8 65/37/0/0 → 0 제거, 전 8칸 앞판 유지)
+CHANGED:
+  - ① R5~R8 앞 파란 타바드+틸 테두리 복구: R1~R4 정면 허리 아래 타바드 앞판(`u1->R5`, `u2->R6`, `u3->R7`, `u4->R8`)을 허리띠·손·허리 책 아래, 다리 위에 배치해 앞판이 8칸 모두 끊김 없이 읽힘. 엉덩이 뒤 펄럭이는 뒷자락은 따로 분리 유지.
+  - ② 철퇴 머리 높이·두건 분리(R1~R8): `Pose 1` 전체 철퇴 길이(~199px)와 손-팔뚝 연결은 그대로 유지한 채 손잡이 파지점을 위쪽으로 30px 옮겨 철퇴 머리를 두건 얼굴 아래(가슴~어깨 높이)로 낮추고, R1/R2 28 deg·R3/R4 20 deg·R5~R8 30 deg 각도로 어두운 안면 개구부·두건과의 여백을 확보. 크기·배율·디딘 발끝(290/222/155, 295/227/158)·체공(24/25px) 유지.
+## 판정 — gait/sheet_class_cleric_run
+결과: 통과
+본 방법: `cleric_1x3x_check.png`(1x 96x96 및 3x `#2e2b26`/`#58723d` 배경), `cleric_gif_frames.png`(`add_gait --dry-run` 4x GIF 전 8프레임), `cleric_guide_overlay_a/b.png`, `cleric_tint_mask.png`, 96x96 셀 앞판 열쇠 픽셀 계측 대조
+고칠 점: 없음
+남은 걱정: 없음
