@@ -7,8 +7,8 @@
 
 | 누구 | id | 상태 | 할 일 (자세한 것은 그 줄의 문서) |
 |---|---|---|---|
-| GPT | `C27-crosscheck-c24` | REVIEW | (11-28 주인: Codex 주간 한도 → GPT 가 다시) C24 검증 — 새 스크립트·새 시드, 금화 변화의 기전, 총괄이 합치기 전에 따로 재봄: `docs/agents/tasks/C27-crosscheck-c24.md` |
-| GPT | `C29-report-end-reason` | READY | (주인 11-28: 시스템 개선·QA 는 GPT) 결과창에 「왜 끝났나」 한 줄, 관전 「아군 후퇴」: `docs/agents/tasks/C29-report-end-reason.md` |
+| GPT | `C27-crosscheck-c24` | REVIEW | (`8ab5881` 보고, `81c45fa` C24 다시 맞춤) 다시 열기 고정 PASS, 부상·손실 분포 치우침 없음, 금화 변화는 경로 갈림(새 36쌍 평균 +2.8k·중앙 −7.4k). 총괄이 1001 묶음·게이트를 따로 재는 중 |
+| GPT | `C29-report-end-reason` | REVIEW | (주인 11-28: 시스템 개선·QA 는 GPT) 결과창에 「왜 끝났나」 한 줄, 관전 「아군 후퇴」: `docs/agents/tasks/C29-report-end-reason.md` |
 | GPT | `C30-replay-preload` | READY | 관전 시작 전에 시트 그림 미리 받기(새로고침 직후 옛 코드 그림 방지): `docs/agents/tasks/C30-replay-preload.md` |
 | GPT | `Q27-battle-default-longrun` | READY | 전투 판정 기본으로 사람처럼 1~200일(새 시드, 다부대): `docs/agents/tasks/Q27-battle-default-longrun.md` |
 | GPT | `C24-battle-injury-loss-fixed` | REVIEW | (Codex C27 교차 확인 대기) 전투 뒤 부상·외부단 손실 고정 |

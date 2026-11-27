@@ -2870,7 +2870,7 @@ const Battle = (() => {
       void cutin.offsetWidth; // 애니메이션 다시 시작
       cutin.classList.add('play');
     };
-    let shownEvents = 0;
+    let shownEvents = 0, retreatShown = false;
 
     let finished = false;
     const finish = () => { if (finished) return; finished = true; stop(); onDone(); };
@@ -2901,7 +2901,9 @@ const Battle = (() => {
       } else if (st.cutins.length > cutShown && now - lastCut <= 1300) cutShown = st.cutins.length;
       const ended = st.over && st.t - st.endT > 0.6;
       draw(ctx, view, st, now, ended ? { text: labelText, good: won } : null);
-      if (now - rosterTick > 200) {
+      // 후퇴 경고는 관전 화면에만 한 번 붙인다. 판정·기록용 상태는 바꾸지 않는다.
+      const announceRetreat = st.real && st.end === 'retreat' && !retreatShown;
+      if (now - rosterTick > 200 || announceRetreat) {
         rosterTick = now;
         rows.forEach((r, i) => {
           const g = st.groups[i];
@@ -2912,9 +2914,14 @@ const Battle = (() => {
           if (g.flipped && r.row.parentNode !== cols[1]) { cols[1].append(r.row); r.row.classList.add('traitor'); }
         });
         timer.textContent = ` ${Math.floor(st.t)}초`;
-        if (st.events.length !== shownEvents) {
+        if (st.events.length !== shownEvents || announceRetreat) {
           shownEvents = st.events.length;
-          ticker.replaceChildren(...st.events.slice(-2).map((e) => {
+          const events = st.events.slice(announceRetreat ? -1 : -2);
+          if (announceRetreat) {
+            retreatShown = true;
+            events.push({ side: 0, text: '아군 후퇴' });
+          }
+          ticker.replaceChildren(...events.map((e) => {
             const d = document.createElement('div');
             d.className = e.side === 0 ? 'bad' : 'good';
             d.textContent = e.text;

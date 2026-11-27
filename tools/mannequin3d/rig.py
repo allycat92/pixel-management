@@ -116,19 +116,39 @@ class Body:
              'mat': mat, 'part': part})
 
 
+TOE_TAPER = 0.62     # toe-ball radius / heel radius: a wedge foot (heel block, tapered toe) with a flat sole
+
+
 def foot_points(ankle, pitch, P):
-    """heel and toe-ball centres of the foot capsule for a foot at absolute pitch (0 = flat, + = toes up)."""
+    """heel and toe-ball centres of the foot capsule for a foot at absolute pitch (0 = flat, + = toes up).
+    The heel sphere has radius r_foot, the toe ball TOE_TAPER x r_foot, set lower so the sole stays a straight line."""
     R = rz(pitch)
-    off = P['ankle_h'] - P['r_foot']
+    rh = P['r_foot']
+    rt = rh * TOE_TAPER
+    off = P['ankle_h'] - rh
     heel = ankle + R @ np.array([-P['heel'], -off, 0.0])
-    toe = ankle + R @ np.array([P['toe'], -off, 0.0])
+    toe = ankle + R @ np.array([P['toe'] + (rh - rt), -off - (rh - rt), 0.0])
     return heel, toe
+
+
+def toe_tip_offset(P, pitch):
+    """toe tip (front of the toe ball) relative to the ankle for a foot at that pitch"""
+    rh = P['r_foot']
+    rt = rh * TOE_TAPER
+    return rz(pitch) @ np.array([P['toe'] + rh, -(P['ankle_h'] - rh) - (rh - rt), 0.0])
 
 
 def sole_y(ankle, pitch, P):
     """lowest point of the foot (the sole) for a foot at that pitch"""
     heel, toe = foot_points(ankle, pitch, P)
-    return min(heel[1], toe[1]) - P['r_foot']
+    return min(heel[1] - P['r_foot'], toe[1] - P['r_foot'] * TOE_TAPER)
+
+
+def ankle_on_floor(P, tip, pitch):
+    """ankle position for a toe tip at world point `tip` (its y ignored) with the sole's lowest point on y = 0"""
+    ank = np.array([tip[0], 0.0, tip[2]], float) - toe_tip_offset(P, pitch)
+    ank[1] -= sole_y(ank, pitch, P)
+    return ank
 
 
 def fk(P, pose, props=None, robe=None):
@@ -172,7 +192,7 @@ def fk(P, pose, props=None, robe=None):
         pitch = shin_abs + q['ankle_' + s]
         heel, toe = foot_points(ank, pitch, P)
         J['H' + s], J['knee' + s], J['ank' + s], J['heel' + s], J['toe' + s] = hip, knee, ank, heel, toe
-        J['toetip' + s] = toe + rz(pitch) @ np.array([P['r_foot'], 0.0, 0.0])
+        J['toetip' + s] = ank + toe_tip_offset(P, pitch)
         J['sole' + s] = np.array([0.0, sole_y(ank, pitch, P), 0.0])
         Fm['foot' + s] = rz(pitch)
     J['hip'] = (J['HN'] + J['HF']) / 2
@@ -195,10 +215,17 @@ def fk(P, pose, props=None, robe=None):
     M = {'N': 'near', 'F': 'far'}
     for s in 'FN':   # far first (order does not matter for the z-buffer; kept for readability)
         m = M[s]
-        B.add_capsule(J['H' + s], J['knee' + s], *P['r_thigh'], m, 'thigh' + s)
+        # thigh starts a little down the bone with a smaller cap, so its top stays inside the pelvis (no knob in front
+        # of the belt when the thigh swings forward)
+        tdir = (J['knee' + s] - J['H' + s]) / max(np.linalg.norm(J['knee' + s] - J['H' + s]), 1e-9)
+        B.add_capsule(J['H' + s] + tdir * P['r_thigh'][0] * 0.45, J['knee' + s], P['r_thigh'][0] * 0.85, P['r_thigh'][1],
+                      m, 'thigh' + s)
         B.add_capsule(J['knee' + s], J['ank' + s], P['r_thigh'][1] * 0.95, P['r_shin'][1], m, 'shin' + s)
-        B.add_capsule(J['heel' + s], J['toe' + s], P['r_foot'], P['r_foot'], m + '_foot', 'foot' + s)
-        B.add_capsule(J['ank' + s], (J['heel' + s] + J['toe' + s]) / 2, P['r_shin'][1], P['r_foot'], m + '_foot', 'foot' + s)
+        # wedge foot: heel block (r_foot) tapering to the toe ball; instep from the ankle; an ankle knob that reads as the joint
+        B.add_capsule(J['heel' + s], J['toe' + s], P['r_foot'], P['r_foot'] * TOE_TAPER, m + '_foot', 'foot' + s)
+        B.add_capsule(J['ank' + s], J['heel' + s] * 0.55 + J['toe' + s] * 0.45, P['r_shin'][1] * 0.92, P['r_foot'] * 0.95,
+                      m + '_foot', 'instep' + s)
+        B.add_ellipsoid(J['ank' + s], Fm['foot' + s], [P['r_shin'][1] * 1.18] * 3, m, 'ankle' + s)
         B.add_capsule(J['S' + s], J['elb' + s], *P['r_upper_arm'], m, 'upper_arm' + s)
         B.add_capsule(J['elb' + s], J['wri' + s], *P['r_forearm'], m, 'forearm' + s)
         B.add_ellipsoid(J['hand' + s], Fm['hand' + s], [P['r_hand'] * 0.8, P['r_hand'], P['r_hand'] * 0.7], m, 'hand' + s)
