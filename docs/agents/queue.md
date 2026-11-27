@@ -7,14 +7,15 @@
 
 | 누구 | id | 상태 | 할 일 (자세한 것은 그 줄의 문서) |
 |---|---|---|---|
-| Codex | `C21-calibration-data` | REVIEW | 예상 보정용 데이터 뽑기(대장 key·원정·보스별, 측정만): `docs/agents/tasks/C21-calibration-data.md` |
-| GPT | `C20-betrayal-loss-fixed` | READY | (코드 일감, 「한 부대 다듬기」 들어간 뒤) 결전 배신·외부단 손실도 출격 때 고정: `docs/agents/tasks/C20-betrayal-loss-fixed.md` |
+| Codex | `C22-crosscheck-c20` | READY | GPT 의 C20 교차 확인 — roll 금화 하락이 상관 때문인지: `docs/agents/tasks/C22-crosscheck-c20.md` |
+| GPT | `C20-betrayal-loss-fixed` | REVIEW | (Codex C22 교차 확인 대기) 결전 배신·외부단 손실 고정 |
 | GPT | `Q19-flip-readiness-2` | READY | (C20 다음) 한 부대 초반 다듬기 들어감 — 다른 시드로 사람 플레이 다시: `docs/agents/tasks/Q19-flip-readiness-2.md` |
 
 ## 끝난 일
 
 | 누구 | id | 결과 |
 |---|---|---|
+| Codex | `C21-calibration-data` | **DONE** (11-27, `826f6c8` 합침): 보정 데이터 128,126행(`data/C21/`, 대장 key·원정 부대 수·보스별) + 수집기 `tools/sim/collect-calibration.js`. 눈에 띄는 것: 3부대 원정 백중 22~29%, 순례 기사 우세 54~64%, 안개 늪 보스 70%, sensible 의 blademaster·tactician 백중 34~41% |
 | Codex | `C19-newplayer-texts` | **DONE** (11-27, `380a4cb` 합침): 「예상 전황이란?」 도움말, 카드·파견·결과 제목 통일, 시간 초과 문구, 쓰러짐·부상·전사·연출 스위치 설명, 전사 가능 전투 표시(`Game.specialBattle`, 7종 대조), 접근성. roll 화면·md5 그대로 |
 | Codex | `C18-crosscheck-gpt-code` | **DONE** (11-27, `9bbc82e`): GPT 의 C14·C16 교차 확인 — C14 꼼수 고정 3/3, 24판 금화 평균 50.5k→60.7k(한 방향 아님), C16 경계 30.86초·숨김 조건 PASS. 남은 틈: **전투 모드 결전 배신이 새로고침에 바뀜**, roll 외부단 손실 재굴림 → C20 (GPT) |
 | GPT | `Q20-newplayer-clarity` | **DONE** (11-27, `0265bc7`): 다섯 단어 뜻·패배 결과·전사 가능 전투·연출 스위치 뜻이 게임 안에 설명되지 않음 → 화면별 문구 제안 → C19 (Codex) |
