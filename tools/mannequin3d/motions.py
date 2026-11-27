@@ -394,34 +394,35 @@ def _sword(abs_angle, carry):
 
 
 def warrior_attack(P, carry):
-    """overhead sword swing (sheet cells 4-5): READY (the idle's grip) -> WINDUP (key: hand up behind the head, blade
-    cocked back and up) -> 1/3 (hand over the head, blade vertical) -> 2/3 (hand in front of the face, blade level
-    forward) -> STRIKE (key: arm out, blade forward and down). Only the strike points down."""
+    """overhead sword swing (sheet cells 4-5): READY (the idle's grip) -> WINDUP (key: fist up behind the head, blade
+    cocked back and up ~45 deg) -> 1/3 (fist over the head, blade vertical) -> 2/3 (fist over the brow, blade level
+    forward, above the head) -> STRIKE (key: arm forward and down, blade forward and down). Only the strike points
+    down. The body stays over its feet (feet centre = the sheet anchor) so the whole swing fits the slot band."""
     k = leg_factor(P)
     hr = P['head_r']
-    feet = {'N': (-62.0 * k, -8.0), 'F': (112.0 * k, 0.0)}
-    feet_lunge = {'N': (-62.0 * k, -26.0), 'F': (112.0 * k, 0.0)}
+    feet = {'N': (-52.0 * k, -8.0), 'F': (100.0 * k, 0.0)}
+    feet_lunge = {'N': (-52.0 * k, -26.0), 'F': (100.0 * k, 0.0)}
     co = carry.get('chest_open', 30.0)
     base = {'chest_yaw': co, 'head_pitch': 6.0, 'arm_abd_N': 8, 'arm_abd_F': 10}
     rd = carry.get('ready', {})
     ready = dict(base, hip_h=166 * k, x=0.0, pelvis_pitch=6, spine_pitch=4, chest_pitch=4, wrist_N=0)
-    windup = dict(base, hip_h=170 * k, x=-12.0 * k, pelvis_pitch=-2, spine_pitch=-4, chest_pitch=-4, chest_yaw=co + 10,
+    windup = dict(base, hip_h=170 * k, x=-2.0 * k, pelvis_pitch=-2, spine_pitch=-4, chest_pitch=-4, chest_yaw=co + 10,
                   head_pitch=2, wrist_N=0)
-    strike = dict(base, hip_h=152 * k, x=12.0 * k, pelvis_pitch=14, spine_pitch=8, chest_pitch=6, chest_yaw=co - 12,
+    strike = dict(base, hip_h=154 * k, x=2.0 * k, pelvis_pitch=12, spine_pitch=8, chest_pitch=6, chest_yaw=co - 12,
                   head_pitch=4, wrist_N=0)
     u1, u2 = ease(1 / 3), ease(2 / 3)
     ff = lambda u: {s: (feet[s][0], feet[s][1] + (feet_lunge[s][1] - feet[s][1]) * u) for s in feet}
     keys = [
         {'name': 'ready', 'pose': ready, 'feet': feet, 'props': _sword(rd.get('blade_deg', 38.0), carry),
          'arms': {'N': ('feet', *rd.get('hand_N', [-25.0, 191.0])), 'F': ('angles', 34.0, 104.0)}},
-        {'name': 'windup', 'pose': windup, 'feet': feet, 'props': _sword(140.0, carry),
-         'arms': {'N': ('head', -hr[0] - 10.0, -hr[1] * 0.25), 'F': ('angles', 44.0, 100.0)}},
+        {'name': 'windup', 'pose': windup, 'feet': feet, 'props': _sword(135.0, carry),
+         'arms': {'N': ('head', -hr[0] * 0.6, hr[1] * 0.8), 'F': ('angles', 44.0, 100.0)}},
         {'name': 'windup>strike 1/3', 'key': False, 'pose': lerp_pose(windup, strike, u1), 'feet': ff(u1),
-         'props': _sword(95.0, carry), 'arms': {'N': ('head', -hr[0] * 0.25, hr[1] + 22.0), 'F': ('angles', 34.0, 96.0)}},
+         'props': _sword(95.0, carry), 'arms': {'N': ('head', -hr[0] * 0.1, hr[1] + 20.0), 'F': ('angles', 34.0, 96.0)}},
         {'name': 'windup>strike 2/3', 'key': False, 'pose': lerp_pose(windup, strike, u2), 'feet': ff(u2),
-         'props': _sword(12.0, carry), 'arms': {'N': ('head', hr[0] + 46.0, -hr[1] * 0.3), 'F': ('angles', 10.0, 90.0)}},
-        {'name': 'strike', 'pose': strike, 'feet': feet_lunge, 'props': _sword(-32.0, carry),
-         'arms': {'N': ('shoulder', 118.0 * k, -48.0 * k), 'F': ('angles', -10.0, 80.0)}},
+         'props': _sword(12.0, carry), 'arms': {'N': ('head', hr[0] * 0.1, hr[1] + 16.0), 'F': ('angles', 10.0, 90.0)}},
+        {'name': 'strike', 'pose': strike, 'feet': feet_lunge, 'props': _sword(-50.0, carry),
+         'arms': {'N': ('shoulder', 58.0 * k, -74.0 * k), 'F': ('angles', -10.0, 80.0)}},
     ]
     return keys
 
