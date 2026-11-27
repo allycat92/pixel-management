@@ -422,6 +422,7 @@ Object.assign(Game, {
     // 그림자 전투: 굳혀 둔 편성으로 능력치 전투를 한 번 돌려 report.shadow 에 적는다 (결과·화면·난수와 무관, js/muster.js)
     if (!fought && this.shadowResolve) this.shadowResolve(mission, report, mods);
     const fates = fought ? this.fatesOf(fought.spec, fought.rec) : null;
+    const contrib = fought && this.contribOf ? this.contribOf(fought.spec, fought.rec) : null;   // 보고서 표시 전용 (피해·처치·치유)
     const KB = Stats.KN;
 
     // 금화: 외부 용병단 몫을 전력 비율대로 떼어 준다
@@ -482,6 +483,8 @@ Object.assign(Game, {
       // 전투 모드: 실제로 쓰러진 단원만 다치거나(죽거나) 한다. 편성에 들지 못한 단원(옛 저장의 큰 용병단)은 서 있던 것으로 본다
       const f = fates ? (fates.get(m.id) || { fate: 0, hp: 100 }) : null;
       if (f) { r.down = f.fate === 1; r.fled = f.fate === 2; }
+      const cb = contrib && contrib.get(m.id);
+      if (cb) r.bt = cb;   // 표시 전용: 보고서의 「피해 · 처치 · 치유」 줄 (js/ui.js missionReport)
       let deathChance = (outcome === 'disaster' ? 0.3 : 0) * mods.death;
       // 전투 모드의 사망: 특별한 전투의 대참사에서 쓰러진 단원만, 용병단마다 한 명까지, 길드 인원이 GUILD_FLOOR 아래로는 안 된다 (설계 6장 + 주인 결정 2)
       if (f) deathChance = special && outcome === 'disaster' && f.fate === 1 && !dead.some((d) => d.company === m.companyId) && s.mercs.length > KB.GUILD_FLOOR ? KB.DEATH_P * mods.death : 0;

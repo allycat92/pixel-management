@@ -2,9 +2,10 @@
 'use strict';
 
 (() => {
-  const { el, icon, itemIcon, mini, bonusText, signed, companyFlag, factionFlag, factionTag, condTags, mercCard } = UI.h;
+  const { el, icon, itemIcon, mini, bonusText, signed, companyFlag, factionFlag, factionTag, condTags, mercCard, showK } = UI.h;
   const T = UI.tabs;
-  const combatStats = ({ hp, atk, def }) => `전투 체력 ${hp} · 공격 ${Math.round(atk)} · 방어 ${Math.round(def)}`;
+  // 전투 판정 모드에서만 쓴다: 전투 화면의 피해 숫자와 같은 눈금(×showK)으로 (표시 전용)
+  const combatStats = ({ hp, atk, def }) => { const k = showK(); return `전투 체력 ${Math.round(hp * k)} · 공격 ${Math.round(atk * k)} · 방어 ${Math.round(def * k)}`; };
   const SECOND_COMPANY_HINT = '용병단을 하나 더 꾸려 대원을 나누면 한쪽이 출격 중일 때 다른 쪽이 의뢰를 맡을 수 있습니다.';
 
   // ───────── 용병단 ─────────

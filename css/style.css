@@ -266,6 +266,7 @@ h3 { font-size: 14px; margin: 8px 0; }
 .report-member .name { font-weight: bold; }
 .report-member.dead .portrait { filter: grayscale(1) brightness(0.6); }
 .report-member > div { display: flex; flex-direction: column; align-items: center; }
+.report-member > .contrib { display: block; text-align: center; } /* ★ 를 기여 글과 한 줄에 */
 .report-rewards { display: flex; justify-content: center; gap: 24px; font-size: 16px; font-weight: bold; }
 .report-rewards span, .report-member .bad { display: inline-flex; align-items: center; gap: 4px; }
 

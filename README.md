@@ -9,8 +9,10 @@
 ## 실행 방법
 
 ```bash
-# 저장소 루트에서 아무 정적 서버나 실행
-python3 -m http.server 8000
+# 권장: 캐시를 매번 확인하는 로컬 서버 (같은 크기로 덮어쓴 그림 PNG 가 옛것으로 보이지 않게.
+#   그림 주소의 ?v= 는 manifest 항목이 바뀔 때만 달라진다)
+python3 tools/serve.py 8000
+# 또는 아무 정적 서버나: python3 -m http.server 8000
 # 브라우저에서 http://localhost:8000 접속
 ```
 

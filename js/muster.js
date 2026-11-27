@@ -231,6 +231,18 @@ Object.assign(Game, {
     Stats.oursOf(spec, rec).forEach((o) => { if (o.id && !o.ext) out.set(o.id, { fate: o.fate, hp: o.hp }); });
     return out;
   },
+  // 보고서에 적을 직속 단원의 공헌 (표시 전용): 단원 id → { dealt, taken, healed, kills }. 피해·치유는 전투 화면 눈금(×Battle.SHOW_K)으로 적는다.
+  // 기록 줄(js/battle.js record)의 반올림한 값만 읽는다 — 판정·저장 규칙과 무관하다
+  contribOf(spec, rec) {
+    const out = new Map(), k = (typeof Battle !== 'undefined' && Battle.SHOW_K) || 10;
+    let i = 0;
+    spec.groups.forEach((g) => g.units.forEach((u) => {
+      const row = rec.units[i++];
+      if (g.kind !== 'own' || g.betray || u.recruit || !u.id || !row) return;
+      out.set(u.id, { dealt: row[3] * k, taken: row[4] * k, kills: row[5], healed: row[6] * k });
+    }));
+    return out;
+  },
   // 외부 용병단마다 쓰러진 인원
   extDownOf(spec, rec) {
     const out = new Map();
