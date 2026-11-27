@@ -1045,3 +1045,147 @@ Antigravity가 [`c4cc054`](https://github.com/allycat92/pixel-management/commit/
 |---|---|
 | 일반 결과 상단에 실제 종료 조건 한 줄. 대실패의 「전멸」은 「아군 전멸」처럼 주어 명시. | 보수 줄까지 읽지 않고도 왜 끝났는지 이해. |
 | 전투 판정 도움말의 파산선을 「빚이 300금과 한 주 주급 중 큰 금액을 넘으면 파산」으로 분리. | [1280 메뉴](shots/Q23/09-desktop-same-save.jpg)의 고정 −300 문구는 실제 전투 규칙(`-max(300, weeklyWageTotal())`)과 다르다. 이 저장 29일 주급도 392였다. roll 문구는 그대로. |
+
+## Q24-tactics-headroom — 자리·조합·대장 방식의 여지 (2026-11-28 KST)
+
+**판정:** 같은 의뢰에서 시작 자리만 바꾸면 기본 대비 백중 **+10.2%p**, 우세 **+1.7%p**. 직업별 능력치 차이를 빼고 대원 3인의 역할만 바꾸면 근접 3명 대비 **+18.2~31.1 / +14.8~17.8%p**. 직업별 기본 능력치 비율을 넣으면 **+4.9~18.2 / +3.8~7.6%p**. 이 수치는 승률 차이이며, 설계 목표인 **작전이 만든 피해 비중 30~50%**와는 단위가 다르다.
+
+**표본과 통제.** 정본 `e7df274`, 전투 모드 봇이 검토한 의뢰(파견 여부와 무관), 세계 시드 592401~592410, 각 180일 한도·띠당 시드별 첫 24개 고유 의뢰. 백중 225개(R 0.930~1.059, 괴물 138 / 병사 87), 우세 236개(R 1.060~1.379, 괴물 150 / 병사 86). 직속 대장 1 + 실제 대원 3, 다른 파견 부대·수습·지정 영웅/대장 이야기 제외; 지원군과 적·임무·전투 시드 유지. 각 조건 225판/236판, **22조건 × 461 = 10,142판**(재현 대조 제외). 모든 띠는 실제 원본 편성의 예상으로 고정, 변형 뒤 재분류하지 않았다. 지표는 전투 승리(진영 0), 게임 속 시간, 직접 파견한 4인 중 쓰러진 수(후퇴·부상·사망과 별도)다. 인게임 버튼 검사가 아닌 동일 엔진의 격리 전투이며 게임 코드와 저장을 건드리지 않았다.
+
+### 1. 자리만 변경: 승률 / 평균 초 / 평균 쓰러짐
+
+| 자리 | 백중 | 우세 |
+|---|---:|---:|
+| 현재: 대장 먼저/레벨 순 | 44.9% / 18.56 / 1.49 | 90.3% / 18.79 / 0.52 |
+| 근접 앞·원거리 뒤·치유 맨 뒤 | 55.1% / 18.56 / 1.28 | 91.9% / 18.24 / 0.45 |
+| 반대 | 47.6% / 18.96 / 1.44 | 89.4% / 18.98 / 0.55 |
+
+초기 좌표만 바꿨다. 대장 플래그·전투 참가 순서·스킬 초기 대기시간·유닛별 좌표 흔들림은 유지; 동급 순서는 기존 그대로. 원본 대비 앞/뒤 최적화의 뒤집힘은 백중 40승 추가/17승 손실(+10.2%p; 세계 시드 단위 재표집 95% 구간 +2.7~+17.2), 우세 14/10(+1.7%p; −0.4~+3.8). 반대 자리 대비 +7.6/+2.5%p. 역배치는 백중에서 오히려 원본보다 +2.7%p로, 원본이 언제나 중간이라거나 앞/뒤 순서 하나가 모든 적에 최적이라는 뜻은 아니다.
+
+### 2. 대원 3인 조합 변경: 승률 / 평균 초 / 평균 쓰러짐
+
+대장과 레벨·장비에서 온 기존 수치는 그대로. 왼쪽 쌍은 대원 역할의 기본기/이동만 교체, 오른쪽 쌍은 같은 레벨 기준 직업 평균의 HP·공격·방어 비율도 기존 각 칸 수치에 곱한 민감도 검사다. 인연·지휘·사기 효과를 새로 계산하거나 플레이어에게 직업 교체 기능이 있다고 가정하지 않았다. 조합 표의 순서도 고정해, 조합 안에서 어느 역할이 어느 기존 칸을 받는지는 이 실험의 일부다.
+
+| 대원 조합 | 백중 (능력치 고정) | 우세 (능력치 고정) | 백중 (직업 능력치 비율) | 우세 (직업 능력치 비율) |
+|---|---:|---:|---:|---:|
+| 근접 3 | 24.0% / 13.62 / 1.97 | 71.6% / 16.29 / 1.37 | 41.3% / 15.56 / 1.71 | 83.1% / 16.42 / 0.88 |
+| 근접 2·궁수 | 42.2% / 15.96 / 1.68 | 88.6% / 16.54 / 0.92 | 59.6% / 16.80 / 1.39 | 90.7% / 15.99 / 0.67 |
+| 근접·마법사·궁수 | 55.1% / 17.17 / 1.31 | 87.7% / 16.14 / 0.57 | 57.8% / 16.35 / 1.27 | 88.6% / 15.62 / 0.53 |
+| 근접·치유·궁수 | 47.6% / 18.18 / 1.40 | 89.4% / 18.32 / 0.60 | 51.1% / 18.31 / 1.39 | 89.8% / 17.94 / 0.47 |
+| 근접·치유·마법사 | 46.7% / 18.37 / 1.48 | 86.4% / 18.01 / 0.61 | 46.2% / 17.83 / 1.48 | 86.9% / 17.83 / 0.61 |
+
+능력치 고정에서 백중 근접·마법사·궁수가 근접 3명 대비 74승 추가/4승 손실(+31.1%p; +23.5~38.8). 직업 능력치 비율을 반영하면 같은 비교 +16.4%p(+10.8~21.6)이고, 근접 2·궁수가 두 띠 모두 1위로 바뀐다. 평소 조합이 낮은 전투 시간이 불리한 편성의 빠른 패배인지도 함께 봐야 한다.
+
+### 3. 대장 방식 변경: 승률 / 평균 초 / 평균 쓰러짐
+
+대원은 근접·치유·궁수로 고정. 대장 신분·레벨·HP/공격/방어·원래 부대 능력치는 유지하고 실제 대장의 액티브와 직업 이동 방식만 바꿨다. 격려 무효 대조는 같은 기술을 쓰되 공격·방어 계수만 0으로 놓았다(재사용·초기 난수 유지).
+
+| 대장 액티브 | 백중 | 우세 |
+|---|---:|---:|
+| 근접 검귀 | 37.8% / 16.94 / 1.45 | 78.0% / 17.83 / 0.75 |
+| 근접 창기병 | 33.3% / 16.48 / 1.54 | 80.1% / 17.80 / 0.66 |
+| 원거리 덫사냥꾼 | 36.9% / 17.65 / 1.76 | 85.6% / 19.73 / 0.92 |
+| 원거리 떠돌이 마법사 | 48.9% / 17.82 / 1.55 | 86.0% / 18.91 / 0.83 |
+| 근접 격려 철벽 수호자 | 36.0% / 19.60 / 1.49 | 78.8% / 20.36 / 0.72 |
+| 철벽 수호자 (격려 무효) | 21.3% / 16.98 / 1.72 | 60.6% / 19.50 / 1.07 |
+| 원거리 격려 전술가 | 53.3% / 19.51 / 1.56 | 86.9% / 20.09 / 0.76 |
+| 전술가 (격려 무효) | 25.3% / 17.95 / 1.87 | 69.1% / 20.75 / 1.29 |
+| 치유 야전 의무관 | 34.7% / 26.90 / 1.46 | 77.1% / 32.98 / 0.67 |
+
+원거리 두 예의 평균은 근접 두 예보다 +7.3/+6.8%p지만, 백중 덫사냥꾼은 검귀보다 낮아 역할에 공통 가산점을 줄 근거는 약하다. 격려 자체 효과는 철벽 +14.7/+18.2%p, 전술가 +28.0/+17.8%p. 야전 의무관+치유 대원은 우세에서 90초 시간 초과 11/236(4.7%); 평균 시간이 긴 것보다 이 경우의 시간 초과가 점검할 문제다.
+
+**2·5단계 제안.** 2단계는 능력치 보너스 없이 배치·유지 동작부터 넣고, 백중에서 이미 +10%p가 나오는 만큼 좌표만 바꾸는 대조와 움직임까지 바꾸는 대조를 분리해 후열 첫 쓰러짐 ≤5%와 띠별 예상 정확도를 확인하자. 5단계는 근접 3명 같은 약한 기준이나 대장 격려의 기존 효과를 새 시너지로 세지 말고, 같은 편성에서 새 시너지만 OFF/ON으로 비교하자. 적 종류·전술·띠를 분리해 높은 적합도에서 **가한/막은 피해 중 30~50%, 실효 난이도 E=1.15~1.30**을 함께 맞추고, 과적합·쏠림은 기존 격려 대조(+15~28%p)와 실제 90초 시간 초과로 점검한다(설계 §11 G3–G6). 승률 %p를 목표 피해 %나 E로 환산할 수 없으며, 직속 1부대 표본을 그대로 다부대·낮은 인원·후반 임무로 일반화하지 않는다.
+
+**재현/원자료.** [paired-offers.jsonl.gz](data/Q24/paired-offers.jsonl.gz): 한 줄이 한 의뢰, 원본 `spec`, 좋은/반대 자리의 슬롯→기존 유닛 인덱스, 22개 결과. 결과 배열은 [승리 0/1, 전투 초, 직속 쓰러짐, 지원군 포함 아군 쓰러짐, 끝 이유, 전투 해시, 아군 준 피해, 아군 받은 피해]. 실제 spec을 JSON 왕복한 원본 해시 461/461 일치. 아래 스크립트는 정본의 별도 로컬 체크아웃에서만 `tools/sim/q24_panel.js`로 저장해서 실행한다. `mkdir -p raw; for s in $(seq 592401 592410); do node tools/sim/q24_panel.js "$s" "raw/$s.jsonl"; done; cat raw/*.jsonl | gzip -n -9 > paired-offers.jsonl.gz`. 시드 재표집은 세계 시드 10개를 복원추출해 각 의뢰 쌍 차를 합산/표본 수로 나눈 분포(4,000회, RNG 24)다.
+
+<details>
+<summary>측정 스크립트 (로컬 재현용)</summary>
+
+```js
+'use strict';
+const fs = require('node:fs');
+const vm = require('node:vm');
+const assert = require('node:assert/strict');
+const { run } = require('./bot');
+const clone = x => JSON.parse(JSON.stringify(x));
+const offsets = [[-8,0],[10,-10],[10,10],[28,0]];
+const role = sk => sk.tgt === 'hurt' ? 0 : sk.shot ? 1 : 2;
+const lineups = { M3:['warrior','warrior','warrior'], M2A:['warrior','warrior','archer'], MRA:['warrior','mage','archer'], MHA:['warrior','cleric','archer'], MHM:['warrior','cleric','mage'] };
+const leaders = ['blademaster','lancer','huntress','hedgemage','ironwall','tactician','fieldmedic'];
+function placement(B, spec, order) {
+  const st = B.begin(spec), own = st.groups.find(g=>g.kind==='own');
+  const ranked = own.units.map((u,i)=>[i,role(u.skills[0])]).sort((a,b)=>order*(a[1]-b[1])||a[0]-b[0]);
+  ranked.forEach(([i],j)=>{own.units[i].x+=offsets[j][0]-offsets[i][0];own.units[i].y+=offsets[j][1]-offsets[i][1];});
+  while(!st.over) B.step(st);
+  return [B.record(st),ranked.map(v=>v[0]).join('')];
+}
+function cut(rec, spec) {
+  const own = [], ally = []; let i=0;
+  for(const g of spec.groups) for(const u of g.units) {
+    if(g.kind==='own') own.push(rec.units[i]);
+    if(g.side===0) ally.push(rec.units[i]);
+    i++;
+  }
+  assert.equal(i,rec.units.length);
+  return [+(rec.winner===0),rec.t,own.filter(r=>r[0]===1).length,ally.filter(r=>r[0]===1).length,rec.end,rec.hash,
+    ally.reduce((n,r)=>n+r[3],0),ally.reduce((n,r)=>n+r[4],0)];
+}
+function worker(seed, outfile) {
+  const out=[], seen=new Set(), counts={2:0,3:0}, stop={};
+  let lib;
+  try {
+    run(seed,180,'all',{resolve:'battle',equipGuard:true,onStart(Game,ctx){
+      lib = clone(vm.runInContext('({classes:CLASS_SKILLS, captains:CAPTAIN_CLASSES})',ctx));
+    }, onBattleOffer(c, units, spec, est, G, {Battle,Stats}) {
+      const {band,R}=est;
+      if(!(band in counts)||counts[band]>=24||seen.has(c.id)||spec.groups.filter(g=>g.kind==='own').length!==1
+         ||spec.groups.some(g=>g.kind==='ext')||c.story||c.capStory) return;
+      const gi=spec.groups.findIndex(g=>g.kind==='own'),own=spec.groups[gi];
+      if(own.units.length!==4||!own.units[0].leader||own.units.some(u=>u.recruit))return;
+      seen.add(c.id);counts[band]++;
+      const plain = Battle.run(spec);
+      assert.equal(plain.hash,Battle.run(clone(spec)).hash);
+      const [good,gslots]=placement(Battle,spec,1),[bad,bslots]=placement(Battle,spec,-1);
+      if(gslots==='0123') assert.equal(good.hash,plain.hash);
+      if(bslots==='0123') assert.equal(bad.hash,plain.hash);
+      const row={seed,day:G.state.day,id:c.id,type:c.type,band,R,foe:Stats.foeKind(spec),kind:Stats.kindOf(c),star:c.level,
+        spec, slots:[gslots,bslots],results:{}};
+      const result=row.results;
+      function add(key,ss,rr){result[key]=cut(rr||Battle.run(ss),ss);}
+      add('live',spec,plain);add('front',spec,good);add('reverse',spec,bad);
+      function mix(keys, adjust){
+        const ss=clone(spec);
+        ss.groups[gi].units.slice(1).forEach((u,i)=>{
+          const cls=keys[i], old=u.cls;
+          if(adjust){
+            const a=Stats.generic(old,u.level), b=Stats.generic(cls,u.level);
+            for(const k of ['hp','atk','def']) u.st[k]=+Math.max(0,u.st[k]*b[k]/a[k]).toFixed(k==='hp'?0:1);
+          }
+          u.cls=cls;u.job=cls;u.sk=[lib.classes[cls].b];
+        });
+        return ss;
+      }
+      for(const [key,keys] of Object.entries(lineups)){
+        add('mix_'+key,mix(keys,false));add('class_'+key,mix(keys,true));
+      }
+      for(const key of leaders){
+        const ss = mix(lineups.MHA,false), u=ss.groups[gi].units[0], kit=lib.captains[key];
+        u.cls=kit.style;u.job=key;u.capKey=key;u.sk=clone(kit.acts);
+        add('cap_'+key,ss);
+        if(Stats.leadStyle(u.sk).rally){
+          // Keep the same initialization draws and cooldown count: only disable the buff's effects.
+          u.sk=u.sk.map(sk=>sk.buff ? {...sk,buff:{dur:sk.buff.dur,atk:0,def:0}} : sk);
+          add('cap_'+key+'_noBuff',ss);
+        }
+      }
+      out.push(JSON.stringify(row));
+      if(counts[2]===24&&counts[3]===24)throw stop;
+    }});
+  }catch(e){if(e!==stop)throw e;}
+  fs.writeFileSync(outfile,out.join('\n')+'\n');
+  console.error(seed,counts);
+}
+worker(+process.argv[2],process.argv[3]);
+```
+
+</details>
