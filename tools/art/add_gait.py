@@ -557,7 +557,8 @@ def draft_masks(exe=None):
         except (OSError, ValueError) as e:
             log(f'  마네킹 비교: {rel(pose_path)} 읽기 실패, 건너뜀 ({e})')
             continue
-        if isinstance(pose, dict) and pose.get('scaled_from'):
+        # 비율을 맞춘 2D 마네킹 (scaled_from) 과 3D 마네킹 가이드 (source 에 tools/mannequin3d — build.py 가 쓰는 표시)
+        if isinstance(pose, dict) and (pose.get('scaled_from') or 'mannequin3d' in str(pose.get('source', ''))):
             strips(sorted(glob.glob(os.path.join(os.path.dirname(pose_path), 'guide_*_?.png'))))
     # 세트 아래의 하위 폴더 모두: v<n>/ (받아들인 판), draft/ (heavy_base·robe_base 처럼 PC 가 아직 다듬지 않은 클라우드 초안), 앞으로 생길 다른 이름도
     for vdir in sorted(glob.glob(os.path.join(GUIDES, '*', '*'))):
@@ -753,6 +754,7 @@ def guide_reason(p, exe):
     - 경로에 guides 폴더 (art/requests/guides/<id>/…, PC 가 넘기는 art/inbox/guides/<id>/<id>.aseprite)
     - 옆에 pose_measured.json (check_skeleton.py --export 가 마네킹에서 뽑은 띠)
     - joints 레이어가 있는 .aseprite (관절 점 레이어 = 뼈대 작업 파일)
+    - 3D 마네킹(tools/mannequin3d)의 색이 한 프레임의 25% 이상 (mannequin3d_reason — 칠하지 않은 3D 가이드, 위치와 실루엣에 상관없이)
     - 어느 프레임(또는 뒤집은 것)의 실루엣이 뼈대 프레임(draft_masks: 클라우드 초안 + PC 가 넘긴 art/inbox/guides/ 마네킹)과
       자리를 맞춰 IoU > 0.85 (joints 레이어를 지운 마네킹, 이름을 바꾸거나 옮기거나 뒤집거나 크기를 바꾸거나 ±9도 안으로 기울인 마네킹)"""
     real = os.path.realpath(p)
@@ -766,7 +768,26 @@ def guide_reason(p, exe):
             if 'joints' in visible:
                 raise Fail(f'{p}: joints 레이어가 보인다 — 관절 점이 프레임에 그대로 찍힌다. 이 파일은 뼈대(마네킹)이고 게임 프레임이 아니다')
             return 'joints 레이어가 있는 .aseprite = 뼈대 작업 파일(마네킹)'
+    why = mannequin3d_reason(p)
+    if why:
+        return why
     return draft_match(p, exe)
+
+
+def mannequin3d_reason(p):
+    """3D 마네킹 가이드(tools/mannequin3d)의 색이 그대로 남은 그림이면 그 이유 — 가이드를 어디에 썼든(스크래치 폴더 포함) 잡는다.
+    실루엣 IoU 와 달리 캐릭터에 맞춘 3D 마네킹 위에 제대로 칠한 그림은 걸리지 않는다 (그린 그림 71장: 마네킹 색 0.003% 이하)."""
+    if p.lower().endswith(('.aseprite', '.ase')):
+        return None
+    try:
+        sys.path.insert(0, os.path.join(ROOT, 'tools', 'mannequin3d'))
+        from signature import mannequin3d_reason as m3d
+    except ImportError:
+        return None
+    finally:
+        if sys.path and sys.path[0].endswith(os.path.join('tools', 'mannequin3d')):
+            sys.path.pop(0)
+    return m3d(p)
 
 
 def draft_guard(src, allow, exe=None):

@@ -396,7 +396,8 @@ def render(body, P, cam, bg=MAGENTA, joints=True, ground=True, ghosts=True, mark
         gb, gm, _ = rasterize(body.ghosts, cam, w, h)
         gmask = gb.depth > -np.inf
         gs = shade(gb, gm)
-        gsil, _ = edges(gb, gmask)
+        gsil, gocc = edges(gb, gmask)
+        gsil = gsil | gocc               # inner ghost edges too (the capelet's border over the robe, mace head over shield)
         # depth test against the body: where a body part is nearer than the ghost, the ghost is BEHIND it
         behind = gmask & mask & (gb.depth < buf.depth - 1.0)
         fill = gmask & ~gsil & ~behind

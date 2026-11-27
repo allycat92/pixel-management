@@ -157,6 +157,27 @@ def idle_frame(P, cam, carry, key):
     return img, mask
 
 
+def render_gait(P, carry, spec, cam, scale):
+    """the 8 run frames: guide slots (dots), plain slots, masks, pose.json records, game cells, bodies"""
+    frames = gait_frames(spec, P, cam, carry, n=8)
+    # robe: a first pass without the robe gives the legs; the hem follows them (robe_hems), then the real render
+    robes = [None] * 8
+    if carry.get('robe'):
+        robes = robe_hems(spec, P, [fk(P, pose) for pose, _ in frames])
+    out = {k: [] for k in ('slots', 'plain', 'masks', 'recs', 'cells', 'bodies')}
+    for i, (pose, meta) in enumerate(frames):
+        body, img, m = render_frame(P, pose, cam, meta['props'], robes[i])
+        _, img_p, _ = render_frame(P, pose, cam, meta['props'], robes[i], joints=False, ground=False)
+        out['slots'].append(img)
+        out['plain'].append(img_p)
+        out['masks'].append(m)
+        out['bodies'].append(body)
+        origin = (meta['slot'] - 1) * SLOT_W if spec['gait'] == 'run' else 0
+        out['recs'].append(frame_record(body, cam, m, spec, meta, pose, origin))
+        out['cells'].append(game_cell(img_p, scale))
+    return out
+
+
 def build_char(key, carry, out, yaw, chest_open, log, allow_coarse=False):
     carry = dict(carry)
     carry.setdefault('chest_open', chest_open)
@@ -177,22 +198,8 @@ def build_char(key, carry, out, yaw, chest_open, log, allow_coarse=False):
     scale = sheet_scale(sid)
     cam = Camera(yaw=yaw)
     spec = gait_spec(carry['gait'], scale, leg_factor(P))
-    frames = gait_frames(spec, P, cam, carry, n=8)
-    # robe: a first pass without the robe gives the legs; the hem follows them (robe_hems), then the real render
-    robes = [None] * 8
-    if carry.get('robe'):
-        robes = robe_hems(spec, P, [fk(P, pose) for pose, _ in frames])
-    slots, plain, masks, recs, cells, bodies = [], [], [], [], [], []
-    for i, (pose, meta) in enumerate(frames):
-        body, img, m = render_frame(P, pose, cam, meta['props'], robes[i])
-        _, img_p, _ = render_frame(P, pose, cam, meta['props'], robes[i], joints=False, ground=False)
-        slots.append(img)
-        plain.append(img_p)
-        masks.append(m)
-        bodies.append(body)
-        origin = (meta['slot'] - 1) * SLOT_W if spec['gait'] == 'run' else 0
-        recs.append(frame_record(body, cam, m, spec, meta, pose, origin))
-        cells.append(game_cell(img_p, scale))
+    g = render_gait(P, carry, spec, cam, scale)
+    slots, plain, masks, recs, cells, bodies = g['slots'], g['plain'], g['masks'], g['recs'], g['cells'], g['bodies']
     s = spec['set']
     strip_of(slots[:4]).save(os.path.join(od, f'{s}_a.png'))
     strip_of(slots[4:]).save(os.path.join(od, f'{s}_b.png'))
@@ -236,14 +243,15 @@ def feet_centre_dx(body, cam):
     return -(min(xs) + max(xs)) / 2
 
 
-def build_action(act, key, P, cam_run, carry, od, scale):
-    fn, ms = ACTIONS[act]
-    cam = Camera(yaw=cam_run.yaw, lock_hip=False)
+def render_action(act, P, carry, yaw):
+    """action frames, each placed by its feet centre -> dict of lists (names, imgs, plain, bodies, cams, recs, shifts)"""
+    fn, _ = ACTIONS[act]
+    cam = Camera(yaw=yaw, lock_hip=False)
     frames = action_frames(fn(P, carry), P, cam)
     imgs, plain, names, recs, bodies, cams, shifts = [], [], [], [], [], [], []
     for nm, pose, props, is_key, ok in frames:
         body = fk(P, pose, props=props)
-        c = Camera(yaw=cam_run.yaw, lock_hip=False)
+        c = Camera(yaw=yaw, lock_hip=False)
         c.dx = feet_centre_dx(body, c)
         # the sheets' rule: feet centre on the anchor; a pose that sticks out of the band is pushed in (logged)
         ip0, _ = render(body, P, c, joints=False, ground=False)
@@ -265,10 +273,17 @@ def build_action(act, key, P, cam_run, carry, od, scale):
         cams.append(c)
         J = project_joints(body, c, JOINTS_OUT)
         recs.append({'frame': nm, 'key': is_key, 'ik_reached': bool(ok), 'joints': J,
-                     'feet_centre_x': round(HIP_X - push, 1), 'pushed_in_px': push,
+                     'feet_centre_x': round(HIP_X + push, 1), 'pushed_in_px': push,
                      'top_px': int(np.flatnonzero(m.any(1)).min()), 'lowest_px': int(np.flatnonzero(m.any(1)).max()),
                      'angles_deg': {k: round(v, 2) for k, v in full_pose(pose).items() if not k.startswith('_')},
                      'props': props})
+    return {'names': names, 'imgs': imgs, 'plain': plain, 'bodies': bodies, 'cams': cams, 'recs': recs, 'shifts': shifts}
+
+
+def build_action(act, key, P, cam_run, carry, od, scale):
+    ms = ACTIONS[act][1]
+    r = render_action(act, P, carry, cam_run.yaw)
+    names, imgs, plain, bodies, cams, recs, shifts = (r[k] for k in ('names', 'imgs', 'plain', 'bodies', 'cams', 'recs', 'shifts'))
     if act == 'attack':
         imgs[0].save(os.path.join(od, 'attack_ready.png'))
         use = list(range(1, len(imgs)))         # windup, in-betweens, strike

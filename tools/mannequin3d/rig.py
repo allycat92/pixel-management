@@ -219,7 +219,7 @@ def fk(P, pose, props=None, robe=None):
         # thigh starts a little down the bone with a smaller cap, so its top stays inside the pelvis (no knob in front
         # of the belt when the thigh swings forward)
         tdir = (J['knee' + s] - J['H' + s]) / max(np.linalg.norm(J['knee' + s] - J['H' + s]), 1e-9)
-        B.add_capsule(J['H' + s] + tdir * P['r_thigh'][0] * 0.45, J['knee' + s], P['r_thigh'][0] * 0.85, P['r_thigh'][1],
+        B.add_capsule(J['H' + s] + tdir * P['r_thigh'][0] * 0.8, J['knee' + s], P['r_thigh'][0] * 0.78, P['r_thigh'][1],
                       m, 'thigh' + s)
         B.add_capsule(J['knee' + s], J['ank' + s], P['r_thigh'][1] * 0.95, P['r_shin'][1], m, 'shin' + s)
         # wedge foot: heel block (r_foot) tapering to the toe ball; instep from the ankle; an ankle knob that reads as the joint
@@ -281,7 +281,10 @@ def add_prop(B, P, pr):
         n = turn(pr.get('face', 30.0)) @ FWD
         up = UP
         u = np.cross(up, n)
-        c = (J['elb' + s] * 0.45 + J['wri' + s] * 0.55) + n * (P['r_forearm'][1] + pr.get('offset', 4.0)) + UP * pr.get('lift', 0.0)
+        # strapped on the OUTSIDE of the forearm: out along its face normal, `toward` px toward the viewer (+z) so the
+        # forearm and the shield hand sit behind it as in the drawings, `lift` px up
+        c = ((J['elb' + s] * 0.45 + J['wri' + s] * 0.55) + n * (P['r_forearm'][1] + pr.get('offset', 4.0))
+             + UP * pr.get('lift', 0.0) + np.array([0.0, 0.0, pr.get('toward', 0.0)]))
         if pr.get('shape', 'round') == 'tower':
             hw, hh = pr.get('half', [48.0, 120.0])
             add_slab(B, c, u, up, (hw, hh), pr.get('corner', 14.0), 'prop', 'shield')
