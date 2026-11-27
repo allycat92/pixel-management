@@ -1056,3 +1056,271 @@ SIM_JSON=1 node tools/sim/bot.js 6 200 | md5sum                             # 11
 # review fixes: collect3.js (as collect2, with star), collect4.js (many-company sent rows + summary, NOPROBE=1), fit3.js (refit
 #   relative to the current constants; EVAL='{…}' to score a candidate), fin1.js / fin2.js (the review tables), grace2.js, ui2.js
 ```
+
+## Calibration v3 (C21 data)
+
+Date 2026-11-27. Base `ce63492` (the C21 data commit); the code was later rebased onto upstream commits that touched
+`js/company.js`, `js/contract.js`, `js/muster.js` and `js/ui-tabs.js` (campaign betrayal fixed at dispatch). Only `js/stats.js`
+changed here. Battle mode only. In the C21 data, the open issues were 3-company campaigns (백중 22-29%, 우세 80%), per-captain
+spreads (many-company bot: blademaster 32-35%, tactician 34-41%, pilgrim 우세 54-64%, hexer 우세 80%; windhunter, bard and
+demonhunter pessimistic, while the same tactician read 62-68% in the one-company bot), and bosses forecast 우세 or better winning
+82.7% (mist 69.6%) against 98.8% for the human bot.
+
+### Method
+
+- **Data with specs.** C21 stores the forecast and the outcome, but not the battle. A scratch copy of
+  `tools/sim/collect-calibration.js` (scratch `c3/coll.js`) ran the C21 seeds again and also saved the frozen spec of every row.
+  The rows match C21 exactly: seed 1 diffs to 0 lines and all 128,126 forecasts are reproduced. From each spec, `feat2.js` recomputes
+  every calibration ingredient (margin, time terms, captain style per group, each member's role, the support share, own level, boss
+  archetype). `m2.py` rebuilds the forecast from these ingredients exactly (max |ΔR| = 0 on all 128k rows, before and after), so any
+  candidate can be scored offline without bands drifting.
+- **Fit** on C21 seeds only (sensible 1/3101/4101 × 12 × 365, human 1/3101 × 12 × 365, every offer looked at). Weighted maximum
+  likelihood of p(win) = σ(13·ln R_pre)·S, where 13 is `BM_TIME_SLOPE`, R = 1 means 50%, and S is the time term. Rows have
+  0.7 < R < 1.8, the two bots get equal weight, and bosses are excluded (their terms come from a band-target grid, below).
+- **Out of sample** on new seeds, never fitted: sensible 5101 and 6101 × 12 × 365, human 5101 × 12 × 365. Two checks:
+  (a) offline, the same battles re-forecast; (b) live, the collector run again with the new code, so the bots choose by the new
+  words. "Before" = base code; "after" = base + this `js/stats.js` (scratch `c3/v3`).
+
+### Drivers found
+
+1. **Not the captain key: the members' fighting style.** A melee member's strength counts in `margin` the same as a ranged member's.
+   In the battle, melee members walk into the front line, take the hits and fall first, and the retreat rule counts fallen heads.
+   Ranged members fire from behind until the end. Residuals with the old forecast (ln R error, + = pessimistic; one company,
+   0.8 < R < 1.6, by captain style | member roles):
+   sensible `M|RRR` +0.12, `M|RR` +0.16, `R|MRR` +0.10 against `-|MMM` −0.10, `M|MMM` −0.08, `H|HMM` −0.10.
+   The two bots field different companies:
+   - The many-company bot's first company is two clerics and a warrior (hiring order plus reassignment). That company is what the
+     starters blademaster, ironwall and tactician lead.
+   - The one-company bot always fields warrior, cleric and archer.
+   With the same members the two bots agree within about 3%: `M|MRH` reads +0.05 in human and +0.02 in sensible. The captain key
+   only stood in for the roster, so a per-key table would have fitted the roster of one bot and broken the other: tactician needs
+   −4% in the sensible bot and +6% in the human bot.
+2. **Support soldiers count for less than their stats.** After the forecast, the share of the allied side's strength
+   (Σ hp × atk) held by the client's support groups had logit coefficients of −2.8 (sensible) and −6.8 (human); a level-gap proxy
+   does not explain it (gap coefficient 0.00 once the share is in). The support soldiers fight in their own row and rout when their
+   leader falls. The battle is lost when half of *ours* are down, whatever the support still does. This share was also most of
+   the human bot's general pessimism at high levels: it fields fewer support-heavy fights than the sensible bot.
+3. **Three companies.** With the role and support terms in, 3-company battles still read optimistic (−0.07 in ln R, and −0.12 to
+   −0.16 with an external company in them). On the new seeds the old forecast gave the same picture (백중 30%, 우세 73%), so this is
+   not noise. Two companies are noise: 백중 69% on the C21 seeds against 41% on the new ones (campaign battles repeat the same
+   seed, so the effective n is small). They get no factor.
+4. **Bosses: the archetype counts twice, and the curve is flat.** Per-boss R50 with the old forecast: frost 0.86, oasis 0.87,
+   wheat 0.905, silverwood 0.96, mist 1.05. That is the boss's own `BM_CAL_ARCH` factor once more (1.14, 1.185, 1.091, 1.048,
+   0.945). A boss holds close to half the enemy's strength, so its archetype weighs more than an ordinary leader's. The outcome
+   slope is 9.1 for bosses against 15.7 for ordinary contracts, so one factor cannot hold 백중 and 우세 together. The human bot's 98.8%
+   is the same curve: it sends bosses late and at 압도 or high 우세.
+5. **Healer captains** (fieldmedic, saintknight, pilgrim) behave differently from the other "ranged" captains. They get their own
+   value, kept near the old one (below).
+
+### Changes (`js/stats.js`, all in `Stats.KN`, all settable with `--set`)
+
+| Knob | Before | After | Meaning |
+|---|---|---|---|
+| `BM_CAL_ROLE` (new) | – | melee 1, ranged 1.284, heal 1.101 | Each non-recruit own or external unit except the captain of an own company: its first skill sets its role (heal; range ≥ `RANGE_MIN`; else melee). Geometric mean over all our units, with the captain's place at 1. All 1 = off. |
+| `BM_CAL_ALLY` (new) | – | 0.541 | R × ALLY^(support groups' share of Σ hp·atk on our side). 1 = off. |
+| `BM_CAL_GROUPS` (new) | – | [1, 1, 1, 0.91] | By number of own + external groups. |
+| `BM_CAL_BOSS` (new) | – | arch 1.5, sure 0.65 | Boss: `BM_CAL_ARCH`^arch for the boss's archetype; ln R × sure (pulls toward 1) before the time term ②. 1 / 1 = off. |
+| `BM_CAL_LEAD` | melee 0.98, ranged 1.082, rally 1.035 | melee 1, ranged 1.109, **heal 1.08** (new), rally 1.068 | Same group-weighted form; healer captains (first skill heals) now use `heal`. |
+| `BM_CAL_HEADS` | [1, 0.9, 0.94, 1, 1] | [1, 0.965, 0.972, 1, 1] | Most of the old 1- and 2-member factor was roles: a reduced party has usually lost its archer or cleric. |
+| `BM_CAL_OWNLV` | 0.887 / 0.944 / 0.958 / 0.99 / 0.983 / 0.977 | 0.876 / 0.926 / 0.966 / 1.009 / 1.015 / 1.024 | Refitted with the role term. |
+| `BM_CAL_SPECIAL` | boss 0.912, capStory 0.952, story 1.021, campaign 1.009 | boss 0.866, capStory 0.967, story 0.956, campaign 0.94 | Refitted (`final` unchanged). Campaign 1.009 had been fitted on multi-company campaigns, which `BM_CAL_GROUPS` now carries. One-company campaigns read 46% / 84%. |
+
+`Stats.roleCal(spec)` is exported next to `leadCal`. `leadStyle` also returns `heal`. Not changed: `margin`, the battle, `BANDS`,
+`CAL_KIND`, `BM_CAL_ARCH`, the time term and the board code.
+
+- **Boss values** come from a grid over arch ∈ {1.5, 2, 2.5} × sure 1 − {0.15 … 0.45} × boss factor {0.95, 1, 1.05} on the C21 sensible
+  offers. The pick is arch 1.5, sure 0.65, factor 0.95, folded into `BM_CAL_SPECIAL.boss` as 0.912 × 0.95: boss 백중 54%, 우세 89%,
+  우세 or better 89.7%. Maximum likelihood over all R had given 79% at 우세 or better, so it is not used for bosses.
+- **`BM_CAL_LEAD.heal`**: the fit gave 1.117, but on the live new seeds saintknight then read 33% / 75%. 1.08, about the old value
+  for healers (they were counted as ranged), gives saintknight 54% / 91% sent. The one-company fieldmedic becomes a little
+  pessimistic (57 → 61%).
+- **Rejected:**
+  - A concentration term (Herfindahl or top-group share). It replaced the support term but overshot multi-company battles to
+    69-81% 백중.
+  - Lane margins (each of our groups against its own enemy group), heal saturation and the rally buff value as an explicit kit term.
+    None was significant after the role term.
+  - A per-captain table: confounded, see driver 1.
+  - A 2-company factor: noise, see driver 3.
+
+### Results
+
+Cells are 백중 / 우세 win %, before → after; after the arrow, (n at 백중 / n at 우세). Four views:
+- **fit**: the C21 offers, in sample.
+- **re-forecast**: the new seeds, the same battles under the new forecast (out of sample, offline).
+- **live sent**: the new seeds, battles the bots actually sent under each forecast.
+- **live offers**: the new seeds, every offer looked at in the live games.
+
+#### sensible bot
+
+*All*
+
+| slice | fit | re-forecast | live sent | live offers |
+|---|---|---|---|---|
+| all | 48 / 89 → 47 / 87 (8038/9018) | 45 / 88 → 46 / 86 (5520/5786) | 44 / 89 → 46 / 86 (1803/5354) | 45 / 88 → 46 / 85 (5558/5645) |
+
+*Companies sent together*
+
+| slice | fit | re-forecast | live sent | live offers |
+|---|---|---|---|---|
+| 1 | 48 / 89 → 47 / 87 (7810/8852) | 45 / 88 → 46 / 86 (5381/5685) | 44 / 89 → 46 / 86 (1752/5221) | 45 / 88 → 46 / 85 (5414/5508) |
+| 2 | 69 / 88 → 61 / 88 (112/76) | 41 / 94 → 35 / 97 (71/38) | 53 / 94 → 60 / 88 (25/59) | 41 / 94 → 50 / 88 (66/59) |
+| 3 | 29 / 81 → 43 / 83 (116/90) | 30 / 73 → 37 / 90 (68/63) | 36 / 73 → 65 / 85 (26/74) | 30 / 73 → 55 / 86 (78/78) |
+
+*Campaign battles by companies*
+
+| slice | fit | re-forecast | live sent | live offers |
+|---|---|---|---|---|
+| 2 co. | 68 / 88 → 61 / 88 (112/73) | 41 / 94 → 35 / 97 (71/37) | 53 / 94 → 60 / 88 (25/59) | 41 / 94 → 50 / 88 (66/59) |
+| 3 co. | 29 / 80 → 43 / 84 (114/82) | 29 / 72 → 36 / 90 (67/59) | 36 / 72 → 65 / 85 (26/67) | 29 / 72 → 53 / 85 (73/67) |
+
+*Captain key (top 10 by n in C21, then the keys named in the task; rows with n ≥ 40 somewhere)*
+
+| slice | fit | re-forecast | live sent | live offers |
+|---|---|---|---|---|
+| shadowlord | 45 / 87 → 47 / 83 (1100/1112) | 51 / 89 → 43 / 81 (582/665) | 48 / 90 → 41 / 84 (236/630) | 51 / 89 → 42 / 84 (691/644) |
+| pirateking | 51 / 86 → 47 / 82 (800/993) | 40 / 86 → 42 / 83 (407/409) | 40 / 87 → 45 / 83 (196/467) | 40 / 86 → 42 / 80 (575/524) |
+| windhunter | 68 / 96 → 63 / 94 (768/933) | 50 / 93 → 49 / 92 (482/470) | 50 / 93 → 59 / 94 (113/454) | 50 / 93 → 60 / 94 (424/459) |
+| tactician | 32 / 85 → 33 / 85 (746/737) | 49 / 88 → 48 / 91 (46/47) | 50 / 88 → 29 / 88 (17/52) | 49 / 88 → 35 / 89 (43/53) |
+| multi | 47 / 84 → 53 / 85 (224/165) | 35 / 80 → 36 / 93 (137/100) | 47 / 80 → 63 / 86 (51/132) | 35 / 80 → 52 / 87 (143/136) |
+| ironwall | 42 / 85 → 44 / 83 (466/511) | 43 / 87 → 43 / 85 (776/775) | 40 / 87 → 47 / 86 (240/672) | 43 / 87 → 49 / 86 (711/733) |
+| blademaster | 34 / 83 → 45 / 85 (452/466) | 40 / 78 → 45 / 80 (317/378) | 36 / 80 → 47 / 82 (115/338) | 40 / 78 → 45 / 81 (366/368) |
+| saintknight | 42 / 93 → 51 / 94 (340/423) | 49 / 93 → 51 / 91 (298/353) | 48 / 93 → 54 / 91 (87/313) | 49 / 93 → 48 / 88 (269/327) |
+| elfwarden | 60 / 94 → 58 / 95 (261/340) | 50 / 94 → 56 / 91 (257/270) | 44 / 94 → 54 / 94 (101/365) | 50 / 94 → 56 / 94 (328/371) |
+| khan | 59 / 95 → 46 / 91 (256/360) | 62 / 91 → 58 / 90 (233/244) | 57 / 91 → 59 / 88 (68/189) | 62 / 91 → 57 / 87 (183/201) |
+| pilgrim | 33 / 52 → 43 / 56 (21/32) | – / – → – / – (0/0) | – / – → – / – (0/0) | – / – → – / – (0/0) |
+| hexer | 43 / 80 → 42 / 77 (99/119) | 47 / 79 → 51 / 78 (79/81) | 44 / 78 → 45 / 87 (58/136) | 47 / 79 → 45 / 86 (172/142) |
+| bard | 73 / 93 → 52 / 90 (132/150) | – / – → – / – (0/0) | – / – → 48 / 80 (23/59) | – / – → 49 / 80 (55/60) |
+| demonhunter | 85 / 96 → 85 / 97 (20/29) | – / – → – / – (0/0) | – / – → – / – (0/0) | – / – → – / – (0/0) |
+| liberator | 50 / 85 → 40 / 82 (282/369) | 31 / 83 → 29 / 77 (238/273) | 28 / 84 → 36 / 81 (89/251) | 31 / 83 → 31 / 81 (278/265) |
+
+*Boss key*
+
+| slice | fit | re-forecast | live sent | live offers |
+|---|---|---|---|---|
+| frost | 85 / 81 → 76 / 86 (74/49) | 57 / 95 → 57 / 96 (46/24) | 75 / 93 → 57 / 100 (7/18) | 57 / 95 → 52 / 100 (29/18) |
+| mist | 38 / 66 → 37 / 82 (124/49) | 35 / 72 → 36 / 78 (89/45) | 38 / 60 → 41 / 82 (17/17) | 35 / 72 → 52 / 86 (64/22) |
+| oasis | 76 / 92 → 72 / 96 (89/28) | 64 / 100 → 49 / 100 (85/27) | 64 / 100 → 67 / 100 (6/20) | 64 / 100 → 67 / 100 (39/20) |
+| silverwood | 44 / 74 → 40 / 74 (220/35) | 52 / 76 → 40 / 82 (170/22) | 46 / 73 → 53 / 67 (19/21) | 52 / 76 → 43 / 58 (130/38) |
+| wheat | 78 / 93 → 65 / 93 (43/30) | 65 / 87 → 63 / 89 (30/27) | 57 / 81 → 80 / 84 (5/19) | 65 / 87 → 54 / 91 (13/32) |
+
+*Day band*
+
+| slice | fit | re-forecast | live sent | live offers |
+|---|---|---|---|---|
+| (0, 30] | 43 / 90 → 47 / 90 (285/486) | 48 / 88 → 51 / 88 (196/308) | 39 / 88 → 48 / 89 (65/293) | 48 / 88 → 52 / 89 (186/297) |
+| (30, 60] | 53 / 87 → 52 / 86 (481/504) | 45 / 86 → 42 / 85 (287/323) | 43 / 87 → 46 / 86 (104/274) | 45 / 86 → 48 / 86 (342/300) |
+| (60, 120] | 44 / 84 → 44 / 83 (1416/1157) | 46 / 86 → 48 / 87 (928/724) | 48 / 87 → 51 / 85 (257/673) | 46 / 86 → 49 / 83 (852/728) |
+| (120, 240] | 49 / 87 → 51 / 87 (2866/3158) | 45 / 88 → 51 / 88 (1888/2057) | 45 / 89 → 49 / 87 (643/1932) | 45 / 88 → 48 / 85 (2028/2082) |
+| (240, 365] | 48 / 91 → 45 / 87 (2990/3713) | 45 / 90 → 41 / 85 (2221/2374) | 43 / 89 → 42 / 86 (734/2182) | 45 / 90 → 43 / 86 (2150/2238) |
+
+Boss contracts forecast 우세 or 압도, won: fit: 80.2% (222) → 86.3% (204); re-forecast: 84.1% (151) → 88.2% (152); live sent: 82.5% (103) → 87.4% (103); live offers: 84.1% (151) → 84.1% (138)
+
+#### human bot
+
+*All*
+
+| slice | fit | re-forecast | live sent | live offers |
+|---|---|---|---|---|
+| all | 59 / 94 → 50 / 91 (2993/6932) | 57 / 94 → 48 / 91 (1596/3490) | 55 / 94 → 43 / 89 (421/813) | 57 / 94 → 46 / 91 (1543/3410) |
+
+*Companies sent together*
+
+| slice | fit | re-forecast | live sent | live offers |
+|---|---|---|---|---|
+| 1 | 59 / 94 → 50 / 91 (2993/6932) | 57 / 94 → 48 / 91 (1596/3490) | 55 / 94 → 43 / 89 (421/813) | 57 / 94 → 46 / 91 (1543/3410) |
+
+*Campaign battles by companies*
+
+| slice | fit | re-forecast | live sent | live offers |
+|---|---|---|---|---|
+| 1 co. | 46 / 84 → 44 / 83 (252/275) | 42 / 86 → 38 / 87 (156/137) | 45 / 91 → 23 / 83 (47/58) | 42 / 86 → 36 / 85 (118/130) |
+
+*Captain key (top 10 by n in C21, then the keys named in the task; rows with n ≥ 40 somewhere)*
+
+| slice | fit | re-forecast | live sent | live offers |
+|---|---|---|---|---|
+| blademaster | 60 / 95 → 53 / 92 (538/1216) | 63 / 93 → 58 / 89 (233/609) | 57 / 90 → 39 / 80 (54/114) | 63 / 93 → 44 / 89 (213/456) |
+| fixer | 55 / 92 → 50 / 90 (353/917) | – / – → – / – (0/0) | – / – → – / – (0/0) | – / – → – / – (0/0) |
+| fieldmedic | 57 / 97 → 61 / 97 (339/925) | – / – → – / – (0/0) | – / – → – / – (0/0) | – / – → – / – (0/0) |
+| veteran | 71 / 97 → 55 / 92 (386/923) | – / – → – / – (0/0) | – / – → – / – (0/0) | – / – → – / – (0/0) |
+| huntress | 53 / 90 → 47 / 87 (331/693) | 54 / 95 → 45 / 93 (286/521) | 49 / 96 → 45 / 88 (64/114) | 54 / 95 → 50 / 90 (239/478) |
+| ironwall | 65 / 95 → 46 / 90 (247/573) | – / – → – / – (0/0) | – / – → – / – (0/0) | – / – → – / – (0/0) |
+| lancer | 57 / 96 → 41 / 94 (227/463) | 63 / 95 → 51 / 93 (260/577) | 60 / 96 → 38 / 88 (47/130) | 63 / 95 → 47 / 91 (258/575) |
+| tactician | 68 / 97 → 50 / 92 (210/628) | 76 / 97 → 59 / 95 (206/628) | 75 / 98 → 49 / 97 (53/132) | 76 / 97 → 45 / 94 (226/703) |
+| hedgemage | 43 / 92 → 38 / 90 (123/261) | 47 / 92 → 42 / 90 (523/1038) | 51 / 92 → 42 / 91 (133/230) | 47 / 92 → 46 / 91 (490/1014) |
+
+*Boss key*
+
+| slice | fit | re-forecast | live sent | live offers |
+|---|---|---|---|---|
+| silverwood | 100 / 94 → 93 / 95 (15/21) | 75 / 95 → 78 / 96 (9/24) | – / 100 → 80 / 67 (5/6) | 75 / 95 → 80 / 75 (5/12) |
+| wheat | 80 / 100 → 83 / 100 (6/18) | 100 / 100 → 100 / 100 (2/9) | 100 / 100 → 100 / 86 (3/7) | 100 / 100 → 50 / 91 (6/11) |
+
+*Day band*
+
+| slice | fit | re-forecast | live sent | live offers |
+|---|---|---|---|---|
+| (0, 30] | 45 / 92 → 42 / 90 (196/483) | 47 / 86 → 48 / 86 (93/273) | 58 / 92 → 56 / 90 (34/79) | 47 / 86 → 35 / 84 (109/262) |
+| (30, 60] | 49 / 92 → 48 / 89 (220/570) | 51 / 94 → 53 / 90 (94/229) | 55 / 97 → 55 / 87 (33/68) | 51 / 94 → 48 / 87 (114/279) |
+| (60, 120] | 53 / 93 → 47 / 90 (565/1287) | 50 / 91 → 42 / 89 (326/625) | 49 / 89 → 39 / 88 (71/111) | 50 / 91 → 42 / 86 (271/526) |
+| (120, 240] | 59 / 94 → 54 / 91 (913/2019) | 55 / 95 → 50 / 93 (459/1021) | 53 / 95 → 40 / 88 (147/261) | 55 / 95 → 49 / 93 (519/1107) |
+| (240, 365] | 66 / 97 → 50 / 94 (1099/2573) | 65 / 96 → 50 / 93 (624/1342) | 59 / 95 → 41 / 91 (136/294) | 65 / 96 → 47 / 94 (530/1236) |
+
+Boss contracts forecast 우세 or 압도, won: fit: 98.8% (169) → 98.8% (171); re-forecast: 98.8% (80) → 98.8% (82); live sent: 100.0% (48) → 92.1% (38); live offers: 98.8% (80) → 93.8% (64)
+
+**Sensible bot, seeds 7101-7112 × 365 days** (`bot.js --resolve battle`; this measures the current tree with and without this
+`js/stats.js`; seeds used by no fit):
+
+| | before | after |
+|---|---|---|
+| sent 백중 / 우세 / 압도 won | 47.6% (1035) / 88.8% (3025) / 100% | 47.5% (905) / 86.0% (2805) / 99.8% |
+| days 241-365, all sent, won | 85.0% | 81.8% |
+| boss / campaign / story, all sent, won | 84.5% (71) / 84.8% / 70.9% | 72.3% (83) / 91.0% / 79.3% |
+| day reaching S, final rank | 91, 12 × S | 93, 12 × S |
+| gold day 120 / 365 | 8.4k / 88k | 8.9k / 103k |
+| bankrupt, deaths, captains at the end | 0, 0, 7.2 | 0, 0, 6.7 |
+
+- **Bosses.** Every boss send counts, at any word. Boss forecasts are now pulled toward 백중, so the bot, which takes 백중 one time
+  in three and retries lost specials, makes more boss attempts at 백중 (83 against 71). 우세 or better still wins 87-88% (above).
+- **Economy.** Gold and S day are inside the seed-set noise measured in "One-company polish".
+
+### Gates
+
+- Roll md5, `SIM_JSON=1 node tools/sim/bot.js 6 200 | md5sum`, with and without `SIM_SHADOW=1`:
+  - `11cadc0cceafa5e4262773fdadf780f9` on the base `ce63492` plus this `js/stats.js`.
+  - `f1712f75dd50877f69a65caf254be083` on the current tree. That is the same as the current HEAD without this change: the upstream
+    `extAfterMission` change (`js/company.js`) moved the roll md5, not this work.
+- `node tools/sim/battle.js 100`: miss 0 / soft 0 for all four outcomes.
+- `node tools/sim/shadow.js 6 365 --resolve battle --check`: 3,021 battles, every invariant 0.
+- `node --check js/stats.js`.
+- `--set` checks:
+  - Accepted: `BM_CAL_ROLE.ranged=1`, `'BM_CAL_GROUPS=[1,1,1,1]'`, `BM_CAL_BOSS.sure=1`, `BM_CAL_ALLY=1`, `BM_CAL_LEAD.heal=1.08`.
+  - Refused: `BM_CAL_ROLE.foo` and `'BM_CAL_GROUPS=[1,1]'`.
+- Forecast cost (mid-game save, day 150, 3 companies, 200 cold `capability()` calls): 5.2-6.5 ms per call before and after; a single
+  `forecast()` costs 46-54 µs against 46-51 µs before. The added unit loop is noise next to `margin`'s 30 bisection steps.
+
+### Remaining misses (open)
+
+- **The sensible bot's tactician** still reads 백중 33% / 우세 85% on the C21 seeds, and 29-35% at small n on the new seeds. The human
+  bot's tactician reads 49-59% under the same forecast, so a per-key constant would trade one for the other. The roster explains
+  part of it: two clerics, sometimes a cleric with a melee first skill. The rest is not found.
+- **우세 for some sensible captains is at 80-84%**: shadowlord, pirateking, liberator (77-82%), blademaster (80-85%), shadowqueen.
+  These are melee rogue and warrior captains. In-sample `BM_CAL_LEAD.melee` fitted to 1.0 against the old 0.98.
+- **Late game, sensible bot**: days 241-365 at 41-45% / 85-87%, a little optimistic. The human bot reads 47-50% / 93-94% at the same
+  levels. The two bots still disagree at high levels after roles and support share; the level step sits between them.
+- **Human bot, sent battles**: 43% / 89%, against 46% / 91% for every offer looked at. This is the known gap between sent and
+  looked-at battles (lost campaign and special battles keep their seed). One-company campaign battles sent: 23% (n 47).
+- **Bosses per key**: the per-boss 백중 is still spread (frost 52-76%, silverwood 40-53%, at small n). Silverwood (beast) 우세
+  58-82% is the weakest. A beast boss is fast and has 0.6 def, and the boss's archetype exponent fits the other four better.
+- **Pilgrim, demonhunter, bard**: 20-60 battles per word on the C21 seeds and none or few on the new seeds, so no conclusion.
+  On the C21 offers, bard 73 → 52% and pilgrim 33 → 43% / 52 → 56%.
+
+### Commands and scratch
+
+```
+# scratch (not in the repo): c3/coll.js (collector + spec per row), feat2.js (exact ingredients), m2.py (exact offline forecast
+#   model + fit), r4.py (fit), a33.py (boss grid), final_tables.py (tables above), bench.js (capability timing)
+node c3/coll.js --strategy sensible --seeds 1,3101,4101 --jobs 4      # SIM_ROOT = base snapshot; also human 1,3101
+OUT=… node c3/coll.js --strategy sensible --seeds 5101,6101           # before (base) and after (base + this stats.js); human 5101
+SIM_SEED=7101 SIM_RESOLVE=battle node tools/sim/bot.js 12 365 --jobs 2
+```
