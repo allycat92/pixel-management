@@ -7,6 +7,7 @@
 
 | 누구 | id | 상태 | 할 일 (자세한 것은 그 줄의 문서) |
 |---|---|---|---|
+| GPT | `C16-tight-time-hint` | READY | (코드 일감, Codex 병목으로 GPT) 시간이 빠듯한 예상에 이유 한 줄: `docs/agents/tasks/C16-tight-time-hint.md` |
 
 ## 끝난 일
 
