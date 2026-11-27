@@ -451,7 +451,7 @@ Object.assign(Game, {
       if (outcome === 'fail' || orderly) {
         const base = Math.round(c.reward * KB.LOSS_PAY);
         report.notes.push(`패배 보수 금화 ${report.gold} = 기본 ${Math.round(KB.LOSS_PAY * 100)}% (${base}) + 꺾은 적 전력 ${pct}%의 몫 (${report.gold - base})`);
-      } else report.notes.push(`패배 보수 금화 ${report.gold}: 전멸이라 기본 몫은 없고 꺾은 적 전력 ${pct}%의 몫만 받았습니다.`);
+      } else report.notes.push(`패배 보수 금화 ${report.gold}: 아군 전멸이라 기본 몫은 없고 꺾은 적 전력 ${pct}%의 몫만 받았습니다.`);
       // 유예 주간은 GRACE_EVERY 일에 한 번만 새로 열린다 (연달아 지는 동안 끝없이 이어지지 않게)
       if (!s.graceStart || s.day >= s.graceStart + KB.GRACE_EVERY) {
         s.graceStart = s.day; s.graceUntil = s.day + KB.GRACE_DAYS;
