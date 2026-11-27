@@ -1174,3 +1174,26 @@ CHANGED: 바탕 `c4cc054` 기반으로 어두운 숲(`deepwood`) 배경에서 �
 
 ## 참고 — 달리기 5건(gait/*) 및 카토 연쇄 시트 대기
 - `sheet/captain/liberator/chain-sheet` 및 새로 올라온 달리기 5건(`gait/sheet_captain_ironwall_run`, `sheet_class_mage_run`, `sheet_class_archer_run`, `sheet_class_cleric_run`, `sheet_class_rogue_run`)은 이미지 생성 할당량 초기화 시각(~12:09 KST)에 맞춰 자동 재개 예정이며, 대기열 모니터링은 계속 유지 중입니다.
+
+
+## gait/sheet_captain_ironwall_run - 브리긴다 이동 (중량)
+CHECK:
+- `python3 tools/art/check_delivery.py art/inbox/gait/sheet_captain_ironwall_run_a.png` -> `RESULT: PASS` (`background #FF00FF: 84.2%`, `figure colours: 39`, `closest figure colour to #FF00FF: distance 209.3 (rule >= 150, recommended >= 170)`, `pose 1: x 89-331 (w 243), top y=440, lowest pixel y=870`, `pose 2: x 472-713 (w 242), top y=447, lowest pixel y=870`, `pose 3: x 856-1095 (w 240), top y=442, lowest pixel y=870`, `pose 4: x 1238-1477 (w 240), top y=441, lowest pixel y=870`, `magenta pixels enclosed by the figure: 985`)
+- `python3 tools/art/check_delivery.py art/inbox/gait/sheet_captain_ironwall_run_b.png` -> `RESULT: PASS` (`background #FF00FF: 84.3%`, `figure colours: 39`, `closest figure colour to #FF00FF: distance 209.3 (rule >= 150, recommended >= 170)`, `pose 1: x 82-323 (w 242), top y=440, lowest pixel y=870`, `pose 2: x 472-709 (w 238), top y=447, lowest pixel y=870`, `pose 3: x 856-1095 (w 240), top y=442, lowest pixel y=870`, `pose 4: x 1238-1481 (w 244), top y=441, lowest pixel y=870`, `magenta pixels enclosed by the figure: 626`)
+- `python3 tools/art/add_gait.py sheet/captain/ironwall --gait run --src art/inbox/gait/sheet_captain_ironwall_run_a.png art/inbox/gait/sheet_captain_ironwall_run_b.png --pose art/requests/guides/heavy_base/v1/pose.json --dry-run` -> `8 프레임, 배율 0.1654, 칸 96x96, anchor 48,92, 팔레트 40색 (시트의 기본 칸에서)` / `프레임별 맨 아래 픽셀 (바닥 줄 위 게임 px): 1:0 2:0 3:0 4:0 5:0 6:0 7:0 8:0` / `sheet.gait = heavy (run 칸이 그려진 마네킹의 부류)` / `sheet/captain/ironwall: 시트 384x384, 15칸 — idle(4), attack(2), hit(1), run(8); runStride 23.6`
+REFERENCES LOADED: guide_heavy_a/b, size_heavy_a/b, sheet_captain_ironwall.png, concept.png, portrait.png, pose.json -> ok
+CHANGED: `heavy_base/v1` 중량 마네킹(H1~H8)에 맞춰 `sheet_captain_ironwall.png` 대기 자세 기반 39색 팔레트·의상(앞 회색-금색 타바드, 민무늬 짙은 바지, 민무늬 갈색 접힌 장화, 등 뒤 땋은 붉은 갈색 머리, 턱 높이~y=775..782의 92x253 탑 방패, 방패 앞 45~50도 세운 철퇴)으로 8프레임 신규 제작:
+- 머리 높이(top_y): H1/H5 `440`, H2/H6 `447`(+7), H3/H7 `442`(+2), H4/H8 `441`(+1). 머리 폭 `90 px`(대기/가이드 비례 일치), 먼 다리 명도 감쇠 및 z-order·타바드 교차로 H1~H4(가까운 다리 디딤)와 H5~H8(먼 다리 디딤) 좌우 교대 구분. 땋은 머리는 1프레임 지연 진자 흔들림, 타바드는 ±2px 미세 흔들림, 철퇴 손잡이 ±3도 / 방패 ±4px 역위상 미세 이동 적용.
+- 측정된 바닥(y=870) 발끝 x: H1 `275`(뒷발 `137`), H2 `239`(든 뒷발 `148`, y=862), H3 `203`(스치는 먼 발 `168`, y=859), H4 `166`(앞 뻗는 먼 발 `254`, y=862), H5 `280`(뒷발 `133`), H6 `244`(든 뒷발 `144`, y=862), H7 `208`(앞으로 스치는 가까운 발 `234`, y=859), H8 `173`(앞 뻗는 가까운 발 `260`, y=861).
+DEVIATIONS:
+- (a) mannequin pose/position: none (`H3` 203 vs 204[-1px], `H4` 166 vs 169[-3px], `H7` 208 vs 209[-1px] — 모두 `pose.json` 허용 오차 ±3px 이내; 머리 높이와 뜨는 발 높이 준수).
+- (b) sheet design: none (`sheet_captain_ironwall.png` 동일 39색·투구·코 흉터·앞 타바드·민무늬 바지/부츠 유지).
+- (c) ARMS AND WEAPONS: none (먼 손은 방패 뒤에 완전히 가려짐, 방패 폭 ~92px·하단 y=775..782[규칙 760..790], 철퇴 머리 ~45-50도로 방패 앞 가독 유지, 전 픽셀 x=82..331 내 배치).
+RISKS AT GAME SIZE: 게임 64px(1x) 축소 시 H3/H7 교차 구간에서 두 부츠의 미세한 겹침 간격과 방패 위 철퇴 자루 명암 대비가 약하게 뭉개질 수 있음(4x 미리보기에서는 두 부츠·철퇴 머리 모두 분리되어 읽힘).
+
+## 판정 — gait/sheet_captain_ironwall_run
+결과: 통과
+본 방법: `size_heavy_a/b` 1:1 마네킹 오버레이(`ironwall_guide_overlay_a/b.png`), `add_gait.py --dry-run` `sheet_captain_ironwall_preview_x4.png`(대기·공격과 동시 4x 대조) 및 `sheet_captain_ironwall_run_x4.gif` 전 8프레임 연속 확인
+고칠 점: 없음
+남은 걱정: 없음 (QA 교차검사 시 게임 1x 크기에서 H3/H7 교차 프레임의 앞·뒷다리 톤 분리와 H1/H5 접촉 프레임 전환감만 확인 요망)
+캐릭터 메모: 중량 방패·철퇴 실루엣 유지 시 상체 흔들림을 과하게 주면 방패가 좌우로 튀므로, 후속 피격·이동기에서도 방패 수직축 고정 원칙 유지
