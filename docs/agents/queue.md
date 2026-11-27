@@ -8,13 +8,14 @@
 | 누구 | id | 상태 | 할 일 (자세한 것은 그 줄의 문서) |
 |---|---|---|---|
 | Codex | `C27-crosscheck-c24` | READY | (C26 보다 먼저 — 기본 전환이 기다림) GPT 의 C24 교차 확인: 부상 분포·전투 모드 경제 변화: `docs/agents/tasks/C27-crosscheck-c24.md` |
-| GPT | `Q24-tactics-headroom` | REVIEW | 작전 여지 측정: 자리·조합·대장 방식만 바꾸면 승률이 얼마나 움직이나(코드 수정 없음): `docs/agents/tasks/Q24-tactics-headroom.md` |
+| GPT | `Q25-healer-timeout` | REVIEW | 치유 대장·치유 대원 편성의 「우세」 시간 초과 측정(코드 수정 없음): `docs/agents/tasks/Q25-healer-timeout.md` |
 | GPT | `C24-battle-injury-loss-fixed` | REVIEW | (Codex C27 교차 확인 대기) 전투 뒤 부상·외부단 손실 고정 |
 
 ## 끝난 일
 
 | 누구 | id | 결과 |
 |---|---|---|
+| GPT | `Q24-tactics-headroom` | **DONE** (11-28, `d064bed` 보고만 가져옴): 10,142판 측정 — 자리만 바꾸면 백중 +10.2%p·우세 +1.7%p, 조합(직업 능력치 반영) +5~18%p, 격려 대장의 격려 자체가 +15~28%p. 의무관+치유 대원 우세 4.7% 시간 초과. 2단계는 배치부터, 5단계는 새 시너지 OFF/ON 비교로 |
 | GPT | `Q23-flip-readiness-3` | **DONE** (11-28, `1996075` 보고만 가져옴): 조건부 찬성 — C19 문구(다섯 단어 뜻·패배 내역·전사 표시·연출 스위치)와 C23 창설 안내(경고색, 29일 급료 392 일치, 두 배속 버튼) PASS. 남은 것: 첫 의뢰판이 전투 모드 전에 만들어짐, 전투 모드 파산선 문구(−300 고정)가 실제 규칙과 다름, 결과 상단 종료 이유 → 총괄 |
 | GPT | `Q22-rogue-run-ingame` | **DONE** (11-28, `c120c5a`): 다시 넣은 도적 달리기 PASS — R4·R8 다리 이어짐, R1 단검 보임, 미끄러짐 ±4px, 세력 색 번짐 0 |
 | GPT | `C26-gait-requests-last` | **DONE** (11-28, `30726cd` 요청서만 가져옴): 마지막 이동 요청서 6건(가르마크·우르그·모르데카이·벨라도나·발타자르·카토), 카토 경량 분류. 클라우드 그림 대조 중 |

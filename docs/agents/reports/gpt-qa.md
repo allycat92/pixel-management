@@ -1189,3 +1189,113 @@ worker(+process.argv[2],process.argv[3]);
 ```
 
 </details>
+
+## Q25-healer-timeout — 2치유 편성과 시간 초과 (2026-11-28 KST)
+
+**요약.** 바꾼 편성으로 예상을 다시 계산했을 때, 적을 쓰러뜨려야 하는 「우세」에서 시간 패배 **28/837(3.3%)**, 그중 기존 경고 **13/28(46%)**. 28건 모두 일반 병사 의뢰(11개 고유 의뢰)였고, 같은 대장의 치유 대원만 마법사로 바꾸자 **19/28 승리**(승리 중앙값 42.8초). 「압도」는 0/754. 전투 지연은 치유 중첩과 공격 공백부터 손보되, 놓치는 경고도 별도 문제다.
+
+### 표본과 두 분모
+
+정본 `550f222`. Q24 원본 461개(백중 225·우세 236)를 그대로 재생했고, 같은 봇·세계 시드 592401~592410로 원본 압도 231개를 처음부터 따로 수집했다(시드별 최초 24개까지, 각 180일 한도). 두 표본에서 번호가 같은 의뢰 5건은 다른 날·편성으로 관측됐고 어느 쪽에서도 시간패가 없었다. 총 692관측·687개 고유 의뢰다. 모두 직속 대장+실대원 3명, 수습·외부단·지정 이야기 제외. 각 원본 의뢰/적/지원군/전투 시드/각 칸 레벨과 HP·공격·방어는 그대로 두고, 대장 액티브·직업 이동과 대원 역할만 바꿨다. 대원 근접·치유·궁수(2치유)와 근접·마법사·궁수(1치유)를 짝지어 **692 × 6 × 2 = 8,304판**. 장비·직업 전직·지휘 효과까지 다시 계산하는 실제 모집 실험은 아니다. 치유 액티브(`tgt: hurt`)가 있는 등록 대장 전부 6명. 「성자」는 여기서는 직속 대장이 아닌 대원 전직(`MASTERS`), 빛의 사도는 대장이므로 포함했다. 마귀 사냥꾼은 기본기 공격/특기 치유다.
+
+- 아래 왼쪽은 **편성 자체를 다시 예상한 표시 띠**, 적을 쓰러뜨려야 하는 의뢰(`field`)만 분모. 버티면 이기는 `hold`는 시간 패배가 아니므로 분리했다.
+- 오른쪽은 **Q24처럼 원본 편성의 띠**를 유지한 값이며 `hold` 포함(225/236/231). 원본 「우세」 의무관에서 Q24의 **시간 종료 11/236 전투 해시까지 재현**, 그중 **승리한 버티기 1건**을 빼면 시간 패배는 10/236. 원본 「압도」에서 생긴 시간 패배 6건은 모두 2치유로 바꿔 재예상하면 더 낮은 띠다.
+
+| 치유 대장 + 근접·치유·궁수 | 표시 백중 시간패 | 표시 우세 시간패 | 표시 압도 시간패 | 원본 백중 / 우세 / 압도 시간패 |
+|---|---:|---:|---:|---:|
+| 야전 의무관 | 5/122 (4.1%) | 4/129 (3.1%) | 0/103 | 0/225 · 10/236 · 1/231 |
+| 순례 기사 | 4/140 (2.9%) | 9/133 (6.8%) | 0/124 | 3/225 · 10/236 · 2/231 |
+| 성광 기사 | 5/147 (3.4%) | 9/130 (6.9%) | 0/127 | 3/225 · 10/236 · 2/231 |
+| 대심문관 | 2/141 (1.4%) | 1/131 (0.8%) | 0/125 | 1/225 · 1/236 · 1/231 |
+| 마귀 사냥꾼 | 0/120 | 0/167 | 0/167 | 0/225 · 0/236 · 0/231 |
+| 빛의 사도 | 9/154 (5.8%) | 5/147 (3.4%) | 0/108 | 4/225 · 11/236 · 0/231 |
+| 합계 (편성×의뢰) | **25/824 (3.0%)** | **28/837 (3.3%)** | **0/754** | **11/1,350 · 42/1,416 · 6/1,386** |
+
+### 무엇이 막혔나
+
+- 실제 표시 우세 28건은 첩자 색출 11 / 약탈 7 / 구출 4 / 공작 3 / 거점 공략 3. 시간 패배 전체 59건(고유 의뢰 26)은 병사 58, 괴물 보스 1. 전체 `field` 원본 구성은 병사 223개·일반 괴물 220개·괴물 보스 64개였다. 같은 의뢰를 여러 대장으로 재생했으므로 28건을 독립 의뢰 28개로 보지 않는다.
+- 표시 우세 시간패 28건의 적 시작 HP 중앙값 614.5(242~1,308), 아군 초당 실피해 중앙값 13.3. 의뢰마다 적 시작 HP로 나누면 초당 **1.83%**, 짝지은 1치유는 **3.37%**. 2치유에서 아군은 받은 피해량의 **84%**만큼 실제 회복했고, 적도 받은 실피해의 **80%**만큼 회복했다(각 중앙값, 과잉 치유 제외; 아군 피해 분모에는 엔진의 과잉 타격 포함). 시작 능력치를 보고 낸 `killTime` 중앙값은 29.0초(22.7~46.1), 실제 초당 실피해는 `적 시작 HP / killTime`의 56%였다(짝별 비율 중앙값; 적 치유가 이미 섞인 값과 비교하는 근사치).
+- 적 잔존 교전 인원 중앙값은 **60/70/80/종료 직전 = 7.5/7.5/7/7명**. 종료 직전 아군 교전 인원 중앙값 3, 적 잔존 HP는 시작의 64%. 아군의 잔존 HP 총합이 더 큰 판은 11/28, 교전 인원이 더 많은 판은 4/28. 체력이 더 많이 남아도 적 전열을 무너뜨리고 있던 싸움이라고 볼 수는 없다.
+- 대장 공격 피해가 0인 경우가 많았다. 의무관/빛의 사도는 두 액티브가 치유. 순례·성광 기사에게 공격 특기는 있지만, 엔진의 치유형 이동은 치유 대상을 중심으로 후열을 따라갈 뿐 근접 특기의 사거리까지 붙는 별도 규칙은 없다. 이 가설은 근접 특기 대장 두 명의 높은 시간패와 일치하지만, 이 실험에서는 특기 이동만 따로 바꾸지는 않았다.
+
+### 경고와 재현
+
+`Stats.timeRisk`가 잡은 시간패는 실제 표시 백중 **22/25**, 우세 **13/28** (의무관 2/4, 순례 3/9, 성광 3/9, 대심문관 0/1, 빛의 사도 5/5). 우세 `field` 837판 중 경고는 64개, 그중 49개는 승리. 단순히 `killTime` 26초에서 경고하면 22/28을 잡지만 경고가 194개로 세 배(164개는 승리)라 단독 해법으로 부적합하다. 1치유에서도 표시 우세 시간패는 26건, 경고는 3건뿐이므로 단순히 「치유 둘」 경고로 해결되지 않는다.
+
+재현: Q24 세계 시드 **592405**, **139일**, 의뢰 **606**(약탈), 전투 시드 **1632777813**. 순례 기사 + 근접·치유·궁수는 우세 R 1.102 / killTime 28.29 / 경고 없음. 60초에 9명이 남았고 90초 직전에도 9명, 최종 시간패. 2,199 실피해 중 적이 1,926을 회복. 같은 대원의 역할만 치유→마법사로 바꾸면 여전히 우세, **28.95초 승리**. Q24 원본 spec의 키는 (세계 시드, 의뢰 번호).
+
+**제안:** 먼저 전투 쪽에서 치유형 대장의 공격 특기 가동 거리와, 적 치유를 압박할 선택지(공격 역할·집중 공격)를 실험하자. 모든 치유에 공격을 붙이거나 시간 제한만 늘리면 치유의 장점/버티기 임무까지 바뀐다. UI 쪽은 병사 치유·실제 공격 참여율을 고려한 `killTime` 보정 후보를 만들어 새 시드에서 별도 검증하고, 우선은 90초 패배가 가능한 이유를 파견 화면에서 분명히 하자. 정본 코드·자산 변경 없음.
+
+**원자료:** [Q24 재생](data/Q25/q24-replays.jsonl.gz)과 [추가 압도 표본](data/Q25/overpower-offers.jsonl.gz). 하나의 줄이 하나의 원본 의뢰 관측(src, seed, day, id). Q24 spec은 [Q24 원자료](data/Q24/paired-offers.jsonl.gz)에서 (seed,id)로 찾고, 압도 추가본에는 spec 포함. 각 결과의 `band/R`는 바꾼 조합의 표시, `kt/warning`은 출격 전 어림 시간/경고. `points`는 [시간, 적 교전수, 적 교전 HP, 아군 교전수, 아군 교전 HP, 패주 포함 살아 있는 적 수, 그 HP, 아군 누적 피해, 종료 직전 표식]. `damageOwn/healOwn`은 대장·근접·치유(또는 마법사)·궁수 순. 아래 스크립트를 정본의 별도 체크아웃 `tools/sim/q25_timeout.js`에 저장하고 `node tools/sim/q25_timeout.js 592405 docs/agents/reports/data/Q24/paired-offers.jsonl.gz out.jsonl` (나머지 시드도 같은 방식)로 재현한다.
+
+<details>
+<summary>측정 스크립트 (로컬 재현용)</summary>
+
+```js
+'use strict';
+const fs=require('node:fs'), vm=require('node:vm'), z=require('node:zlib'), assert=require('node:assert/strict');
+const {run,makeScript}=require('./bot');
+const clone=x=>JSON.parse(JSON.stringify(x));
+const [seedText,q24path,outfile]=process.argv.slice(2), seed=+seedText;
+const ctx=vm.createContext({console});makeScript(['battle.js']).runInContext(ctx);
+const {Battle,Stats}=ctx;
+const lib=clone(vm.runInContext('({classes:CLASS_SKILLS,captains:CAPTAIN_CLASSES,registered:CAPTAINS})',ctx));
+const healers=Object.keys(lib.registered).filter(k=>lib.captains[k]?.acts.some(a=>a.tgt==='hurt'));
+assert.deepEqual(healers.sort(),['demonhunter','fieldmedic','inquisitorlord','lightbearer','pilgrim','saintknight']);
+const r3=x=>+x.toFixed(3);
+function simulate(ss){
+  const st=Battle.begin(ss), foe=st.units.filter(u=>u.side===1), ally=st.units.filter(u=>u.side===0);
+  const team=st.groups.find(g=>g.kind==='own').units, hp0=foe.reduce((a,u)=>a+u.hp,0);
+  const points=[],times=[30,60,70,80];
+  const live=u=>u.alive&&!u.fled&&!u.g.routed;
+  const remain=(uu,active)=>uu.filter(active?live:u=>u.alive);
+  function shot(before){
+    const fs=remain(foe,true), as=remain(ally,true);
+    const hp=us=>r3(us.reduce((n,u)=>n+Math.max(0,u.hp),0));
+    return [r3(st.t),fs.length,hp(fs),as.length,hp(as),remain(foe,false).length,hp(remain(foe,false)),
+      r3(ally.reduce((n,u)=>n+u.dealt,0)),before?1:0];
+  }
+  while(!st.over){
+    if(st.t>=st.limit-0.075&&!points.some(p=>p[8]))points.push(shot(true));
+    Battle.step(st);
+    if(times.length&&st.t>=times[0]-1e-8&&!st.over){points.push(shot(false));times.shift();}
+  }
+  const rec=Battle.record(st), qty=(side,key)=>r3(side.reduce((a,u)=>a+u[key],0));
+  return {w:rec.winner===0?1:0,t:rec.t,end:rec.end,hash:rec.hash,foeHP:r3(hp0),
+    dealt:qty(ally,'dealt'),taken:qty(ally,'taken'),healed:qty(ally,'healed'),enemyHealing:qty(foe,'healed'),
+    damageOwn:team.map(u=>r3(u.dealt)),healOwn:team.map(u=>r3(u.healed)),points:rec.end==='time'?points:undefined};
+}
+function test(row,src){
+  const out={src,seed,day:row.day,id:row.id,type:row.type,kind:row.kind,foe:row.foe,star:row.star,baseBand:row.band,baseR:row.R,
+     rule:row.spec.rule,bs:row.spec.seed,...(src==='overpower'?{spec:row.spec}:{}),trials:{}};
+  for(const cap of healers){
+    for(const heal of [true,false]){
+      const ss=clone(row.spec), [ld,...team]=ss.groups.find(g=>g.kind==='own').units;
+      const kit=lib.captains[cap];ld.cls=kit.style;ld.job=cap;ld.capKey=cap;ld.sk=kit.acts;
+      const classes=['warrior',heal?'cleric':'mage','archer'];
+      team.forEach((u,i)=>{u.cls=classes[i];u.job=classes[i];u.sk=[lib.classes[u.cls].b];});
+      const {band,R}=Stats.forecast(ss), kt=Stats.killTime(ss.groups), warning=Stats.timeRisk(ss);
+      const res=simulate(ss);
+      if(heal&&cap==='fieldmedic'&&src==='Q24'){
+        assert.equal(res.hash,row.results.cap_fieldmedic[5]);assert.equal(res.end,row.results.cap_fieldmedic[4]);
+      }
+      out.trials[cap+(heal?'_2':'_1')]={band,R,kt:r3(kt),warning:+warning,...res};
+    }
+  }
+  return out;
+}
+const rows=z.gunzipSync(fs.readFileSync(q24path)).toString().trim().split('\n').map(JSON.parse).filter(x=>x.seed===seed);
+const extra=[], seen=new Set(), stop={};
+try{run(seed,180,'all',{resolve:'battle',equipGuard:true,onBattleOffer(c,units,spec,est,G,{Stats:S}){
+  if(est.band!==4||seen.has(c.id)||c.story||c.capStory||spec.groups.filter(g=>g.kind==='own').length!==1||spec.groups.some(g=>g.kind==='ext'))return;
+  const own=spec.groups.find(g=>g.kind==='own');
+  if(own.units.length!==4||!own.units[0].leader||own.units.some(u=>u.recruit))return;
+  seen.add(c.id);extra.push(clone({day:G.state.day,id:c.id,type:c.type,kind:S.kindOf(c),foe:S.foeKind(spec),star:c.level,band:4,R:est.R,spec}));
+  if(extra.length===24)throw stop;
+}});}catch(e){if(e!==stop)throw e;}
+const data=rows.map(r=>test(r,'Q24')).concat(extra.map(r=>test(r,'overpower')));
+fs.writeFileSync(outfile,data.map(x=>JSON.stringify(x)).join('\n')+'\n');
+console.error(seed,rows.length,extra.length);
+```
+
+</details>
