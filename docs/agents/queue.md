@@ -7,7 +7,7 @@
 
 | 누구 | id | 상태 | 할 일 (자세한 것은 그 줄의 문서) |
 |---|---|---|---|
-| GPT | `Q9-post-calamity-check` | READY | (총괄 수정 들어감) 재앙 토벌·세력 멸망 뒤 의뢰 정리 확인: `docs/agents/tasks/Q9-post-calamity-check.md` |
+| GPT | `Q9-post-calamity-check` | REVIEW | (총괄 수정 들어감) 재앙 토벌·세력 멸망 뒤 의뢰 정리 확인: `docs/agents/tasks/Q9-post-calamity-check.md` |
 | Codex | `C10-scaled-mannequin-guides` | READY | 배율이 다른 시트(비요른 0.18)용 마네킹 가이드 + 비요른 요청서: `docs/agents/tasks/C10-scaled-mannequin-guides.md` |
 | Codex | `C11-ui-fixes-q4` | READY | Q4 화면 결함 6건 + 관리 조작 즉시 저장 (3단계 합쳐진 뒤 최신에서 시작): `docs/agents/tasks/C11-ui-fixes-q4.md` |
 | Codex | `C12-stage4-cleanup` | READY | 전투 모드의 남은 옛 표시 정리 + 휴대폰 비용 측정 (C11 뒤): `docs/agents/tasks/C12-stage4-cleanup.md` |
