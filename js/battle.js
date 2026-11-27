@@ -784,6 +784,7 @@ const Battle = (() => {
     return [ax, ay];
   }
   const GHOST_FAR = 20;
+  const SQUEEZE = 2;                 // 막힌 걸음이 서 있는 아군을 지나갈 수 있는 시간(초)
   // 원거리·치유: 서 있는 아군과 몸이 깊이 겹친 채로는 멈추지 않는다 (조금 더 걸어 나가 선다)
   function crowdedAt(u, live) {
     for (const o of live) {
@@ -1041,7 +1042,7 @@ const Battle = (() => {
         if (p) { gx = p.x; gy = p.y; } else { gx = tg.x + u.slotSide * (reach + 14); gy = u.y; }
       }
       const ex = gx - u.x, ey = gy - u.y, ed = len2(ex, ey);
-      u.far = md > reach + GHOST_FAR;
+      u.far = md > reach + GHOST_FAR || u.squeeze > st.t;   // 막혀 있다 풀려난 걸음은 잠깐 서 있는 아군 사이를 비집고 지나간다 (아래)
       if (md > reach || (melee && ed > 3) || (!melee && crowdedAt(u, live))) {
         // 대장 근처로 모이려는 힘을 약간 섞는다 (부대 대형 유지) — 목표에 닿기 전까지만
         let mx = ex / (ed || 1), my = ey / (ed || 1);
@@ -1107,8 +1108,16 @@ const Battle = (() => {
       if (!u.moving || u.g.routed || !u.wantStep || u.dashed) continue;
       if (len2(u.x - u.ox, u.y - u.oy) < u.wantStep * 0.3) { u.x = u.ox; u.y = u.oy; u.moving = false; u.blocked = (u.blocked || 0) + DT; }
       else u.blocked = 0;
-      // 1초 넘게 막혀 있으면 자리를 내놓고 다시 고른다 (줄이 얼어붙지 않게)
-      if (u.blocked > 1) { u.blocked = 0; if (u.slotOf && u.slotOf.slots && u.slotOf.slots[u.slot] === u) u.slotOf.slots[u.slot] = null; u.slotOf = null; u.slot = -1; }
+      // 1초 넘게 막혀 있으면 자리를 내놓고 다시 고른다 (줄이 얼어붙지 않게).
+      // 자리를 다시 골라도 같은 자리·같은 길이면 또 막힌다 — 서 있는 아군(치유사·수습)이 목표와의 사이를 벽처럼 막으면 양쪽이
+      // 30px 거리에서 90초까지 멈춰 섰다 (4단계 미해결 '대치'). 그래서 SQUEEZE 초 동안은 멀리서 걸어올 때처럼 서 있는 아군을 지나가게 하고,
+      // 길을 막은 것이 적이면 (적은 지나갈 수 없다) 지금 닿는 적을 목표로 삼는다
+      if (u.blocked > 1) {
+        u.blocked = 0; u.squeeze = st.t + SQUEEZE;
+        if (u.slotOf && u.slotOf.slots && u.slotOf.slots[u.slot] === u) u.slotOf.slots[u.slot] = null; u.slotOf = null; u.slot = -1;
+        const near = u.healer ? null : pickTarget(st, u, u.skills[0], live);
+        if (near && near !== u.target) { u.target = near; u.retarget = SQUEEZE; }
+      }
     }
     for (const u of live) { u.vx = u.x - u.ox; u.vy = u.y - u.oy; }
     // 투사체
