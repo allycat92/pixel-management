@@ -63,6 +63,10 @@ const Game = {
   save() {
     try { localStorage.setItem(SAVE_KEY, JSON.stringify(this.state)); return true; } catch (e) { return false; }
   },
+  saveManagement() {
+    this.save();
+    this.emit();
+  },
   load() {
     try {
       const raw = localStorage.getItem(SAVE_KEY);
@@ -106,7 +110,7 @@ const Game = {
     this.log(`${f.name}${josa(f.name, '을', '를')} ${s.facilities[key]}단계로 증축했습니다. (-${cost} 금화)`, 'good');
     if (key === 'board') this.fillContracts(true);
     if (key === 'forge') this.refreshShop();
-    this.emit();
+    this.saveManagement();
   },
 
   // ───────── 용병: 대장과 대원 ─────────
@@ -257,7 +261,7 @@ const Game = {
     this.applyPromotion(m, key);
     this.changeMorale(m, 10);
     this.log(`${m.name}${josa(m.name, '이', '가')} ${opt.name}(으)로 승급했습니다! 스킬 「${opt.skill}」, 레벨 상한 ${this.levelCap(m)}. (-${PROMOTE_COST} 금화)`, 'good');
-    this.emit();
+    this.saveManagement();
   },
   promoteMaster(mercId, key) {
     const s = this.state;
@@ -269,7 +273,7 @@ const Game = {
     this.applyMaster(m, key);
     this.changeMorale(m, 15);
     this.log(`${m.name}${josa(m.name, '이', '가')} 최상급 직업 ${mc.name}에 올랐습니다! 스킬 「${mc.skill}」, 레벨 상한 ${this.levelCap(m)}. (-${MASTER_COST} 금화)`, 'good');
-    this.emit();
+    this.saveManagement();
   },
   applyPromotion(m, key) {
     const opt = ADV_CLASSES[key];
@@ -325,7 +329,7 @@ const Game = {
     present.forEach((m) => { this.changeMorale(m, 15); m.fatigue = Math.max(0, m.fatigue - 15); });
     for (let i = 0; i < present.length; i++) for (let j = i + 1; j < present.length; j++) this.addRel(present[i], present[j], 4);
     this.log(`길드 홀에서 연회를 열었습니다! 단원 ${present.length}명의 사기가 오르고 피로가 풀렸습니다. (-${cost} 금화)`, 'good');
-    this.emit();
+    this.saveManagement();
   },
 
   // 레벨업 했으면 true
@@ -372,7 +376,7 @@ const Game = {
     const m = this.makeUnit(cls, veteran ? this.veteranLevel() : 1);
     s.mercs.push(m);
     this.log(`${veteran ? '숙련' : '신병'} ${CLASSES[cls].name} ${m.name}(Lv.${m.level})${josa(m.name, '을', '를')} 모집했습니다. 예비 인원으로 대기합니다. (-${cost} 금화)`);
-    this.emit();
+    this.saveManagement();
     return m;
   },
 
@@ -473,7 +477,7 @@ const Game = {
     } else {
       this.log(`${this.className(m)} ${m.name}${josa(m.name, '을', '를')} 고용했습니다. 예비 인원으로 대기합니다. (-${cost} 금화)`);
     }
-    this.emit();
+    this.saveManagement();
   },
 
   // 단원이 길드를 떠날 때 공통 처리 (장비 회수, 용병단에서 빠짐, 특별 용병은 모집소로)
@@ -502,7 +506,7 @@ const Game = {
     const m = s.mercs.find((x) => x.id === id);
     if (!m || m.status === 'quest') return;
     this.removeMerc(m, '길드를 떠났습니다.');
-    this.emit();
+    this.saveManagement();
   },
 
   // 모집소의 개인 지원자: 특별 용병과 세력 정예만 남는다 (대장은 서사로, 대원은 직업을 골라 모집)
@@ -558,7 +562,7 @@ const Game = {
     s.shop = s.shop.filter((x) => x.id !== itemId);
     s.inventory.push(it);
     this.log(`${it.name}${josa(it.name, '을', '를')} 구입했습니다. (-${price} 금화)`);
-    this.emit();
+    this.saveManagement();
   },
 
   sell(itemId) {
@@ -569,14 +573,14 @@ const Game = {
     s.gold += price;
     s.inventory = s.inventory.filter((x) => x.id !== itemId);
     this.log(`${it.name}${josa(it.name, '을', '를')} 팔았습니다. (+${price} 금화)`);
-    this.emit();
+    this.saveManagement();
   },
 
   buyHerb() {
     const s = this.state;
     if (s.gold < HERB_PRICE) return this.toast('금화가 부족합니다.');
     s.gold -= HERB_PRICE; s.herbs++;
-    this.emit();
+    this.saveManagement();
   },
 
   useHerb(mercId) {
@@ -587,7 +591,7 @@ const Game = {
     m.injury -= 3;
     if (m.injury <= 0) { m.injury = 0; m.status = 'idle'; }
     this.log(`${m.name}에게 약초를 썼습니다.${m.status === 'idle' ? ' 완전히 회복했습니다!' : ''}`);
-    this.emit();
+    this.saveManagement();
   },
 
   equip(mercId, itemId) {
@@ -599,7 +603,7 @@ const Game = {
     if (m.equip[it.slot]) s.inventory.push(m.equip[it.slot]);
     m.equip[it.slot] = it;
     s.inventory = s.inventory.filter((x) => x.id !== itemId);
-    this.emit();
+    this.saveManagement();
   },
 
   unequip(mercId, slot) {
@@ -608,7 +612,7 @@ const Game = {
     if (m.status === 'quest' && this.equipGuard !== false) return;
     this.state.inventory.push(m.equip[slot]);
     m.equip[slot] = null;
-    this.emit();
+    this.saveManagement();
   },
 
   // ───────── 하루 진행 ─────────

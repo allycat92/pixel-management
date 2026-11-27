@@ -359,7 +359,7 @@ Object.assign(Game, {
     });
     const names = [...own.map((o) => o.c.name), ...ext.map((e) => e.name)].join(', ');
     this.log(`[${c.title}] ${names} 출격. (${days}일 소요)`);
-    this.emit();
+    this.saveManagement();
   },
 
   // ───────── 판정 ─────────

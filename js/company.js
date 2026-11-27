@@ -53,7 +53,7 @@ Object.assign(Game, {
     const color = COMPANY_COLORS.find((c) => !used.has(c)) || pick(COMPANY_COLORS);
     const co = { id: s.nextId++, own: true, name: this.uniqueCompanyName(), color, leaderId: null, cohesion: 20, wins: 0, losses: 0, missionId: null };
     s.companies.push(co);
-    if (!free) { this.log(`길드 직속 「${co.name}」${josa(co.name, '을', '를')} 창설했습니다.`, 'good'); this.emit(); }
+    if (!free) { this.log(`길드 직속 「${co.name}」${josa(co.name, '을', '를')} 창설했습니다.`, 'good'); this.saveManagement(); }
     return co;
   },
 
@@ -63,12 +63,12 @@ Object.assign(Game, {
     this.members(c).forEach((m) => { m.companyId = null; });
     s.companies = s.companies.filter((x) => x.id !== id);
     this.log(`「${c.name}」${josa(c.name, '을', '를')} 해산했습니다. 단원들은 예비 인원이 됩니다.`);
-    this.emit();
+    this.saveManagement();
   },
 
   renameCompany(id, name) {
     const c = this.company(id);
-    if (c && name) { c.name = name; this.emit(); }
+    if (c && name) { c.name = name; this.saveManagement(); }
   },
 
   // 단원을 용병단에 배속 (companyId null 이면 예비 인원으로)
@@ -88,7 +88,7 @@ Object.assign(Game, {
       if (c.wins + c.losses > 0) c.cohesion = Math.max(0, c.cohesion - 6); // 손발을 맞춰 온 용병단에 새 얼굴이 들어오면 흔들린다
       if (this.isCaptain(m)) c.leaderId = m.id; // 용병대장이 단장을 맡는다
     }
-    this.emit();
+    this.saveManagement();
   },
 
   // 용병단에서 빠질 때: 결속도 하락, 단장 교체
@@ -226,7 +226,7 @@ Object.assign(Game, {
     c.contractEnd = s.day + 28;
     s.companies.push(c);
     this.log(`외부 용병단 「${c.name}」${josa(c.name, '과', '와')} 4주 계약을 맺었습니다. (계약금 -${c.signFee}, 주간 유지비 ${c.upkeep}, 보상 몫 ${c.share}%)`, 'good');
-    this.emit();
+    this.saveManagement();
   },
 
   renewCost(c) { return Math.round(c.signFee * (1.3 - c.loyalty / 200)); },
@@ -240,7 +240,7 @@ Object.assign(Game, {
     c.contractEnd = Math.max(c.contractEnd, s.day) + 28;
     c.loyalty = Math.min(100, c.loyalty + 5);
     this.log(`「${c.name}」${josa(c.name, '과', '와')} 재계약했습니다. (-${cost} 금화)`);
-    this.emit();
+    this.saveManagement();
   },
 
   releaseCompany(id, reason = '계약이 끝나 떠났습니다.', kind = '') {

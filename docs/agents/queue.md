@@ -9,7 +9,7 @@
 |---|---|---|---|
 | GPT | `Q11-stage4-check` | 예고 | 총괄 4단계 수정이 들어가면 READY: `docs/agents/tasks/Q11-stage4-check.md` |
 | Codex | `C10-scaled-mannequin-guides` | REVIEW | 배율이 다른 시트(비요른 0.18)용 마네킹 가이드 + 비요른 요청서: `docs/agents/tasks/C10-scaled-mannequin-guides.md` |
-| Codex | `C11-ui-fixes-q4` | READY | Q4 화면 결함 6건 + 관리 조작 즉시 저장 (3단계 합쳐진 뒤 최신에서 시작): `docs/agents/tasks/C11-ui-fixes-q4.md` |
+| Codex | `C11-ui-fixes-q4` | REVIEW | Q4 화면 결함 6건 + 관리 조작 즉시 저장 (3단계 합쳐진 뒤 최신에서 시작): `docs/agents/tasks/C11-ui-fixes-q4.md` |
 | Codex | `C12-stage4-cleanup` | READY | 전투 모드의 남은 옛 표시 정리 + 휴대폰 비용 측정 (C11 뒤): `docs/agents/tasks/C12-stage4-cleanup.md` |
 | Codex | `C13-korean-text-fixes` | READY | Q7 한국어 글 고치기 + 총괄의 설정 결정 8개 반영 (C12 뒤): `docs/agents/tasks/C13-korean-text-fixes.md` |
 

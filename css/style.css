@@ -317,6 +317,7 @@ h3 { font-size: 14px; margin: 8px 0; }
 
 .map-layout { display: grid; grid-template-columns: minmax(0, 3fr) minmax(220px, 2fr); gap: 14px; align-items: start; }
 .map-wrap { border: 2px solid var(--line); box-shadow: 0 0 0 2px var(--shadow); line-height: 0; background: #24305e; }
+.map-region-control { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
 .world-map { width: 100%; height: auto; aspect-ratio: 320 / 180; cursor: pointer; display: block; }
 .region-info { background: var(--panel-2); border: 2px solid var(--line); padding: 10px; display: flex; flex-direction: column; gap: 6px; }
 .region-info p { margin: 0; }
@@ -326,6 +327,7 @@ h3 { font-size: 14px; margin: 8px 0; }
 
 .battle { display: flex; flex-direction: column; gap: 6px; }
 .battle-head { font-weight: bold; color: var(--gold); }
+.battle-region, .stat-token { white-space: nowrap; }
 /* 640x360 캔버스를 정수 배율(1배, 고해상도 화면에선 2배)로 보여 도트가 고르게 찍히게 한다. 좁은 화면에서만 줄어든다. */
 .battle-canvas { width: 100%; height: auto; aspect-ratio: auto 320 / 180; border: 2px solid var(--shadow); display: block; image-rendering: pixelated; box-sizing: border-box; }
 .battle-timer { float: right; color: var(--muted, #b8a98a); font-weight: normal; }
@@ -422,7 +424,13 @@ h3 { font-size: 14px; margin: 8px 0; }
 .cohesion { display: grid; grid-template-columns: auto 1fr auto; gap: 6px; align-items: center; margin-top: 3px; }
 .f-cohesion { background: #7ed3c8; } .f-loyal { background: #c8a8f0; }
 .members { display: flex; flex-direction: column; }
-.mrow { display: flex; align-items: center; gap: 8px; padding: 4px 10px; border-top: 1px solid var(--line); cursor: pointer; }
+.mrow {
+  display: flex; align-items: center; gap: 8px; padding: 4px 10px;
+  border: 0; border-top: 1px solid var(--line); background: transparent;
+  color: inherit; font: inherit; text-align: left; cursor: pointer;
+}
+.mrow .grow > span { display: block; }
+.mrow:focus-visible { outline: 2px solid var(--gold); outline-offset: -2px; }
 .mrow:hover { background: #3f3248; }
 .mrow.quest { opacity: 0.7; }
 .mname { font-size: 13px; }
@@ -605,6 +613,15 @@ img.art { image-rendering: pixelated; display: block; }
 .portrait.art-portrait { width: 64px; height: 64px; }
 .big-portrait.art-portrait { width: 128px; height: 128px; }
 @media (max-width: 640px) { .big-portrait.art-portrait { width: 96px; height: 96px; } }
+
+@media (max-width: 640px) {
+  .top-actions .btn, .merc-detail .btn, .facility .btn {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .merc-detail .merc-card .btns { gap: 8px; }
+  .merc-detail .merc-card .btns .danger { margin-inline-start: 8px; }
+}
 .event-art { width: 100%; height: auto; max-height: 240px; aspect-ratio: 16 / 9; object-fit: cover; border: 2px solid var(--shadow); margin: 6px 0; }
 
 /* 전투 컷인 */
