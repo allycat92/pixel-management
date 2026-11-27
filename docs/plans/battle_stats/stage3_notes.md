@@ -259,9 +259,11 @@ next day with one returning battle under Chrome CPU ×4 throttling; a phone meas
 
 Stage 4 (flip the default to `'battle'`):
 - Mid-game economy: **done** (owner decision 5, see "Mid-game economy (owner decision 5)" below): S on day ~102
-  instead of ~132, day 60 and 121+ rewards unchanged.
-- The reckless strategy (takes every offer, including 무모) can now go broke (1 of 12) or fall to darkness; decide
-  whether 무모 failures should cost less or the board should show fewer of them.
+  instead of ~132 (every one of 14 sets on day 95-108), day 1-59 and 121+ rewards unchanged. Owner call still open:
+  the faster rank puts more 무모 offers on the day 61-120 boards (see "Side effect on 무모 offers" there).
+- The reckless strategy (takes every offer, including 무모) can go broke or fall to darkness. Owner decision 6 keeps
+  무모 offers and their loss cost as they are (the word is the warning); after decision 5 the reckless bot ends
+  S 1, A 2, B 4, D 1, F 2, bankrupt 2 (seeds 201-212).
 - Forecast for story and boss contracts: 우세 wins 74-82%; needs a term for boss-scale enemies or a stricter
   mapping for special kinds. Special samples are small (boss 67-96, final 10-13 per 12 games).
 - Late boards are the narrowest (hard offers on 37-56% of boards on days 241-365): the strongest companies outgrow
@@ -281,44 +283,57 @@ wins 85-90% at 우세, and retune the recruitment gamble counters.
 
 Owner decision 5 (2026-11-27): in battle mode raise only the rewards of days 60-120 a little, so that S is reached
 around day 90-110 (bot average), keep days 1-59 and 121+ as they are, do not go back to roll mode's speed (S ~73), and
-keep day-365 gold from ballooning. Decision 6: 무모 offers unchanged (nothing here touches the board, the words,
-calibration, casualties or the loss cushion).
+keep day-365 gold from ballooning (per-set average within about +25%). Decision 6: 무모 offers stay as they are
+(frequency and loss cost). Forecast words, `BANDS`, calibration, the board code, casualty rules and the loss cushion
+are not touched.
 
 ### The lever
 
-`js/contract.js` `makeContract`: in battle mode a contract **created** on day d gets
+`js/contract.js` `makeContract`: in battle mode a contract **with a deadline** created on day d gets
 
 ```
 gold reward × (1 + BM_MID_PAY × midBoost(d))      reputation (명성) × (1 + BM_MID_REP × midBoost(d))
 midBoost(d) = 0 up to day 59, rises linearly to 1 on day 72, 1 until day 110, falls linearly to 0 on day 121
 ```
 
-`midBoost` is `Game.midBoost(day)` (`BM_MID_DAYS` = the four corners of the trapezoid). The factor goes into the
-contract's own `reward` and `rep` when it is made, before the special multipliers (story ×1.3, campaign ×1.8 / rep ×2,
-boss ×4, relief ×1.5), so the contract card shows exactly what is paid, a posted contract never changes its price
-afterwards, and the loss pay (a share of `reward`) and the rep lost on a failure (30% / 60% of `rep`) follow the same
-numbers. Values on day 60 / 65 / 72-110 / 115 / 120 / 121: 0.08 / 0.46 / 1 / 0.55 / 0.09 / 0. Roll mode never calls it
-(`s.resolve === 'battle'` first).
+- `midBoost` is `Game.midBoost(day)` (`BM_MID_DAYS` = the four corners of the trapezoid). Values on day
+  59 / 60 / 65 / 72-110 / 115 / 120 / 121: 0 / 0.08 / 0.46 / 1 / 0.55 / 0.09 / 0 (at most 0.09 a day: no cliff).
+- The factor goes into the contract's own `reward` and `rep` when it is made, before the special multipliers
+  (campaign ×1.8 / rep ×2, relief ×1.5). The card shows exactly what is paid on a win ("보상 N", "명성 +N";
+  `js/ui-tabs.js`), and a posted contract never changes its price.
+- **No-deadline contracts get no boost** (`opts.noDeadline`: hero story, captain story, boss, final — the four
+  callers that set `expires = STORY_EXPIRES`). Otherwise a story or boss contract posted inside the window could be
+  held and paid after day 121 (verify found boosted story / boss contracts paid on days 124-196). Normal contracts
+  expire after 3-6 days and campaigns after 5, so a boosted contract is always taken by day ~127.
+- **A failure costs the unboosted 명성** (owner decision 6): the contract stores `repMul` (battle mode, window
+  only) and the rep lost on a failure is 30% / 60% of `rep / repMul`, the same as without the change. The extra
+  명성 is paid only for a win. The loss cushion (gold on a lost fight, `LOSS_PAY` + `LOSS_PAY_SHARE` × share of the
+  posted `reward`) keeps its rule; it is a payment, not a cost, and its share of the card is unchanged.
+- Roll mode never reaches any of this (`s.resolve === 'battle'` first; `repMul` is never set, so the failure line
+  computes `c.rep` exactly as before).
 
 Why this lever:
 - **Rank is reputation only** (`RANKS` in `js/data.js`: S at 3,200 rep). Gold does not move S: gold ×1.5 alone on days
   60-120 left S at 140 (141) and raised day-365 gold by 44% (seeds 1-12). So the S target needs a rep term; gold gets a
   small one so the mid-game purse is a bit less lean, as the decision asks ("rewards").
-- Both numbers are printed on the card ("보상 N", "명성 +N"), so the player sees what the contract gives; there is no
-  hidden multiplier on payout. A day ramp, not a rank ramp: a rank ramp would cut pay at the moment of promotion to S
-  (a punishment for success) and would move with the player, while the owner's window is in days.
-- Trapezoid, not a step: 13 days in (59 → 72), 11 days out (110 → 121), so no cliff at day 60 or 120. The hold runs
-  to day 110 because S lands around day 100: with the hold ending on day 105 (`[59,72,105,121]`) S came on day 112.
+- Both numbers are printed on the card, so the player sees what the contract gives; there is no hidden multiplier on
+  payout. A day ramp, not a rank ramp: a rank ramp would cut pay at the moment of promotion to S (a punishment for
+  success) and would move with the player, while the owner's window is in days.
+- Trapezoid, not a step: 13 days in (59 → 72), 11 days out (110 → 121). The hold runs to day 110 because S lands
+  around day 100: with the hold ending on day 105 (`[59,72,105,121]`) S came on day 112.
+- **"A little" is gold, not 명성**: gold is ×1.25 at the peak, 명성 ×3.25. Moving S by ~30 days with a 60-day window
+  needs a large rep factor; this is the visible cost (see "What a player sees").
 
-### Constants (all in `Stats.KN`, settable with `--set` in `bot.js` and `shadow.js`)
+### Constants (all in `Stats.KN`, settable with `--set` in `bot.js` and `shadow.js`; unknown names, wrong types and wrong array lengths are refused)
 
 | Constant | Value | Reason |
 |---|---|---|
-| `BM_MID_PAY` | 0.25 (gold ×1.25 at the peak) | Day-120 gold 5.2k → 8.4k (roll mode 19k, so still slower than roll). 0.5 did not move S and only added late gold. |
-| `BM_MID_REP` | 2 (rep ×3 at the peak) | The value that puts S into 90-110. Sweep on seeds 1-12 below: ×2.5 S 111-117, ×3 107-112, ×3.5 103. |
+| `BM_MID_PAY` | 0.25 (gold ×1.25 at the peak) | Day-120 gold 4.8k → 7.3k (roll mode 19k, so still slower than roll). 0.5 did not move S and only added late gold. |
+| `BM_MID_REP` | 2.25 (rep ×3.25 at the peak) | Puts S into 90-110. With the no-deadline exemption and the unboosted loss: 2 gave S 112 / 108, 2.25 gave 105 / 105, 2.5 gave 107 / 101 (seeds 1-12 / 13-24). |
 | `BM_MID_DAYS` | [59, 72, 110, 121] | Days 1-59 and 121+ unchanged (factor exactly 1); ramps of 13 / 11 days. |
 
-Sweep (seeds 1-12 only, 12 × 365; baseline S 141, gold day 120 6,412, day 365 62,243):
+Sweep, first round (seeds 1-12 only, 12 × 365, before the no-deadline exemption and the unboosted loss; baseline S 141,
+gold day 120 6,412, day 365 62,243):
 
 | PAY / REP / days | B / A / S | Gold day 120 / 365 |
 |---|---|---|
@@ -331,71 +346,138 @@ Sweep (seeds 1-12 only, 12 × 365; baseline S 141, gold day 120 6,412, day 365 6
 | 0 / 1.5 / [59,70,108,121] | 67 / 87 / 117 | 6,579 / 67,761 |
 | 0.25 / 1.5 / [59,72,105,121] | 69 / 88 / 112 | 7,187 / 98,958 |
 | 0.25 / 2 / [59,75,105,121] | 69 / 86 / 112 | 7,330 / 73,780 |
-| **0.25 / 2 / [59,72,110,121]** (chosen) | 66 / 87 / 107 | 8,804 / 88,914 |
+| 0.25 / 2 / [59,72,110,121] | 66 / 87 / 107 | 8,804 / 88,914 |
 | 0.25 / 2.5 / [59,72,108,121] | 66 / 83 / 103 | 9,486 / 121,800 |
 
-The second tuning set (13-24) was run only with the chosen values (S 101).
+Second round (final code; seeds 1-12 / 13-24, PAY 0.25, days [59,72,110,121]):
+
+| REP | Day S | Gold day 365 |
+|---|---|---|
+| 2 | 112 / 108 | 76,155 / 45,857 |
+| **2.25 (chosen)** | 105 / 105 | 73,432 / 55,724 |
+| 2.5 | 107 / 101 | 87,602 / 34,049 |
 
 ### Before → after (sensible bot, 12 × 365 per set, `SIM_RESOLVE=battle`)
 
-Tuning sets: 1-12 and 13-24. **Check sets not used while tuning**: 501, 601, 701, 801, 901, 1001 (12 games each).
-"Before" is the same code with `--set BM_MID_PAY=0 --set BM_MID_REP=0` (identical games to the stage-3 code: seeds 1-12
-and 13-24 reproduce the stage-3 table above exactly).
+- Tuning sets: 1-12 and 13-24.
+- **Never used while tuning by anyone**: 6001, 7001, 8001 (36 games, run once with the final values).
+- Earlier check sets (used to check the first round, not to tune it or the second round): 501, 601, 701, 801, 901,
+  1001, 2001, 3001, 4001.
+- "Before" = the same code with `--set BM_MID_PAY=0 --set BM_MID_REP=0`: the factor is then exactly 1, `repMul` is 1,
+  and the games are identical to the stage-3 code (seeds 1-12 and 13-24 reproduce the stage-3 table above; 2001
+  reproduces verify's run).
+- Deaths: 0 special / 0 other per game in every set, before and after.
 
-| Seeds | 1-12 | 13-24 | 501-512 | 601-612 | 701-712 | 801-812 | 901-912 | 1001-1012 |
-|---|---|---|---|---|---|---|---|---|
-| Final rank / game overs | S 12 → S 12 | S 12 → S 12 | S 12 → S 12 | S 12 → S 12 | S 12 → S 12 | S 12 → S 11, dark 1 | S 12 → S 12 | S 12 → S 12 |
-| Day reaching B / A / S | 75 / 108 / 141 → 66 / 87 / 107 | 70 / 98 / 130 → 66 / 84 / 101 | 63 / 95 / 125 → 61 / 79 / 97 | 69 / 104 / 136 → 65 / 83 / 102 | 70 / 98 / 133 → 68 / 84 / 101 | 68 / 104 / 134 → 64 / 85 / 104 | 64 / 102 / 127 → 60 / 78 / 97 | 75 / 105 / 132 → 69 / 85 / 107 |
-| Gold day 60 / 90 / 120 | 1,852 / 3,934 / 6,412 → 1,852 / 4,613 / 8,804 | 2,037 / 4,178 / 3,427 → 2,037 / 3,139 / 4,793 | 2,214 / 4,381 / 6,147 → 2,214 / 4,430 / 9,492 | 2,318 / 3,114 / 3,823 → 2,318 / 3,846 / 6,242 | 1,949 / 3,756 / 2,844 → 1,949 / 3,993 / 3,850 | 2,345 / 4,043 / 2,995 → 2,345 / 4,701 / 9,762 | 2,296 / 4,063 / 7,025 → 2,296 / 4,434 / 16,145 | 1,918 / 4,432 / 8,677 → 1,918 / 3,763 / 8,463 |
-| Gold day 180 / 365 | 16,116 / 62,243 → 14,633 / 88,914 | 22,037 / 86,676 → 20,160 / 57,079 | 16,528 / 90,315 → 28,280 / 121,964 | 16,336 / 123,807 → 24,344 / 103,067 | 16,554 / 47,466 → 14,514 / 57,854 | 18,596 / 88,024 → 24,190 / 75,962 | 27,684 / 109,348 → 33,656 / 112,067 | 23,776 / 103,641 → 27,556 / 143,343 |
-| Captains at the end | 6.25 → 6.33 | 6.83 → 6.25 | 6.67 → 6.5 | 6.75 → 6.92 | 5.75 → 5.83 | 6.75 → 6 | 7 → 6.67 | 6.42 → 6.5 |
-| Contracts completed / failed | 402 / 75 → 422 / 74 | 407 / 76 → 442 / 76 | 460 / 68 → 437 / 66 | 436 / 67 → 458 / 71 | 407 / 79 → 426 / 81 | 446 / 76 → 408 / 66 | 452 / 67 → 465 / 75 | 424 / 70 → 422 / 69 |
-| Deaths per game special / other | 0 / 0 → 0 / 0 | 0 / 0 → 0 / 0 | 0 / 0 → 0 / 0 | 0 / 0 → 0 / 0 | 0 / 0 → 0 / 0 | 0 / 0 → 0 / 0 | 0 / 0 → 0 / 0 | 0 / 0 → 0 / 0 |
-| Win 백중 / 우세 / 압도 | 48.3 / 86.4 / 99.6 → 48.2 / 86.3 / 99.4 | 47.3 / 86.9 / 99.8 → 46.7 / 87.7 / 99.8 | 51.2 / 89.1 / 99.8 → 52.9 / 89.9 / 99.7 | 53.7 / 89.5 / 99.6 → 51.8 / 88.8 / 99.7 | 44.5 / 86.4 / 99.8 → 42.9 / 86.7 / 99.6 | 47.3 / 86.6 / 99.6 → 49.7 / 88.2 / 99.7 | 53.9 / 89.5 / 99.8 → 48.2 / 88.4 / 99.6 | 48.4 / 88.8 / 99.8 → 50.1 / 88.9 / 99.8 |
-| Win days 1-30 / 31-60 / 61-120 / 121-240 / 241-365 | 90 / 86 / 85 / 84 / 82 → 90 / 86 / 85 / 85 / 83 | 88 / 88 / 85 / 85 / 81 → 88 / 88 / 86 / 85 / 84 | 90 / 90 / 87 / 87 / 86 → 90 / 90 / 85 / 89 / 83 | 90 / 87 / 86 / 86 / 86 → 90 / 87 / 86 / 86 / 86 | 86 / 87 / 86 / 84 / 81 → 86 / 87 / 85 / 83 / 83 | 90 / 90 / 85 / 85 / 83 → 90 / 90 / 83 / 87 / 84 | 89 / 91 / 85 / 86 / 87 → 89 / 91 / 86 / 86 / 84 | 90 / 88 / 86 / 87 / 83 → 90 / 88 / 88 / 85 / 85 |
+| | 1 | 13 | 6001 | 7001 | 8001 | 2001 | 3001 |
+|---|---|---|---|---|---|---|---|
+| Final rank | S 12 → S 12 | S 12 → S 12 | S 12 → S 12 | S 12 → S 12 | S 11, bankrupt 1 → S 12 | S 12 → S 12 | S 12 → S 12 |
+| Day B / A / S | 75 / 108 / 141 → 67 / 86 / 105 | 70 / 98 / 130 → 66 / 85 / 105 | 64 / 95 / 125 → 62 / 80 / 95 | 69 / 103 / 135 → 64 / 82 / 103 | 74 / 111 / 139 → 68 / 84 / 105 | 70 / 105 / 139 → 65 / 84 / 108 | 62 / 91 / 123 → 61 / 76 / 95 |
+| Gold d60 / d90 / d120 | 1,852 / 3,934 / 6,412 → 1,852 / 4,356 / 7,034 | 2,037 / 4,178 / 3,427 → 2,037 / 3,925 / 5,349 | 1,960 / 4,178 / 6,408 → 1,960 / 5,255 / 8,051 | 2,047 / 3,533 / 2,873 → 2,047 / 4,484 / 6,159 | 2,177 / 3,545 / 4,145 → 2,177 / 3,848 / 8,066 | 2,046 / 3,362 / 3,559 → 2,046 / 5,250 / 6,743 | 2,083 / 3,914 / 5,540 → 2,083 / 3,793 / 8,145 |
+| Gold d180 / d365 | 16,116 / 62,243 → 21,772 / 73,432 | 22,037 / 86,676 → 17,459 / 55,724 | 25,005 / 106,205 → 22,013 / 109,444 | 12,404 / 55,227 → 16,831 / 57,730 | 14,012 / 49,376 → 13,964 / 72,794 | 14,459 / 61,287 → 17,839 / 65,938 | 26,181 / 76,332 → 23,892 / 67,468 |
+| Captains | 6.25 → 5.75 | 6.83 → 6.25 | 6.92 → 7.17 | 6.67 → 6.25 | 5.00 → 5.92 | 5.75 → 5.75 | 6.83 → 6.92 |
+| Completed / failed | 402 / 75 → 443 / 73 | 407 / 76 → 423 / 74 | 461 / 73 → 492 / 69 | 434 / 59 → 423 / 72 | 376 / 65 → 435 / 72 | 420 / 74 → 414 / 75 | 465 / 64 → 460 / 72 |
+| Deaths sp/other | 0 / 0 → 0 / 0 | 0 / 0 → 0 / 0 | 0 / 0 → 0 / 0 | 0 / 0 → 0 / 0 | 0 / 0 → 0 / 0 | 0 / 0 → 0 / 0 | 0 / 0 → 0 / 0 |
+| Win 백중 / 우세 / 압도 | 48.3 / 86.4 / 99.6 → 46.5 / 88.4 / 99.7 | 47.3 / 86.9 / 99.8 → 46.5 / 86.4 / 99.7 | 47.0 / 88.2 / 99.8 → 49.3 / 89.1 / 99.8 | 55.3 / 89.8 / 99.9 → 49.1 / 88.6 / 99.8 | 49.0 / 88.2 / 99.5 → 47.8 / 88.3 / 99.6 | 48.1 / 87.3 / 99.7 → 46.3 / 86.4 / 99.6 | 52.0 / 90.8 / 99.6 → 50.0 / 88.7 / 99.5 |
+| Win days 1-30/31-60/61-120/121-240/241-365 | 90 / 86 / 86 / 85 / 83 → 90 / 86 / 88 / 87 / 83 | 88 / 88 / 86 / 86 / 81 → 88 / 88 / 86 / 84 / 84 | 93 / 92 / 87 / 84 / 86 → 93 / 92 / 87 / 88 / 86 | 91 / 89 / 86 / 89 / 88 → 91 / 89 / 84 / 85 / 86 | 89 / 88 / 86 / 86 / 83 → 89 / 88 / 86 / 86 / 85 | 88 / 93 / 86 / 86 / 83 → 88 / 93 / 84 / 86 / 82 | 92 / 90 / 87 / 88 / 88 → 92 / 90 / 86 / 86 / 86 |
+| 무모 per board d61-120 / 무모 offers per game | 1.04 / 221 → 1.05 / 230 | 0.93 / 222 → 1.27 / 225 | 0.63 / 244 → 1.02 / 251 | 0.87 / 234 → 1.03 / 220 | 1.07 / 198 → 1.18 / 211 | 0.92 / 224 → 1.08 / 240 | 0.64 / 239 → 1.00 / 247 |
+
+| | 4001 | 501 | 601 | 701 | 801 | 901 | 1001 |
+|---|---|---|---|---|---|---|---|
+| Final rank | S 12 → S 12 | S 12 → S 12 | S 12 → S 12 | S 12 → S 12 | S 12 → S 12 | S 12 → S 12 | S 12 → S 12 |
+| Day B / A / S | 74 / 106 / 135 → 67 / 84 / 108 | 63 / 95 / 125 → 61 / 79 / 97 | 69 / 104 / 136 → 64 / 82 / 103 | 70 / 98 / 133 → 67 / 83 / 102 | 68 / 104 / 134 → 64 / 83 / 105 | 64 / 102 / 127 → 60 / 78 / 95 | 75 / 105 / 132 → 69 / 84 / 105 |
+| Gold d60 / d90 / d120 | 1,969 / 3,598 / 3,720 → 1,969 / 3,460 / 3,814 | 2,214 / 4,381 / 6,147 → 2,214 / 4,424 / 9,671 | 2,318 / 3,114 / 3,823 → 2,318 / 3,736 / 5,165 | 1,949 / 3,756 / 2,844 → 1,949 / 3,836 / 5,277 | 2,345 / 4,043 / 2,995 → 2,345 / 4,694 / 6,582 | 2,296 / 4,063 / 7,025 → 2,296 / 4,104 / 11,930 | 1,918 / 4,432 / 8,677 → 1,918 / 3,443 / 10,021 |
+| Gold d180 / d365 | 16,769 / 71,071 → 15,497 / 72,945 | 16,528 / 90,315 → 28,785 / 101,532 | 16,336 / 123,807 → 23,175 / 123,970 | 16,554 / 47,466 → 15,975 / 69,208 | 18,596 / 88,024 → 16,747 / 72,347 | 27,684 / 109,348 → 29,081 / 131,238 | 23,776 / 103,641 → 26,383 / 68,809 |
+| Captains | 6.33 → 6.67 | 6.67 → 6.25 | 6.75 → 6.42 | 5.75 → 5.67 | 6.75 → 6.58 | 7.00 → 6.58 | 6.42 → 6.25 |
+| Completed / failed | 428 / 68 → 414 / 74 | 460 / 68 → 454 / 73 | 436 / 67 → 451 / 76 | 407 / 79 → 410 / 83 | 446 / 76 → 435 / 65 | 452 / 67 → 454 / 73 | 424 / 70 → 434 / 67 |
+| Deaths sp/other | 0 / 0 → 0 / 0 | 0 / 0 → 0 / 0 | 0 / 0 → 0 / 0 | 0 / 0 → 0 / 0 | 0 / 0 → 0 / 0 | 0 / 0 → 0 / 0 | 0 / 0 → 0 / 0 |
+| Win 백중 / 우세 / 압도 | 49.5 / 88.0 / 99.7 → 45.5 / 86.6 / 99.8 | 51.2 / 89.1 / 99.8 → 52.3 / 88.8 / 99.5 | 53.7 / 89.5 / 99.6 → 52.5 / 87.0 / 99.4 | 44.5 / 86.4 / 99.8 → 43.9 / 86.9 / 99.6 | 47.3 / 86.6 / 99.6 → 50.9 / 87.8 / 99.6 | 53.9 / 89.5 / 99.8 → 53.1 / 89.3 / 99.6 | 48.4 / 88.8 / 99.8 → 49.2 / 88.1 / 99.8 |
+| Win days 1-30/31-60/61-120/121-240/241-365 | 88 / 88 / 86 / 87 / 85 → 88 / 88 / 85 / 85 / 84 | 91 / 91 / 88 / 87 / 86 → 91 / 91 / 86 / 87 / 84 | 90 / 88 / 86 / 87 / 86 → 90 / 88 / 87 / 86 / 84 | 86 / 88 / 87 / 84 / 81 → 86 / 88 / 86 / 85 / 80 | 91 / 91 / 85 / 86 / 84 → 91 / 91 / 85 / 86 / 87 | 89 / 91 / 86 / 87 / 87 → 89 / 91 / 87 / 86 / 85 | 90 / 88 / 86 / 87 / 83 → 90 / 88 / 88 / 85 / 87 |
+| 무모 per board d61-120 / 무모 offers per game | 0.85 / 223 → 1.14 / 235 | 0.90 / 238 → 1.01 / 221 | 0.73 / 222 → 1.18 / 242 | 1.05 / 228 → 1.23 / 200 | 0.74 / 230 → 1.02 / 233 | 0.92 / 234 → 1.07 / 218 | 0.97 / 235 → 0.88 / 230 |
+
+Day-365 gold change per set: 1 +18%, 13 −36%, 6001 +3%, 7001 +5%, 8001 +47%, 2001 +8%, 3001 −12%, 4001 +3%,
+501 +12%, 601 0%, 701 +46%, 801 −18%, 901 +20%, 1001 −34%.
 
 Means over the sets (before → after):
 
-| | Tuning (24 games) | Check (72 games) | All (96 games) |
-|---|---|---|---|
-| Day reaching B / A / S | 73 / 103 / 136 → 66 / 86 / 104 | 68 / 101 / 131 → 65 / 82 / 101 | 69 / 102 / 132 → 65 / 83 / 102 |
-| Gold day 60 | 1,945 → 1,945 | 2,173 → 2,173 | 2,116 → 2,116 |
-| Gold day 90 / 120 | 4,056 / 4,920 → 3,876 / 6,799 | 3,965 / 5,252 → 4,195 / 8,992 | 3,988 / 5,169 → 4,115 / 8,444 |
-| Gold day 180 / 365 | 19,077 / 74,460 → 17,397 / 72,997 (-2%) | 19,912 / 93,767 → 25,423 / 102,376 (+9%) | 19,703 / 88,940 → 23,417 / 95,031 (+7%) |
-| Captains at the end | 6.5 → 6.3 | 6.6 → 6.4 | 6.6 → 6.4 |
-| Game overs | 0 → 0 | 0 → 1 (darkness) | 0 → 1 |
+| | Tuning (24 games) | Never used (36) | Earlier check (108) | All (168) |
+|---|---|---|---|---|
+| Day reaching B / A / S | 73 / 103 / 136 → 67 / 86 / 105 | 69 / 103 / 133 → 65 / 82 / 101 | 68 / 101 / 132 → 64 / 81 / 102 | 69 / 102 / 132 → 65 / 82 / 102 |
+| Gold day 60 | 1,945 → 1,945 | 2,061 → 2,061 | 2,126 → 2,126 | 2,087 → 2,087 |
+| Gold day 90 / 120 | 4,056 / 4,920 → 4,141 / 6,192 | 3,752 / 4,475 → 4,529 / 7,425 | 3,851 / 4,926 → 4,082 / 7,483 | 3,859 / 4,828 → 4,186 / 7,286 |
+| Gold day 180 | 19,077 → 19,616 | 17,140 → 17,603 | 19,654 → 21,930 | 19,033 → 20,672 |
+| Gold day 365 | 74,460 → 64,578 (−13%) | 70,269 → 79,989 (+14%) | 85,699 → 85,939 (+0.3%) | 80,787 → 81,613 (+1.0%) |
+| Captains at the end | 6.5 → 6.0 | 6.2 → 6.4 | 6.5 → 6.3 | 6.4 → 6.3 |
+| Game overs | 0 → 0 | 1 (bankrupt) → 0 | 0 → 0 | 1 → 0 |
+| Win 백중 / 우세 / 압도 | 47.8 / 86.7 / 99.7 → 46.5 / 87.4 / 99.7 | 50.4 / 88.7 / 99.7 → 48.7 / 88.7 / 99.7 | 49.8 / 88.4 / 99.7 → 49.3 / 87.7 / 99.6 | 49.7 / 88.2 / 99.7 → 48.8 / 87.9 / 99.6 |
+| Win days 1-30 / 31-60 / 61-120 / 121-240 / 241-365 | 89.2 / 87.4 / 85.7 / 85.1 / 82.0 → 89.2 / 87.4 / 86.5 / 85.9 / 83.8 | 90.9 / 89.7 / 86.2 / 86.5 / 85.7 → 90.9 / 89.7 / 85.4 / 86.2 / 85.7 | 89.4 / 89.7 / 86.2 / 86.4 / 84.8 → 89.4 / 89.7 / 85.9 / 85.8 / 84.3 | 89.7 / 89.4 / 86.1 / 86.3 / 84.6 → 89.7 / 89.4 / 85.9 / 85.9 / 84.6 |
+| 무모 per board, days 61-120 / 무모 offers per game | 0.99 / 222 → 1.16 / 228 | 0.86 / 225 → 1.08 / 227 | 0.86 / 230 → 1.07 / 230 | 0.88 / 228 → 1.08 / 229 |
 
 Reading:
-- **S on day 97-107 in every set** (was 125-141); per game it is 74-144 after (seeds 701-1012, where the per-game data was kept; before 87-188). A comes
-  ~19 days earlier, B ~4 days earlier (the ramp starts on day 60, B is at ~65-70). Roll mode stays faster (S ~73).
-- Day 60 gold is identical in every set (nothing before day 60 changed). Day 90 gold barely moves (+3%): the extra pay
-  is spent on hires and wages as it comes. Day 120 gold +63% (5.2k → 8.4k), still well under roll mode's 19k.
-- **Day-365 gold**: +7% over all 96 games, +9% over the 72 check games. Per set it moves -34% to +43% (1-12 +43%,
-  13-24 -34%, 501 +35%, 601 -17%, 701 +22%, 801 -14%, 901 +2%, 1001 +38%) — that is noise, not the lever: per-game
-  standard deviation of day-365 gold is 47-146k, so the standard error of one 12-game set mean is 14-42k (17-45%),
-  and any change to the economy reshuffles every later game (the gold-only run with S unchanged moved set 1 by +44%).
-  Two of eight sets are above +25%, four are below 0; the pooled change is within the +25% bound.
-- Word win rates unchanged (우세 86-90%, 백중 43-53%, 압도 99.4-99.8% in every set, before and after); win by day band
-  unchanged within ±2 points. Deaths 0 in all 192 games. Contracts completed 402-460 → 408-465.
-- **One darkness** (seed 811, after): the calamity rose on day 101 (the calamity is world-driven — a hegemon falls or
-  3 factions die, `checkCalamity` in `js/faction.js` — not tied to rank), the guild was still at A with 2 captains at the
-  end, and the bot lost the final twice at R 1.05 (백중). The same seed before the change also had an early calamity
-  (day 112) and won the final on the third try at R 1.12 on day 143. 1 of 96 games against 0 of 96; stage 3 measured
-  0 of 72 at `BM_FINAL_K` 0.5. Worth watching in the next batch; no change made for it.
-- Side effect a player may notice: a ★6 contract gives about three times the 명성 on day 90 that it gives on day 130
-  (gold ×1.25). The star still rises with rank (cap rank + 4), so later contracts pay back part of the drop.
+- **S on day 95-108 in every one of the 14 sets** (was 123-141); 102 over all 168 games, 101 on the 36 never-used
+  games. A comes ~20 days earlier, B ~4 days earlier (the ramp starts on day 60, B is at ~65-70). Roll mode stays
+  faster (S ~73). Per game S still spreads widely (74-174 after).
+- Day 60 gold and the day 1-30 / 31-60 win rates are identical in every set (nothing before day 60 changed). Day 90
+  gold +8%, day 120 gold +51% (4.8k → 7.3k), still well under roll mode's 19k.
+- **Day-365 gold**: +1.0% over all 168 games, +14% on the never-used sets, −13% on the tuning sets. Per set it moves
+  −36% to +47%; 2 of 14 sets are above +25% (701 +46%; 8001 +47%, whose "before" includes a game that went bankrupt
+  and stopped earning), 2 are below −25% (13 −36%, 1001 −34%). This is noise, not the lever: per-game standard deviation of day-365 gold is
+  43-160k, so a 12-game set mean has a standard error of 13-46k (15-45% of the mean), and any change to the economy
+  reshuffles every later game (the gold-only run with S unchanged moved set 1 by +44%). The per-set bound read
+  strictly is missed on 2 of 14 sets; the pooled change is well inside it.
+- Word win rates do not move pooled (백중 49.7 → 48.8, 우세 88.2 → 87.9, 압도 99.7 → 99.6). Per set 백중 moves up to
+  −6.2 points (7001: 55.3 → 49.1; with n ≈ 900 per set the standard error of a before/after difference is ~2.4 points) and 우세 up to −2.5
+  (601). Win by day band moves −4.0 to +3.6 points per set (7001 days 121-240 −4.0, 6001 days 121-240 +3.6),
+  at most 0.8 pooled.
+- Game overs 1 → 0 (the first round had one darkness on seed 811; with the final code seed 801-812 end S 12).
 
-### Roll mode unchanged
+### Side effect on 무모 offers (owner call)
+
+The change does not touch the board code, `BOARD_W`, the words or the 무모 loss. But the guild now reaches each rank
+earlier and therefore **weaker**, while the star cap is rank + `BM_CAP_AHEAD` (`battleCap`, `js/muster.js`) and
+provinces open by rank. A board slot that aims at 무모 then finds a 무모 star more often (before, with the low cap, it
+fell back to the cap's top stars).
+- Per board on days 61-120: 0.88 → 1.08 무모 offers (+23%; up in 13 of 14 sets, down in 1001). Days 1-60 identical; days 121-365
+  slightly fewer; per game 228 → 229 (unchanged).
+- Share of new board contracts that are 무모 for the strongest company (6 games from seed 6001, creation-time probe
+  `scratchpad/fix/mprobe.js`): by rank B 10.5 → 16.4%, A 7.8 → 17.5%, S 3.4 → 3.2%; by day 61-120 9.8 → 15.5%,
+  121-240 5.3 → 3.9%, 241-365 2.3 → 1.4%.
+- Reckless bot (verify's `vbot.js`, `STRAT=reckless`, seeds 201-212 × 365): final ranks S 3, A 0, B 1, D 1, E 1, F 4,
+  bankrupt 1, dark 1 → S 1, A 2, B 4, D 1, F 2, bankrupt 2; 무모 offers seen per game 241 → 282; failures per game
+  309 → 359; win rate on days 61-120 / 121-240 / 241-365 33.5 / 32.2 / 38.0 → 29.5 / 27.6 / 30.6%.
+- Not fixed here, because every fix changes something the owner's decisions fix: tying the cap and province opening
+  to an "unboosted" rank would make the displayed rank lie and changes the board (excluded); a smaller cap ahead
+  changes the board too. A third option was tried in a scratch copy: extra experience in the window (×2 at the peak)
+  so the guild keeps pace with its rank. It brought the day 61-120 무모 share back near the old value (15.5 → 11.0%)
+  but raised day-365 gold on seeds 1-12 to 114k (+83%), so it breaks the gold bound.
+- **Owner question**: is "무모 offers unchanged" met by "the same rules, the same number per game", or should the
+  share per board on days 61-120 also stay at today's 0.88? If the latter, the cleanest lever is to raise the guild's
+  strength with its rank (experience or recruits in the window) and pay back the gold elsewhere.
+
+### What a player sees
+
+- Mean card 명성 for a normal contract (first round, seeds 5001-5006, verify's probe): ~17 on days 50-59, 33 in the
+  60s, 51-63 on days 70-109, 45 in the 110s, 23 in the 120s (before: 17-22 throughout). With 2.25 the peak is ~8%
+  higher. The fall over days 110-121 is gradual (at most 0.09 of the factor a day) but adds up to about −60% while the
+  stars on the board keep rising with rank.
+- Gold per contract moves little (×1.25 at the peak). Story, captain-story, boss and final contracts show the same
+  numbers as before.
+- A failed contract inside the window costs the same 명성 as it would outside it.
+
+### Roll mode and checks
 
 - `SIM_JSON=1 node tools/sim/bot.js 6 200 | md5sum` = `ddfdfe7b437fbe9fcf25f166ba542fce`, also with `SIM_SHADOW=1`.
-- `node tools/sim/battle.js 100`: miss 0 in all four outcomes.
-- `bot.js` now also records gold on day 90 (`goldAt[90]`), in battle mode only, so roll JSON is byte-identical.
+- `node tools/sim/battle.js 100`: miss 0, soft 0 in all four outcomes.
+- `node tools/sim/shadow.js 6 200 --check` (roll, 2,150 battles) and `node tools/sim/shadow.js 6 365 --resolve battle
+  --check` (3,128 battles): all 0.
+- Unit probe (seed 5001, 160 days, `scratchpad/fix/unit.js`): 104 of 104 normal contracts made in the window carry
+  `repMul`, 0 of 13 no-deadline contracts do; 219 of 219 wins paid exactly the card 명성 (×1.5 on great); 9 of 9
+  failures of boosted contracts lost exactly 30% / 60% of the unboosted 명성.
+- `bot.js` also records gold on day 90 (`goldAt[90]`), in battle mode only, so roll JSON is byte-identical.
 
 ### Commands
 
 ```
 SIM_SEED=1 SIM_RESOLVE=battle node tools/sim/bot.js 12 365 --jobs 4                     # after (defaults)
 SIM_SEED=1 SIM_RESOLVE=battle node tools/sim/bot.js 12 365 --jobs 4 --set BM_MID_PAY=0 --set BM_MID_REP=0   # before
-# also SIM_SEED=13, 501, 601, 701, 801, 901, 1001 (about 3.3 min per 12 games on 4 cores)
+# also SIM_SEED=13, 501, 601, 701, 801, 901, 1001, 2001, 3001, 4001, 6001, 7001, 8001 (about 1 min per 12 games on 4 cores)
 ```
-
