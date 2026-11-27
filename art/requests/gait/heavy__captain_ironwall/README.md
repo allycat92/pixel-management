@@ -16,7 +16,7 @@
 | `art/inbox/sheet_captain_ironwall.png` | **승인된 전투 시트 원본** — 디자인·색·크기의 기준. 1번 자세가 대기 |
 | `art/requests/guides/heavy_base/v1/` (`pose.json`, `heavy_base_preview.gif`, `heavy_base.aseprite`) | 마네킹 원본 — 숫자·움직임 확인용 |
 
-- 부류: **중량** — slate-grey plate armour, open steel helmet, tower shield ~2 heads tall on the far arm, morning star. (tools/art/specs/gait_classes.json)
+- 부류: **중량** — slate-grey plate armour, open steel helmet, tall tower shield on the far arm (idle size), morning star. (tools/art/specs/gait_classes.json)
 - 납품: art-inbox `art/inbox/gait/sheet_captain_ironwall_run_a.png` (H1~H4) + `art/inbox/gait/sheet_captain_ironwall_run_b.png` (H5~H8) + `art/inbox/NOTES.md` 절 「gait/sheet_captain_ironwall_run - 브리긴다 이동 (중량)」 + 「## 판정 — gait/sheet_captain_ironwall_run」. 파일 이름은 부류와 상관없이 `_run_` (엔진의 `anims.run`).
 - 팔·무기: 탑 방패는 먼 팔에 **가슴 앞에 세운 채**(위 끝 턱 높이, 아래 끝 y 760~790 — 흔들지 않고 몸과 함께만 오르내림), 철퇴는 가까운 손에 **허리 높이로, 머리를 위로** 쥔다 — 휘두르지 않는다. 땋은 머리·타바드는 한 칸 늦게 조금 흔들린다.
 - 디딘 발: 한 걸음 원본 142.5px(게임 23.6px) → 디딘 발은 칸마다 **정확히 35.6px**(±3, 게임 5.9px) 뒤로 — 발끝 x 는 Prompt 의 PLANTED FOOT 표. (병과 전사 R5 는 디딘 발이 30px 앞에 그려져 한 번 고쳤다.)
@@ -44,7 +44,7 @@ REFERENCES (load all; if the sheet or a guide does not load, do not draw - write
   - art/requests/guides/heavy_base/v1/pose.json (the numbers below come from it), art/requests/guides/heavy_base/v1/heavy_base_preview.gif (the motion at speed), art/requests/guides/heavy_base/v1/heavy_base.aseprite (the mannequin source -
     you may open it as an underlay and draw on your own layers, but the delivered PNGs contain ONLY your drawing).
 
-CHARACTER (unchanged from the accepted sheet): sturdy, broad-shouldered woman; open steel helmet with gold trim; long auburn hair in a thick braid hanging down her BACK on the screen-left side; scar across the nose; slate-grey plate armour with gold trim (pauldrons, breastplate, tassets); grey tabard; leather belt; dark trousers, brown boots; a spiked MACE (morning star) in the NEAR hand; a tall rectangular TOWER SHIELD with a gold rim on the FAR arm (about 2 heads tall, ~220 px, and 1 head wide, ~110 px).
+CHARACTER (unchanged from the accepted sheet): sturdy, broad-shouldered woman; open steel helmet with gold trim; long auburn hair in a thick braid hanging down her BACK on the screen-left side; scar across the nose; slate-grey plate armour with gold trim (pauldrons, breastplate, tassets); grey tabard; leather belt; dark trousers, brown boots; a spiked MACE (morning star) in the NEAR hand; a tall rectangular TOWER SHIELD with a gold rim on the FAR arm (keep the accepted idle's size: about 94 px wide and 250 px tall in the source idle, rim included; the far hand stays hidden behind it).
 
 THE MOVE (owner's three movement classes; heavy: heavy armour / tower shield / very large weapon: cannot really run. Fastest natural gait for that body = a heavy, purposeful, FAST trudge (not a stroll): NO flight phase (one foot always on the ground), torso upright, short stride, the weight dropped onto each footfall, arms held close and high. It is already in the mannequin - copy it, do not invent another):
   - Each frame: the legs, the torso lean and the arm swing of that mannequin frame. Joint for joint: hips, knees, ankles, feet,
@@ -67,7 +67,7 @@ THE MOVE (owner's three movement classes; heavy: heavy armour / tower shield / v
 
 ARMS AND WEAPONS:
   - Tower shield (far arm): held UP in front of the chest in EVERY frame, exactly as in the idle: its top edge where the idle has it relative to her helmet and belt (about chin height), its bottom edge about 80-110 px above the floor (y 760-790) so the knees and boots show below it, face toward the viewer's right. It does NOT swing: it moves up and down with the body (lowest in H2/H6) and at most about 10 px fore-aft. Front edge left of x=345 in every slot. The far forearm stays across the front at chest height, as in the mannequin.
-  - Mace (near hand): held ready at the belt/hip with the spiked head UP and a little forward, as in the idle (haft about 50 deg from vertical, head about chest height beside the shield). The near hand follows the mannequin's near hand (it moves only 7-18 px fore-aft); the mace never swings, never hangs down and never crosses the face. Whole mace inside the slot.
+  - Mace (near hand): held ready at the belt/hip with the idle's near-hand grip and the full mace length, the spiked head UP and forward, head about chest height beside the shield. The idle haft is about 60 deg from vertical; for the gait carry it a little more upright - start at about 45-50 deg from vertical (an intended change, not a deviation) and rotate closer to vertical if any spike reaches x=351 in H5/H6 (check the whole spiked head). The near hand follows the mannequin's near hand (it moves only 7-18 px fore-aft); the fixed shield takes priority over the mannequin's far elbow and hand; the mace never swings, never hangs down and never crosses the face. Whole mace inside the slot.
   - The shield may cover part of the torso and the far thigh, never the face; the mace head stays readable beside the shield edge.
   - The braid swings a little behind her back and lags the body by ONE frame; the tabard and tassets sway slightly with each footfall (the weight drop in H2/H6) - no flapping.
   - Face: set and determined, eyes forward, mouth closed; the helmet sits steady.

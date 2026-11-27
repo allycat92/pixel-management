@@ -260,7 +260,7 @@ CARRY = {
             'out at once by the stepping leg and falls back ONE FRAME LATE (G2/G6 still keep the contact hem shape). Keep the robe '
             'length of the idle: the hem trim\'s lowest point about y 840-850 at the front (about 20-30 px above the floor), higher '
             'at the sides; it never touches y=870.',
-            'The capelet and the sleeves sway a little and lag one frame; the sash ends trail back.',
+            'The capelet and the sleeves sway a little and lag one frame. The visible sash end hangs on the FRONT of the robe as in the idle and keeps hanging there, with only a small swing across the front panel - never thrown back behind the body.',
         ],
         'face': 'Face: in shadow between the brim and the collar in every frame (no eyes, no skin); the hat stays on and steady.',
         'ko': '지팡이는 대기처럼 **두 손으로 몸 앞에 비스듬히**(수정이 위·앞) 들고 다닌다 — 짚지 않는다. 로브 자락은 **한 칸 늦게** '

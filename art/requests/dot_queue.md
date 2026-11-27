@@ -23,10 +23,10 @@ Claude Code 가 받아서 확인한 결과는 `art/requests/feedback.md`에 남�
 |---|---|---|---|
 | Antigravity | 손질 | `sheet/monster/desert-bandit` | **다시 (Codex 게임 반영 QA C5, 11-27)**: 접촉 칸에서 몸을 3px 밀어 넣어 발이 앵커에서 벗어나고, 피격 칸 발 맞춤이 발바닥 기준 −12px. 공격 자세 폭과 디딘 발을 다른 칸과 같은 자리(y=870, 같은 x)에 맞춘다. 바탕은 납품한 `5520f35` 판. 지금 게임에는 예전 그림이 남아 있다 |
 | Antigravity | 손질 | `sheet/monster/goblin` | **대비 손질 (C5)**: 어두운 숲 배경에서 어두운 녹색·갈색 몸통의 안쪽 명암과 겹친 실루엣이 읽히지 않는다 → 몸통 중간색을 밝게, 외곽선 안쪽 1px 밝은 테두리, 귀·무기 실루엣을 몸 밖으로. 시트는 이미 게임에 등록됨(`c4cc054`) — 같은 이름으로 다시 납품 |
-| Antigravity | new | `gait/sheet_captain_ironwall_run` | **브리긴다 중량 이동 8프레임** — 확정 중량 마네킹(`heavy_base/v1`) 위에 덧그린다. 주인이 기다리는 것(맨 마네킹에 실제 갑옷·탑방패를 입혀 보기). 요청서 `art/requests/gait/heavy__captain_ironwall/README.md`(SELF-CHECK 포함). 납품 `art/inbox/gait/sheet_captain_ironwall_run_a.png` + `_b.png` |
-| Antigravity | new | `gait/sheet_class_mage_run` | 병과 마법사 로브 이동 8프레임 — `robe_base/v1` 위에. 요청서 `art/requests/gait/robe__class_mage/README.md`(옷자락 부피는 대기 그림대로, 마네킹의 좁은 치마는 자리 안내일 뿐) |
-| Antigravity | new | `gait/sheet_class_archer_run` | 병과 궁수 달리기 8프레임 — `run_base/v2` 위에. 요청서 `art/requests/gait/run__class_archer/README.md` |
-| Antigravity | new | `gait/sheet_class_cleric_run` | 병과 성직자 달리기 8프레임. 요청서 `art/requests/gait/run__class_cleric/README.md` |
+| Antigravity | new | `gait/sheet_captain_ironwall_run` | **요청서 고침 (11-27, GPT 대조 Q3) — 이미 시작했으면 README 의 ARMS 절을 다시 읽을 것.** **브리긴다 중량 이동 8프레임** — 확정 중량 마네킹(`heavy_base/v1`) 위에 덧그린다. 주인이 기다리는 것(맨 마네킹에 실제 갑옷·탑방패를 입혀 보기). 요청서 `art/requests/gait/heavy__captain_ironwall/README.md`(SELF-CHECK 포함). 납품 `art/inbox/gait/sheet_captain_ironwall_run_a.png` + `_b.png` |
+| Antigravity | new | `gait/sheet_class_mage_run` | **요청서 고침 (11-27, GPT 대조 Q3) — 이미 시작했으면 README 의 ARMS 절을 다시 읽을 것.** 병과 마법사 로브 이동 8프레임 — `robe_base/v1` 위에. 요청서 `art/requests/gait/robe__class_mage/README.md`(옷자락 부피는 대기 그림대로, 마네킹의 좁은 치마는 자리 안내일 뿐) |
+| Antigravity | new | `gait/sheet_class_archer_run` | **요청서 고침 (11-27, GPT 대조 Q3) — 이미 시작했으면 README 의 ARMS 절을 다시 읽을 것.** 병과 궁수 달리기 8프레임 — `run_base/v2` 위에. 요청서 `art/requests/gait/run__class_archer/README.md` |
+| Antigravity | new | `gait/sheet_class_cleric_run` | **요청서 고침 (11-27, GPT 대조 Q3) — 이미 시작했으면 README 의 ARMS 절을 다시 읽을 것.** 병과 성직자 달리기 8프레임. 요청서 `art/requests/gait/run__class_cleric/README.md` |
 | Antigravity | new | `gait/sheet_class_rogue_run` | 병과 도적 달리기 8프레임. 요청서 `art/requests/gait/run__class_rogue/README.md` |
 | Antigravity | DOT_READY | `sheet/captain/liberator/chain-sheet` | 카토 주먹·사슬 시트: 대기 `2391081` 그대로, 준비·접촉·피격 세 컷 추가. [요청서](phase3/captain_liberator/chain_sheet.md). |
 | Antigravity | new | `gait/sheet_captain_lancer_run` | 대장 창기병 중량 이동 8프레임 (C8 요청서, 클라우드 대조 검증 반영). 요청서 `art/requests/gait/heavy__captain_lancer/README.md` |

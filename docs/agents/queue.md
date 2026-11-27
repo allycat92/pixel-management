@@ -7,7 +7,6 @@
 
 | 누구 | id | 상태 | 할 일 (자세한 것은 그 줄의 문서) |
 |---|---|---|---|
-| GPT | `Q3-gait-request-crosscheck` | REVIEW | 첫 이동 요청서 5건을 그림과 대조: `docs/agents/tasks/Q3-gait-request-crosscheck.md` |
 | Codex | `C10-scaled-mannequin-guides` | READY | 배율이 다른 시트(비요른 0.18)용 마네킹 가이드 + 비요른 요청서: `docs/agents/tasks/C10-scaled-mannequin-guides.md` |
 | Codex | `C9-gait-requests-batch3` | REVIEW | 이동 요청서 셋째 묶음(영웅 7·대장 1·괴물 2): `docs/agents/tasks/C9-gait-requests-batch3.md` |
 
@@ -15,6 +14,7 @@
 
 | 누구 | id | 결과 |
 |---|---|---|
+| GPT | `Q3-gait-request-crosscheck` | **DONE** (11-27, `4e1a84a` 합침): 첫 이동 요청서 5건 대조 — 도적 OK, 4건 FIX 를 클라우드가 반영: 브리긴다 방패 크기는 대기 기준(94×250)·철퇴 각도는 이동용 예외 45–50°, 마법사 양팔 면제·앞 허리띠 끝은 앞에, 궁수 활 손을 R1/R7/R8 에서 x≤322 로, 성직자 철퇴 R3/R4 15–20° |
 | Codex | `C8-gait-requests-batch2` | **DONE** (11-27, `9f9f031` 합침): 대장 10명 이동 요청서. 클라우드가 그림과 대조 검증(찾기+반박 두 단계)해 8건 12곳을 고쳤다 — 검성 양손 팔꿈치 면제, 사냥꾼·해결사·창기병의 없는 「guide」 무기 기준을 대기 그림 기준으로, 음유시인 칼끝 각도·땋은 머리 위치, 전술가 지팡이 각도·옛 삼각모 무효, 성광 기사 철퇴 위치·먼 손, 빛의 사제 로브 길이. 생성기에 Windows 경로 수정과 「the guide …」 문구 검사 추가. Antigravity 대기열에 10건 올림 |
 | GPT | `Q2-new-art-ingame` | **DONE** (11-27, `5eeb2b1` 합침): 새 9종 실전 확인 — 비요른·해골·세라핀·그롬·아스텔 PASS, 오스윈 PASS(모바일 무릎 세부 미확인), 서리 트롤 PASS(보폭은 이동 칸이 없어 미확인), 카이 미확인(시위 접점), 고블린 어두운 숲 FIX(이미 Antigravity 대기열의 대비 손질과 같은 문제), 사막 도적 구판 유지 확인 |
 | Codex | `C7-forecast-calibration` | **DONE** (11-27, `4b61ad3` 합침): 적 갈래별 반반 지점 측정(괴물 R 0.774, 병사 0.909) → 보정·단계 경계·대성공 조건 제안. 클라우드가 채택해 다른 시드에서 확인: 무모 1% · 열세 21% · 백중 58% · 우세 87% · 압도 100% |

@@ -76,6 +76,7 @@ python3 tools/art/gait_requests.py --write sheet/<kind>/<key> [sheet/... ...]
 - 손에 든 것·천·얼굴 문장은 `tools/art/gait_requests.py` 의 `CARRY` 표(시트 id 마다)에서 온다(중량은 방패를 가슴 앞에 세운 채, 로브는 옷자락이 한 칸 늦고 무릎을 가림).
   표에 없는 시트는 phase3 꾸러미 README 의 CHARACTER 줄(없으면 phase3.json 의 prompt) + 부류 기본 문장으로 만들고 README 와 출력에 「검토」를 단다
   → 대기 그림을 보고 CARRY 에 적은 뒤 `--force` 로 다시 만든다. 「검토」가 달린 요청은 대기열에 올리지 않는다.
+- **검토로 손본 요청서**(C8·C9·Q3 대조 뒤 클라우드가 README 를 직접 고친 것)는 `--force` 로 다시 만들면 고친 문장이 사라진다. 다시 만들어야 하면 먼저 `git diff` 로 고친 문장을 옮겨 둔다.
 - 이미 있는 폴더는 `--force` 없이 건드리지 않는다. 손으로 쓴 요청(`run__class_warrior`, `run__captain_shadowqueen`)은 `--force` 로도 덮어쓰지 않는다.
   `--out <폴더>` 는 시험용(목록을 고치지 않는다). 이 목록만 다시 쓰기: `python3 tools/art/gait_requests.py --index`.
 - 같은 입력이면 같은 파일이 나온다(README 의 날짜는 `--date`, 기본 오늘). 검사: `python3 tools/art/gait_requests.py --check` — 분류·엔진 표에 더해 요청 폴더마다

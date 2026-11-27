@@ -65,7 +65,7 @@ THE MOVE (owner's three movement classes; light: the accepted run: lean forward,
     YOUR toe tip against these numbers (the size_* images mark them with yellow ticks).
 
 ARMS AND WEAPONS:
-  - Mace (near hand): held at the LOWER grip with the flanged head UP (haft about 20-45 deg forward of vertical), as in the idle - the head between chest and shoulder height. The near arm pumps with the mannequin, but the forearm drops so the fist sits at about y 660-700 (belt to hip; dropping it is intended, not a deviation). The mace rides along: it never hangs down toward the floor, never points backward, never swings. Never shorten it - change its angle instead.
+  - Mace (near hand): held at the LOWER grip with the flanged head UP (haft about 15-20 deg forward of vertical in R3/R4, where the near hand is furthest forward; up to about 30 deg elsewhere - check the outer flange against x <= 351 and bring the grip inward if needed), as in the idle - the head between chest and shoulder height. The near arm pumps with the mannequin, but the forearm drops so the fist sits at about y 660-700 (belt to hip; dropping it is intended, not a deviation). The mace rides along: it never hangs down toward the floor, never points backward, never swings. Never shorten it - change its angle instead.
   - Far hand: free, open or loosely closed (calm, no claw fingers), pumping with the mannequin's far arm.
   - The book stays on the belt.
   - The tabard skirt and the cowl trail back and lag the body by ONE frame (they lift most in R1/R5 and settle in R3/R7); the chest disc stays visible.

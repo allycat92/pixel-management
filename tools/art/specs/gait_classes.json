@@ -132,7 +132,7 @@
     },
     "sheet/captain/ironwall": {
       "gait": "heavy",
-      "why": "slate-grey plate armour, open steel helmet, tower shield ~2 heads tall on the far arm, morning star."
+      "why": "slate-grey plate armour, open steel helmet, tall tower shield on the far arm (idle size), morning star."
     },
     "sheet/captain/khan": {
       "gait": "light",
