@@ -8,6 +8,7 @@
 | 누구 | id | 상태 | 할 일 (자세한 것은 그 줄의 문서) |
 |---|---|---|---|
 | Codex | `C27-crosscheck-c24` | READY | (C26 보다 먼저 — 기본 전환이 기다림) GPT 의 C24 교차 확인: 부상 분포·전투 모드 경제 변화: `docs/agents/tasks/C27-crosscheck-c24.md` |
+| GPT | `Q25-healer-timeout` | READY | 치유 대장·치유 대원 편성의 「우세」 시간 초과 측정(코드 수정 없음): `docs/agents/tasks/Q25-healer-timeout.md` |
 | GPT | `C24-battle-injury-loss-fixed` | REVIEW | (Codex C27 교차 확인 대기) 전투 뒤 부상·외부단 손실 고정 |
 
 ## 끝난 일
