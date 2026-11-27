@@ -108,7 +108,7 @@
     },
     "sheet/captain/frostjarl": {
       "gait": "light",
-      "why": "slate-blue 'armoured tunic' drawn as a padded/quilted tunic to mid-thigh, big fur mantle on the shoulders, trousers, fur-trimmed boots, long-hafted axe.",
+      "why": "slate-blue armoured tunic of layered silver-trimmed bands and skirt panels to the upper thigh (front flap to just above the knee), big white fur mantle on the shoulders, baggy dark trousers, brown boots with thick white fur cuffs, long-hafted axe.",
       "borderline": "tall broad man with a fur mantle and armoured tunic (hit weight 'heavy' in motion_chars.json); HEAVY is defensible. Default light: no plate, no shield, legs free from the thigh down; the axe is long-hafted but slim."
     },
     "sheet/captain/hedgemage": {
