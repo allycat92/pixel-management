@@ -7,14 +7,15 @@
 
 | 누구 | id | 상태 | 할 일 (자세한 것은 그 줄의 문서) |
 |---|---|---|---|
-| GPT | `Q20-newplayer-clarity` | READY | 처음 하는 사람에게 전투 모드가 설명되는가(보고만): `docs/agents/tasks/Q20-newplayer-clarity.md` |
 | GPT | `Q19-flip-readiness-2` | 예고 | 한 부대 초반 다듬기가 들어가면 READY — 다른 시드로 사람 플레이 다시: `docs/agents/tasks/Q19-flip-readiness-2.md` |
 | Codex | `C18-crosscheck-gpt-code` | READY | GPT 가 대신 고친 C14·C16 코드 교차 확인(보고만): `docs/agents/tasks/C18-crosscheck-gpt-code.md` |
+| Codex | `C19-newplayer-texts` | READY | (C18 다음, 「한 부대 다듬기」 들어간 뒤) 처음 하는 사람을 위한 전투 모드 설명: `docs/agents/tasks/C19-newplayer-texts.md` |
 
 ## 끝난 일
 
 | 누구 | id | 결과 |
 |---|---|---|
+| GPT | `Q20-newplayer-clarity` | **DONE** (11-27, `0265bc7`): 다섯 단어 뜻·패배 결과·전사 가능 전투·연출 스위치 뜻이 게임 안에 설명되지 않음 → 화면별 문구 제안 → C19 (Codex) |
 | GPT | `Q18-issuer-standoff-check` | **DONE** (11-27, `9045016`): 의뢰주 멸망 정리 PASS, 전투 멈춤 해소 PASS(90초 시간패 → 24.9초 승), C14 PASS. **FIX**: 재앙이 점령한 지역의 보스 의뢰가 재앙을 의뢰주로 게시됨(`checkBosses`) → 총괄 |
 | GPT | `Q17-cleric-run-ingame` | **DONE** (11-27): 성직자 달리기 FIX — R5~R8 앞 타바드 사라짐(두 걸음마다 옷이 바뀜), R7/R8 철퇴 머리가 얼굴 옆 → Antigravity 손질 맨 위 |
 | GPT | `Q16-flip-readiness` | **DONE** (11-27, `7402731`): 사람 플레이(400px 전투 120일 / 1280 roll 60일, 직속 1부대) — 의견 **조건부**. 압도 20/20, 우세 13/17(초반 패배 몰림), 백중 3/15. 60일 D·명성 361 vs roll C·746. 60~120일 귀환 기다리는 날 37/61, A·S 미도달(120일 B). 패배 결과창 설명은 roll 보다 재미있음. 유예 주간 안내가 일지에만 있어 놓치기 쉬움 |
