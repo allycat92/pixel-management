@@ -88,7 +88,7 @@ function run(seed, days, mode, opts = {}) {
   let finalTries = 0, finalChance = 0;
   // 전투 모드 기록: 단어별·날짜 구간별 승패, 등급, 부상, 사망(특별한 전투 / 그 밖)
   const bs = battle ? { byBand: {}, byDay: {}, byKind: {}, tiers: { great: 0, success: 0, fail: 0, disaster: 0 }, memberBattles: 0, downed: 0, injured: 0, injDays: 0,
-    deathsSpecial: 0, deathsOther: 0, relief: 0, reliefTaken: 0, lossPay: 0, losses: 0, minMercs: 99, captainOnlyDays: 0, offered: [0, 0, 0, 0, 0], taken: [0, 0, 0, 0, 0] } : null;
+    deathsSpecial: 0, deathsOther: 0, relief: 0, reliefTaken: 0, lossPay: 0, losses: 0, minMercs: 99, captainOnlyDays: 0, offered: [0, 0, 0, 0, 0], taken: [0, 0, 0, 0, 0], boards: {} } : null;
   const tally = (o, k, win) => { const x = (o[k] = o[k] || [0, 0]); x[0]++; x[1] += win ? 1 : 0; };
   const seenOffer = new Set();
   // 전투 모드 봇: 진 특별 의뢰를 같은 예상으로 바로 다시 받지 않는다 (사람이라면 몇 번 지고 나면 키워서 다시 온다)
@@ -141,6 +141,21 @@ function run(seed, days, mode, opts = {}) {
     }));
     s.mercs.filter((m) => m.status === 'injured' && s.herbs > 0).forEach((m) => G.useHerb(m.id));
     if (G.feastReady() && s.mercs.length && s.mercs.reduce((a, m) => a + m.morale, 0) / s.mercs.length < 60 && s.gold > G.feastCost() + 300) G.feast();
+    // 전투 모드: 게시판의 폭 (사흘에 한 번, 봇이 받기 전) — 일반 의뢰를 가장 나은 직속 용병단(단원 전부)의 예상으로 센다. 난수·상태를 건드리지 않는다
+    if (bs && s.day % 3 === 0) {
+      const cos = G.ownCompanies().filter((co) => G.members(co).length);
+      const w = [0, 0, 0, 0, 0];
+      s.contracts.filter((q) => ctx.Stats.kindOf(q) === 'normal' && !q.relief).forEach((q) => {
+        let best = -1;
+        cos.forEach((co) => { const R = G.forecast(G.muster(q, [{ companyId: co.id, memberIds: G.members(co).map((m) => m.id) }])).R; if (R > best) best = R; });
+        if (best >= 0) w[ctx.Stats.bandOf(best)]++;
+      });
+      const b = (bs.boards[dayBandOf(s.day)] = bs.boards[dayBandOf(s.day)] || { n: 0, w: [0, 0, 0, 0, 0], hard: 0, easy: 0, both: 0 });
+      b.n++; w.forEach((x, i) => { b.w[i] += x; });
+      if (w[0] + w[1]) b.hard++;
+      if (w[3] + w[4]) b.easy++;
+      if (w[0] + w[1] && w[3] + w[4]) b.both++;
+    }
     // 의뢰: 이야기·보스·결전 우선, 그다음 보상순
     const special = (c) => (c.story || c.boss || c.campaign || c.capStory ? 1e6 : 0);
     s.contracts.forEach((c) => { if (c.campaign && !c.final) seenCamp.add(c.campaign.id); });
@@ -315,6 +330,10 @@ function summarize(res, days) {
     Object.keys(byKind).sort().forEach((k) => rows.push([`win rate, ${k}`, rate(byKind[k])]));
     rows.push(['tiers great/success/fail/disaster', tiers.map((t) => `${((100 * t) / tn).toFixed(1)}%`).join(' / ')]);
     rows.push(['offers seen by band 무모..압도 (per game)', [0, 1, 2, 3, 4].map((b) => fmt(sum((x) => x.offered[b]) / N, 1)).join(' / ')]);
+    // 게시판의 폭: 일반 의뢰를 가장 나은 직속 용병단의 예상으로 (사흘에 한 번)
+    const boards = {};
+    res.forEach((r) => Object.entries(r.battle.boards || {}).forEach(([k, b]) => { const o = (boards[k] = boards[k] || { n: 0, w: [0, 0, 0, 0, 0], hard: 0, easy: 0, both: 0 }); o.n += b.n; b.w.forEach((x, i) => { o.w[i] += x; }); o.hard += b.hard; o.easy += b.easy; o.both += b.both; }));
+    Object.keys(boards).sort().forEach((k) => { const b = boards[k]; rows.push([`board days ${k}: per board 무모..압도 | has ≤열세 / ≥우세 / both`, `${b.w.map((x) => (x / b.n).toFixed(2)).join(' / ')} | ${Math.round(100 * b.hard / b.n)}% / ${Math.round(100 * b.easy / b.n)}% / ${Math.round(100 * b.both / b.n)}% (n=${b.n})`]); });
     rows.push(['contracts taken by band 무모..압도 (per game)', [0, 1, 2, 3, 4].map((b) => fmt(sum((x) => x.taken[b]) / N, 1)).join(' / ')]);
     rows.push(['downed / injured per member-battle', `${((100 * sum((b) => b.downed)) / mb).toFixed(1)}% / ${((100 * sum((b) => b.injured)) / mb).toFixed(1)}% (avg ${fmt(sum((b) => b.injDays) / Math.max(1, sum((b) => b.injured)), 1)} days)`]);
     rows.push(['deaths per game: special / other', `${fmt(sum((b) => b.deathsSpecial) / N, 2)} / ${fmt(sum((b) => b.deathsOther) / N, 2)}`]);

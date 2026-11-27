@@ -194,7 +194,8 @@ Object.assign(Game, {
 
   fillContracts(force) {
     const s = this.state;
-    const max = 3 + s.facilities.board;
+    // 전투 모드: 게시판이 BM_BOARD_EXTRA 칸 넓다 — 벅찬 의뢰가 이길 만한 일감의 자리를 빼앗지 않게 (검증 3·5번)
+    const max = 3 + s.facilities.board + (s.resolve === 'battle' ? Stats.KN.BM_BOARD_EXTRA : 0);
     s.contracts = s.contracts.filter((c) => c.expires >= s.day);
     const normal = () => s.contracts.filter((c) => !c.story && !c.boss && !c.campaign).length;
     let guard = 0;
