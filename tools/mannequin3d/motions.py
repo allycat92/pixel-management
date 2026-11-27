@@ -58,9 +58,9 @@ GAITS = {
         'stance_pitch': [0.0, 0.0, 0.0, -8.0, -26.0],
         'hip_h': [180.0, 172.9, 177.8, 179.5],
         'lean': [5.0, 5.6, 5.0, 4.8],
-        # passing (0.625): the swing foot is carried a little ahead of the stance foot and its heel lifted, so the two feet
-        # do not merge into one blob (sole ~10-13 px up, inside the class's 5-13 px knee-lift band)
-        'swing': {0.625: (22.0, 78.0, -16.0), 0.75: (36.0, 72.0, -8.0), 0.875: (40.0, 48.0, 4.0)},
+        # passing (leg phase 0.75 = H3 far / H7 near): the swing foot is carried ahead of the stance foot (ankles ~20 px
+        # apart; was 36 deg -> 11 px, one blob) with the sole 13 px up (the class's 5-13 px knee-lift band)
+        'swing': {0.625: (14.0, 72.0, -18.0), 0.75: (41.0, 72.0, -8.0), 0.875: (40.0, 48.0, 4.0)},
         'arm': [(-4.0, 70.0), (-5.0, 66.0), (-2.0, 68.0), (2.0, 72.0), (4.0, 70.0), (5.0, 66.0), (2.0, 68.0), (-2.0, 72.0)],
         'pelvis_twist': 4.0, 'chest_counter': 2.0, 'head_pitch': 2.0,
     },
@@ -72,7 +72,8 @@ GAITS = {
         'stance_pitch': [0.0, 0.0, 0.0, -8.0, -24.0],
         'hip_h': [182.2, 180.5, 185.0, 185.5],
         'lean': [7.1, 7.6, 6.8, 6.8],
-        'swing': {0.625: (17.0, 66.0, -14.0), 0.75: (29.0, 58.0, -6.0), 0.875: (34.0, 38.0, 4.0)},
+        # passing (0.75 = G3 / G7): swing foot ahead of the stance foot (was 29 deg: ankles 3 px apart, one blob)
+        'swing': {0.625: (8.0, 60.0, -15.0), 0.75: (36.0, 62.0, -6.0), 0.875: (34.0, 38.0, 4.0)},
         'arm': [(-10.0, 72.0), (-12.0, 76.0), (-4.0, 74.0), (6.0, 72.0), (10.0, 72.0), (12.0, 76.0), (4.0, 74.0), (-6.0, 72.0)],
         'pelvis_twist': 4.0, 'chest_counter': 3.0, 'head_pitch': 2.0,
         # robe proxy: hem height (robe_base v1: 38-52 px, check fail < 38), hem corner lift, margins around the leading

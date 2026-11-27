@@ -557,8 +557,7 @@ def draft_masks(exe=None):
         except (OSError, ValueError) as e:
             log(f'  마네킹 비교: {rel(pose_path)} 읽기 실패, 건너뜀 ({e})')
             continue
-        # 비율을 맞춘 2D 마네킹 (scaled_from) 과 3D 마네킹 가이드 (source 에 tools/mannequin3d — build.py 가 쓰는 표시)
-        if isinstance(pose, dict) and (pose.get('scaled_from') or 'mannequin3d' in str(pose.get('source', ''))):
+        if isinstance(pose, dict) and pose.get('scaled_from'):
             strips(sorted(glob.glob(os.path.join(os.path.dirname(pose_path), 'guide_*_?.png'))))
     # 세트 아래의 하위 폴더 모두: v<n>/ (받아들인 판), draft/ (heavy_base·robe_base 처럼 PC 가 아직 다듬지 않은 클라우드 초안), 앞으로 생길 다른 이름도
     for vdir in sorted(glob.glob(os.path.join(GUIDES, '*', '*'))):
@@ -628,7 +627,7 @@ def _rotate(m, deg):
     return _crop(np.asarray(im) >= 128)
 
 
-def best_guide_match(frames, exe=None, stop=None, masks=None):
+def best_guide_match(frames, exe=None, stop=None, masks=None, drafts=None):
     """원본 프레임들 각각(과 좌우를 뒤집은 것)을 모든 뼈대 프레임에 자리를 맞춰 대 본 가장 높은 IoU
     → (IoU, 프레임 번호, 뼈대 이름, 뒤집었나, (dx, dy), 높이 맞춤 배율 또는 None, 돌린 각도(도) 또는 0). 원본 그대로 한 번, 원본을 그
     뼈대 프레임의 그림 상자 높이로 맞춰(가로세로 비 유지, 높이 비 NORM_RANGE 안) 한 번 잰다 — 크기를 바꾼 마네킹. 그렇게 잰 IoU 가
@@ -637,8 +636,9 @@ def best_guide_match(frames, exe=None, stop=None, masks=None):
     돌린 뒤에 높이를 맞춘다 — 크기를 바꾸고 기울인 마네킹).
     넓이 비가 지금까지의 최고보다 낮은 짝은 재지 않는다 (IoU ≤ 넓이 비). stop 을 주면 그보다 높은 짝을 찾는 대로 멈추고, 넓이 비가 stop
     이하인 짝도 재지 않는다 (판정만 필요할 때 — 돌려주는 값은 stop 이하일 수 있다).
-    masks: frames 대신 이미 실루엣으로 만든 bool 배열들 (sheets.py 가 split_poses 로 자세를 나눈 그림)."""
-    drafts = [(n, d, float(d.sum())) for n, d in draft_masks(exe)]
+    masks: frames 대신 이미 실루엣으로 만든 bool 배열들 (sheets.py 가 split_poses 로 자세를 나눈 그림).
+    drafts: 비교할 뼈대 실루엣 [(이름, bool 배열)] (기본: draft_masks — 3D 마네킹은 m3d_masks 로 따로 잰다)."""
+    drafts = [(n, d, float(d.sum())) for n, d in (drafts if drafts is not None else draft_masks(exe))]
     best = (0.0, None, None, False, (0, 0), None, 0)
     floor = stop or 0.0
     for i, fr in enumerate(masks if masks is not None else frames):
@@ -755,6 +755,7 @@ def guide_reason(p, exe):
     - 옆에 pose_measured.json (check_skeleton.py --export 가 마네킹에서 뽑은 띠)
     - joints 레이어가 있는 .aseprite (관절 점 레이어 = 뼈대 작업 파일)
     - 3D 마네킹(tools/mannequin3d)의 색이 한 프레임의 25% 이상 (mannequin3d_reason — 칠하지 않은 3D 가이드, 위치와 실루엣에 상관없이)
+    - 넘긴 3D 마네킹 가이드(pose.json source 에 tools/mannequin3d 인 art/requests/gait/* 폴더)와 IoU > 0.93 (m3d_match — 색만 바꾼 것)
     - 어느 프레임(또는 뒤집은 것)의 실루엣이 뼈대 프레임(draft_masks: 클라우드 초안 + PC 가 넘긴 art/inbox/guides/ 마네킹)과
       자리를 맞춰 IoU > 0.85 (joints 레이어를 지운 마네킹, 이름을 바꾸거나 옮기거나 뒤집거나 크기를 바꾸거나 ±9도 안으로 기울인 마네킹)"""
     real = os.path.realpath(p)
@@ -768,10 +769,56 @@ def guide_reason(p, exe):
             if 'joints' in visible:
                 raise Fail(f'{p}: joints 레이어가 보인다 — 관절 점이 프레임에 그대로 찍힌다. 이 파일은 뼈대(마네킹)이고 게임 프레임이 아니다')
             return 'joints 레이어가 있는 .aseprite = 뼈대 작업 파일(마네킹)'
-    why = mannequin3d_reason(p)
+    why = mannequin3d_reason(p) or m3d_match(p)
     if why:
         return why
     return draft_match(p, exe)
+
+
+M3D_IOU = 0.93               # 3D 마네킹(tools/mannequin3d) 가이드와의 실루엣 IoU 문턱 — 캐릭터에 맞춘 3D 몸 위에 칠하는 것이 바로 그 작업이라
+                             # 2D 마네킹의 0.85 를 쓰지 않는다 (그린 전사 달리기 vs 맞춘 3D 가이드: 자리를 맞춰 0.78). 색만 바꾼 마네킹은 0.99
+
+
+def m3d_masks():
+    """art/requests/gait/*/ 가운데 pose.json 의 source 에 tools/mannequin3d 가 있는 폴더(3D 마네킹 가이드를 넘긴 요청)의 guide 띠 실루엣"""
+    out = []
+    for pose_path in sorted(glob.glob(os.path.join(ROOT, 'art', 'requests', 'gait', '*', 'pose.json'))):
+        try:
+            with open(pose_path, encoding='utf-8') as f:
+                pose = json.load(f)
+        except (OSError, ValueError):
+            continue
+        if not (isinstance(pose, dict) and 'mannequin3d' in str(pose.get('source', ''))):
+            continue
+        for png in sorted(glob.glob(os.path.join(os.path.dirname(pose_path), 'guide_*_?.png'))):
+            try:
+                arr = np.asarray(Image.open(png).convert('RGBA'))
+            except OSError:
+                continue
+            for k, fr in enumerate(_slots(arr)):
+                c = _crop(frame_mask(fr))
+                if c is not None:
+                    out.append((f'{rel(png)} 의 {k + 1}번 프레임', c))
+    return out
+
+
+def m3d_match(p):
+    """넘긴 3D 마네킹 가이드와 실루엣 IoU > M3D_IOU 이면 그 이유 (색을 바꾸거나 덧칠만 한 3D 마네킹)"""
+    masks = m3d_masks()
+    if not masks or p.lower().endswith(('.aseprite', '.ase')):
+        return None
+    try:
+        arr = np.asarray(Image.open(p).convert('RGBA'))
+    except OSError:
+        return None
+    if arr.shape[1] % SLOT:
+        return None
+    frames = [arr[:, k * SLOT:(k + 1) * SLOT] for k in range(arr.shape[1] // SLOT)]
+    iou, fi, name, flip, (dx, dy), k, deg = best_guide_match(frames, stop=M3D_IOU, drafts=masks)
+    if iou > M3D_IOU:
+        return (f'{fi}번 프레임의 실루엣이 3D 마네킹 가이드와 거의 같다 — {name}, IoU {iou:.3f} > {M3D_IOU} '
+                f'({match_words(dx, dy, flip, k, deg)}) = 색만 바꾼 3D 마네킹')
+    return None
 
 
 def mannequin3d_reason(p):
