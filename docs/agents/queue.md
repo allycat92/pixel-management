@@ -7,7 +7,7 @@
 
 | 누구 | id | 상태 | 할 일 (자세한 것은 그 줄의 문서) |
 |---|---|---|---|
-| Codex | `C17-monster-gait-requests` | READY | 고블린·서리 트롤·사막 도적 이동 요청서(phase3 배율 기록 + 2×2 원본 처리): `docs/agents/tasks/C17-monster-gait-requests.md` |
+| GPT | `C17-monster-gait-requests` | READY | 고블린·서리 트롤·사막 도적 이동 요청서(phase3 배율 기록 + 2×2 원본 처리): `docs/agents/tasks/C17-monster-gait-requests.md` |
 
 ## 끝난 일
 
