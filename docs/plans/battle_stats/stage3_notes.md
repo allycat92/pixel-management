@@ -3,6 +3,10 @@
 Date 2026-11-27. Base `e33267a` (C7 calibration adopted). Spec: `design.md`, amendments `verify_findings.md`,
 owner decisions of 2026-11-27 in `README.md`. Stage 0-1 notes: `stage01_notes.md`.
 
+This file describes the code after the **fix round** (same day): an adversarial verify found 7 findings, and every
+one is either fixed or rejected with a reason in "Verify findings and what was done". The tables below are the
+measurements of the fixed code; the first implementation's numbers are kept only where they are compared.
+
 ## The switch
 
 `Game.RESOLVE` is `'roll'` (default) or `'battle'`.
@@ -16,31 +20,32 @@ owner decisions of 2026-11-27 in `README.md`. Stage 0-1 notes: `stage01_notes.md
 - Entering battle mode draws the per-save salt once (`state.salt`, the only `Math.random` the switch uses).
 - Everything listed below runs only when `state.resolve === 'battle'`. In roll mode no new code path draws a random
   number or changes state; the roll-mode shadow battle is also unchanged (see "Roll mode unchanged").
-- Switching mid-game is safe in both directions: missions in flight keep their frozen spec (a roll-mode spec is
-  played as it is), old missions without a spec are mustered at return, and contracts without `bseed` fall back to
-  the save salt.
+- Switching mid-game is safe in both directions, and **the mode at dispatch decides** (fix round, verify 7): a
+  mission whose frozen spec was made in battle mode (`spec.bm`) is decided by its battle even if the switch is
+  turned off before it returns; a mission sent in roll mode (or without a spec) is decided by the roll even if the
+  switch is turned on. Contracts without `bseed` fall back to the save salt.
 
 ## What was built
 
 | Item | Where | What |
 |---|---|---|
-| (a) board | `js/muster.js` `capability`, `battleLevel`; `js/contract.js` `contractLevel` | Each day the strongest `BOARD_TOP` (3) own companies (all members) are forecast against a reference contract (home province, goblin hunt) at every star 1-14. Each new ordinary contract picks one of those companies, draws a forecast word from `BOARD_W`, and takes one of the three highest stars that land in that word, never above the rank cap (rank+2, rank+6 after the calamity, as today). Reward and rep come from `makeContract` unchanged, so harder pays more. Enemies are fixed by star; the board moves, the enemies do not. |
-| (b) resolution | `js/muster.js` `battleResolve`; `js/contract.js` `resolveMission` | The frozen `mission.spec` runs once in `Battle.run`; `Game.judge` gives the tier. `report.battle = { v, ver, tab, hash, winner, t, end, R, band, foeShare, spec }`. No roll, no `findBattle`. If the battle cannot run (no `Battle`, an exception) the old roll is used as a fallback. |
-| (b) watched = judged | `js/battle.js` `play` | With `report.battle.spec`, playback is `begin(spec)` + the same `step()`: no `findBattle`, no bias. It first reruns the spec headless; if `ver` or `hash` differ (engine changed since the report) it skips straight to the report. `Battle.last()` exposes the played state for tests. |
-| (c) loss pay | `js/contract.js` | Lost contract pays `reward × (LOSS_PAY + LOSS_PAY_SHARE × share)` where share = enemy max-hp destroyed (`Stats.foeShare`); disaster pays only the share part. A note tells the player the share. |
-| (c) orderly retreat | `js/contract.js` | A fail that ended by retreat costs `-6 × RETREAT_MORALE` = -3 morale instead of -6. |
-| (c) grace week | `js/contract.js`, `js/game.js` `weeklyPayday` | A defeat opens a grace week (`GRACE_DAYS`), at most once per `GRACE_EVERY` days. In it unpaid mercs stay (morale -10) instead of leaving, low-morale desertion is off, and unpaid wages (including mercs out on missions) are deferred, not turned into debt. |
+| (a) board | `js/muster.js` `capability`, `battleCap`, `battleLevel`; `js/contract.js` `contractLevel`, `fillContracts` | Each day the strongest `BOARD_TOP` (3) own companies (all members) are forecast against a reference contract (home province, goblin hunt) at every star 1-14. **The board is stratified**: a new ordinary contract counts the words already aimed at on the board (`c.aim`) and draws the word that is most short of `BOARD_W`, weighted by the shortfall. Hard words (백중, 열세, 무모) are aimed at the **best** company's curve, easy words (우세, 압도) at one of the top 3 (so weaker companies still get work). The star is one of the three highest in that word, never above the cap `battleCap()` = rank + `BM_CAP_AHEAD` (4), or `LATE_MAX_LEVEL` after the calamity. The board has `BM_BOARD_EXTRA` (3) more ordinary slots in battle mode, so the hard offers do not take the places of winnable work. Reward and rep come from `makeContract` unchanged, so harder pays more. Enemies are fixed by star; the board moves, the enemies do not. |
+| (b) resolution | `js/muster.js` `battleResolve`; `js/contract.js` `resolveMission` | Missions whose spec has `bm` run that spec once in `Battle.run`; `Game.judge` gives the tier. `report.battle = { v, ver, tab, hash, winner, t, end, R, band, foeShare, spec }`. No roll, no `findBattle`. If the battle cannot run (no `Battle`, an exception) the old roll is used as a fallback. |
+| (b) watched = judged | `js/battle.js` `play` | With `report.battle.spec`, playback is `begin(spec)` + the same `step()`: no `findBattle`, no bias. A report judged in this session (`Game.judgedHere`, a WeakSet, not saved) plays at once; a report that came back from a save is first rerun headless, and if `ver` or `hash` differ (engine changed since the report) it skips straight to the report. `Battle.last()` exposes the played state for tests. |
+| (c) loss pay | `js/contract.js` | Lost contract pays `reward × (LOSS_PAY + LOSS_PAY_SHARE × share)` where share = enemy max-hp destroyed (`Stats.foeShare`); a disaster pays only the share part, unless it ended by retreat (then it also gets the base 10%). A note tells the player the share. |
+| (c) orderly retreat | `js/contract.js` | A lost battle that ended by retreat (`rec.end === 'retreat'`) costs `RETREAT_MORALE` × the usual morale loss: -3 instead of -6 on a fail, -6 instead of -12 on a disaster whose trainees carried the fallen away. |
+| (c) grace week | `js/contract.js`, `js/game.js` `weeklyPayday`, `backPayTotal` | A defeat opens a grace week (`GRACE_DAYS`), at most once per `GRACE_EVERY` days. In it an unpaid merc stays (morale -10) instead of leaving, low-morale desertion is off, and **the unpaid wage is deferred, not forgiven**: it is kept on the merc (`m.owed`, including mercs out on missions) and charged at the next payday together with that week's wages; a merc who cannot be paid then leaves as usual, taking the claim with him. The guild screen shows "(+미룬 급료 N)". Captains' unpaid wages are skipped as they are today in both modes. |
 | (c) relief contract | `js/muster.js` `reliefCheck`, called from `fillContracts` | When every merc left is a captain, one easy contract (highest unlocked star still 압도 for the best company, reward ×1.5, 5 days) is posted at the home province; never two at once. |
-| (c) debt line | `js/game.js` `nextDay` | Battle mode goes bankrupt below `-max(300, DEBT_WEEKS × weekly wages)` instead of -300 (see "Why each constant"). |
-| (d) casualties | `js/contract.js` | Fates from the record: downed → injury p 0.6 (won) / 0.9 (lost), 2-4 days, +2 on disaster; standing under 25% hp → p 0.3, 1-2 days; fled → nothing (design §6). Deaths only in special battles (`Game.specialBattle`: boss, final, last chapter of a hero story or a captain story), only on disaster, only downed non-captains, p `DEATH_P` × `mods.death` (× 0.6 sturdy), at most one per company, never with the guild at `GUILD_FLOOR` (3) or fewer. A downed merc on an ordinary disaster is always injured instead. Report members carry `down` / `fled`. External companies lose their downed units, each kept with `EXT_KEEP`, at most `EXT_LOST_CAP`, none on a win (`extAfterMission(…, lostN)`). |
+| (c) debt line | `js/game.js` `nextDay` | Battle mode goes bankrupt below `-max(300, DEBT_WEEKS × weekly wages)` instead of -300. |
+| (d) casualties | `js/contract.js` | Fates from the record: downed → injury p 0.6 (won) / 0.9 (lost), 2-4 days, +2 on disaster; standing under 25% hp → p 0.3, 1-2 days; fled → nothing (design §6). Deaths only in special battles (`Game.specialBattle`: boss, final, last chapter of a hero story or a captain story), only on disaster, only downed non-captains, p `DEATH_P` × `mods.death` (× 0.6 sturdy), at most one per company, never with the guild at `GUILD_FLOOR` (3) or fewer. **Every downed merc on a disaster who does not die is injured** (captain, ordinary battle, or a death stopped by the floor or the one-per-company rule; design rule 5). Report members carry `down` / `fled`. External companies lose their downed units, each kept with `EXT_KEEP`, at most `EXT_LOST_CAP`, none on a win. |
 | (e) fill-ins | `js/muster.js` `muster` | Trainee level = lowest level among the company's non-captain members (home or sent); a captain-only company gets level-1 trainees. |
 | (e) seed salt | `js/contract.js` `makeContract`, `js/muster.js` | `c.bseed = mix(state.salt, c.id)` at creation. Enemy roster seed `mix(contractSalt, 0xf0e)`, battle seed `mix(contractSalt, 0xb7)`, with `contractSalt = mix(c.bseed, c.id)`, so a reposted copy (new id) is a new battle. No day in the seed. |
-| (e) monster attack | `js/stats.js` `monsterSkills`; `js/muster.js` | Battle-mode monsters carry `sk` built from the archetype: only `caster` shoots (projectile look from the sprite template), boss breath for caster/drake/demon bosses. The forecast reads the same `sk`. Changes: 하피, 가고일 (drake) and 마족 전사 (demon) are melee now; 늪의 마녀 (ghost boss) breathes curse. |
-| (f) dispatch UI | `js/ui-tabs.js`, `css/style.css` | Battle mode: "예상 전황 「우세」" plus a five-cell scale, the per-company line shows its word instead of power, the contract card shows "예상 「…」" for the best free company instead of 권장 전투력. Removed in battle mode: power/req bar, "예상 성공률 N%", 인원 부족, 피로한 단원, 적대 지역 lines. Kept: slot count, hero-required, campaign consequence. |
-| (f) recruitment words | `js/captains.js` | Battle mode counts `mission.est.band` (hardStreak ≤ 백중, gambles ≤ 열세, bigGambles = 무모) and the condition text reads "예상 「백중」 이하 의뢰 연속 성공", "예상 「열세」 이하 의뢰 성공", "예상 「무모」 의뢰 성공". |
+| (e) monster attack | `js/stats.js` `monsterSkills`; `js/muster.js` | Battle-mode monsters carry `sk` built from the archetype: only `caster` shoots, **bosses included** (fix round): 늪의 마녀 (caster) shoots its basic attack and its curse breath; non-caster bosses use a close area attack whose name follows the sprite (고룡 이그니스 "화염 숨결", 마왕 베르녹스 "마왕의 강타", others "대지 분쇄") — they no longer breathe from range. The forecast reads the same `sk`. 하피, 가고일 (drake) and 마족 전사 (demon) are melee. |
+| (f) dispatch UI | `js/ui-tabs.js`, `css/style.css` | Battle mode: "예상 전황 「우세」" plus a five-cell scale, the per-company line shows its word instead of power, the contract card shows "예상 「…」" for the best free company instead of 권장 전투력. Removed in battle mode: power/req bar, "예상 성공률 N%", 인원 부족, 피로한 단원, 적대 지역 lines. Kept: slot count, hero-required, campaign consequence. The headcount warning is gone because the word now carries it (`BM_CAL_HEADS`). |
+| (f) recruitment words | `js/captains.js` | Missions decided by battle count `mission.est.band`, mapped by win rate to the old thresholds (fix round): hardStreak (chance < 80%) → 「백중」 이하 연속, gambles (< 40%) → 「백중」 이하, bigGambles (< 25%) → 「열세」 이하. Texts "예상 「백중」 이하 의뢰 연속 성공", "예상 「백중」 이하 의뢰 성공", "예상 「열세」 이하 의뢰 성공". The first mapping (열세 / 무모) asked 거인 and 그림자 여왕 for wins at 0.5-17%. |
 | (f) report | `js/ui.js` | Line "출격 때 예상 「…」 · 전투 N초 · 쓰러진 단원 N명"; each downed member shows 쓰러짐 (· 부상 N일). |
-| (g) bot | `tools/sim/bot.js` | `--resolve battle` / `SIM_RESOLVE=battle`, `--jobs N`. Battle-mode bot: picks the better forecast of the two strongest free companies, takes 우세/압도, 백중 one time in three; does not retake a special contract it just lost at the same or a worse word within 10 days (unless 압도); near darkness (calamity at `CALAMITY_DARKNESS`-2 provinces) it takes the final and calamity campaigns at 백중, and at 열세 one time in three; captain-only companies may go out. Summary adds win by word, day band, kind, tiers, offers/takes by word, downed/injured, deaths special/other, loss pay, relief, captain-only days. Roll mode is the old bot (md5 unchanged). |
-| (g) shadow tool | `tools/sim/shadow.js` | `--resolve battle` measures the deciding battle (`battleResolve`) with the same tables, invariants (`--check`) and CSV; rows add `cid`, `foeShare`, `special`; `--offers` keeps what the bot looked at but did not send. |
+| (g) bot | `tools/sim/bot.js` | `--resolve battle` / `SIM_RESOLVE=battle`, `--jobs N`, **`--set KEY=VALUE`** (fix round; unknown names refused). Battle-mode bot: picks the better forecast of the two strongest free companies, takes 우세/압도, 백중 one time in three; does not retake a special contract it just lost at the same or a worse word within 10 days (unless 압도); near darkness (calamity at `CALAMITY_DARKNESS`-2 provinces) it takes the final and calamity campaigns at 백중, and at 열세 one time in three; captain-only companies may go out. Summary adds win by word, day band, kind, tiers, offers/takes by word, **board width** (every 3rd day, before the bot takes anything: ordinary offers by the best own company's word, share of boards with a 열세-or-harder offer, with a 우세-or-easier offer, with both), downed/injured, deaths special/other, loss pay, relief, captain-only days. The "avg success chance" and "final battle" lines print the mean forecast R in battle mode. Roll mode is the old bot (md5 unchanged). |
+| (g) shadow tool | `tools/sim/shadow.js` | `--resolve battle` measures the deciding battle (`battleResolve`) with the same tables, invariants (`--check`) and CSV; rows add `cid`, `foeShare`, `special`, `recruits`, `heads`, `need`, `olv` (mean level of ours); `--offers` keeps what the bot looked at but did not send. |
 
 ## Data shapes (new or changed)
 
@@ -49,161 +54,223 @@ state.resolve = 'battle'            // absent = roll
 state.salt = 1..2^31-2              // per save, drawn when battle mode is switched on
 state.graceUntil, state.graceStart  // grace week (days)
 contract.bseed                      // mix(state.salt, id, 0x5a17), battle mode only
+contract.aim = 0..4                 // the word battleLevel aimed at (board stratification), battle mode only
+merc.owed                           // wages deferred in a grace week, charged at the next payday (battle mode)
 contract.relief = true              // relief contract
 mission.spec (battle mode)          // + bm: 1, kind: 'normal'|'story'|…; monster units + sk; seed has no day
 report.battle = { v: 1, ver, tab, hash, winner, t, end, R, band, foeShare, spec }   // ~5 KB while the report waits
 report.members[i].down / .fled      // battle mode
 Game.capability() -> { companyId, tabs: [{ companyId, R: [, R1 … R14] }] }   // cached per day and merc count, not saved
+Game.judgedHere                     // WeakSet of report.battle judged in this session (playback skips the rerun), not saved
 ```
 
-## Every constant and why (all in `Stats.KN`, settable with `--set`)
+## Every constant and why (all in `Stats.KN`, settable with `--set` in both tools)
 
 | Constant | Value | Reason |
 |---|---|---|
-| `BOARD_W` | 0.04 / 0.16 / 0.25 / 0.30 / 0.25 (무모…압도) | Owner decision 1: easy to hard always on the board, with most offers winnable. Measured offers at first look (best free company, per game): 161-187 무모 / 87-92 열세 / 80-92 백중 / 131 우세 / 131-172 압도; the 무모 count is inflated by looking when strong companies are out and by special contracts. |
-| `BOARD_TOP` | 3 | With only the best company as reference, weaker companies had nothing winnable and mid-game contract count fell to 17 per 30 days (HEAD 54). |
+| `BOARD_W` | 0.05 / 0.12 / 0.16 / 0.34 / 0.33 (무모…압도) | Owner decision 1. Sweep (12 × 365, sensible bot): .04/.16/.25/.30/.25 stratified cost the economy (S on day 180, 1 game at A); .05/.12/.16/.34/.33 with 3 extra slots gave the widest board that still reached S on day ~150 in the sweep. |
+| `BOARD_TOP` | 3 | Easy offers aim at one of the top 3 so weaker companies have work (with only the best company as reference mid-game contracts fell to 17 per 30 days). Hard offers aim at the best company (verify 3). |
+| `BM_BOARD_EXTRA` | 3 | Hard offers no longer replace winnable ones. Sweep (seeds 1-12, day reaching S / gold on day 365): cap +3 with 0 extra slots 162 / 52k, with 2 146 / 63k; cap +4 with 2 161 / 66k, with 3 151 / 81k. |
+| `BM_CAP_AHEAD` | 4 | With today's rank + 2 every unlocked star was 압도 for the best company most of the game (capability probe, best company: at rank E every unlocked star ★1-3 압도; at rank B ★1-5 압도 and ★6 우세), so no hard offer could exist (verify 3). +3 left days 1-30 with 8% hard boards; +4 gives 53-69%. |
 | `BM_LOW_K` | ★1 0.6, ★2 0.75, ★3 0.9 | A fresh level-1 company forecast R 0.73 (열세) at ★1, so new companies could not work at all. With 0.6 it is 백중-우세. |
-| `BM_LATE_STEP` | 3 levels per star from ★8 (ordinary contracts only) | With today's step of 1 the R curve was flat above ★6 and every unlocked star was 압도 from day ~180, so the late board had no hard offers (owner decision 1, "late too easy"). Special contracts keep the old table because their stars come from rank and province. |
-| `BM_CAL_ARCH` | soldier 1, grunt 1.087, beast 1.044, brute 1.152, armored 1.202, caster 0.977, blob 0.968 | Inverse R50 per archetype on 8,652 ordinary battles (sent + looked at) with the archetype attack mode. Re-fit after adoption: every archetype R50 0.985-1.007. |
-| `BM_CAL_SPECIAL` | boss 0.86, capStory 0.87, story 0.92, final 0.92 | Remaining R50 after the archetype factor (boss 1.08, capStory 1.07-1.14, story 1.07). Small samples (87-224 battles; final 14). Re-fit: boss 0.99, capStory 1.01, story 0.93, campaign 1.00. |
-| `LOSS_PAY`, `LOSS_PAY_SHARE` | 0.1, 0.5 | Today's 10% plus pay for what was destroyed; half the enemy beaten → 35%. Measured mean pay on a lost contract 249-285 gold. |
-| `RETREAT_MORALE` | 0.5 | Verify amendment 1: an orderly retreat should hurt less. 88-91% of defeats end by retreat. |
-| `GRACE_DAYS`, `GRACE_EVERY` | 7, 14 | Amendment 1 (no desertion in the week after a defeat). The first version kept unpaid mercs but still charged debt for mercs on missions, and back-to-back losses kept the grace open forever, which turned desertion into bankruptcy (seed 6 bankrupt on day 127). |
-| `DEBT_WEEKS` | 1 | Wages of mercs away on missions are charged at payday; in the leaner mid-game one such payday pushed a guild with 11-18 mercs past -300 (seed 108, day 113) although it recovered income the next days. |
-| `BM_FINAL_K` | 0.5 | The calamity rises at day 150-154 in battle mode (184 in HEAD) when the guild is at rank A; the final was R 0.3-0.7 for the three best companies and 2 of 48 games ended in darkness at 0.85 / 1 at 0.6. At 0.5: 0 of 48. |
+| `BM_LATE_STEP` | 3.5 levels per star from ★8 (rounded; ordinary contracts only) | Step 1 made every unlocked star 압도 from day ~180. Step 3 left days 241-365 with hard offers on 26-38% of boards; 3.5 gives 37-56% with gold on day 365 still above HEAD (62k vs 47k, seeds 1-12); 4 gave 65% but 36k. Special contracts keep the old table because their stars come from rank and province. |
+| `BM_CAL_ARCH` | soldier 0.98, grunt 1.091, beast 1.048, brute 1.14, armored 1.185, caster 0.945, blob 1.02 | Fitted (see "Calibration"). |
+| `BM_CAL_SPECIAL` | boss 0.912, capStory 0.952, story 1.021, final 0.966, campaign 1.009 | Fitted; campaign had no entry before (verify 4). Small samples (boss 304, capStory 499, story 664, final 38 battles). |
+| `BM_CAL_HEADS` | 1 member 0.95, 2 members 0.984, 3+ 1 | Verify 1: the retreat rule ends a battle when half of ours are down, so a party of one or two loses as soon as one falls; `margin` does not know that (R50 before: 1.07 / 1.14 / 1.02 / 1.00 for 1 / 2 / 3 / 4 members). The values are small because the level term below took most of the early bias in the joint fit. |
+| `BM_CAL_OWNLV` | mean level of ours ≤3 0.879, ≤6 0.928, ≤9 0.946, ≤12 1, ≤16 1.005, above 1.034 | Verify 4 (early game): low-level parties lose more at the same R (R50 before: 1.08 at levels 1-3, 1.02-1.03 at 4-9, 1.00 at 10-16, 0.98 above). A first fit on the enemy level left days 1-30 at 우세 78% on new seeds; the party's own level fixed it (90%). |
+| `LOSS_PAY`, `LOSS_PAY_SHARE` | 0.1, 0.5 | Today's 10% plus pay for what was destroyed; half the enemy beaten → 35%. |
+| `RETREAT_MORALE` | 0.5 | Verify amendment 1: an orderly retreat should hurt less. Applies to every lost battle that ended by retreat (fix round: also the disaster where only trainees fled). |
+| `GRACE_DAYS`, `GRACE_EVERY` | 7, 14 | Amendment 1 (no desertion in the week after a defeat). Back-to-back losses kept the first version's grace open forever. Wages in the week are deferred (fix round, verify 2). |
+| `DEBT_WEEKS` | 1 | Wages of mercs away on missions are charged at payday; in the lean mid-game one such payday pushed a guild with 11-18 mercs past -300 (seed 108, day 113, first implementation) although it recovered the next days. |
+| `BM_FINAL_K` | 0.5 | The calamity rises around day 160-170 in battle mode (184 in HEAD); the final was R 0.3-0.7 for the three best companies at 0.85 and 2 of 48 games ended in darkness. At 0.5: 0 of 72 (fix round). |
 | `INJ_WIN`, `INJ_LOSE`, `INJ_LOW` | 0.6, 0.9, 0.3 | design §6 table. |
 | `DEATH_P`, `GUILD_FLOOR` | 0.3, 3 | Today's death chance and design mercy rule 5, applied only to special battles (owner decision 2). |
 | `EXT_KEEP`, `EXT_LOST_CAP` | 0.5, 2 | design §6 rule 7. |
-| unchanged | `CAL_KIND`, `BANDS`, `GREAT_HP`, `ENEMY_K`, `SUPPORT_K`, `K` | C7 values; the per-word targets are met with the two battle-mode calibration tables above. |
+| unchanged | `CAL_KIND`, `BANDS`, `GREAT_HP`, `ENEMY_K`, `SUPPORT_K`, `K` | C7 values; the per-word targets are met with the battle-mode calibration tables above. |
 
-## Measured results
+### Calibration (fix round)
 
-Commands (all from the repo root):
+Scripts in the scratch folder `stage3/fix/tools/`: `fit.js` (logistic R50 and win by word per slice), `calib.js`
+(target matching). For each slice of a dimension, `calib.js` picks the factor that brings the slice's win rates
+closest to 우세 87% and 백중 50% (weights 2 and 1; 열세 17% and 압도 99% weakly), shrunk towards 1 by n / (n + 150),
+alternating the dimensions (heads, our level, archetype, kind) five times. Fitted on seeds 1-24 and 201-212
+(36,855 battles: sent + looked at, `shadow.js --resolve battle --offers`), checked on seeds 301-312 and 401-412,
+which were not used (23,982 battles). Out of sample, by word:
+
+| Slice | 무모 | 열세 | 백중 | 우세 | 압도 |
+|---|---|---|---|---|---|
+| all (23,982) | 1% | 16% | 48% | 88% | 100% |
+| sent only | – | – | 48% (1,919) | 88% (5,430) | 100% (4,969) |
+| days 1-30 / 31-60 (sent) | – | – | 51% / 58% | 90% / 90% | 100% / 99% |
+| 1 / 2 / 3 / 4+ members | | | 33% / 33% / 41% / 50% | 94% (18) / 85% (65) / 86% / 88% | |
+| caster / soldier / grunt | | | 54% / 50% / 43% | 84% / 85% / 91% | |
+| campaign / capStory | | | 50% / 55% | 84% (124) / 88% (178) | |
+| story / boss | | | 46% / 56% | 78% (214) / 74% (93) | |
+
+Before the fix round the same out-of-sample check (verify, seeds 201-212) read: days 1-30 우세 67%, caster 77%,
+campaign 78%, captain alone or with one member 74%. Story and boss stay below target: their outcome curves are
+flat (logistic slope 6-9 against 13 for ordinary contracts, a boss has 7× hp and wide swings), so one factor
+cannot hold both 우세 and 백중, and the in-sample and out-of-sample fits pull in opposite directions (boss 1.02 vs
+0.985, story 1.016 vs 0.973). Left for stage 4.
+
+## Measured results (fix round, final constants)
+
+Commands (all from the repo root; outputs in the scratch folder `stage3/fix/acc2/`):
 
 ```
 SIM_JSON=1 node tools/sim/bot.js 6 200 | md5sum                     # roll: ddfdfe7b437fbe9fcf25f166ba542fce
 SIM_JSON=1 SIM_SHADOW=1 node tools/sim/bot.js 6 200 | md5sum        # roll + shadow: same md5
 node tools/sim/battle.js 400                                         # legacy replay: miss 0/0/0/0
 node tools/sim/shadow.js 6 200 --check --jobs 4                      # roll shadow invariants: all 0 (2,150 battles)
-node tools/sim/bot.js 12 365 --resolve battle --jobs 4               # seeds 1-12 (about 60 s on 4 cores)
-SIM_SEED=101 node tools/sim/bot.js 12 365 --resolve battle --jobs 4  # seeds 101-112
-node tools/sim/shadow.js 6 365 --resolve battle --check --jobs 4     # battle invariants
-node tools/sim/shadow.js 12 365 --resolve battle --offers --jobs 4   # word tables and calibration
+node tools/sim/shadow.js 6 365 --resolve battle --check --jobs 4     # battle invariants: all 0 (2,955 battles)
+SIM_SEED=1 node tools/sim/bot.js 12 365 --resolve battle --jobs 4    # also 13, 101, 113, 201, 301 (72 games, about 70 s per 12 on 4 cores)
+node tools/sim/shadow.js 12 365 --seed0 301 --resolve battle --offers --jobs 4   # word tables and calibration
 ```
 
 ### Roll mode unchanged
 
 - Bot md5 `ddfdfe7b437fbe9fcf25f166ba542fce` with and without the shadow battle; `battle.js 400` miss 0 in all four outcomes.
-- Roll shadow rows (3 seeds × 200 days, 1,196 battles) are identical to `e33267a` in hash, R, band and tier.
 - `shadow.js 6 200 --check`: 0 violations in 2,150 battles and 6,013 alternative parties.
+- Every new path is gated by `state.resolve === 'battle'` or by a battle-mode spec (`spec.bm`); `m.owed` and
+  `backPayTotal()` are 0 in roll saves, so the payday arithmetic is the same.
 
-### Battle mode, 12 × 365 bot games
+### Battle mode, sensible bot, 72 games of 365 days
 
-| | HEAD roll (C4), seeds 1-12 / 101-112 | Battle, seeds 1-12 | Battle, seeds 101-112 |
+| Seeds | 1-12 | 13-24 | 101-112 | 113-124 | 201-212 | 301-312 |
+|---|---|---|---|---|---|---|
+| Final rank / game overs | S 12 / 0 | S 12 / 0 | S 12 / 0 | S 12 / 0 | S 12 / 0 | S 12 / 0 |
+| Day reaching B / S | 75 / 141 | 70 / 130 | 62 / 120 | 73 / 142 | 70 / 130 | 71 / 137 |
+| Gold day 60 / 120 | 1,852 / 6,412 | 2,037 / 3,427 | 2,399 / 5,177 | 1,602 / 2,394 | 2,015 / 6,804 | 1,631 / 3,122 |
+| Gold day 240 / 365 | 26,418 / 62,243 | 34,445 / 86,676 | 23,920 / 60,815 | 15,301 / 42,582 | 45,797 / 112,658 | 39,191 / 112,757 |
+| Captains at the end | 6.25 | 6.83 | 6.08 | 5.42 | 6.42 | 6.67 |
+| Contracts completed / failed | 402 / 75 | 407 / 76 | 432 / 66 | 417 / 77 | 451 / 67 | 435 / 71 |
+| Win 백중 / 우세 / 압도 | 48.3 / 86.4 / 99.6 | 47.3 / 86.9 / 99.8 | 54.0 / 89.2 / 99.7 | 44.4 / 86.3 / 99.6 | 46.8 / 90.0 / 99.8 | 47.7 / 87.8 / 99.7 |
+| Win days 1-30 / 31-60 / 61-120 / 121-240 / 241-365 | 90 / 87 / 86 / 85 / 83 | 88 / 88 / 86 / 86 / 81 | 94 / 87 / 88 / 88 / 84 | 87 / 87 / 85 / 85 / 83 | 88 / 87 / 87 / 88 / 86 | 88 / 90 / 87 / 86 / 84 |
+| Board with a ≤열세 and a ≥우세 offer, days 1-30 / 61-120 / 241-365 | 53 / 64 / 46% | 59 / 63 / 43% | 57 / 64 / 36% | 48 / 66 / 44% | 57 / 63 / 28% | 53 / 57 / 35% |
+| Downed / injured per member-battle | 14.4 / 7.4% | 12.7 / 6.4% | 12.4 / 6.4% | 12.9 / 6.4% | 11.3 / 5.8% | 12.2 / 6.5% |
+| Deaths per game, special / other | 0 / 0 | 0 / 0 | 0 / 0 | 0 / 0 | 0 / 0 | 0 / 0 |
+
+Reference: HEAD roll mode (C4, `docs/agents/reports/codex.md`) seeds 1-12: S on day 73, gold 5,340 / 19,741 on
+days 60 / 120 and 46,779 on day 365, 5.25 captains; seeds 101-112: S 69, 5,637 / 19,434 / 51,930, 5.42. The first
+stage-3 implementation (seeds 1-12 / 101-112): S 150 / 140, gold day 120 1,944 / 2,980, day 365 49,849 / 69,762,
+3.67 / 3.08 captains; verify measured it on seeds 201-212 / 301-312 at S 153 / 148, day 365 41,330 / 19,434.
+
+Board width (seeds 1-12, ordinary offers by the best own company's word, every 3rd day before the bot takes any):
+offers per board 무모 / 열세 / 백중 / 우세 / 압도 = 0.34 / 0.49 / 0.53 / 0.86 / 1.73 on days 1-30 and
+0.28 / 0.66 / 0.76 / 1.34 / 1.92 on days 241-365; boards with a 열세-or-harder offer 59 / 65 / 84 / 72 / 56% by
+day band (verify, first implementation: 0 / 8 / 27 / 25 / 17%).
+
+The early game is no longer hard for a sensible player: days 1-30 are won 87-94% (feasibility: 35-47%).
+Mid-game gold is still well below roll mode (day 120: 2.4-6.8k vs 19k), and S comes 50-70 days later; late gold
+is above HEAD (42-113k vs 47-52k on day 365).
+
+### Other strategies (seeds 201-212, verify's `vbot.js`, before → after the fix round)
+
+| Strategy | Final ranks | 우세 win | Notes |
 |---|---|---|---|
-| Final rank / game over | S 12 / 0 ; S 12 / 0 | S 12 / 0 | S 12 / 0 |
-| Day reaching D / C / B / A / S | 24/36/44/58/73 ; 23/33/42/53/69 | 24/42/68/111/150 | 25/42/66/104/140 |
-| Gold day 30 / 60 / 120 | 850 / 5,340 / 19,741 ; 1,193 / 5,637 / 19,434 | 1,035 / 2,316 / 1,944 | 1,006 / 2,207 / 2,980 |
-| Gold day 180 / 240 / 300 / 365 | 33,302 / 26,645 / 39,391 / 46,779 ; 26,596 / 31,698 / 41,777 / 51,930 | 11,191 / 11,711 / 31,091 / 49,849 | 23,185 / 39,586 / 61,778 / 69,762 |
-| Lowest gold (mean of minima) | 174 ; 248 | 189 | 147 |
-| Contracts completed / failed | 632 / 33 ; 680 / 29 | 396 / 71 | 455 / 59 |
-| Captains at the end | 5.25 ; 5.42 | 3.67 | 3.08 |
-| Calamity rose / defeated (mean day) | 11 (184) / 10 (183) ; 9 (159) / 9 (170) | 12 (154) / 12 (160) | 9 (150) / 9 (159) |
-| Win, forecast 백중 | – | 53.0% (n=1,003) | 54.6% (867) |
-| Win, forecast 우세 | – | 87.4% (2,870) | 88.8% (2,696) |
-| Win, forecast 압도 | – | 99.2% (1,730) | 99.6% (2,606) |
-| Win, days 1-30 / 31-60 / 61-120 / 121-240 / 241-365 | – | 87.9 / 79.5 / 77.4 / 86.2 / 86.8% | 83.6 / 87.5 / 78.9 / 89.1 / 91.8% |
-| Tiers great / success / fail / disaster | 28 / 67 / 5 / 0% (C4 era) | 34.9 / 50.0 / 15.0 / 0.1% | 45.0 / 43.5 / 11.2 / 0.2% |
-| Downed / injured per member-battle | – / 8.5% injured | 13.1% / 7.1% (2.6 days) | 10.2% / 5.1% (2.5 days) |
-| Deaths per game, special / other | 0 | 0 / 0 | 0 / 0 |
-| Relief contracts | – | 0 (never down to captains) | 0 |
+| captains only (verify 1) | S 3, A 7, dark 2 → S 9, A 1, dark 2 | 75.7% → 89.3% | the word now holds for small parties |
+| only 압도 (verify 2) | S 11, A 1 → S 11, dark 1 | – | never takes the final at a lower word |
+| takes every offer | S 11, B 1 → S 3, B 1, E 1, D 1, F 4, bankrupt 1, dark 1 | 84.0% → 88.8% | the wider board puts 0.3-1.0 무모 offers on the board every day; this bot takes them all and loses them |
 
-Game-over check over 48 battle-mode games (seeds 1-24 and 101-124): 0 game-overs with the final constants. HEAD
-has 0 on the same seeds. Intermediate versions without `GRACE_EVERY` / `DEBT_WEEKS` / `BM_FINAL_K` lost 2-3 games
-per 24-48 (bankruptcy on seeds 6 and 108, dark age on seeds 4, 12, 16).
-
-The bot's "avg success chance" and "final battle attempts (avg chance)" lines still print the roll chance; in battle
-mode they mean nothing.
-
-### Forecast by word, all battles (sent + looked at, seeds 1-12, 10,257 battles)
-
-| Word | n | Win |
-|---|---|---|
-| 무모 | 3,319 | 0.5% |
-| 열세 | 949 | 17.0% |
-| 백중 | 1,365 | 52.5% |
-| 우세 | 2,883 | 87.4% |
-| 압도 | 1,741 | 99.3% |
-
-Sent only: ordinary 백중 51.7% / 우세 87.4% / 압도 99.2%; special and campaign 백중 58.7% / 우세 86.7% / 압도 100%.
-Logistic R50 after calibration: monster 0.987, soldier 1.001; every archetype 0.971-0.992; boss 0.981, capStory
-1.006, campaign 1.004, story 0.930. The owner targets (우세 85-90, 백중 about 50) hold for ordinary and special
-contracts.
-
-Single-contract error remains: one captain story (2 warriors + 2 clerics against nine ranged 망령) was forecast 우세
-(R 1.11-1.20) and won 15 of 100 seeds. `margin` does not model a swarm of ranged casters against a melee-heavy
-company; per-archetype calibration only fixes the average. This is why the bot got the "do not retake a lost
-special at the same word" rule.
+The last row is the price of the wide board: a player who ignores the words and takes every 「무모」 offer loses
+most of them and can go broke. Roll mode's reckless bot ends S 12 / 0. Whether a 무모 loss should cost less, or the
+board show fewer of them, is an owner decision for stage 4.
 
 ### Determinism: watched battle = judged battle
 
-- `shadow.js 6 365 --resolve battle --check`: 3,001 deciding battles, rerun / JSON round trip / stepped / +2.2 s
-  after the end all 0 mismatches; enemy roster changed with the party 0 of 8,670 alternative parties; spec changed
+- `shadow.js 6 365 --resolve battle --check`: 2,955 deciding battles, rerun / JSON round trip / stepped / +2.2 s
+  after the end all 0 mismatches; enemy roster changed with the party 0 of 8,477 alternative parties; spec changed
   between dispatch and return 0; `Math.random` calls and state changes inside muster/battle 0.
-- Browser (Chrome, 1280×800 and 400×800, `?resolve=battle`, final constants): a won battle at each width (great,
-  hash 1613228423 and 2354283017; the played state's `Battle.record` hash equals `report.battle.hash`), a lost battle
-  at 1280 (무모 raid, ended by retreat, hash equal, report shows the downed members as "쓰러짐 · 부상 N일" or "쓰러짐",
-  85 gold loss pay, grace week opened), and a report whose hash was tampered goes straight to the report with no
-  canvas. No page errors, no horizontal overflow. Dispatch shows "예상 전황 「압도」" and the five-cell scale; no %, no
-  인원 부족 / 피로한 단원 / 적대 지역; contract cards show "예상 「…」" instead of 권장 전투력.
+- Browser (Chrome, `?resolve=battle`, final constants, scratch `stage3/fix/tools/br.js` and `browser2.js`):
+  - 1280×800: a win judged in this session plays without the rerun (`judgedHere`); played hash 3873381435 = judged.
+  - 400×800: page reloaded in the middle of playback, so the report came back from the save and was rerun first;
+    played hash 1123605686 = judged = the hash computed right after dispatch.
+  - 1280: a 무모 raid lost by retreat; played hash = judged; the report shows "쓰러짐 · 부상 3일" for both downed
+    members, 88 gold loss pay (7% of the enemy beaten) and the grace week opened.
+  - A report whose `report.battle` was replaced by a copy with a wrong hash (an old report after an engine change)
+    goes straight to the report with no canvas.
+  - No page errors, no horizontal overflow. Dispatch shows "예상 전황 「압도」" and the five-cell scale; no %,
+    성공률 or 전투력. Contract cards read "예상 「…」" (one day-4 board at 400: 압도 ×4, 백중, 무모).
 
-### Unit checks (scratch `unit.js`)
+### Next-day cost
 
-- Relief: guild reduced to one captain → one relief contract (★2, 압도 for the captain plus two level-1 trainees),
-  not duplicated on the next fill.
-- Fill-ins: captain level 11 alone → roll-mode trainees 49 / 78 hp (captain-level), battle-mode 15 / 13 hp (level 1).
-- Salt: two saves give the same contract id but different `bseed`; battle seed equal after 3 days (roll seed changes
-  daily); a reposted copy gets a new seed.
-- Attack mode: 하피 / 가고일 / 마족 전사 / 들늑대 melee, 망령 curse shot, 와이번 fire shot, 늪의 마녀 curse breath.
-- Grace: 7 broke, demoralised mercs all stay in a grace week; 6 of them leave in an ordinary week.
-- Mid-game switch: a roll-mode mission resolved in battle mode is decided by its roll-mode spec; a mission without a
-  spec is mustered at return. Both reports carry `report.battle`.
-- Deaths: 60 forced ordinary disasters → 0 deaths; 60 forced special disasters → 10 deaths, never more than 1 per company.
+Node, unthrottled, the day-200 save of verify: `capability()` 12-23 ms (once a day), `fillContracts` 8 ms, one
+returning battle 29 ms on average over 2,955 battles (shadow tool) and 88 ms for the long one in that save.
+Playback no longer reruns the battle for a report judged in the same session. Verify measured 261 ms for a
+next day with one returning battle under Chrome CPU ×4 throttling; a phone measurement is still open.
+
+### Unit checks (scratch `stage3/fix/tools/unit.js`, all pass)
+
+- Grace defers: 7 broke mercs all stay, 158 gold of wages is deferred; at the next payday, with the money, the
+  guild pays the week plus the 158 (362 in all) and the claims are cleared. With only one week's money the mercs
+  who cannot be paid in full leave (7 → 4).
+- Exploit probe (verify's `grace.js`, 15 days from the day-200 save): opening the grace week as a defeat would
+  ends exactly like no defeat a week later (−1000 gold: 2 mercs left in both; −3000: bankrupt on day 204 without,
+  day 211 with).
+- A captain alone whose trainees fled: disaster, morale -6 (not -12), 25 gold (10% + share) on a 60-gold contract.
+- 30 forced special disasters with a 3-merc guild (floor): 0 deaths, 90 of 90 downed members injured.
+- A roll-mode mission returning in battle mode is decided by the roll; a battle-mode mission returning in roll
+  mode by its battle.
+- 늪의 마녀: caster, basic shot + 파멸의 숨결 shot; 고룡 이그니스 / 마왕 베르녹스 / 고블린 왕: melee + melee area attack.
+- `battleCap()` = 4 at rank F; 60 boards of 8 ordinary slots: every board has a hard and an easy aim.
+- Recruitment: wins at 백중, 열세, 우세 → hardStreak 2, gambles 2, bigGambles 1.
+- `judgedHere` holds the report judged in this session and not a JSON copy of it.
+- From the first implementation (`stage3/implement/unit.js`, still valid): relief contract, fill-in levels, salt
+  stability, attack mode of ordinary monsters, deaths only in special battles and at most one per company.
 
 ## Deviations from design.md
 
 | # | Design | Built | Why |
 |---|---|---|---|
 | 1 | Flag is a constant in `js/contract.js`, not saved | Saved getter `Game.RESOLVE` (`state.resolve`) | Task: a saved switch with a test param. |
-| 2 | Enemy strength from star × req, one ELV table | Battle mode: `BM_LOW_K` for ★1-3 and `BM_LATE_STEP` 3 for ordinary contracts; specials keep the old table | Owner decision 1 and the measured flat late curve; specials' stars are not chosen by the board. |
-| 3 | Contract levels from rank and province tier | Battle mode: from the forecast of the top 3 companies, capped by the rank unlock | Owner decision 1. Province tier no longer bounds the star. |
+| 2 | Enemy strength from star × req, one ELV table | Battle mode: `BM_LOW_K` for ★1-3 and `BM_LATE_STEP` 3.5 for ordinary contracts; specials keep the old table | Owner decision 1 and the measured flat late curve; specials' stars are not chosen by the board. |
+| 3 | Contract levels from rank and province tier | Battle mode: a stratified board on the forecast of the top 3 companies (hard words on the best one), capped at rank + 4, three more ordinary slots | Owner decision 1. Province tier no longer bounds the star. |
 | 4 | Death on any disaster with mercy rules 1-5 | Only special battles; ordinary disasters injure | Owner decision 2. |
-| 5 | Forecast = `margin × CAL_KIND` | × `BM_CAL_ARCH` × `BM_CAL_SPECIAL` for battle-mode specs | The archetype attack mode moved R50 per archetype from 0.83 to 1.04. |
+| 5 | Forecast = `margin × CAL_KIND` | × `BM_CAL_ARCH` × `BM_CAL_SPECIAL` × `BM_CAL_HEADS` × `BM_CAL_OWNLV` for battle-mode specs | The archetype attack mode moved R50 per archetype; small parties and low-level parties lose more at the same R (verify 1, 4). |
 | 6 | Fatigue ≥ 80 injury ×1.5 | Dropped in battle mode | Not in the design's casualty table (as feasibility). |
 | 7 | Replay reruns headless and compares the hash | Same; on mismatch the report opens at once | – |
 | 8 | Betrayal rolled at muster | Still rolled at resolve, marked on a copy of the spec, and that copy is what the report replays | Keeps the roll stream; the replay still equals the judgement. |
 | 9 | Recruitment counters on `est` with R edges 1.15 / 0.87 / 0.67 | On `est.band` (C7 edges) | Same words as the screen. |
 | 10 | `report.verdict` | Fates are written into `report.members[].down/fled`; `report.battle` holds the record summary | The report UI reads members. |
 | 11 | Economic mercy (verify amendment 1) | Built plus two additions found by measurement: grace at most every 14 days without debt, and a debt line of one week of wages | Without them 3 of 48 games ended. |
-| 12 | Monster attack by template | By archetype in battle mode only | Task (e); roll-mode shadow stays comparable to C7. |
+| 12 | Monster attack by template | By archetype in battle mode only, bosses included | Task (e); roll-mode shadow stays comparable to C7. |
+| 13 | – | The mode at dispatch decides a mission | Verify 7: a roll-era spec judged as a battle read 무모 and lost. |
+| 14 | Recruitment counters with R edges | Word edges chosen by win rate (≤백중, ≤백중, ≤열세) | The literal mapping made two captains unreachable. |
+| 15 | Grace week: no desertion | Plus deferred wages (`m.owed`) | Verify 2: forgiveness made a well-timed defeat pay. |
+
+## Verify findings and what was done
+
+| # | Finding | Done |
+|---|---|---|
+| 1 | Word too optimistic for parties of 1-2 (우세 64-74%) | **Fixed**: `BM_CAL_HEADS` and `BM_CAL_OWNLV`. Out of sample 우세 94% (1 member, n=18), 85% (2, n=65); the captains-only bot 89.3% (was 75.7%). |
+| 2 | Grace week forgave wages; a defeat at the right moment paid | **Fixed**: unpaid wages are deferred on the merc and charged at the next payday; probe shows the same end state one week later. Not changed: mercy only after a defeat (the owner rule); a guild that never loses gets the relief contract and the debt line. |
+| 3 | Board seldom wide (0-27% with a hard offer) | **Fixed**: stratified board, hard words on the best company, cap rank + 4, 3 extra slots, `BM_LATE_STEP` 3.5. Boards with a 열세-or-harder offer 37-85% by day band and seed set, both kinds 28-66%. Late boards are the narrowest (★14 is the ceiling). |
+| 4 | Calibration off by slice out of sample | **Fixed for** early game, caster, campaign, small parties (see "Calibration"); **open for** story and boss (flat outcome curves). |
+| 5 | Economy leaner than reported | **Improved** by the extra board slots and the higher cap (more paying work): day 365 gold 42-113k vs HEAD 47-52k, S on day 120-142, 5.4-6.8 captains (first implementation 2.8-3.7). Day 60-120 gold is still 3-6× below roll mode; left as an owner decision (stage 4). |
+| 6 | Next-day cost on a phone | **Partly fixed**: playback skips the rerun for a report judged in this session. The deciding battle itself (29 ms mean in node) is the stage's cost; phone measurement open. |
+| 7a | Disaster after an orderly retreat | **Fixed**: retreat cushion (morale, base pay) for every lost battle that ended by retreat; the tier stays disaster because nobody of ours stood (design §5). |
+| 7b | Old roll-era mission judged as a battle after the switch | **Fixed**: the mode at dispatch decides. |
+| 7c | Bosses follow the template | **Fixed**: caster boss shoots, non-caster bosses use a close area attack. |
+| 7d | Floor-stopped death only 90% injured | **Fixed**: every downed merc on a disaster who does not die is injured. |
+| 7e | Waiting a day changes the battle | **Rejected**: only the party's fatigue / morale changed, the enemy and seed did not (0 of 147 + 67), equal spec gives equal hash, and the outcome is hidden before dispatch, so there is nothing to exploit; freezing the party a day early would show stale numbers. |
+| 7f | Board cards read the best free company only | **Rejected**: the card answers "can I win this now with who is home", which is what the player can act on; with the strong companies out it should read hard. |
 
 ## What remains
 
 Stage 4 (flip the default to `'battle'`):
-- Mid-game economy is lean: gold on day 120 is 2-3k against HEAD's 19k, S is reached on day 140-150 against 69-73,
-  and 3-3.7 captains join against 5.3. Decide whether to accept a slower guild or raise early/mid rewards.
-- Late gold ends near HEAD (50-70k on day 365) but varies a lot per game (6.5k to 144k).
+- Mid-game economy: gold on days 60-120 is 1.6-6.8k against roll mode's 5-19k, and S is reached on day 120-142
+  against 69-73. Decide whether to accept a slower guild or raise early/mid rewards.
+- The reckless strategy (takes every offer, including 무모) can now go broke (1 of 12) or fall to darkness; decide
+  whether 무모 failures should cost less or the board should show fewer of them.
+- Forecast for story and boss contracts: 우세 wins 74-82%; needs a term for boss-scale enemies or a stricter
+  mapping for special kinds. Special samples are small (boss 67-96, final 10-13 per 12 games).
+- Late boards are the narrowest (hard offers on 37-56% of boards on days 241-365): the strongest companies outgrow
+  ★14; owner decision 1 says enemies do not follow the roster, so the remedy would be content (higher stars).
 - Captain-less strength and power displays still use the old power numbers (`js/ui-tabs.js` company tab, final
   battle line "요구 전투력"), and trait/class texts still say "성공률 +N%" (`js/data.js`, `js/classes.js`).
 - The merc card shows two 체력 rows (attribute and battle); rename the battle row.
-- Forecast error for caster swarms against melee-heavy companies (see above); a composition term in `margin` or a
-  `CAL_STYLE` table.
-- Special-contract samples are small (boss 80-87, final 14 per 12 games); re-measure `BM_CAL_SPECIAL` and
-  `BM_FINAL_K` on more seeds.
-- Next-day cost in the browser: one battle per returning contract (about 30 ms each on this machine) plus the daily
-  capability table (about 2 ms per company); measure on a phone.
-- Recruitment counters for `titan` (1 무모 win) and `shadowqueen` (8 열세 wins) are far harder now (무모 wins 0.5%).
-- Antigravity play test of about 100 days in battle mode (design stage 4).
+- Next-day cost on a phone (one battle per returning contract plus the daily capability table).
+- Antigravity play test of about 100 days in battle mode (design stage 4; queued as Q5).
 - New md5 baseline for battle mode once the constants settle; flip the default and keep `'roll'` as the undo.
 
 Stage 5 (tactics): synergy bonuses for allies only, measured so that 30-50% of a well-built company's damage dealt

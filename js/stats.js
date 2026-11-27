@@ -50,7 +50,7 @@ const Stats = (() => {
     GUILD_FLOOR: 3,     // 사망으로 길드 인원이 이 아래로 내려가지 않는다
     EXT_KEEP: 0.5,      // 진 전투에서 쓰러진 외부 용병단원이 돌아올 확률 (최대 EXT_LOST_CAP 명 잃는다, 이기면 잃지 않는다)
     EXT_LOST_CAP: 2,
-    BM_LATE_STEP: 3,    // 전투 모드(일반 의뢰): ★8 부터 별 하나에 오르는 적 레벨 (기본 표는 1 — 후반에는 가장 높은 별도 쉬워 어려운 의뢰가 없었다)
+    BM_LATE_STEP: 3.5,  // 전투 모드(일반 의뢰): ★8 부터 별 하나에 오르는 적 레벨 (반올림. 기본 표는 1 — 후반에는 가장 높은 별도 쉬워 어려운 의뢰가 없었다. 3 은 241~365일 게시판의 열세 이하가 26~38%)
     BM_LOW_K: [1, 0.6, 0.75, 0.9],   // 전투 모드(일반 의뢰): ★1·★2·★3 적 배율 (갓 만든 1레벨 용병단도 ★1 은 이길 만하게. ★4 부터 1)
     // 전투 모드의 예상 보정 (CAL_KIND 에 더 곱한다). 2차 맞춤(stage3 fix): 시드 1~24 와 201~212 × 365일 36,855전(보낸 것 + 살펴본 것)에서,
     // 갈래마다 우세 승률 87%·백중 50% (약하게 열세 17%·압도 99%)에 가장 가까운 곱을 차원(머릿수·우리 레벨·적 틀·의뢰 갈래)을 번갈아 맞췄다
@@ -104,7 +104,7 @@ const Stats = (() => {
     merge(KN, rest); merge(REF, r); merge(ARCH, a); merge(RANK, k);
   }
   const ELV = ELV0.map((v, i) => (i <= 7 ? v : ELV0[7] + (i - 7) * KN.LATE_STEP) + (i ? KN.ELV_SHIFT : 0));
-  const ELV_BM = ELV0.map((v, i) => (i <= 7 ? v : ELV0[7] + (i - 7) * KN.BM_LATE_STEP) + (i ? KN.ELV_SHIFT : 0));   // 전투 모드의 별 → 적 레벨
+  const ELV_BM = ELV0.map((v, i) => (i <= 7 ? v : ELV0[7] + Math.round((i - 7) * KN.BM_LATE_STEP)) + (i ? KN.ELV_SHIFT : 0));   // 전투 모드의 별 → 적 레벨
 
   // ───────── 시드 난수 (전투와 같은 mulberry32) ─────────
   function rng(seed) {
