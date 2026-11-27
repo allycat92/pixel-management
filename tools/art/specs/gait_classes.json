@@ -85,7 +85,7 @@
     },
     "sheet/captain/demonhunter": {
       "gait": "robe",
-      "why": "long hooded cloak to mid-shin with a front tabard panel hanging between the legs; knees and thighs hidden in idle/attack.",
+      "why": "long hooded cloak open at the front (front flaps to mid-thigh, rear hem to mid-shin) with a narrow cross tabard hanging between the legs; wide baggy trousers cover the knees and tuck into buckled boots, so from the waist to the boot tops the legs read as cloth.",
       "borderline": "the cloak is open at the front and wide trousers + boots show below it; a sturdy man with a one-handed mace could also take LIGHT with a swinging hem. Default robe: from mid-thigh to mid-shin the leg is cloth."
     },
     "sheet/captain/dragonslayer": {
@@ -127,7 +127,7 @@
     },
     "sheet/captain/inquisitorlord": {
       "gait": "robe",
-      "why": "deep-crimson hooded inquisitor robe to mid-shin with a gold cord; long-hafted mace.",
+      "why": "deep-crimson hooded inquisitor robe to mid-shin with a gold-edged shoulder capelet (no cord on the sheet; the cord is portrait only); long-hafted mace.",
       "borderline": "the robe is split at the front and brown trousers + boots show; LIGHT possible. Default robe: he is described and drawn in a robe; the robe hides thighs and knees."
     },
     "sheet/captain/ironwall": {

@@ -262,20 +262,22 @@ CARRY = {
         'character': ('Broad red-haired, red-bearded warlord in a horned iron helmet, grey wolf-fur mantle, '
                       'crimson rear cloak, leather harness, lion clasp, open trousers and boots. One two-handed crescent war axe, no sword.'),
         'carry': [
-            'Carry the same two-handed axe low and forward, head about 15–20° below the shaft horizontal from the rear hand '
-            '(the idle points up; intentionally changed for the forward lean). Put the NEAR rear hand around x=126–137, y=660–676 '
-            'and the FAR forward hand around x=200–212, y=684–705, both on the same haft with the rear hand closest to the butt. '
-            'Aim the crescent center around x=296, y=710–725. Keep the ENTIRE steel head, not just its tip, within x=246–351, '
-            'y=648–790 and outside the shoulder/face. Preserve the crescent and its width; adjust pitch and grip, do not shorten '
-            'the axe to fit. Where the shaft crosses the harness below the ribs draw it over the harness (intended).',
-            'Both arms replace the mannequin arm swing (intended). Bend each elbow from its own shoulder and keep both grips '
-            'connected, without letting the blade merge with the leading knee or cape. Keep plenty of clear space beneath the axe in flight.',
+            'Carry the same DOUBLE-BITTED axe (two crescent blades back to back on an iron socket, short top spike, red-wrapped '
+            'haft, iron butt cap; do not shorten it) nearly level across the belly, haft within ±5° of horizontal at about '
+            'y=645–655. Put the NEAR (rear) hand at x≈125–140 and the FAR hand 60–75 px further up the same haft at the same '
+            'height. Slide the grip up the haft so the butt sticks out about 60 px behind the near hand (to x≈65), rather than '
+            'shortening the axe. Put the socket centre at about x=299, y=650, and keep the WHOLE head (both bits) within '
+            'x=249–349, y=598–708. That keeps the lower bit above the leading knee (R3 277,730; R4 270,740; R7 269,722; '
+            'R8 251,746) and clear of the flight shins, and the upper bit below the beard-braid tips.',
+            "Where the haft crosses the harness below the ribs, draw it over the harness (intended). The mannequin's two separate "
+            'arm swings do NOT apply to this character (intended, not a deviation). Both hands stay on the haft with a slight '
+            'bend in each elbow, and the axe only follows the torso\'s bob and lean, at most about 10 px between frames. It never swings.',
         ],
         'cloth': ['Keep lion clasp, fur mantle edge, diagonal harness and any front red corner in front. Only the cape behind the shoulders and rear hair ends trail.'],
         'face': 'Face: helmet horns, scar and braided red beard stay clear of the axe, without converting broad shoulders into armour.',
-        'ko': ('경량: 갑옷 없이 무릎이 자유롭다. 양손 도끼(대검 아님)를 아래 앞으로, 뒤손 기준 수평보다 15–20° 아래. '
-               '가까운 손 x126–137/y660–676, 먼 손 x200–212/y684–705, 둘 다 같은 자루. 도끼날 중심 x296/y710–725, 날 전체 '
-               'x246–351/y648–790. 머리·앞무릎·망토 분리, 몸 앞 사자 걸쇠와 가죽띠 유지. 두 팔은 가이드 그대로가 아니다.'),
+        'ko': ('경량: 갑옷 없이 무릎이 자유롭다. 양날 도끼를 배 앞에 거의 수평(±5°)으로 y≈650. 가까운 손 x125–140, 먼 손은 '
+               '같은 자루 60–75px 앞. 도끼머리 전체 x249–349/y598–708: 앞무릎 위, 수염 끝 아래. 자루 끝은 가까운 손 뒤로 약 60px. '
+               '두 팔은 가이드 팔 흔들기 대신 자루를 쥔다. 한 칸에 10px 이내로만 움직인다. 몸 앞 사자 걸쇠와 가죽띠 유지.'),
     },
     'sheet/captain/titan': {
         'title': '우르그 이동', 'name': 'Urg', 'refs': ['portrait.png'],
@@ -297,35 +299,44 @@ CARRY = {
         'height': ('Urg’s accepted idle is about 413 source px head to sole (about 69 game px at 0.1654 / cell 112). Keep its own '
                    'wide shoulders and long trunk. As a starting landmark at contact: hair around y≈455–470, shoulders around y≈550–580 '
                    'and hips about y≈690–720 before the prescribed body drop. No taller mannequin head, stretched limbs, or shrinking the maul.'),
-        'cloth': ['White fur and gold shoulder medallion stay on the body; front belt and split tunic remain in front. Only the loose hair behind the shoulder and rear tips lag.'],
+        'cloth': ['The white fur collar and the round gold rune medallion on the centre of the chest (where the harness straps '
+                  'cross below the beard, about x=206-244, y=570-600 in the idle) stay on the body and in view; the front belt and '
+                  'the split tunic stay in front. Only the loose hair behind the shoulder and rear tips lag.'],
         'face': 'Face: keep cheek marks, short beard, hairline and earring visible. Do not replace the loose hair behind him with a hood.',
         'ko': ('중량: 거대한 몸과 돌망치. 대기·준비 x 투영은 겹치므로 분리한 실제 대기(약 413px·게임 69px) 기준. '
                '자기 몸의 폭·길이로, 발끝·각도만 복사. 뒤손 x123–136/y688–702, 앞손 x207–223/y666–679, 돌 전체 x249–351·'
-               'y≥585, 얼굴·모피·앞무릎 분리. 금빛 룬·앞 허리띠와 튜닉 유지.'),
+               'y≥585, 얼굴·모피·앞무릎 분리. 금빛 룬·가슴 가운데 금 룬 메달(어깨 아님)·앞 허리띠와 튜닉 유지.'),
     },
     'sheet/captain/demonhunter': {
         'title': '모르데카이 이동', 'name': 'Mordecai', 'refs': ['portrait.png'],
         'character': ('Grey-bearded witch hunter in a charcoal hood and long grey-trimmed cloak, silver cartridge bandolier, '
                       'front cross pendant and cross tabard, dark leather boots; holy mace with a spiked round cross head.'),
         'carry': [
-            'Keep both hands on the upright holy mace, not a firearm: near support grip x=224–230, y=666–676; far main grip '
-            'x=243–252, y=614–630. The head stays forward of the hood: shaft angled top-forward about 18–22° from vertical, '
-            'head center about x=302–306, y=450–480. Leave the spikes actual width (about 80 px); full head x=263–351, away '
-            'from the nose and eye slit, not just the centre. The shaft may cross the chest below the pendant; do not cover the '
-            'cross or cartridge bandolier. Lower tip stays at or above y=785.',
-            'Use the idle two-hand braced posture (intended exemption from the robe arm swing). Flex the elbows to meet the same shaft.',
+            'One FAR hand on the holy mace (not a firearm), as in the idle: the fist wraps the shaft at about x=252–289, '
+            'y=552–600 (size-panel coordinates), and the pale pommel sits just below the fist at about x=242–267, y=610–630. '
+            'Nothing holds the shaft below the pommel. Keep the mace upright at the far (front) side of the body as in the idle, '
+            'about 12–15° top-forward. Head centre about x=288–296, y≈440–455; the whole spiked head (about 80 px wide) within '
+            'about x=250–335, y≈405–490, to the right of the hood and off the face. The shaft runs beside the body, just right '
+            'of the bandolier, and does not cross the chest, pendant or bandolier. The pommel is the lowest point of the mace, '
+            'at about y≈620–630.',
+            'The NEAR hand is an empty gloved fist in front of the belly beside the belt buckle (about x=150–207, y=600–650) and '
+            'stays empty. Give it only a small swing (about 10–15 px), not the full mannequin arm swing; this is intended, not a '
+            'deviation. The far arm keeps the mace steady and does not swing.',
         ],
-        'cloth': ['Grey piping on the open front and the long narrow cross tabard stay in front; only the rear hood/cape edge lags. Keep the black boots distinct.'],
+        'cloth': ['Grey piping on the open front and the long narrow cross tabard stay in front; only the rear hood/cape edge lags. '
+                  'Keep the brown leather boots with their buckled straps and cuffs distinct from the dark-plum trousers and the cloak.'],
         'face': 'Face: keep the hood low and the grey beard readable inside it; no spike across the brow.',
-        'ko': ('로브, 앞 십자 천과 탄띠는 앞에. 양손 성철퇴, 뒤손 x224–230/y666–676, 앞손 x243–252/y614–630. '
-               '머리 전체 x263–351, 철퇴는 두건 오른쪽. 총이나 광원 추가 안 함.'),
+        'ko': ('로브, 앞 십자 천과 탄띠는 앞에. 먼 손 하나로 성철퇴, 주먹 x252–289/y552–600, 손잡이 끝 y≈610–630; '
+               '가까운 손은 배 앞 빈 주먹, 작게만 흔듦. 머리 전체 x250–335/y405–490, 철퇴는 두건 오른쪽, 몸 옆에 서서 '
+               '가슴·탄띠를 가로지르지 않는다. 갈색 가죽 장화. 총이나 광원 추가 안 함.'),
     },
     'sheet/captain/hexer': {
         'title': '벨라도나 이동', 'name': 'Belladonna', 'refs': ['portrait.png'],
         'character': ('Belladonna in long plum panels with green embroidered trim, wide bent plum witch hat with skull charm '
                       'and gold crescent, long dark-blue hair, gold earrings, and a curved wooden staff clasping one green gem.'),
         'carry': [
-            'One far hand on the staff as in the idle, grip x=266–281, y=638–653; its top tilts slightly forward: head '
+            'One far hand on the staff as in the idle, fist (fingers wrapping the staff) at about x=260–286, y=612–640; the '
+            'wrist and sleeve go below and to the left of it. Its top tilts slightly forward: head '
             'center x=310–317, y≈463–482, with all the carved ring and gem within x=282–351. Keep the ring forward of the '
             'hat brim, not in front of the face. Keep the long carved length and the butt above y=795. No magic or glow.',
             'The near hand stays low by the near waist or the belt line as in the idle (idle palm is open, no second staff '
@@ -333,25 +344,29 @@ CARRY = {
         ],
         'cloth': ['Front lapels, brooch, embroidered green front panels and the curl already lying over her chest stay in front. Only the hair and coat tips already behind trail. Keep the bent brim and attachments.'],
         'face': 'Face: keep the smirk and cheek mark visible below the brim; no staff or hair crosses the face.',
-        'ko': ('로브. 먼 손 하나 x266–281/y638–653에 굽은 지팡이, 머리 전체 x282–351, 모자 앞쪽; 가까운 빈 손은 허리. '
+        'ko': ('로브. 먼 손 하나 x260–286/y612–640에 굽은 지팡이, 머리 전체 x282–351, 모자 앞쪽; 가까운 빈 손은 허리. '
                '앞머리·앞 초록 자수와 브로치 앞에, 뒤쪽 끝만 움직임. 보석은 불투명 색, 빛 효과 없음.'),
     },
     'sheet/captain/inquisitorlord': {
         'title': '발타자르 이동', 'name': 'Balthazar', 'refs': ['portrait.png'],
-        'character': ('Severe grand inquisitor in a split deep-crimson hooded robe, gold cord and ornate gold chest cross, '
+        'character': ('Severe grand inquisitor in a split deep-crimson hooded robe with a gold-edged shoulder capelet and round '
+                      'gold throat clasp, an ornate gold chest cross (no cord on the sheet), '
                       'dark gloves and boots; one long iron mace with an open spiked cage head.'),
         'carry': [
-            'The far hand grips the cage mace at x=279–292, y=631–654 (one hand, as in the idle). Keep it upright with '
+            'The far hand grips the cage mace in one fist at about x=290–326, y=580–622, with the shaft passing through it at '
+            'x≈305–312, as in the idle. Keep it upright with '
             'a slight forward rake, the head center around x=310–314, y≈460–475 and its full rim/spikes within x=270–351 '
             'to the right of the hood. Keep the open cage silhouette and its bright rim; the lower end stays above y=792. '
             'No flames inside the cage and no shaft in front of the chest cross.',
             'The near empty gloved fist stays by the near hip with the short robe swing. The far arm bends to keep the '
             'shaft steady and does not follow the full empty-hand mannequin swing (intended).',
         ],
-        'cloth': ['The dark red front panels, gold edge, chest cross and tied cord stay in front. Keep the gap between the boots; only the rear hem lags.'],
+        'cloth': ['The gold-edged shoulder capelet with its round gold throat clasp, the gold chest cross and the split gold-edged '
+                  'front panels of the robe stay in front. No cord is drawn on the sheet, so do not add one even though the portrait '
+                  'shows one. Keep the gap between the boots; only the rear hem lags.'],
         'face': 'Face: hood and old cheek scars stay visible; keep the cage head away from brow and nose at all phases.',
-        'ko': ('로브. 먼 손 하나 x279–292/y631–654에 열린 철제 격자 철퇴. 머리 전체 x270–351, 두건 오른쪽, 불꽃 없음. '
-               '가까운 손 빈 주먹, 금 십자가·끈·갈라진 앞 로브는 앞에.'),
+        'ko': ('로브. 먼 손 하나 x290–326/y580–622 주먹에 열린 철제 격자 철퇴, 자루 x≈305–312. 머리 전체 x270–351, 두건 오른쪽, '
+               '불꽃 없음. 가까운 손 빈 주먹, 금테 어깨 망토·둥근 금 고리·금 십자가·갈라진 앞 로브는 앞에; 끈은 시트에 없음, 그리지 말 것.'),
     },
     'sheet/captain/liberator': {
         'title': '카토 이동', 'name': 'Kato', 'refs': ['portrait_800.jpg'],
@@ -360,16 +375,24 @@ CARRY = {
                       'an iron cuff and broken chain on each clenched wrist, and the longsword strapped to his back.'),
         'carry': [
             'Both clenched fists pump without a hand-held weapon or shield. Preserve both separate dangling chain stubs. '
-            'Use the light timing and the character’s own elbow bend; bring the far wrist inward if a chain would run out of '
-            'space (wrist not beyond x≈323). Keep links below and just behind the wrist, not raised or wrapped around the fingers. '
+            'Use the light timing and the character’s own elbow bend. The fist sets the forward limit, not the chain: the '
+            'front-most knuckle pixel stays at x≤349. With the fist tipped up as in the idle guard (idle cuff centre x≈317, '
+            'fist edge x≈340) the cuff may sit at x≈323. Where the far fist points forward along the mannequin forearm (R1, R6, '
+            'R7, R8: mannequin hand x=322–336, forearm 2–31° above horizontal), the fist reaches about 55 px past the cuff '
+            'centre. There, keep the far cuff centre at x≤295, or tip the fist up as in the idle (intended, not a deviation). '
+            'The chain hangs about 100 px straight down below that cuff. Keep links below and just behind the wrist, not raised or wrapped around the fingers. '
             'Whole chain/sword outlines x=32–351 and clear of the face, legs and feet; in flight nothing below y=852.',
             'The back longsword stays strapped on one diagonal: hilt visible behind the rear shoulder, sheath beside the far '
             'hip. It does not move into the hand, swing into the face, or turn into a sword trail.',
         ],
-        'cloth': ['Keep the diagonal chest strap and torn leather kilt panels as the front layers. Only free side/rear pieces and chain links lag slightly.'],
+        'cloth': ['Keep the diagonal chest strap, the belt with its square buckle and the long clean-edged centre leather apron '
+                  '(it hangs between the thighs to about the knees) as the front layers. The apron may swing slightly with the legs. '
+                  'Only the short layered leather side flaps at the hips and the chain links lag slightly. Add no tears, rags or '
+                  'shoulder cloth (none on the accepted sheet).'],
         'face': 'Face: bald head, brow and cheek scars unobstructed by either cuff, chain or the back sword.',
         'ko': ('경량: 맨상체·가죽 앞자락, 무릎 자유. 채택 사슬·주먹 시트만 기준. 두 손 주먹·각 손목 끊긴 사슬, '
-               '먼 손목 x≤약323, 사슬·등검 전체 x32–351, 도약 y≤852. 등 장검은 고정, 손 검·방패 없음.'),
+               '먼 주먹 앞끝 x≤349. 주먹을 앞으로 뻗는 R1·R6·R7·R8 은 수갑 중심 x≤295, 아니면 대기처럼 주먹을 세운다. '
+               '사슬·등검 전체 x32–351, 도약 y≤852. 등 장검은 고정, 손 검·방패 없음.'),
     },
     'sheet/monster/고블린': {
         'title': '고블린 이동', 'name': '고블린', 'refs': [],

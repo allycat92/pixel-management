@@ -17,7 +17,7 @@
 
 - 부류: **경량** — leather harness, fur mantle and crimson cloak, iron horned helmet; huge two-handed war axe; legs in trousers and boots. (tools/art/specs/gait_classes.json)
 - 납품: art-inbox `art/inbox/gait/sheet_captain_warlord_run_a.png` (R1~R4) + `art/inbox/gait/sheet_captain_warlord_run_b.png` (R5~R8) + `art/inbox/NOTES.md` 절 「gait/sheet_captain_warlord_run - 가르마크 이동」 + 「## 판정 — gait/sheet_captain_warlord_run」. 파일 이름은 부류와 상관없이 `_run_` (엔진의 `anims.run`).
-- 팔·무기: 경량: 갑옷 없이 무릎이 자유롭다. 양손 도끼(대검 아님)를 아래 앞으로, 뒤손 기준 수평보다 15–20° 아래. 가까운 손 x126–137/y660–676, 먼 손 x200–212/y684–705, 둘 다 같은 자루. 도끼날 중심 x296/y710–725, 날 전체 x246–351/y648–790. 머리·앞무릎·망토 분리, 몸 앞 사자 걸쇠와 가죽띠 유지. 두 팔은 가이드 그대로가 아니다.
+- 팔·무기: 경량: 갑옷 없이 무릎이 자유롭다. 양날 도끼를 배 앞에 거의 수평(±5°)으로 y≈650. 가까운 손 x125–140, 먼 손은 같은 자루 60–75px 앞. 도끼머리 전체 x249–349/y598–708: 앞무릎 위, 수염 끝 아래. 자루 끝은 가까운 손 뒤로 약 60px. 두 팔은 가이드 팔 흔들기 대신 자루를 쥔다. 한 칸에 10px 이내로만 움직인다. 몸 앞 사자 걸쇠와 가죽띠 유지.
 - 디딘 발: 한 걸음 원본 275px(게임 45.5px) → 디딘 발은 칸마다 **정확히 68.8px**(±3, 게임 11.4px) 뒤로 — 발끝 x 는 Prompt 의 PLANTED FOOT 표. (병과 전사 R5 는 디딘 발이 30px 앞에 그려져 한 번 고쳤다.)
 - 클라우드가 받은 뒤: `python3 tools/art/receive.py gait/sheet_captain_warlord_run` (검사 + `add_gait.py --dry-run`) → 미리보기를 보고 `add_gait.py` 로 붙인다 (`--pose art/requests/guides/run_base/v2/pose.json`).
 
@@ -65,8 +65,8 @@ THE MOVE (owner's three movement classes; light: the accepted run: lean forward,
     YOUR toe tip against these numbers (the size_* images mark them with yellow ticks).
 
 ARMS AND WEAPONS:
-  - Carry the same two-handed axe low and forward, head about 15–20° below the shaft horizontal from the rear hand (the idle points up; intentionally changed for the forward lean). Put the NEAR rear hand around x=126–137, y=660–676 and the FAR forward hand around x=200–212, y=684–705, both on the same haft with the rear hand closest to the butt. Aim the crescent center around x=296, y=710–725. Keep the ENTIRE steel head, not just its tip, within x=246–351, y=648–790 and outside the shoulder/face. Preserve the crescent and its width; adjust pitch and grip, do not shorten the axe to fit. Where the shaft crosses the harness below the ribs draw it over the harness (intended).
-  - Both arms replace the mannequin arm swing (intended). Bend each elbow from its own shoulder and keep both grips connected, without letting the blade merge with the leading knee or cape. Keep plenty of clear space beneath the axe in flight.
+  - Carry the same DOUBLE-BITTED axe (two crescent blades back to back on an iron socket, short top spike, red-wrapped haft, iron butt cap; do not shorten it) nearly level across the belly, haft within ±5° of horizontal at about y=645–655. Put the NEAR (rear) hand at x≈125–140 and the FAR hand 60–75 px further up the same haft at the same height. Slide the grip up the haft so the butt sticks out about 60 px behind the near hand (to x≈65), rather than shortening the axe. Put the socket centre at about x=299, y=650, and keep the WHOLE head (both bits) within x=249–349, y=598–708. That keeps the lower bit above the leading knee (R3 277,730; R4 270,740; R7 269,722; R8 251,746) and clear of the flight shins, and the upper bit below the beard-braid tips.
+  - Where the haft crosses the harness below the ribs, draw it over the harness (intended). The mannequin's two separate arm swings do NOT apply to this character (intended, not a deviation). Both hands stay on the haft with a slight bend in each elbow, and the axe only follows the torso's bob and lean, at most about 10 px between frames. It never swings.
   - Keep lion clasp, fur mantle edge, diagonal harness and any front red corner in front. Only the cape behind the shoulders and rear hair ends trail.
   - Face: helmet horns, scar and braided red beard stay clear of the axe, without converting broad shoulders into armour.
 

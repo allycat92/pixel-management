@@ -58,6 +58,12 @@ Claude Code 가 받아서 확인한 결과는 `art/requests/feedback.md`에 남�
 | Antigravity | new | `gait/sheet_monster_goblin_run` | 고블린 달리기 8프레임 (C17, 클라우드 대조 반영: **작은 몸 그대로** — 마네킹은 관절 각도만, 키 55~57 게임 px). 요청서 `art/requests/gait/run__monster_goblin/README.md` |
 | Antigravity | new | `gait/sheet_monster_desert-bandit_run` | 사막 도적 달리기 8프레임 (C17, 대조 반영: 칼은 뒤아래, 뒤 부츠 위에 겹쳐 외곽선으로 분리). 요청서 `art/requests/gait/run__monster_desert-bandit/README.md` |
 | Antigravity | new | `gait/sheet_monster_frost-troll_run` | 서리 트롤 중량 이동 8프레임 (C17, **배율 요청 ×0.919** — 이 폴더 guide 위에만; 팔은 대기처럼 넓게, 마네킹 어깨를 따르지 않음). 요청서 `art/requests/gait/heavy__monster_frost-troll/README.md` |
+| Antigravity | new | `gait/sheet_captain_warlord_run` | 가르마크 달리기 8프레임 (C26, 대조 반영: **양날 도끼를 배 앞에 거의 수평**, 머리 전체 x249–349/y598–708 — 앞무릎 위, 휘두르지 않음). 요청서 `art/requests/gait/run__captain_warlord/README.md` |
+| Antigravity | new | `gait/sheet_captain_liberator_run` | 카토 경량 달리기 8프레임 (C26, 대조 반영: 먼 주먹 앞끝 x≤349, 앞치마는 깨끗한 가죽 — 찢김·어깨천 없음). 요청서 `art/requests/gait/run__captain_liberator/README.md` |
+| Antigravity | new | `gait/sheet_captain_titan_run` | 우르그 중량 이동 8프레임 (C26, 대조 반영: 금 룬 메달은 가슴 가운데, 어깨 아님). 요청서 `art/requests/gait/heavy__captain_titan/README.md` |
+| Antigravity | new | `gait/sheet_captain_demonhunter_run` | 모르데카이 로브 이동 8프레임 (C26, 대조 반영: 철퇴는 먼 손 하나, 가까운 손은 빈 주먹; 갈색 가죽 장화). 요청서 `art/requests/gait/robe__captain_demonhunter/README.md` |
+| Antigravity | new | `gait/sheet_captain_hexer_run` | 벨라도나 로브 이동 8프레임 (C26, 대조 반영: 지팡이 주먹 x260–286/y612–640). 요청서 `art/requests/gait/robe__captain_hexer/README.md` |
+| Antigravity | new | `gait/sheet_captain_inquisitorlord_run` | 발타자르 로브 이동 8프레임 (C26, 대조 반영: 철퇴 주먹 x290–326/y580–622; 금 끈은 시트에 없음 — 그리지 말 것). 요청서 `art/requests/gait/robe__captain_inquisitorlord/README.md` |
 
  성직자 달리기 Q17 손질 (`6521ca9`, 앞 타바드·철퇴 낮춤),  병과 성직자 달리기 8프레임 (`c2fa406`, 11-27 등록 — 앞 타바드 R5~R8 확인은 GPT Q17),  병과 궁수 달리기 8프레임 (`34c9aef`, 11-27 등록),  Q12 손질(브리긴다 철퇴 대비·H3/H7 다리, 마법사 G3/G7 장화, `2cba486`),  병과 마법사 로브 이동 8프레임 (`59117b5`, 11-27 등록 — 첫 로브 이동),  브리긴다 중량 이동 8프레임 (`657d73c`, 11-27 등록 — 첫 중량 이동, 헤드 판정·기술 검사 통과),  사막 도적 다시·고블린 대비 손질 (`7c73a04`, 11-27 등록 — 헤드 판정 통과, 기술 검사 통과),  비요른·카이·해골 병사·사막 도적 (`5520f35`), 고블린·서리 트롤 (`c4cc054`). `C5-art-battle-integration-qa`에서 Codex가 별도 빌드로 반영·실전 확인한다. 최종 등록은 별도다.
 
