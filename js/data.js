@@ -146,7 +146,7 @@ const FACILITIES = {
   training:  { name: '훈련장', max: 5, baseCost: 150, desc: (l) => l ? `대기 단원 매일 경험치 +${l * 5}` : '아직 없음 (대기 단원 성장 불가)' },
   infirmary: { name: '의무실', max: 5, baseCost: 130, desc: (l) => `부상 회복 속도 ${100 + l * 50}%` },
   tavern:    { name: '모집소', max: 5, baseCost: 140, desc: (l) => `숙련병 레벨 +${l}, 용병단 시장 ${2 + Math.floor(l / 2)}곳` },
-  board:     { name: '정보망', max: 5, baseCost: 160, desc: (l) => `게시 의뢰 최대 ${4 + l}개, 보상 +${l * 8}%` },
+  board:     { name: '정보망', max: 5, baseCost: 160, desc: (l) => `일반 의뢰 자리 +${l}개 · 보상 +${l * 8}%` },
   forge:     { name: '대장간', max: 5, baseCost: 200, desc: (l) => l ? `상점 물품 최대 등급 +${l >= 3 ? 1 : 0}, 진열 ${4 + l}개, 가격 -${l * 4}%` : '상점 진열 4개' },
 };
 
@@ -185,33 +185,30 @@ const RANDOM_EVENTS = [
     },
   },
   {
-    text: '단원들끼리 대련을 하며 실력을 갈고닦았습니다.',
     run: (g) => {
       const idle = g.state.mercs.filter((m) => m.status === 'idle');
-      if (!idle.length) return '하지만 대련할 단원이 없었습니다.';
+      if (!idle.length) return '대련할 단원이 없어 훈련이 열리지 않았습니다.';
       const m = idle[Math.floor(Math.random() * idle.length)];
       const lv = g.gainExp(m, 25);
-      return `${m.name} 경험치 +25${lv ? ' (레벨 업!)' : ''}`;
+      return `단원들끼리 대련을 하며 실력을 갈고닦았습니다. (${m.name} 경험치 +25${lv ? ' · 레벨 상승!' : ''})`;
     },
   },
   {
-    text: '단원 둘이 사소한 일로 크게 말다툼을 벌였습니다.',
     run: (g) => {
       const idle = g.state.mercs.filter((m) => m.status !== 'quest');
-      if (idle.length < 2) return '다행히 금방 화해했습니다.';
+      if (idle.length < 2) return '길드에 남은 단원이 적어 말다툼은 없었습니다.';
       const [a, b] = idle.sort(() => Math.random() - 0.5);
       g.addRel(a, b, -15); g.changeMorale(a, -5); g.changeMorale(b, -5);
-      return `${a.name}·${b.name} 관계 악화`;
+      return `단원 둘이 사소한 일로 크게 말다툼을 벌였습니다. (${a.name}·${b.name} 관계 악화)`;
     },
   },
   {
-    text: '단원 둘이 밤새 술잔을 기울이며 속 얘기를 나눴습니다.',
     run: (g) => {
       const idle = g.state.mercs.filter((m) => m.status !== 'quest');
-      if (idle.length < 2) return '하지만 술친구가 없었습니다.';
+      if (idle.length < 2) return '함께 술을 마실 단원이 없었습니다.';
       const [a, b] = idle.sort(() => Math.random() - 0.5);
       g.addRel(a, b, 12); g.changeMorale(a, 4); g.changeMorale(b, 4);
-      return `${a.name}·${b.name} 관계 개선`;
+      return `단원 둘이 밤새 술잔을 기울이며 속 얘기를 나눴습니다. (${a.name}·${b.name} 관계 개선)`;
     },
   },
 ];

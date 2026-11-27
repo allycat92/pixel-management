@@ -17,7 +17,7 @@ const FACTIONS = {
     soldier: { skins: ['#f5d6b8', '#f2c9a0'], hairs: ['#c9c2b8', '#e3c565', '#2b1d14'], classes: ['warrior', 'warrior', 'archer', 'cleric'] },
   },
   cities: {
-    name: '자유 도시 연맹', short: '자유도시', color: '#2e8a8a', accent: '#f2c94c', strength: 55, unitName: '도시 경비대',
+    name: '자유 도시 연맹', short: '자유 도시', color: '#2e8a8a', accent: '#f2c94c', strength: 55, unitName: '도시 경비대',
     desc: '항구와 교역로를 쥔 상인 의회. 돈으로 군대를 사고, 돈으로 전쟁을 끝낸다.',
     perk: { key: 'shop', desc: '상점 가격 -15%' },
     soldier: { skins: ['#e0ac7e', '#c68a5c', '#8d5a3b'], hairs: ['#2b1d14', '#8c2f2f', '#3a3f6b'], classes: ['archer', 'warrior', 'rogue', 'mage'] },
@@ -35,7 +35,7 @@ const FACTIONS = {
     soldier: { skins: ['#f5d6b8'], hairs: ['#e3c565', '#c9c2b8', '#a7d26a'], classes: ['archer', 'archer', 'mage', 'rogue'] },
   },
   clans: {
-    name: '붉은 모래 부족 연합', short: '부족연합', color: '#a8402a', accent: '#e8d5a3', strength: 75, unitName: '부족 전사단',
+    name: '붉은 모래 부족 연합', short: '부족 연합', color: '#a8402a', accent: '#e8d5a3', strength: 75, unitName: '부족 전사단',
     desc: '오크와 사막 부족들의 느슨한 연합. 왕국의 동진과 자유 도시의 노예 무역에 맞서 싸운다.',
     perk: { key: 'exp', desc: '의뢰 경험치 +20%' },
     soldier: { skins: ['#8fae6a', '#6f8e4a', '#c68a5c'], hairs: ['#2b1d14', '#5a3720'], classes: ['warrior', 'warrior', 'rogue', 'archer'] },

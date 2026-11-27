@@ -14,15 +14,15 @@
       mini(m.look),
       el('span', { class: 'grow' },
         el('span', { class: 'mname' }, cap ? el('span', { class: 'crown', title: '용병대장', text: '♛' }) : null, m.name,
-          el('span', { class: 'lv', text: ` Lv.${m.level}` }), m.hero ? el('span', { class: 'hero-mark', text: ' ★' }) : null),
+          el('span', { class: 'lv', text: ` Lv. ${m.level}` }), m.hero ? el('span', { class: 'hero-mark', text: ' ★' }) : null),
         el('span', { class: 'small muted' }, cap
           ? `${Game.className(m)} · 지휘 「${Game.leadOf(m).name}」${m.trait !== 'none' ? ` · ${TRAITS[m.trait].name}` : ''}`
-          : `${Game.className(m)} (${m.hcls ? `특별 · 이야기 ${Game.heroCh(m)}장` : UNIT_TIERS[Game.classTier(m)].name})${m.trait !== 'none' ? ` · ${TRAITS[m.trait].name}` : ''}`)),
+          : `${Game.className(m)} (${m.hcls ? `특별 · 이야기 ${Game.heroCh(m)}/${Game.heroStoryLength(m)}장` : UNIT_TIERS[Game.classTier(m)].name})${m.trait !== 'none' ? ` · ${TRAITS[m.trait].name}` : ''}`)),
       el('span', { class: 'mtags' },
         m.status === 'injured' ? el('span', { class: 'tag tag-injured', text: `부상 ${Math.ceil(m.injury)}일` }) : null,
         m.status === 'quest' ? el('span', { class: 'tag tag-quest', text: '출격' }) : null,
-        (Game.canPromote(m) || Game.canMaster(m)) && m.status !== 'quest' ? el('span', { class: 'tag tag-promo', text: Game.canMaster(m) ? '최상급 전직 가능' : '전직 가능' })
-          : !cap && Game.atCap(m) && (m.hcls ? Game.heroCh(m) < 3 : Game.classTier(m) < 2) ? el('span', { class: 'tag tag-promo', text: m.hcls ? '상한 — 이야기 필요' : '상한 도달' }) : null,
+        (Game.canPromote(m) || Game.canMaster(m)) && m.status !== 'quest' ? el('span', { class: 'tag tag-promo', text: Game.canMaster(m) ? '최상급 승급 가능' : '승급 가능' })
+          : !cap && Game.atCap(m) && (m.hcls ? Game.heroCh(m) < Game.heroStoryLength(m) : Game.classTier(m) < 2) ? el('span', { class: 'tag tag-promo', text: m.hcls ? '상한 — 이야기 필요' : '상한 도달' }) : null,
         ...condTags(m)));
   }
 
@@ -79,7 +79,7 @@
         el('div', { class: 'portrait-wrap' }, Sprites.clone(Sprites.merc(c.captain.look, 3, 0), 'portrait')),
         el('div', { class: 'grow' },
           el('div', { class: 'cname' }, companyFlag(c, 1), ` ${c.name}`),
-          el('div', { class: 'small muted', text: `단장 ${c.captain.name}${c.captain.cap ? `(${CAPTAIN_CLASSES[c.captain.cap].name})` : ""} · Lv.${c.level} · ${c.size}/${c.maxSize}명${battle ? '' : ` · 기본 전투력 ${Game.extPower(c, null)}`}` }),
+          el('div', { class: 'small muted', text: `단장 ${c.captain.name}${c.captain.cap ? `(${CAPTAIN_CLASSES[c.captain.cap].name})` : ""} · Lv. ${c.level} · ${c.size}/${c.maxSize}명${battle ? '' : ` · 기본 전투력 ${Game.extPower(c, null)}`}` }),
           battle ? el('div', { class: 'small muted', text: `단장 기본 · ${combatStats(Stats.generic(c.captain.look.cls, c.level, 'leader'))}` }) : null,
           el('div', { class: 'small' },
             el('span', { class: 'chip', text: `특기: ${QUEST_TYPES[c.specialty].name}` }), ' ',
@@ -172,8 +172,8 @@
     const visual = c.enemy
       ? Sprites.clone(Sprites.monster(c.enemy, 3, 0), 'monster')
       : Sprites.clone(Sprites.merc(UI.h.soldierLook(c.target || c.issuer, c.id), 3, 0, true), 'monster');
-    const banner = c.final ? el('div', { class: 'story-banner final-banner' }, `☠ 최종 결전 · 용병단 ${c.campaign.slots}개 투입 · ${FACTIONS[c.target].name}`)
-      : c.campaign ? el('div', { class: 'story-banner campaign-banner' }, `⚔ 대규모 결전 · 용병단 ${c.campaign.slots}개 투입 · ${c.campaign.side === 'attack' ? '공격측' : '방어측'}`)
+    const banner = c.final ? el('div', { class: 'story-banner final-banner' }, `☠ 최종 결전 · 용병단 최대 ${c.campaign.slots}개 투입 · ${FACTIONS[c.target].name}`)
+      : c.campaign ? el('div', { class: 'story-banner campaign-banner' }, `⚔ 대규모 결전 · 용병단 최대 ${c.campaign.slots}개 투입 · ${c.campaign.side === 'attack' ? '공격 측' : '방어 측'}`)
       : story ? el('div', { class: 'story-banner' }, `★ ${story.name}의 이야기 ${c.story.ch + 1}장`)
       : c.capStory ? el('div', { class: 'story-banner captain-banner' }, `♛ 대장 영입 · ${CAPTAINS[c.capStory.key].name} ${c.capStory.ch + 1}/${CAPTAINS[c.capStory.key].chapters.length}장`)
         : c.boss ? el('div', { class: 'story-banner boss-banner' }, `☠ 재앙 · ${BOSSES[c.boss].name}`) : null;
@@ -452,7 +452,7 @@
         el('div', { class: 'cohesion' }, el('span', { class: 'small muted', text: '장악도' }),
           el('div', { class: 'bar thin' }, el('div', { class: 'bar-fill f-cohesion', style: `width:${st.control}%` })), el('span', { class: 'small', text: st.control })),
         wars.length ? el('div', { class: 'small bad' }, '⚔ 전선: ', wars.map((f) => FACTIONS[f].name).join(', ')) : null,
-        el('div', { class: 'small muted', text: open ? `활동 가능 · 의뢰 난이도 ★${TIER_LEVELS[pr.tier][0]}~${TIER_LEVELS[pr.tier][1]}` : `잠김 — 길드 ${RANKS[pr.tier].name}랭크 필요` }),
+        el('div', { class: 'small muted', text: open ? `활동 가능 · 의뢰 난이도 ★${TIER_LEVELS[pr.tier][0]}~${TIER_LEVELS[pr.tier][1]}` : `잠김 — 길드 ${RANKS[pr.tier].name} 등급 필요` }),
         el('div', { class: 'enemy-list' }, TERRAIN[pr.terrain].enemies.map((e) => el('div', { class: 'enemy' },
           Sprites.clone(Sprites.monster(e, 2, 0), 'mini'), el('span', { class: 'small', text: e })))),
         s.branches[p] ? el('div', { class: 'good small', text: '⚑ 길드 지부 운영 중: 의뢰 증가, 이동 -1일, 보상 +10%' })
@@ -506,7 +506,7 @@
       el('div', { class: 'chips' },
         el('span', { class: `chip ${aggr === '호전적' ? 'bad' : aggr === '소극적' ? 'good' : ''}`, text: `호전성 ${aggr}` }),
         el('span', { class: 'chip', text: `강화 ${peace}` }),
-        d.reach > 1 ? el('span', { class: 'chip warn', text: `원정 ${d.reach}지방` }) : null,
+        d.reach > 1 ? el('span', { class: 'chip warn', text: `원정 거리: 지방 ${d.reach}곳` }) : null,
         d.defense < 1 ? el('span', { class: 'chip good', text: `수비 ×${d.defense}` }) : null,
         d.pay > 1 ? el('span', { class: 'chip good', text: `보수 ×${d.pay}` }) : null,
         foes.length ? el('span', { class: 'chip bad' }, '주적 ', foes.map((g) => factionFlag(g, 1))) : el('span', { class: 'chip', text: '주적 없음' }),
@@ -534,7 +534,7 @@
     return el('div', { class: 'calamity-panel', style: `--fc:${F.color}` },
       el('div', { class: 'portrait-wrap' }, Art.img(Art.idOf.boss(cal), 'big-portrait art-portrait') || Sprites.clone(Sprites.monster(F.leader, 4, 0), 'big-portrait')),
       el('div', { class: 'grow' },
-        el('div', { class: 'cal-name' }, factionFlag(cal, 2), ` ${F.name} — ${F.leaderTitle} ${F.leader}`),
+        el('div', { class: 'cal-name' }, factionFlag(cal, 2), ` ${F.name} — ${F.leader}`),
         el('div', { class: 'small', text: F.desc }),
         el('div', { class: 'chips' },
           el('span', { class: 'chip bad', text: `국력 ${Game.strength(cal)} (매일 증가)` }),
@@ -604,7 +604,7 @@
     const news = s.log.filter((l) => l.kind === 'world').slice(0, 12);
     if (news.length) {
       root.append(el('h3', { class: 'group-title', text: '대륙 소식' }));
-      root.append(el('div', { class: 'log' }, news.map((l) => el('div', { class: 'log-line world' }, el('span', { class: 'log-day', text: `${l.day}일차` }), l.text))));
+      root.append(el('div', { class: 'log' }, news.map((l) => el('div', { class: 'log-line world' }, el('span', { class: 'log-day', text: `${l.day}일차` }), Game.guildText(l.text)))));
     }
   };
 
@@ -672,7 +672,7 @@
     const vl = Game.veteranLevel();
     root.append(el('div', { class: 'panel-head mt' },
       el('h2', { text: '모집소 — 대원 모집' }),
-      el('span', { class: 'muted small', text: `대원은 능력치 편차가 없는 범용 용병입니다. 직업을 골라 뽑고, 전직으로 역할을 정하세요. 숙련병 레벨은 모집소 단계와 길드 등급에 따라 오릅니다 (현재 Lv.${vl}).` })));
+      el('span', { class: 'muted small', text: `대원은 능력치 편차가 없는 범용 용병입니다. 직업을 골라 뽑고, 승급하면서 역할을 정하세요. 숙련병 레벨은 모집소 단계와 길드 등급에 따라 오릅니다 (현재 레벨 ${vl}).` })));
     root.append(el('div', { class: 'unit-grid' }, Object.entries(CLASSES).map(([cls, C]) => {
       const lv1 = { ...C.base, maxHp: C.base.hp };
       const costN = Game.unitHireCost(cls, false), costV = Game.unitHireCost(cls, true);
@@ -686,8 +686,8 @@
         UI.h.skillList({ actives: [{ name: CLASS_SKILLS[cls].name, battle: describeBattle(CLASS_SKILLS[cls].b), mission: describeFx(CLASS_SKILLS[cls].fx, Game.battleMode()) }] }, { compact: true }),
         el('div', { class: 'small muted', text: `승급: ${PROMOTIONS[cls].map((p) => `${p.name} → ${MASTERS[p.key].map((x) => x.name).join('/')}`).join(' · ')}` }),
         el('div', { class: 'card-foot' },
-          el('button', { class: 'btn small', disabled: full || s.gold < costN ? 'disabled' : null, onclick: () => Game.hireUnit(cls, false) }, icon('coin'), ` ${costN} 신병 Lv.1`),
-          el('button', { class: 'btn primary small', disabled: full || s.gold < costV ? 'disabled' : null, onclick: () => Game.hireUnit(cls, true) }, icon('coin'), ` ${costV} 숙련병 Lv.${vl}`),
+          el('button', { class: 'btn small', disabled: full || s.gold < costN ? 'disabled' : null, onclick: () => Game.hireUnit(cls, false) }, icon('coin'), ` ${costN} 신병 Lv. 1`),
+          el('button', { class: 'btn primary small', disabled: full || s.gold < costV ? 'disabled' : null, onclick: () => Game.hireUnit(cls, true) }, icon('coin'), ` ${costV} 숙련병 Lv. ${vl}`),
           full ? lodgingHint() : null));
     })));
 
@@ -722,7 +722,7 @@
     const joined = Object.values(s.captains || {}).filter((c) => c.status === 'joined').length;
     root.append(el('div', { class: 'panel-head' },
       el('h2', { text: `용병대장 (합류 ${joined}명)` }),
-      el('span', { class: 'muted small', text: '대장은 고유 직업·높은 성장률·지휘 스킬을 지닌 단 한 명뿐인 인물입니다. 대장마다 영입 과제가 있고, 조건을 한순간에 모두 만족하면 찾아옵니다. 그 뒤 영입 의뢰를 완수하면 합류합니다.' })));
+      el('span', { class: 'muted small', text: '대장은 고유 직업·높은 성장률·지휘 스킬을 지닌 단 한 명뿐인 인물입니다. 대장마다 영입 과제가 있고, 조건을 모두 동시에 충족하면 찾아옵니다. 그 뒤 영입 의뢰를 완수하면 합류합니다.' })));
     root.append(captainRoster());
   };
 
@@ -781,6 +781,6 @@
   T.log = (root) => {
     root.append(el('h2', { text: '길드 일지' }));
     root.append(el('div', { class: 'log' }, Game.state.log.map((l) => el('div', { class: `log-line ${l.kind}` },
-      el('span', { class: 'log-day', text: `${l.day}일차` }), l.text))));
+      el('span', { class: 'log-day', text: `${l.day}일차` }), Game.guildText(l.text)))));
   };
 })();

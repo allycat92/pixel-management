@@ -29,7 +29,13 @@ function describeBattle(b) {
     if (b.exec) parts.push(`빈사 대상 +${pct(b.exec)}`);
   }
   if (b.tgt === 'hurt' && b.buff) parts.push(`대상 ${b.buff.atk ? `공격 +${pct(b.buff.atk)}` : ''}${b.buff.def ? ` 받는 피해 -${pct(b.buff.def)}` : ''} ${b.buff.dur}초`);
-  if (b.selfBuff) parts.push(`적중 시 자신 ${b.selfBuff.atk ? `공격 +${pct(b.selfBuff.atk)}` : ''}${b.selfBuff.def ? `받는 피해 -${pct(b.selfBuff.def)}` : ''}`);
+  if (b.selfBuff) {
+    const { atk, def, dur } = b.selfBuff;
+    const effects = [];
+    if (atk) effects.push(`자신의 공격 +${pct(atk)}`);
+    if (def) effects.push(`자신이 받는 피해 -${pct(def)}`);
+    parts.push(`적중 시 ${effects.join(' · ')} (${dur}초)`);
+  }
   parts.push(`재사용 ${b.cd}초`);
   return parts.join(' · ');
 }
@@ -273,7 +279,7 @@ const CAPTAIN_CLASSES = {
   tactician: cap('전술가', 'mage', '판을 읽는 눈을 가진 지휘관. 개인의 무용보다 용병단 전체를 움직인다.', L('#3a3a4a', '#f2c94c', 'hat', 'staff'),
     { name: '전술 지휘', power: 0.1, party: { success: 0.05, great: 1.4 } },
     [SK.shot('지휘 사격', 'bolt', 1.0, 90, 1.4), SK.rally('전술 지시', { atk: 0.25, def: 0.2, dur: 7 }, 60, 12)]),
-  lancer: cap('창기병', 'warrior', '말과 창을 잃고도 기사의 돌격만은 잊지 않은 사내.', L('#3d5a9c', '#e8e4d8', 'helmet', 'sword'),
+  lancer: cap('창기병', 'warrior', '말과 영지를 잃고도 기사의 돌격만은 잊지 않은 사내.', L('#3d5a9c', '#e8e4d8', 'helmet', 'sword'),
     { name: '돌파', power: 0.03, types: { battle: 0.15, raid: 0.1 }, cls: { warrior: 0.08 } },
     [SK.melee('창 찌르기', 1.1, 1.0, { range: 16 }), SK.melee('랜스 차지', 1.8, 9, { dash: true, stun: 0.5 })], { str: 0.5, hp: 0.5 }),
   huntress: cap('덫사냥꾼', 'archer', '숲을 손바닥처럼 아는 사냥꾼. 덫과 화살로 짐승을 몰아넣는다.', L('#4a5a2a', '#c58f1e', 'band', 'bow'),

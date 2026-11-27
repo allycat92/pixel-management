@@ -118,7 +118,7 @@ Object.assign(Game, {
       s.pendingReports.push({ special: 'dialog', captain: ph.list[0], title: `영입 과제 — ${ph.name}`,
         lines: [[null, `길드의 명성이 퍼지자 이름난 용병대장들의 소문이 들려옵니다: ${ph.list.map((k) => `${CAPTAINS[k].title} ${CAPTAINS[k].name}`).join(', ')}.`],
           [null, '그들은 아무 길드에나 몸을 맡기지 않습니다. 저마다 길드가 증명해야 할 것이 있습니다.']],
-        foot: '모집소에서 대장별 영입 과제를 확인하세요. 조건을 한순간에 모두 만족하면 그 대장이 찾아옵니다. 기한을 넘기거나 불가능해지면 떠납니다.' });
+        foot: '모집소에서 대장별 영입 과제를 확인하세요. 조건을 모두 동시에 충족하면 그 대장이 찾아옵니다. 기한을 넘기거나 불가능해지면 떠납니다.' });
     });
     // 과제 판정: 달성 → 대장이 찾아오고 영입 의뢰 시작 / 불가능 → 떠남
     Object.entries(s.captains).forEach(([key, cs]) => {

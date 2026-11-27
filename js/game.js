@@ -13,9 +13,11 @@ const STORY_EXPIRES = 99999;
 function josa(word, withBatchim, withoutBatchim) {
   const last = String(word).match(/[가-힣0-9](?=[^가-힣0-9]*$)/)?.[0];
   if (!last) return withoutBatchim;
-  const hasBatchim = /[0-9]/.test(last)
-    ? '013678'.includes(last)
-    : (last.charCodeAt(0) - 0xac00) % 28 !== 0;
+  const digit = /[0-9]/.test(last);
+  const jong = digit ? 0 : (last.charCodeAt(0) - 0xac00) % 28;
+  const hasBatchim = digit ? '013678'.includes(last) : jong !== 0;
+  const endsInRieul = digit ? '178'.includes(last) : jong === 8;
+  if (endsInRieul && withoutBatchim.startsWith('로') && withBatchim === '으' + withoutBatchim) return withoutBatchim;
   return hasBatchim ? withBatchim : withoutBatchim;
 }
 const FRIEND_REL = 30, RIVAL_REL = -20;
@@ -25,6 +27,16 @@ const TRAIT_CLASH = [['brave', 'coward'], ['greedy', 'diligent'], ['genius', 'la
 const Game = {
   state: null,
   listeners: [],
+
+  guildText(text) {
+    const name = this.state.guildName;
+    return text.replace(/(?:\{guild\}([는를])?|은빛 늑대(?=의 (?:이름|깃발|성녀|기사단장|노래)|호의 선장|를 노래할)([를])?)/g, (_, ending, legacyEnding) => {
+      ending = ending || legacyEnding;
+      if (ending === '는') return name + josa(name, '은', '는');
+      if (ending === '를') return name + josa(name, '을', '를');
+      return name;
+    });
+  },
 
   onChange(fn) { this.listeners.push(fn); },
   emit() { this.listeners.forEach((fn) => fn()); },
@@ -154,6 +166,7 @@ const Game = {
   isCaptain(m) { return m && m.role === 'captain'; },
 
   expToNext(m) { return m.level * 60 + m.level * m.level * 6; },
+  heroStoryLength(m) { return HEROES[m.hero].chapters.length; },
   heroCh(m) { const hs = m.hero && this.state && this.state.heroes[m.hero]; return hs ? Math.min(hs.ch, 3) : 0; },
   levelCap(m) {
     if (this.isCaptain(m)) return CAPTAIN_CAP;
@@ -196,7 +209,7 @@ const Game = {
     });
     if (!silent) {
       this.changeMorale(m, 5);
-      const note = this.canPromote(m) ? ' 전직할 수 있습니다!' : this.canMaster(m) ? ' 최상급 직업으로 전직할 수 있습니다!'
+      const note = this.canPromote(m) ? ' 승급할 수 있습니다!' : this.canMaster(m) ? ' 최상급 직업으로 승급할 수 있습니다!'
         : this.isCaptain(m) && m.level === CAPTAIN_AWAKEN ? ` 지휘가 무르익었습니다! (「${CAPTAIN_CLASSES[m.cap].lead.name}」 효과 ×1.5)` : '';
       this.log(`${m.name}${josa(m.name, '이', '가')} 레벨 ${m.level}이 되었습니다!${note}`, 'good');
     }
@@ -261,7 +274,7 @@ const Game = {
     s.gold -= PROMOTE_COST;
     this.applyPromotion(m, key);
     this.changeMorale(m, 10);
-    this.log(`${m.name}${josa(m.name, '이', '가')} ${opt.name}(으)로 승급했습니다! 스킬 「${opt.skill}」, 레벨 상한 ${this.levelCap(m)}. (-${PROMOTE_COST} 금화)`, 'good');
+    this.log(`${m.name}${josa(m.name, '이', '가')} ${opt.name}${josa(opt.name, '으로', '로')} 승급했습니다! 스킬 「${opt.skill}」, 레벨 상한 ${this.levelCap(m)}. (-${PROMOTE_COST} 금화)`, 'good');
     this.saveManagement();
   },
   promoteMaster(mercId, key) {
@@ -657,7 +670,7 @@ const Game = {
     if (Math.random() < 0.2) {
       const ev = pick(RANDOM_EVENTS);
       const res = ev.run(this);
-      this.log(`${ev.text} (${res})`, 'event');
+      this.log(ev.text ? `${ev.text} (${res})` : res, 'event');
     }
 
     this.fillContracts(false);
@@ -665,7 +678,7 @@ const Game = {
 
     const newRank = this.rankIndex();
     if (newRank > prevRank) {
-      this.log(`길드 등급이 ${RANKS[newRank].name}랭크로 승급했습니다! 더 먼 지방과 큰 의뢰가 열립니다.`, 'good');
+      this.log(`길드가 ${RANKS[newRank].name} 등급으로 올랐습니다! 더 먼 지방과 큰 의뢰가 열립니다.`, 'good');
       PROVINCE_KEYS.forEach((k) => {
         if (PROVINCES[k].tier > prevRank && PROVINCES[k].tier <= newRank) this.log(`활동 범위 확대: 「${PROVINCES[k].name}」의 의뢰를 맡을 수 있습니다.`, 'event');
       });

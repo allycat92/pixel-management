@@ -63,10 +63,11 @@ const UI = (() => {
     const hs = Game.state.heroes[m.hero];
     const next = HEROES[m.hero].chapters[hs ? hs.ch : 0];
     const ch = Game.heroCh(m);
+    const total = Game.heroStoryLength(m);
     return el('div', { class: 'hero-line' },
-      el('span', { class: 'hero-title', text: `★ ${m.title}` }),
+      el('span', { class: 'hero-title', text: `★ ${Game.guildText(m.title)}` }),
       next ? el('span', { class: 'muted small', text: ` 인연 ${m.bond}/${next.bond}` }) : el('span', { class: 'good small', text: ' 이야기 완결' }),
-      el('div', { class: 'small muted', text: `이야기 ${ch}/3장 · 레벨 상한 ${HERO_CAPS[ch]} · 성장률 ×${HERO_GROWTH[ch]} · 고유 스킬 ×${1 + ch * 0.25}${ch < 3 ? ` (다음 장: 상한 ${HERO_CAPS[ch + 1]})` : ''}` }));
+      el('div', { class: 'small muted', text: `이야기 ${ch}/${total}장 · 레벨 상한 ${HERO_CAPS[ch]} · 성장률 ×${HERO_GROWTH[ch]} · 고유 스킬 ×${1 + ch * 0.25}${next ? ` (다음 장: 상한 ${HERO_CAPS[ch + 1]})` : ''}` }));
   }
 
   // 스킬 목록: 액티브(◆, 전투 + 의뢰 효과)와 패시브(◇)
@@ -88,8 +89,8 @@ const UI = (() => {
 
   function roleBadge(m) {
     if (Game.isCaptain(m)) return el('span', { class: 'role-badge captain', title: '용병대장: 고유 직업, 높은 성장률, 레벨 상한 40', text: '♛ 대장' });
-    if (m.hcls) return el('span', { class: 'role-badge hero', title: '특별 용병: 고유 직업을 가진 대원. 이야기를 진행할수록 강해진다', text: '★ 특별 대원' });
-    return el('span', { class: 'role-badge unit', title: '용병 대원: 직업과 전직으로 역할을 정한다', text: `${UNIT_TIERS[Game.classTier(m)].name} 대원` });
+    if (m.hcls) return el('span', { class: 'role-badge hero', title: '특별 용병: 고유 직업을 가진 대원. 이야기를 진행할수록 강해진다', text: '★ 특별 용병' });
+    return el('span', { class: 'role-badge unit', title: '용병 대원: 승급하면서 직업을 선택한다', text: `${UNIT_TIERS[Game.classTier(m)].name} 대원` });
   }
 
   function leadBox(m) {
@@ -151,7 +152,7 @@ const UI = (() => {
       el('div', { class: 'card-head' },
         el('div', { class: 'portrait-wrap' }, artPortrait(Art.idOf.merc(m), m.look)),
         el('div', { class: 'card-title' },
-          el('div', { class: 'name' }, m.name, el('span', { class: 'lv', text: ` Lv.${m.level}` })),
+          el('div', { class: 'name' }, m.name, el('span', { class: 'lv', text: ` Lv. ${m.level}` })),
           el('div', { class: 'sub' }, roleBadge(m), ' ', el('span', { class: `cls cls-${m.cls} ${m.adv || m.cap ? 'adv' : ''}`, text: Game.className(m) }), ' ',
             m.trait !== 'none' ? el('span', { class: `trait ${TRAITS[m.trait].unique ? 'unique' : ''}`,
               title: describeTrait(m.trait, Game.battleMode()), text: TRAITS[m.trait].name }) : null),
@@ -170,9 +171,9 @@ const UI = (() => {
       opts.recruit ? null : el('div', { class: 'exp' },
         el('div', { class: 'bar thin' }, el('div', { class: 'bar-fill f-exp', style: `width:${(m.exp / Game.expToNext(m)) * 100}%` })),
         el('span', { class: Game.atCap(m) ? 'warn' : '', text: Game.atCap(m)
-          ? (Game.isCaptain(m) ? `최고 레벨 ${Game.levelCap(m)}` : m.hcls ? `레벨 상한 ${Game.levelCap(m)} — ${Game.heroCh(m) < 3 ? '이야기를 진행해야 성장합니다' : '최고 단계'}`
-            : `레벨 상한 ${Game.levelCap(m)} — ${Game.classTier(m) < 2 ? '전직해야 성장합니다' : '최고 단계'}`)
-          : `EXP ${m.exp}/${Game.expToNext(m)} · 상한 Lv.${Game.levelCap(m)}` })),
+          ? (Game.isCaptain(m) ? `최고 레벨 ${Game.levelCap(m)}` : m.hcls ? `레벨 상한 ${Game.levelCap(m)} — ${Game.heroCh(m) < Game.heroStoryLength(m) ? '이야기를 진행해야 성장합니다' : '최고 단계'}`
+            : `레벨 상한 ${Game.levelCap(m)} — ${Game.classTier(m) < 2 ? '승급해야 성장합니다' : '최고 단계'}`)
+          : `경험치 ${m.exp}/${Game.expToNext(m)} · 레벨 상한 ${Game.levelCap(m)}` })),
       opts.recruit ? null : equipRow(m),
       opts.recruit ? null : relationLine(m),
       el('div', { class: 'card-foot' },
@@ -244,36 +245,36 @@ const UI = (() => {
     const skillText = (c) => `전투: ${describeBattle(c.b)} / 의뢰: ${describeFx(c.fx, Game.battleMode())}`;
     // 계통도: 기본 직업 → 두 갈래 상급 → 각각의 최상급
     const tree = el('div', { class: 'class-tree' },
-      el('div', { class: 'tree-col' }, el('div', { class: 'tree-title', text: `기본 (상한 Lv.${UNIT_TIERS[0].cap})` }),
+      el('div', { class: 'tree-col' }, el('div', { class: 'tree-title', text: `기본 (레벨 상한 ${UNIT_TIERS[0].cap})` }),
         card(baseLook, CLASSES[m.cls].name, CLASS_SKILLS[m.cls].name, skillText(CLASS_SKILLS[m.cls]), null, null, !m.adv)),
-      el('div', { class: 'tree-col' }, el('div', { class: 'tree-title', text: `상급 · Lv.${PROMOTE_LEVEL} · ${PROMOTE_COST}금화 (상한 Lv.${UNIT_TIERS[1].cap})` }),
+      el('div', { class: 'tree-col' }, el('div', { class: 'tree-title', text: `상급 · 레벨 ${PROMOTE_LEVEL} · ${PROMOTE_COST} 금화 (상한 ${UNIT_TIERS[1].cap})` }),
         PROMOTIONS[m.cls].map((p) => {
           const can = Game.canPromote(m);
           const locked = m.adv && m.adv !== p.key;
           const foot = m.adv === p.key ? el('div', { class: 'small good', text: '현재 직업 계통' })
             : locked ? el('div', { class: 'small muted', text: '다른 갈래를 골랐습니다' })
             : el('button', { class: 'btn primary small', disabled: !can || s.gold < PROMOTE_COST ? 'disabled' : null,
-              title: can ? '' : `Lv.${PROMOTE_LEVEL}부터 승급할 수 있습니다`, onclick: () => { Game.promote(m.id, p.key); openPromote(m.id); } },
+              title: can ? '' : `레벨 ${PROMOTE_LEVEL}부터 승급할 수 있습니다`, onclick: () => { Game.promote(m.id, p.key); openPromote(m.id); } },
             icon('coin'), ` ${PROMOTE_COST} 승급`);
           const c = card({ ...baseLook, adv: p.key }, p.name, p.skill, skillText(p), p.bonus, foot, m.adv === p.key && !m.master);
           if (locked) c.classList.add('locked');
           return c;
         })),
-      el('div', { class: 'tree-col masters' }, el('div', { class: 'tree-title', text: `최상급 · Lv.${MASTER_LEVEL} · ${MASTER_COST}금화 (상한 Lv.${UNIT_TIERS[2].cap})` }),
+      el('div', { class: 'tree-col masters' }, el('div', { class: 'tree-title', text: `최상급 · 레벨 ${MASTER_LEVEL} · ${MASTER_COST} 금화 (상한 ${UNIT_TIERS[2].cap})` }),
         PROMOTIONS[m.cls].flatMap((p) => MASTERS[p.key].map((mc) => {
           const mine = m.adv === p.key;
           const foot = m.master === mc.key ? el('div', { class: 'small good', text: '현재 직업' })
             : m.master ? el('div', { class: 'small muted', text: '다른 갈래를 골랐습니다' })
             : !mine ? el('div', { class: 'small muted', text: `${p.name}에서 승급` })
             : el('button', { class: 'btn primary small', disabled: !Game.canMaster(m) || s.gold < MASTER_COST ? 'disabled' : null,
-              title: Game.canMaster(m) ? '' : `Lv.${MASTER_LEVEL}부터 승급할 수 있습니다`, onclick: () => { Game.promoteMaster(m.id, mc.key); openPromote(m.id); } },
+              title: Game.canMaster(m) ? '' : `레벨 ${MASTER_LEVEL}부터 승급할 수 있습니다`, onclick: () => { Game.promoteMaster(m.id, mc.key); openPromote(m.id); } },
             icon('coin'), ` ${MASTER_COST} 승급`);
           const c = card({ ...baseLook, adv: p.key, master: mc.key }, mc.name, mc.skill, skillText(mc), mc.bonus, foot, m.master === mc.key);
           if ((m.adv && !mine) || (m.master && m.master !== mc.key)) c.classList.add('locked');
           return c;
         }))));
     openModal(el('div', {},
-      el('h2', {}, mini(m.look), ` ${m.name}의 직업 계통 — 현재 ${Game.className(m)} Lv.${m.level}`),
+      el('h2', {}, mini(m.look), ` ${m.name}의 직업 계통 — 현재 ${Game.className(m)} 레벨 ${m.level}`),
       el('p', { class: 'muted small', text: '대원은 개인 능력치에 편차가 없습니다. 같은 직업·레벨이면 능력치가 같고, 승급할 때마다 두 갈래 중 하나를 골라 역할을 정합니다. 대원은 현재 직업의 액티브 스킬 하나를 씁니다(전투에서는 기본 공격/치유, 의뢰에서는 효과). 레벨 상한에 닿으면 승급해야 더 성장하며, 승급은 되돌릴 수 없습니다.' }),
       tree,
       el('div', { class: 'modal-actions' }, el('button', { class: 'btn', text: '뒤로', onclick: () => openMerc(m.id) }))));
@@ -444,8 +445,8 @@ const UI = (() => {
         el('div', { class: 'name', text: m.name }),
         m.dead ? el('div', { class: 'bad' }, icon('skull'), ' 전사')
           : el('div', {},
-            el('div', { class: 'small', text: `EXP +${m.exp}` }),
-            m.levelUp ? el('div', { class: 'good small', text: 'LEVEL UP!' }) : null,
+            el('div', { class: 'small', text: `경험치 +${m.exp}` }),
+            m.levelUp ? el('div', { class: 'good small', text: '레벨 상승!' }) : null,
             // 전투 모드: 전투에서 실제로 쓰러진 단원만 표시한다 (부상은 쓰러졌거나 크게 다친 단원에게만 생긴다)
             m.down ? el('div', { class: 'bad small', text: m.injury ? `쓰러짐 · 부상 ${m.injury}일` : '쓰러짐' })
               : m.injury ? el('div', { class: 'bad small', text: `부상 ${m.injury}일` }) : null)));
@@ -496,7 +497,7 @@ const UI = (() => {
     openModal(el('div', {},
       eventArt('start'),
       el('h2', { text: `첫 용병대장을 고르세요 (${cards.length}명)` }),
-      el('p', { class: 'muted small', text: `용병단을 이끌 대장입니다. 대장은 고유 직업, 액티브 스킬 2개, 지휘(패시브)를 가진 단 한 명뿐인 인물이며, 선택받지 못한 ${STARTER_CAPTAINS.length - 1}명은 다시 만날 수 없습니다. 이후 대장은 길드 등급이 오를 때 공개되는 대장별 영입 과제를 달성해 여러 명을 얻을 수 있습니다.` }),
+      el('p', { class: 'muted small', text: `용병단을 이끌 대장입니다. 대장은 고유 직업, 전투 기술 2개와 지휘 능력을 갖춘 단 한 명뿐인 인물이며, 선택받지 못한 ${STARTER_CAPTAINS.length - 1}명은 다시 만날 수 없습니다. 이후 대장은 길드 등급이 오를 때 공개되는 대장별 영입 과제를 달성해 여러 명을 얻을 수 있습니다.` }),
       el('div', { class: 'starter-choices' }, cards)), true);
   }
 
@@ -523,7 +524,8 @@ const UI = (() => {
     const portrait = el('div', { class: `dialog-portrait ${h || r.captain ? '' : 'boss'}` }, portraitImg);
 
     function show() {
-      const [who, msg] = lines[line];
+      const [who, raw] = lines[line];
+      const msg = Game.guildText(raw);
       if (r.captain) portrait.hidden = !who;
       speaker.textContent = who || '';
       speaker.style.visibility = who ? 'visible' : 'hidden';
@@ -538,13 +540,13 @@ const UI = (() => {
       }, 26);
       const last = line === lines.length - 1;
       next.textContent = last ? (choiceDone ? '확인' : '선택하기') : '다음 ▶';
-      footer.textContent = last && foot ? foot : '';
+      footer.textContent = last && foot ? Game.guildText(foot) : '';
     }
     function showChoice() {
       const ch = HEROES[r.choice.hero].chapters[r.choice.ch].choice;
       next.style.display = 'none';
       keep({ atChoice: true });
-      choiceBox.replaceChildren(el('div', { class: 'choice-prompt', text: ch.prompt }),
+      choiceBox.replaceChildren(el('div', { class: 'choice-prompt', text: Game.guildText(ch.prompt) }),
         ...ch.options.map((o, i) => el('button', { class: 'btn choice', onclick: () => {
           if (choiceDone || slot.chosen != null) return;
           // 고른 기록을 먼저 칸에 적어 두면 applyChoice 의 저장 한 번에 효과와 기록이 함께 남는다 (새로고침해도 한 번만 적용)
@@ -557,19 +559,19 @@ const UI = (() => {
           next.style.display = '';
           show();
           next.focus();
-        } }, o.label)));
+        } }, Game.guildText(o.label))));
       const first = choiceBox.querySelector('button');
       if (first) first.focus();
     }
     const advance = () => {
-      if (typing) { clearInterval(timer); typing = false; text.textContent = lines[line][1]; return; }
+      if (typing) { clearInterval(timer); typing = false; text.textContent = Game.guildText(lines[line][1]); return; }
       if (line < lines.length - 1) { line++; keep({ line }); show(); return; }
       if (!choiceDone) { showChoice(); return; }
       clearInterval(timer); finishSlot();
     };
     next.addEventListener('click', advance);
     openModal(el('div', { class: 'dialog' },
-      el('div', { class: 'dialog-title', text: r.title }),
+      el('div', { class: 'dialog-title', text: Game.guildText(r.title) }),
       r.art ? eventArt(r.art) : null,
       el('div', { class: 'dialog-body', onclick: (e) => { if (e.target !== next && choiceDone) advance(); else if (typing) advance(); } },
         portrait,
@@ -578,7 +580,7 @@ const UI = (() => {
       el('div', { class: 'modal-actions' }, next)), true);
     show();
     // 선택지 화면에서 새로고침했다: 마지막 줄을 다 보여 주고 바로 선택지로
-    if (!choiceDone && slot.atChoice) { clearInterval(timer); typing = false; text.textContent = lines[line][1]; showChoice(); }
+    if (!choiceDone && slot.atChoice) { clearInterval(timer); typing = false; text.textContent = Game.guildText(lines[line][1]); showChoice(); }
   }
 
   // 특별 보고서도 제목에 먼저 초점 (Enter 연타로 바로 닫히지 않게)
@@ -604,7 +606,7 @@ const UI = (() => {
     }
     if (r.special === 'win') {
       return el('div', { class: 'report' },
-        el('div', { class: 'report-banner good great', text: 'S랭크 달성!' }),
+        el('div', { class: 'report-banner good great', text: 'S 등급 달성!' }),
         eventArt('win'),
         el('p', { text: `${s.day}일 만에 ${s.guildName}${josa(s.guildName, '이', '가')} 대륙 최고의 길드가 되었습니다!` }),
         el('p', { class: 'muted', text: `완수 ${s.stats.completed} · 실패 ${s.stats.failed} · 전사 ${s.stats.fallen}` }),
@@ -616,9 +618,9 @@ const UI = (() => {
       return el('div', { class: 'report' },
         el('div', { class: 'report-banner good great', text: '대륙의 구원자' }),
         eventArt('savior') || el('div', { class: 'report-members' }, Sprites.clone(Sprites.monster(F.leader, 4, 0), 'big-portrait dead-boss')),
-        el('p', { text: `${s.day}일째, ${s.guildName}의 용병단들이 ${F.leaderTitle} ${F.leader}${josa(F.leader, '을', '를')} 쓰러뜨렸습니다.` }),
-        el('p', { text: `${F.name}${josa(F.name, '은', '는')} 흩어지고, 살아남은 세력들은 폐허 위에서 다시 일어서기 시작합니다. 사람들은 이 시대를 은빛 늑대의 이름으로 기억할 것입니다.` }),
-        el('p', { class: 'muted small', text: `살아남은 세력: ${(r.alive || Game.aliveFactions()).map((f) => FACTIONS[f].name).join(', ') || '없음'} · 이후 한동안 전후 복구 의뢰의 보수가 높아집니다.` }),
+        el('p', { text: `${s.day}일째, ${s.guildName}의 용병단들이 ${F.leader}${josa(F.leader, '을', '를')} 쓰러뜨렸습니다.` }),
+        el('p', { text: `${F.name}${josa(F.name, '은', '는')} 흩어지고, 살아남은 세력들은 폐허 위에서 다시 일어서기 시작합니다. 사람들은 이 시대를 ${s.guildName}의 이름으로 기억할 것입니다.` }),
+        el('p', { class: 'muted small', text: `살아남은 세력: ${(r.alive || Game.aliveFactions()).map((f) => FACTIONS[f].name).join(', ') || '없음'} · 이후 전쟁이 아닌 의뢰의 보수가 높아집니다.` }),
         el('div', { class: 'modal-actions' }, cont, restart));
     }
     if (r.special === 'darkness') {
@@ -626,7 +628,7 @@ const UI = (() => {
       return el('div', { class: 'report' },
         el('div', { class: 'report-banner bad disaster', text: '암흑시대' }),
         eventArt('darkness') || el('div', { class: 'report-members' }, Sprites.clone(Sprites.monster(F.leader, 4, 0), 'big-portrait')),
-        el('p', { text: `${F.name}${josa(F.name, '이', '가')} 대륙의 대부분을 집어삼켰습니다. ${F.leaderTitle} ${F.leader}의 그림자 아래, 길드의 깃발도 꺾였습니다.` }),
+        el('p', { text: `${F.name}${josa(F.name, '이', '가')} 대륙의 대부분을 집어삼켰습니다. ${F.leader}의 그림자 아래, 길드의 깃발도 꺾였습니다.` }),
         el('p', { class: 'muted', text: `${s.day}일 동안 버텼습니다. 최고 명성 ${s.rep}` }),
         el('div', { class: 'modal-actions' }, restart));
     }
@@ -634,8 +636,8 @@ const UI = (() => {
       return el('div', { class: 'report' },
         el('div', { class: 'report-banner good great', text: '전설의 길드' }),
         el('div', { class: 'report-members' }, Object.values(BOSSES).map((b) => Sprites.clone(Sprites.monster(b.enemy, 2, 0), 'mini'))),
-        el('p', { text: `${s.day}일째, ${s.guildName}${josa(s.guildName, '은', '는')} 대륙의 모든 재앙을 물리쳤습니다.` }),
-        el('p', { text: '음유시인들은 앞으로 수백 년 동안 은빛 늑대의 이야기를 노래할 것입니다.' }),
+        el('p', { text: `${s.day}일째, ${s.guildName}${josa(s.guildName, '은', '는')} 지방을 위협하던 재앙급 괴물 다섯을 모두 토벌했습니다.` }),
+        el('p', { text: `음유시인들은 앞으로 수백 년 동안 ${s.guildName}의 이야기를 노래할 것입니다.` }),
         el('div', { class: 'modal-actions' }, cont, restart));
     }
     const msg = r.special === 'bankrupt' ? '빚더미에 올라앉은 길드는 결국 문을 닫았습니다...' : '모든 단원과 계약을 잃고 재기할 자금도 없습니다...';
@@ -662,9 +664,9 @@ const UI = (() => {
     $('#rank').className = `rank rank-${rank.name}`;
     const prog = next ? (shown.rep - rank.rep) / (next.rep - rank.rep) : 1;
     $('#rank-bar').style.width = `${prog * 100}%`;
-    $('#rank-next').textContent = next ? `다음 ${next.name}랭크까지 ${next.rep - shown.rep}` : '최고 등급!';
+    $('#rank-next').textContent = next ? `다음 등급(${next.name})까지 명성 ${next.rep - shown.rep}` : '최고 등급!';
     const latest = shown.ticker;
-    $('#ticker').textContent = latest ? `[${latest.day}일차] ${latest.text}` : '';
+    $('#ticker').textContent = latest ? `[${latest.day}일차] ${Game.guildText(latest.text)}` : '';
     $('#ticker').className = `ticker ${latest ? latest.kind : ''}`;
     document.querySelectorAll('.tab').forEach((b) => {
       b.classList.toggle('active', b.dataset.tab === tab);
@@ -865,9 +867,9 @@ const UI = (() => {
         el('ul', {},
           el('li', { text: '당신은 길드 운영자입니다. 단원을 고용해 직속 용병단에 배속하고, 부족한 전력은 외부 용병단과 계약해 채우세요.' }),
           el('li', { text: '용병단은 소수 정예입니다: 용병대장 1명 + 대원 2명(병영 1단계부터 3명). 병영을 증축하면 용병단을 더 만들 수 있습니다.' }),
-          el('li', { text: '의뢰는 용병단 단위로 맡깁니다. 세력 분쟁 의뢰를 맡으면 의뢰 세력의 평판은 오르고, 대상 세력의 평판은 떨어집니다.' }),
+          el('li', { text: '의뢰는 용병단 단위로 맡깁니다. 의뢰를 완수하면 의뢰를 낸 세력에서 길드 평판이 오르고, 상대 세력에서는 떨어질 수 있습니다.' }),
           el('li', { text: '의뢰 결과에 따라 지방의 장악도가 바뀌고, 전쟁 중이면 지방이 다른 세력에게 넘어갑니다. 세계는 길드가 개입하지 않아도 움직입니다.' }),
-          el('li', { text: '대규모 결전은 용병단 2~3개를 동시에 보내야 하며(한 의뢰에 최대 3개), 양 진영 중 한쪽만 고를 수 있습니다.' }),
+          el('li', { text: '대규모 결전에는 의뢰에 따라 용병단을 최대 2개 또는 3개까지 보낼 수 있습니다. 양쪽 중 한 진영만 선택할 수 있습니다.' }),
           el('li', { text: '평판이 높은 세력은 혜택을 주고, 적대 세력은 의뢰를 끊고 보복합니다.' }),
           el('li', { text: '7일마다 주급과 계약 유지비를 냅니다. 금화가 -300 아래로 떨어지면 파산합니다. 스페이스바로 다음 날로 넘어갑니다.' }))),
       el('div', { class: 'modal-actions' },

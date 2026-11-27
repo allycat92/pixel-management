@@ -702,7 +702,7 @@ Object.assign(Game, {
       if (!hs.appeared && r >= h.unlock && (!h.faction || this.standing(h.faction) > -30)) {
         hs.appeared = true;
         s.recruits.unshift(this.makeHero(key));
-        this.log(`모집소에 특별한 손님이 찾아왔습니다: 「${h.title}」 ${h.name} (${HERO_CLASSES[h.hcls].name}). 영입하면 그의 이야기가 시작됩니다.`, 'event');
+        this.log(`모집소에 특별 용병이 찾아왔습니다: 「${h.title}」 ${h.name} (${HERO_CLASSES[h.hcls].name}). 영입하면 그 용병의 이야기가 시작됩니다.`, 'event');
       }
     });
     s.mercs.filter((m) => m.hero).forEach((m) => {

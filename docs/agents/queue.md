@@ -9,7 +9,7 @@
 |---|---|---|---|
 | Codex | `C10-scaled-mannequin-guides` | REVIEW | 클라우드 검토(`docs/agents/reports/c10_tool_review.md`) — 아래 C10 FIX 절대로: `docs/agents/tasks/C10-scaled-mannequin-guides.md` |
 | GPT | `Q11-stage4-check` | 예고 | 총괄 4단계 수정이 들어가면 READY: `docs/agents/tasks/Q11-stage4-check.md` |
-| Codex | `C13-korean-text-fixes` | READY | Q7 한국어 글 고치기 + 총괄의 설정 결정 8개 반영 (C12 뒤): `docs/agents/tasks/C13-korean-text-fixes.md` |
+| Codex | `C13-korean-text-fixes` | REVIEW | Q7 한국어 글 고치기 + 총괄의 설정 결정 8개 반영 (C12 뒤): `docs/agents/tasks/C13-korean-text-fixes.md` |
 
 ## 끝난 일
 
