@@ -7,7 +7,7 @@
 
 | 누구 | id | 상태 | 할 일 (자세한 것은 그 줄의 문서) |
 |---|---|---|---|
-| GPT | `C30-replay-preload` | READY | 관전 시작 전에 시트 그림 미리 받기(새로고침 직후 옛 코드 그림 방지): `docs/agents/tasks/C30-replay-preload.md` |
+| GPT | `C30-replay-preload` | REVIEW | (`e018be4`) 관전 전에 그 전투의 우선 시트만 최대 1.5초 기다림 — 코드 그림 283/867 → 0/791, 게이트 전부 그대로. 클라우드: 진행 중인 엔진 수정(밀림)이 끝난 뒤 합침(같은 `js/battle.js`) |
 | GPT | `Q27-battle-default-longrun` | READY | 전투 판정 기본으로 사람처럼 1~200일(새 시드, 다부대): `docs/agents/tasks/Q27-battle-default-longrun.md` |
 
 ## 끝난 일
