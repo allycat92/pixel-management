@@ -7,7 +7,7 @@
 
 | 누구 | id | 상태 | 할 일 (자세한 것은 그 줄의 문서) |
 |---|---|---|---|
-| Codex | `C22-crosscheck-c20` | READY | GPT 의 C20 교차 확인 — roll 금화 하락이 상관 때문인지: `docs/agents/tasks/C22-crosscheck-c20.md` |
+| Codex | `C22-crosscheck-c20` | REVIEW | GPT 의 C20 교차 확인 — roll 금화 하락이 상관 때문인지: `docs/agents/tasks/C22-crosscheck-c20.md` |
 | GPT | `C20-betrayal-loss-fixed` | REVIEW | (Codex C22 교차 확인 대기) 결전 배신·외부단 손실 고정 |
 | GPT | `Q19-flip-readiness-2` | READY | (C20 다음) 한 부대 초반 다듬기 들어감 — 다른 시드로 사람 플레이 다시: `docs/agents/tasks/Q19-flip-readiness-2.md` |
 
