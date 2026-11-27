@@ -17,7 +17,7 @@
 
 - 부류: **경량** — Registered chains-and-fists idle (90d7e0c): bare scarred torso, leather strap and kilt over free knees, no plate or shield; clenched hands with broken wrist chains, longsword secured on his back. The arms are free to run; a heavy hit weight is not a heavy gait. (tools/art/specs/gait_classes.json)
 - 납품: art-inbox `art/inbox/gait/sheet_captain_liberator_run_a.png` (R1~R4) + `art/inbox/gait/sheet_captain_liberator_run_b.png` (R5~R8) + `art/inbox/NOTES.md` 절 「gait/sheet_captain_liberator_run - 카토 이동」 + 「## 판정 — gait/sheet_captain_liberator_run」. 파일 이름은 부류와 상관없이 `_run_` (엔진의 `anims.run`).
-- 팔·무기: 경량: 맨상체·가죽 앞자락, 무릎 자유. 채택 사슬·주먹 시트만 기준. 두 손 주먹·각 손목 끊긴 사슬, 먼 손목 x≤약323, 사슬·등검 전체 x32–351, 도약 y≤852. 등 장검은 고정, 손 검·방패 없음.
+- 팔·무기: 경량: 맨상체·가죽 앞자락, 무릎 자유. 채택 사슬·주먹 시트만 기준. 두 손 주먹·각 손목 끊긴 사슬, 먼 주먹 앞끝 x≤349. 주먹을 앞으로 뻗는 R1·R6·R7·R8 은 수갑 중심 x≤295, 아니면 대기처럼 주먹을 세운다. 사슬·등검 전체 x32–351, 도약 y≤852. 등 장검은 고정, 손 검·방패 없음.
 - 디딘 발: 한 걸음 원본 275px(게임 45.5px) → 디딘 발은 칸마다 **정확히 68.8px**(±3, 게임 11.4px) 뒤로 — 발끝 x 는 Prompt 의 PLANTED FOOT 표. (병과 전사 R5 는 디딘 발이 30px 앞에 그려져 한 번 고쳤다.)
 - 클라우드가 받은 뒤: `python3 tools/art/receive.py gait/sheet_captain_liberator_run` (검사 + `add_gait.py --dry-run`) → 미리보기를 보고 `add_gait.py` 로 붙인다 (`--pose art/requests/guides/run_base/v2/pose.json`).
 
@@ -65,9 +65,9 @@ THE MOVE (owner's three movement classes; light: the accepted run: lean forward,
     YOUR toe tip against these numbers (the size_* images mark them with yellow ticks).
 
 ARMS AND WEAPONS:
-  - Both clenched fists pump without a hand-held weapon or shield. Preserve both separate dangling chain stubs. Use the light timing and the character’s own elbow bend; bring the far wrist inward if a chain would run out of space (wrist not beyond x≈323). Keep links below and just behind the wrist, not raised or wrapped around the fingers. Whole chain/sword outlines x=32–351 and clear of the face, legs and feet; in flight nothing below y=852.
+  - Both clenched fists pump without a hand-held weapon or shield. Preserve both separate dangling chain stubs. Use the light timing and the character’s own elbow bend. The fist sets the forward limit, not the chain: the front-most knuckle pixel stays at x≤349. With the fist tipped up as in the idle guard (idle cuff centre x≈317, fist edge x≈340) the cuff may sit at x≈323. Where the far fist points forward along the mannequin forearm (R1, R6, R7, R8: mannequin hand x=322–336, forearm 2–31° above horizontal), the fist reaches about 55 px past the cuff centre. There, keep the far cuff centre at x≤295, or tip the fist up as in the idle (intended, not a deviation). The chain hangs about 100 px straight down below that cuff. Keep links below and just behind the wrist, not raised or wrapped around the fingers. Whole chain/sword outlines x=32–351 and clear of the face, legs and feet; in flight nothing below y=852.
   - The back longsword stays strapped on one diagonal: hilt visible behind the rear shoulder, sheath beside the far hip. It does not move into the hand, swing into the face, or turn into a sword trail.
-  - Keep the diagonal chest strap and torn leather kilt panels as the front layers. Only free side/rear pieces and chain links lag slightly.
+  - Keep the diagonal chest strap, the belt with its square buckle and the long clean-edged centre leather apron (it hangs between the thighs to about the knees) as the front layers. The apron may swing slightly with the legs. Only the short layered leather side flaps at the hips and the chain links lag slightly. Add no tears, rags or shoulder cloth (none on the accepted sheet).
   - Face: bald head, brow and cheek scars unobstructed by either cuff, chain or the back sword.
 
 MUST NOT CHANGE: outfit, colours, proportions, headgear, weapon and shield shapes and sizes, and the SCALE of the accepted

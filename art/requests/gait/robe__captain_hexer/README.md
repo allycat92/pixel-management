@@ -17,7 +17,7 @@
 
 - 부류: **로브** — long high-collared coat hanging below the knee (to the ankle behind) with a dark skirt-like lower panel; knees hidden. (tools/art/specs/gait_classes.json)
 - 납품: art-inbox `art/inbox/gait/sheet_captain_hexer_run_a.png` (G1~G4) + `art/inbox/gait/sheet_captain_hexer_run_b.png` (G5~G8) + `art/inbox/NOTES.md` 절 「gait/sheet_captain_hexer_run - 벨라도나 이동」 + 「## 판정 — gait/sheet_captain_hexer_run」. 파일 이름은 부류와 상관없이 `_run_` (엔진의 `anims.run`).
-- 팔·무기: 로브. 먼 손 하나 x266–281/y638–653에 굽은 지팡이, 머리 전체 x282–351, 모자 앞쪽; 가까운 빈 손은 허리. 앞머리·앞 초록 자수와 브로치 앞에, 뒤쪽 끝만 움직임. 보석은 불투명 색, 빛 효과 없음.
+- 팔·무기: 로브. 먼 손 하나 x260–286/y612–640에 굽은 지팡이, 머리 전체 x282–351, 모자 앞쪽; 가까운 빈 손은 허리. 앞머리·앞 초록 자수와 브로치 앞에, 뒤쪽 끝만 움직임. 보석은 불투명 색, 빛 효과 없음.
 - 디딘 발: 한 걸음 원본 134.2px(게임 22.2px) → 디딘 발은 칸마다 **정확히 33.5px**(±3, 게임 5.5px) 뒤로 — 발끝 x 는 Prompt 의 PLANTED FOOT 표. (병과 전사 R5 는 디딘 발이 30px 앞에 그려져 한 번 고쳤다.)
 - 클라우드가 받은 뒤: `python3 tools/art/receive.py gait/sheet_captain_hexer_run` (검사 + `add_gait.py --dry-run`) → 미리보기를 보고 `add_gait.py` 로 붙인다 (`--pose art/requests/guides/robe_base/v1/pose.json`).
 
@@ -64,7 +64,7 @@ THE MOVE (owner's three movement classes; robe: loose long cloth: running in it 
     YOUR toe tip against these numbers (the size_* images mark them with yellow ticks).
 
 ARMS AND WEAPONS:
-  - One far hand on the staff as in the idle, grip x=266–281, y=638–653; its top tilts slightly forward: head center x=310–317, y≈463–482, with all the carved ring and gem within x=282–351. Keep the ring forward of the hat brim, not in front of the face. Keep the long carved length and the butt above y=795. No magic or glow.
+  - One far hand on the staff as in the idle, fist (fingers wrapping the staff) at about x=260–286, y=612–640; the wrist and sleeve go below and to the left of it. Its top tilts slightly forward: head center x=310–317, y≈463–482, with all the carved ring and gem within x=282–351. Keep the ring forward of the hat brim, not in front of the face. Keep the long carved length and the butt above y=795. No magic or glow.
   - The near hand stays low by the near waist or the belt line as in the idle (idle palm is open, no second staff hand); allow only a small change from that carry, not the full mannequin arm swing.
   - Front lapels, brooch, embroidered green front panels and the curl already lying over her chest stay in front. Only the hair and coat tips already behind trail. Keep the bent brim and attachments.
   - Face: keep the smirk and cheek mark visible below the brim; no staff or hair crosses the face.

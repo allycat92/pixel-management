@@ -3,9 +3,10 @@
 
 window.addEventListener('DOMContentLoaded', () => {
   const start = () => {
-    if (!Game.load()) Game.newGame();
-    // 시험용 스위치: 주소에 ?resolve=battle 이면 전투가 결과를 정하는 모드, ?resolve=roll 이면 오늘의 판정 (저장에 남는다)
+    // 주소 스위치: ?resolve=battle 이면 전투가 결과를 정하는 모드, ?resolve=roll 이면 예전 확률 판정 (저장에 남는다)
     const rq = new URLSearchParams(location.search).get('resolve');
+    // 새 게임은 전투 판정으로 시작한다 (주인 2026-11-27: 통과한 것들을 본게임에). 이어 하는 저장은 저장된 방식 그대로
+    if (!Game.load()) { Game.newGame(rq === 'roll' ? 'roll' : 'battle'); Game.save(); }
     if (rq === 'battle' || rq === 'roll') { Game.setResolve(rq); Game.save(); }
     UI.init();
     Scene.init(document.getElementById('scene'));

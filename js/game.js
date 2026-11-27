@@ -42,7 +42,8 @@ const Game = {
   emit() { this.listeners.forEach((fn) => fn()); },
 
   // ───────── 초기화 / 저장 ─────────
-  newGame() {
+  // mode: 'battle' 이면 첫 의뢰판을 만들기 전에 전투 판정 모드를 켠다(판 크기·전투 시드·aim 이 전투 모드 규칙). 인자 없이 부르면 'roll' — 봇·시뮬레이터 그대로
+  newGame(mode) {
     this.state = {
       version: SAVE_VERSION,
       squadRule: 1, // 3~4인 용병단 규칙으로 만든 저장 (normalizeCompanies 참고)
@@ -68,6 +69,7 @@ const Game = {
     this.refreshRecruits();
     this.refreshMarket();
     this.refreshShop();
+    if (mode === 'battle') this.setResolve('battle');
     this.fillContracts(true);
     this.log('길드가 문을 열었습니다! 용병단을 꾸려 의뢰를 맡고, 세력들 사이에서 길드의 이름을 높이세요.', 'good');
   },
@@ -697,7 +699,7 @@ const Game = {
     this.checkBosses();
 
     // 파산 판정
-    // 전투 모드는 빚이 한 주 급료(DEBT_WEEKS)까지는 버틴다 (기본 'roll' 은 오늘처럼 -300)
+    // 전투 모드는 빚이 한 주 급료(DEBT_WEEKS)까지는 버틴다 (예전 'roll' 은 -300)
     if (s.gold < (s.resolve === 'battle' ? -Math.max(300, Stats.KN.DEBT_WEEKS * this.weeklyWageTotal()) : -300)) {
       s.over = 'bankrupt';
       s.pendingReports.push({ special: 'bankrupt' });

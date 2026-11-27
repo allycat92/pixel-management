@@ -15,9 +15,9 @@
 | `art/inbox/sheet_captain_demonhunter.png` | **승인된 전투 시트 원본** — 디자인·색·크기의 기준. 1번 자세가 대기 |
 | `art/requests/guides/robe_base/v1/` (`pose.json`, `robe_base_preview.gif`, `robe_base.aseprite`) | 마네킹 원본 — 숫자·움직임 확인용 |
 
-- 부류: **로브** — long hooded cloak to mid-shin with a front tabard panel hanging between the legs; knees and thighs hidden in idle/attack. (tools/art/specs/gait_classes.json)
+- 부류: **로브** — long hooded cloak open at the front (front flaps to mid-thigh, rear hem to mid-shin) with a narrow cross tabard hanging between the legs; wide baggy trousers cover the knees and tuck into buckled boots, so from the waist to the boot tops the legs read as cloth. (tools/art/specs/gait_classes.json)
 - 납품: art-inbox `art/inbox/gait/sheet_captain_demonhunter_run_a.png` (G1~G4) + `art/inbox/gait/sheet_captain_demonhunter_run_b.png` (G5~G8) + `art/inbox/NOTES.md` 절 「gait/sheet_captain_demonhunter_run - 모르데카이 이동」 + 「## 판정 — gait/sheet_captain_demonhunter_run」. 파일 이름은 부류와 상관없이 `_run_` (엔진의 `anims.run`).
-- 팔·무기: 로브, 앞 십자 천과 탄띠는 앞에. 양손 성철퇴, 뒤손 x224–230/y666–676, 앞손 x243–252/y614–630. 머리 전체 x263–351, 철퇴는 두건 오른쪽. 총이나 광원 추가 안 함.
+- 팔·무기: 로브, 앞 십자 천과 탄띠는 앞에. 먼 손 하나로 성철퇴, 주먹 x252–289/y552–600, 손잡이 끝 y≈610–630; 가까운 손은 배 앞 빈 주먹, 작게만 흔듦. 머리 전체 x250–335/y405–490, 철퇴는 두건 오른쪽, 몸 옆에 서서 가슴·탄띠를 가로지르지 않는다. 갈색 가죽 장화. 총이나 광원 추가 안 함.
 - 디딘 발: 한 걸음 원본 134.2px(게임 22.2px) → 디딘 발은 칸마다 **정확히 33.5px**(±3, 게임 5.5px) 뒤로 — 발끝 x 는 Prompt 의 PLANTED FOOT 표. (병과 전사 R5 는 디딘 발이 30px 앞에 그려져 한 번 고쳤다.)
 - 클라우드가 받은 뒤: `python3 tools/art/receive.py gait/sheet_captain_demonhunter_run` (검사 + `add_gait.py --dry-run`) → 미리보기를 보고 `add_gait.py` 로 붙인다 (`--pose art/requests/guides/robe_base/v1/pose.json`).
 
@@ -64,9 +64,9 @@ THE MOVE (owner's three movement classes; robe: loose long cloth: running in it 
     YOUR toe tip against these numbers (the size_* images mark them with yellow ticks).
 
 ARMS AND WEAPONS:
-  - Keep both hands on the upright holy mace, not a firearm: near support grip x=224–230, y=666–676; far main grip x=243–252, y=614–630. The head stays forward of the hood: shaft angled top-forward about 18–22° from vertical, head center about x=302–306, y=450–480. Leave the spikes actual width (about 80 px); full head x=263–351, away from the nose and eye slit, not just the centre. The shaft may cross the chest below the pendant; do not cover the cross or cartridge bandolier. Lower tip stays at or above y=785.
-  - Use the idle two-hand braced posture (intended exemption from the robe arm swing). Flex the elbows to meet the same shaft.
-  - Grey piping on the open front and the long narrow cross tabard stay in front; only the rear hood/cape edge lags. Keep the black boots distinct.
+  - One FAR hand on the holy mace (not a firearm), as in the idle: the fist wraps the shaft at about x=252–289, y=552–600 (size-panel coordinates), and the pale pommel sits just below the fist at about x=242–267, y=610–630. Nothing holds the shaft below the pommel. Keep the mace upright at the far (front) side of the body as in the idle, about 12–15° top-forward. Head centre about x=288–296, y≈440–455; the whole spiked head (about 80 px wide) within about x=250–335, y≈405–490, to the right of the hood and off the face. The shaft runs beside the body, just right of the bandolier, and does not cross the chest, pendant or bandolier. The pommel is the lowest point of the mace, at about y≈620–630.
+  - The NEAR hand is an empty gloved fist in front of the belly beside the belt buckle (about x=150–207, y=600–650) and stays empty. Give it only a small swing (about 10–15 px), not the full mannequin arm swing; this is intended, not a deviation. The far arm keeps the mace steady and does not swing.
+  - Grey piping on the open front and the long narrow cross tabard stay in front; only the rear hood/cape edge lags. Keep the brown leather boots with their buckled straps and cuffs distinct from the dark-plum trousers and the cloak.
   - Face: keep the hood low and the grey beard readable inside it; no spike across the brow.
 
 MUST NOT CHANGE: outfit, colours, proportions, headgear, weapon and shield shapes and sizes, and the SCALE of the accepted

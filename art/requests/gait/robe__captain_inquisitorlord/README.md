@@ -15,9 +15,9 @@
 | `art/inbox/sheet_captain_inquisitorlord.png` | **승인된 전투 시트 원본** — 디자인·색·크기의 기준. 1번 자세가 대기 |
 | `art/requests/guides/robe_base/v1/` (`pose.json`, `robe_base_preview.gif`, `robe_base.aseprite`) | 마네킹 원본 — 숫자·움직임 확인용 |
 
-- 부류: **로브** — deep-crimson hooded inquisitor robe to mid-shin with a gold cord; long-hafted mace. (tools/art/specs/gait_classes.json)
+- 부류: **로브** — deep-crimson hooded inquisitor robe to mid-shin with a gold-edged shoulder capelet (no cord on the sheet; the cord is portrait only); long-hafted mace. (tools/art/specs/gait_classes.json)
 - 납품: art-inbox `art/inbox/gait/sheet_captain_inquisitorlord_run_a.png` (G1~G4) + `art/inbox/gait/sheet_captain_inquisitorlord_run_b.png` (G5~G8) + `art/inbox/NOTES.md` 절 「gait/sheet_captain_inquisitorlord_run - 발타자르 이동」 + 「## 판정 — gait/sheet_captain_inquisitorlord_run」. 파일 이름은 부류와 상관없이 `_run_` (엔진의 `anims.run`).
-- 팔·무기: 로브. 먼 손 하나 x279–292/y631–654에 열린 철제 격자 철퇴. 머리 전체 x270–351, 두건 오른쪽, 불꽃 없음. 가까운 손 빈 주먹, 금 십자가·끈·갈라진 앞 로브는 앞에.
+- 팔·무기: 로브. 먼 손 하나 x290–326/y580–622 주먹에 열린 철제 격자 철퇴, 자루 x≈305–312. 머리 전체 x270–351, 두건 오른쪽, 불꽃 없음. 가까운 손 빈 주먹, 금테 어깨 망토·둥근 금 고리·금 십자가·갈라진 앞 로브는 앞에; 끈은 시트에 없음, 그리지 말 것.
 - 디딘 발: 한 걸음 원본 134.2px(게임 22.2px) → 디딘 발은 칸마다 **정확히 33.5px**(±3, 게임 5.5px) 뒤로 — 발끝 x 는 Prompt 의 PLANTED FOOT 표. (병과 전사 R5 는 디딘 발이 30px 앞에 그려져 한 번 고쳤다.)
 - 클라우드가 받은 뒤: `python3 tools/art/receive.py gait/sheet_captain_inquisitorlord_run` (검사 + `add_gait.py --dry-run`) → 미리보기를 보고 `add_gait.py` 로 붙인다 (`--pose art/requests/guides/robe_base/v1/pose.json`).
 
@@ -42,7 +42,7 @@ REFERENCES (load all; if the sheet or a guide does not load, do not draw - write
   - art/requests/guides/robe_base/v1/pose.json (the numbers below come from it), art/requests/guides/robe_base/v1/robe_base_preview.gif (the motion at speed), art/requests/guides/robe_base/v1/robe_base.aseprite (the mannequin source -
     you may open it as an underlay and draw on your own layers, but the delivered PNGs contain ONLY your drawing).
 
-CHARACTER (unchanged from the accepted sheet): Severe grand inquisitor in a split deep-crimson hooded robe, gold cord and ornate gold chest cross, dark gloves and boots; one long iron mace with an open spiked cage head.
+CHARACTER (unchanged from the accepted sheet): Severe grand inquisitor in a split deep-crimson hooded robe with a gold-edged shoulder capelet and round gold throat clasp, an ornate gold chest cross (no cord on the sheet), dark gloves and boots; one long iron mace with an open spiked cage head.
 
 THE MOVE (owner's three movement classes; robe: loose long cloth: running in it looks unnatural. Fastest natural gait = a hurried, purposeful glide (not a stroll): NO flight phase, NO big knee lift, a small forward lean, short quick steps; the hem swings and hides the knees, only the feet flick out at the hem. It is already in the mannequin - copy it, do not invent another):
   - Each frame: the legs, the torso lean and the arm swing of that mannequin frame. Joint for joint: hips, knees, ankles, feet,
@@ -64,9 +64,9 @@ THE MOVE (owner's three movement classes; robe: loose long cloth: running in it 
     YOUR toe tip against these numbers (the size_* images mark them with yellow ticks).
 
 ARMS AND WEAPONS:
-  - The far hand grips the cage mace at x=279–292, y=631–654 (one hand, as in the idle). Keep it upright with a slight forward rake, the head center around x=310–314, y≈460–475 and its full rim/spikes within x=270–351 to the right of the hood. Keep the open cage silhouette and its bright rim; the lower end stays above y=792. No flames inside the cage and no shaft in front of the chest cross.
+  - The far hand grips the cage mace in one fist at about x=290–326, y=580–622, with the shaft passing through it at x≈305–312, as in the idle. Keep it upright with a slight forward rake, the head center around x=310–314, y≈460–475 and its full rim/spikes within x=270–351 to the right of the hood. Keep the open cage silhouette and its bright rim; the lower end stays above y=792. No flames inside the cage and no shaft in front of the chest cross.
   - The near empty gloved fist stays by the near hip with the short robe swing. The far arm bends to keep the shaft steady and does not follow the full empty-hand mannequin swing (intended).
-  - The dark red front panels, gold edge, chest cross and tied cord stay in front. Keep the gap between the boots; only the rear hem lags.
+  - The gold-edged shoulder capelet with its round gold throat clasp, the gold chest cross and the split gold-edged front panels of the robe stay in front. No cord is drawn on the sheet, so do not add one even though the portrait shows one. Keep the gap between the boots; only the rear hem lags.
   - Face: hood and old cheek scars stay visible; keep the cage head away from brow and nose at all phases.
 
 MUST NOT CHANGE: outfit, colours, proportions, headgear, weapon and shield shapes and sizes, and the SCALE of the accepted

@@ -17,7 +17,7 @@
 
 - 부류: **중량** — giant-blooded man with an enormous build carrying a huge two-handed stone maul (head bigger than his own head); leather harness, fur collar. (tools/art/specs/gait_classes.json)
 - 납품: art-inbox `art/inbox/gait/sheet_captain_titan_run_a.png` (H1~H4) + `art/inbox/gait/sheet_captain_titan_run_b.png` (H5~H8) + `art/inbox/NOTES.md` 절 「gait/sheet_captain_titan_run - 우르그 이동」 + 「## 판정 — gait/sheet_captain_titan_run」. 파일 이름은 부류와 상관없이 `_run_` (엔진의 `anims.run`).
-- 팔·무기: 중량: 거대한 몸과 돌망치. 대기·준비 x 투영은 겹치므로 분리한 실제 대기(약 413px·게임 69px) 기준. 자기 몸의 폭·길이로, 발끝·각도만 복사. 뒤손 x123–136/y688–702, 앞손 x207–223/y666–679, 돌 전체 x249–351·y≥585, 얼굴·모피·앞무릎 분리. 금빛 룬·앞 허리띠와 튜닉 유지.
+- 팔·무기: 중량: 거대한 몸과 돌망치. 대기·준비 x 투영은 겹치므로 분리한 실제 대기(약 413px·게임 69px) 기준. 자기 몸의 폭·길이로, 발끝·각도만 복사. 뒤손 x123–136/y688–702, 앞손 x207–223/y666–679, 돌 전체 x249–351·y≥585, 얼굴·모피·앞무릎 분리. 금빛 룬·가슴 가운데 금 룬 메달(어깨 아님)·앞 허리띠와 튜닉 유지.
 - 디딘 발: 한 걸음 원본 142.5px(게임 23.6px) → 디딘 발은 칸마다 **정확히 35.6px**(±3, 게임 5.9px) 뒤로 — 발끝 x 는 Prompt 의 PLANTED FOOT 표. (병과 전사 R5 는 디딘 발이 30px 앞에 그려져 한 번 고쳤다.)
 - 클라우드가 받은 뒤: `python3 tools/art/receive.py gait/sheet_captain_titan_run` (검사 + `add_gait.py --dry-run`) → 미리보기를 보고 `add_gait.py` 로 붙인다 (`--pose art/requests/guides/heavy_base/v1/pose.json`).
 
@@ -64,7 +64,7 @@ THE MOVE (owner's three movement classes; heavy: heavy armour / tower shield / v
 ARMS AND WEAPONS:
   - Lower the two-handed stone maul from its idle diagonal to a short, braced carry across the low torso (intentional). NEAR hand to the rear x=123–136, y=688–702; FAR hand forward x=207–223, y=666–679, on the same haft. Aim for the stone head center x≈298, y≈638–654: keep the full head within x=249–351 and entirely below y=585 (larger y), above the lead knee. Keep the whole handle above the floor and preserve the gold spiral side. The shaft may cross the low harness in front; the stone must not cover the head or fur collar.
   - Both arms are exempt from the mannequin arm swing (intended). Bend the elbows from Urg’s own wider shoulders, which are not interchangeable with the mannequin’s; keep the weight large, braced and close rather than swinging it.
-  - White fur and gold shoulder medallion stay on the body; front belt and split tunic remain in front. Only the loose hair behind the shoulder and rear tips lag.
+  - The white fur collar and the round gold rune medallion on the centre of the chest (where the harness straps cross below the beard, about x=206-244, y=570-600 in the idle) stay on the body and in view; the front belt and the split tunic stay in front. Only the loose hair behind the shoulder and rear tips lag.
   - Face: keep cheek marks, short beard, hairline and earring visible. Do not replace the loose hair behind him with a hood.
 
 MUST NOT CHANGE: outfit, colours, proportions, headgear, weapon and shield shapes and sizes, and the SCALE of the accepted
