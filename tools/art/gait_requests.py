@@ -46,7 +46,7 @@ KO = {'light': '경량', 'heavy': '중량', 'robe': '로브', 'none': '해당 �
 
 
 def rel(p):
-    return os.path.relpath(p, ROOT)
+    return os.path.relpath(p, ROOT).replace(os.sep, '/')   # README 와 manifest 는 늘 / (Windows 에서도)
 
 
 def load(p):
