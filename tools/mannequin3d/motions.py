@@ -31,7 +31,7 @@ import math
 
 import numpy as np
 
-from rig import leg_ik, fk, full_pose, rz, CANON, ankle_on_floor, arm_ik
+from rig import leg_ik, fk, full_pose, CANON, ankle_on_floor, arm_ik
 
 CANON_LEG = CANON['thigh'] + CANON['shin'] + CANON['ankle_h']
 CANON_SCALE = 0.1654          # the scale the gait tables (and v2 / heavy_base / robe_base) were made for
