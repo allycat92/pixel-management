@@ -1133,3 +1133,44 @@ CHANGED: 바탕 `art-inbox` `67fc9a4`에서 1·3·4번 자세는 그대로 두�
 결과: 통과
 본 방법: P2 1:1 원본 전후 비교 + `sheets.py --dry-run` `preview_x4.png` (windup 50×74px) 확인 — 지팡이 고리 보석·안경·마도서와 시전 준비 자세가 96px 칸에 여유 있게 들어옴
 남은 걱정: 없음
+
+## sheet/monster/desert-bandit - C5 수정: 접촉(3번) 칼 각도·폭 + 피격(4번) 앞발 접지 (Aseprite)
+CHECK: RESULT: PASS
+- `check_delivery.py sheet_monster_desert-bandit.png --layout 1x4 --cell 96 --aseprite aseprite/sheet_monster_desert-bandit.aseprite --base <5520f35>`: RESULT: PASS (오류 0, 경고 0)
+- background #FF00FF: 84.5%, figure colours: 36, closest to #FF00FF: 216.8
+- pose 1: x 32-335 (w 304), pose 2: x 357-669 (w 313), pose 3: x 707-1122 (w 416), pose 4: x 1158-1497 (w 340), lowest pixel y=870
+- against the base: silhouette changed 17228 px, colour changed 4667 px (per pose silhouette/colour: 0/0, 0/0, 6246/738, 10982/3929)
+- .aseprite export == PNG (pixel-identical), layers: Background / original_ref  (hidden: original_ref), hidden layer original_ref == base PNG
+- `sheets.py --dry-run`: 배치 4열 x 1행 → 자세 4개, idle: 50x66px, windup: 52x74px, strike: 69x63px, hit: 56x68px, 완료 1, 실패 0 (3자세 오인식·strike `+3px` 밀림·hit `-12px` 무게중심 대체 경고 모두 해소)
+CHANGED: 바탕 `5520f35`에서 1·2번 자세는 0px 무수정으로 보존하고 3·4번 자세만 Aseprite 2레이어 RGB로 수정:
+- 3번(접촉): 손잡이 중심 `(1002, 702)` 기준으로 코등이와 곡도 칼날 전체를 시계 방향 `+24.5°` 회전해 칼끝을 `x=1122, y=815`로 내려 P3-P4 간격을 `0px → 36px`으로 분리(4자세 정상 인식)하고, 앵커 대비 우측 돌출을 96px 칸 안으로 들여 `+3px` 밀어 넣기를 완전히 제거. 주먹·코등이·무릎 경계는 기존 36색 팔레트로 매끄럽게 정리.
+- 4번(피격): 뒤 발(`x=1249..1294`)과 상체·떨어뜨린 곡도는 그대로 두고 공중에 들렸던 앞다리·장화를 내려 2번 자세와 같은 규격의 통 넓은 바지·가죽 감개 장화를 `x=1400..1497`·바닥선 `y=870`에 정확히 접지시킴 (`bot6px` 폭 `249px` 확보로 `-12px` 무게중심 대체 제거).
+- 참고: 없음
+- 지침 판: 2026-11-26f
+
+## 판정 — sheet/monster/desert-bandit
+결과: 통과
+본 방법: P3·P4 1:1 전후 비교(`bandit_compare.png`) + `sheets.py --dry-run` `preview_x4.png` 확인 — 접촉 칼끝 돌출/겹침과 피격 공중 다리가 자연스럽게 해결됨
+남은 걱정: 없음
+
+## sheet/monster/goblin - C5 대비·실루엣 손질: 밝은 녹색/가죽 명암·안쪽 1px 밝은 테두리·귀/몽둥이 분리 (Aseprite)
+CHECK: RESULT: PASS
+- `check_delivery.py sheet_monster_goblin.png --layout 1x4 --cell 96 --aseprite aseprite/sheet_monster_goblin.aseprite --base <c4cc054>`: RESULT: PASS (오류 0, 경고 0)
+- background #FF00FF: 88.5%, figure colours: 25, closest to #FF00FF: 218.1
+- pose 1: x 48-341 (w 294), pose 2: x 380-705 (w 326, top y=446), pose 3: x 744-1147 (w 404), pose 4: x 1180-1503 (w 324), lowest pixel y=870
+- against the base: silhouette changed 48424 px, colour changed 157967 px (per pose silhouette/colour: 2121/42691, 1655/47750, 20038/33416, 24610/34110)
+- .aseprite export == PNG (pixel-identical), layers: Background / original_ref  (hidden: original_ref), hidden layer original_ref == base PNG
+- `sheets.py --dry-run --grid 4x1 --scale 0.1654 --cell 96`: 배치 4열 x 1행 → 자세 4개, idle: 49x54px, windup: 54x70px, strike: 67x54px, hit: 54x59px, 완료 1, 실패 0 (경고 0건)
+CHANGED: 바탕 `c4cc054` 기반으로 어두운 숲(`deepwood`) 배경에서 뭉개지던 색감과 겹친 실루엣을 전면 정리:
+- 팔레트·테두리: 칙칙하던 올리브 피부를 선명한 모스 그린(`#3a6026`~`#6fa84a`~`#b0e07b`)으로 끌어올리고, 가죽 튜닉·감개(`#5c3927`~`#a46e4c`~`#c79166`)와 밝은 떡갈 몽둥이(`#7a5735`~`#cfa36e`)로 재질별 명암을 분리함. 외곽 2px 어두운 윤곽선(`#241914`) 안쪽 상단·좌상단 광원 면에 게임 1px 폭(원본 5~6px) 밝은 안쪽 테두리(`#d5f2a2`·`#e2b68a`·`#edd09c`)를 둘러 총 25색으로 선명도 확보.
+- 실루엣 분리: 1번 뒤 허벅지를 가리던 몽둥이 밑동을 정리하고 몽둥이 머리 끝을 몸 밖 오른쪽(`x=341`)으로 더 뺐으며, 2번 뒷귀와 겹치던 몽둥이 자루를 떼어 귀 실루엣을 완전히 분리(높이 `70px` 유지). 3번은 `-18px` 이동해 P3-P4 여백 확보, 4번(`x=1222` 잡점 제거)은 `+16px` 이동 후 다리를 가리던 몽둥이를 주먹 뒤 왼쪽 빈 배경(`x=1180..1285, y<=858`)으로 돌려 세우고 다리·허리 천을 복원함.
+- 참고: 없음
+- 지침 판: 2026-11-26f
+
+## 판정 — sheet/monster/goblin
+결과: 통과
+본 방법: `goblin_strip_compare.png` 1:1 대조 + `sheets.py --dry-run` `preview_x4.png` + `deepwood` 실전 어두운 숲 바닥(`dark-after-3-contact.png` 패치) 위 1x/3x 전후 비교 확인
+남은 걱정: 없음
+
+## 참고 — 달리기 5건(gait/*) 및 카토 연쇄 시트 대기
+- `sheet/captain/liberator/chain-sheet` 및 새로 올라온 달리기 5건(`gait/sheet_captain_ironwall_run`, `sheet_class_mage_run`, `sheet_class_archer_run`, `sheet_class_cleric_run`, `sheet_class_rogue_run`)은 이미지 생성 할당량 초기화 시각(~12:09 KST)에 맞춰 자동 재개 예정이며, 대기열 모니터링은 계속 유지 중입니다.
