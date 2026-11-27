@@ -10,7 +10,7 @@ Run (gait) checks - gait_checks():
   knee        stance knee flex >= 10 deg (a locked straight knee reads as a stilt; too long a stride)              FAIL
   mirror      knee flex of the near leg at frame f == far leg at f+4 (+-3 deg); hip height +-1 px                   FAIL
   band        everything incl. props inside the slot band x 32..351                                                FAIL
-  feet        each foot keeps >= 60% of its own area clear of the other leg (no two-feet blob in passing frames)                  FAIL
+  feet        each foot keeps >= 75% of its own area clear of the other leg (no two-feet blob in passing frames)                  FAIL
   knees       the far knee is visible or >= 14 px from the near knee on screen                                     WARN
   upper body  each hand travels >= 12 px (relative to the hip) over the cycle - no frozen cut-out torso             FAIL
   props       a mace / weapon head is >= its radius + 8 px from the other hand (not sitting on the shield hand)     FAIL
@@ -125,8 +125,8 @@ def gait_checks(spec, recs, bodies, plains, cam, carry=None):
         cam.fit(b)
         fv.append((r['frame'], visible_fraction(b, cam, {'footN', 'instepN', 'ankleN'}, {p + 'F' for p in LEG}),
                    visible_fraction(b, cam, {'footF', 'instepF', 'ankleF'}, {p + 'N' for p in LEG})))
-    low = [f'{f} {"near" if n < 0.6 else "far"} {min(n, fa):.2f}' for f, n, fa in fv if min(n, fa) < 0.6]
-    out.append((FAIL if low else OK, 'feet not covered by the other leg (>= 0.6): '
+    low = [f'{f} {"near" if n < 0.75 else "far"} {min(n, fa):.2f}' for f, n, fa in fv if min(n, fa) < 0.75]
+    out.append((FAIL if low else OK, 'feet not covered by the other leg (>= 0.75): '
                 + ' '.join(f'{f}:{n:.2f}/{fa:.2f}' for f, n, fa in fv) + (f'  merged: {low}' if low else '')))
     kw = []
     for r, b in zip(recs, bodies):
