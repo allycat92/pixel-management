@@ -16,6 +16,24 @@ const Art = (() => {
   }
   const urlOf = (entry) => (entry && typeof entry.file === 'string' ? `${entry.file}${entry.file.includes('?') ? '&' : '?'}v=${verOf(entry)}` : '');
 
+  // 처음 받은 시트가 실패하면 두 번만 다시 받는다. 그동안 실패한 Image 를
+  // 남겨 두어 beforeBattle 의 첫 프레임 대기를 늘리지 않는다.
+  const RETRY_MS = [1000, 3000];
+  function retrySheet(id, url, failed, n = 0) {
+    if (n >= RETRY_MS.length || images[id] !== failed) return;
+    setTimeout(() => {
+      if (images[id] !== failed) return;
+      const next = new Image();
+      next.addEventListener('load', () => {
+        if (images[id] !== failed) return;
+        images[id] = next;
+        delete sheetCache[id];
+      }, { once: true });
+      next.addEventListener('error', () => retrySheet(id, url, failed, n + 1), { once: true });
+      next.src = url + '&r=' + (n + 1);
+    }, RETRY_MS[n]);
+  }
+
   async function load() {
     manifestPending = true;
     try {
@@ -25,9 +43,12 @@ const Art = (() => {
       } catch (e) { manifest = {}; }
       // 전투 컷인처럼 캔버스·즉시 표시에 쓰는 그림은 미리 받아 둔다
       Object.entries(manifest).forEach(([id, a]) => {
-        const im = new Image();
-        im.src = urlOf(a);
+        const im = new Image(), url = urlOf(a);
         images[id] = im;
+        if (a?.sheet && url) {
+          im.addEventListener('error', () => retrySheet(id, url, im), { once: true });
+        }
+        im.src = url;
       });
     } finally { manifestPending = false; }
   }

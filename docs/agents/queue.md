@@ -7,7 +7,7 @@
 
 | 누구 | id | 상태 | 할 일 (자세한 것은 그 줄의 문서) |
 |---|---|---|---|
-| GPT | `C32-sheet-load-retry` | READY | 시트 PNG 받기 실패 뒤 다시 받기(Q29 동시부하 예외) — 먼저 재현해 원인 확인, 맞으면 `js/art.js` 에 다시 받기 2번 (`tasks/C32-sheet-load-retry.md`) |
+| GPT | `C32-sheet-load-retry` | REVIEW | 시트 PNG 받기 실패 뒤 다시 받기(Q29 동시부하 예외) — 먼저 재현해 원인 확인, 맞으면 `js/art.js` 에 다시 받기 2번 (`tasks/C32-sheet-load-retry.md`) |
 | GPT | `G15-kai-r3-r7-legs` | REVIEW | (art-inbox `c57439c`) 카이 R3 다리 분리·바닥 선 제거, R7 다리 분리 — 기술 검사 PASS, 떨어진 조각 0. **주인 판정 대기** |
 | GPT | `G14-kai-kiara-foot-fix` | REVIEW | (art-inbox `54233db`) 카이 R7 발끝 85→159(가이드 159), 화면 미끄러짐 −8.9→+1.9px; 키아라 R5/R6 밑창 중심 ±3px 조정. 주인: 마네킹 개정 OK, 키아라는 「저걸론 잘 모르겠다」(판정 보류), 카이는 다리 뭉개짐 → G15 |
 | GPT | `G12-oswin-3d` | REVIEW | (art-inbox `7b7849f`) 오스윈 3차 — 몸 검사 PASS(얼굴 비율 1.00, 폭 출렁임 0, 가라앉음 없음 1.024). **주인 판정 대기** |
