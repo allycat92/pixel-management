@@ -17,7 +17,7 @@
 | GPT | `G9-astel-3d` | REVIEW | 아스텔 이동 8프레임(3D 마네킹): `docs/agents/tasks/G9-astel-3d.md` |
 | GPT | `G10-grom-3d` | REVIEW | 그롬 이동 8프레임(3D 마네킹): `docs/agents/tasks/G10-grom-3d.md` |
 | GPT | `G11-kai-3d` | REVIEW | 카이 이동 8프레임(3D 마네킹): `docs/agents/tasks/G11-kai-3d.md` |
-| GPT | `G12-oswin-3d` | READY | 오스윈 이동 8프레임(3D 마네킹): `docs/agents/tasks/G12-oswin-3d.md` |
+| GPT | `G12-oswin-3d` | REVIEW | 오스윈 이동 8프레임(3D 마네킹): `docs/agents/tasks/G12-oswin-3d.md` |
 | GPT | `G13-seraphine-3d` | READY | 세라핀 이동 8프레임(3D 마네킹): `docs/agents/tasks/G13-seraphine-3d.md` |
 
 ## 끝난 일
