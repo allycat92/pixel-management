@@ -7,7 +7,7 @@
     "chest_open": "extra chest turn toward the viewer (default: the --chest-open CLI value)",
     "chest_counter": "chest counter-rotation amplitude against the pelvis (default: the gait table's)",
     "arms": "per side N / F: shoulder = table_scale x the gait table's shoulder + shoulder + swing x wave; elbow (+ elbow_swing x wave) replaces the table's; wrist; abd (out to the side); lag = frames the swing trails the legs (secondary motion)",
-    "props": "list: kind sword | dagger | mace | staff | spear | bow | shield; hand N | F. Weapons: abs_angle (deg from forward-horizontal, + = up: the GRIP AXIS = fist -> tip, the stave toward the upper tip for a bow), yaw (turn out of the side plane), length beyond the fist, back (pommel / butt / lower bow limb behind the fist), swing (deg with the hand's wave), lag (frames); grip normal | reverse (sword / dagger: reverse = the blade leaves the little-finger side, drawn flipped 180 deg from the grip axis; the wrist range still applies to the grip axis). bow: held at the grip in ONE hand, curved limbs + string (brace = string-to-grip px, default 13% of the bow; recurve; belly +1 = limbs bulge forward, string toward the body). spear: shaft + leaf-shaped steel head (head_len, head_w), may take two hands (two_hand). dagger: short blade, small guard (guard = half width). Shields: shape round (radius) | tower (half = [w, h], corner), face (deg from forward toward the viewer), lift (px up from the forearm middle), toward (px toward the viewer, so the shield covers its forearm and hand), offset (px out from the forearm). measured = where the value was read on the idle drawing",
+    "props": "list: kind sword | dagger | mace | staff | spear | bow | shield; hand N | F. Weapons: abs_angle (deg from forward-horizontal, + = up: the GRIP AXIS = fist -> tip, the stave toward the upper tip for a bow), yaw (turn out of the side plane), length beyond the fist, back (pommel / butt / lower bow limb behind the fist), swing (deg with the hand's wave), lag (frames); grip normal | reverse (sword / dagger: reverse = the blade leaves the little-finger side, drawn flipped 180 deg from the grip axis; the wrist range still applies to the grip axis). bow: held at the grip in ONE hand, curved limbs + string (brace = string-to-grip px, default 13% of the bow; recurve; belly +1 = limbs bulge forward, string toward the body). spear: shaft + leaf-shaped steel head (head_len, head_w), may take two hands (two_hand). dagger: short blade, small guard (guard = half width). Shields: shape round (radius) | tower (half = [w, h], corner), face (deg from forward toward the viewer), lift (px up from the forearm middle), toward (px toward the viewer, so the shield covers its forearm and hand), offset (px out from the forearm). measured = where the value was read on the idle drawing. idle_deg = the weapon's on-screen angle on the accepted idle drawing (deg from forward, + = up; butt -> tip, a bow lower -> upper tip, a reverse-gripped blade fist -> blade tip), idle_measured = where it was read; checks.py WARNs when the run carry differs by more than 15 deg and the README then states the change",
     "weapon_limit": "hand range of motion of every held weapon (sword, dagger, mace, staff, spear, bow; not shields), owner 2026-11-28: {min, max} deg of the weapon direction (fist -> tip; staff: its head end) from the FOREARM line (elbow -> wrist) in the arm's swing plane; 0 = straight along the forearm (fully extended), + = rotated UPWARD (thumb side: toward the head when the forearm points forward, back over the shoulder when it points up). Default {min 0, max 120}: the weapon never bends down past the arm line (no dangling blade). rig.py clamps to it (safety net) and checks.py FAILs any frame that needed the clamp. Measured on the GRIP AXIS (rig.py add_prop): for a reverse grip that is the thumb side of the fist, the blade pointing the other way - so a reverse-gripped dagger keeps the default 0..120 too",
     "two_hand": "second hand on a staff / two-handed weapon: prop index, other hand, along = px past the holding hand along the prop",
     "ready": "actions only: the idle's grip as the first key: hand_N = [x, h] of the sword fist on the idle drawing, blade_deg = blade angle on the idle drawing",
@@ -279,7 +279,9 @@
           "back": 15.0,
           "swing": 4.0,
           "lag": 1,
-          "measured": "idle cane (art/inbox/sheet_captain_tactician.png pose 1): the near fist sits ON the gold knob at about (-125, 203) from the anchor column (x=180), the knob below it to h~153, a straight black shaft (x 54-67) down to the gold ferrule on the floor: ~200 px end to end, ~195 px fist to ferrule. The accepted wind-up and strike (poses 2/3) hold it the other way round - fist on the lower (ferrule) end, gold knob up - and the run uses that grip: length 175 (fist -> knob centre; the staff ghost's ball = the gold knob), back 15 (ferrule end below the fist) = the idle's ~190-200 px. Run carry (owner 2026-11-28 weapon range): fist at the belt in front of the body, cane forward-up ~61 deg (the knob >= 8 px inside the slot band), knob ahead of the face at about eye height; 66-88 deg above the forearm line (inside 0..120). The old 2D carry (art/requests/gait/run__captain_tactician: fist on the knob, shaft trailing back 30-40 deg from vertical) was tried: it stays inside the range only with a straight arm hanging back (a ski-pole look, ferrule out of the slot band); any elbow bend puts the cane below the forearm line - the dangling the owner rejected"
+          "measured": "idle cane (art/inbox/sheet_captain_tactician.png pose 1): the near fist sits ON the gold knob at about (-125, 203) from the anchor column (x=180), the knob below it to h~153, a straight black shaft (x 54-67) down to the gold ferrule on the floor: ~200 px end to end, ~195 px fist to ferrule. The accepted wind-up and strike (poses 2/3) hold it the other way round - fist on the lower (ferrule) end, gold knob up - and the run uses that grip: length 175 (fist -> knob centre; the staff ghost's ball = the gold knob), back 15 (ferrule end below the fist) = the idle's ~190-200 px. Run carry (owner 2026-11-28 weapon range): fist at the belt in front of the body, cane forward-up ~61 deg (the knob >= 8 px inside the slot band), knob ahead of the face at about eye height; 66-88 deg above the forearm line (inside 0..120). The old 2D carry (art/requests/gait/run__captain_tactician: fist on the knob, shaft trailing back 30-40 deg from vertical) was tried: it stays inside the range only with a straight arm hanging back (a ski-pole look, ferrule out of the slot band); any elbow bend puts the cane below the forearm line - the dangling the owner rejected",
+          "idle_deg": -90.0,
+          "idle_measured": "idle: the cane is planted, handle at the fist (60,375), ferrule on the floor (60,565): pointing straight down"
         }
       ],
       "personality": {
@@ -363,7 +365,9 @@
           "back": 80.0,
           "swing": 3.0,
           "lag": 1,
-          "measured": "idle infantry lance (art/inbox/sheet_captain_lancer.png pose 1, anchor column x=179): butt ~(-87, 156), lower (near) fist at the belt ~(-24, 206), upper (far) fist ~(+53, 259), leaf tip (+203, 368) -> a straight shaft ~357 px at ~36 deg: 278 px beyond the near fist, butt 80 px behind it, the far fist ~93 px up the shaft -> kind spear (shaft + slim leaf-shaped steel head), length 278, back 80, two_hand along 93; the small blue pennant hangs just below the head (not modelled). Run carry: the same two-hand grip, the shaft tilted UP to ~68 deg (idle 36) so the full-length lance fits the heavy slot band with >= 8 px to spare (head x <= 336 of 351) - never shortened; 73-82 deg above the near forearm line (inside 0..120)"
+          "measured": "idle infantry lance (art/inbox/sheet_captain_lancer.png pose 1, anchor column x=179): butt ~(-87, 156), lower (near) fist at the belt ~(-24, 206), upper (far) fist ~(+53, 259), leaf tip (+203, 368) -> a straight shaft ~357 px at ~36 deg: 278 px beyond the near fist, butt 80 px behind it, the far fist ~93 px up the shaft -> kind spear (shaft + slim leaf-shaped steel head), length 278, back 80, two_hand along 93; the small blue pennant hangs just below the head (not modelled). Run carry: the same two-hand grip, the shaft tilted UP to ~68 deg (idle 36) so the full-length lance fits the heavy slot band with >= 8 px to spare (head x <= 336 of 351) - never shortened; 73-82 deg above the near forearm line (inside 0..120)",
+          "idle_deg": 36.0,
+          "idle_measured": "idle: butt (90,415) -> steel tip (380,205) on the 1536x1024 sheet, pose 1: the lance couched low at ~36 deg"
         }
       ],
       "two_hand": {
@@ -389,16 +393,16 @@
         "notes": [
           "A dismounted knight who still marches as if leading a charge: a proud, UPRIGHT heavy trudge - 1-2 deg less lean than the heavy class mannequin, chest open to the viewer (the lion emblem shows), chin up, eyes fixed ahead (the mannequin already has it - follow it).",
           "Each footfall settles into the plate: the down frames (H2/H6) sit ~3 px lower than the class mannequin, then he rises back slowly - a deliberate, weighty rhythm, never a bounce.",
-          "The lance is held at port in BOTH hands the whole time (near fist at the belt, far fist up the shaft by the chest), tilted more upright than the idle so the full-length lance fits the slot; the tip leads forward-up and nods a few px with each footfall, one frame late - it never swings, never drops toward the floor.",
+          "The lance is held at port in BOTH hands the whole time (near fist at the belt, far fist up the shaft by the chest), tilted more upright than the idle so the full-length lance fits the slot; the lance is LOCKED to the chest at the table's ~68 deg (the idle couches it at ~36: the run raises it - draw 68): one straight shaft at its full length, the same angle in every frame, riding only the body's bob - no nod, no swing, never toward the floor.",
           "Hips and shoulders turn less than the class mannequin (both hands locked on one shaft). The blue plume, the blue pennant, the tattered red cape and the surcoat hem trail one frame late with restrained sway, settling in the down frames."
         ],
         "notes_ko": [
           "말을 잃었어도 아직 돌격을 이끄는 듯 걷는 기사: 자부심 있게 꼿꼿한 중량 걸음 — 중량 마네킹보다 1~2도 덜 기울고, 가슴은 보는 쪽으로 열려(사자 문장이 보이게) 턱을 들고 시선은 앞을 본다(3D 마네킹에 이미 들어 있다 — 따라 그린다).",
           "발을 디딜 때마다 판금 무게가 실린다: 내려앉는 프레임(H2/H6)이 부류 마네킹보다 약 3px 더 낮고, 천천히 다시 올라온다 — 묵직하고 신중한 박자, 통통 튀지 않는다.",
-          "랜스는 내내 두 손으로 비껴 든다(가까운 손은 허리띠, 먼 손은 가슴 옆 자루 위쪽). 대기보다 더 세워 들어 랜스 길이 그대로 칸에 들어가게 한다. 창끝은 앞-위를 향하고 발 디딤마다 한 프레임 늦게 몇 px 끄덕인다 — 휘두르지 않고, 바닥 쪽으로 처지지 않는다.",
+          "랜스는 내내 두 손으로 비껴 든다(가까운 손은 허리띠, 먼 손은 가슴 옆 자루 위쪽). 대기보다 더 세워 들어 랜스 길이 그대로 칸에 들어가게 한다. 랜스는 가슴에 고정되어 표의 약 68도(대기는 약 36도로 낮게 겨눔 — 달리기에서는 세워 든다, 68도로 그린다)로 제 길이 그대로 한 직선 — 모든 프레임에서 같은 각도, 몸의 출렁임만 따른다. 끄덕이지도 휘두르지도 않고, 바닥 쪽으로 처지지 않는다.",
           "두 손이 한 자루를 잡고 있어 엉덩이·어깨 비틀림은 부류 마네킹보다 작다. 파란 깃털, 파란 창 깃발, 해진 붉은 망토와 겉옷 자락은 한 프레임 늦게 절제된 흔들림으로 따라오고, 내려앉는 프레임에서 가라앉는다."
         ],
-        "summary_ko": "말을 잃고도 돌격을 이끄는 기사: 중량 부류보다 꼿꼿하게(기울기 약 3도) 턱을 들고, 디딜 때마다 판금 무게로 푹 가라앉았다 천천히 올라온다(출렁임 약 11px). 골반·어깨는 네모나게 거의 안 돌고(3/1.5), 창은 두 손으로 비껴 세워 창끝만 한 박자 늦게 끄덕인다."
+        "summary_ko": "말을 잃고도 돌격을 이끄는 기사: 중량 부류보다 꼿꼿하게(기울기 약 3도) 턱을 들고, 디딜 때마다 판금 무게로 푹 가라앉았다 천천히 올라온다(출렁임 약 11px). 골반·어깨는 네모나게 거의 안 돌고(3/1.5), 창은 두 손으로 약 68도로 세워 가슴에 고정한다(곧은 한 자루, 끄덕임 없음)."
       },
       "request": {
         "look": "Roderick (로드릭), the knight who lost his horse, exactly as on the accepted sheet: a brass-tan great helm with a barred visor RAISED on top so the whole face shows, a dark-blue plume at the back; short red-brown hair to the jaw, stubble, a scar across the nose and cheek, stern determined eyes; polished blue plate (big rounded pauldrons, vambraces, tassets) with gold trim and round rivets; a worn off-white surcoat / tabard with a simple blue lion emblem on the chest and a long off-white front panel to the knees; a brown leather belt with a silver buckle; a short TATTERED dark-red cape behind; dark-blue trousers; steel knee cops, greaves and sabatons; brown leather gauntlets. ONE infantry lance: a plain brown wooden shaft, a slim leaf-shaped steel tip, a small blue two-tailed pennant just below the tip, as long as on the idle (~357 source px) - no jousting cone, no vamplate.",
@@ -441,7 +445,9 @@
           "back": 105.0,
           "swing": 3.0,
           "lag": 1,
-          "measured": "idle short recurve bow (art/inbox/sheet_captain_huntress.png pose 1, anchor column x=176): the FAR (left) fist round the cream grip wrap ~(+86, 179); upper tip ~(+102, 306), lower tip ~(+22, 91): tip to tip ~230 px, chord at ~70 deg, the grip ~31 px in front of the chord (brace), the string toward the body; along the stave ~125 px grip -> upper tip and ~105 px grip -> lower tip -> kind bow, length 125, back 105 (brace default 13% = 30 px). Run carry: far forearm forward in front of the belt (shoulder 6, elbow 86, no table swing), stave near-upright at 78 deg (straightened 8 deg from the idle so the upper limb stays well inside the slot band); grip axis (the stave at the grip) 92-114 deg above the forearm line (inside 0..120)"
+          "measured": "idle short recurve bow (art/inbox/sheet_captain_huntress.png pose 1, anchor column x=176): the FAR (left) fist round the cream grip wrap ~(+86, 179); upper tip ~(+102, 306), lower tip ~(+22, 91): tip to tip ~230 px, chord at ~70 deg, the grip ~31 px in front of the chord (brace), the string toward the body; along the stave ~125 px grip -> upper tip and ~105 px grip -> lower tip -> kind bow, length 125, back 105 (brace default 13% = 30 px). Run carry: far forearm forward in front of the belt (shoulder 6, elbow 86, no table swing), stave near-upright at 78 deg (straightened 8 deg from the idle so the upper limb stays well inside the slot band); grip axis (the stave at the grip) 92-114 deg above the forearm line (inside 0..120)",
+          "idle_deg": 69.0,
+          "idle_measured": "idle: lower bow tip (585,470) -> upper tip (665,265): ~69 deg"
         }
       ],
       "personality": {
@@ -527,7 +533,9 @@
           "back": 105.0,
           "swing": 3.0,
           "lag": 1,
-          "measured": "idle crooked staff (art/inbox/sheet_captain_hedgemage.png pose 1), x from the anchor column: lower (near) fist ~(+24, 187), upper (far) fist ~(+44, 244) = ~60 px up the shaft; shaft ~76 deg (h 431 at x+87 down to h 91 at x+1), plain wooden top ~(+90, 440) = ~255 px beyond the lower fist, butt ~(0, 80) = ~105 px below it. Run carry: both hands kept on the shaft at the idle grip, abs 73 +-3 (screen 71-76 deg, a little more forward than the idle) so that at brim height (h 370) the shaft is at x +88..+100 from the hip column, in front of the leaned brim tip (idle +62, +~15 lean) - the gap the 2D carry note asked for; fist fore-aft travel ~12 px (2D note: 10)"
+          "measured": "idle crooked staff (art/inbox/sheet_captain_hedgemage.png pose 1), x from the anchor column: lower (near) fist ~(+24, 187), upper (far) fist ~(+44, 244) = ~60 px up the shaft; shaft ~76 deg (h 431 at x+87 down to h 91 at x+1), plain wooden top ~(+90, 440) = ~255 px beyond the lower fist, butt ~(0, 80) = ~105 px below it. Run carry: both hands kept on the shaft at the idle grip, abs 73 +-3 (screen 71-76 deg, a little more forward than the idle) so that at brim height (h 370) the shaft is at x +88..+100 from the hip column, in front of the leaned brim tip (idle +62, +~15 lean) - the gap the 2D carry note asked for; fist fore-aft travel ~12 px (2D note: 10)",
+          "idle_deg": 77.0,
+          "idle_measured": "idle: lower shaft (215,970) -> knob (270,735): ~77 deg"
         }
       ],
       "two_hand": {
@@ -548,13 +556,13 @@
         "notes": [
           "A cheerful young country mage in a hurry: more UPRIGHT than the robe class (lean 4-5 deg instead of 6.5-7.5; the mannequin already has it - follow it), chin up, looking brightly ahead - not the class's head-down purposeful glide.",
           "A springy little bounce: the hips dip ~3 px more in the down frames G2/G6 (bob ~9 px instead of ~5) and sway a bit more from side to side - an eager, light step. Still the robe glide: no flight, the feet stay low under the hem.",
-          "The crooked staff stays in BOTH hands across the body at the idle grip (near fist low at the belt, far fist ~60 px higher up the shaft), tilted a little more forward than the idle so it always passes IN FRONT of the hat brim. It rocks only a few degrees with the step, like a walking stick held in both hands; the fists travel ~12 px fore-aft. Never planted on the ground.",
+          "The crooked staff stays in BOTH hands across the body at the idle grip (near fist low at the belt, far fist ~60 px higher up the shaft), tilted a little more forward than the idle so it always passes IN FRONT of the hat brim. It is LOCKED to the chest: the same angle and length in every frame, both fists in the same places on the shaft, riding only the body's bounce - no rocking. Never planted on the ground.",
           "The hat tip, the loose hem and the satchel on the back hip bounce one frame late: they lift after the down frames (G3/G7) and settle in the contact frames (G1/G5)."
         ],
         "notes_ko": [
           "서두르는 명랑한 시골 청년 마법사: 로브 부류보다 상체가 곧다(기울기 6.5~7.5도 대신 4~5도 — 3D 마네킹에 이미 들어 있다, 따라 그린다). 턱을 들고 밝게 앞을 본다 — 부류 기본의 고개 숙인 미끄러짐이 아니다.",
           "통통 튀는 작은 반동: 내려앉는 프레임(G2/G6)에서 엉덩이가 약 3px 더 내려가고(출렁임 약 5px 대신 약 9px) 엉덩이를 조금 더 좌우로 돌린다 — 신난 가벼운 걸음. 그래도 로브 걸음이다: 공중 프레임 없음, 발은 옷자락 아래 낮게.",
-          "굽은 지팡이는 대기 그립 그대로 두 손으로 몸 앞에 비스듬히 든다(가까운 주먹은 허리띠 높이 아래쪽, 먼 주먹은 자루를 따라 약 60px 위). 대기보다 조금 더 앞으로 기울여 항상 모자 챙 앞을 지난다. 걸음에 맞춰 지팡이를 두 손으로 든 지팡이처럼 몇 도만 흔들고, 주먹은 앞뒤로 약 12px 만 움직인다. 땅에 짚지 않는다.",
+          "굽은 지팡이는 대기 그립 그대로 두 손으로 몸 앞에 비스듬히 든다(가까운 주먹은 허리띠 높이 아래쪽, 먼 주먹은 자루를 따라 약 60px 위). 대기보다 조금 더 앞으로 기울여 항상 모자 챙 앞을 지난다. 지팡이는 가슴에 고정된다: 모든 프레임에서 같은 각도·같은 길이, 두 주먹은 자루의 같은 자리 — 몸의 반동만 따르고 흔들지 않는다. 땅에 짚지 않는다.",
           "모자 끝, 느슨한 옷자락, 뒤쪽 허리의 가방은 한 프레임 늦게 튄다: 내려앉은 다음 프레임(G3/G7)에서 올라가고 디딤 프레임(G1/G5)에서 가라앉는다."
         ],
         "summary_ko": "명랑한 시골 마법사의 서두르는 걸음: 로브 부류보다 곧게 턱을 들고, 내려앉는 프레임마다 통통 튀는 반동(출렁임 약 9px). 굽은 지팡이는 두 손으로 비스듬히 모자 챙 앞을 지난다."
@@ -596,7 +604,9 @@
           "head_r": 30.0,
           "swing": 4.0,
           "lag": 1,
-          "measured": "idle long-handled mace (art/inbox/sheet_captain_fieldmedic.png pose 1, anchor column 179.5): both hands on the haft held diagonally in front - lower NEAR fist (the armband arm) ~(+10, 166) at the belt, upper FAR fist ~(+53, 251) i.e. ~95 px up the haft, spiked iron ball centre ~(+110, 361) (ball ~60 px across, ~72 px with the spikes), butt ~(-30, 96): head 215-220 px beyond the lower fist at ~62 deg forward-up, butt ~80 px behind it -> length 215, back 80, head_r 30. The old 2D carry (gait_requests.CARRY: both hands kept, haft tipped up and BACK 53-57 deg over the shoulder, ball behind the head) is kept as the idea, but with the lower fist low at the belt the haft would sit 135-180 deg above the forearm line (outside 0..120). Run carry (owner 2026-11-28 weapon range): PORT ARMS - the near fist raised in front of the lower chest (forearm forward-up), the haft across the chest up and back ~62 deg above horizontal, the ball above and behind the head; 90-111 deg above the forearm line (inside 0..120). The far hand stays on the haft 90 px above the near fist (two_hand), near the far shoulder"
+          "measured": "idle long-handled mace (art/inbox/sheet_captain_fieldmedic.png pose 1, anchor column 179.5): both hands on the haft held diagonally in front - lower NEAR fist (the armband arm) ~(+10, 166) at the belt, upper FAR fist ~(+53, 251) i.e. ~95 px up the haft, spiked iron ball centre ~(+110, 361) (ball ~60 px across, ~72 px with the spikes), butt ~(-30, 96): head 215-220 px beyond the lower fist at ~62 deg forward-up, butt ~80 px behind it -> length 215, back 80, head_r 30. The old 2D carry (gait_requests.CARRY: both hands kept, haft tipped up and BACK 53-57 deg over the shoulder, ball behind the head) is kept as the idea, but with the lower fist low at the belt the haft would sit 135-180 deg above the forearm line (outside 0..120). Run carry (owner 2026-11-28 weapon range): PORT ARMS - the near fist raised in front of the lower chest (forearm forward-up), the haft across the chest up and back ~62 deg above horizontal, the ball above and behind the head; 90-111 deg above the forearm line (inside 0..120). The far hand stays on the haft 90 px above the near fist (two_hand), near the far shoulder",
+          "idle_deg": 63.0,
+          "idle_measured": "idle: butt (920,1075) -> spiked ball (1060,800): forward-up ~63 deg (the run carries it at port arms, 117)"
         }
       ],
       "two_hand": {
@@ -629,13 +639,13 @@
         "notes": [
           "A field medic's purposeful dash to the wounded: more UPRIGHT than the light class mannequin (3-4 deg less lean) with the hips ~2 px higher - she runs tall, not low like Baren. The head is up and level, eyes scanning the field ahead (the mannequin already has all of this - follow it).",
           "Practical, knee-driving stride: the front knee comes up a little higher before the landing, and the heel kicks back LESS behind her (a short tuck) - efficient, nothing flashy.",
-          "The long mace is held at PORT ARMS with BOTH hands: the near (armband) fist in front of the lower chest, the far fist ~90 px up the haft near the far shoulder, the haft across the chest and the spiked ball riding above and behind her head. Her shoulders are locked by the two-handed grip (almost no counter-turn); the whole mace bobs a few px with the steps - it never swings.",
+          "The long mace is held at PORT ARMS with BOTH hands: the near (armband) fist in front of the lower chest, the far fist ~90 px up the haft near the far shoulder, the haft across the chest and the spiked ball riding above and behind her head. Her shoulders are locked by the two-handed grip (almost no counter-turn); the mace is LOCKED to the chest (the idle holds it forward-up at ~63 deg; the run carries it at port arms, ~117 - draw 117): the same angle and full length in every frame, it rides the body only - never swings, never pumps.",
           "The high ponytail and the warm-beige coat tails stream back and lag one frame (highest in the flight frames R4/R8, settling in the catch frames R2/R6); the dark-red apron flaps between the knees; the two belt pouches bounce a frame late."
         ],
         "notes_ko": [
           "부상병에게 달려가는 의무관의 단호한 달리기: 경량 마네킹보다 3~4도 덜 기울고 엉덩이는 약 2px 높다 — 바렌처럼 낮게가 아니라 꼿꼿하게 달린다. 고개는 들고 수평, 눈은 앞쪽 전장을 살핀다(3D 마네킹에 이미 들어 있다 — 따라 그린다).",
           "실용적으로 무릎을 끌어올리는 보폭: 착지 전에 앞 무릎이 조금 더 올라오고, 뒤로 차는 발뒤꿈치는 덜 접힌다 — 군더더기 없이.",
-          "긴 철퇴는 양손으로 '앞에 총' 자세처럼 든다: 가까운 손(완장 팔)의 주먹은 가슴 아래 앞에, 먼 손은 자루를 따라 약 90px 위 먼 어깨 근처. 자루는 가슴을 가로질러 위·뒤로, 가시 쇠공은 머리 위 뒤쪽에 얹힌다. 양손으로 쥐어 어깨는 거의 돌지 않고, 철퇴 전체가 걸음에 맞춰 몇 px 만 흔들린다 — 휘두르지 않는다.",
+          "긴 철퇴는 양손으로 '앞에 총' 자세처럼 든다: 가까운 손(완장 팔)의 주먹은 가슴 아래 앞에, 먼 손은 자루를 따라 약 90px 위 먼 어깨 근처. 자루는 가슴을 가로질러 위·뒤로, 가시 쇠공은 머리 위 뒤쪽에 얹힌다. 양손으로 쥐어 어깨는 거의 돌지 않고, 철퇴는 가슴에 고정된다(대기는 앞-위 약 63도, 달리기는 「앞에 총」 약 117도 — 117도로 그린다): 모든 프레임에서 같은 각도·제 길이, 몸을 따라 움직일 뿐 — 휘두르거나 길이가 변하지 않는다.",
           "높게 묶은 포니테일과 따뜻한 베이지 코트 자락은 뒤로 날리며 한 프레임 늦다(공중 프레임 R4/R8 에서 가장 높이, 받는 프레임 R2/R6 에서 가라앉음). 짙은 붉은 앞치마는 무릎 사이에서 펄럭이고, 허리 주머니 둘은 한 프레임 늦게 튄다."
         ],
         "summary_ko": "부상병에게 달려가는 의무관: 경량보다 3~4도 덜 기울고 고개를 들어 앞을 살핀다. 앞무릎은 높이, 뒤꿈치는 덜 차고, 긴 철퇴는 양손 「앞에 총」으로 가슴을 가로지른다(어깨가 거의 안 돎)."
@@ -676,7 +686,9 @@
           "length": 100.0,
           "back": 16.0,
           "measured": "idle dagger (art/inbox/sheet_captain_fixer.png pose 1, anchor column x=177): REVERSE grip - fist ~(+13, 181) at the belt front, small guard ~(-12, 203) just behind the fist, light-steel blade back and a little up to the tip ~(-89, 213): ~78 px guard -> tip, ~104 px from the fist centre -> kind dagger, grip reverse, length 100, back 16. grip reverse = the blade leaves the LITTLE-FINGER side of the fist (rig.py draws it flipped 180 deg from the grip axis); the wrist range 0..120 is measured on the grip axis = the thumb side of the fist. `angle` -65 (hand frame) puts that axis 25 deg above the forearm line in every frame (inside 0..120), so the blade lies back along the underside of the forearm, 155 deg from it - exactly the idle. Run carry: the blade trails behind the fist when the arm comes forward (R2-R5) and points back and a little up past the elbow when it swings back (R6-R8/R1); far guard hand shoulder 30 (was 40) keeps the fist >= 8 px inside the slot band",
-          "grip": "reverse"
+          "grip": "reverse",
+          "idle_deg": 163.0,
+          "idle_measured": "idle: reverse grip, fist (945,380) -> blade tip (855,352): the blade back and a little up, ~163 deg"
         }
       ],
       "personality": {
@@ -772,7 +784,9 @@
           "back": 30.0,
           "swing": 3.0,
           "lag": 1,
-          "measured": "idle arming sword (art/inbox/sheet_captain_veteran.png pose 1, anchor column 180): near fist low beside the near hip ~(-55, 169), pommel ~(-83, 151), tip ~(+87, 236) -> blade ~25 deg up, ~157 px beyond the fist, ~30 px back -> length 157 (the idle's full blade), back 30. Run carry (owner 2026-11-28 weapon range): the idle guard carried along - fist low in front of the hip, blade forward-up 48 deg toward the shield rim so the full blade stays >= 8 px inside the slot band; 82-102 deg above the forearm line (inside 0..120). The old 2D request's 'pointed low and back' carry would dangle below the forearm line (rejected)"
+          "measured": "idle arming sword (art/inbox/sheet_captain_veteran.png pose 1, anchor column 180): near fist low beside the near hip ~(-55, 169), pommel ~(-83, 151), tip ~(+87, 236) -> blade ~25 deg up, ~157 px beyond the fist, ~30 px back -> length 157 (the idle's full blade), back 30. Run carry (owner 2026-11-28 weapon range): the idle guard carried along - fist low in front of the hip, blade forward-up 48 deg toward the shield rim so the full blade stays >= 8 px inside the slot band; 82-102 deg above the forearm line (inside 0..120). The old 2D request's 'pointed low and back' carry would dangle below the forearm line (rejected)",
+          "idle_deg": 27.0,
+          "idle_measured": "idle: fist (1290,405) -> tip (1415,340): ~27 deg"
         },
         {
           "hand": "F",
@@ -879,7 +893,9 @@
           "back": 105.0,
           "swing": 3.0,
           "lag": 1,
-          "measured": "idle staff (art/inbox/sheet_hero_astel.png pose 1), ONE hand: near fist ~(+47, 249) at the chest, shaft at ~78 deg; gold ring head centre ~(+87, 421), top ~(+84, 456) -> ~210 px beyond the fist; butt cap ~(+29, 151) -> ~105 px below it; the ring head is ~60 px across (the mannequin only marks the tip with a small knob). Run carry: the idle grip carried UPRIGHT in the near hand, 82 deg (8 deg forward of vertical; the 2D request allowed 0-12), fist 52-58 px in front of the hip column and 254-281 px above the floor, butt 150-177 px above the floor (never planted); 49-65 deg above the forearm line (inside 0..120). The staff passes in front of the face's front edge as on the idle (near hand, so the staff is drawn over the face/hair)."
+          "measured": "idle staff (art/inbox/sheet_hero_astel.png pose 1), ONE hand: near fist ~(+47, 249) at the chest, shaft at ~78 deg; gold ring head centre ~(+87, 421), top ~(+84, 456) -> ~210 px beyond the fist; butt cap ~(+29, 151) -> ~105 px below it; the ring head is ~60 px across (the mannequin only marks the tip with a small knob). Run carry: the idle grip carried UPRIGHT in the near hand, 82 deg (8 deg forward of vertical; the 2D request allowed 0-12), fist 52-58 px in front of the hip column and 254-281 px above the floor, butt 150-177 px above the floor (never planted); 49-65 deg above the forearm line (inside 0..120). The staff passes in front of the face's front edge as on the idle (near hand, so the staff is drawn over the face/hair).",
+          "idle_deg": 78.0,
+          "idle_measured": "idle: butt ~(980,430) -> ring head (1040,140): ~78 deg"
         }
       ],
       "personality": {
@@ -890,14 +906,14 @@
         "notes": [
           "An upright, hurried scholar's glide - a man late for the library, not a fighter: the trunk leans 1-2 deg LESS than the robe class (about 5-6 deg), the hips ride ~2 px higher on a straighter stance leg, and the neck pushes the head ~5 deg forward while the face stays level - chin leading, eyes on the road through the glasses (the mannequin already has all of it - follow it).",
           "The hips roll a little more than the robe class (pelvis twist 6 instead of 4), so the split front and back panels of the robe swish side to side with each short, quick step; the panels trail the boots by one frame and never reach the floor, the trousers show in the split as on the idle.",
-          "The staff rides UPRIGHT in the near hand at chest height with exactly the idle grip (ring head tipped ~8 deg forward, in front of the face's front edge): it bobs a few px with the steps and never swings, the butt never touches the floor.",
+          "The staff rides UPRIGHT in the near hand at chest height with exactly the idle grip (ring head tipped ~8 deg forward, in front of the face's front edge): it rides the arm, sways at most a few degrees and never swings, the butt never touches the floor.",
           "The free (far) hand is a loose fist that pumps short and brisk in front of the belt buckle - low and close, not Baren's tight pump beside the chest.",
           "The long tied hair tail and the short shoulder cape lag one frame (lift a little in G3/G7, settle in G1/G5); the open book at the near hip bounces 2-3 px with the hip on its strap."
         ],
         "notes_ko": [
           "꼿꼿하고 바쁜 학자의 종종걸음 — 싸움꾼이 아니라 서고에 늦은 사람: 몸통은 로브 부류보다 1~2도 덜 기울고(약 5~6도), 엉덩이는 2px 쯤 높게 곧은 디딤 다리 위에 얹히며, 목이 머리를 5도쯤 앞으로 내밀되 얼굴은 수평 — 턱이 앞서고 안경 너머로 앞길을 본다 (3D 마네킹에 이미 들어 있다 — 따라 그린다).",
           "엉덩이가 로브 부류보다 조금 더 돈다(골반 비틀림 4 대신 6): 짧고 빠른 걸음마다 트인 로브의 앞·뒷자락이 좌우로 스친다. 자락은 장화보다 한 프레임 늦고 바닥에 닿지 않으며, 대기 그림처럼 트인 사이로 바지가 보인다.",
-          "지팡이는 대기 그림 그대로의 쥠새로 가까운 손이 가슴 높이에서 곧게 세워 든다(고리 머리가 약 8도 앞으로, 얼굴 앞 가장자리 앞). 걸음에 몇 px 만 까딱이고 휘두르지 않으며, 밑동은 바닥에 닿지 않는다.",
+          "지팡이는 대기 그림 그대로의 쥠새로 가까운 손이 가슴 높이에서 곧게 세워 든다(고리 머리가 약 8도 앞으로, 얼굴 앞 가장자리 앞). 팔을 따라 몇 도 이내로만 흔들리고 휘두르지 않으며, 밑동은 바닥에 닿지 않는다.",
           "빈 손(먼 손)은 느슨한 주먹으로 허리띠 버클 앞에서 짧고 빠르게 흔든다 — 낮고 몸 가까이, 가슴 옆에서 흔드는 바렌과 다르다.",
           "묶은 긴 머리 꼬리와 짧은 어깨 망토는 한 프레임 늦다(G3/G7 에서 조금 뜨고 G1/G5 에서 가라앉는다). 가까운 허리의 펼친 책은 끈에 매인 채 엉덩이와 함께 2~3px 튄다."
         ],
@@ -936,7 +952,9 @@
           "back": 32.0,
           "swing": 4.0,
           "lag": 1,
-          "measured": "idle greatsword (art/inbox/sheet_hero_grom.png pose 1, anchor column 177.5): both fists on a long grip in front of the belly - lower (near) fist ~(+28, 183), upper (far) fist ~(+45, 213), 34 px apart; cross guard ~(+53, 236); pommel ~(+8, 159); tip ~(+149, 409): blade 61 deg above horizontal, ~256 px beyond the lower fist, pommel ~32 px below it -> length 250, back 32, two_hand along 32. Run carry: both hands stay on the grip, the blade upright in front of the chest at 77 deg (16 deg steeper than the idle so the real-size blade stays >= 8 px inside the slot band: at 66-72 deg the tip crosses x=351, at 74 it is 4 px from it), 72-93 deg above the near forearm (inside 0..120). The blade (near-hand plane) passes in front of the face side in R3-R8: the sword is nearer, drawn over"
+          "measured": "idle greatsword (art/inbox/sheet_hero_grom.png pose 1, anchor column 177.5): both fists on a long grip in front of the belly - lower (near) fist ~(+28, 183), upper (far) fist ~(+45, 213), 34 px apart; cross guard ~(+53, 236); pommel ~(+8, 159); tip ~(+149, 409): blade 61 deg above horizontal, ~256 px beyond the lower fist, pommel ~32 px below it -> length 250, back 32, two_hand along 32. Run carry: both hands stay on the grip, the blade upright in front of the chest at 77 deg (16 deg steeper than the idle so the real-size blade stays >= 8 px inside the slot band: at 66-72 deg the tip crosses x=351, at 74 it is 4 px from it), 72-93 deg above the near forearm (inside 0..120). The blade (near-hand plane) passes in front of the face side in R3-R8: the sword is nearer, drawn over",
+          "idle_deg": 60.0,
+          "idle_measured": "idle: hilt ~(600,950) -> tip (705,765): ~60 deg"
         }
       ],
       "two_hand": {
@@ -970,14 +988,14 @@
           "A massive arena champion's charge: a little MORE UPRIGHT than the light mannequin (2 deg less lean, chest proud, chin tucked so he glares ahead from under the brows), and the weight sinks HARD into the catch frames (hips 7 px lower in R2/R6, 2-3 px in contact/push, none in flight) - heavy landings, then he drives up again. The mannequin already has it - follow it.",
           "Big rolling hips (pelvis twist 11 deg against the class's 7) under a steadier chest (counter-turn 4 against 6): the trunk swings around the legs, the greatsword stays put.",
           "High knee drive like a stomping bull: the swinging knee comes up higher in the push-off and flight frames (R3/R7, R4/R8).",
-          "The greatsword is held UPRIGHT before him in BOTH hands - near fist low on the grip in front of the belly, far fist right under the gold guard - like a champion walking into the arena. The blade stays about 77 deg up and only bobs ~4 deg with the steps, one frame late. Never swung, never laid on the shoulder (that is Baren's carry).",
+          "The greatsword is held UPRIGHT before him in BOTH hands - near fist low on the grip in front of the belly, far fist right under the gold guard - like a champion walking into the arena. The blade is LOCKED to the chest at about 77 deg (the idle holds it at ~60: the run stands it up - draw 77), the same angle and full length in every frame - it rides the body, it does not bob or tip. Never swung, never laid on the shoulder (that is Baren's carry).",
           "The short red shoulder cape, the fur-collar tufts, the ragged red hip panels and the long dreadlocked mane lag the body by one frame: they lift in the flight frames (R4/R8) and drop heavily in the catch frames (R2/R6). The gold champion belt stays fixed on the waist."
         ],
         "notes_ko": [
           "거대한 투기장 챔피언의 돌진: 경량 마네킹보다 조금 더 곧게 선다(2도 덜 기울고 가슴을 펴고, 턱을 당겨 눈썹 아래로 앞을 노려본다). 대신 받는 프레임에서 무게가 확 가라앉는다(R2/R6 엉덩이 7px 낮게, 닿기·밀기 2~3px, 공중 0) — 무겁게 착지하고 다시 밀어 올린다. 3D 마네킹에 이미 들어 있다 — 따라 그린다.",
           "엉덩이가 크게 돈다(골반 비틀림 11도, 부류 기본 7도). 가슴은 더 안정적이다(역회전 4도, 기본 6도): 몸통은 다리 위에서 흔들리지만 대검은 제자리.",
           "밟아 대는 황소처럼 무릎을 높이 끌어올린다: 밀기·공중 프레임(R3/R7, R4/R8)에서 앞으로 나오는 무릎이 더 높다.",
-          "대검은 두 손으로 몸 앞에 곧추세운다 — 가까운 손은 손잡이 아래쪽(배 앞), 먼 손은 금색 코등이 바로 밑 — 투기장에 입장하는 챔피언처럼. 칼날은 약 77도로 서 있고 걸음에 따라 4도쯤만 한 프레임 늦게 까딱인다. 휘두르지 않고 어깨에 메지도 않는다(그건 바렌의 자세).",
+          "대검은 두 손으로 몸 앞에 곧추세운다 — 가까운 손은 손잡이 아래쪽(배 앞), 먼 손은 금색 코등이 바로 밑 — 투기장에 입장하는 챔피언처럼. 칼날은 가슴에 고정되어 약 77도(대기는 약 60도 — 달리기에서 세운다, 77도로 그린다)로 모든 프레임에서 같은 각도·제 길이 그대로 — 몸을 따라 움직일 뿐 까딱이거나 기울지 않는다. 휘두르지 않고 어깨에 메지도 않는다(그건 바렌의 자세).",
           "짧은 붉은 어깨 망토, 털 깃 끝, 찢어진 붉은 허리천, 긴 드레드 갈기는 몸보다 한 프레임 늦다: 공중 프레임(R4/R8)에서 뜨고, 받는 프레임(R2/R6)에서 무겁게 떨어진다. 금색 챔피언 벨트는 허리에 고정."
         ],
         "summary_ko": "투기장 챔피언의 황소 돌진: 가슴을 펴고 받는 프레임에서 7px 무겁게 내려꽂혔다 밀어 올리며, 엉덩이가 크게 돈다(11도). 무릎은 높이, 대검은 두 손으로 몸 앞에 곧추세운다."
@@ -1019,7 +1037,9 @@
           "back": 128.0,
           "swing": 3.0,
           "lag": 1,
-          "measured": "idle recurve bow (art/inbox/sheet_hero_kai.png pose 1, anchor column 181.5): far (left) fist on the grip ~(+86, 194), upper tip ~(+86, 319), lower tip ~(+21, 84): ~125 px grip -> upper tip and ~128 px grip -> lower tip along the stave (lower limb swept back) -> kind bow, length 125, back 128; the idle holds it LOW in front, ready (phase3 hero_kai: 'bow held low in front, ready'). Run carry (personality: the ranger's ready carry, unlike Kiara's upright belt carry): the far arm reaches forward-down (shoulder 16, elbow 70 - a long, almost relaxed arm), the bow canted FORWARD at 64 deg (upper tip ahead of the chest, lower tip back by the knee), as if he could nock an arrow in one move; grip axis 91-109 deg above the forearm line (inside 0..120)"
+          "measured": "idle recurve bow (art/inbox/sheet_hero_kai.png pose 1, anchor column 181.5): far (left) fist on the grip ~(+86, 194), upper tip ~(+86, 319), lower tip ~(+21, 84): ~125 px grip -> upper tip and ~128 px grip -> lower tip along the stave (lower limb swept back) -> kind bow, length 125, back 128; the idle holds it LOW in front, ready (phase3 hero_kai: 'bow held low in front, ready'). Run carry (personality: the ranger's ready carry, unlike Kiara's upright belt carry): the far arm reaches forward-down (shoulder 16, elbow 70 - a long, almost relaxed arm), the bow canted FORWARD at 64 deg (upper tip ahead of the chest, lower tip back by the knee), as if he could nock an arrow in one move; grip axis 91-109 deg above the forearm line (inside 0..120)",
+          "idle_deg": 73.0,
+          "idle_measured": "idle: lower bow tip (205,1085) -> upper tip (275,855): ~73 deg"
         }
       ],
       "personality": {
@@ -1115,7 +1135,9 @@
           "back": 14.0,
           "swing": 3.0,
           "lag": 1,
-          "measured": "idle dagger (art/inbox/sheet_hero_lyra.png pose 1, anchor column 188.5): ONE dagger in the near hand, the arm reaching back and down, fist ~(-98, 201), tip ~(-154, 132) -> ~89 px beyond the fist pointing back-down (abs ~231); short dark hilt with a small gold crossguard ~10-14 px past the fist -> kind dagger, length 86, back 14. The idle forearm (elbow ~(-73, 226)) points back-down ~45 deg and the blade CONTINUES the arm line (~6 deg past it) out of the bottom of the fist. The concept asks for a reverse grip, but a blade that continues the arm line is, on the owner's wrist rule (grip axis 0..120 from the forearm), the normal grip axis with the wrist straight along the arm - a reverse grip (blade flipped to the little-finger side, rig.py grip reverse) could only point back toward the elbow, which is NOT what the accepted idle shows - so no `grip: reverse` here: the guide follows the idle drawing. Run carry: the near arm trails back and down almost straight (shoulder -24, elbow 12 +-3), the fist behind the hip at belt height, the blade continuing the arm line back-down ~72 deg below horizontal; 14-38 deg above the forearm line (inside 0..120), never dangling below it; >= 8 px inside the slot band"
+          "measured": "idle dagger (art/inbox/sheet_hero_lyra.png pose 1, anchor column 188.5): ONE dagger in the near hand, the arm reaching back and down, fist ~(-98, 201), tip ~(-154, 132) -> ~89 px beyond the fist pointing back-down (abs ~231); short dark hilt with a small gold crossguard ~10-14 px past the fist -> kind dagger, length 86, back 14. The idle forearm (elbow ~(-73, 226)) points back-down ~45 deg and the blade CONTINUES the arm line (~6 deg past it) out of the bottom of the fist. The concept asks for a reverse grip, but a blade that continues the arm line is, on the owner's wrist rule (grip axis 0..120 from the forearm), the normal grip axis with the wrist straight along the arm - a reverse grip (blade flipped to the little-finger side, rig.py grip reverse) could only point back toward the elbow, which is NOT what the accepted idle shows - so no `grip: reverse` here: the guide follows the idle drawing. Run carry: the near arm trails back and down almost straight (shoulder -24, elbow 12 +-3), the fist behind the hip at belt height, the blade continuing the arm line back-down ~72 deg below horizontal; 14-38 deg above the forearm line (inside 0..120), never dangling below it; >= 8 px inside the slot band",
+          "idle_deg": -132.0,
+          "idle_measured": "idle: fist (465,985) -> tip (420,1035): the blade back-down, ~-132 deg"
         }
       ],
       "personality": {
@@ -1200,7 +1222,9 @@
           "back": 137.0,
           "swing": 3.0,
           "lag": 1,
-          "measured": "idle recurve bow (art/inbox/sheet_hero_marisol.png pose 1): far gloved fist on the handle ~(+70, 201) from the anchor column, upper gold knob ~(+87, 345), lower knob ~(+2, 82) -> ~145 px grip -> upper tip, ~137 px grip -> lower tip along the stave, chord ~18 deg forward of vertical, string on the body side, the near hand pinching it beside the grip -> kind bow, length 145, back 137. Run carry: the far hand keeps the bow UPRIGHT in front of the chest (fist ~45 px higher than the idle, forearm folded in), the stave 2-8 deg forward of vertical (85 +-3); grip axis 68-86 deg above the forearm line (inside 0..120); the near hand lets go of the string and swings free as a loose fist"
+          "measured": "idle recurve bow (art/inbox/sheet_hero_marisol.png pose 1): far gloved fist on the handle ~(+70, 201) from the anchor column, upper gold knob ~(+87, 345), lower knob ~(+2, 82) -> ~145 px grip -> upper tip, ~137 px grip -> lower tip along the stave, chord ~18 deg forward of vertical, string on the body side, the near hand pinching it beside the grip -> kind bow, length 145, back 137. Run carry: the far hand keeps the bow UPRIGHT in front of the chest (fist ~45 px higher than the idle, forearm folded in), the stave 2-8 deg forward of vertical (85 +-3); grip axis 68-86 deg above the forearm line (inside 0..120); the near hand lets go of the string and swings free as a loose fist",
+          "idle_deg": 78.0,
+          "idle_measured": "idle: lower bow tip (985,1100) -> upper tip (1045,825): ~78 deg"
         }
       ],
       "personality": {
@@ -1280,7 +1304,9 @@
           "back": 22.0,
           "swing": 4.0,
           "lag": 1,
-          "measured": "idle two-handed longsword (art/inbox/sheet_hero_oswin.png pose 1): both fists on one hilt at belt height in front of the body - lower (near) fist ~(+35, 184) from the anchor column on the belt, upper (far) fist ~(+52, 214) just under the cross-guard (~30 px apart along the grip), pommel ~20 px under the lower fist, blade forward-up ~66 deg to the tip ~(+152, 422): ~265 px from the lower fist to the tip -> length 265 (the idle's full blade), back 22, two_hand along 32. Run carry: the idle's grip carried along - near fist on the belt, far fist above it on the same hilt, elbows tucked, blade forward-up at ~72 deg; it sways 4 deg one frame late with the rolling shoulders; 96-100 deg above the near forearm line (inside 0..120)"
+          "measured": "idle two-handed longsword (art/inbox/sheet_hero_oswin.png pose 1): both fists on one hilt at belt height in front of the body - lower (near) fist ~(+35, 184) from the anchor column on the belt, upper (far) fist ~(+52, 214) just under the cross-guard (~30 px apart along the grip), pommel ~20 px under the lower fist, blade forward-up ~66 deg to the tip ~(+152, 422): ~265 px from the lower fist to the tip -> length 265 (the idle's full blade), back 22, two_hand along 32. Run carry: the idle's grip carried along - near fist on the belt, far fist above it on the same hilt, elbows tucked, blade forward-up at ~72 deg; it sways 4 deg one frame late with the rolling shoulders; 96-100 deg above the near forearm line (inside 0..120)",
+          "idle_deg": 61.0,
+          "idle_measured": "idle: hilt ~(600,350) -> tip (710,150): the longsword up at ~61 deg"
         }
       ],
       "two_hand": {
@@ -1298,33 +1324,33 @@
         ],
         "neck_up": -3.0,
         "pelvis_twist": 6.0,
-        "swing_add": {
-          "0.75": [
-            2.0,
-            6.0,
-            0.0
-          ],
-          "0.875": [
-            0.0,
-            10.0,
-            0.0
-          ]
-        },
-        "summary_ko": "기사단과 이름을 잃은 노기사단장의 무거운 행군: 로드릭과 반대로 상체를 앞으로 숙이고(약 10도) 턱을 당겨 눈썹 아래로 앞을 보며, 엉덩이는 내내 낮게 깔려 거의 오르내리지 않는다(출렁임 약 3px). 대신 어깨와 골반이 좌우로 굴러(6/4) 장검이 그 흔들림을 따라 조금씩 기운다.",
+        "summary_ko": "기사단과 이름을 잃은 노기사단장의 무거운 행군: 로드릭과 반대로 상체를 앞으로 숙이고(약 10도) 턱을 당겨 눈썹 아래로 앞을 보며, 엉덩이는 내내 낮게 깔려 거의 오르내리지 않는다(출렁임 약 3px). 대신 어깨와 골반이 좌우로 구르지만(6/4) 두 손 장검은 가슴에 고정되어 기울지 않는다.",
         "notes": [
           "An OLD knight commander's heavy, weary march - he lost his order and his name, and still marches on: the trunk LEANS forward about 10 deg (the heavy class mannequin leans 5; Roderick stands at 3), the shoulders rounded under the plate, the chin DOWN so he looks ahead from under his heavy grey brows (the neck does not turn back up). The mannequin already has all of it - follow it.",
-          "Low and level: the knees stay bent the whole cycle, the hips sit 5-7 px below the class mannequin and barely rise or fall (about 3 px over the cycle - Roderick dips 11 px into each footfall and rises again). The lifted foot is picked up a little (knee bent more in the passing and push frames) so the old boots clear the ground - a plodding, deliberate step.",
+          "Low and level: the knees stay bent the whole cycle, the hips sit 5-7 px below the class mannequin and barely rise or fall (about 3 px over the cycle - Roderick dips 11 px into each footfall and rises again). The lifted foot is picked up a little (foot a few px higher in the passing and reach frames) so the old boots clear the ground - a plodding, deliberate step.",
           "Rolling shoulders: the hips and the chest turn MORE than the heavy class (pelvis twist 6 deg, chest counter-turn 4) - a side-to-side heave of an old man in plate, not Roderick's square, locked trunk.",
-          "The two-handed longsword is held as in the idle at its full length - BOTH fists on one hilt (near fist on the belt, far fist just under the cross-guard), elbows tucked, the blade forward-up at about 72 deg. It rides the rolling shoulders and tips about 4 deg each way, one frame late - no slash, no swing.",
+          "The two-handed longsword is held as in the idle at its full length - BOTH fists on one hilt (near fist on the belt, far fist just under the cross-guard), elbows tucked, the blade forward-up at about 72 deg. It is LOCKED to the chest: the same angle and length in every frame, riding only the body's bob - it does not tip with the rolling shoulders, no slash, no swing.",
           "The rear blue cape and the tattered tabard swing heavily one frame late with the rolling hips; the grey hair and beard barely lift (the head does not bob)."
         ],
         "notes_ko": [
           "늙은 기사단장의 무겁고 지친 행군 — 기사단과 이름을 잃고도 걷는다: 몸통을 앞으로 약 10도 숙이고(중량 마네킹 5도, 로드릭은 3도로 꼿꼿), 판금 아래 어깨가 둥글게 말린다. 턱을 **당겨** 짙은 회색 눈썹 아래로 앞을 본다(목을 되세우지 않는다). 3D 마네킹에 이미 들어 있다 — 따라 그린다.",
           "낮고 평평하게: 무릎은 내내 굽어 있고 엉덩이는 부류 마네킹보다 5~7px 낮게 깔려 거의 오르내리지 않는다(한 바퀴 출렁임 약 3px — 로드릭은 디딜 때마다 11px 가라앉았다 올라온다). 드는 발은 무릎을 조금 더 굽혀 낡은 장화가 땅에 걸리지 않게 — 터벅터벅 신중한 걸음.",
           "구르는 어깨: 엉덩이와 가슴이 중량 부류보다 **더** 돈다(골반 6도, 가슴 반대 회전 4) — 판금 입은 노인의 좌우로 흔들리는 무게, 로드릭의 네모나게 굳은 몸통이 아니다.",
-          "양손 장검은 대기 그림처럼 제 길이 그대로 든다 — 두 주먹이 한 손잡이에(가까운 주먹은 허리띠 위, 먼 주먹은 십자 가드 바로 밑), 팔꿈치는 몸에 붙이고, 칼날은 앞-위로 약 72도. 구르는 어깨를 따라 한 프레임 늦게 양쪽으로 4도쯤 기운다 — 베거나 휘두르지 않는다.",
+          "양손 장검은 대기 그림처럼 제 길이 그대로 든다 — 두 주먹이 한 손잡이에(가까운 주먹은 허리띠 위, 먼 주먹은 십자 가드 바로 밑), 팔꿈치는 몸에 붙이고, 칼날은 앞-위로 약 72도. 장검은 가슴에 고정된다: 모든 프레임에서 같은 각도·같은 길이, 몸의 출렁임만 따른다 — 구르는 어깨를 따라 기울지 않고, 베거나 휘두르지 않는다.",
           "뒤쪽 파란 망토와 해진 타바드는 구르는 엉덩이를 따라 한 프레임 늦게 무겁게 흔들린다. 회색 머리와 수염은 거의 들리지 않는다(머리가 오르내리지 않는다)."
-        ]
+        ],
+        "swing_target_add": {
+          "0.75": [
+            0.0,
+            4.0,
+            0.0
+          ],
+          "0.875": [
+            0.0,
+            3.0,
+            0.0
+          ]
+        }
       },
       "request": {
         "look": "Oswin (오스윈), the fallen knight commander, exactly as on the accepted sheet: an old man with wild swept-back grey hair, heavy grey brows and a short grey beard, stern weathered face; weathered silver plate armour (big rounded pauldrons with brass rivet discs, breastplate, articulated arms and gauntlets, plate thighs, round knee cops, greaves and sabatons) covered in a few large RUST patches; a faded royal crest = one simple blue shield shape on the chest; a brown leather belt with brass buckles; a long tattered BLUE tabard hanging in front between the legs and a tattered blue cape behind; ONE two-handed European longsword (long straight blade with rust spots, brass cross-guard and pommel, leather grip) held in both hands.",
@@ -1368,7 +1394,9 @@
           "head_r": 22.0,
           "swing": 4.0,
           "lag": 1,
-          "measured": "idle mace (art/inbox/sheet_hero_seraphine.png pose 1, anchor column 165.5): near (right) fist at the waist ~(+50, 176), gold pommel ~(+35, 158), spiked head centre ~(+108, 241), head ~45 px across with the spikes -> 86 px fist to head centre at ~48 deg, butt 24 px below the fist, head_r 22 (the 2D request's '~95 px grip-to-head' counts the head). Run carry: the idle's grip carried along - fist at the waist in front of the hip, forearm about level, haft forward-up ~56 deg (the idle's 48 raised a little so the spiked head stays clear of the far arm and the slot edge); 55-65 deg above the forearm line (inside 0..120). Far (left) hand: OPEN, palm down, low and forward in front of the thigh as on the idle (~(+111, 138)) - an almost straight far arm (shoulder 22, elbow 22) instead of the class's pumping fist"
+          "measured": "idle mace (art/inbox/sheet_hero_seraphine.png pose 1, anchor column 165.5): near (right) fist at the waist ~(+50, 176), gold pommel ~(+35, 158), spiked head centre ~(+108, 241), head ~45 px across with the spikes -> 86 px fist to head centre at ~48 deg, butt 24 px below the fist, head_r 22 (the 2D request's '~95 px grip-to-head' counts the head). Run carry: the idle's grip carried along - fist at the waist in front of the hip, forearm about level, haft forward-up ~56 deg (the idle's 48 raised a little so the spiked head stays clear of the far arm and the slot edge); 55-65 deg above the forearm line (inside 0..120). Far (left) hand: OPEN, palm down, low and forward in front of the thigh as on the idle (~(+111, 138)) - an almost straight far arm (shoulder 22, elbow 22) instead of the class's pumping fist",
+          "idle_deg": 63.0,
+          "idle_measured": "idle: fist (1380,400) -> head (1420,320): ~63 deg"
         }
       ],
       "personality": {
@@ -1386,28 +1414,28 @@
         ],
         "neck_up": -2.0,
         "pelvis_twist": 6.0,
-        "swing_add": {
-          "0.75": [
-            4.0,
-            2.0,
-            0.0
-          ]
-        },
         "notes": [
           "A soft, low, hurried glide - a sister running to the wounded: hips 3-5 px lower than the robe class mannequin (softer knees, as in her crouched idle), about 1 deg more lean and the head bowed a little (sorrowful, eyes on the road just ahead). The mannequin already has all of it - follow it.",
           "The hips turn more with each short step (pelvis twist 6 deg vs the class's 4) so the torn hem sways from side to side, while the chest stays quiet (counter-rotation 2 vs 3): the upper body is calm, the skirt does the moving. In the passing frames (G3/G7) the swing foot is carried a little further ahead so both boots read under the hem.",
-          "The mace stays in the near (right) fist at the waist, haft forward-up as in the idle, held steady: it rides with the body and nods only a few px - never swung.",
+          "The mace stays in the near (right) fist at the waist, haft forward-up as in the idle, held steady: it rides with the arm and sways at most a few degrees - one straight haft at the idle length, never swung.",
           "The free far (left) hand is OPEN, palm down, low and forward in front of the thigh as in the idle (reaching ahead as if to steady someone or bless): an almost straight arm that swings gently fore-aft with the steps. No glow, no cast.",
           "The ragged veil tails and the long wavy hair stream back and lag one frame; the broad rear tail of the red sash lags one frame behind the rear hip, the narrow sash end stays at the centre front between the legs; the jagged hem shows the brown boot wraps at each step. Nothing reaches y=870."
         ],
         "notes_ko": [
           "부드럽고 낮게 서두르는 미끄러짐 — 다친 사람에게 달려가는 수녀: 로브 부류 마네킹보다 엉덩이 3~5px 낮고(웅크린 대기처럼 무릎이 부드럽다) 약 1도 더 기울며, 고개는 조금 숙인다(슬픈 얼굴, 눈은 바로 앞길). 3D 마네킹에 이미 들어 있다 — 따라 그린다.",
           "짧은 걸음마다 엉덩이가 더 돌아(골반 비틀기 6도, 부류 4도) 찢긴 치맛단이 좌우로 흔들리고, 가슴은 조용하다(반대 비틀기 2, 부류 3): 윗몸은 차분하고 치마가 움직인다. 지나가는 칸(G3/G7)에서는 드는 발이 조금 더 앞에 있어 두 장화가 단 아래로 읽힌다.",
-          "철퇴는 가까운(오른) 주먹으로 허리에 쥐고 대기처럼 자루를 앞 위로 든다. 몸과 함께 움직이며 몇 px 만 끄덕인다 — 휘두르지 않는다.",
+          "철퇴는 가까운(오른) 주먹으로 허리에 쥐고 대기처럼 자루를 앞 위로 든다. 팔과 함께 움직이며 몇 도 이내로만 흔들린다 — 대기 길이 그대로의 곧은 자루, 휘두르지 않는다.",
           "빈 먼(왼) 손은 대기처럼 손바닥을 아래로 편 채 허벅지 앞에 낮게 앞으로 내민다(누군가를 붙들거나 축복하듯): 거의 펴진 팔이 걸음에 맞춰 앞뒤로 살짝 흔들린다. 빛·주문 없음.",
           "찢긴 베일 끝과 긴 웨이브 머리는 뒤로 날리며 한 프레임 늦다. 붉은 띠의 넓은 뒤 끝은 뒤 엉덩이 뒤에서 한 프레임 늦고, 좁은 끝은 다리 사이 가운데 앞에 남는다. 들쭉날쭉한 단 아래로 걸음마다 갈색 감은 장화가 보인다. 아무것도 y=870 에 닿지 않는다."
         ],
-        "summary_ko": "다친 이에게 서둘러 가는 파문 성녀의 미끄러짐: 엉덩이를 3~5px 낮추고 고개를 숙이며, 골반만 돌고(6도) 윗몸은 조용하다(2). 철퇴는 허리 앞에서 흔들지 않고, 빈 손바닥을 낮게 내민다."
+        "summary_ko": "다친 이에게 서둘러 가는 파문 성녀의 미끄러짐: 엉덩이를 3~5px 낮추고 고개를 숙이며, 골반만 돌고(6도) 윗몸은 조용하다(2). 철퇴는 허리 앞에서 흔들지 않고, 빈 손바닥을 낮게 내민다.",
+        "swing_target_add": {
+          "0.75": [
+            6.0,
+            0.0,
+            0.0
+          ]
+        }
       },
       "request": {
         "look": "Seraphine (세라핀), the excommunicated saint, exactly as on the accepted sheet: a pale young woman with long wavy blonde hair (front strands beside the face down to the collar); a torn cream hood / veil with ragged tails and a small gold cross clip; torn, layered cream saint robes with holes and a jagged uneven hem; small gold cross pendants on the chest; a RED sash crossing the chest from the far shoulder to a knot at the waist, with a broad tail behind the rear hip and a narrow end hanging at the centre front; brown wrapped boots under the hem; ONE short spiked mace (dark haft with gold bands and a gold pommel, grey spiked head) in the near right hand; sorrowful but kind face. No halo, no glow.",

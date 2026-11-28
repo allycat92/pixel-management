@@ -107,6 +107,7 @@
    "stance": "near",
    "hip_height_px": 176.9,
    "top_px": 465,
+   "head_top_px": 465,
    "lowest_px": 870,
    "sole_px": {
     "N": 870,
@@ -118,8 +119,8 @@
     "F": 114.0
    },
    "elbow_flex_deg": {
-    "N": 80.0,
-    "F": 150.6
+    "N": 87.6,
+    "F": 158.8
    },
    "lean_deg": 22.2,
    "neck_x_px": 48.5,
@@ -142,10 +143,10 @@
     "ankle_F": -25.0,
     "abd_N": 0.0,
     "abd_F": 2.0,
-    "shoulder_N": 23.06,
-    "shoulder_F": -11.07,
-    "elbow_N": 80.05,
-    "elbow_F": 150.62,
+    "shoulder_N": 20.6,
+    "shoulder_F": -24.38,
+    "elbow_N": 87.57,
+    "elbow_F": 158.76,
     "wrist_N": 0.0,
     "wrist_F": 0.0,
     "arm_abd_N": 6.0,
@@ -155,14 +156,15 @@
     {
      "hand": "N",
      "kind": "sword",
-     "abs_angle": 73.04924663761945,
+     "abs_angle": 77.2844,
      "yaw": 0.0,
      "length": 250.0,
      "back": 32.0,
      "limit": [
       0.0,
       120.0
-     ]
+     ],
+     "chest_locked": true
     }
    ],
    "weapon_angle": [
@@ -170,8 +172,8 @@
      "kind": "sword",
      "hand": "N",
      "grip": "normal",
-     "raw_deg": 86.58,
-     "deg": 86.58,
+     "raw_deg": 85.74,
+     "deg": 85.74,
      "limit": [
       0.0,
       120.0
@@ -179,6 +181,40 @@
      "clamped": false
     }
    ],
+   "weapon_px": {
+    "kind": "sword",
+    "hand": "N",
+    "two_hand": true,
+    "butt": [
+     254.3,
+     682.7
+    ],
+    "fist": [
+     261.1,
+     651.4
+    ],
+    "tip": [
+     314.2,
+     407.6
+    ],
+    "chest": [
+     225.3,
+     605.3
+    ],
+    "hip": [
+     192.0,
+     693.1
+    ],
+    "fist2": [
+     267.6,
+     619.4
+    ],
+    "angle_deg": 77.7,
+    "length_px": 281.5,
+    "fist_tip_px": 249.6,
+    "fist_butt_px": 31.9,
+    "fist2_along_px": 32.7
+   },
    "joints": {
     "hip": [
      192.0,
@@ -233,28 +269,28 @@
      596.1
     ],
     "elbN": [
-     200.0,
-     642.4
+     197.1,
+     642.2
     ],
     "elbF": [
-     217.5,
-     650.5
+     206.1,
+     639.4
     ],
     "wriN": [
-     254.6,
-     655.3
+     252.6,
+     650.2
     ],
     "wriF": [
-     269.1,
-     628.4
+     259.5,
+     622.0
     ],
     "handN": [
-     262.9,
-     657.3
+     261.1,
+     651.4
     ],
     "handF": [
-     277.0,
-     625.0
+     267.6,
+     619.4
     ],
     "neck0": [
      240.5,
@@ -285,6 +321,7 @@
    "stance": "near",
    "hip_height_px": 171.3,
    "top_px": 466,
+   "head_top_px": 466,
    "lowest_px": 870,
    "sole_px": {
     "N": 870,
@@ -296,8 +333,8 @@
     "F": 130.0
    },
    "elbow_flex_deg": {
-    "N": 80.8,
-    "F": 153.5
+    "N": 86.4,
+    "F": 158.0
    },
    "lean_deg": 17.4,
    "neck_x_px": 38.5,
@@ -320,10 +357,10 @@
     "ankle_F": 5.0,
     "abd_N": 0.0,
     "abd_F": 2.0,
-    "shoulder_N": 23.95,
-    "shoulder_F": 11.62,
-    "elbow_N": 80.76,
-    "elbow_F": 153.48,
+    "shoulder_N": 18.37,
+    "shoulder_F": -31.14,
+    "elbow_N": 86.37,
+    "elbow_F": 157.99,
     "wrist_N": 0.0,
     "wrist_F": 0.0,
     "arm_abd_N": 6.0,
@@ -333,14 +370,15 @@
     {
      "hand": "N",
      "kind": "sword",
-     "abs_angle": 73.76393202250021,
+     "abs_angle": 77.9468,
      "yaw": 0.0,
      "length": 250.0,
      "back": 32.0,
      "limit": [
       0.0,
       120.0
-     ]
+     ],
+     "chest_locked": true
     }
    ],
    "weapon_angle": [
@@ -348,8 +386,8 @@
      "kind": "sword",
      "hand": "N",
      "grip": "normal",
-     "raw_deg": 80.02,
-     "deg": 80.02,
+     "raw_deg": 84.17,
+     "deg": 84.17,
      "limit": [
       0.0,
       120.0
@@ -357,6 +395,40 @@
      "clamped": false
     }
    ],
+   "weapon_px": {
+    "kind": "sword",
+    "hand": "N",
+    "two_hand": true,
+    "butt": [
+     631.8,
+     686.0
+    ],
+    "fist": [
+     638.2,
+     654.7
+    ],
+    "tip": [
+     688.7,
+     410.2
+    ],
+    "chest": [
+     602.4,
+     608.6
+    ],
+    "hip": [
+     576.0,
+     698.7
+    ],
+    "fist2": [
+     643.9,
+     620.5
+    ],
+    "angle_deg": 78.35,
+    "length_px": 281.6,
+    "fist_tip_px": 249.6,
+    "fist_butt_px": 32.0,
+    "fist2_along_px": 34.7
+   },
    "joints": {
     "hip": [
      576.0,
@@ -411,28 +483,28 @@
      596.1
     ],
     "elbN": [
-     580.9,
+     574.3,
      647.8
     ],
     "elbF": [
-     624.7,
-     663.8
+     582.1,
+     638.3
     ],
     "wriN": [
-     636.3,
+     629.8,
      653.8
     ],
     "wriF": [
-     657.4,
-     618.1
+     635.8,
+     622.8
     ],
     "handN": [
-     644.7,
+     638.2,
      654.7
     ],
     "handF": [
-     662.4,
-     611.2
+     643.9,
+     620.5
     ],
     "neck0": [
      614.5,
@@ -463,6 +535,7 @@
    "stance": "near",
    "hip_height_px": 180.1,
    "top_px": 467,
+   "head_top_px": 467,
    "lowest_px": 870,
    "sole_px": {
     "N": 870,
@@ -474,8 +547,8 @@
     "F": 114.0
    },
    "elbow_flex_deg": {
-    "N": 83.4,
-    "F": 152.9
+    "N": 86.4,
+    "F": 160.9
    },
    "lean_deg": 26.5,
    "neck_x_px": 56.7,
@@ -498,10 +571,10 @@
     "ankle_F": 3.0,
     "abd_N": 0.0,
     "abd_F": 2.0,
-    "shoulder_N": 27.22,
-    "shoulder_F": 27.82,
-    "elbow_N": 83.37,
-    "elbow_F": 152.87,
+    "shoulder_N": 28.96,
+    "shoulder_F": -23.26,
+    "elbow_N": 86.44,
+    "elbow_F": 160.93,
     "wrist_N": 0.0,
     "wrist_F": 0.0,
     "arm_abd_N": 6.0,
@@ -511,14 +584,15 @@
     {
      "hand": "N",
      "kind": "sword",
-     "abs_angle": 76.37426213983908,
+     "abs_angle": 76.55,
      "yaw": 0.0,
      "length": 250.0,
      "back": 32.0,
      "limit": [
       0.0,
       120.0
-     ]
+     ],
+     "chest_locked": true
     }
    ],
    "weapon_angle": [
@@ -526,8 +600,8 @@
      "kind": "sword",
      "hand": "N",
      "grip": "normal",
-     "raw_deg": 88.27,
-     "deg": 88.27,
+     "raw_deg": 83.64,
+     "deg": 83.64,
      "limit": [
       0.0,
       120.0
@@ -535,6 +609,40 @@
      "clamped": false
     }
    ],
+   "weapon_px": {
+    "kind": "sword",
+    "hand": "N",
+    "two_hand": true,
+    "butt": [
+     1027.7,
+     682.5
+    ],
+    "fist": [
+     1034.9,
+     651.3
+    ],
+    "tip": [
+     1091.0,
+     408.2
+    ],
+    "chest": [
+     999.1,
+     605.4
+    ],
+    "hip": [
+     960.0,
+     689.9
+    ],
+    "fist2": [
+     1041.6,
+     618.2
+    ],
+    "angle_deg": 76.99,
+    "length_px": 281.5,
+    "fist_tip_px": 249.5,
+    "fist_butt_px": 31.9,
+    "fist2_along_px": 33.8
+   },
    "joints": {
     "hip": [
      960.0,
@@ -589,28 +697,28 @@
      596.6
     ],
     "elbN": [
-     970.8,
-     643.2
+     972.8,
+     643.3
     ],
     "elbF": [
-     1030.5,
-     664.9
+     981.2,
+     635.2
     ],
     "wriN": [
-     1023.8,
-     654.8
+     1026.7,
+     650.3
     ],
     "wriF": [
-     1059.2,
-     617.1
+     1033.6,
+     620.5
     ],
     "handN": [
-     1031.9,
-     656.5
+     1034.9,
+     651.3
     ],
     "handF": [
-     1063.5,
-     609.8
+     1041.6,
+     618.2
     ],
     "neck0": [
      1016.7,
@@ -639,6 +747,7 @@
    "stance": null,
    "hip_height_px": 183.8,
    "top_px": 466,
+   "head_top_px": 466,
    "lowest_px": 839,
    "sole_px": {
     "N": 808,
@@ -650,8 +759,8 @@
     "F": 44.0
    },
    "elbow_flex_deg": {
-    "N": 86.4,
-    "F": 146.8
+    "N": 83.7,
+    "F": 160.7
    },
    "lean_deg": 27.6,
    "neck_x_px": 58.2,
@@ -674,10 +783,10 @@
     "ankle_F": 0.0,
     "abd_N": 2.0,
     "abd_F": 2.0,
-    "shoulder_N": 30.94,
-    "shoulder_F": 41.22,
-    "elbow_N": 86.35,
-    "elbow_F": 146.83,
+    "shoulder_N": 35.89,
+    "shoulder_F": -24.0,
+    "elbow_N": 83.75,
+    "elbow_F": 160.74,
     "wrist_N": 0.0,
     "wrist_F": 0.0,
     "arm_abd_N": 6.0,
@@ -687,14 +796,15 @@
     {
      "hand": "N",
      "kind": "sword",
-     "abs_angle": 79.3511410091699,
+     "abs_angle": 76.2188,
      "yaw": 0.0,
      "length": 250.0,
      "back": 32.0,
      "limit": [
       0.0,
       120.0
-     ]
+     ],
+     "chest_locked": true
     }
    ],
    "weapon_angle": [
@@ -702,8 +812,8 @@
      "kind": "sword",
      "hand": "N",
      "grip": "normal",
-     "raw_deg": 87.42,
-     "deg": 87.42,
+     "raw_deg": 81.95,
+     "deg": 81.95,
      "limit": [
       0.0,
       120.0
@@ -711,6 +821,40 @@
      "clamped": false
     }
    ],
+   "weapon_px": {
+    "kind": "sword",
+    "hand": "N",
+    "two_hand": true,
+    "butt": [
+     1412.6,
+     680.4
+    ],
+    "fist": [
+     1420.0,
+     649.4
+    ],
+    "tip": [
+     1477.5,
+     406.5
+    ],
+    "chest": [
+     1384.1,
+     603.4
+    ],
+    "hip": [
+     1344.0,
+     686.2
+    ],
+    "fist2": [
+     1427.0,
+     615.9
+    ],
+    "angle_deg": 76.67,
+    "length_px": 281.5,
+    "fist_tip_px": 249.5,
+    "fist_butt_px": 31.9,
+    "fist2_along_px": 34.2
+   },
    "joints": {
     "hip": [
      1344.0,
@@ -765,28 +909,28 @@
      593.7
     ],
     "elbN": [
-     1355.3,
-     642.8
+     1360.8,
+     643.0
     ],
     "elbF": [
-     1429.3,
-     661.9
+     1368.4,
+     628.7
     ],
     "wriN": [
-     1406.6,
-     650.6
+     1412.2,
+     648.5
     ],
     "wriF": [
-     1453.0,
-     611.9
+     1419.3,
+     617.6
     ],
     "handN": [
-     1414.4,
-     651.8
+     1420.0,
+     649.4
     ],
     "handF": [
-     1456.7,
-     604.2
+     1427.0,
+     615.9
     ],
     "neck0": [
      1402.2,
@@ -817,6 +961,7 @@
    "stance": "far",
    "hip_height_px": 176.9,
    "top_px": 465,
+   "head_top_px": 465,
    "lowest_px": 870,
    "sole_px": {
     "N": 754,
@@ -828,8 +973,8 @@
     "F": 38.4
    },
    "elbow_flex_deg": {
-    "N": 88.0,
-    "F": 140.4
+    "N": 78.3,
+    "F": 156.9
    },
    "lean_deg": 20.0,
    "neck_x_px": 43.4,
@@ -852,10 +997,10 @@
     "ankle_F": 2.14,
     "abd_N": 2.0,
     "abd_F": 0.0,
-    "shoulder_N": 32.94,
-    "shoulder_F": 47.44,
-    "elbow_N": 87.95,
-    "elbow_F": 140.43,
+    "shoulder_N": 33.24,
+    "shoulder_F": -32.61,
+    "elbow_N": 78.3,
+    "elbow_F": 156.86,
     "wrist_N": 0.0,
     "wrist_F": 0.0,
     "arm_abd_N": 6.0,
@@ -865,14 +1010,15 @@
     {
      "hand": "N",
      "kind": "sword",
-     "abs_angle": 80.95075336238055,
+     "abs_angle": 77.2844,
      "yaw": 0.0,
      "length": 250.0,
      "back": 32.0,
      "limit": [
       0.0,
       120.0
-     ]
+     ],
+     "chest_locked": true
     }
    ],
    "weapon_angle": [
@@ -880,8 +1026,8 @@
      "kind": "sword",
      "hand": "N",
      "grip": "normal",
-     "raw_deg": 76.61,
-     "deg": 76.61,
+     "raw_deg": 82.32,
+     "deg": 82.32,
      "limit": [
       0.0,
       120.0
@@ -889,6 +1035,40 @@
      "clamped": false
     }
    ],
+   "weapon_px": {
+    "kind": "sword",
+    "hand": "N",
+    "two_hand": true,
+    "butt": [
+     250.8,
+     682.8
+    ],
+    "fist": [
+     257.6,
+     651.6
+    ],
+    "tip": [
+     310.8,
+     407.7
+    ],
+    "chest": [
+     221.9,
+     605.4
+    ],
+    "hip": [
+     192.0,
+     693.1
+    ],
+    "fist2": [
+     264.2,
+     618.1
+    ],
+    "angle_deg": 77.7,
+    "length_px": 281.5,
+    "fist_tip_px": 249.6,
+    "fist_butt_px": 31.9,
+    "fist2_along_px": 34.2
+   },
    "joints": {
     "hip": [
      192.0,
@@ -943,28 +1123,28 @@
      591.6
     ],
     "elbN": [
-     199.8,
+     200.1,
      646.2
     ],
     "elbF": [
-     281.4,
-     655.6
+     206.5,
+     626.9
     ],
     "wriN": [
-     250.2,
-     641.8
+     250.0,
+     650.9
     ],
     "wriF": [
-     297.5,
-     602.2
+     256.6,
+     619.2
     ],
     "handN": [
-     257.8,
-     641.1
+     257.6,
+     651.6
     ],
     "handF": [
-     299.9,
-     594.1
+     264.2,
+     618.1
     ],
     "neck0": [
      235.4,
@@ -995,6 +1175,7 @@
    "stance": "far",
    "hip_height_px": 171.3,
    "top_px": 466,
+   "head_top_px": 466,
    "lowest_px": 870,
    "sole_px": {
     "N": 757,
@@ -1006,8 +1187,8 @@
     "F": 60.9
    },
    "elbow_flex_deg": {
-    "N": 87.2,
-    "F": 142.4
+    "N": 79.2,
+    "F": 154.5
    },
    "lean_deg": 16.2,
    "neck_x_px": 35.6,
@@ -1030,10 +1211,10 @@
     "ankle_F": 34.52,
     "abd_N": 2.0,
     "abd_F": 0.0,
-    "shoulder_N": 32.05,
-    "shoulder_F": 36.91,
-    "elbow_N": 87.24,
-    "elbow_F": 142.37,
+    "shoulder_N": 27.06,
+    "shoulder_F": -35.99,
+    "elbow_N": 79.24,
+    "elbow_F": 154.55,
     "wrist_N": 0.0,
     "wrist_F": 0.0,
     "arm_abd_N": 6.0,
@@ -1043,14 +1224,15 @@
     {
      "hand": "N",
      "kind": "sword",
-     "abs_angle": 80.23606797749979,
+     "abs_angle": 77.9468,
      "yaw": 0.0,
      "length": 250.0,
      "back": 32.0,
      "limit": [
       0.0,
       120.0
-     ]
+     ],
+     "chest_locked": true
     }
    ],
    "weapon_angle": [
@@ -1058,8 +1240,8 @@
      "kind": "sword",
      "hand": "N",
      "grip": "normal",
-     "raw_deg": 71.91,
-     "deg": 71.91,
+     "raw_deg": 82.58,
+     "deg": 82.58,
      "limit": [
       0.0,
       120.0
@@ -1067,6 +1249,40 @@
      "clamped": false
     }
    ],
+   "weapon_px": {
+    "kind": "sword",
+    "hand": "N",
+    "two_hand": true,
+    "butt": [
+     629.7,
+     686.2
+    ],
+    "fist": [
+     636.2,
+     654.9
+    ],
+    "tip": [
+     686.6,
+     410.4
+    ],
+    "chest": [
+     600.5,
+     608.6
+    ],
+    "hip": [
+     576.0,
+     698.7
+    ],
+    "fist2": [
+     642.5,
+     622.4
+    ],
+    "angle_deg": 78.35,
+    "length_px": 281.6,
+    "fist_tip_px": 249.6,
+    "fist_butt_px": 32.0,
+    "fist2_along_px": 33.1
+   },
    "joints": {
     "hip": [
      576.0,
@@ -1121,28 +1337,28 @@
      593.6
     ],
     "elbN": [
-     582.5,
-     648.9
+     577.1,
+     649.8
     ],
     "elbF": [
-     653.6,
-     659.5
+     583.2,
+     631.1
     ],
     "wriN": [
-     633.7,
-     640.7
+     628.4,
+     654.2
     ],
     "wriF": [
-     672.7,
-     607.2
+     634.7,
+     623.6
     ],
     "handN": [
-     641.5,
-     639.4
+     636.2,
+     654.9
     ],
     "handF": [
-     675.6,
-     599.2
+     642.5,
+     622.4
     ],
     "neck0": [
      611.6,
@@ -1173,6 +1389,7 @@
    "stance": "far",
    "hip_height_px": 180.1,
    "top_px": 467,
+   "head_top_px": 467,
    "lowest_px": 870,
    "sole_px": {
     "N": 822,
@@ -1184,8 +1401,8 @@
     "F": 32.9
    },
    "elbow_flex_deg": {
-    "N": 84.6,
-    "F": 149.4
+    "N": 86.5,
+    "F": 159.7
    },
    "lean_deg": 26.5,
    "neck_x_px": 56.7,
@@ -1208,10 +1425,10 @@
     "ankle_F": 26.15,
     "abd_N": 2.0,
     "abd_F": 0.0,
-    "shoulder_N": 28.78,
-    "shoulder_F": 12.14,
-    "elbow_N": 84.63,
-    "elbow_F": 149.41,
+    "shoulder_N": 28.97,
+    "shoulder_F": -23.38,
+    "elbow_N": 86.48,
+    "elbow_F": 159.68,
     "wrist_N": 0.0,
     "wrist_F": 0.0,
     "arm_abd_N": 6.0,
@@ -1221,14 +1438,15 @@
     {
      "hand": "N",
      "kind": "sword",
-     "abs_angle": 77.62573786016092,
+     "abs_angle": 76.55,
      "yaw": 0.0,
      "length": 250.0,
      "back": 32.0,
      "limit": [
       0.0,
       120.0
-     ]
+     ],
+     "chest_locked": true
     }
    ],
    "weapon_angle": [
@@ -1236,8 +1454,8 @@
      "kind": "sword",
      "hand": "N",
      "grip": "normal",
-     "raw_deg": 86.71,
-     "deg": 86.71,
+     "raw_deg": 83.6,
+     "deg": 83.6,
      "limit": [
       0.0,
       120.0
@@ -1245,6 +1463,40 @@
      "clamped": false
     }
    ],
+   "weapon_px": {
+    "kind": "sword",
+    "hand": "N",
+    "two_hand": true,
+    "butt": [
+     1027.7,
+     682.4
+    ],
+    "fist": [
+     1034.9,
+     651.3
+    ],
+    "tip": [
+     1091.0,
+     408.2
+    ],
+    "chest": [
+     999.1,
+     605.4
+    ],
+    "hip": [
+     960.0,
+     689.9
+    ],
+    "fist2": [
+     1041.9,
+     619.6
+    ],
+    "angle_deg": 76.99,
+    "length_px": 281.5,
+    "fist_tip_px": 249.5,
+    "fist_butt_px": 31.9,
+    "fist2_along_px": 32.5
+   },
    "joints": {
     "hip": [
      960.0,
@@ -1299,28 +1551,28 @@
      596.6
     ],
     "elbN": [
-     972.6,
+     972.8,
      643.3
     ],
     "elbF": [
-     1012.8,
-     660.9
+     981.1,
+     635.1
     ],
     "wriN": [
-     1026.1,
-     652.2
+     1026.7,
+     650.2
     ],
     "wriF": [
-     1055.1,
-     625.4
+     1033.9,
+     621.6
     ],
     "handN": [
-     1034.3,
-     653.6
+     1034.9,
+     651.3
     ],
     "handF": [
-     1061.5,
-     620.0
+     1041.9,
+     619.6
     ],
     "neck0": [
      1016.7,
@@ -1349,6 +1601,7 @@
    "stance": null,
    "hip_height_px": 183.8,
    "top_px": 466,
+   "head_top_px": 466,
    "lowest_px": 839,
    "sole_px": {
     "N": 839,
@@ -1360,8 +1613,8 @@
     "F": 72.0
    },
    "elbow_flex_deg": {
-    "N": 81.6,
-    "F": 149.7
+    "N": 88.8,
+    "F": 162.2
    },
    "lean_deg": 29.5,
    "neck_x_px": 62.9,
@@ -1384,10 +1637,10 @@
     "ankle_F": -34.0,
     "abd_N": 2.0,
     "abd_F": 2.0,
-    "shoulder_N": 25.06,
-    "shoulder_F": -9.02,
-    "elbow_N": 81.65,
-    "elbow_F": 149.68,
+    "shoulder_N": 26.92,
+    "shoulder_F": -15.46,
+    "elbow_N": 88.81,
+    "elbow_F": 162.17,
     "wrist_N": 0.0,
     "wrist_F": 0.0,
     "arm_abd_N": 6.0,
@@ -1397,14 +1650,15 @@
     {
      "hand": "N",
      "kind": "sword",
-     "abs_angle": 74.6488589908301,
+     "abs_angle": 76.2188,
      "yaw": 0.0,
      "length": 250.0,
      "back": 32.0,
      "limit": [
       0.0,
       120.0
-     ]
+     ],
+     "chest_locked": true
     }
    ],
    "weapon_angle": [
@@ -1412,8 +1666,8 @@
      "kind": "sword",
      "hand": "N",
      "grip": "normal",
-     "raw_deg": 93.31,
-     "deg": 93.31,
+     "raw_deg": 85.88,
+     "deg": 85.88,
      "limit": [
       0.0,
       120.0
@@ -1421,6 +1675,40 @@
      "clamped": false
     }
    ],
+   "weapon_px": {
+    "kind": "sword",
+    "hand": "N",
+    "two_hand": true,
+    "butt": [
+     1415.8,
+     680.3
+    ],
+    "fist": [
+     1423.1,
+     649.2
+    ],
+    "tip": [
+     1480.7,
+     406.4
+    ],
+    "chest": [
+     1387.3,
+     603.4
+    ],
+    "hip": [
+     1344.0,
+     686.2
+    ],
+    "fist2": [
+     1430.2,
+     617.5
+    ],
+    "angle_deg": 76.67,
+    "length_px": 281.5,
+    "fist_tip_px": 249.5,
+    "fist_butt_px": 31.9,
+    "fist2_along_px": 32.5
+   },
    "joints": {
     "hip": [
      1344.0,
@@ -1475,28 +1763,28 @@
      597.8
     ],
     "elbN": [
-     1357.5,
-     638.1
+     1359.7,
+     638.4
     ],
     "elbF": [
-     1375.5,
-     646.9
+     1370.4,
+     641.2
     ],
     "wriN": [
-     1410.4,
-     656.0
+     1414.7,
+     647.8
     ],
     "wriF": [
-     1429.4,
-     631.9
+     1422.3,
+     620.6
     ],
     "handN": [
-     1418.4,
-     658.7
+     1423.1,
+     649.2
     ],
     "handF": [
-     1437.5,
-     629.7
+     1430.2,
+     617.5
     ],
     "neck0": [
      1406.9,
@@ -1521,7 +1809,7 @@
   "tool": "tools/mannequin3d/request.py",
   "carry": "tools/mannequin3d/specs/carry3d.json",
   "carry_key": "grom",
-  "carry_sha256": "91f5a11da8fe25ba9b24b2551adf78753c022eb9441f6ec5aa2cb2f469e5977e",
+  "carry_sha256": "5946394df957c52056e02ce6d5607ae40a4e86b627829fc6e0a2b28f6bf4f520",
   "sheet_scale_from": "art/requests/phase3.json",
   "painter": "GPT",
   "weapon_limit": {
@@ -1554,23 +1842,23 @@
     "A massive arena champion's charge: a little MORE UPRIGHT than the light mannequin (2 deg less lean, chest proud, chin tucked so he glares ahead from under the brows), and the weight sinks HARD into the catch frames (hips 7 px lower in R2/R6, 2-3 px in contact/push, none in flight) - heavy landings, then he drives up again. The mannequin already has it - follow it.",
     "Big rolling hips (pelvis twist 11 deg against the class's 7) under a steadier chest (counter-turn 4 against 6): the trunk swings around the legs, the greatsword stays put.",
     "High knee drive like a stomping bull: the swinging knee comes up higher in the push-off and flight frames (R3/R7, R4/R8).",
-    "The greatsword is held UPRIGHT before him in BOTH hands - near fist low on the grip in front of the belly, far fist right under the gold guard - like a champion walking into the arena. The blade stays about 77 deg up and only bobs ~4 deg with the steps, one frame late. Never swung, never laid on the shoulder (that is Baren's carry).",
+    "The greatsword is held UPRIGHT before him in BOTH hands - near fist low on the grip in front of the belly, far fist right under the gold guard - like a champion walking into the arena. The blade is LOCKED to the chest at about 77 deg (the idle holds it at ~60: the run stands it up - draw 77), the same angle and full length in every frame - it rides the body, it does not bob or tip. Never swung, never laid on the shoulder (that is Baren's carry).",
     "The short red shoulder cape, the fur-collar tufts, the ragged red hip panels and the long dreadlocked mane lag the body by one frame: they lift in the flight frames (R4/R8) and drop heavily in the catch frames (R2/R6). The gold champion belt stays fixed on the waist."
    ],
    "notes_ko": [
     "거대한 투기장 챔피언의 돌진: 경량 마네킹보다 조금 더 곧게 선다(2도 덜 기울고 가슴을 펴고, 턱을 당겨 눈썹 아래로 앞을 노려본다). 대신 받는 프레임에서 무게가 확 가라앉는다(R2/R6 엉덩이 7px 낮게, 닿기·밀기 2~3px, 공중 0) — 무겁게 착지하고 다시 밀어 올린다. 3D 마네킹에 이미 들어 있다 — 따라 그린다.",
     "엉덩이가 크게 돈다(골반 비틀림 11도, 부류 기본 7도). 가슴은 더 안정적이다(역회전 4도, 기본 6도): 몸통은 다리 위에서 흔들리지만 대검은 제자리.",
     "밟아 대는 황소처럼 무릎을 높이 끌어올린다: 밀기·공중 프레임(R3/R7, R4/R8)에서 앞으로 나오는 무릎이 더 높다.",
-    "대검은 두 손으로 몸 앞에 곧추세운다 — 가까운 손은 손잡이 아래쪽(배 앞), 먼 손은 금색 코등이 바로 밑 — 투기장에 입장하는 챔피언처럼. 칼날은 약 77도로 서 있고 걸음에 따라 4도쯤만 한 프레임 늦게 까딱인다. 휘두르지 않고 어깨에 메지도 않는다(그건 바렌의 자세).",
+    "대검은 두 손으로 몸 앞에 곧추세운다 — 가까운 손은 손잡이 아래쪽(배 앞), 먼 손은 금색 코등이 바로 밑 — 투기장에 입장하는 챔피언처럼. 칼날은 가슴에 고정되어 약 77도(대기는 약 60도 — 달리기에서 세운다, 77도로 그린다)로 모든 프레임에서 같은 각도·제 길이 그대로 — 몸을 따라 움직일 뿐 까딱이거나 기울지 않는다. 휘두르지 않고 어깨에 메지도 않는다(그건 바렌의 자세).",
     "짧은 붉은 어깨 망토, 털 깃 끝, 찢어진 붉은 허리천, 긴 드레드 갈기는 몸보다 한 프레임 늦다: 공중 프레임(R4/R8)에서 뜨고, 받는 프레임(R2/R6)에서 무겁게 떨어진다. 금색 챔피언 벨트는 허리에 고정."
    ],
    "summary_ko": "투기장 챔피언의 황소 돌진: 가슴을 펴고 받는 프레임에서 7px 무겁게 내려꽂혔다 밀어 올리며, 엉덩이가 크게 돈다(11도). 무릎은 높이, 대검은 두 손으로 몸 앞에 곧추세운다."
   },
   "guides": {
-   "guide_run_a.png": "d762287958b7f201fc019dbb673c898fda8026dec7a192bca3024aa88fa9491e",
-   "guide_run_b.png": "c24eb0ed21cdb42bb57ae80916033c2ad7e9a17a12ef6fa6150928f534f65acc",
-   "guide_run_plain_a.png": "37bc7ad04dec74ed6d36ec51accc8a830121e5ff2bfec5c52c608d9d1f083524",
-   "guide_run_plain_b.png": "648c3b01740e87c1d9f504f3b6efedfb36a2272048806ab42a3c4100a0213b17"
+   "guide_run_a.png": "c5f0f2370c13bcc186a841a34f35dc4d8b058c68d854371e3eaffe214bcb4eca",
+   "guide_run_b.png": "3b87ee649d8167496f19f44839a48b84248bbb531e9dacbbac503f94d6a61d93",
+   "guide_run_plain_a.png": "c1f6c7300bfa726238192f992d7428ff8ef0705fd3e4554397ec74b82466315e",
+   "guide_run_plain_b.png": "95e91b5519b095504f4424374796ae10bcfb2409e11572acba79b04e16fcb0b7"
   },
   "checks": [
    "[OK] fit source: art/inbox/sheet_hero_grom.png",
@@ -1582,13 +1870,18 @@
    "[OK] IK: every stance foot reached",
    "[OK] stance knee flex >= 10 deg: min 32.9",
    "[OK] mirror halves: knee flex near(f) vs far(f+4) max diff 0.0 deg (<= 3), hip height max diff 0.0 px (<= 1)",
-   "[OK] x extent incl. props per frame (slot band 32..351): 72-335 96-330 87-322 44-337 60-311 84-302 99-320 58-332",
+   "[OK] x extent incl. props per frame (slot band 32..351): 72-316 96-306 87-325 44-337 60-312 84-304 99-325 58-330",
    "[OK] band margin (>= 8 px to x 32..351, props included): min 12 px",
-   "[OK] feet not covered by the other leg (>= 0.75): R1:1.00/1.00 R2:1.00/1.00 R3:1.00/0.97 R4:1.00/1.00 R5:1.00/1.00 R6:1.00/1.00 R7:1.00/1.00 R8:1.00/1.00",
+   "[OK] feet not covered by the other leg (>= 0.75; a foot lifted >= 8 px past a planted one >= 0.45): R1:1.00/1.00 R2:1.00/1.00 R3:1.00/0.97 R4:1.00/1.00 R5:1.00/1.00 R6:1.00/1.00 R7:1.00/1.00 R8:1.00/1.00",
    "[OK] far knee readable (visible or >= 14 px from the near knee)",
-   "[OK] hand travel over the cycle (>= 12 px): near 33, far 45",
-   "[OK] weapon angle to the forearm (deg, 0 = straight, + = up; range 0..120) per frame R1:87 R2:80 R3:88 R4:87 R5:77 R6:72 R7:87 R8:93  -> 71.9..93.3",
-   "[OK] blade over the head (px) per frame [3, 0, 645, 850, 753, 460, 677, 636] (info: overlap allowed, depth order decides)"
+   "[OK] hand travel over the cycle: near 20, far 21 px (both fists on the chest-locked two-handed weapon - they ride the trunk; the >= 12 px rule is for free hands)",
+   "[OK] weapon angle to the forearm (deg, 0 = straight, + = up; range 0..120) per frame R1:86 R2:84 R3:84 R4:82 R5:82 R6:83 R7:84 R8:86  -> 82.0..85.9",
+   "[OK] weapon rigid: butt->tip 281.5..281.6 px on screen (spread 0.0% of the mean, <= +-2%), fist->tip 250..250, one straight sword (a rigid capsule: never bent, shortened or stretched)",
+   "[OK] weapon angle (two-handed, chest-locked): R1:77.7 R2:78.3 R3:77.0 R4:76.7 R5:77.7 R6:78.3 R7:77.0 R8:76.7  max step 1.36 deg (<= 1.5), range 1.68 deg (<= 4.0)",
+   "[OK] weapon tip path (relative to the chest): moves 3 6 2 5 3 6 2 5 px (<= 23), 1 reversals (<= 2) - one smooth path, no back-and-forth",
+   "[OK] two-handed grip fixed to the chest: deviation 0.3 px (<= 3); strip a vs b at the same leg phase (deg / px) 0.1 0.3 0.0 0.2 (<= 3); fist-to-fist on screen 32..35 px (spread <= 6: both fists keep their places on the grip)",
+   "[WARN] weapon run angle 77 vs idle 60 deg (+17; > 15 -> WARN, the README states the change)",
+   "[OK] blade over the head (px) per frame [554, 409, 621, 613, 413, 302, 622, 686] (info: overlap allowed, depth order decides)"
   ],
   "shading": "cel shading by depth: lighter = nearer the viewer, darker = farther (near limbs light, far limbs dark)"
  }

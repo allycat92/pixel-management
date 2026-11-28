@@ -65,7 +65,8 @@ def frame_record(body, cam, mask, spec, meta, pose, slot_origin):
     else:
         rec['stance'] = None if not st else ('near' if st[0] == 'N' else 'far')
     rec['hip_height_px'] = round(FLOOR - hip[1], 1)
-    rec['top_px'] = int(rows.min())
+    rec['top_px'] = int(rows.min())          # the mannequin's top = its HEAD top (the body mask; props excluded)
+    rec['head_top_px'] = rec['top_px']
     rec['lowest_px'] = int(rows.max())
     rec['sole_px'] = {s: int(round(FLOOR - body.joints['sole' + s][1])) for s in 'NF'}
     tips = {s: round(J['toetip' + s][0] - hip[0], 1) for s in 'NF'}
@@ -92,8 +93,41 @@ def frame_record(body, cam, mask, spec, meta, pose, slot_origin):
     rec['angles_deg'] = {k: round(v, 2) for k, v in q.items() if k not in ('x',) and not k.startswith('_')}
     rec['props'] = meta.get('props', [])
     rec['weapon_angle'] = body.weapons     # deg to the forearm (0 = straight, + = up), limit, clamped (rig.py)
+    wpx = weapon_px(body, cam, meta.get('props', []), slot_origin)
+    if wpx:
+        rec['weapon_px'] = wpx
     rec['joints'] = joints
     return rec
+
+
+def weapon_px(body, cam, props, slot_origin=0.0):
+    """the held weapon on screen (guide source px, x like the joints): butt, fist(s), tip, screen angle (deg from forward,
+    + = up, butt -> tip), on-screen length and fist -> tip / fist -> butt lengths, the chest centre (the two-handed lock's
+    reference) - pose.json `weapon_px`, the README weapon table and checks.weapon_stability read it"""
+    J = body.joints
+    w = next((p for p in props if p.get('kind') in ('sword', 'mace', 'staff', 'bow', 'spear', 'dagger')), None)
+    if w is None or 'prop_tip' not in J:
+        return None
+    hand = w.get('hand', 'N')
+    pts = {k: cam.to_screen(J[j])[0] for k, j in (('butt', 'prop_base'), ('fist', 'prop_grip'), ('tip', 'prop_tip'),
+                                                  ('chest', 'chest'), ('hip', 'hip'))}
+    other = None
+    for p in props:
+        if p is w and p.get('chest_locked'):
+            other = 'F' if hand == 'N' else 'N'
+    if other:
+        pts['fist2'] = cam.to_screen(J['hand' + other])[0]
+    v = pts['tip'] - pts['butt']
+    out = {'kind': w['kind'], 'hand': hand, 'two_hand': bool(other)}
+    for k, pt in pts.items():
+        out[k] = [round(float(pt[0]) + slot_origin, 1), round(float(pt[1]), 1)]
+    out['angle_deg'] = round(math.degrees(math.atan2(-v[1], v[0])), 2)
+    out['length_px'] = round(float(np.hypot(*v)), 1)
+    out['fist_tip_px'] = round(float(np.hypot(*(pts['tip'] - pts['fist']))), 1)
+    out['fist_butt_px'] = round(float(np.hypot(*(pts['butt'] - pts['fist']))), 1)
+    if other:
+        out['fist2_along_px'] = round(float(np.hypot(*(pts['fist2'] - pts['fist']))), 1)
+    return out
 
 
 def gait_pose_json(spec, P, cam, carry, recs, rep, scale):

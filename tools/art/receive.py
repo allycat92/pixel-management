@@ -33,7 +33,9 @@ Two kinds of delivery are not base sheets and never go to sheets.py:
                                   frame at IoU > 0.85 after alignment - bottom-centre + a +-24 px search, mirrored too - against the cloud
                                   drafts, art/inbox/guides/ here AND the mannequins on origin/art-inbox - add_gait reads those itself with
                                   git, and receive also passes its extracted copy as --extra-guides; a refusal names the matched mannequin)
-                                  and its export compared with the PNGs, then add_gait.py --dry-run (stride from guides/<gait>_<sheet>,
+                                  and its export compared with the PNGs; a delivery painted over a 3D-mannequin request is compared
+                                  with its pose.json (tools/mannequin3d/delivery.py: REACH-frame feet FAIL, band lines / head-top
+                                  weapon pin / weapon line WARN), then add_gait.py --dry-run (stride from guides/<gait>_<sheet>,
                                   else the class's base set above; walk: walk_base); the register command is printed only when everything
                                   passed
   guides/<motion>__<stem>/<motion>__<stem>.aseprite   (motion = atk | hit | idle; stem = the sheet png stem without 'sheet_')
@@ -861,6 +863,23 @@ def gait_delivery(rel, work, exe, tip):
     for p in strips:
         rc = strip_check(p, os.path.basename(p) + (' (--flight-slots 4)' if flight else ''),
                          flight + cellarg + ['--work', os.path.join(work, 'seams')]) or rc
+    if pose_path and pose.get('mannequin3d') and len(strips) == 2:
+        # painted over a 3D mannequin: feet per frame (REACH frame ahead of the hip), band lines, the head-top pin of a
+        # weapon, the weapon along the table's line (tools/mannequin3d/delivery.py; owner verdict 2026-11-28)
+        sys.path.insert(0, os.path.join(ROOT, 'tools', 'mannequin3d'))
+        try:
+            import delivery as m3d_delivery
+        finally:
+            sys.path.pop(0)
+        res = m3d_delivery.compare(pose, strips)
+        print(f'- against the 3D request {os.path.relpath(pose_path, ROOT)} (tools/mannequin3d/delivery.py):')
+        for lv, msg in res:
+            if lv != 'OK':
+                print(f'  {lv}: {msg}')
+        n_ok = sum(1 for lv, _ in res if lv == 'OK')
+        print(f'  ({n_ok} frame lines OK)')
+        if any(lv == 'FAIL' for lv, _ in res):
+            rc = 1
     src = [got['_a.png'], got['_b.png']] if '_a.png' in got and '_b.png' in got else ([got['.aseprite']] if '.aseprite' in got else [])
     if src:
         cmd = [sys.executable, os.path.join(ROOT, 'tools', 'art', 'add_gait.py'), sid, '--gait', gait, '--src', *src,

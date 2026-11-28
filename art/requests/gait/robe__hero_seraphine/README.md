@@ -26,8 +26,11 @@
 ## 3D 가이드 읽는 법
 
 - **명암 = 깊이**: 밝은 부분이 보는 사람에게 **가깝고**, 어두운 부분이 **멀다** (가까운 팔·다리는 밝은 베이지, 먼 팔·다리는 어두운 회청색). 덧그릴 때 이 앞뒤 순서를 지킨다 — **가까운 쪽이 먼 쪽 위에** 그려진다. 무기·몸·얼굴이 겹쳐도 그 순서만 맞으면 괜찮다.
-- **청록 반투명 = 든 무기**: 실선 윤곽은 무기가 앞에 있는 곳, 점선은 몸이 무기 앞을 가리는 곳. 무기는 대기 그림의 **실제 크기·모양**으로 그 자리를 따라 그린다 (가이드의 모양은 자리 표시).
+- **청록 반투명 = 든 무기**: 실선 윤곽은 무기가 앞에 있는 곳, 점선은 몸이 무기 앞을 가리는 곳. 무기는 대기 그림의 모양으로, 청록 모양의 **선 위에 그 길이·각도 그대로** 그린다 (프롬프트의 WEAPON 표: 프레임마다 밑동·주먹·끝 좌표).
   - 철퇴 = 자루와 둥근 머리.
+- **무기는 하나의 단단한 물체다.** 모든 프레임에서 길이·모양이 같다(아래 표: 밑동→끝, 주먹→끝). 곧은 자루·칼날은 밑동부터 끝까지 **한 직선** — 자로 그어 확인하고 절대 휘지 않는다. 어떤 선에 맞추려고 줄이거나 구부리거나 늘이지 않는다. 프레임마다 표의 밑동·주먹·끝 좌표(±4px)에 놓고, 각도는 대기와 달라도 표의 값. 무기 끝은 머리보다 위로 가도 된다 — 「높이」 숫자는 머리(머리카락·투구·모자) 꼭대기일 뿐, 프레임의 맨 윗점이 아니다. 이웃 프레임 사이 무기 각도는 3도(양손 무기 1.5도) 이하, 끝은 표의 매끈한 길을 따른다 — 앞뒤로 떨지 않는다. 양손 무기는 두 주먹이 매 프레임 손잡이의 같은 자리에 있고, 무기는 가슴을 따라 움직인다(b 띠 = a 띠).
+- 단계(3D 가이드 그대로): G1 **닿기**(두 발 모두 바닥: 앞발은 막 디뎠고 뒷발은 발끝으로, 뒤꿈치 듦) - G2 **내려앉기**(엉덩이 가장 낮음, 뒷발이 떨어져 발끝이 몇 px 뜸) - G3 **지나가기**(드는 발이 디딘 발 옆을 지나 앞으로, 약 10px 뜸) - G4 **내딛기**(드는 발이 **엉덩이보다 앞**, 발끝을 들고 바닥 위 약 5px — 곧 디딘다; 디딘 발 뒤꿈치는 이제 막 뜨기 시작). G5~G8 은 먼 발로 같은 동작. **G4·G8 에서 드는 발은 엉덩이 열보다 앞**(아래 발 표) — 뒤에 남기거나 밀어 내는 자세가 아니다. 뒷발은 표보다 더 뒤로 빠지지 않고, 아무것도 x=32 / x=351 선에 닿지 않는다.
+- **높이**: 아래 「Height」 숫자는 **머리 꼭대기**(머리카락·투구·모자)일 뿐 — 무기 끝·지팡이 머리·깃털은 그보다 위로 가도 된다.
 - **손목 범위**: 무기의 손잡이 축(주먹에서 무기 끝 쪽; 활은 손잡이에서 위 활끝 쪽, 역수는 엄지 쪽)은 아래팔(팔꿈치→손목) 선에서 위쪽(엄지 쪽)으로 0~120도 안. 0 = 팔과 일직선. 그 밖으로 꺾어 늘어뜨리지 않는다 (덜렁거리는 칼 금지). 위로 들든 아래로 내리든 이 범위 안이면 된다.
 - **바닥**: 디딘 발바닥은 y=870, 공중 프레임은 y=852 위. 무기 끝·천 같은 소품이 바닥 줄 아래로 내려가면 그릴 때 손본다 (각도를 조금 바꿔 올린다) — 몸과 발의 바닥 규칙은 그대로.
 - **마네킹 픽셀은 전부 덮는다**: 3D 마네킹의 색이 한 프레임의 25% 이상 남거나, 실루엣이 가이드와 거의 같으면(색만 바꾼 마네킹, IoU > 0.93) `add_gait.py` 가 받지 않는다. 마네킹 머리는 자리 표시 — 캐릭터의 머리·머리카락·머리띠를 대기 그림 크기로 그린다.
@@ -39,7 +42,7 @@
 
 - 부드럽고 낮게 서두르는 미끄러짐 — 다친 사람에게 달려가는 수녀: 로브 부류 마네킹보다 엉덩이 3~5px 낮고(웅크린 대기처럼 무릎이 부드럽다) 약 1도 더 기울며, 고개는 조금 숙인다(슬픈 얼굴, 눈은 바로 앞길). 3D 마네킹에 이미 들어 있다 — 따라 그린다.
 - 짧은 걸음마다 엉덩이가 더 돌아(골반 비틀기 6도, 부류 4도) 찢긴 치맛단이 좌우로 흔들리고, 가슴은 조용하다(반대 비틀기 2, 부류 3): 윗몸은 차분하고 치마가 움직인다. 지나가는 칸(G3/G7)에서는 드는 발이 조금 더 앞에 있어 두 장화가 단 아래로 읽힌다.
-- 철퇴는 가까운(오른) 주먹으로 허리에 쥐고 대기처럼 자루를 앞 위로 든다. 몸과 함께 움직이며 몇 px 만 끄덕인다 — 휘두르지 않는다.
+- 철퇴는 가까운(오른) 주먹으로 허리에 쥐고 대기처럼 자루를 앞 위로 든다. 팔과 함께 움직이며 몇 도 이내로만 흔들린다 — 대기 길이 그대로의 곧은 자루, 휘두르지 않는다.
 - 빈 먼(왼) 손은 대기처럼 손바닥을 아래로 편 채 허벅지 앞에 낮게 앞으로 내민다(누군가를 붙들거나 축복하듯): 거의 펴진 팔이 걸음에 맞춰 앞뒤로 살짝 흔들린다. 빛·주문 없음.
 - 찢긴 베일 끝과 긴 웨이브 머리는 뒤로 날리며 한 프레임 늦다. 붉은 띠의 넓은 뒤 끝은 뒤 엉덩이 뒤에서 한 프레임 늦고, 좁은 끝은 다리 사이 가운데 앞에 남는다. 들쭉날쭉한 단 아래로 걸음마다 갈색 감은 장화가 보인다. 아무것도 y=870 에 닿지 않는다.
 
@@ -79,8 +82,16 @@ HOW TO READ THE 3D GUIDE:
     arm / far leg dark slate). KEEP THAT DEPTH ORDER when you paint: the nearer part is always drawn over the farther one.
     Weapon, body and face may overlap - that is fine as long as the nearer part is on top.
   - The teal see-through shape is the held weapon: a solid outline where it is in front, dashed where a body part covers
-    it. Paint the character's OWN weapon at its idle size and shape in that place (the ghost only marks it):
+    it. Paint the character's own weapon (the idle's shape) ON THAT LINE at the table's length and angle (WEAPON below):
     MACE = haft and round head.
+  - WEAPON = ONE RIGID OBJECT. In every frame it has the same length and shape (the table: butt -> tip, fist -> tip). A
+    straight shaft or blade is ONE straight line from butt to tip - check it with a ruler line, never curve it. Never
+    shorten, bend or stretch it to reach a point or to stay under a line. Place it by the table's BUTT, FIST(S) and TIP
+    for each frame (+-4 px); its angle is the table's even where it differs from the idle. The tip MAY be above the
+    head and is NOT limited by the Height numbers - those are the top of the HEAD (hair / helmet / hat) only. Between
+    neighbouring frames the weapon turns at most 3 deg (two-handed: 1.5) and its tip follows the smooth path of the
+    table - no back-and-forth. Two-handed: both fists stay at the same places on the grip in every frame, and the weapon
+    rides with the chest (strip b = strip a).
   - WRIST RANGE (owner rule): every held weapon's GRIP AXIS (fist -> weapon tip; a bow: grip -> upper tip; a reverse
     grip: the thumb side of the fist) points 0-120 deg UPWARD (thumb side) from the forearm line (elbow -> wrist);
     0 = straight along the forearm. Up or down on screen does not matter, but never bend it past the arm line (no
@@ -95,9 +106,11 @@ HOW TO READ THE 3D GUIDE:
   - Samples of other characters are only baselines. Do not recolour another character's strip.
 
 THE MOVE (movement class robe: loose long cloth: running in it looks unnatural. Fastest natural gait = a hurried, purposeful glide (not a stroll): NO flight phase, NO big knee lift, a small forward lean, short quick steps; the hem swings and hides the knees, only the feet flick out at the hem. - with this character's personality on top, already in the mannequin):
-  - G1 contact - G2 catch (lowest hips) - G3 push-off (heel up) - G4 push. G5-G8 = the same with the far foot.
+  - G1 CONTACT (both feet on the floor: the front foot just landed, the rear foot on its toe, heel up) - G2 DOWN (lowest hips; the rear foot lifts off, toe a few px up) - G3 PASSING (the swing foot is carried forward past the planted foot, ~10 px up) - G4 REACH (the swing foot is AHEAD of the hip, toes up, ~5 px above the floor, about to land; the planted heel only starts to peel). G5-G8 = the same with the far foot.
+  - In G4 / G8 the swing foot is IN FRONT of the hip column (table FEET below) - not left behind, not a push-off lunge. No foot is behind the planted foot except where the table says so; the rear foot never trails further back than the table, and nothing touches the slot band lines x=32 / x=351.
   - Lean forward (hip to neck): G1 8, G2 8.5, G3 7.5, G4 6.9, G5 7.5, G6 8.1, G7 7.5, G8 7.2 deg.
-  - Height: the mannequin's head top is at y=469/472/465/464 in G1 G2 G3 G4 (the same in G5 G6 G7 G8): G1 +0, G2 +3, G3 -4, G4 -5 px from G1 (+ = lower) - move your head top by the same amounts (bob 8 px).
+  - Height: the HEAD top (hair / helmet / hat - NOT the weapon) is at y=469/472/465/464 in G1 G2 G3 G4 (the same in G5 G6 G7 G8): G1 +0, G2 +3, G3 -4, G4 -5 px from G1 (+ = lower) - move your head top by the same amounts (bob 8 px). A
+    weapon tip, staff head, plume or raised cloth may go HIGHER than these rows - they never limit it.
   - Stride: one step = 134.2 source px = 22.2 game px; 8 frames = two steps, 96 ms a frame in the game.
   - Stride rule: 22.2 game px = the robe class stride: the fitted legs are within 5% of the class mannequin's (leg factor 1.037), so the class stride is kept. The cadence is the class's.
   - PLANTED FOOT: a foot on the floor never slides in the drawing. From its contact frame on, the SAME boot moves LEFT by
@@ -106,24 +119,43 @@ THE MOVE (movement class robe: loose long cloth: running in it looks unnatural. 
     = the yellow tick in size_*.png; x in the 384-px slot:
       near foot: G1 x=273 -> G2 x=240 -> G3 x=206 -> G4 x=172  (-> G5 x=139 as the REAR foot, heel up, toe still on the floor)
       far foot: G5 x=285 -> G6 x=251 -> G7 x=218 -> G8 x=184  (-> G1 x=151 as the REAR foot, heel up, toe still on the floor)
+  - FEET per frame (x in the 384-px slot: rear-most heel .. front-most toe; keep both within ~20 px of these):
+      G1: feet x 90 .. 273 (hip column 192; near toe 273, far toe 151), both soles down
+      G2: feet x 109 .. 240 (hip column 192; near toe 240, far toe 158), far 7 px up
+      G3: feet x 143 .. 239 (hip column 192; near toe 206, far toe 239), far 10 px up
+      G4: feet x 111 .. 274 (hip column 192; near toe 172, far toe 274), far 6 px up
+      G5: feet x 78 .. 285 (hip column 192; near toe 139, far toe 285), both soles down
+      G6: feet x 95 .. 251 (hip column 192; near toe 144, far toe 251), near 7 px up
+      G7: feet x 155 .. 225 (hip column 192; near toe 225, far toe 218), near 10 px up
+      G8: feet x 123 .. 259 (hip column 192; near toe 259, far toe 184), near 6 px up
+  - WEAPON per frame (x in the 384-px slot, y on the canvas; the same butt->tip length in every frame - one straight
+    rigid piece; tip above the head is fine):
+      G1: butt (225,695) fist (239,676) tip (290,608)  angle 53 deg  butt->tip 109 px
+      G2: butt (226,697) fist (240,678) tip (290,609)  angle 54 deg  butt->tip 109 px
+      G3: butt (228,683) fist (242,663) tip (289,592)  angle 56 deg  butt->tip 109 px
+      G4: butt (231,674) fist (243,654) tip (286,580)  angle 59 deg  butt->tip 109 px
+      G5: butt (232,675) fist (244,655) tip (285,580)  angle 61 deg  butt->tip 109 px
+      G6: butt (232,681) fist (244,660) tip (287,586)  angle 60 deg  butt->tip 109 px
+      G7: butt (231,680) fist (244,660) tip (289,588)  angle 58 deg  butt->tip 109 px
+      G8: butt (228,686) fist (241,666) tip (291,597)  angle 55 deg  butt->tip 109 px
 
 PERSONALITY (this character's own run):
   - A soft, low, hurried glide - a sister running to the wounded: hips 3-5 px lower than the robe class mannequin (softer knees, as in her crouched idle), about 1 deg more lean and the head bowed a little (sorrowful, eyes on the road just ahead). The mannequin already has all of it - follow it.
   - The hips turn more with each short step (pelvis twist 6 deg vs the class's 4) so the torn hem sways from side to side, while the chest stays quiet (counter-rotation 2 vs 3): the upper body is calm, the skirt does the moving. In the passing frames (G3/G7) the swing foot is carried a little further ahead so both boots read under the hem.
-  - The mace stays in the near (right) fist at the waist, haft forward-up as in the idle, held steady: it rides with the body and nods only a few px - never swung.
+  - The mace stays in the near (right) fist at the waist, haft forward-up as in the idle, held steady: it rides with the arm and sways at most a few degrees - one straight haft at the idle length, never swung.
   - The free far (left) hand is OPEN, palm down, low and forward in front of the thigh as in the idle (reaching ahead as if to steady someone or bless): an almost straight arm that swings gently fore-aft with the steps. No glow, no cast.
   - The ragged veil tails and the long wavy hair stream back and lag one frame; the broad rear tail of the red sash lags one frame behind the rear hip, the narrow sash end stays at the centre front between the legs; the jagged hem shows the brown boot wraps at each step. Nothing reaches y=870.
   - Face: exactly as in the idle in every frame.
 
 MUST NOT CHANGE: outfit, colours, proportions, headgear, weapon shape and size, and the SCALE of the accepted sheet. The
-body must not be shrunk to fit - change a weapon's angle (inside the wrist range) instead.
+body must not be shrunk to fit, and the weapon is never shortened or bent to fit - it follows the WEAPON table.
 
 FORMAT (each strip): 1536x1024 PNG, 4 frames in ONE row, frame n in the 384-px slot n (x = 384*(n-1) .. 384*n-1), facing RIGHT,
 front three-quarter view, light from the upper left, exactly the placement of guide_robe_a/b.png:
   - the hip centre of every frame on the slot's column x=192 (the body stays in place, the feet move);
   - EVERY frame: the lowest pixel of the figure is the standing sole on y=870 (no flight frame);
   - every pixel of a frame between x=32 and x=351 of its slot (at least 32 px of magenta to the slot edges - nothing may cross into the next slot, including weapons, cloth and hair);
-  - the SCALE of the accepted sheet (0.1654 source -> game: the idle is 65 game px tall); the mannequin is fitted to the idle (the same height and limb lengths), its head top near y=464-472.
+  - the SCALE of the accepted sheet (0.1654 source -> game: the idle is 65 game px tall); the mannequin is fitted to the idle (the same height and limb lengths), its HEAD top near y=464-472 (a weapon may reach higher).
 STYLE: crisp pixel art like the accepted sheet - about 40 colours, hard pixel edges, no anti-aliasing into the background.
 BACKGROUND: perfectly flat #FF00FF. Every figure colour at RGB distance >= 170 from #FF00FF (hard minimum 150).
 NO effects: no dust, speed lines, motion blur, afterimages, shadows, floor, text, joint dots or guide lines in the delivery.

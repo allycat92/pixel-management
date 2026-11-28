@@ -93,6 +93,74 @@ class Personality(unittest.TestCase):
             personality({'personality': {'stride_add': 10}})                   # the stride is the class's, never personal
 
 
+class FootPaths(unittest.TestCase):
+    """owner verdict 2026-11-28: the heavy / robe back foot snapped, the foot trailed far back"""
+    def test_heavy_and_robe_swing_foot_like_the_2d_bases(self):
+        for key in ('ironwall', 'mage'):
+            with self.subTest(key=key):
+                spec, g, res = run(key)
+                self.assertEqual(fails(res), [])
+                paths = checks.foot_paths(spec, g['recs'])
+                for s, seq in paths.items():
+                    xs = [a for _, a, *_ in seq]
+                    self.assertTrue(all(b > a for a, b in zip(xs, xs[1:])), (s, xs))   # forward every frame
+                    self.assertGreaterEqual(seq[3][1], 15)        # REACH: swing ankle ahead of the hip
+                    self.assertGreaterEqual(seq[3][2], 4)         # ... and off the floor (not a 2nd contact)
+                    self.assertLessEqual(seq[1][2], 10)           # toe-off: no snap up
+                    self.assertLessEqual(seq[0][5], 30)           # trailing leg nearly straight ...
+                    self.assertLessEqual(seq[0][4], -12)          # ... and angled back
+
+    def test_foot_path_check_catches_a_second_contact(self):
+        spec, g, _ = run('ironwall')
+        recs = [dict(r) for r in g['recs']]
+        recs[3] = dict(recs[3], sole_px=dict(recs[3]['sole_px'], F=869))        # reach foot dragged on the floor
+        self.assertTrue(any('REACH' in m for m in fails(checks.foot_path_checks(spec, recs))))
+
+    def test_hip_drop_does_not_fold_the_trailing_leg(self):
+        carry = dict(CARRY['ironwall'], personality={'hip_drop': [8.0, 2.0, 2.0, 2.0]})
+        cam = Camera(yaw=15.0)
+        spec = gait_spec('run_heavy', 0.1654, 1.0)
+        g = build.render_gait(CANON, carry, spec, cam, 0.1654)
+        self.assertEqual(fails(checks.foot_path_checks(spec, g['recs'])), [])
+
+    def test_swing_add_refused_on_target_gaits(self):
+        from motions import personality
+        with self.assertRaises(ValueError):
+            personality({'gait': 'run_heavy', 'personality': {'swing_add': {'0.75': [2, 6, 0]}}})
+
+
+class WeaponStability(unittest.TestCase):
+    """owner verdict 2026-11-28: bent spear, wobbling greatsword / mace"""
+    def test_two_handed_weapons_locked_to_the_chest(self):
+        for key in ('lancer', 'grom', 'magda', 'mage'):
+            with self.subTest(key=key):
+                _, g, res = run(key)
+                self.assertEqual(fails(res), [])
+                W = [r['weapon_px'] for r in g['recs']]
+                self.assertTrue(all(w['two_hand'] for w in W))
+                A = [w['angle_deg'] for w in W]
+                self.assertLessEqual(max(abs(A[(i + 1) % 8] - A[i]) for i in range(8)), checks.W_STEP[2])
+                L = [w['length_px'] for w in W]
+                self.assertLessEqual(max(L) - min(L), 0.02 * min(L))
+                for i in range(4):          # strip b = strip a
+                    self.assertLessEqual(abs(A[i] - A[i + 4]), 1.0)
+
+    def test_stability_check_catches_a_bent_or_pumping_weapon(self):
+        _, g, _ = run('lancer')
+        recs = [dict(r) for r in g['recs']]
+        w = dict(recs[2]['weapon_px'])
+        w['length_px'] *= 0.85                          # shortened to stay under a line
+        w['angle_deg'] += 6.0                           # and kinked
+        recs[2] = dict(recs[2], weapon_px=w)
+        msgs = fails(checks.weapon_stability(recs, CARRY['lancer']))
+        self.assertTrue(any('rigid' in m for m in msgs) and any('weapon angle' in m for m in msgs), msgs)
+
+    def test_idle_angle_change_warns(self):
+        _, g, _ = run('lancer')
+        res = checks.weapon_stability(g['recs'], CARRY['lancer'])
+        self.assertTrue(any(lv == checks.WARN and 'vs idle 36' in m for lv, m in res), res)
+
+
 class Request3D(unittest.TestCase):
     def test_request_folder(self):
         import request

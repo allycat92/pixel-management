@@ -26,8 +26,11 @@
 ## 3D 가이드 읽는 법
 
 - **명암 = 깊이**: 밝은 부분이 보는 사람에게 **가깝고**, 어두운 부분이 **멀다** (가까운 팔·다리는 밝은 베이지, 먼 팔·다리는 어두운 회청색). 덧그릴 때 이 앞뒤 순서를 지킨다 — **가까운 쪽이 먼 쪽 위에** 그려진다. 무기·몸·얼굴이 겹쳐도 그 순서만 맞으면 괜찮다.
-- **청록 반투명 = 든 무기**: 실선 윤곽은 무기가 앞에 있는 곳, 점선은 몸이 무기 앞을 가리는 곳. 무기는 대기 그림의 **실제 크기·모양**으로 그 자리를 따라 그린다 (가이드의 모양은 자리 표시).
+- **청록 반투명 = 든 무기**: 실선 윤곽은 무기가 앞에 있는 곳, 점선은 몸이 무기 앞을 가리는 곳. 무기는 대기 그림의 모양으로, 청록 모양의 **선 위에 그 길이·각도 그대로** 그린다 (프롬프트의 WEAPON 표: 프레임마다 밑동·주먹·끝 좌표).
   - 활 = 휜 활대 둘(손잡이에서 위·아래 활끝으로, 끝으로 갈수록 시위 쪽으로 휜다)과 활끝을 잇는 가는 시위 선. 한 손으로 손잡이를 쥔다. 손목 규칙은 손잡이에서 위 활끝 쪽으로 가는 활대 방향(손잡이 축)에 잰다.
+- **무기는 하나의 단단한 물체다.** 모든 프레임에서 길이·모양이 같다(아래 표: 밑동→끝, 주먹→끝). 곧은 자루·칼날은 밑동부터 끝까지 **한 직선** — 자로 그어 확인하고 절대 휘지 않는다. 어떤 선에 맞추려고 줄이거나 구부리거나 늘이지 않는다. 프레임마다 표의 밑동·주먹·끝 좌표(±4px)에 놓고, 각도는 대기와 달라도 표의 값. 무기 끝은 머리보다 위로 가도 된다 — 「높이」 숫자는 머리(머리카락·투구·모자) 꼭대기일 뿐, 프레임의 맨 윗점이 아니다. 이웃 프레임 사이 무기 각도는 3도(양손 무기 1.5도) 이하, 끝은 표의 매끈한 길을 따른다 — 앞뒤로 떨지 않는다. 양손 무기는 두 주먹이 매 프레임 손잡이의 같은 자리에 있고, 무기는 가슴을 따라 움직인다(b 띠 = a 띠).
+- 단계: R1 닿기 - R2 받기(엉덩이 가장 낮음) - R3 밀기(뒤꿈치 듦) - R4 공중(두 발 모두 뜸). R5~R8 은 먼 발로 같은 동작.
+- **높이**: 아래 「Height」 숫자는 **머리 꼭대기**(머리카락·투구·모자)일 뿐 — 무기 끝·지팡이 머리·깃털은 그보다 위로 가도 된다.
 - **손목 범위**: 무기의 손잡이 축(주먹에서 무기 끝 쪽; 활은 손잡이에서 위 활끝 쪽, 역수는 엄지 쪽)은 아래팔(팔꿈치→손목) 선에서 위쪽(엄지 쪽)으로 0~120도 안. 0 = 팔과 일직선. 그 밖으로 꺾어 늘어뜨리지 않는다 (덜렁거리는 칼 금지). 위로 들든 아래로 내리든 이 범위 안이면 된다.
 - **바닥**: 디딘 발바닥은 y=870, 공중 프레임은 y=852 위. 무기 끝·천 같은 소품이 바닥 줄 아래로 내려가면 그릴 때 손본다 (각도를 조금 바꿔 올린다) — 몸과 발의 바닥 규칙은 그대로.
 - **마네킹 픽셀은 전부 덮는다**: 3D 마네킹의 색이 한 프레임의 25% 이상 남거나, 실루엣이 가이드와 거의 같으면(색만 바꾼 마네킹, IoU > 0.93) `add_gait.py` 가 받지 않는다. 마네킹 머리는 자리 표시 — 캐릭터의 머리·머리카락·머리띠를 대기 그림 크기로 그린다.
@@ -79,8 +82,16 @@ HOW TO READ THE 3D GUIDE:
     arm / far leg dark slate). KEEP THAT DEPTH ORDER when you paint: the nearer part is always drawn over the farther one.
     Weapon, body and face may overlap - that is fine as long as the nearer part is on top.
   - The teal see-through shape is the held weapon: a solid outline where it is in front, dashed where a body part covers
-    it. Paint the character's OWN weapon at its idle size and shape in that place (the ghost only marks it):
+    it. Paint the character's own weapon (the idle's shape) ON THAT LINE at the table's length and angle (WEAPON below):
     BOW = two curved limbs (from the grip to each tip, curling back toward the string near the tips) and a thin string line tip to tip; ONE hand on the grip. The wrist rule is measured on the stave at the grip, toward the upper tip.
+  - WEAPON = ONE RIGID OBJECT. In every frame it has the same length and shape (the table: butt -> tip, fist -> tip). A
+    straight shaft or blade is ONE straight line from butt to tip - check it with a ruler line, never curve it. Never
+    shorten, bend or stretch it to reach a point or to stay under a line. Place it by the table's BUTT, FIST(S) and TIP
+    for each frame (+-4 px); its angle is the table's even where it differs from the idle. The tip MAY be above the
+    head and is NOT limited by the Height numbers - those are the top of the HEAD (hair / helmet / hat) only. Between
+    neighbouring frames the weapon turns at most 3 deg (two-handed: 1.5) and its tip follows the smooth path of the
+    table - no back-and-forth. Two-handed: both fists stay at the same places on the grip in every frame, and the weapon
+    rides with the chest (strip b = strip a).
   - WRIST RANGE (owner rule): every held weapon's GRIP AXIS (fist -> weapon tip; a bow: grip -> upper tip; a reverse
     grip: the thumb side of the fist) points 0-120 deg UPWARD (thumb side) from the forearm line (elbow -> wrist);
     0 = straight along the forearm. Up or down on screen does not matter, but never bend it past the arm line (no
@@ -97,7 +108,8 @@ HOW TO READ THE 3D GUIDE:
 THE MOVE (movement class light: the accepted run: lean forward, press down in flight, rise a little after the landing is caught, hip nearly level, slight float, no hopping. - with this character's personality on top, already in the mannequin):
   - R1 contact - R2 catch (lowest hips) - R3 push-off (heel up) - R4 FLIGHT (both feet off the ground). R5-R8 = the same with the far foot.
   - Lean forward (hip to neck): R1 20, R2 16.3, R3 24.5, R4 25.9, R5 18.4, R6 15.4, R7 24.5, R8 27.3 deg.
-  - Height: the mannequin's head top is at y=449/449/452/453 in R1 R2 R3 R4 and 449/448/452/453 in R5 R6 R7 R8: R1 +0, R2 +0, R3 +3, R4 +4 px from R1 (+ = lower) - move your head top by the same amounts (bob 5 px).
+  - Height: the HEAD top (hair / helmet / hat - NOT the weapon) is at y=449/449/452/453 in R1 R2 R3 R4 and 449/448/452/453 in R5 R6 R7 R8: R1 +0, R2 +0, R3 +3, R4 +4 px from R1 (+ = lower) - move your head top by the same amounts (bob 5 px). A
+    weapon tip, staff head, plume or raised cloth may go HIGHER than these rows - they never limit it.
   - Stride: one step = 275 source px = 45.5 game px; 8 frames = two steps, 80 ms a frame in the game.
   - Stride rule: 45.5 game px = the light class stride: the fitted legs are within 5% of the class mannequin's (leg factor 1.025), so the class stride is kept. The cadence is the class's.
   - PLANTED FOOT: a foot on the floor never slides in the drawing. From its contact frame on, the SAME boot moves LEFT by
@@ -107,6 +119,25 @@ THE MOVE (movement class light: the accepted run: lean forward, press down in fl
       near foot: R1 x=284 -> R2 x=215 -> R3 x=146
       far foot: R5 x=296 -> R6 x=228 -> R7 x=159
       (R4 / R8: flight - no foot on the floor; the next contact lands ahead again)
+  - FEET per frame (x in the 384-px slot: rear-most heel .. front-most toe; keep both within ~20 px of these):
+      R1: feet x 113 .. 284 (hip column 192; near toe 284, far toe 78), far 141 px up
+      R2: feet x 119 .. 215 (hip column 192; near toe 215, far toe 98), far 122 px up
+      R3: feet x 84 .. 228 (hip column 192; near toe 146, far toe 228), far 47 px up
+      R4: feet x 62 .. 332 (hip column 192; near toe 44, far toe 332), near 64 px up, far 27 px up
+      R5: feet x 100 .. 296 (hip column 192; near toe 65, far toe 296), near 141 px up
+      R6: feet x 106 .. 228 (hip column 192; near toe 85, far toe 228), near 122 px up
+      R7: feet x 97 .. 215 (hip column 192; near toe 215, far toe 159), near 47 px up
+      R8: feet x 77 .. 316 (hip column 192; near toe 316, far toe 59), near 27 px up, far 64 px up
+  - WEAPON per frame (x in the 384-px slot, y on the canvas; the same butt->tip length in every frame - one straight
+    rigid piece; tip above the head is fine):
+      R1: butt (280,765) fist (313,629) tip (289,484)  angle 88 deg  butt->tip 282 px
+      R2: butt (274,760) fist (309,624) tip (286,478)  angle 88 deg  butt->tip 282 px
+      R3: butt (271,773) fist (310,639) tip (292,492)  angle 86 deg  butt->tip 282 px
+      R4: butt (260,774) fist (304,642) tip (292,494)  angle 83 deg  butt->tip 282 px
+      R5: butt (251,764) fist (297,632) tip (288,485)  angle 82 deg  butt->tip 282 px
+      R6: butt (252,761) fist (298,629) tip (288,481)  angle 83 deg  butt->tip 282 px
+      R7: butt (268,774) fist (309,640) tip (294,493)  angle 85 deg  butt->tip 282 px
+      R8: butt (279,778) fist (315,643) tip (295,497)  angle 87 deg  butt->tip 282 px
 
 PERSONALITY (this character's own run):
   - A captain's swaggering deck-runner's run: chest up and open to the viewer, 3-4 deg MORE UPRIGHT than the light class mannequin and the hips 1-2 px higher (springy, never crouched - the opposite of Baren's low swordsman's run; the mannequin already has it - follow it). The hips roll more from side to side (pelvis twist 10 deg instead of 7) and the chest counters them: a confident sway, chin up.
@@ -117,7 +148,7 @@ PERSONALITY (this character's own run):
   - Face: exactly as in the idle in every frame.
 
 MUST NOT CHANGE: outfit, colours, proportions, headgear, weapon shape and size, and the SCALE of the accepted sheet. The
-body must not be shrunk to fit - change a weapon's angle (inside the wrist range) instead.
+body must not be shrunk to fit, and the weapon is never shortened or bent to fit - it follows the WEAPON table.
 
 FORMAT (each strip): 1536x1024 PNG, 4 frames in ONE row, frame n in the 384-px slot n (x = 384*(n-1) .. 384*n-1), facing RIGHT,
 front three-quarter view, light from the upper left, exactly the placement of guide_run_a/b.png:
@@ -125,7 +156,7 @@ front three-quarter view, light from the upper left, exactly the placement of gu
   - R1 R2 R3 R5 R6 R7: the sole of the standing foot on y=870 (lowest pixel), the other foot well above it;
   - R4 / R8 (FLIGHT): NOTHING touches y=870 - the lowest pixel of the whole figure (boots, weapon, cloth) at or above y=852;
   - every pixel of a frame between x=32 and x=351 of its slot (at least 32 px of magenta to the slot edges - nothing may cross into the next slot, including weapons, cloth and hair);
-  - the SCALE of the accepted sheet (0.1654 source -> game: the idle is 73 game px tall); the mannequin is fitted to the idle (the same height and limb lengths), its head top near y=448-453.
+  - the SCALE of the accepted sheet (0.1654 source -> game: the idle is 73 game px tall); the mannequin is fitted to the idle (the same height and limb lengths), its HEAD top near y=448-453 (a weapon may reach higher).
 STYLE: crisp pixel art like the accepted sheet - about 40 colours, hard pixel edges, no anti-aliasing into the background.
 BACKGROUND: perfectly flat #FF00FF. Every figure colour at RGB distance >= 170 from #FF00FF (hard minimum 150).
 NO effects: no dust, speed lines, motion blur, afterimages, shadows, floor, text, joint dots or guide lines in the delivery.
