@@ -1,6 +1,6 @@
 # G1 — 바렌 달리기 8프레임, 3D 마네킹 위에 그리기 (GPT 대리, 그림)
 
-**주인 11-28:** Antigravity 가 사용 한도에 걸려 **GPT 가 대리로 그린다.** 이 일감에 한해 GPT 는 그림을 그리고 `art-inbox` 브랜치에 납품할 수 있다(그 밖의 그림 일은 여전히 Antigravity 담당).
+**주인 11-28 (주인이 총괄에게 한 말 그대로: 「안티그래비티가 한도에 도달해서 그런데 gpt쪽으로 대리해서 넘겨줘」):** Antigravity 가 사용 한도에 걸려 **GPT 가 대리로 그린다.** 허용 범위는 `docs/agents/GPT_QA_STANDING.md` 의 ART EXCEPTION 에 적었다. 이 일감에 한해 GPT 는 그림을 그리고 `art-inbox` 브랜치에 납품할 수 있다(그 밖의 그림 일은 여전히 Antigravity 담당).
 
 - 요청서: `art/requests/gait/run__captain_blademaster/README.md` — 그대로 따른다(3D 마네킹 안내 그림, 관절 위치 `pose.json`, 크기 비교, 미리보기 GIF).
 - 바렌 모습: `art/requests/phase3/captain_blademaster/concept.png`, `portrait.png`, 등록 시트 `assets/art/sheets/sheet_captain_blademaster.png`, art-inbox 의 원본 `art/inbox/sheet_captain_blademaster.png`.
