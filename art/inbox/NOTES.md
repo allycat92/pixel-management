@@ -1627,3 +1627,22 @@ RISKS AT GAME SIZE: 1배에서 몸을 낮춘 무거운 걸음과 검 기울기�
 본 방법: 원본 띠, 등록용 1배·4배 미리보기, 접점과 바닥선, GIF 프레임 간격.
 고칠 점: 기술 검사 요구 없음. 게임 등록 전 주인 판정.
 남은 걱정: 1배에서 몸을 낮춘 무거운 걸음과 검 기울기가 읽히는지 확인.
+
+## gait/sheet_hero_seraphine_run - 세라핀 — 파문 성녀 로브 이동 8프레임
+CHECK: (a) RESULT: PASS; (b) RESULT: PASS
+```text
+  --dry-run: 시트·manifest 는 그대로. 새 시트 /tmp/pm-g13.nQiB/preview/sheet_hero_seraphine.png · 등록될 항목 sheet_hero_seraphine.entry.json · 미리보기 sheet_hero_seraphine_preview_x4.png
+  sheet/hero/seraphine: 시트 384x384, 15칸 — idle(4), attack(2), hit(1), run(8); runStride 22.2
+  다시 붙이는 명령: python3 tools/art/add_gait.py sheet/hero/seraphine --gait run --src art/inbox/gait/sheet_hero_seraphine_run_a.png art/inbox/gait/sheet_hero_seraphine_run_b.png --pose art/requests/gait/robe__hero_seraphine/pose.json --ms 96
+```
+REFERENCES LOADED: guide, plain underlay, size (a/b), two GIFs, approved source & installed sheet, portrait, pose.json → ok (concept: not part of the requested hero reference set).
+CHANGED: 접점 x 273/240/206/172, 285/251/218/184; 착지 y=870 (공중 프레임 없음). robe 보폭 22.2, 명목 96ms.
+DEVIATIONS: (a) 접점과 높이를 가이드 수치에 맞췄다. 팔꿈치·무릎 등 세부 관절 좌표는 실측하지 않았다. (b) 찢어진 크림 로브와 붉은 어깨띠, 작은 철퇴와 앞쪽 빈 손. 후광·마법 효과 없음. (c) 낮은 손과 철퇴 위치를 따랐으나 손목 각도와 뒤쪽 발의 접점을 따로 실측하지 않았다. 공통: 명목 GIF와 전투의 거리 기반 재생은 구분하고, 겹침은 최신 3D 깊이 규칙을 따랐다.
+RISKS AT GAME SIZE: 1배에서 빈 손이 철퇴와 겹쳐 보이지 않는지, 로브 자락에서 발이 읽히는지 확인.
+3D GUIDE: 발과 철퇴를 낮게 고정한 동작의 기준으로 썼다.
+
+## 판정 — gait/sheet_hero_seraphine_run
+결과: 기술 검사 통과 / 미감 주인 판정 대기.
+본 방법: 원본 띠, 등록용 1배·4배 미리보기, 접점과 바닥선, GIF 프레임 간격.
+고칠 점: 기술 검사 요구 없음. 게임 등록 전 주인 판정.
+남은 걱정: 1배에서 빈 손이 철퇴와 겹쳐 보이지 않는지, 로브 자락에서 발이 읽히는지 확인.
