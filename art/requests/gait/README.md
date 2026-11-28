@@ -40,7 +40,7 @@
 |---|---|---|---|---|
 | [`heavy__captain_dragonslayer/`](heavy__captain_dragonslayer/README.md) | `sheet/captain/dragonslayer` 지크린데 이동 | 중량 · `art/requests/guides/heavy_base/v1` | `art/inbox/gait/sheet_captain_dragonslayer_run_a.png` + `_b.png` | 요청 |
 | [`heavy__captain_ironwall/`](heavy__captain_ironwall/README.md) | `sheet/captain/ironwall` 브리긴다 이동 (중량) | 중량 · `art/requests/guides/heavy_base/v1` | `art/inbox/gait/sheet_captain_ironwall_run_a.png` + `_b.png` | 그려짐 · 등록 |
-| [`heavy__captain_lancer/`](heavy__captain_lancer/README.md) | `sheet/captain/lancer` 로드릭 — 말을 잃은 기사 (창기병) 이동 (3D 마네킹) | 중량 · 3D 마네킹 `art/requests/gait/heavy__captain_lancer/` | `art/inbox/gait/sheet_captain_lancer_run_a.png` + `_b.png` | 요청 |
+| [`heavy__captain_lancer/`](heavy__captain_lancer/README.md) | `sheet/captain/lancer` 로드릭 — 말을 잃은 기사 (창기병) 이동 (3D 마네킹) | 중량 · 3D 마네킹 `art/requests/gait/heavy__captain_lancer/` | `art/inbox/gait/sheet_captain_lancer_run_a.png` + `_b.png` | 그려짐 · 등록 |
 | [`heavy__captain_runesmith/`](heavy__captain_runesmith/README.md) | `sheet/captain/runesmith` 브로크 이동 | 중량 · `art/requests/guides/heavy_base/v1` | `art/inbox/gait/sheet_captain_runesmith_run_a.png` + `_b.png` | 요청 |
 | [`heavy__captain_saintknight/`](heavy__captain_saintknight/README.md) | `sheet/captain/saintknight` 엘리노어 — 성광의 기사 (성광 기사) 이동 | 중량 · `art/requests/guides/heavy_base/v1` | `art/inbox/gait/sheet_captain_saintknight_run_a.png` + `_b.png` | 요청 |
 | [`heavy__captain_titan/`](heavy__captain_titan/README.md) | `sheet/captain/titan` 우르그 이동 | 중량 · `art/requests/guides/heavy_base/v1` | `art/inbox/gait/sheet_captain_titan_run_a.png` + `_b.png` | 요청 |
@@ -48,7 +48,7 @@
 | [`heavy__monster_frost-troll/`](heavy__monster_frost-troll/README.md) | `sheet/monster/서리 트롤` 서리 트롤 이동 | 중량 · `art/requests/gait/heavy__monster_frost-troll` | `art/inbox/gait/sheet_monster_frost-troll_run_a.png` + `_b.png` | 요청 |
 | [`robe__captain_archmagus/`](robe__captain_archmagus/README.md) | `sheet/captain/archmagus` 에우리아 — 마지막 대현자 (대현자) 이동 | 로브 · `art/requests/guides/robe_base/v1` | `art/inbox/gait/sheet_captain_archmagus_run_a.png` + `_b.png` | 요청 |
 | [`robe__captain_demonhunter/`](robe__captain_demonhunter/README.md) | `sheet/captain/demonhunter` 모르데카이 이동 | 로브 · `art/requests/guides/robe_base/v1` | `art/inbox/gait/sheet_captain_demonhunter_run_a.png` + `_b.png` | 요청 |
-| [`robe__captain_hedgemage/`](robe__captain_hedgemage/README.md) | `sheet/captain/hedgemage` 펠릭스 — 시골 마법사 (떠돌이 마법사) 이동 (3D 마네킹) | 로브 · 3D 마네킹 `art/requests/gait/robe__captain_hedgemage/` | `art/inbox/gait/sheet_captain_hedgemage_run_a.png` + `_b.png` | 요청 |
+| [`robe__captain_hedgemage/`](robe__captain_hedgemage/README.md) | `sheet/captain/hedgemage` 펠릭스 — 시골 마법사 (떠돌이 마법사) 이동 (3D 마네킹) | 로브 · 3D 마네킹 `art/requests/gait/robe__captain_hedgemage/` | `art/inbox/gait/sheet_captain_hedgemage_run_a.png` + `_b.png` | 그려짐 · 등록 |
 | [`robe__captain_hexer/`](robe__captain_hexer/README.md) | `sheet/captain/hexer` 벨라도나 이동 | 로브 · `art/requests/guides/robe_base/v1` | `art/inbox/gait/sheet_captain_hexer_run_a.png` + `_b.png` | 요청 |
 | [`robe__captain_inquisitorlord/`](robe__captain_inquisitorlord/README.md) | `sheet/captain/inquisitorlord` 발타자르 이동 | 로브 · `art/requests/guides/robe_base/v1` | `art/inbox/gait/sheet_captain_inquisitorlord_run_a.png` + `_b.png` | 요청 |
 | [`robe__captain_lightbearer/`](robe__captain_lightbearer/README.md) | `sheet/captain/lightbearer` 루치아 — 빛을 든 사도 (빛의 사도) 이동 | 로브 · `art/requests/guides/robe_base/v1` | `art/inbox/gait/sheet_captain_lightbearer_run_a.png` + `_b.png` | 요청 |

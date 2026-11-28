@@ -269,6 +269,10 @@
     "fist2_along_px": 91.7,
     "fist2_off_line_px": -0.0
    },
+   "belt_px": [
+    192.9,
+    645.7
+   ],
    "joints": {
     "hip": [
      192.0,
@@ -503,6 +507,10 @@
     "fist2_along_px": 91.7,
     "fist2_off_line_px": -0.0
    },
+   "belt_px": [
+    193.1,
+    657.0
+   ],
    "joints": {
     "hip": [
      192.0,
@@ -737,6 +745,10 @@
     "fist2_along_px": 91.7,
     "fist2_off_line_px": -0.0
    },
+   "belt_px": [
+    193.0,
+    649.3
+   ],
    "joints": {
     "hip": [
      192.0,
@@ -971,6 +983,10 @@
     "fist2_along_px": 91.7,
     "fist2_off_line_px": -0.0
    },
+   "belt_px": [
+    193.1,
+    646.3
+   ],
    "joints": {
     "hip": [
      192.0,
@@ -1206,6 +1222,10 @@
     "fist2_along_px": 91.7,
     "fist2_off_line_px": -0.0
    },
+   "belt_px": [
+    192.9,
+    645.7
+   ],
    "joints": {
     "hip": [
      192.0,
@@ -1440,6 +1460,10 @@
     "fist2_along_px": 91.7,
     "fist2_off_line_px": -0.0
    },
+   "belt_px": [
+    193.1,
+    657.0
+   ],
    "joints": {
     "hip": [
      192.0,
@@ -1674,6 +1698,10 @@
     "fist2_along_px": 91.7,
     "fist2_off_line_px": -0.0
    },
+   "belt_px": [
+    193.0,
+    649.3
+   ],
    "joints": {
     "hip": [
      192.0,
@@ -1908,6 +1936,10 @@
     "fist2_along_px": 91.7,
     "fist2_off_line_px": -0.0
    },
+   "belt_px": [
+    193.1,
+    646.3
+   ],
    "joints": {
     "hip": [
      192.0,
@@ -2082,8 +2114,14 @@
    "[OK] weapon angle (two-handed, chest-locked): H1:51.0 H2:51.0 H3:51.0 H4:50.9 H5:51.0 H6:51.0 H7:51.0 H8:50.9  max step 0.11 deg (<= 1.5), range 0.11 deg (<= 4.0)",
    "[OK] weapon tip path (relative to the chest): moves 0 0 0 1 0 0 0 1 px (<= 28), 0 reversals (<= 2) - one smooth path, no back-and-forth",
    "[OK] two-handed grip fixed to the chest: deviation 0.4 px (<= 3); strip a vs b at the same leg phase (deg / px) 0.6 0.5 0.1 0.3 (<= 3); fist-to-fist on screen 92..92 px (spread <= 6: both fists keep their places on the grip)",
-   "[OK] weapon run angle 51 vs idle 36 deg (+15; > 15 -> WARN, the README states the change)"
+   "[OK] weapon run angle 51 vs idle 36 deg (+15; > 15 -> WARN, the README states the change)",
+   "[OK] spear vs face: weapon x - nose x at the nose row (px, + = ahead of the face) per frame H1:+86 H2:+86 H3:+86 H4:+86 H5:+86 H6:+86 H7:+86 H8:+86; closest 86 (FAIL < 8, WARN < 25: the painter needs room for the idle's face beside the weapon)"
   ],
+  "idle": {
+   "head_top_px": 459,
+   "belt_y_px": 663.3,
+   "head_top_to_belt_px": 204.3
+  },
   "shading": "cel shading by depth: lighter = nearer the viewer, darker = farther (near limbs light, far limbs dark)"
  }
 }

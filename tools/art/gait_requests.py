@@ -1795,6 +1795,57 @@ def weapon_angle_lines(wm, idle, margin):
     return _wrap_en(en), [ko]
 
 
+def body_span_lines(pose, frames):
+    """(English Prompt lines, 한국어 README lines) of the BELT row (pose.json belt_px: the centre of the mannequin's brown belt
+    band as drawn, NOT the yellow hip dot) and of the idle's hair top -> belt span (pose.json mannequin3d.idle) - diagnosis
+    2026-11-28: Oswin's belt went on the hip dot (~20 px low, the body sank), Magda's / Grom's upper body and head were
+    squeezed and stretched; the per-frame belt row and the idle span let the painter keep the body one rigid length"""
+    belts = [f.get('belt_px') for f in frames]
+    if not all(belts):
+        return [], []
+    by = [int(round(b[1])) for b in belts]
+    hips = [f['joints']['HN'][1] for f in frames]
+    dot = int(round(sum(h - b[1] for h, b in zip(hips, belts)) / len(frames)))
+    names = [f['frame'] for f in frames]
+    tops = [f.get('head_top_px', f.get('top_px')) for f in frames]
+    span = [b - t for b, t in zip(by, tops)]
+    idle = ((pose.get('mannequin3d') or {}).get('idle') or {}).get('head_top_to_belt_px')
+    n = int(round(idle)) if idle is not None else None
+    rows = ' / '.join(f'{nm} {y}' for nm, y in zip(names, by))
+    en = _wrap_en(f'BELT per frame (y on the canvas = the centre of the mannequin\'s BROWN BAND at the waist - NOT the yellow hip '
+                  f'dot, which sits ~{dot} px lower in the pelvis): {rows}. Paint the belt (and the waist line of a coat / armour) '
+                  'centred on these rows.')
+    span_txt = f'{min(span)}-{max(span)}' if min(span) != max(span) else f'{span[0]}'
+    if n is not None:
+        en += [f'  - hair top -> belt = the idle\'s span ({n} px); do not squash or stretch the body or head.']
+        en += _wrap_en(f'In this guide the HEAD top -> BELT rows are {span_txt} px apart (the leaning trunk is a little shorter on '
+                       'screen than standing): move the whole head-and-chest block as ONE piece to the Height and BELT rows of '
+                       'each frame.', first='    ')
+    ko = [f'- **허리띠**: 그리는 허리띠(코트·갑옷의 허리선)의 가운데는 마네킹 허리의 **갈색 띠** 가운데 — 노란 엉덩이 점이 아니다(점은 '
+          f'약 {dot}px 아래, 골반 속). 프레임별 y: {rows}.']
+    if n is not None:
+        ko += [f'- **머리카락 꼭대기 → 허리띠 = 대기의 길이({n}px)**: 몸통·머리를 눌러 줄이거나 늘이지 않는다. 이 가이드의 머리 꼭대기 → '
+               f'허리띠 줄 간격은 {span_txt}px(몸통이 기울어 선 자세보다 화면에서 조금 짧다) — 머리·가슴을 한 덩어리로 프레임마다 '
+               '「Height」 줄과 허리띠 줄로 옮긴다.']
+    return en, ko
+
+
+def fist_tip_lines(pose):
+    """(English, 한국어) the held weapon's fist -> tip length to keep in every frame (pose.json weapon_px fist_tip_px) -
+    diagnosis 2026-11-28: Astel's staff grew 233 -> 261 px while the guide kept 211"""
+    W = [f.get('weapon_px') for f in pose['frames']]
+    if not all(W):
+        return [], []
+    ft = [w['fist_tip_px'] for w in W]
+    lo, hi = int(round(min(ft))), int(round(max(ft)))
+    val = f'{lo}' if lo == hi else f'{lo}-{hi}'
+    en = [f'    FIST -> TIP = {val} px in every frame (the holding fist\'s centre to the weapon\'s tip; the same piece every frame):',
+          '    keep that length - never lengthen the shaft to reach the tip row nor shorten it; move the fist WITH the weapon.']
+    ko = (f'- **주먹→끝 = {val}px**: 쥔 주먹 가운데에서 무기 끝까지 모든 프레임에서 같다 — 끝 자리에 맞추려고 자루를 늘이거나 줄이지 않고, '
+          '주먹을 무기와 함께 옮긴다.')
+    return en, [ko]
+
+
 def write_request_3d(sid, folder, cls, stem, short, p, date, spec, man):
     """3D 마네킹 가이드 요청 폴더 (tools/mannequin3d/request.py 의 그림 + 3D 용 README) → write_request 와 같은 꼴"""
     m3d = m3d_module()
@@ -1841,6 +1892,8 @@ def write_request_3d(sid, folder, cls, stem, short, p, date, spec, man):
     ph_en, ph_ko = phase_lines_3d(frames)
     feet_rows = feet_table(pose, light)
     w_rows = weapon_table(pose, light)
+    span_en, span_ko = body_span_lines(pose, frames)
+    ft_en, ft_ko = fist_tip_lines(pose) if w_rows else ([], [])
     wm = weapon_motion(pose, entry)
     w_idle = next((q.get('idle_deg') for q in entry.get('props', []) if wm and q.get('kind') == wm['kind']), None)
     rule_en, rule_ko = weapon_rule(wm) if (wm and w_rows) else ([], None)
@@ -1959,6 +2012,8 @@ def write_request_3d(sid, folder, cls, stem, short, p, date, spec, man):
            '그린다(닿기에서 뒷다리에 밀려 조금 뒤로, 지나가기까지 가라앉음) — 몇 px, 프레임 사이 매끈하게, 튀지 않게.'] if cls == 'robe' else []),
         ph_ko,
         '- **높이**: 아래 「Height」 숫자는 **머리 꼭대기**(머리카락·투구·모자)일 뿐 — 무기 끝·지팡이 머리·깃털은 그보다 위로 가도 된다.',
+        *span_ko,
+        *ft_ko,
         f'- **손목 범위**: 무기의 손잡이 축(주먹에서 무기 끝 쪽; 활은 손잡이에서 위 활끝 쪽, 역수는 엄지 쪽)은 아래팔(팔꿈치→손목) 선에서 위쪽(엄지 쪽)으로 {wmin:g}~{wmax:g}도 안. 0 = 팔과 일직선. 그 밖으로 꺾어 '
         '늘어뜨리지 않는다 (덜렁거리는 칼 금지). 위로 들든 아래로 내리든 이 범위 안이면 된다.',
         '- **바닥**: 디딘 발바닥은 y=870, 공중 프레임은 y=852 위. 무기 끝·천 같은 소품이 바닥 줄 아래로 내려가면 그릴 때 손본다 '
@@ -2041,6 +2096,7 @@ def write_request_3d(sid, folder, cls, stem, short, p, date, spec, man):
         + (f' (the same in {fb})' if tops[:4] == tops[4:] else f' and {"/".join(str(t) for t in tops[4:])} in {fb}')
         + f': {dtop} px from {frames[0]["frame"]} (+ = lower) - move your head top by the same amounts (bob {bob} px). A',
         '    weapon tip, staff head, plume or raised cloth may go HIGHER than these rows - they never limit it.',
+        *span_en,
         stride_line(pose, sc),
         stride_en,
         '  - PLANTED FOOT: a foot on the floor never slides in the drawing. From its contact frame on, the SAME boot moves LEFT by',
@@ -2052,7 +2108,7 @@ def write_request_3d(sid, folder, cls, stem, short, p, date, spec, man):
         '  - FEET per frame (x in the 384-px slot: rear-most heel .. front-most toe; keep both within ~20 px of these):',
         *feet_rows,
         *(['  - WEAPON per frame (x in the 384-px slot, y on the canvas; the same butt->tip length in every frame - one straight',
-           '    rigid piece; tip above the head is fine):', *w_rows] if w_rows else []),
+           '    rigid piece; tip above the head is fine):', *w_rows, *ft_en] if w_rows else []),
         '',
         'PERSONALITY (this character\'s own run):',
         *[f'  - {s}' for s in pnotes],

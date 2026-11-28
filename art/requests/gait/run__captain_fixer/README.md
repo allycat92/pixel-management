@@ -34,6 +34,9 @@
 - **각도 바뀜(+16도, 약 15도 넘음)**: 단검은(는) 주먹에 고정되어 아래팔을 따라간다 — 모든 프레임에서 아래팔에 대한 각도 하나(25도, 손잡이 축)를 지키고, 화면에서는 팔 흔들림으로만 돈다: 표의 164 -170 -162 -159 -163 177 157 151도(평균 179도, 대기 약 163도에서 +16도). 무기를 새로 그리지 않는다: 대기의 그 단검(길이·모양 그대로)을(를) 대기처럼 주먹에 끼우고 팔이 프레임마다 표의 각도로 옮기게 한다 — 화면에서 한 각도로 고정하지 않는다. 이 각도에서 잰 값: 무기를 포함한 그림 전체가 칸(x 32~351) 안쪽으로 11px 이상(검사는 8px 이상).
 - 단계: R1 닿기 - R2 받기(엉덩이 가장 낮음) - R3 밀기(뒤꿈치 듦) - R4 공중(두 발 모두 뜸). R5~R8 은 먼 발로 같은 동작.
 - **높이**: 아래 「Height」 숫자는 **머리 꼭대기**(머리카락·투구·모자)일 뿐 — 무기 끝·지팡이 머리·깃털은 그보다 위로 가도 된다.
+- **허리띠**: 그리는 허리띠(코트·갑옷의 허리선)의 가운데는 마네킹 허리의 **갈색 띠** 가운데 — 노란 엉덩이 점이 아니다(점은 약 21px 아래, 골반 속). 프레임별 y: R1 658 / R2 660 / R3 656 / R4 653 / R5 658 / R6 660 / R7 656 / R8 653.
+- **머리카락 꼭대기 → 허리띠 = 대기의 길이(205px)**: 몸통·머리를 눌러 줄이거나 늘이지 않는다. 이 가이드의 머리 꼭대기 → 허리띠 줄 간격은 185-194px(몸통이 기울어 선 자세보다 화면에서 조금 짧다) — 머리·가슴을 한 덩어리로 프레임마다 「Height」 줄과 허리띠 줄로 옮긴다.
+- **주먹→끝 = 97-99px**: 쥔 주먹 가운데에서 무기 끝까지 모든 프레임에서 같다 — 끝 자리에 맞추려고 자루를 늘이거나 줄이지 않고, 주먹을 무기와 함께 옮긴다.
 - **손목 범위**: 무기의 손잡이 축(주먹에서 무기 끝 쪽; 활은 손잡이에서 위 활끝 쪽, 역수는 엄지 쪽)은 아래팔(팔꿈치→손목) 선에서 위쪽(엄지 쪽)으로 0~120도 안. 0 = 팔과 일직선. 그 밖으로 꺾어 늘어뜨리지 않는다 (덜렁거리는 칼 금지). 위로 들든 아래로 내리든 이 범위 안이면 된다.
 - **바닥**: 디딘 발바닥은 y=870, 공중 프레임은 y=852 위. 무기 끝·천 같은 소품이 바닥 줄 아래로 내려가면 그릴 때 손본다 (각도를 조금 바꿔 올린다) — 몸과 발의 바닥 규칙은 그대로.
 - **마네킹 픽셀은 전부 덮는다**: 3D 마네킹의 색이 한 프레임의 25% 이상 남거나, 실루엣이 가이드와 거의 같으면(색만 바꾼 마네킹, IoU > 0.93) `add_gait.py` 가 받지 않는다. 마네킹 머리는 자리 표시 — 캐릭터의 머리·머리카락·머리띠를 대기 그림 크기로 그린다.
@@ -126,6 +129,12 @@ THE MOVE (movement class light: the accepted run: lean forward, press down in fl
   - Lean forward (hip to neck): R1 29.5, R2 24.9, R3 31.2, R4 33.2, R5 28.7, R6 24.4, R7 31.2, R8 33.7 deg.
   - Height: the HEAD top (hair / helmet / hat - NOT the weapon) is at y=468/466/468/468 in R1 R2 R3 R4 (the same in R5 R6 R7 R8): R1 +0, R2 -2, R3 +0, R4 +0 px from R1 (+ = lower) - move your head top by the same amounts (bob 2 px). A
     weapon tip, staff head, plume or raised cloth may go HIGHER than these rows - they never limit it.
+  - BELT per frame (y on the canvas = the centre of the mannequin's BROWN BAND at the waist - NOT the yellow hip dot,
+    which sits ~21 px lower in the pelvis): R1 658 / R2 660 / R3 656 / R4 653 / R5 658 / R6 660 / R7 656 / R8 653.
+    Paint the belt (and the waist line of a coat / armour) centred on these rows.
+  - hair top -> belt = the idle's span (205 px); do not squash or stretch the body or head.
+    In this guide the HEAD top -> BELT rows are 185-194 px apart (the leaning trunk is a little shorter on screen than
+    standing): move the whole head-and-chest block as ONE piece to the Height and BELT rows of each frame.
   - Stride: one step = 298.31 source px = 49.3 game px; 8 frames = two steps, 80 ms a frame in the game.
   - Stride rule: 49.3 game px = the light class stride 45.48 px x leg factor 1.085: this character's fitted legs are 8% longer than the class mannequin's, so the same joint angles and stance-knee bend give a longer step (legs more than 5% off -> the stride follows the legs). The engine advances each sheet by its OWN runStride/4 per planted cell, so the planted foot does not slide; the unit's ground speed is unchanged (a few fewer steps). The cadence is the class's.
   - PLANTED FOOT: a foot on the floor never slides in the drawing. From its contact frame on, the SAME boot moves LEFT by
@@ -154,6 +163,8 @@ THE MOVE (movement class light: the accepted run: lean forward, press down in fl
       R6: butt (227,676) fist (212,675) tip (115,670)  angle 177 deg  butt->tip 112 px
       R7: butt (209,681) fist (195,675) tip (104,637)  angle 157 deg  butt->tip 114 px
       R8: butt (204,680) fist (190,672) tip (104,624)  angle 151 deg  butt->tip 115 px
+    FIST -> TIP = 97-99 px in every frame (the holding fist's centre to the weapon's tip; the same piece every frame):
+    keep that length - never lengthen the shaft to reach the tip row nor shorten it; move the fist WITH the weapon.
 
 PERSONALITY (this character's own run):
   - A low, quiet, hunched back-alley sprint: the shoulders lean 3-6 deg more than the light class mannequin - most when the foot lands and catches (R1-R2 / R5-R6), folding over the landing to absorb it without a sound - while the hips sit only 2-4 px lower (not Baren's deep crouch). The head is ducked a little into the hood (chin down, eyes up from under the hood edge). The mannequin already has all of it - follow it.

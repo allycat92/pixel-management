@@ -32,6 +32,9 @@
 - **각도**: 달리기는 활을(를) 화면에서 약 65도로, 팔과 함께 62~68도 사이에서 흔들리며 이웃 프레임 사이 최대 2.2도씩 바뀐다(표 그대로) — 대기 약 73도에서 -8도(약 15도 안). 대기의 무기를 그대로(길이·모양·곧은 자루) 쥔 주먹을 축으로 그만큼만 한 덩어리로 돌린다 — 프레임마다 표의 각도로(매끈한 흔들림, 튀지 않게). 이 각도에서 잰 값: 무기를 포함한 그림 전체가 칸(x 32~351) 안쪽으로 13px 이상(검사는 8px 이상).
 - 단계: R1 닿기 - R2 받기(엉덩이 가장 낮음) - R3 밀기(뒤꿈치 듦) - R4 공중(두 발 모두 뜸). R5~R8 은 먼 발로 같은 동작.
 - **높이**: 아래 「Height」 숫자는 **머리 꼭대기**(머리카락·투구·모자)일 뿐 — 무기 끝·지팡이 머리·깃털은 그보다 위로 가도 된다.
+- **허리띠**: 그리는 허리띠(코트·갑옷의 허리선)의 가운데는 마네킹 허리의 **갈색 띠** 가운데 — 노란 엉덩이 점이 아니다(점은 약 20px 아래, 골반 속). 프레임별 y: R1 675 / R2 675 / R3 675 / R4 675 / R5 675 / R6 675 / R7 675 / R8 675.
+- **머리카락 꼭대기 → 허리띠 = 대기의 길이(210px)**: 몸통·머리를 눌러 줄이거나 늘이지 않는다. 이 가이드의 머리 꼭대기 → 허리띠 줄 간격은 189-201px(몸통이 기울어 선 자세보다 화면에서 조금 짧다) — 머리·가슴을 한 덩어리로 프레임마다 「Height」 줄과 허리띠 줄로 옮긴다.
+- **주먹→끝 = 127-128px**: 쥔 주먹 가운데에서 무기 끝까지 모든 프레임에서 같다 — 끝 자리에 맞추려고 자루를 늘이거나 줄이지 않고, 주먹을 무기와 함께 옮긴다.
 - **손목 범위**: 무기의 손잡이 축(주먹에서 무기 끝 쪽; 활은 손잡이에서 위 활끝 쪽, 역수는 엄지 쪽)은 아래팔(팔꿈치→손목) 선에서 위쪽(엄지 쪽)으로 0~120도 안. 0 = 팔과 일직선. 그 밖으로 꺾어 늘어뜨리지 않는다 (덜렁거리는 칼 금지). 위로 들든 아래로 내리든 이 범위 안이면 된다.
 - **바닥**: 디딘 발바닥은 y=870, 공중 프레임은 y=852 위. 무기 끝·천 같은 소품이 바닥 줄 아래로 내려가면 그릴 때 손본다 (각도를 조금 바꿔 올린다) — 몸과 발의 바닥 규칙은 그대로.
 - **마네킹 픽셀은 전부 덮는다**: 3D 마네킹의 색이 한 프레임의 25% 이상 남거나, 실루엣이 가이드와 거의 같으면(색만 바꾼 마네킹, IoU > 0.93) `add_gait.py` 가 받지 않는다. 마네킹 머리는 자리 표시 — 캐릭터의 머리·머리카락·머리띠를 대기 그림 크기로 그린다.
@@ -120,6 +123,12 @@ THE MOVE (movement class light: the accepted run: lean forward, press down in fl
   - Lean forward (hip to neck): R1 25.9, R2 21.2, R3 29.5, R4 31.3, R5 24.8, R6 20.6, R7 29.5, R8 32.2 deg.
   - Height: the HEAD top (hair / helmet / hat - NOT the weapon) is at y=478/474/483/486 in R1 R2 R3 R4 (the same in R5 R6 R7 R8): R1 +0, R2 -4, R3 +5, R4 +8 px from R1 (+ = lower) - move your head top by the same amounts (bob 12 px). A
     weapon tip, staff head, plume or raised cloth may go HIGHER than these rows - they never limit it.
+  - BELT per frame (y on the canvas = the centre of the mannequin's BROWN BAND at the waist - NOT the yellow hip dot,
+    which sits ~20 px lower in the pelvis): R1 675 / R2 675 / R3 675 / R4 675 / R5 675 / R6 675 / R7 675 / R8 675.
+    Paint the belt (and the waist line of a coat / armour) centred on these rows.
+  - hair top -> belt = the idle's span (210 px); do not squash or stretch the body or head.
+    In this guide the HEAD top -> BELT rows are 189-201 px apart (the leaning trunk is a little shorter on screen than
+    standing): move the whole head-and-chest block as ONE piece to the Height and BELT rows of each frame.
   - Stride: one step = 275 source px = 45.5 game px; 8 frames = two steps, 80 ms a frame in the game.
   - Stride rule: 45.5 game px = the light class stride: the fitted legs are within 5% of the class mannequin's (leg factor 0.977), so the class stride is kept. The cadence is the class's.
   - PLANTED FOOT: a foot on the floor never slides in the drawing. From its contact frame on, the SAME boot moves LEFT by
@@ -148,6 +157,8 @@ THE MOVE (movement class light: the accepted run: lean forward, press down in fl
       R6: butt (218,792) fist (299,692) tip (334,569)  angle 62 deg  butt->tip 251 px
       R7: butt (223,809) fist (301,706) tip (332,583)  angle 64 deg  butt->tip 251 px
       R8: butt (231,815) fist (305,709) tip (331,585)  angle 66 deg  butt->tip 252 px
+    FIST -> TIP = 127-128 px in every frame (the holding fist's centre to the weapon's tip; the same piece every frame):
+    keep that length - never lengthen the shaft to reach the tip row nor shorten it; move the fist WITH the weapon.
 
 PERSONALITY (this character's own run):
   - An elf scout's GLIDING lope - the opposite of Kiara's bouncing forest run: the hips stay LEVEL through the whole cycle (the mannequin's hip height changes by less than 1 px - no rise and fall), the lean 1-2 deg more than the light class mannequin, and the head is pinned level, eyes on the horizon (the neck turned back up 7 deg against the lean - the 'hawkeye' scan). The mannequin already has all of it - follow it.

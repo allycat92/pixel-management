@@ -30,12 +30,19 @@ Run (gait) checks - gait_checks():
               reported (a foreshortened arm can look tighter)                                                    FAIL
   blade/head  (sword carriers) blade-over-head pixels, reported only (owner 11-28: overlaps are fine; the z-buffer
               draws the nearer part over the farther one)                                                        INFO
+  blade/face  every held weapon line (sword, dagger, mace, staff, spear; butt -> tip on screen) that spans the NOSE row:
+              d = its x at that row - the nose x. |d| < FACE_FAIL (8) px in any frame FAILs, < FACE_WARN (25) WARNs
+              (diagnosis 2026-11-28: Grom's greatsword ran through the mannequin's nose, -5..+6 px, in all 8 frames and the
+              painter squeezed the face 20-35% narrower to fit it between the mane and the blade; accepted guides keep
+              36..86 px or put the blade behind the head). A bow is left out: its butt -> tip is the string, which may
+              cross the face, the stave stands a brace in front of it                                              FAIL
   robe        hem bottom 38-52 px above the floor (robe_base); hem width change <= 15% between frames; the robe is
               widest within 14 px of its hem (cloth flares to the hem, no gourd); each hem edge (pose.json hem
               front / back x) follows one smooth path: <= HEM_REVERSALS (2) direction reversals a cycle between moves
               >= HEM_MOVE_PX (2 px) (review 2026-11-28: the back edge rode the 15 px clamp, 4 reversals)          FAIL
 Action checks - action_checks():
   weapon      hand range as above, every action frame (READY and in-betweens included)                            FAIL
+  blade/face  as above, every action frame                                                                         FAIL
   blade/head, blade/trunk  overlap pixels, reported only (owner 11-28: overlaps fine, depth order decides)        INFO
   blade dir   screen direction of the blade, reported only (owner 11-28: up or down does not matter as long as
               the wrist range relative to the forearm holds - that is the 'weapon' check)                          INFO
@@ -334,6 +341,43 @@ def weapon_stability(recs, carry=None):
     return out
 
 
+FACE_FAIL = 8.0            # px: a held weapon line this close to the nose (at the nose row) runs through the face
+FACE_WARN = 25.0           # px: closer than this leaves the painter too little room for the idle's face
+FACE_KINDS = ('sword', 'dagger', 'mace', 'staff', 'spear')     # not 'bow': its butt -> tip is the string
+
+
+def face_gap(butt, tip, nose):
+    """signed x distance (screen px, + = the weapon ahead of the face) of the butt -> tip line from the nose at the nose
+    row, or None when the line does not span that row"""
+    (bx, by), (tx, ty), (nx, ny) = butt, tip, nose
+    if not (min(by, ty) <= ny <= max(by, ty)) or abs(ty - by) < 1e-6:
+        return None
+    return float(bx + (tx - bx) * (ny - by) / (ty - by) - nx)
+
+
+def face_check(label, names, gaps, kind):
+    """(level, message) of the blade/face clearance from per-frame gaps (None = the line misses the nose row)"""
+    hit = [(n, d) for n, d in zip(names, gaps) if d is not None]
+    txt = ' '.join(f'{n}:{"-" if d is None else f"{d:+.0f}"}' for n, d in zip(names, gaps))
+    if not hit:
+        return (OK, f'{label}{kind} vs face: the weapon line never crosses the nose row (per frame {txt})')
+    worst = min(abs(d) for _, d in hit)
+    lv = FAIL if worst < FACE_FAIL else (WARN if worst < FACE_WARN else OK)
+    bad = [f'{n} {d:+.0f}' for n, d in hit if abs(d) < (FACE_FAIL if lv == FAIL else FACE_WARN)]
+    return (lv, f'{label}{kind} vs face: weapon x - nose x at the nose row (px, + = ahead of the face) per frame {txt}; '
+                f'closest {worst:.0f} (FAIL < {FACE_FAIL:g}, WARN < {FACE_WARN:g}: the painter needs room for the idle\'s face '
+                'beside the weapon)' + (f'  TOO CLOSE: {bad}' if bad else ''))
+
+
+def face_checks_gait(recs):
+    """blade/face clearance of a run from pose.json records (weapon_px butt / tip and the nose joint, both strip px)"""
+    W = [r.get('weapon_px') for r in recs]
+    if not all(W) or W[0]['kind'] not in FACE_KINDS:
+        return []
+    gaps = [face_gap(w['butt'], w['tip'], r['joints']['nose']) for w, r in zip(W, recs)]
+    return [face_check('', [r['frame'] for r in recs], gaps, W[0]['kind'])]
+
+
 def run_angle(W):
     """circular mean of the on-screen weapon angle (butt -> tip, deg from forward, + = up) over the frames"""
     a = np.radians([w['angle_deg'] for w in W])
@@ -457,6 +501,7 @@ def gait_checks(spec, recs, bodies, plains, cam, carry=None):
     out += second_hand_checks(recs)
     out += elbow_checks(recs, bodies, cam)
     out += weapon_stability(recs, carry)
+    out += face_checks_gait(recs)
     if any(g['part'] == 'blade' for g in bodies[0].ghosts):
         hd = []
         for b in bodies:
@@ -506,6 +551,17 @@ def blade_overlap(body, cam, parts):
 def action_checks(act, names, bodies, plains, recs, cam_of):
     """cam_of(i) -> the camera frame i was rendered with"""
     out = weapon_checks(f'{act}: ', names, bodies)
+    gaps, kind = [], None
+    for i, b in enumerate(bodies):
+        w = next((w for w in b.weapons if w.get('role') != 'second'), None)
+        if w is None or w['kind'] not in FACE_KINDS or 'prop_tip' not in b.joints:
+            gaps.append(None)
+            continue
+        kind = w['kind']
+        c = cam_of(i)
+        gaps.append(face_gap(*(c.to_screen(b.joints[k])[0] for k in ('prop_base', 'prop_tip', 'nose'))))
+    if kind:
+        out.append(face_check(f'{act}: ', names, gaps, kind))
     head = []
     for i, b in enumerate(bodies):
         head.append(blade_overlap(b, cam_of(i), {'head', 'nose'}))

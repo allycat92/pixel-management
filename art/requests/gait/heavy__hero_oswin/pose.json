@@ -270,6 +270,10 @@
     "fist2_along_px": 31.9,
     "fist2_off_line_px": -0.0
    },
+   "belt_px": [
+    194.8,
+    672.2
+   ],
    "joints": {
     "hip": [
      192.0,
@@ -505,6 +509,10 @@
     "fist2_along_px": 31.9,
     "fist2_off_line_px": -0.0
    },
+   "belt_px": [
+    194.9,
+    676.8
+   ],
    "joints": {
     "hip": [
      192.0,
@@ -740,6 +748,10 @@
     "fist2_along_px": 31.9,
     "fist2_off_line_px": -0.0
    },
+   "belt_px": [
+    194.8,
+    674.9
+   ],
    "joints": {
     "hip": [
      192.0,
@@ -975,6 +987,10 @@
     "fist2_along_px": 31.9,
     "fist2_off_line_px": -0.0
    },
+   "belt_px": [
+    194.7,
+    674.1
+   ],
    "joints": {
     "hip": [
      192.0,
@@ -1211,6 +1227,10 @@
     "fist2_along_px": 31.9,
     "fist2_off_line_px": -0.0
    },
+   "belt_px": [
+    194.8,
+    672.2
+   ],
    "joints": {
     "hip": [
      192.0,
@@ -1446,6 +1466,10 @@
     "fist2_along_px": 31.9,
     "fist2_off_line_px": -0.0
    },
+   "belt_px": [
+    194.9,
+    676.8
+   ],
    "joints": {
     "hip": [
      192.0,
@@ -1681,6 +1705,10 @@
     "fist2_along_px": 31.9,
     "fist2_off_line_px": -0.0
    },
+   "belt_px": [
+    194.8,
+    674.9
+   ],
    "joints": {
     "hip": [
      192.0,
@@ -1916,6 +1944,10 @@
     "fist2_along_px": 31.9,
     "fist2_off_line_px": -0.0
    },
+   "belt_px": [
+    194.7,
+    674.1
+   ],
    "joints": {
     "hip": [
      192.0,
@@ -2100,8 +2132,14 @@
    "[OK] weapon tip path (relative to the chest): moves 0 0 0 0 0 0 0 0 px (<= 23), 0 reversals (<= 2) - one smooth path, no back-and-forth",
    "[OK] two-handed grip fixed to the chest: deviation 0.3 px (<= 3); strip a vs b at the same leg phase (deg / px) 0.4 0.3 0.1 0.2 (<= 3); fist-to-fist on screen 32..32 px (spread <= 6: both fists keep their places on the grip)",
    "[OK] weapon run angle 73 vs idle 61 deg (+12; > 15 -> WARN, the README states the change)",
+   "[OK] sword vs face: weapon x - nose x at the nose row (px, + = ahead of the face) per frame H1:+35 H2:+34 H3:+34 H4:+33 H5:+33 H6:+33 H7:+34 H8:+35; closest 33 (FAIL < 8, WARN < 25: the painter needs room for the idle's face beside the weapon)",
    "[OK] blade over the head (px) per frame [0, 0, 0, 0, 0, 0, 0, 0] (info: overlap allowed, depth order decides)"
   ],
+  "idle": {
+   "head_top_px": 474,
+   "belt_y_px": 684.6,
+   "head_top_to_belt_px": 210.6
+  },
   "shading": "cel shading by depth: lighter = nearer the viewer, darker = farther (near limbs light, far limbs dark)"
  }
 }

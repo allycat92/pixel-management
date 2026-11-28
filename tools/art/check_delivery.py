@@ -12,12 +12,17 @@ Checks the dot_queue / package README spec for a 1x4 strip (or a 2x2 grid):
   * WARN for debris per pose: loose fragments (>= 3 px, 8-connected) more than 6 px from the figure, flat loose slivers within
     12 px above the soles line, and thin strokes (< 7 px thick, >= 24 px wide) sticking out of the figure in the 50 px above it
 Optionally exports an .aseprite source with Aseprite (--aseprite) and checks that it equals the PNG.
+Run sets (--gait-pair <run_b.png>, positional = run_a.png): the body against the sheet's idle drawing with
+tools/art/gait_body.py (needs numpy; ~15 s): H1 phase-locked width pump, H2 same-phase mismatch, H3 head squashed
+vs the idle, V1 sunk figure, staff / spear fist -> tip length (FAIL); horizontal paste seam (WARN). The sheet and
+the request pose.json come from the file name (receive.py sheet_id / gait_pose) unless --sheet / --pose are given.
 
 Usage:
   python3 tools/art/check_delivery.py art/inbox/sheet_hero_lyra.png
   python3 tools/art/check_delivery.py art/inbox/sheet_hero_lyra.png \
       --aseprite art/inbox/aseprite/sheet_hero_lyra.aseprite --aseprite-exe "C:/Program Files/Aseprite/Aseprite.exe"
   python3 tools/art/check_delivery.py art/inbox/gait/sheet_class_warrior_run_a.png --flight-slots 4   # run strip: R4 is in the air
+  python3 tools/art/check_delivery.py art/inbox/gait/sheet_hero_oswin_run_a.png --gait-pair art/inbox/gait/sheet_hero_oswin_run_b.png
   (Windows without a system Python:  uv run --no-project --with pillow python tools\\art\\check_delivery.py ...)
 
 Exit code 0 = pass (warnings allowed), 1 = fail, 2 = could not run.
@@ -632,6 +637,41 @@ def compare_aseprite(src, exe, png, errors, info):
             info.append(".aseprite export == PNG (pixel-identical)")
 
 
+def gait_pair_checks(a, errors, warns, info):
+    """--gait-pair: tools/art/gait_body.py on the set (needs numpy); findings go to errors / warns / info"""
+    import json
+    here = os.path.dirname(os.path.abspath(__file__))
+    if here not in sys.path:
+        sys.path.insert(0, here)
+    try:
+        import gait_body
+    except ImportError as e:
+        warns.append(f"--gait-pair: body checks not run ({e}; needs numpy)")
+        return
+    if not os.path.isfile(a.gait_pair):
+        errors.append(f"--gait-pair not found: {a.gait_pair}")
+        return
+    m = re.match(r"(sheet_.+?)_(run|walk)_a\.png$", os.path.basename(a.png))
+    sid, pose = a.sheet, None
+    if a.pose:
+        with open(a.pose, encoding="utf-8") as f:
+            pose = json.load(f)
+    if m and (not sid or pose is None):
+        import receive
+        sid = sid or receive.sheet_id(m.group(1)[len("sheet_"):])
+        if pose is None:
+            try:
+                pp, p = receive.gait_pose(m.group(1), m.group(2))
+                pose = p if pp else None
+            except (OSError, ValueError):
+                pose = None
+    if not sid:
+        errors.append("--gait-pair: cannot tell the sheet from the file name (<sheet stem>_run_a.png): pass --sheet")
+        return
+    for lv, msg in gait_body.check_set(sid, [a.png, a.gait_pair], pose):
+        (errors if lv == "FAIL" else warns if lv == "WARN" else info).append("body: " + msg)
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("png")
@@ -652,6 +692,10 @@ def main():
     ap.add_argument("--aseprite", help="the .aseprite source to export and compare with the PNG")
     ap.add_argument("--aseprite-exe", default=os.environ.get("ASEPRITE_PATH", "aseprite"),
                     help="Aseprite executable (default: $ASEPRITE_PATH or 'aseprite')")
+    ap.add_argument("--gait-pair", help="run sets: the _b strip of the set whose _a strip is the positional PNG - adds the body "
+                                        "checks against the idle drawing (tools/art/gait_body.py)")
+    ap.add_argument("--sheet", help="--gait-pair: the manifest sheet id (default: from the file name)")
+    ap.add_argument("--pose", help="--gait-pair: the request pose.json the set was painted over (default: receive.py gait_pose)")
     a = ap.parse_args()
     try:
         flight = tuple(sorted({int(s) for s in a.flight_slots.replace(" ", "").split(",") if s}))
@@ -723,6 +767,8 @@ def main():
                 check_layers(a.aseprite, a.aseprite_exe, a.base, errors, warns, info)
             except Exception as e:  # noqa: BLE001
                 errors.append(str(e))
+    if a.gait_pair:
+        gait_pair_checks(a, errors, warns, info)
     print(f"== {a.png} ({a.layout}{src_note}, cell {cell})")
     for m in info:
         print("  info: " + m)

@@ -234,6 +234,10 @@
     "fist2_along_px": 69.9,
     "fist2_off_line_px": -0.0
    },
+   "belt_px": [
+    197.6,
+    659.9
+   ],
    "joints": {
     "hip": [
      192.0,
@@ -467,6 +471,10 @@
     "fist2_along_px": 69.9,
     "fist2_off_line_px": -0.0
    },
+   "belt_px": [
+    580.6,
+    661.3
+   ],
    "joints": {
     "hip": [
      576.0,
@@ -700,6 +708,10 @@
     "fist2_along_px": 69.9,
     "fist2_off_line_px": -0.0
    },
+   "belt_px": [
+    967.1,
+    658.2
+   ],
    "joints": {
     "hip": [
      960.0,
@@ -931,6 +943,10 @@
     "fist2_along_px": 69.9,
     "fist2_off_line_px": -0.0
    },
+   "belt_px": [
+    1351.6,
+    656.6
+   ],
    "joints": {
     "hip": [
      1344.0,
@@ -1164,6 +1180,10 @@
     "fist2_along_px": 69.6,
     "fist2_off_line_px": -0.02
    },
+   "belt_px": [
+    197.4,
+    659.9
+   ],
    "joints": {
     "hip": [
      192.0,
@@ -1397,6 +1417,10 @@
     "fist2_along_px": 69.4,
     "fist2_off_line_px": -0.02
    },
+   "belt_px": [
+    580.5,
+    661.3
+   ],
    "joints": {
     "hip": [
      576.0,
@@ -1630,6 +1654,10 @@
     "fist2_along_px": 69.9,
     "fist2_off_line_px": -0.0
    },
+   "belt_px": [
+    967.1,
+    658.2
+   ],
    "joints": {
     "hip": [
      960.0,
@@ -1861,6 +1889,10 @@
     "fist2_along_px": 69.9,
     "fist2_off_line_px": -0.0
    },
+   "belt_px": [
+    1351.9,
+    656.6
+   ],
    "joints": {
     "hip": [
      1344.0,
@@ -2034,8 +2066,14 @@
    "[OK] weapon angle (two-handed, chest-locked): R1:77.8 R2:78.3 R3:77.0 R4:76.6 R5:77.8 R6:78.3 R7:77.0 R8:76.6  max step 1.35 deg (<= 1.5), range 1.67 deg (<= 4.0)",
    "[OK] weapon tip path (relative to the chest): moves 2 5 1 4 2 5 1 4 px (<= 24), 0 reversals (<= 2) - one smooth path, no back-and-forth",
    "[OK] two-handed grip fixed to the chest: deviation 0.3 px (<= 3); strip a vs b at the same leg phase (deg / px) 0.5 0.3 0.1 0.3 (<= 3); fist-to-fist on screen 69..70 px (spread <= 6: both fists keep their places on the grip)",
-   "[OK] weapon run angle 77 vs idle 63 deg (+14; > 15 -> WARN, the README states the change)"
+   "[OK] weapon run angle 77 vs idle 63 deg (+14; > 15 -> WARN, the README states the change)",
+   "[WARN] mace vs face: weapon x - nose x at the nose row (px, + = ahead of the face) per frame R1:-12 R2:-10 R3:-17 R4:-18 R5:-12 R6:-10 R7:-17 R8:-19; closest 10 (FAIL < 8, WARN < 25: the painter needs room for the idle's face beside the weapon)  TOO CLOSE: ['R1 -12', 'R2 -10', 'R3 -17', 'R4 -18', 'R5 -12', 'R6 -10', 'R7 -17', 'R8 -19']"
   ],
+  "idle": {
+   "head_top_px": 462,
+   "belt_y_px": 678.5,
+   "head_top_to_belt_px": 216.5
+  },
   "shading": "cel shading by depth: lighter = nearer the viewer, darker = farther (near limbs light, far limbs dark)"
  }
 }

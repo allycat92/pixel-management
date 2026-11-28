@@ -9,18 +9,18 @@
 |---|---|---|---|
 | GPT | `G15-kai-r3-r7-legs` | REVIEW | (art-inbox `c57439c`) 카이 R3 다리 분리·바닥 선 제거, R7 다리 분리 — 기술 검사 PASS, 떨어진 조각 0. **주인 판정 대기** |
 | GPT | `G14-kai-kiara-foot-fix` | REVIEW | (art-inbox `54233db`) 카이 R7 발끝 85→159(가이드 159), 화면 미끄러짐 −8.9→+1.9px; 키아라 R5/R6 밑창 중심 ±3px 조정. 주인: 마네킹 개정 OK, 키아라는 「저걸론 잘 모르겠다」(판정 보류), 카이는 다리 뭉개짐 → G15 |
-| GPT | `G3-lancer-3d` | REVIEW | **다시 그리기** — 마네킹 2차 개정판 안내 그림(주인 OK)으로 처음부터: `docs/agents/tasks/G3-lancer-3d.md` 끝의 「다시 그리기」 절 |
-| GPT | `G5-hedgemage-3d` | REVIEW | **다시 그리기** — 마네킹 2차 개정판 안내 그림(주인 OK)으로 처음부터: `docs/agents/tasks/G5-hedgemage-3d.md` 끝의 「다시 그리기」 절 |
-| GPT | `G6-fieldmedic-3d` | REVIEW | **다시 그리기** — 마네킹 2차 개정판 안내 그림(주인 OK)으로 처음부터: `docs/agents/tasks/G6-fieldmedic-3d.md` 끝의 「다시 그리기」 절 |
-| GPT | `G9-astel-3d` | REVIEW | **다시 그리기** — 마네킹 2차 개정판 안내 그림(주인 OK)으로 처음부터: `docs/agents/tasks/G9-astel-3d.md` 끝의 「다시 그리기」 절 |
-| GPT | `G10-grom-3d` | REVIEW | **다시 그리기** — 마네킹 2차 개정판 안내 그림(주인 OK)으로 처음부터: `docs/agents/tasks/G10-grom-3d.md` 끝의 「다시 그리기」 절 |
-| GPT | `G12-oswin-3d` | REVIEW | **다시 그리기** — 마네킹 2차 개정판 안내 그림(주인 OK)으로 처음부터: `docs/agents/tasks/G12-oswin-3d.md` 끝의 「다시 그리기」 절 |
-| GPT | `G13-seraphine-3d` | REVIEW | **다시 그리기** — 마네킹 2차 개정판 안내 그림(주인 OK)으로 처음부터: `docs/agents/tasks/G13-seraphine-3d.md` 끝의 「다시 그리기」 절 |
+| GPT | `G6-fieldmedic-3d` | READY | **3차 다시 그리기** — 마그다: 작업 문서 끝 「3차」 절(주인 지적 + 칸별 기준 숫자). 납품 전 `receive.py` 의 새 몸 검사(H1·H2·H3·V1·무기 길이) FAIL 0 |
+| GPT | `G9-astel-3d` | READY | **3차 다시 그리기** — 아스텔: 작업 문서 끝 「3차」 절(주인 지적 + 칸별 기준 숫자). 납품 전 `receive.py` 의 새 몸 검사(H1·H2·H3·V1·무기 길이) FAIL 0 |
+| GPT | `G10-grom-3d` | READY | **3차 다시 그리기** — 그롬(새 안내 그림): 작업 문서 끝 「3차」 절(주인 지적 + 칸별 기준 숫자). 납품 전 `receive.py` 의 새 몸 검사(H1·H2·H3·V1·무기 길이) FAIL 0 |
+| GPT | `G12-oswin-3d` | READY | **3차 다시 그리기** — 오스윈: 작업 문서 끝 「3차」 절(주인 지적 + 칸별 기준 숫자). 납품 전 `receive.py` 의 새 몸 검사(H1·H2·H3·V1·무기 길이) FAIL 0 |
+| GPT | `G13-seraphine-3d` | READY | **3차 다시 그리기** — 세라핀: 작업 문서 끝 「3차」 절(주인 지적 + 칸별 기준 숫자). 납품 전 `receive.py` 의 새 몸 검사(H1·H2·H3·V1·무기 길이) FAIL 0 |
 
 ## 끝난 일
 
 | 누구 | id | 결과 |
 |---|---|---|
+| GPT | `G3-lancer-3d` | **DONE — 초안 단계 통과** (11-28 주인 「다른 둘은 괜찮아 보여」): 로드릭 이동 8칸(2차 안내 그림) 등록 |
+| GPT | `G5-hedgemage-3d` | **DONE — 초안 단계 통과** (11-28 주인 「다른 둘은 괜찮아 보여」): 펠릭스 이동 8칸(2차 안내 그림) 등록 |
 | GPT | `Q28-3d-runs-ingame` | **DONE** (11-28, `289171e`): 6명 모두 등록 시트로 그려짐, 20판 해시 일치, 오류 0, 대장·영웅 색 그대로. 접지 잔차 대체로 ±3px — 단 **카이 R6→R7 디딘 발이 시트에서 약 22px 뒤로 밀림(화면 약 −10px 미끄러짐, 여러 시드 재현)**, 키아라 ×4 R5→6 +7.5px. 원거리 물러서기에 달리기 칸 사용 확인 |
 | GPT | `G2-tactician-3d` | **DONE — 초안 단계 통과** (11-28 주인: 「아쉬운 부분이 없진 않은데 허용 가능한 느낌」): 이사벨 이동 8칸 등록. 나중에 다듬을 수 있음 |
 | GPT | `G4-huntress-3d` | **DONE — 초안 단계 통과** (11-28 주인: 「아쉬운 부분이 없진 않은데 허용 가능한 느낌」): 키아라 이동 8칸 등록. 나중에 다듬을 수 있음 |

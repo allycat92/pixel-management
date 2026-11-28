@@ -35,7 +35,9 @@ Two kinds of delivery are not base sheets and never go to sheets.py:
                                   git, and receive also passes its extracted copy as --extra-guides; a refusal names the matched mannequin)
                                   and its export compared with the PNGs; a delivery painted over a 3D-mannequin request is compared
                                   with its pose.json (tools/mannequin3d/delivery.py: REACH-frame feet FAIL, band lines / head-top
-                                  weapon pin / weapon line WARN), then add_gait.py --dry-run (stride from guides/<gait>_<sheet>,
+                                  weapon pin / weapon line / V2 head top WARN), the body against the idle drawing
+                                  (tools/art/gait_body.py: H1 width pump, H2 same-phase mismatch, H3 squashed head, V1 sunk figure,
+                                  staff / spear length FAIL; paste seam WARN; ~15 s), then add_gait.py --dry-run (stride from guides/<gait>_<sheet>,
                                   else the class's base set above; walk: walk_base); the register command is printed only when everything
                                   passed
   guides/<motion>__<stem>/<motion>__<stem>.aseprite   (motion = atk | hit | idle; stem = the sheet png stem without 'sheet_')
@@ -878,6 +880,20 @@ def gait_delivery(rel, work, exe, tip):
                 print(f'  {lv}: {msg}')
         n_ok = sum(1 for lv, _ in res if lv == 'OK')
         print(f'  ({n_ok} frame lines OK)')
+        if any(lv == 'FAIL' for lv, _ in res):
+            rc = 1
+    if gait == 'run' and len(strips) == 2:
+        # the body against the idle drawing (tools/art/gait_body.py, owner verdict 2026-11-28 on five redraws): head-block
+        # width pump H1, same-phase mismatch H2, squashed head H3, sunk figure V1, staff / spear length, paste seam
+        try:
+            import gait_body
+            res = gait_body.check_set(sid, strips, pose if pose_path else None)
+        except ImportError as e:
+            res = [('WARN', f'gait_body checks not run: {e} (needs numpy)')]
+        print('- body against the idle drawing (tools/art/gait_body.py: H1 width pump, H2 same-phase, H3 head aspect, '
+              'V1 figure height, weapon length, seam):')
+        for lv, msg in res:
+            print(f'  {lv}: {msg}' if lv != 'OK' else f'    ok: {msg}')
         if any(lv == 'FAIL' for lv, _ in res):
             rc = 1
     src = [got['_a.png'], got['_b.png']] if '_a.png' in got and '_b.png' in got else ([got['.aseprite']] if '.aseprite' in got else [])

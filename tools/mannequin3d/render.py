@@ -312,6 +312,12 @@ def edges(buf, mask, depth_jump=7.0):
     return sil2, occ
 
 
+def belt_centre(body, P):
+    """-> (world centre of the belt band, the spine's up axis): the band where the pelvis meets the spine"""
+    up = body.frames['spine'] @ np.array([0, 1.0, 0])
+    return body.joints['pelvis'] + up * (P['pelvis_r'][1] * 0.55), up
+
+
 def body_marks(buf, cam, body, parts, P):
     """belt ring at the waist, sternum line on the chest front, eye band on the head front (masks)"""
     h, w = buf.depth.shape
@@ -332,8 +338,7 @@ def body_marks(buf, cam, body, parts, P):
         m[ys[sel], xs[sel]] = True
         return m
     # belt: a band where the pelvis meets the spine
-    up = Fm['spine'] @ np.array([0, 1.0, 0])
-    belt_c = J['pelvis'] + up * (P['pelvis_r'][1] * 0.55)
+    belt_c, up = belt_centre(body, P)
     s = (W - belt_c) @ up
     marks['belt'] = mask_of(np.isin(part, ['pelvis', 'spine']) & (np.abs(s) < 5.0))
     # sternum: chest points near the chest's mid plane on its front half
@@ -415,7 +420,11 @@ def render(body, P, cam, bg=MAGENTA, joints=True, ground=True, ghosts=True, mark
         d.line([(0, cam.floor + 1), (w - 1, cam.floor + 1)], fill=(120, 120, 120), width=1)
     if joints:
         draw_joints(img, buf, cam, body, P)
-    body.render_info = {'buf': buf, 'parts': parts}    # per-pixel part ids for the checks (checks.py)
+    # the belt band's centre on screen (slot px; pose.json belt_px, the README BELT row) - its 3D centre, so it is there
+    # when an arm or the weapon hides the band too (the visible part's mean is 0-4 px off, depending on what covers it)
+    bc, _ = cam.to_screen(belt_centre(body, P)[0])
+    body.render_info = {'buf': buf, 'parts': parts,    # per-pixel part ids for the checks (checks.py)
+                        'belt_px': (float(bc[0]), float(bc[1]))}
     return img, mask
 
 

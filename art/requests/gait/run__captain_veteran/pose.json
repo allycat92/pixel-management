@@ -221,6 +221,10 @@
     "fist_tip_px": 154.4,
     "fist_butt_px": 29.5
    },
+   "belt_px": [
+    199.4,
+    661.2
+   ],
    "joints": {
     "hip": [
      192.0,
@@ -441,6 +445,10 @@
     "fist_tip_px": 154.4,
     "fist_butt_px": 29.5
    },
+   "belt_px": [
+    582.4,
+    666.7
+   ],
    "joints": {
     "hip": [
      576.0,
@@ -661,6 +669,10 @@
     "fist_tip_px": 154.6,
     "fist_butt_px": 29.5
    },
+   "belt_px": [
+    968.6,
+    660.5
+   ],
    "joints": {
     "hip": [
      960.0,
@@ -879,6 +891,10 @@
     "fist_tip_px": 154.8,
     "fist_butt_px": 29.6
    },
+   "belt_px": [
+    1352.8,
+    657.8
+   ],
    "joints": {
     "hip": [
      1344.0,
@@ -1099,6 +1115,10 @@
     "fist_tip_px": 154.9,
     "fist_butt_px": 29.6
    },
+   "belt_px": [
+    199.1,
+    661.2
+   ],
    "joints": {
     "hip": [
      192.0,
@@ -1319,6 +1339,10 @@
     "fist_tip_px": 154.9,
     "fist_butt_px": 29.6
    },
+   "belt_px": [
+    582.2,
+    666.7
+   ],
    "joints": {
     "hip": [
      576.0,
@@ -1539,6 +1563,10 @@
     "fist_tip_px": 154.7,
     "fist_butt_px": 29.6
    },
+   "belt_px": [
+    968.6,
+    660.5
+   ],
    "joints": {
     "hip": [
      960.0,
@@ -1757,6 +1785,10 @@
     "fist_tip_px": 154.5,
     "fist_butt_px": 29.5
    },
+   "belt_px": [
+    1353.1,
+    657.8
+   ],
    "joints": {
     "hip": [
      1344.0,
@@ -1939,8 +1971,14 @@
    "[OK] weapon angle (one-handed): R1:46.0 R2:46.6 R3:48.5 R4:50.7 R5:51.9 R6:51.4 R7:49.5 R8:47.2  max step 2.22 deg (<= 3.5), range 5.90 deg (<= 8.5)",
    "[OK] weapon tip path (relative to its fist): moves 1 5 6 3 1 5 6 3 px (<= 15), 0 reversals (<= 2) - one smooth path, no back-and-forth",
    "[WARN] weapon run angle 49 vs idle 27 deg (+22; > 15 -> WARN, the README states the change)",
+   "[OK] sword vs face: the weapon line never crosses the nose row (per frame R1:- R2:- R3:- R4:- R5:- R6:- R7:- R8:-)",
    "[OK] blade over the head (px) per frame [0, 0, 0, 0, 0, 0, 0, 0] (info: overlap allowed, depth order decides)"
   ],
+  "idle": {
+   "head_top_px": 462,
+   "belt_y_px": 677.2,
+   "head_top_to_belt_px": 215.2
+  },
   "shading": "cel shading by depth: lighter = nearer the viewer, darker = farther (near limbs light, far limbs dark)"
  }
 }

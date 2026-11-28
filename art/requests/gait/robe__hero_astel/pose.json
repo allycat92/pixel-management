@@ -252,6 +252,10 @@
     "fist_tip_px": 209.7,
     "fist_butt_px": 104.9
    },
+   "belt_px": [
+    193.6,
+    649.9
+   ],
    "joints": {
     "hip": [
      192.0,
@@ -469,6 +473,10 @@
     "fist_tip_px": 209.8,
     "fist_butt_px": 104.9
    },
+   "belt_px": [
+    193.8,
+    651.7
+   ],
    "joints": {
     "hip": [
      192.0,
@@ -686,6 +694,10 @@
     "fist_tip_px": 209.8,
     "fist_butt_px": 104.9
    },
+   "belt_px": [
+    193.6,
+    646.9
+   ],
    "joints": {
     "hip": [
      192.0,
@@ -903,6 +915,10 @@
     "fist_tip_px": 209.9,
     "fist_butt_px": 105.0
    },
+   "belt_px": [
+    193.5,
+    646.3
+   ],
    "joints": {
     "hip": [
      192.0,
@@ -1121,6 +1137,10 @@
     "fist_tip_px": 209.9,
     "fist_butt_px": 105.0
    },
+   "belt_px": [
+    193.6,
+    649.9
+   ],
    "joints": {
     "hip": [
      192.0,
@@ -1338,6 +1358,10 @@
     "fist_tip_px": 209.9,
     "fist_butt_px": 105.0
    },
+   "belt_px": [
+    193.8,
+    651.7
+   ],
    "joints": {
     "hip": [
      192.0,
@@ -1555,6 +1579,10 @@
     "fist_tip_px": 209.9,
     "fist_butt_px": 104.9
    },
+   "belt_px": [
+    193.6,
+    646.9
+   ],
    "joints": {
     "hip": [
      192.0,
@@ -1772,6 +1800,10 @@
     "fist_tip_px": 209.8,
     "fist_butt_px": 104.9
    },
+   "belt_px": [
+    193.5,
+    646.3
+   ],
    "joints": {
     "hip": [
      192.0,
@@ -1936,12 +1968,18 @@
    "[OK] weapon angle (one-handed): G1:79.4 G2:79.9 G3:81.8 G4:84.0 G5:85.1 G6:84.6 G7:82.7 G8:80.6  max step 2.16 deg (<= 3.5), range 5.73 deg (<= 8.5)",
    "[OK] weapon tip path (relative to its fist): moves 2 7 8 4 2 7 8 4 px (<= 25), 0 reversals (<= 2) - one smooth path, no back-and-forth",
    "[OK] weapon run angle 82 vs idle 78 deg (+4; > 15 -> WARN, the README states the change)",
+   "[WARN] staff vs face: weapon x - nose x at the nose row (px, + = ahead of the face) per frame G1:+32 G2:+30 G3:+27 G4:+21 G5:+17 G6:+18 G7:+24 G8:+30; closest 17 (FAIL < 8, WARN < 25: the painter needs room for the idle's face beside the weapon)  TOO CLOSE: ['G4 +21', 'G5 +17', 'G6 +18', 'G7 +24']",
    "[OK] robe hem bottom above the floor (38-52, robe_base): [42, 42, 42, 42, 42, 42, 42, 42]",
    "[OK] robe hem width per frame [145, 145, 145, 145, 145, 145, 145, 145] px, max change 0% (<= 15%)",
    "[OK] robe widest row within 14 px of the hem (A-line, no bulge): [7, 7, 7, 7, 7, 7, 7, 7]",
    "[OK] robe hem back edge x [-71.8, -71.8, -71.8, -71.8, -71.8, -71.8, -71.8, -71.8]: moves [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], 0 reversals (<= 2 counting moves >= 2 px) - one smooth lagged path, no zig-zag",
    "[OK] robe hem front edge x [72.6, 72.6, 72.6, 72.6, 72.6, 72.6, 72.6, 72.6]: moves [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], 0 reversals (<= 2 counting moves >= 2 px) - one smooth lagged path, no zig-zag"
   ],
+  "idle": {
+   "head_top_px": 457,
+   "belt_y_px": 671.8,
+   "head_top_to_belt_px": 214.8
+  },
   "shading": "cel shading by depth: lighter = nearer the viewer, darker = farther (near limbs light, far limbs dark)"
  }
 }
