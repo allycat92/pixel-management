@@ -412,9 +412,12 @@ def _sword(abs_angle, carry):
 
 def warrior_attack(P, carry):
     """overhead sword swing (sheet cells 4-5): READY (the idle's grip) -> WINDUP (key: fist up behind the head, blade
-    cocked back and up ~45 deg) -> 1/3 (fist over the head, blade vertical) -> 2/3 (fist over the brow, blade level
-    forward, above the head) -> STRIKE (key: arm forward and down, blade forward and down). Only the strike points
-    down. The body stays over its feet (feet centre = the sheet anchor) so the whole swing fits the slot band."""
+    cocked back and up ~45 deg) -> 1/3 (fist over the head, blade vertical) -> 2/3 (fist forward of the brow, arm
+    reaching forward-up, blade forward-up 60 deg along it) -> STRIKE (key: arm straight forward and down, blade forward
+    and down 45 deg). Only the strike points down. Hand range (owner 2026-11-28): the blade stays 14-89 deg ABOVE the
+    forearm line in every frame (it never bends down past the arm - the old 2/3 (blade level over an upright forearm)
+    and strike were 61 / 43 deg below it). The body stays over its feet (feet centre = the sheet anchor) so the whole
+    swing fits the slot band."""
     k = leg_factor(P)
     hr = P['head_r']
     feet = {'N': (-52.0 * k, -8.0), 'F': (100.0 * k, 0.0)}
@@ -437,16 +440,18 @@ def warrior_attack(P, carry):
         {'name': 'windup>strike 1/3', 'key': False, 'pose': lerp_pose(windup, strike, u1), 'feet': ff(u1),
          'props': _sword(95.0, carry), 'arms': {'N': ('head', -hr[0] * 0.1, hr[1] + 20.0), 'F': ('angles', 34.0, 96.0)}},
         {'name': 'windup>strike 2/3', 'key': False, 'pose': lerp_pose(windup, strike, u2), 'feet': ff(u2),
-         'props': _sword(12.0, carry), 'arms': {'N': ('head', hr[0] * 0.1, hr[1] + 16.0), 'F': ('angles', 10.0, 90.0)}},
-        {'name': 'strike', 'pose': strike, 'feet': feet_lunge, 'props': _sword(-50.0, carry),
-         'arms': {'N': ('shoulder', 58.0 * k, -74.0 * k), 'F': ('angles', -10.0, 80.0)}},
+         'props': _sword(60.0, carry), 'arms': {'N': ('head', hr[0] * 1.3, hr[1] * 0.6), 'F': ('angles', 10.0, 90.0)}},
+        {'name': 'strike', 'pose': strike, 'feet': feet_lunge, 'props': _sword(-45.0, carry),
+         'arms': {'N': ('shoulder', 50.0 * k, -130.0 * k), 'F': ('angles', -10.0, 80.0)}},
     ]
     return keys
 
 
 def warrior_hit(P, carry):
-    """hit reaction (sheet cell 6): IMPACT (key: trunk thrown back, sword arm flung back and down, blade pointing down
-    and back clear of the trunk, shield up) -> RECOVER (key)"""
+    """hit reaction (sheet cell 6): IMPACT (key: trunk thrown back, sword arm flung back and down nearly straight, the
+    blade continuing it ~12 deg above the arm line - pointing down, behind the hip, clear of the trunk -, shield up)
+    -> RECOVER (key; arm still back, blade down and a little back, ~14 deg above the forearm line). The old frames had
+    the fist forward of a bent elbow with the blade 47-82 deg BELOW the forearm line (dangling)."""
     k = leg_factor(P)
     feet = {'N': (-70.0 * k, -6.0), 'F': (92.0 * k, 8.0)}
     co = carry.get('chest_open', 30.0)
@@ -455,8 +460,8 @@ def warrior_hit(P, carry):
                   head_pitch=-18)
     recover = dict(base, hip_h=162 * k, x=-12.0 * k, pelvis_pitch=0, spine_pitch=-2, chest_pitch=0, head_pitch=0)
     return [
-        {'name': 'impact', 'pose': impact, 'feet': feet, 'props': _sword(-118.0, carry),
-         'arms': {'N': ('hip', -58.0 * k, -6.0 * k), 'F': ('angles', 70.0, 104.0)}},
-        {'name': 'recover', 'pose': recover, 'feet': feet, 'props': _sword(-104.0, carry),
-         'arms': {'N': ('hip', -44.0 * k, 4.0 * k), 'F': ('angles', 46.0, 106.0)}},
+        {'name': 'impact', 'pose': impact, 'feet': feet, 'props': _sword(-90.0, carry),
+         'arms': {'N': ('hip', -110.0 * k, -40.0 * k), 'F': ('angles', 70.0, 104.0)}},
+        {'name': 'recover', 'pose': recover, 'feet': feet, 'props': _sword(-95.0, carry),
+         'arms': {'N': ('hip', -80.0 * k, -40.0 * k), 'F': ('angles', 46.0, 106.0)}},
     ]
