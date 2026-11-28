@@ -1592,6 +1592,7 @@ RISKS AT GAME SIZE: 1배에서 높은 무릎과 무게가 내려앉는 동작, �
 남은 걱정: 1배에서 높은 무릎과 무게가 내려앉는 동작, 곧추 든 대검이 분리되는지 확인.
 
 ## gait/sheet_hero_kai_run - 카이 — 은빛 정찰병 이동 8프레임
+손질(G15): R3·R7 다리만 다시 그려 가까운 다리/먼 다리와 장화를 분리. R3 바닥 갈색 선 제거, R7 디딘 발끝 x=159 유지(R3 x=146, 둘 다 y=870). 원본과 96px 변환에서 떨어진 픽셀 덩어리 둘 다 0. 두 띠 RESULT: PASS, add_gait --scale 0.1654 --dry-run PASS.
 손질(G14): R7 디딘 발끝 x=85→159 / 밑창 하단 3줄 중심 x=70→144, 바닥 y=870. 디딘 다리만 수정, 몸·옷·활 및 나머지 칸 그대로. 두 띠 RESULT: PASS; add_gait --scale 0.1654 --dry-run: 96×96 / 15칸 / runStride 45.5.
 CHECK: (a) RESULT: PASS; (b) RESULT: PASS
 ```text
