@@ -1418,3 +1418,22 @@ RISKS AT GAME SIZE: 밝은 지형에서 칼 끝과 흰 끈이 각각 읽히는�
 본 방법: 원본 두 띠, 1배·4배 등록 미리보기, 80ms × 8 GIF, 디딘 발 좌표와 공중 여유.
 고칠 점: 기술 검사에서 요구한 수정 없음. 게임 등록 전에 주인 시각 판정.
 남은 걱정: R2/R6과 R4/R8을 이어 볼 때 두 발 전환과 천·머리띠의 후행이 자연스러운지.
+
+## gait/sheet_captain_tactician_run - 이사벨 — 퇴역 참모 이동 8프레임
+CHECK: (a) RESULT: PASS; (b) RESULT: PASS
+```text
+  --dry-run: 시트·manifest 는 그대로. 새 시트 /tmp/pm-g2.oecJ/preview/sheet_captain_tactician.png · 등록될 항목 sheet_captain_tactician.entry.json · 미리보기 sheet_captain_tactician_preview_x4.png
+  sheet/captain/tactician: 시트 384x384, 15칸 — idle(4), attack(2), hit(1), run(8); runStride 48.5
+  다시 붙이는 명령: python3 tools/art/add_gait.py sheet/captain/tactician --gait run --src art/inbox/gait/sheet_captain_tactician_run_a.png art/inbox/gait/sheet_captain_tactician_run_b.png --pose art/requests/gait/run__captain_tactician/pose.json --ms 80
+```
+REFERENCES LOADED: guide, plain underlay, size (a/b), two GIFs, approved source & installed sheet, portrait, concept and pose.json → ok.
+CHANGED: 접점 x 291/218/144, 302/228/155; 디딘 발 y=870, 공중 y=842. 39색. 80ms × 8, 경량 보폭 48.5.
+DEVIATIONS: (a) 접점과 높이를 가이드 수치에 맞췄다. 팔꿈치·무릎 등 세부 관절 좌표는 실측하지 않았다. (b) 승인 시트의 장교모·크라바트·금테 코트와 머리/지팡이를 새로 그렸다. 세부 장식 픽셀은 일치하지 않는다. (c) 지팡이는 오른쪽 위로 유지. 길이와 프레임별 손목 각도는 실측하지 않았다.
+RISKS AT GAME SIZE: 실제 밝은 바닥에서 지팡이의 검은 자루가 계속 읽히는지와 두 발 교대 확인.
+3D GUIDE: 밝은 쪽으로 손과 다리의 앞뒤를 구분했다. 금손잡이와 얼굴의 간격은 승인 시트도 함께 확인했다.
+
+## 판정 — gait/sheet_captain_tactician_run
+결과: 기술 검사 통과 / 미감 주인 판정 대기.
+본 방법: 원본 띠, 등록용 1배·4배 미리보기, 접점과 바닥선, GIF 프레임 간격.
+고칠 점: 기술 검사 요구 없음. 게임 등록 전 주인 판정.
+남은 걱정: 실제 밝은 바닥에서 지팡이의 검은 자루가 계속 읽히는지와 두 발 교대 확인.
