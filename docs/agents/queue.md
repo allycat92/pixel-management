@@ -16,7 +16,7 @@
 | GPT | `G8-veteran-3d` | REVIEW | (art-inbox `47a3ab4`) 하랄드 달리기 8칸 — 기술 검사 PASS(공중 25px, 보폭 45.5). **주인 판정 대기** |
 | GPT | `G9-astel-3d` | REVIEW | 아스텔 이동 8프레임(3D 마네킹): `docs/agents/tasks/G9-astel-3d.md` |
 | GPT | `G10-grom-3d` | REVIEW | 그롬 이동 8프레임(3D 마네킹): `docs/agents/tasks/G10-grom-3d.md` |
-| GPT | `G11-kai-3d` | READY | 카이 이동 8프레임(3D 마네킹): `docs/agents/tasks/G11-kai-3d.md` |
+| GPT | `G11-kai-3d` | REVIEW | 카이 이동 8프레임(3D 마네킹): `docs/agents/tasks/G11-kai-3d.md` |
 | GPT | `G12-oswin-3d` | READY | 오스윈 이동 8프레임(3D 마네킹): `docs/agents/tasks/G12-oswin-3d.md` |
 | GPT | `G13-seraphine-3d` | READY | 세라핀 이동 8프레임(3D 마네킹): `docs/agents/tasks/G13-seraphine-3d.md` |
 
