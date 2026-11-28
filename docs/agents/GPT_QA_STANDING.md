@@ -28,7 +28,7 @@ Talk to the owner in Korean, short and plain. Every time you are told "계속" /
 
 Never push to claude/dot-fantasy-management-game-saupju or art-inbox. Never force-push. Never edit assets/ or art/inbox/.
 ART EXCEPTION (owner, 2026-11-28, in the owner's own words to the lead: "안티그래비티가 한도에 도달해서 그런데 gpt쪽으로 대리해서 넘겨줘"):
-for a row whose id starts with `G` (currently only `G1-baren-run-3d`), you DO draw the art its task file asks for and you MAY push
+for EVERY row whose id starts with `G` (owner 2026-11-28 again: 「내가 안티그래비티쪽 한도를 확인하고 바꾸자는 지시를 하기 전까진 gpt쪽에 위임해줘」 — all art goes to GPT until the owner says otherwise), you DO draw the art its task file asks for and you MAY push
 only the delivery files it names to the `art-inbox` branch (art/inbox/gait/<stem>_run_a.png, _b.png and art/inbox/NOTES.md).
 Everything else above still holds: no game code, no assets/, never push to claude/... , never force-push. Report on agent/gpt-qa.
 If something needs a decision, write "## <id> — 막힘" in your report and stop.
