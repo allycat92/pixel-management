@@ -1785,3 +1785,52 @@ CHANGED: 세라핀 8칸 새로 그림. 찢긴 장포의 폭과 붉은 띠를 유
 DEVIATIONS: 장포 뒤 무릎과 둔부 관절 일부는 보이지 않는다. 철퇴 손목의 각도는 실측하지 않았다.
 RISKS AT GAME SIZE: 1×에서 발이 장포 끝과 겹치는 순간과 빠른 발 디딤의 가독성은 주인 판정.
 3D GUIDE: 전방 뻗기에서 옷의 밑단보다 앞쪽 부츠가 먼저 읽히도록 했다.
+
+## 3차 다시 그리기 — G6-fieldmedic-3d
+
+CHECK: 후보 띠를 임시 로컬 ref에 넣어 receive.py --no-fetch 실행. 두 띠 PASS, 새 몸 검사 FAIL 0.
+```text
+# sheet_captain_fieldmedic_run (gait frames for sheet_captain_fieldmedic, run) — tip 61b600e
+- art/inbox/gait/sheet_captain_fieldmedic_run_a.png: art-inbox 61b600ed
+- art/inbox/gait/sheet_captain_fieldmedic_run_b.png: art-inbox 61b600ed
+- not a base sheet: sheets.py is never run on these; they are attached to the registered sheet with add_gait.py
+- movement class (tools/art/specs/gait_classes.json): light -> mannequin art/requests/gait/run__captain_fieldmedic/pose.json (gait run); strips checked with --flight-slots 4 (the light run is in the air in slot 4)
+- sheet_captain_fieldmedic_run_a.png (--flight-slots 4): info: pose 4 (flight): 27 px above the guide line (>= 18) | RESULT: PASS
+- sheet_captain_fieldmedic_run_b.png (--flight-slots 4): info: pose 4 (flight): 27 px above the guide line (>= 18) | RESULT: PASS
+- against the 3D request art/requests/gait/run__captain_fieldmedic/pose.json (tools/mannequin3d/delivery.py):
+  WARN: V2 head top vs the guide: painted head-band top - head_top_px = +19 px median (per frame +19 +19 +19 +19 +19 +19 +19 +19) - more than 12 px under the mannequin head: the figure was drawn shorter or sunk (check V1 against the idle)
+  (6 frame lines OK)
+- body against the idle drawing (tools/art/gait_body.py: H1 width pump, H2 same-phase, H3 head aspect, V1 figure height, weapon length, seam):
+    ok: idle art/inbox/sheet_captain_fieldmedic.png: head top y 463, neck y 557, head block 126 px wide
+    ok: head block per frame (sx/sy/top y): F1:1.01/0.90/453 F2:1.01/0.90/452 F3:1.01/0.90/457 F4:1.01/0.90/458 F5:1.01/0.90/453 F6:1.01/0.90/452 F7:1.01/0.90/457 F8:1.01/0.90/458
+    ok: H1 width pump: phase-pair mean head sx 1.013 1.013 1.013 1.013 -> range 0.000 (FAIL > 0.09)
+    ok: H2 same-phase mismatch: |s(n) - s(n+4)| sx 0.000 0.000 0.000 0.000, sy 0.000 0.000 0.000 0.000 -> max 0.000 (FAIL > 0.15)
+    ok: H3 head aspect vs the idle: median sx/sy 1.13 (FAIL < 0.78 or > 1.25)
+    ok: V1 figure height vs the idle: (870 - head-band top) / (870 - idle top 463) = 0.978 median (head-band top 470 469 474 475 470 469 474 475; FAIL < 0.97)
+    ok: WEAPON (mace) rigid length: painted weapon longer (+) / shorter (-) than in frame 1, per frame +0 +1 +0 -1 +0 -1 -2 -1 px -> range 3.1 px (WARN > 12, mace: WARN only)
+    ok: SEAM: strongest row-difference line at y~679 follows the figure (row - head row spread 0 px < row spread 6): a belt or armour line (row y 677, 676, 681, 682, 677, 676, 682 in 7/8 frames, ratio 3.8, 4.7, 3.8, 3.8, 4.2, 4.2, 4.2)
+    ok: gait_body checks took 8 s
+- stride from art/requests/gait/run__captain_fieldmedic/pose.json (step_px 275.0)
+- add_gait.py --dry-run:
+    sheet/captain/fieldmedic: run ← /tmp/pm-round3.ShS39p/magda-receive/gait/sheet_captain_fieldmedic_run_a.png, /tmp/pm-round3.ShS39p/magda-receive/gait/sheet_captain_fieldmedic_run_b.png
+    8 프레임, 배율 0.1654, 칸 96x96, anchor 48,92, 팔레트 40색 (시트의 기본 칸에서)
+    프레임별 맨 아래 픽셀 (바닥 줄 위 게임 px): 1:0 2:0 3:0 4:4 5:0 6:0 7:0 8:4
+    sheet.gait = light (run 칸이 그려진 마네킹의 부류)
+    --dry-run: 시트·manifest 는 그대로. 새 시트 /tmp/pm-round3.ShS39p/magda-receive/add_gait/sheet_captain_fieldmedic.png · 등록될 항목 sheet_captain_fieldmedic.entry.json · 미리보기 sheet_captain_fieldmedic_preview_x4.png
+    sheet/captain/fieldmedic: 시트 384x384, 15칸 — idle(4), attack(2), hit(1), run(8); runStride 45.5
+    다시 붙이는 명령: python3 tools/art/add_gait.py sheet/captain/fieldmedic --gait run --src magda-receive/gait/sheet_captain_fieldmedic_run_a.png magda-receive/gait/sheet_captain_fieldmedic_run_b.png --pose art/requests/gait/run__captain_fieldmedic/pose.json --ms 80
+- register after judging (copy the files in first): python3 tools/art/add_gait.py sheet/captain/fieldmedic --gait run --src art/inbox/gait/sheet_captain_fieldmedic_run_a.png art/inbox/gait/sheet_captain_fieldmedic_run_b.png --pose art/requests/gait/run__captain_fieldmedic/pose.json
+- work folder: /tmp/pm-round3.ShS39p/magda-receive
+- after judging (pass or fail): git checkout 61b600e -- <the delivered paths>   (it then counts as reviewed)
+```
+REFERENCES LOADED: 최신 guide, plain, size 띠 a/b, 비교 GIF 2개, pose.json, 승인 대기 시트·초상, concept.
+CHANGED: R1 상체를 가로 배율 100%로 고정하고 8칸에 평행 이동. 아래 주먹·파우치 주변의 절단선 복구, 짝별 뒤 코트 천을 일부 같은 모양으로 정리. 접지/비행 프레임과 철퇴 바깥 축을 유지.
+DEVIATIONS: (a) V2 머리 띠는 안내보다 +19px, V1 대기 대비 통과. (b) 다리 겹침과 남은 천 디테일로 코트 가시 면적 ±10%는 확인 못 함. (c) 무기 위·아래 끝과 접지 유지; 가려진 손목 각도는 실측하지 않음.
+RISKS AT GAME SIZE: R1/R5와 R3/R7은 서로 다른 앞다리에 천이 가려지므로 실제 발뒤쪽 자락의 가시 면적과 R7 허리 앞 밝은 천 흔들림은 주인 눈으로 재확인. V2 머리 띠 경고는 남음.
+3D GUIDE: 상체에 가로 변형 대신 프레임별 x/y 차이만 적용하는 데 유용했다. 동일 높이의 부속 둘은 원래 뒤쪽과 겹쳐 보인다.
+
+## 판정 — gait/sheet_captain_fieldmedic_run (3차)
+결과: 기술 통과, 주인 시각 판정 대기
+본 방법: 등록 변환 96px 셀과 x4 확대 그림 확인. [대기·전투·달리기 15칸 비교](shots/G6/03-body-width-preview-x4.png). 이번 3차에서는 실전 재생 결과를 다시 측정하지 않음.
+측정: R1–R8 소매·주먹 몸통 기준선 x (한 줄 대표, 뒤→앞): 133→256 / 125→248 / 145→268 / 148→271 / 132→255 / 125→248 / 145→268 / 150→273 (=123px), y=639/638/643/644/639/638/643/644; 완장 상단 16줄을 통째로 잡으면 머리카락과 먼 팔이 겹쳐 폭을 따로 확인하지 못함. 동일 마스크 피부 38×54 및 완장 47×29px (8칸 각각 동일). H1 0.138→0.000, H2 0.063→0.000, 철퇴 길이 검사 범위 3.1px, R4/8 바닥에서 27px.
+남은 걱정: R1/R5와 R3/R7은 서로 다른 앞다리에 천이 가려지므로 실제 발뒤쪽 자락의 가시 면적과 R7 허리 앞 밝은 천 흔들림은 주인 눈으로 재확인. V2 머리 띠 경고는 남음.
