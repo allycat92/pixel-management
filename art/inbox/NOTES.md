@@ -1551,3 +1551,22 @@ RISKS AT GAME SIZE: 1배에서 방패가 수염과 몸을 가리지 않는 정�
 본 방법: 원본 띠, 등록용 1배·4배 미리보기, 접점과 바닥선, GIF 프레임 간격.
 고칠 점: 기술 검사 요구 없음. 게임 등록 전 주인 판정.
 남은 걱정: 1배에서 방패가 수염과 몸을 가리지 않는 정도와 낮은 뒷발 확인.
+
+## gait/sheet_hero_astel_run - 아스텔 — 마탑의 마지막 제자 로브 이동 8프레임
+CHECK: (a) RESULT: PASS; (b) RESULT: PASS
+```text
+  --dry-run: 시트·manifest 는 그대로. 새 시트 /tmp/pm-g9.1wlp/preview/sheet_hero_astel.png · 등록될 항목 sheet_hero_astel.entry.json · 미리보기 sheet_hero_astel_preview_x4.png
+  sheet/hero/astel: 시트 384x384, 15칸 — idle(4), attack(2), hit(1), run(8); runStride 23.9
+  다시 붙이는 명령: python3 tools/art/add_gait.py sheet/hero/astel --gait run --src art/inbox/gait/sheet_hero_astel_run_a.png art/inbox/gait/sheet_hero_astel_run_b.png --pose art/requests/gait/robe__hero_astel/pose.json --ms 96
+```
+REFERENCES LOADED: guide, plain underlay, size (a/b), two GIFs, approved source & installed sheet, portrait, pose.json → ok (concept: not part of the requested hero reference set).
+CHANGED: 접점 x 279/243/207/171, 292/256/220/184; 착지 y=870 (공중 프레임 없음). robe 보폭 23.9, 명목 96ms.
+DEVIATIONS: (a) 접점과 높이를 가이드 수치에 맞췄다. 팔꿈치·무릎 등 세부 관절 좌표는 실측하지 않았다. (b) 은회색 묶은 머리와 안경, 금 자수 로브, 허리의 펼친 책과 보라 보석 고리 지팡이. (c) 한 손 고리 지팡이와 책은 유지. 손목 각도, 두 번째 발의 접점을 따로 실측하지 않았다.
+RISKS AT GAME SIZE: 1배에서 책·안경과 보석이 서로 섞이지 않고 읽히는지 확인.
+3D GUIDE: 긴 로브 아래 낮은 발과 가슴 앞 지팡이 자리를 잡는 데 도움이 됐다.
+
+## 판정 — gait/sheet_hero_astel_run
+결과: 기술 검사 통과 / 미감 주인 판정 대기.
+본 방법: 원본 띠, 등록용 1배·4배 미리보기, 접점과 바닥선, GIF 프레임 간격.
+고칠 점: 기술 검사 요구 없음. 게임 등록 전 주인 판정.
+남은 걱정: 1배에서 책·안경과 보석이 서로 섞이지 않고 읽히는지 확인.
