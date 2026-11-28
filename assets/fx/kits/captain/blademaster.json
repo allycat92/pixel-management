@@ -10,9 +10,10 @@
   "screen": { "allowed": ["hitstop", "shake.x"], "forbidden": ["dim", "flash"], "note": "a horizontal micro-shake; silence before the cut" },
   "ultimate": {
     "note": "owner 2026-11-28: full-screen staging is allowed only for ultimates. The ultimate adds dim (dark navy, as in the chosen key image) and the letterbox slit; still no flash.",
-    "allowed": ["dim", "unitDim", "letterbox", "hitstop", "shake.x"],
+    "allowed": ["dim", "unitDim", "letterbox", "hitstop", "shake.x", "punch", "casterRim"],
     "forbidden": ["flash"],
-    "colours": { "tone": "#0a0e1f", "ink": "#04050a" }
+    "colours": { "tone": "#0a0e1f", "ink": "#04050a", "slate": "#2b3150", "slateRim": "#565f88" },
+    "conflict": "OWNER SIGN-OFF PENDING: the base kit's screen.forbidden lists dim, and this ultimate block overrides it (dim to a near-flat navy backdrop, silhouettes, an integer x2 punch-in). Applied under the 2026-11-28 tier decision only; not yet approved by the owner for this kit."
   },
   "cutin": { "enter": "horizontal slit opening", "frame": "letterbox bar", "backdrop": "kit/band_tail" },
   "pieces": [

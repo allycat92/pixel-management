@@ -13,7 +13,7 @@
   // 장면: 발 위치(화면 px). 시트는 오른쪽을 본다 — face -1 이면 뒤집어 그린다.
   const CASTER = { id: 'sheet/captain/blademaster', x: 320, y: 264, face: 1 };
   // 키 이미지처럼 양쪽에 셋씩. (실제 aoe 18 = 반경 36px 보다 넓게 벌려 선이 서로 겹치지 않게 — 미리보기 배치)
-  const VICTIMS = [
+  const VICTIMS_WIDE = [
     { id: 'sheet/monster/산적', x: 388, y: 234, face: -1 },
     { id: 'sheet/monster/사막 도적', x: 414, y: 272, face: -1 },
     { id: 'sheet/class/warrior', x: 374, y: 308, face: -1 },
@@ -21,6 +21,17 @@
     { id: 'sheet/class/warrior', x: 228, y: 276, face: 1 },
     { id: 'sheet/monster/산적', x: 268, y: 310, face: 1 },
   ];
+  // 실제 aoe 18(반경 36px) 안에 몰아 세운 배치 — 선 간격 규칙(place.minGap, lineK) 시험용
+  const VICTIMS_TIGHT = [
+    { id: 'sheet/monster/산적', x: 350, y: 246, face: -1 },
+    { id: 'sheet/monster/사막 도적', x: 358, y: 268, face: -1 },
+    { id: 'sheet/class/warrior', x: 348, y: 290, face: -1 },
+    { id: 'sheet/monster/사막 도적', x: 290, y: 248, face: 1 },
+    { id: 'sheet/class/warrior', x: 282, y: 270, face: 1 },
+    { id: 'sheet/monster/산적', x: 294, y: 288, face: 1 },
+  ];
+  const LAYOUTS = { wide: VICTIMS_WIDE, tight: VICTIMS_TIGHT };
+  let VICTIMS = VICTIMS_WIDE;
   // 범위 밖 (맞지 않는다)
   const BYSTANDERS = [
     { id: 'sheet/class/archer', x: 548, y: 228, face: -1 },
@@ -32,7 +43,7 @@
   const tlc = document.getElementById('tl'), tctx = tlc.getContext('2d');
   ctx.imageSmoothingEnabled = false;
 
-  const state = { t: 0, playing: true, loop: true, speed: 1, seed: 7, zoom: 2, bg: 'plains', anchors: false, hidden: {} };
+  const state = { t: 0, playing: true, loop: true, speed: 1, seed: 7, zoom: 2, bg: 'plains', layout: 'wide', anchors: false, hidden: {} };
   let spec, kit, inst, scene, ready = false;
 
   // ───── 시트 도우미 ─────
@@ -72,27 +83,48 @@
     return { x0: Math.min(a0, a1), y0: b0, x1: Math.max(a0, a1) + 1, y1: b1 + 1 };
   }
 
+  // 칸 → 한 색 실루엣(+ 1px 위 테두리) / 윤곽만(시전자 위·왼쪽 테두리). 모양 없는 빛: 몸 칸의 알파만 쓴다.
   const tintCache = new Map();
-  function silhouette(sh, i, col) {
-    const key = `${sh.id}#${i}#${col}`;
+  function cellPixels(sh, i) {
+    const m = sh.meta, f = m.frames[i], [w, h] = m.cell;
+    const c = document.createElement('canvas'); c.width = w; c.height = h;
+    const g = c.getContext('2d'); g.drawImage(sh.img, f[0], f[1], w, h, 0, 0, w, h);
+    return { c, g, w, h, d: g.getImageData(0, 0, w, h) };
+  }
+  const hexRGB = (col) => [1, 3, 5].map((k) => parseInt(col.slice(k, k + 2), 16));
+  // look.mode 'silhouette': fill 로 채우고, 위가 비어 있는 칸은 rim 색 / 'tint': fill 로 덮기 / 'rim': 화면 기준 위·왼쪽 가장자리만
+  function lookImage(sh, i, look, flip) {
+    const key = `${sh.id}#${i}#${look.mode}#${look.fill || ''}#${look.rim || ''}#${look.colour || ''}#${flip}`;
     let c = tintCache.get(key);
     if (c) return c;
-    const m = sh.meta, f = m.frames[i], [w, h] = m.cell;
-    c = document.createElement('canvas'); c.width = w; c.height = h;
-    const g = c.getContext('2d'); g.drawImage(sh.img, f[0], f[1], w, h, 0, 0, w, h);
-    g.globalCompositeOperation = 'source-in'; g.fillStyle = col; g.fillRect(0, 0, w, h);
-    tintCache.set(key, c);
-    return c;
+    const P = cellPixels(sh, i), { w, h } = P, src = P.d.data;
+    const out = P.g.createImageData(w, h), o = out.data;
+    const A = (x, y) => (x < 0 || y < 0 || x >= w || y >= h ? 0 : src[(y * w + x) * 4 + 3]);
+    const put = (x, y, rgb) => { const k = (y * w + x) * 4; o[k] = rgb[0]; o[k + 1] = rgb[1]; o[k + 2] = rgb[2]; o[k + 3] = 255; };
+    const fill = look.fill && hexRGB(look.fill), rim = look.rim && hexRGB(look.rim), col = look.colour && hexRGB(look.colour);
+    const leftDx = flip ? 1 : -1;     // 뒤집어 그리면 화면 왼쪽 = 칸 오른쪽
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      if (A(x, y) < 128) continue;
+      const top = A(x, y - 1) < 128;
+      if (look.mode === 'rim') { if (top || A(x + leftDx, y) < 128) put(x, y, col); }
+      else put(x, y, look.mode === 'silhouette' && top && rim ? rim : fill);
+    }
+    P.g.clearRect(0, 0, w, h); P.g.putImageData(out, 0, 0);
+    tintCache.set(key, P.c);
+    return P.c;
   }
-  function blitCell(sh, i, X, Y, flip, img, alpha) {
+  // clip: { above: true|false, y } — 세계 y 기준으로 위쪽(y 미만)만 / 아래쪽(y 이상)만 그린다
+  function blitCell(sh, i, X, Y, flip, img, alpha, clip) {
     const m = sh.meta, f = m.frames[i] || m.frames[0], [w, h] = m.cell, [ax, ay] = m.anchor;
     const src = img || sh.img, sx = img ? 0 : f[0], sy = img ? 0 : f[1];
     ctx.save();
+    if (clip) { ctx.beginPath(); if (clip.above) ctx.rect(X - 200, clip.y - 400, 400, 400); else ctx.rect(X - 200, clip.y, 400, 400); ctx.clip(); }
     if (alpha != null) ctx.globalAlpha = alpha;
     if (!flip) ctx.drawImage(src, sx, sy, w, h, Math.round(X) - ax, Math.round(Y) - ay, w, h);
     else { ctx.translate(Math.round(X), 0); ctx.scale(-1, 1); ctx.drawImage(src, sx, sy, w, h, -ax, Math.round(Y) - ay, w, h); }
     ctx.restore();
   }
+  const stepA = (a) => (a < 0.25 ? 0 : a < 0.75 ? 0.5 : 1);   // 윤곽 알파는 0/50/100% 단계만
   function shadow(x, y, rx) {
     ctx.save(); ctx.globalAlpha = 0.28; ctx.fillStyle = '#000';
     for (let dy = -3; dy <= 3; dy++) {
@@ -118,7 +150,7 @@
     const tip = toWorld(CASTER, cSh, cb.rx, cb.ry);
     scene = {
       caster: { ...CASTER, sheet: cSh, box: worldBox(CASTER, cSh, Art.anim(cSh.meta, 'idle').from), tip },
-      victims: VICTIMS.map((v) => { const sh = Art.sheet(v.id); return { ...v, sheet: sh, box: worldBox(v, sh, Art.anim(sh.meta, 'idle').from) }; }),
+      victims: (VICTIMS = LAYOUTS[state.layout] || VICTIMS_WIDE).map((v) => { const sh = Art.sheet(v.id); return { ...v, sheet: sh, box: worldBox(v, sh, Art.anim(sh.meta, 'idle').from) }; }),
       bystanders: BYSTANDERS.map((v) => ({ ...v, sheet: Art.sheet(v.id) })).filter((v) => v.sheet),
     };
     inst = FxPlayer.create(spec, kit, scene, { seed: state.seed, speed: state.speed, sheetFor, hidden: state.hidden });
@@ -133,8 +165,10 @@
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
     ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H);
-    const [cx, cy] = inst.camera(t);
-    ctx.translate(cx, cy);
+    const [sx, sy] = inst.camera(t);
+    const v = inst.view(t, W, H);
+    // 정수 확대(punch-in) + 정수 흔들림. imageSmoothing 꺼져 있어 nearest 그대로.
+    ctx.setTransform(v.z, 0, 0, v.z, Math.round(W / 2 - v.z * v.cx + sx), Math.round(H / 2 - v.z * v.cy + sy));
     const bg = Art.image(`bg/battle/${state.bg}`);
     if (bg) ctx.drawImage(bg, 0, 0, W, H);
     inst.draw(ctx, 'ground', t);
@@ -145,7 +179,10 @@
     units.push({ u: C, role: 'caster' });
     scene.victims.forEach((v, i) => units.push({ u: v, role: 'victim', i }));
     scene.bystanders.forEach((v) => units.push({ u: v, role: 'other' }));
-    units.sort((a, b) => a.u.y - b.u.y);
+    // 궁극기 연출 중에는 시전자를 맨 앞에 (actor.frontWhileStaged) — 실루엣 무리에 가리지 않게
+    const front = spec.actor.frontWhileStaged && inst.unitLook(t, 'other');
+    const key = (x) => x.u.y + (front && x.role === 'caster' ? 10000 : 0);
+    units.sort((a, b) => key(a) - key(b));
 
     // 그림자 먼저
     units.forEach(({ u }) => shadow(u.x, u.y, 13));
@@ -162,9 +199,16 @@
         dx = v.dx;
         fi = v.hit ? Art.anim(m, 'hit').from : frameAt(Art.anim(m, 'idle'), (uc + k * 0.37) * 1000, false);
       }
-      blitCell(sh, fi, u.x + dx, u.y, flip);
-      const dim = inst.unitDim(t, role === 'caster' ? 'caster' : 'other');
-      if (dim) blitCell(sh, fi, u.x + dx, u.y, flip, silhouette(sh, fi, dim.colour), dim.alpha);
+      const look = inst.unitLook(t, role === 'caster' ? 'caster' : 'other');
+      const img = look ? lookImage(sh, fi, look, flip) : null;
+      const sp = role === 'victim' ? inst.victim(i, t).split : null;
+      // 한 몸을 그리는 두 번(원래 + 실루엣/윤곽) — 쪼개짐이면 아래는 제자리, 위는 선을 따라 미끄러진다
+      const body = (X, Y, clip) => {
+        if (!(look && look.mode !== 'rim' && look.alpha >= 0.999)) blitCell(sh, fi, X, Y, flip, null, null, clip);
+        if (img) blitCell(sh, fi, X, Y, flip, img, look.alpha >= 0.999 ? 1 : (look.mode === 'rim' ? stepA(look.alpha) : look.alpha), clip);
+      };
+      if (sp) { body(u.x + dx, u.y, { above: false, y: sp.y }); body(u.x + dx + sp.dx, u.y + sp.dy, { above: true, y: sp.y + sp.dy }); }
+      else body(u.x + dx, u.y, null);
       if (role === 'victim') { inst.draw(ctx, 'sorted', t, i); inst.draw(ctx, 'over', t, i); }
     });
     inst.draw(ctx, 'front', t);
@@ -203,6 +247,7 @@
       tctx.fillRect(Math.round(X(e.t)), 26 + (rows[e.id] % 5) * 4, 1, 3);
     });
     tl.shakes.forEach((s) => { tctx.fillStyle = '#f0b25a'; tctx.fillRect(Math.round(X(s.at)), 16, 2, 8); });
+    if (tl.punch) { tctx.fillStyle = '#6a8cff'; tctx.fillRect(X(tl.punch.at), 44, X(tl.punch.dur), 2); }
   }
   function drawPlayhead(tr) {
     drawTimeline();
@@ -216,7 +261,7 @@
     const ph = (tl.phases.find(([, a, b]) => ft >= a && ft < b) || ['-'])[0];
     document.getElementById('readout').textContent =
       `real ${t.toFixed(3)}s / ${inst.duration.toFixed(2)}s · fx ${ft.toFixed(3)}s · frame ${Math.round(t * 60)} · phase ${ph}` +
-      `${inst.frozen(t) ? ' · FROZEN' : ''} · speed ${state.speed}× (fx ×${inst.rate.toFixed(2)})`;
+      `${inst.frozen(t) ? ' · FROZEN' : ''}${inst.view(t, 640, 360).z > 1 ? ` · ZOOM ×${inst.view(t, 640, 360).z}` : ''} · speed ${state.speed}× (fx ×${inst.rate.toFixed(2)})`;
     document.getElementById('scrub').value = String(Math.round(t * 1000));
   }
 
@@ -263,6 +308,7 @@
     const sel = $('bg');
     BGS.forEach((b) => { const o = document.createElement('option'); o.value = b; o.textContent = b; sel.appendChild(o); });
     sel.onchange = (e) => { state.bg = e.target.value; frame(state.t); };
+    $('layout').onchange = (e) => { state.layout = e.target.value; build(); frame(state.t); };
     $('anchors').onchange = (e) => { state.anchors = e.target.checked; frame(state.t); };
     const lay = $('layers');
     inst.layerIds().forEach((id) => {
@@ -284,7 +330,9 @@
     if (ph.length) add(`<span class="ph">PLACEHOLDER 조각 (코드로 찍음, Antigravity 그림으로 교체 예정): ${ph.join(', ')}</span>`);
     add('코드 빛: 화면 어둡게(dim), 유닛 어둡게, 칼끝·선 둘레의 부드러운 가산 빛 — 모양 없는 빛만.');
     add('키 이미지: NovelAI 디자인 초안(참고용, 출시·등록 안 함).');
-    add('4×: fx 시계 ×2.6 상한, dim·띠는 1×에서만 (§6.2).');
+    add(spec.fastForward ? `궁극기 빨리감기: fx 시계 상한 ×${spec.fastForward.cap}, 남색 배경·실루엣·띠·확대는 4×에서도 유지 (§6.2 예외, 전투당 1회).` : '4×: fx 시계 ×2.6 상한, dim·띠는 1×에서만 (§6.2).');
+    add('<span class="ph">키트 충돌(주인 승인 대기): 키트 screen.forbidden 에 dim 이 있는데 궁극기 블록이 덮어쓴다.</span>');
+    add('코드 쪼개짐: 맞은 몸을 가른 선에서 잘라 윗부분을 선 따라 밀어 그린다(조각 split 은 이음매 빛만).');
   }
 
   async function boot() {
@@ -304,7 +352,7 @@
     ready: boot().then(() => true),
     set(o) {
       Object.assign(state, o);
-      if (o.speed != null || o.seed != null || o.hidden) build();
+      if (o.speed != null || o.seed != null || o.hidden || o.layout) build();
       if (o.zoom) setZoom(o.zoom);
       state.playing = false; syncPlay();
     },

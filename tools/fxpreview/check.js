@@ -39,7 +39,10 @@ spec.layers.forEach((L) => {
   if (L.piece && !pieces.has(L.piece)) fail(`layer ${L.id}: piece ${L.piece} not in kit`);
   if (L.colour && !cols.has(L.colour)) fail(`layer ${L.id}: colour ${L.colour} not in kit`);
 });
-Object.entries(spec.screen || {}).forEach(([k, v]) => { if (v && v.colour && !cols.has(v.colour)) fail(`screen.${k}: colour ${v.colour} not in kit`); });
+Object.entries(spec.screen || {}).forEach(([k, v]) => {
+  if (!v || Array.isArray(v)) return;
+  [v.colour, v.rim, v.vignette && v.vignette.colour, v.edge && v.edge.colour].filter(Boolean).forEach((c) => { if (!cols.has(c)) fail(`screen.${k}: colour ${c} not in kit`); });
+});
 const scr = Object.keys(spec.screen || {}).map((k) => (k === 'shake' ? 'shake.x' : k === 'freeze' ? 'hitstop' : k));
 const allowed = new Set([...(kit.screen.allowed || []), ...((spec.tier || '').startsWith('ultimate') ? kit.ultimate.allowed : [])]);
 const off = scr.filter((s) => !allowed.has(s));
@@ -58,6 +61,24 @@ sig(a) !== sig(c) ? ok('different seed → different variation') : fail('seed ha
 const ys = a.marks.map((m) => m.y - 0);
 new Set(a.marks.map((m, i) => (m.y - scene.victims[i].box.y0) / (scene.victims[i].box.y1 - scene.victims[i].box.y0)).map((k) => k.toFixed(2))).size === ys.length
   ? ok('each victim cut at a different body height') : fail('two victims share a cut height');
+
+// 5) 실제 aoe(반경 36px)처럼 몰린 배치에서도: 가로로 겹치는 선끼리 세로 간격 >= gap, 선 길이 <= lineK x 몸 폭
+if (spec.marks && spec.marks.gap) {
+  const gap = spec.marks.gap.gap, K = spec.marks.lineK;
+  const P = [[350, 246], [358, 268], [348, 290], [290, 248], [282, 270], [294, 288]];
+  const tight = { caster: { x: 320, y: 264, face: 1, box: { x0: 308, y0: 200, x1: 334, y1: 264 }, tip: [350, 250] },
+    victims: P.map(([x, y]) => ({ x, y, box: { x0: x - 14, y0: y - 60, x1: x + 14, y1: y } })) };
+  let worst = 99, long = 0;
+  for (const sd of [1, 2, 3, 7, 11, 42]) {
+    const m = ctx.FxPlayer.create(spec, kit, tight, { seed: sd }).marks;
+    m.forEach((a1, i) => {
+      if (a1.len > Math.ceil(K * 28)) long++;
+      m.forEach((b1, j) => { if (j > i && a1.x - a1.len / 2 < b1.x + b1.len / 2 && b1.x - b1.len / 2 < a1.x + a1.len / 2) worst = Math.min(worst, Math.abs(a1.y - b1.y)); });
+    });
+  }
+  worst >= gap ? ok(`tight layout (aoe 36px), 6 seeds: overlapping lines >= ${gap}px apart (min ${worst})`) : fail(`tight layout: two overlapping lines only ${worst}px apart (< ${gap})`);
+  long ? fail(`${long} cut lines longer than ${K} x body width`) : ok(`cut lines clamped to ${K} x body width`);
+}
 
 console.log(bad ? `\n${bad} problem(s)` : '\nall checks passed');
 process.exitCode = bad ? 1 : 0;
