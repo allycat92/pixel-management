@@ -1618,3 +1618,45 @@ console.error(seed,rows.length,extra.length);
 - **R7:** 어두운 디딘 다리 뒤, 밝은 든 다리 앞. 무릎·정강이와 두 부츠 끝의 분리를 확대와 1×에서 확인. G14 발끝 x159, 바닥 y870(등록 y91) 유지. 떨어진 덩어리 0 → 0.
 - **기술 검사:** 3D guide/underlay/size a·b, 두 GIF, pose, 승인 초상·대기 원본 모두 열림. `check_delivery.py --flight-slots 4` 양쪽 `RESULT: PASS` (RGB, 경고 없음). `add_gait.py --scale 0.1654 --dry-run` 통과, 가이드 비교 포함: 8프레임, 96×96 칸, anchor (48,92), 팔레트 40색, 전체 15칸, runStride 45.5. 원본과 등록 96px에서 두 수정 칸 각각 8방향 연결 덩어리 1개(본체만).
 - **관전:** Q28 복제 빌드 `3ae0150`, 카이 시드 3183530050, 변환 PNG만 교체 후 1×와 4× 끝까지. 두 배속에서 R3·R7 사용, 오류 0, 결과 해시 1722842319 유지. 미감은 주인 판정.
+
+## 다시 그리기 — G3-lancer-3d (마네킹 2차)
+
+- art-inbox `eb04f0a`: 로드릭 8칸을 새 중량 보행 위에 처음부터 그렸다. 창날·페넌트는 승인 대기 그림의 한 형상을 같은 길이로 재배치했고 손잡이 축을 가이드에 맞췄다. H4/H8 전방 발끝 x273, 바닥 접지 8/8.
+- 두 띠와 등록 변환 통과. 마네킹 검사: `RESULT: PASS (sheet_captain_lancer_run_a.png, sheet_captain_lancer_run_b.png vs art/requests/gait/heavy__captain_lancer/pose.json)`. 격리 전투에서 1×·4× 종료 해시 2994629907 일치, 오류 0. [대기→이동→대기 실화면](shots/G3/02-idle-run-idle.jpg).
+- 게임 시트·코드 미반영. 대기↔이동에서 창이 더 세워지는 전환은 남는다. 등록 점검과 최종 판정은 주인.
+
+## 다시 그리기 — G5-hedgemage-3d (마네킹 2차)
+
+- art-inbox `eb04f0a`: 펠릭스 8칸 새로 그림. 모자·골드 테두리·나무 지팡이를 유지하고 G4/G8 앞발이 가운 앞으로 나오게 했다. 전방 발끝 x275, 전 칸 접지.
+- 두 띠와 등록 변환 통과. 마네킹 검사: `RESULT: PASS (sheet_captain_hedgemage_run_a.png, sheet_captain_hedgemage_run_b.png vs art/requests/gait/robe__captain_hedgemage/pose.json)`. 등록 변환 96px, 96ms 고정 미리보기에서 8칸 확인. runStride 24.3.
+- 게임 시트·코드 미반영. 1×에서 발이 가운 바로 아래로 나오는 짧은 구간과 지팡이 아래쪽 가림을 확인할 것.
+
+## 다시 그리기 — G6-fieldmedic-3d (마네킹 2차)
+
+- art-inbox `b01860f`: 마그다 8칸 새로 그림. 승인 철퇴 머리를 한 형상으로 고정하고 직선 손잡이를 새 가이드 축에 맞췄다. 접지 6칸, R4/R8 두 발 뜸 유지.
+- 두 띠와 등록 변환 통과. 마네킹 검사: `RESULT: PASS (sheet_captain_fieldmedic_run_a.png, sheet_captain_fieldmedic_run_b.png vs art/requests/gait/run__captain_fieldmedic/pose.json)`. 실제 격리 전투 1×/4× 오류 0, 해시 1176854301. [대기→달리기·달리기→공격 준비 실화면](shots/G6/02-idle-run-attack.jpg).
+- 게임 시트·코드 미반영. 대기에서 철퇴가 서는 각도 변화가 보이며, 이번 전투 출발 뒤 관측된 것은 이동→공격 준비였다. 직접 이동→대기 경계는 미포착.
+
+## 다시 그리기 — G9-astel-3d (마네킹 2차)
+
+- art-inbox `b01860f`: 아스텔 8칸 새로 그림. G4/G8에서 앞 장화가 가운 밖으로 나오며 전방 끝 x271(가이드 x272), 두 발의 다음 접지 단계가 구분된다. 원형 지팡이 머리는 승인 형상을 사용.
+- 두 띠와 등록 변환 통과. 마네킹 검사: `RESULT: PASS (sheet_hero_astel_run_a.png, sheet_hero_astel_run_b.png vs art/requests/gait/robe__hero_astel/pose.json)`. [G4→G5 / G8→G1, 등록 배율과 발 확대](shots/G9/02-reach-and-contact.jpg). stride 23.9.
+- 게임 시트·코드 미반영. 게임 1×의 발끝 간격은 확대보다 작아서 최종 동작 감각은 확인이 필요하다.
+
+## 다시 그리기 — G10-grom-3d (마네킹 2차)
+
+- art-inbox `b01860f`: 그롬 8칸 새로 그림. 승인 대검의 한 날 형상을 각 칸의 같은 축과 길이로 놓고 양손 가드를 유지했다. 경량 접지·뜸 보존.
+- 두 띠와 등록 변환 통과. 마네킹 검사: `RESULT: PASS (sheet_hero_grom_run_a.png, sheet_hero_grom_run_b.png vs art/requests/gait/run__hero_grom/pose.json)`. 등록 96px, stride 45.5. 확대에서 도약 두 칸과 같은 대검 날 윤곽 확인.
+- 게임 시트·코드 미반영. 대기에서 더 세워지는 대검 각의 변화와 1×에서 손잡이 접점을 주인이 확인할 것.
+
+## 다시 그리기 — G12-oswin-3d (마네킹 2차)
+
+- art-inbox `b01860f`: 오스윈 8칸 새로 그림. H4/H8에 무게를 버티는 뒷발과 전방의 든 장화를 따로 그렸다. 8칸 바닥 접지 유지.
+- 두 띠와 등록 변환 통과. 마네킹 검사: `RESULT: PASS (sheet_hero_oswin_run_a.png, sheet_hero_oswin_run_b.png vs art/requests/gait/heavy__hero_oswin/pose.json)`. [H4→H5 / H8→H1, 등록 배율과 발 확대](shots/G12/02-reach-and-contact.jpg). stride 23.6.
+- 게임 시트·코드 미반영. H8에서 H1으로 넘어갈 때 앞 장화가 닿는 타이밍은 실제 속도로 볼 것.
+
+## 다시 그리기 — G13-seraphine-3d (마네킹 2차)
+
+- art-inbox `b01860f`: 세라핀 8칸 새로 그림. 찢긴 장포의 폭과 붉은 띠를 유지하며 네 번째·여덟 번째 칸 발을 전방으로 내보냈다. 8칸 바닥 접지.
+- 두 띠와 등록 변환 통과. 마네킹 검사: `RESULT: PASS (sheet_hero_seraphine_run_a.png, sheet_hero_seraphine_run_b.png vs art/requests/gait/robe__hero_seraphine/pose.json)`. 등록 96px, stride 22.2, 96ms 고정 비교에서 8칸.
+- 게임 시트·코드 미반영. 1×에서 발이 장포 끝과 겹치는 순간과 빠른 발 디딤의 가독성은 주인 판정.
