@@ -46,7 +46,7 @@ FLIGHT_LINE = 852          # check_delivery.py --flight-slots: the flight frame'
 CLASSES = ('light', 'heavy', 'robe')
 PREFIX = {'light': 'run', 'heavy': 'heavy', 'robe': 'robe'}       # request folder head and guide/size file names
 GUIDE_SET = {'light': 'run_base', 'heavy': 'heavy_base', 'robe': 'robe_base'}
-PHASE_EN = {'contact': 'contact', 'down': 'down (weight drops)', 'passing': 'passing', 'push': 'push',
+PHASE_EN = {'contact': 'contact', 'down': 'down (weight drops)', 'passing': 'passing', 'push': 'push', 'reach': 'REACH (swing foot ahead)',
             'push-off': 'push-off', 'flight': 'FLIGHT (both feet up)'}
 
 

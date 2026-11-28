@@ -36,6 +36,7 @@ import argparse
 import datetime
 import glob
 import json
+import math
 import os
 import re
 import shlex
@@ -1562,6 +1563,97 @@ def weapon_lines(wang, wmin, wmax):
     return ko, en
 
 
+def _slot_x(fr, x, light):
+    return x - (fr['slot'] - 1) * 384 if light else x
+
+
+def phase_lines_3d(frames):
+    """(English, 한국어) one line naming every slot's phase AS DRAWN in the 3D guide (owner verdict 2026-11-28: the old
+    'push-off / push' words for heavy / robe made the painter leave the swing foot behind the hip in slot 4)"""
+    f = [x['frame'] for x in frames]
+    if frames[3].get('phase') == 'flight':
+        en = (f'  - {f[0]} contact - {f[1]} catch (lowest hips) - {f[2]} push-off (heel up) - {f[3]} FLIGHT (both feet off '
+              f'the ground). {f[4]}-{f[7]} = the same with the far foot.')
+        ko = (f'- 단계: {f[0]} 닿기 - {f[1]} 받기(엉덩이 가장 낮음) - {f[2]} 밀기(뒤꿈치 듦) - {f[3]} 공중(두 발 모두 뜸). '
+              f'{f[4]}~{f[7]} 은 먼 발로 같은 동작.')
+        return en, ko
+    en = (f'  - {f[0]} CONTACT (both feet on the floor: the front foot just landed, the rear foot on its toe, heel up) - '
+          f'{f[1]} DOWN (lowest hips; the rear foot lifts off, toe a few px up) - {f[2]} PASSING (the swing foot is carried '
+          f'forward past the planted foot, ~10 px up) - {f[3]} REACH (the swing foot is AHEAD of the hip, toes up, ~5 px above '
+          f'the floor, about to land; the planted heel only starts to peel). {f[4]}-{f[7]} = the same with the far foot.\n'
+          f'  - In {f[3]} / {f[7]} the swing foot is IN FRONT of the hip column (table FEET below) - not left behind, not a '
+          'push-off lunge. No foot is behind the planted foot except where the table says so; the rear foot never trails '
+          'further back than the table, and nothing touches the slot band lines x=32 / x=351.')
+    ko = (f'- 단계(3D 가이드 그대로): {f[0]} **닿기**(두 발 모두 바닥: 앞발은 막 디뎠고 뒷발은 발끝으로, 뒤꿈치 듦) - {f[1]} **내려앉기**'
+          f'(엉덩이 가장 낮음, 뒷발이 떨어져 발끝이 몇 px 뜸) - {f[2]} **지나가기**(드는 발이 디딘 발 옆을 지나 앞으로, 약 10px 뜸) - '
+          f'{f[3]} **내딛기**(드는 발이 **엉덩이보다 앞**, 발끝을 들고 바닥 위 약 5px — 곧 디딘다; 디딘 발 뒤꿈치는 이제 막 뜨기 시작). '
+          f'{f[4]}~{f[7]} 은 먼 발로 같은 동작. **{f[3]}·{f[7]} 에서 드는 발은 엉덩이 열보다 앞**(아래 발 표) — 뒤에 남기거나 밀어 내는 '
+          '자세가 아니다. 뒷발은 표보다 더 뒤로 빠지지 않고, 아무것도 x=32 / x=351 선에 닿지 않는다.')
+    return en, ko
+
+
+def feet_table(pose, light):
+    """per frame: front-most / rear-most foot x in the slot (toe tip / heel back) and the lifted foot's sole height"""
+    rf = (pose.get('proportions') or {}).get('r_foot', 10.0)
+    rows = []
+    for fr in pose['frames']:
+        J = fr['joints']
+        hip = _slot_x(fr, J['hip'][0], light)
+        toes = {s: _slot_x(fr, J['toetip' + s][0], light) for s in 'NF'}
+        heels = {s: _slot_x(fr, J['heel' + s][0], light) - rf for s in 'NF'}
+        soles = {s: 870 - fr['sole_px'][s] for s in 'NF'}
+        up = [f'{"near" if s == "N" else "far"} {soles[s]} px up' for s in 'NF' if soles[s] > 0]
+        rows.append(f'      {fr["frame"]}: feet x {min(heels.values()):.0f} .. {max(toes.values()):.0f} (hip column {hip:.0f}; '
+                    f'near toe {toes["N"]:.0f}, far toe {toes["F"]:.0f})' + (f', {", ".join(up)}' if up else ', both soles down'))
+    return rows
+
+
+def weapon_table(pose, light):
+    """per frame: butt, fist(s), tip (slot px), screen angle, lengths - pose.json weapon_px (tools/mannequin3d/build.py)"""
+    rows = []
+    for fr in pose['frames']:
+        w = fr.get('weapon_px')
+        if not w:
+            return []
+        pt = lambda k: f'({_slot_x(fr, w[k][0], light):.0f},{w[k][1]:.0f})'
+        rows.append(f'      {fr["frame"]}: butt {pt("butt")} fist {pt("fist")}' + (f' 2nd fist {pt("fist2")}' if w.get('fist2') else '')
+                    + f' tip {pt("tip")}  angle {w["angle_deg"]:.0f} deg  butt->tip {w["length_px"]:.0f} px')
+    return rows
+
+
+def weapon_idle_change(pose, entry):
+    """(kind, idle deg, run deg) when the run carry differs from the idle's by more than 15 deg, else None"""
+    ws = [fr.get('weapon_px') for fr in pose['frames']]
+    if not all(ws):
+        return None
+    kind = ws[0]['kind']
+    idle = next((p.get('idle_deg') for p in entry.get('props', []) if p.get('kind') == kind), None)
+    if idle is None:
+        return None
+    a = [math.radians(w['angle_deg']) for w in ws]
+    run = math.degrees(math.atan2(sum(map(math.sin, a)) / len(a), sum(map(math.cos, a)) / len(a)))
+    d = (run - idle + 180.0) % 360.0 - 180.0
+    return (kind, float(idle), run) if abs(d) > 15.0 else None
+
+
+WEAPON_RULE_EN = [
+    '  - WEAPON = ONE RIGID OBJECT. In every frame it has the same length and shape (the table: butt -> tip, fist -> tip). A',
+    '    straight shaft or blade is ONE straight line from butt to tip - check it with a ruler line, never curve it. Never',
+    '    shorten, bend or stretch it to reach a point or to stay under a line. Place it by the table\'s BUTT, FIST(S) and TIP',
+    '    for each frame (+-4 px); its angle is the table\'s even where it differs from the idle. The tip MAY be above the',
+    '    head and is NOT limited by the Height numbers - those are the top of the HEAD (hair / helmet / hat) only. Between',
+    '    neighbouring frames the weapon turns at most 3 deg (two-handed: 1.5) and its tip follows the smooth path of the',
+    '    table - no back-and-forth. Two-handed: both fists stay at the same places on the grip in every frame, and the weapon',
+    '    rides with the chest (strip b = strip a).',
+]
+WEAPON_RULE_KO = (
+    '- **무기는 하나의 단단한 물체다.** 모든 프레임에서 길이·모양이 같다(아래 표: 밑동→끝, 주먹→끝). 곧은 자루·칼날은 밑동부터 끝까지 '
+    '**한 직선** — 자로 그어 확인하고 절대 휘지 않는다. 어떤 선에 맞추려고 줄이거나 구부리거나 늘이지 않는다. 프레임마다 표의 밑동·주먹·끝 '
+    '좌표(±4px)에 놓고, 각도는 대기와 달라도 표의 값. 무기 끝은 머리보다 위로 가도 된다 — 「높이」 숫자는 머리(머리카락·투구·모자) '
+    '꼭대기일 뿐, 프레임의 맨 윗점이 아니다. 이웃 프레임 사이 무기 각도는 3도(양손 무기 1.5도) 이하, 끝은 표의 매끈한 길을 따른다 — '
+    '앞뒤로 떨지 않는다. 양손 무기는 두 주먹이 매 프레임 손잡이의 같은 자리에 있고, 무기는 가슴을 따라 움직인다(b 띠 = a 띠).')
+
+
 def write_request_3d(sid, folder, cls, stem, short, p, date, spec, man):
     """3D 마네킹 가이드 요청 폴더 (tools/mannequin3d/request.py 의 그림 + 3D 용 README) → write_request 와 같은 꼴"""
     m3d = m3d_module()
@@ -1603,7 +1695,20 @@ def write_request_3d(sid, folder, cls, stem, short, p, date, spec, man):
         refs_pkg.append((f'{pkg}/concept.png', 'the design draft (design only - not proportions or rendering)'))
     if pkg and os.path.exists(os.path.join(ROOT, pkg, 'portrait.png')):
         refs_pkg.append((f'{pkg}/portrait.png', 'the approved portrait (face, hair, colours only)'))
-    tops = [f.get('top_px') for f in frames]
+    tops = [f.get('head_top_px', f.get('top_px')) for f in frames]
+    light = cls == 'light'
+    ph_en, ph_ko = phase_lines_3d(frames)
+    feet_rows = feet_table(pose, light)
+    w_rows = weapon_table(pose, light)
+    w_change = weapon_idle_change(pose, entry)
+    if w_change:
+        wk, wi, wr = w_change
+        change_en = [f'  - ANGLE CHANGE: the idle drawing holds the {KIND_EN.get(wk, wk)} at ~{wi:.0f} deg; the run carries it at '
+                     f'{wr:.0f} deg (the table) - draw {wr:.0f}, do NOT keep the idle angle (keep its length and shape).']
+        change_ko = [f'- **각도 바뀜**: 대기 그림은 {KIND_KO.get(wk, wk)}을(를) 약 {wi:.0f}도로 든다. 달리기에서는 표의 {wr:.0f}도 — '
+                     f'{wr:.0f}도로 그린다. 대기 각도를 그대로 두지 않는다(길이·모양은 대기 그대로).']
+    else:
+        change_en, change_ko = [], []
     t0 = tops[0]
     dtop = ', '.join(f'{f["frame"]} {t - t0:+d}' for f, t in zip(frames[:4], tops[:4]))
     bob = max(tops) - min(tops)
@@ -1647,7 +1752,8 @@ def write_request_3d(sid, folder, cls, stem, short, p, date, spec, man):
     fmt_lines += ['  - every pixel of a frame between x=32 and x=351 of its slot (at least 32 px of magenta to the slot edges - '
                   'nothing may cross into the next slot, including weapons, cloth and hair);',
                   f'  - the SCALE of the accepted sheet ({sc:g} source -> game: the idle is {geo["game_idle_h"]} game px tall); the '
-                  f'mannequin is fitted to the idle (the same height and limb lengths), its head top near y={min(tops)}-{max(tops)}.']
+                  f'mannequin is fitted to the idle (the same height and limb lengths), its HEAD top near y={min(tops)}-{max(tops)} (a weapon may '
+                  'reach higher).']
     receive = f'python3 tools/art/receive.py gait/{stem}_run'
     notes_h = f'## gait/{stem}_run - {name} 이동'
     refs_list = [f'guide_{p}_a/b', f'guide_{p}_plain_a/b', f'size_{p}_a/b', f'preview_{p}.gif', os.path.basename(geo['source'])] \
@@ -1697,9 +1803,13 @@ def write_request_3d(sid, folder, cls, stem, short, p, date, spec, man):
         '',
         '- **명암 = 깊이**: 밝은 부분이 보는 사람에게 **가깝고**, 어두운 부분이 **멀다** (가까운 팔·다리는 밝은 베이지, 먼 팔·다리는 '
         '어두운 회청색). 덧그릴 때 이 앞뒤 순서를 지킨다 — **가까운 쪽이 먼 쪽 위에** 그려진다. 무기·몸·얼굴이 겹쳐도 그 순서만 맞으면 괜찮다.',
-        '- **청록 반투명 = 든 무기**: 실선 윤곽은 무기가 앞에 있는 곳, 점선은 몸이 무기 앞을 가리는 곳. 무기는 대기 그림의 **실제 크기·모양**'
-        '으로 그 자리를 따라 그린다 (가이드의 모양은 자리 표시).',
+        '- **청록 반투명 = 든 무기**: 실선 윤곽은 무기가 앞에 있는 곳, 점선은 몸이 무기 앞을 가리는 곳. 무기는 대기 그림의 모양으로, '
+        '청록 모양의 **선 위에 그 길이·각도 그대로** 그린다 (프롬프트의 WEAPON 표: 프레임마다 밑동·주먹·끝 좌표).',
         *wl_ko,
+        *([WEAPON_RULE_KO] if w_rows else []),
+        *change_ko,
+        ph_ko,
+        '- **높이**: 아래 「Height」 숫자는 **머리 꼭대기**(머리카락·투구·모자)일 뿐 — 무기 끝·지팡이 머리·깃털은 그보다 위로 가도 된다.',
         f'- **손목 범위**: 무기의 손잡이 축(주먹에서 무기 끝 쪽; 활은 손잡이에서 위 활끝 쪽, 역수는 엄지 쪽)은 아래팔(팔꿈치→손목) 선에서 위쪽(엄지 쪽)으로 {wmin:g}~{wmax:g}도 안. 0 = 팔과 일직선. 그 밖으로 꺾어 '
         '늘어뜨리지 않는다 (덜렁거리는 칼 금지). 위로 들든 아래로 내리든 이 범위 안이면 된다.',
         '- **바닥**: 디딘 발바닥은 y=870, 공중 프레임은 y=852 위. 무기 끝·천 같은 소품이 바닥 줄 아래로 내려가면 그릴 때 손본다 '
@@ -1753,8 +1863,10 @@ def write_request_3d(sid, folder, cls, stem, short, p, date, spec, man):
         '    arm / far leg dark slate). KEEP THAT DEPTH ORDER when you paint: the nearer part is always drawn over the farther one.',
         '    Weapon, body and face may overlap - that is fine as long as the nearer part is on top.',
         '  - The teal see-through shape is the held weapon: a solid outline where it is in front, dashed where a body part covers',
-        '    it. Paint the character\'s OWN weapon at its idle size and shape in that place (the ghost only marks it):',
+        '    it. Paint the character\'s own weapon (the idle\'s shape) ON THAT LINE at the table\'s length and angle (WEAPON below):',
         *wl_en,
+        *(WEAPON_RULE_EN if w_rows else []),
+        *change_en,
         '  - WRIST RANGE (owner rule): every held weapon\'s GRIP AXIS (fist -> weapon tip; a bow: grip -> upper tip; a reverse',
         f'    grip: the thumb side of the fist) points {wmin:g}-{wmax:g} deg UPWARD (thumb side) from the forearm line (elbow -> wrist);',
         '    0 = straight along the forearm. Up or down on screen does not matter, but never bend it past the arm line (no',
@@ -1769,13 +1881,12 @@ def write_request_3d(sid, folder, cls, stem, short, p, date, spec, man):
         '  - Samples of other characters are only baselines. Do not recolour another character\'s strip.',
         '',
         f'THE MOVE (movement class {cls}: {clsd["summary"]} - with this character\'s personality on top, already in the mannequin):',
-        f'  - {frames[0]["frame"]} contact - {frames[1]["frame"]} catch (lowest hips) - {frames[2]["frame"]} push-off (heel up) - '
-        f'{frames[3]["frame"]} {"FLIGHT (both feet off the ground)" if frames[3].get("phase") == "flight" else frames[3].get("phase")}. '
-        f'{frames[4]["frame"]}-{frames[7]["frame"]} = the same with the far foot.',
+        *ph_en.split('\n'),
         f'  - Lean forward (hip to neck): {lean} deg.',
-        f'  - Height: the mannequin\'s head top is at y={"/".join(str(t) for t in tops[:4])} in {fa}'
+        f'  - Height: the HEAD top (hair / helmet / hat - NOT the weapon) is at y={"/".join(str(t) for t in tops[:4])} in {fa}'
         + (f' (the same in {fb})' if tops[:4] == tops[4:] else f' and {"/".join(str(t) for t in tops[4:])} in {fb}')
-        + f': {dtop} px from {frames[0]["frame"]} (+ = lower) - move your head top by the same amounts (bob {bob} px).',
+        + f': {dtop} px from {frames[0]["frame"]} (+ = lower) - move your head top by the same amounts (bob {bob} px). A',
+        '    weapon tip, staff head, plume or raised cloth may go HIGHER than these rows - they never limit it.',
         stride_line(pose, sc),
         stride_en,
         '  - PLANTED FOOT: a foot on the floor never slides in the drawing. From its contact frame on, the SAME boot moves LEFT by',
@@ -1784,13 +1895,17 @@ def write_request_3d(sid, folder, cls, stem, short, p, date, spec, man):
         '    = the yellow tick in size_*.png; x in the 384-px slot:',
         *toe_lines(pose),
         *([f'      ({" / ".join(flight)}: flight - no foot on the floor; the next contact lands ahead again)'] if flight else []),
+        '  - FEET per frame (x in the 384-px slot: rear-most heel .. front-most toe; keep both within ~20 px of these):',
+        *feet_rows,
+        *(['  - WEAPON per frame (x in the 384-px slot, y on the canvas; the same butt->tip length in every frame - one straight',
+           '    rigid piece; tip above the head is fine):', *w_rows] if w_rows else []),
         '',
         'PERSONALITY (this character\'s own run):',
         *[f'  - {s}' for s in pnotes],
         '  - Face: exactly as in the idle in every frame.',
         '',
         'MUST NOT CHANGE: outfit, colours, proportions, headgear, weapon shape and size, and the SCALE of the accepted sheet. The',
-        'body must not be shrunk to fit - change a weapon\'s angle (inside the wrist range) instead.',
+        'body must not be shrunk to fit, and the weapon is never shortened or bent to fit - it follows the WEAPON table.',
         *colours,
         '',
         'FORMAT (each strip): 1536x1024 PNG, 4 frames in ONE row, frame n in the 384-px slot n (x = 384*(n-1) .. 384*n-1), facing RIGHT,',
