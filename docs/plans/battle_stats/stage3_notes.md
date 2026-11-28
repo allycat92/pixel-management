@@ -1768,3 +1768,10 @@ Gates:
 - Side-by-side crops of the same case in VER 1 / round 1 / round 2, as `sbs_*.gif` and `_strip.png`.
 
 **Seen, not changed:** when a standing ranged unit overlaps an ally that dashed into it, and then takes one step, separation moves it out up to about 9 px in one tick. This predates VER 2; the largest one-tick separation in contact is 25 px in VER 1 and 31 px in round 1, against 24 px now. It is not part of the retreat.
+
+### Round 3 (2026-11-28)
+- A run is refused while the runner's own last hit is < `RUN_DELAY` old (`u.hitT`), while any enemy melee in reach (whatever its target) or a nearby melee special is about to strike, and (lead) while an incoming shot aimed at the runner will land within `RUN_DELAY`.
+- `runStep()` lookahead: no run (and no turn) unless the first step really moves; a near-zero first tick cancels and restores facing; edge room checked 10 px ahead; no run while the unit's own special is about to be ready.
+- Probe (same 1,366 battles, round 2 → round 3): carried ticks 0.55% → 0.31%; runs starting under the hit flash 54 → 0 (melee); zero-motion runs (<0.5 px) 65 → 0; facing flips per contact-second 0.150 → 0.120; runs < 8 px 801 → 244. Independent scan seeds 51–53 × 365 d (1,323 battles): runs starting on a hit tick 23 → 11 of 6,830, all 11 from a projectile in flight (0.16%), stand-offs 0.
+- Paired bands vs round 2 within noise (pooled −0.48 pp, SE 0.31): boss offers 백중 50.3 / 우세 88.1, non-boss sent 48.7 / 89.9. Boss knobs unchanged.
+- Gates: roll md5 f1712f75 (also SIM_SHADOW=1), battle.js 100 miss 0, shadow --check all 0. VER stays 2 (round-2 reports open their written result directly).

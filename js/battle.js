@@ -806,7 +806,7 @@ const Battle = (() => {
   //  · 달아나는 표적 곁(RUN_NEAR 안)의 근접 적은 그 달리기가 끝날 때까지 제자리에서 기다렸다가 쫓는다 — 함께 붙어 움직이지 않는다 (몸으로 미는 것처럼 보이지 않게).
   // 빠르기는 그대로다 (달리기는 제 빠르기).
   const RETARGET_KEEP = 12;          // 원거리 표적 바꾸기의 여유(px, 위 목표 재선정 점수)
-  const RUN_DELAY = 0.2, RUN_SAFE = 0.3, RUN_MIN = 0.55, RUN_MAX = 0.8, RUN_GAP_OK = 16, RUN_REST = 2.5, RUN_NEAR = 30;
+  const RUN_DELAY = 0.2, RUN_PAD = 4, RUN_SAFE = 0.3, RUN_MIN = 0.55, RUN_MAX = 0.8, RUN_GAP_OK = 16, RUN_REST = 2.5, RUN_NEAR = 30;
   // 원거리 u 가 물러날 방향 (물러나지 않으면 null). dir 이 없으면 새로 달리기를 시작하는 것이다: 붙은 근접 적이 모두 회복 중인지 보고,
   // 표적과 가까이 붙은 근접 적들 모두에게서 멀어지는 쪽을 고른 뒤 아군 쪽(아군 무리의 가운데)으로 반쯤 꺾는다 — 양쪽에서 붙었으면 달리지 않는다.
   // dir(달리기를 시작할 때 고른 방향)이 있으면 그 방향을 그대로 쓴다 (달리는 도중에 돌아서지 않게).
@@ -815,12 +815,21 @@ const Battle = (() => {
     let ax, ay;
     if (dir) { ax = dir[0]; ay = dir[1]; }
     else {
+      if (st.t - (u.hitT == null ? -9 : u.hitT) < RUN_DELAY - 1e-6) return null;   // 맞은 반응(번쩍임)이 아직 끝나지 않았다 — 누구에게 맞았든
+      // 날아오는 화살·마법이 곧 닿으면 그것도 맞은 것으로 친다 (탄은 유닛 이동 뒤에 처리되므로 hitT 로는 이 틱의 명중을 못 본다)
+      for (const sh of st.shots) if (sh.to === u && !sh.heal && len2(sh.to.x - sh.x, sh.to.y - 9 - sh.y) <= sh.speed * RUN_DELAY) return null;
       ax = -dx / d; ay = -dy / d;
       for (const e of live) {
         if (e.side === u.side || e.g.routed || !isMelee(e)) continue;
-        const md = meleeDist(e, u) - sizeOf(e), near = (e.skills[0].range + BODY) * 2;
+        const md = meleeDist(e, u) - sizeOf(e), near = (e.skills[0].range + BODY) * 2, sp = e.skills[1];
+        // 곁의 근접 적의 특기가 곧 준비된다: 특기는 닿는 아무에게나 먼저 쓴다 (돌진은 60px 밖에서도)
+        if (sp && sp.tgt !== 'hurt' && e.stunUntil <= st.t && sp.left < RUN_SAFE && md < (sp.dash ? max(near, 60) : near)) return null;
         if (md >= near) continue;
-        if (e.target === u && e.stunUntil <= st.t && (st.t < (e.hold || -9) - HOLD + RUN_DELAY || e.skills[0].left < RUN_SAFE)) return null;
+        if (e.stunUntil <= st.t) {
+          if (e.target === u && (st.t < (e.hold || -9) - HOLD + RUN_DELAY || e.skills[0].left < RUN_SAFE)) return null;
+          // 다른 몸을 노리는 근접도 공격이 곧 준비되고 나에게 닿는 거리면 이번 틱 뒤쪽에서 나로 표적을 바꿔 칠 수 있다 (나보다 뒤에 움직이는 몸) — 그때도 달리지 않는다
+          if (e.target !== u && e.skills[0].left < RUN_SAFE && md + sizeOf(e) <= e.skills[0].range + sizeOf(u) + BODY + RUN_PAD) return null;
+        }
         if (e === u.target) continue;
         const ex = u.x - e.x, ey = u.y - e.y, el = len2(ex, ey) || 1;
         ax += ex / el; ay += ey / el;
@@ -829,9 +838,10 @@ const Battle = (() => {
       for (const a of live) if (a.side === u.side && a !== u && !a.g.routed) { cx += a.x; cy += a.y; n++; }
       if (n) { const bx = cx / n - u.x, by = cy / n - u.y, bl = len2(bx, by); if (bl > 1) { ax += (bx / bl) * 0.5; ay += (by / bl) * 0.5; } }
     }
-    const e = EDGE + sizeOf(u) * EDGE_BIG;
-    if ((ax < 0 && u.x < e + BACK_ROOM) || (ax > 0 && u.x > W - e - BACK_ROOM)) ax = 0;
-    if ((ay < 0 && u.y < TOP + BACK_ROOM_Y) || (ay > 0 && u.y > BOTTOM - BACK_ROOM_Y)) ay = 0;
+    // 새로 달리기 시작할 때는 RUN_LOOK px 앞의 자리로 가장자리를 본다 — 한두 걸음 만에 BACK_ROOM 에 걸려 멈추면 돌아서기만 두 번 한다
+    const e = EDGE + sizeOf(u) * EDGE_BIG, l0 = dir ? 0 : RUN_LOOK / (len2(ax, ay) || 1), x = u.x + ax * l0, y = u.y + ay * l0;
+    if ((ax < 0 && x < e + BACK_ROOM) || (ax > 0 && x > W - e - BACK_ROOM)) ax = 0;
+    if ((ay < 0 && y < TOP + BACK_ROOM_Y) || (ay > 0 && y > BOTTOM - BACK_ROOM_Y)) ay = 0;
     const l = len2(ax, ay);
     if (l < 0.35 || ax * dx + ay * dy > 0) return null;
     return [ax / l, ay / l];
@@ -866,6 +876,31 @@ const Battle = (() => {
     }
     return true;
   }
+  // 달리기 첫 걸음을 미리 걸어 본다: 달릴 때와 같은 비켜 가기(steer)로 꺾은 쪽으로 한 걸음 내딛고, 겹침 방지(아래)가 그 자리의 몸들에게서
+  // 물릴 만큼을 빼 본다. 남는 걸음이 달릴 쪽(bk)으로 한 걸음의 RUN_FREE 배도 안 되면 (막혀 제자리에 서거나 옆·뒤로 밀릴 걸음이면) 달리지 않는다 — 돌아서지도 않는다.
+  // 걸을 수 있으면 그 꺾은 방향을 돌려준다 (첫 틱에 그대로 쓴다)
+  const RUN_FREE = 0.5;
+  function runStep(u, live, bk, tg, SPD) {
+    let mx = bk[0], my = bk[1];
+    const sv = steer(u, live, mx, my, u.x + mx * 40, u.y + my * 40, tg);
+    if (sv) { mx = sv[0]; my = sv[1]; }
+    const step = SPD * DT, ee = EDGE + sizeOf(u) * EDGE_BIG;
+    let px = clamp(u.x + mx * step, ee, W - ee), py = clamp(u.y + my * step, TOP, BOTTOM);
+    for (const o of live) {
+      if (o === u || !o.alive || o.fled || o.x <= px - 36 || o.x >= px + 36 || o.y <= py - 30 || o.y >= py + 30) continue;
+      const same = o.side === u.side;
+      if (same && o.g.routed) continue;
+      const big = sizeOf(u) + sizeOf(o), sx = (same ? SEP_X : SEP_FOE_X) + big * 0.75, sy = (same ? SEP_Y : SEP_FOE_Y) + big * 0.5;
+      const nx = (o.x - px) / sx, ny = (o.y - py) / sy, nd = sqrt(nx * nx + ny * ny);
+      if (nd >= 1 || nd < 1e-6) continue;
+      const om = o.x !== o.ox || o.y !== o.oy || o.moving;   // 이번 틱에 (또는 지난 틱에) 제 발로 움직인 몸은 반씩 비킨다
+      const p = om ? (1 - nd) * 0.5 : (same ? (u.far ? 0 : 0.85) : 1) - nd;
+      if (p <= 0) continue;
+      px -= (nx / nd) * p * sx; py -= (ny / nd) * p * sy * 0.8;
+    }
+    px = clamp(px, ee, W - ee); py = clamp(py, TOP, BOTTOM);
+    return (px - u.x) * bk[0] + (py - u.y) * bk[1] >= step * RUN_FREE ? [mx, my] : null;
+  }
   const endRun = (st, u) => { if (u.run != null) { u.run = null; u.runNext = st.t + RUN_REST; } };
   // 원거리·치유: 서 있는 아군과 몸이 깊이 겹친 채로는 멈추지 않는다 (조금 더 걸어 나가 선다)
   function crowdedAt(u, live) {
@@ -894,7 +929,7 @@ const Battle = (() => {
     if (src) src.dealt += min(dmg, target.hp);
     target.taken += dmg;
     target.hp -= dmg;
-    target.flash = 0.18;
+    target.flash = 0.18; target.hitT = st.t;
     st.fx.push({ kind: 'pop', x: target.x, y: target.y - 18, text: String(st.real ? showNum(dmg) : Math.round(dmg)), crit, ally: target.side === 0,
       mine: !!(src && src.side === 0 && src.unique), named: !!target.named, t: 0 });
     if (target.hp <= 0) {
@@ -1134,18 +1169,18 @@ const Battle = (() => {
       const hold = u.hold > st.t;   // 방금 쓴 공격 동작이 끝날 때까지 제자리 (HOLD)
       // 달아나는 표적(원거리의 달리기) 곁의 근접은 그 달리기가 끝날 때까지 제자리에서 기다린다 (RUN_NEAR; 닿는 동안 공격 준비가 되면 그대로 휘두른다)
       const waitRun = melee && tg.run != null && md <= reach + RUN_NEAR;
-      let bk = null, running = false;
+      let bk = null, running = false, first = null;
       if (u.run != null) {
         // 달리는 중: 끝날 때까지 같은 쪽으로 (가장자리 BACK_ROOM 앞이면 멈춘다)
         if (keepRunning(st, u, live, basic) && (bk = backOff(st, u, live, dx, dy, d, u.runDir))) running = true;
         else endRun(st, u);
-      } else if (!hold && basic.shot && d < reach * 0.45 && basic.left > 0 && !(u.runNext > st.t) && (bk = backOff(st, u, live, dx, dy, d, null)) && clearAhead(u, live, bk[0], bk[1])) {
-        u.run = st.t; u.runDir = bk; running = true;
+      } else if (!hold && basic.shot && d < reach * 0.45 && basic.left > 0 && !(u.runNext > st.t) && !(special && special.left > 0 && special.left < RUN_MIN) && (bk = backOff(st, u, live, dx, dy, d, null)) && clearAhead(u, live, bk[0], bk[1]) && (first = runStep(u, live, bk, tg, SPD))) {
+        u.run = st.t; u.runDir = bk; running = true; u.runFace = u.face;
       }
       if (running) {
         // 원거리 유닛은 너무 붙으면 물러난다 — 적이 휘두르고 난 틈에, 돌아서서 제 빠르기로 뛰어 (backOff). 서 있는 몸은 돌아간다 (steer)
         let mx = bk[0], my = bk[1];
-        const sv = steer(u, live, mx, my, u.x + mx * 40, u.y + my * 40, tg);
+        const sv = first || steer(u, live, mx, my, u.x + mx * 40, u.y + my * 40, tg);
         if (sv) { mx = sv[0]; my = sv[1]; }
         u.x += mx * SPD * DT; u.y += my * SPD * DT;
         if (abs(mx) > 0.05) u.face = mx > 0 ? 1 : -1;
@@ -1211,6 +1246,8 @@ const Battle = (() => {
     for (const u of live) {
       if (!u.moving || u.g.routed || !u.wantStep || u.dashed) { if (!u.blocked) { u.stuckN = 0; u.jit = 0; u.gt = null; } continue; }
       const frozen = len2(u.x - u.ox, u.y - u.oy) < u.wantStep * 0.3;
+      // 첫 걸음부터 막힌 (달릴 쪽으로 한 걸음의 3할도 못 간) 달리기는 없던 일로 한다: 돌아섰던 몸을 되돌린다 (제자리에서 한 틱 돌아섰다 돌아오지 않게)
+      if (u.run === st.t && (frozen || (u.x - u.ox) * u.runDir[0] + (u.y - u.oy) * u.runDir[1] < u.wantStep * 0.3)) { u.face = u.runFace; endRun(st, u); }
       if (frozen) { u.x = u.ox; u.y = u.oy; u.moving = false; u.blocked = (u.blocked || 0) + DT; }
       else {
         u.blocked = 0;
