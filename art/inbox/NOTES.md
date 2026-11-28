@@ -1437,3 +1437,22 @@ RISKS AT GAME SIZE: 실제 밝은 바닥에서 지팡이의 검은 자루가 계
 본 방법: 원본 띠, 등록용 1배·4배 미리보기, 접점과 바닥선, GIF 프레임 간격.
 고칠 점: 기술 검사 요구 없음. 게임 등록 전 주인 판정.
 남은 걱정: 실제 밝은 바닥에서 지팡이의 검은 자루가 계속 읽히는지와 두 발 교대 확인.
+
+## gait/sheet_captain_lancer_run - 로드릭 — 말을 잃은 기사 중량 이동 8프레임
+CHECK: (a) RESULT: PASS; (b) RESULT: PASS
+```text
+  --dry-run: 시트·manifest 는 그대로. 새 시트 /tmp/pm-g3.hG97/preview/sheet_captain_lancer.png · 등록될 항목 sheet_captain_lancer.entry.json · 미리보기 sheet_captain_lancer_preview_x4.png
+  sheet/captain/lancer: 시트 448x448, 15칸 — idle(4), attack(2), hit(1), run(8); runStride 26.5
+  다시 붙이는 명령: python3 tools/art/add_gait.py sheet/captain/lancer --gait run --src art/inbox/gait/sheet_captain_lancer_run_a.png art/inbox/gait/sheet_captain_lancer_run_b.png --pose art/requests/gait/heavy__captain_lancer/pose.json --ms 101
+```
+REFERENCES LOADED: guide, plain underlay, size (a/b), two GIFs, approved source & installed sheet, portrait, concept and pose.json → ok.
+CHANGED: 8장 모두 바닥 y=870. 기준 디딘 발끝 x=279/239/199/159, 292/252/212/172. 39색, 중량 보폭 26.5, 미리보기 명목 101ms.
+DEVIATIONS: (a) 접점과 높이를 가이드 수치에 맞췄다. 팔꿈치·무릎 등 세부 관절 좌표는 실측하지 않았다. (b) 사자 문장의 흰 겉옷, 파란 판금·깃털, 짧은 붉은 망토와 두 손 랜스를 새로 그렸다. (c) 랜스 길이·손목 각도와 H1/H5의 뒷발 접점은 개별 실측하지 않았다.
+RISKS AT GAME SIZE: 1배에서 낮은 뒷발과 철신 교대가 판금 무게감으로 읽히는지, 창 끝의 끄덕임이 충분한지 확인.
+3D GUIDE: 두 손으로 비껴 든 창 방향, 내려앉는 박자와 무게 이동을 잡는 데 도움이 됐다.
+
+## 판정 — gait/sheet_captain_lancer_run
+결과: 기술 검사 통과 / 미감 주인 판정 대기.
+본 방법: 원본 띠, 등록용 1배·4배 미리보기, 접점과 바닥선, GIF 프레임 간격.
+고칠 점: 기술 검사 요구 없음. 게임 등록 전 주인 판정.
+남은 걱정: 1배에서 낮은 뒷발과 철신 교대가 판금 무게감으로 읽히는지, 창 끝의 끄덕임이 충분한지 확인.
