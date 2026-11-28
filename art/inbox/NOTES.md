@@ -1475,3 +1475,22 @@ RISKS AT GAME SIZE: 1배에서 어두운 지형의 가는 시위와 가까운 �
 본 방법: 원본 띠, 등록용 1배·4배 미리보기, 접점과 바닥선, GIF 프레임 간격.
 고칠 점: 기술 검사 요구 없음. 게임 등록 전 주인 판정.
 남은 걱정: 1배에서 어두운 지형의 가는 시위와 가까운 발 교대가 읽히는지 확인.
+
+## gait/sheet_captain_hedgemage_run - 펠릭스 — 떠돌이 마법사 로브 이동 8프레임
+CHECK: (a) RESULT: PASS; (b) RESULT: PASS
+```text
+  --dry-run: 시트·manifest 는 그대로. 새 시트 /tmp/pm-g5.gExL/preview/sheet_captain_hedgemage.png · 등록될 항목 sheet_captain_hedgemage.entry.json · 미리보기 sheet_captain_hedgemage_preview_x4.png
+  sheet/captain/hedgemage: 시트 384x384, 15칸 — idle(4), attack(2), hit(1), run(8); runStride 24.3
+  다시 붙이는 명령: python3 tools/art/add_gait.py sheet/captain/hedgemage --gait run --src art/inbox/gait/sheet_captain_hedgemage_run_a.png art/inbox/gait/sheet_captain_hedgemage_run_b.png --pose art/requests/gait/robe__captain_hedgemage/pose.json --ms 96
+```
+REFERENCES LOADED: guide, plain underlay, size (a/b), two GIFs, approved source & installed sheet, portrait, concept and pose.json → ok.
+CHANGED: 8장 모두 y=870, 접점 x 280/244/207/170, 294/258/221/184. 43색, 로브 보폭 24.3, 미리보기 명목 96ms.
+DEVIATIONS: (a) 접점과 높이를 가이드 수치에 맞췄다. 팔꿈치·무릎 등 세부 관절 좌표는 실측하지 않았다. (b) 남보라 로브·기운 모자·노란 테두리, 가죽 가방과 나무 지팡이를 새로 그렸다. 불꽃·구슬 없음. (c) 두 손으로 지팡이를 잡고 프레임별 손목 각도, 두 번째 발의 접점은 실측하지 않았다.
+RISKS AT GAME SIZE: 1배에서 긴 로브 아래 발 교대와 나무 지팡이 끝 휨이 충분히 보이는지 확인.
+3D GUIDE: 로브 자락 아래 발 높이와 지팡이의 일관된 각도에 도움이 됐다.
+
+## 판정 — gait/sheet_captain_hedgemage_run
+결과: 기술 검사 통과 / 미감 주인 판정 대기.
+본 방법: 원본 띠, 등록용 1배·4배 미리보기, 접점과 바닥선, GIF 프레임 간격.
+고칠 점: 기술 검사 요구 없음. 게임 등록 전 주인 판정.
+남은 걱정: 1배에서 긴 로브 아래 발 교대와 나무 지팡이 끝 휨이 충분히 보이는지 확인.
