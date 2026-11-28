@@ -9,7 +9,8 @@ unpainted 3D guide written anywhere (palette signature), a character's movement 
 same stride and cadence), the bow / spear / dagger props and the reverse grip (the wrist rule on the grip axis), and
 the 3D request folder (request.py: files, marker, verify, refusal of its plain strip); review 2026-11-28: the second hand
 of a two-handed grip on the weapon line with its own wrist rule and a human elbow (rig.arm_ik3d), strips a / b of heavy /
-robe mirrored on screen with the trailing heel in range, the robe hem on one smooth path.
+robe mirrored on screen with the trailing heel in range, the robe hem on one smooth path; diagnosis 2026-11-28: a held
+weapon clear of the face at the nose row (Grom) and the belt row on the brown band (Oswin).
 """
 import os
 import sys
@@ -169,6 +170,38 @@ class WeaponStability(unittest.TestCase):
         g2 = build.render_gait(CANON, dict(old, chest_open=34.0), spec, cam, 0.1654)
         res = checks.weapon_stability(g2['recs'], old)
         self.assertTrue(any(lv == checks.WARN and 'vs idle 36' in m for lv, m in res), res)
+
+
+class BladeFace(unittest.TestCase):
+    """diagnosis 2026-11-28: Grom's greatsword ran through the mannequin's nose (-5..+6 px) and the painter squeezed the
+    face; a held weapon line crossing the nose row must keep >= FACE_FAIL px (WARN under FACE_WARN)"""
+    def test_face_gap(self):
+        self.assertAlmostEqual(checks.face_gap((100, 700), (200, 400), (150, 550)), 0.0)
+        self.assertAlmostEqual(checks.face_gap((100, 700), (200, 400), (120, 550)), 30.0)
+        self.assertIsNone(checks.face_gap((100, 700), (200, 600), (150, 550)))      # the line ends below the nose row
+        lv, _ = checks.face_check('', ['R1', 'R2'], [None, -5.0], 'sword')
+        self.assertEqual(lv, checks.FAIL)
+        self.assertEqual(checks.face_check('', ['R1', 'R2'], [30.0, 12.0], 'sword')[0], checks.WARN)
+        self.assertEqual(checks.face_check('', ['R1', 'R2'], [None, None], 'sword')[0], checks.OK)
+
+    def test_grom_blade_clears_the_face_and_the_old_carry_fails(self):
+        _, g, res = run('grom')
+        face = [(lv, m) for lv, m in res if 'vs face' in m]
+        self.assertEqual(len(face), 1)
+        self.assertNotEqual(face[0][0], checks.FAIL, face)
+        old = dict(CARRY['grom'], arms={'N': dict(CARRY['grom']['arms']['N'], shoulder=5.0)},
+                   personality=dict(CARRY['grom']['personality'], lean_add=-2.0), chest_open=30.0)
+        spec = gait_spec(old['gait'], 0.1654, 1.0)
+        g2 = build.render_gait(CANON, old, spec, Camera(yaw=15.0), 0.1654)
+        self.assertEqual(checks.face_checks_gait(g2['recs'])[0][0], checks.FAIL)
+
+    def test_belt_row_on_the_brown_band(self):
+        # pose.json belt_px: the belt band's centre (not the hip joint dot, which sits lower in the pelvis)
+        _, g, _ = run('oswin')
+        for r in g['recs']:
+            self.assertIn('belt_px', r)
+            self.assertLess(r['belt_px'][1], r['joints']['HN'][1] - 10)
+            self.assertGreater(r['belt_px'][1], r['joints']['SN'][1] + 40)
 
 
 class SecondHand(unittest.TestCase):

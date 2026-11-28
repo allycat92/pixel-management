@@ -274,6 +274,10 @@
     "fist2_along_px": 59.8,
     "fist2_off_line_px": -0.0
    },
+   "belt_px": [
+    193.5,
+    647.3
+   ],
    "joints": {
     "hip": [
      192.0,
@@ -513,6 +517,10 @@
     "fist2_along_px": 59.8,
     "fist2_off_line_px": -0.0
    },
+   "belt_px": [
+    193.6,
+    651.9
+   ],
    "joints": {
     "hip": [
      192.0,
@@ -752,6 +760,10 @@
     "fist2_along_px": 59.8,
     "fist2_off_line_px": -0.0
    },
+   "belt_px": [
+    193.4,
+    643.7
+   ],
    "joints": {
     "hip": [
      192.0,
@@ -991,6 +1003,10 @@
     "fist2_along_px": 59.8,
     "fist2_off_line_px": -0.0
    },
+   "belt_px": [
+    193.4,
+    643.1
+   ],
    "joints": {
     "hip": [
      192.0,
@@ -1231,6 +1247,10 @@
     "fist2_along_px": 59.8,
     "fist2_off_line_px": -0.0
    },
+   "belt_px": [
+    193.5,
+    647.3
+   ],
    "joints": {
     "hip": [
      192.0,
@@ -1470,6 +1490,10 @@
     "fist2_along_px": 59.8,
     "fist2_off_line_px": -0.0
    },
+   "belt_px": [
+    193.6,
+    651.9
+   ],
    "joints": {
     "hip": [
      192.0,
@@ -1709,6 +1733,10 @@
     "fist2_along_px": 59.8,
     "fist2_off_line_px": -0.0
    },
+   "belt_px": [
+    193.4,
+    643.7
+   ],
    "joints": {
     "hip": [
      192.0,
@@ -1948,6 +1976,10 @@
     "fist2_along_px": 59.8,
     "fist2_off_line_px": -0.0
    },
+   "belt_px": [
+    193.4,
+    643.1
+   ],
    "joints": {
     "hip": [
      192.0,
@@ -2118,12 +2150,18 @@
    "[OK] weapon tip path (relative to the chest): moves 0 1 0 0 1 1 0 0 px (<= 29), 0 reversals (<= 2) - one smooth path, no back-and-forth",
    "[OK] two-handed grip fixed to the chest: deviation 0.3 px (<= 3); strip a vs b at the same leg phase (deg / px) 0.5 0.5 0.3 0.3 (<= 3); fist-to-fist on screen 60..60 px (spread <= 6: both fists keep their places on the grip)",
    "[OK] weapon run angle 74 vs idle 77 deg (-3; > 15 -> WARN, the README states the change)",
+   "[OK] staff vs face: weapon x - nose x at the nose row (px, + = ahead of the face) per frame G1:+54 G2:+53 G3:+52 G4:+51 G5:+50 G6:+50 G7:+52 G8:+54; closest 50 (FAIL < 8, WARN < 25: the painter needs room for the idle's face beside the weapon)",
    "[OK] robe hem bottom above the floor (38-52, robe_base): [42, 42, 42, 42, 42, 42, 42, 42]",
    "[OK] robe hem width per frame [159, 159, 159, 159, 159, 159, 159, 159] px, max change 0% (<= 15%)",
    "[OK] robe widest row within 14 px of the hem (A-line, no bulge): [9, 8, 9, 9, 8, 8, 9, 9]",
    "[OK] robe hem back edge x [-77.8, -77.8, -77.8, -77.8, -77.8, -77.8, -77.8, -77.8]: moves [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], 0 reversals (<= 2 counting moves >= 2 px) - one smooth lagged path, no zig-zag",
    "[OK] robe hem front edge x [80.5, 80.5, 80.5, 80.5, 80.5, 80.5, 80.5, 80.5]: moves [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], 0 reversals (<= 2 counting moves >= 2 px) - one smooth lagged path, no zig-zag"
   ],
+  "idle": {
+   "head_top_px": 463,
+   "belt_y_px": 666.6,
+   "head_top_to_belt_px": 203.6
+  },
   "shading": "cel shading by depth: lighter = nearer the viewer, darker = farther (near limbs light, far limbs dark)"
  }
 }

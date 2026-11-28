@@ -212,6 +212,10 @@
     "fist_tip_px": 99.1,
     "fist_butt_px": 15.9
    },
+   "belt_px": [
+    200.4,
+    657.8
+   ],
    "joints": {
     "hip": [
      192.0,
@@ -423,6 +427,10 @@
     "fist_tip_px": 98.9,
     "fist_butt_px": 15.8
    },
+   "belt_px": [
+    583.2,
+    660.1
+   ],
    "joints": {
     "hip": [
      576.0,
@@ -634,6 +642,10 @@
     "fist_tip_px": 98.3,
     "fist_butt_px": 15.7
    },
+   "belt_px": [
+    968.8,
+    655.7
+   ],
    "joints": {
     "hip": [
      960.0,
@@ -843,6 +855,10 @@
     "fist_tip_px": 97.5,
     "fist_butt_px": 15.6
    },
+   "belt_px": [
+    1353.3,
+    653.0
+   ],
    "joints": {
     "hip": [
      1344.0,
@@ -1054,6 +1070,10 @@
     "fist_tip_px": 96.9,
     "fist_butt_px": 15.5
    },
+   "belt_px": [
+    200.1,
+    657.8
+   ],
    "joints": {
     "hip": [
      192.0,
@@ -1265,6 +1285,10 @@
     "fist_tip_px": 96.9,
     "fist_butt_px": 15.5
    },
+   "belt_px": [
+    583.0,
+    660.1
+   ],
    "joints": {
     "hip": [
      576.0,
@@ -1476,6 +1500,10 @@
     "fist_tip_px": 98.3,
     "fist_butt_px": 15.7
    },
+   "belt_px": [
+    968.8,
+    655.7
+   ],
    "joints": {
     "hip": [
      960.0,
@@ -1685,6 +1713,10 @@
     "fist_tip_px": 99.1,
     "fist_butt_px": 15.9
    },
+   "belt_px": [
+    1353.5,
+    653.0
+   ],
    "joints": {
     "hip": [
      1344.0,
@@ -1872,8 +1904,14 @@
    "[OK] weapon held in the hand frame (it rides the forearm): angle TO THE FOREARM per frame R1:24.9 R2:24.9 R3:24.9 R4:24.9 R5:24.9 R6:24.9 R7:24.9 R8:24.9  max step 0.02 deg (<= 3.5), range 0.04 (<= 8.5); on screen 164 -170 -162 -159 -163 177 157 151 with the arm",
    "[OK] weapon tip path: rides the forearm (hand-frame weapon) - moves 44 14 4 7 33 34 10 22 px with the arm pump (checked as the angle to the forearm above)",
    "[WARN] weapon run angle 179 vs idle 163 deg (+16; > 15 -> WARN, the README states the change)",
+   "[OK] dagger vs face: the weapon line never crosses the nose row (per frame R1:- R2:- R3:- R4:- R5:- R6:- R7:- R8:-)",
    "[OK] blade over the head (px) per frame [0, 0, 0, 0, 0, 0, 0, 0] (info: overlap allowed, depth order decides)"
   ],
+  "idle": {
+   "head_top_px": 465,
+   "belt_y_px": 670.3,
+   "head_top_to_belt_px": 205.3
+  },
   "shading": "cel shading by depth: lighter = nearer the viewer, darker = farther (near limbs light, far limbs dark)"
  }
 }

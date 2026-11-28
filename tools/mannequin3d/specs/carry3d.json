@@ -928,6 +928,13 @@
     "grom": {
       "sheet": "sheet/hero/grom",
       "gait": "run_light",
+      "fit_override": {
+        "head_top_y": 478,
+        "head": 89,
+        "shoulder_h": 294,
+        "hip_h": 172.9,
+        "measured": "idle (art/inbox/sheet_hero_grom.png pose 1; diagnosis 2026-11-28): the crown (top of the hair in the head columns) is at y=478 and the chin / beard bottom at ~567, crown-to-chin 89; fit.py took the mane tuft (first row >= 14 px wide, y=469) as the top and the neck at 571 (head 102) and made the mannequin head 106 tall, ~17% taller than the drawn head. head_top_y 478 + head 89 size the head from the idle (fitted top 478, neck 567 = the chin, head 93 tall). The shorter height must not move the body: shoulder_h 294 (the drawing's shoulder row 577, fitted 575) and hip_h 172.9 (the plain fit's 0.43 x 402) keep the trunk and legs of the plain fit (stride unchanged, 275 px). Tested: head 89 ALONE rescales the whole figure +3.5% and lifts the shoulders 10 px above the drawing - not used."
+      },
       "weapon_limit": {
         "min": 0.0,
         "max": 120.0
@@ -936,7 +943,7 @@
       "arms": {
         "N": {
           "table_scale": 0.0,
-          "shoulder": 5.0,
+          "shoulder": 12.0,
           "swing": 5.0,
           "elbow": 80.0,
           "elbow_swing": 4.0,
@@ -953,7 +960,7 @@
           "back": 32.0,
           "swing": 4.0,
           "lag": 1,
-          "measured": "idle greatsword (art/inbox/sheet_hero_grom.png pose 1, anchor column 177.5): both fists on a long grip in front of the belly - lower (near) fist ~(+28, 183), upper (far) fist ~(+45, 213), 34 px apart; cross guard ~(+53, 236); pommel ~(+8, 159); tip ~(+149, 409): blade 61 deg above horizontal, ~256 px beyond the lower fist, pommel ~32 px below it -> length 250, back 32, two_hand along 32. Run carry (review 2026-11-28: within ~10 deg of the idle): both hands stay on the grip, the near fist lower and a little further back in front of the belly (shoulder 5, elbow 80) so the blade can stand at ~69 deg on screen (idle 60) with the real-size blade >= 8 px inside the slot band (round 1 needed 77 deg with the fist high at the chest); the far fist 32 px up the grip right under the guard (rig.arm_ik3d, on the 3D blade line); near wrist ~100-106, far ~86-108 deg above the forearm (inside 0..120). The blade passes in front of the face side (near-hand plane, drawn over it - depth order).",
+          "measured": "idle greatsword (art/inbox/sheet_hero_grom.png pose 1, anchor column 177.5): both fists on a long grip in front of the belly - lower (near) fist ~(+28, 183), upper (far) fist ~(+45, 213), 34 px apart; cross guard ~(+53, 236); pommel ~(+8, 159); tip ~(+149, 409): blade 61 deg above horizontal, ~256 px beyond the lower fist, pommel ~32 px below it -> length 250, back 32, two_hand along 32. Run carry (review 2026-11-28: within ~10 deg of the idle): both hands stay on the grip, the near fist in front of the belly just above the belt (shoulder 12, elbow 80; y 650-659 against the belt rows 664-676) so the blade can stand at ~69 deg on screen (idle 60) with the real-size blade >= 8 px inside the slot band (round 1 needed 77 deg with the fist high at the chest); the far fist 32 px up the grip right under the guard (rig.arm_ik3d, on the 3D blade line); near wrist ~100-106, far ~86-108 deg above the forearm (inside 0..120). Review 2026-11-28 (the redraw squeezed the face 20-35% narrower between the mane and a blade that ran through the mannequin's nose, -5..+6 px): the trunk stands 12 deg more upright than the light table (lean_add -12, was -2) and the fists sit a little further forward and ~20 px higher (shoulder 12, was 5), so the blade at the nose row is 26-36 px AHEAD of the face in every frame (checks.py blade/face: FAIL < 8, WARN < 25) - the face keeps the idle's size beside it.",
           "idle_deg": 60.0,
           "idle_measured": "idle: hilt ~(600,950) -> tip (705,765): ~60 deg"
         }
@@ -964,7 +971,7 @@
         "along": 32.0
       },
       "personality": {
-        "lean_add": -2.0,
+        "lean_add": -12.0,
         "hip_drop": [
           3.0,
           7.0,
@@ -986,14 +993,14 @@
           ]
         },
         "notes": [
-          "A massive arena champion's charge: a little MORE UPRIGHT than the light mannequin (2 deg less lean, chest proud, chin tucked so he glares ahead from under the brows), and the weight sinks HARD into the catch frames (hips 7 px lower in R2/R6, 2-3 px in contact/push, none in flight) - heavy landings, then he drives up again. The mannequin already has it - follow it.",
+          "A massive arena champion's charge: clearly MORE UPRIGHT than the light mannequin (12 deg less lean: the upright greatsword stands clear in front of his face; chest proud, chin tucked so he glares ahead from under the brows), and the weight sinks HARD into the catch frames (hips 7 px lower in R2/R6, 2-3 px in contact/push, none in flight) - heavy landings, then he drives up again. The mannequin already has it - follow it.",
           "Big rolling hips (pelvis twist 11 deg against the class's 7) under a steadier chest (counter-turn 4 against 6): the trunk swings around the legs, the greatsword stays put.",
           "High knee drive like a stomping bull: the swinging knee comes up higher in the push-off and flight frames (R3/R7, R4/R8).",
           "The greatsword is held UPRIGHT before him in BOTH hands - near fist low on the grip in front of the belly, far fist right under the gold guard - like a champion walking into the arena. The blade is LOCKED to the chest at about 69 deg on screen (the idle's ~60 stood up only ~9 deg, the least the slot band needs for the full blade), the same angle and full length in every frame - it rides the body, it does not bob or tip. Never swung, never laid on the shoulder (that is Baren's carry).",
           "The short red shoulder cape, the fur-collar tufts, the ragged red hip panels and the long dreadlocked mane lag the body by one frame: they lift in the flight frames (R4/R8) and drop heavily in the catch frames (R2/R6). The gold champion belt stays fixed on the waist."
         ],
         "notes_ko": [
-          "거대한 투기장 챔피언의 돌진: 경량 마네킹보다 조금 더 곧게 선다(2도 덜 기울고 가슴을 펴고, 턱을 당겨 눈썹 아래로 앞을 노려본다). 대신 받는 프레임에서 무게가 확 가라앉는다(R2/R6 엉덩이 7px 낮게, 닿기·밀기 2~3px, 공중 0) — 무겁게 착지하고 다시 밀어 올린다. 3D 마네킹에 이미 들어 있다 — 따라 그린다.",
+          "거대한 투기장 챔피언의 돌진: 경량 마네킹보다 확실히 더 곧게 선다(12도 덜 기운다 — 곧추세운 대검이 얼굴 앞으로 떨어져 선다; 가슴을 펴고, 턱을 당겨 눈썹 아래로 앞을 노려본다). 대신 받는 프레임에서 무게가 확 가라앉는다(R2/R6 엉덩이 7px 낮게, 닿기·밀기 2~3px, 공중 0) — 무겁게 착지하고 다시 밀어 올린다. 3D 마네킹에 이미 들어 있다 — 따라 그린다.",
           "엉덩이가 크게 돈다(골반 비틀림 11도, 부류 기본 7도). 가슴은 더 안정적이다(역회전 4도, 기본 6도): 몸통은 다리 위에서 흔들리지만 대검은 제자리.",
           "밟아 대는 황소처럼 무릎을 높이 끌어올린다: 밀기·공중 프레임(R3/R7, R4/R8)에서 앞으로 나오는 무릎이 더 높다.",
           "대검은 두 손으로 몸 앞에 곧추세운다 — 가까운 손은 손잡이 아래쪽(배 앞), 먼 손은 금색 코등이 바로 밑 — 투기장에 입장하는 챔피언처럼. 칼날은 가슴에 고정되어 화면에서 약 69도(대기 약 60도에서 칸에 제 길이로 들어갈 만큼만 약 9도 세운다)로 모든 프레임에서 같은 각도·제 길이 그대로 — 몸을 따라 움직일 뿐 까딱이거나 기울지 않는다. 휘두르지 않고 어깨에 메지도 않는다(그건 바렌의 자세).",

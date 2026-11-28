@@ -211,6 +211,10 @@
     "fist_tip_px": 173.3,
     "fist_butt_px": 14.9
    },
+   "belt_px": [
+    196.5,
+    657.1
+   ],
    "joints": {
     "hip": [
      192.0,
@@ -421,6 +425,10 @@
     "fist_tip_px": 173.3,
     "fist_butt_px": 14.9
    },
+   "belt_px": [
+    579.6,
+    659.7
+   ],
    "joints": {
     "hip": [
      576.0,
@@ -631,6 +639,10 @@
     "fist_tip_px": 173.6,
     "fist_butt_px": 14.9
    },
+   "belt_px": [
+    965.7,
+    655.1
+   ],
    "joints": {
     "hip": [
      960.0,
@@ -839,6 +851,10 @@
     "fist_tip_px": 173.8,
     "fist_butt_px": 14.9
    },
+   "belt_px": [
+    1350.1,
+    653.5
+   ],
    "joints": {
     "hip": [
      1344.0,
@@ -1049,6 +1065,10 @@
     "fist_tip_px": 173.9,
     "fist_butt_px": 14.9
    },
+   "belt_px": [
+    196.3,
+    657.1
+   ],
    "joints": {
     "hip": [
      192.0,
@@ -1259,6 +1279,10 @@
     "fist_tip_px": 173.9,
     "fist_butt_px": 14.9
    },
+   "belt_px": [
+    579.5,
+    659.7
+   ],
    "joints": {
     "hip": [
      576.0,
@@ -1469,6 +1493,10 @@
     "fist_tip_px": 173.7,
     "fist_butt_px": 14.9
    },
+   "belt_px": [
+    965.7,
+    655.1
+   ],
    "joints": {
     "hip": [
      960.0,
@@ -1677,6 +1705,10 @@
     "fist_tip_px": 173.4,
     "fist_butt_px": 14.9
    },
+   "belt_px": [
+    1350.3,
+    653.5
+   ],
    "joints": {
     "hip": [
      1344.0,
@@ -1858,8 +1890,14 @@
    "[OK] weapon rigid: butt->tip 188.1..188.9 px on screen (spread 0.4% of the mean, <= +-2%), fist->tip 173..174, one straight staff (a rigid capsule: never bent, shortened or stretched)",
    "[OK] weapon angle (one-handed): R1:58.0 R2:58.6 R3:61.2 R4:64.1 R5:65.7 R6:65.0 R7:62.5 R8:59.5  max step 2.93 deg (<= 3.5), range 7.75 deg (<= 8.5)",
    "[OK] weapon tip path (relative to its fist): moves 2 8 9 5 2 8 9 5 px (<= 15), 2 reversals (<= 2) - one smooth path, no back-and-forth",
-   "[WARN] weapon run angle 62 vs idle -90 deg (+152; > 15 -> WARN, the README states the change)"
+   "[WARN] weapon run angle 62 vs idle -90 deg (+152; > 15 -> WARN, the README states the change)",
+   "[OK] staff vs face: weapon x - nose x at the nose row (px, + = ahead of the face) per frame R1:- R2:+69 R3:+46 R4:+36 R5:+46 R6:+53 R7:+44 R8:+44; closest 36 (FAIL < 8, WARN < 25: the painter needs room for the idle's face beside the weapon)"
   ],
+  "idle": {
+   "head_top_px": 469,
+   "belt_y_px": 676.1,
+   "head_top_to_belt_px": 207.1
+  },
   "shading": "cel shading by depth: lighter = nearer the viewer, darker = farther (near limbs light, far limbs dark)"
  }
 }

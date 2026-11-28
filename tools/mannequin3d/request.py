@@ -104,7 +104,7 @@ def render(sid, cls=None, carry_path=CARRY_JSON):
     res = [(checks.OK, f'fit source: {rep["source"]}')]
     res += checks.gait_checks(spec, g['recs'], g['bodies'], g['plain'], cam, carry)
     return {'key': key, 'entry': entry, 'carry': carry, 'personality': pz, 'P': P, 'rep': rep, 'scale': scale, 'cam': cam,
-            'spec': spec, 'g': g, 'checks': res, 'cls': cls}
+            'spec': spec, 'g': g, 'checks': res, 'cls': cls, 'idle': build.idle_span(P, carry, YAW)}
 
 
 def build_request(sid, outdir, cls=None, man=None, force=False, carry_path=CARRY_JSON, allow_fail=False):
@@ -163,6 +163,8 @@ def build_request(sid, outdir, cls=None, man=None, force=False, carry_path=CARRY
         'personality': r['personality'],
         'guides': {n: file_sha(os.path.join(outdir, n)) for n in files if n.endswith('.png') and n.startswith('guide_')},
         'checks': [f'[{lv}] {m}' for lv, m in r['checks']],
+        # the fitted mannequin in the idle stance: head top, belt band centre, head top -> belt (the body length to keep)
+        'idle': r['idle'],
         'shading': 'cel shading by depth: lighter = nearer the viewer, darker = farther (near limbs light, far limbs dark)',
     }
     with open(local_pose, 'w', encoding='utf-8', newline='\n') as f:

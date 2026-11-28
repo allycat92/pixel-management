@@ -32,6 +32,9 @@
 - **각도**: 달리기는 칼을(를) 화면에서 73도로, 모든 프레임에서 같은 각도(표: 73도) — 대기 약 61도에서 +12도(약 15도 안). 대기의 무기를 그대로(길이·모양·곧은 자루) 쥔 주먹을 축으로 그만큼만 한 덩어리로 돌린다 — 그 한 각도로. 이 각도에서 잰 값: 무기를 포함한 그림 전체가 칸(x 32~351) 안쪽으로 33px 이상(검사는 8px 이상).
 - 단계(3D 가이드 그대로): H1 **닿기**(두 발 모두 바닥: 앞발은 막 디뎠고 뒷발은 발끝으로, 뒤꿈치 듦) - H2 **내려앉기**(엉덩이 가장 낮음, 뒷발이 떨어져 발끝이 몇 px 뜸) - H3 **지나가기**(드는 발이 디딘 발 옆을 지나 앞으로, 약 10px 뜸) - H4 **내딛기**(드는 발이 **엉덩이보다 앞**, 발끝을 들고 바닥 위 약 5px — 곧 디딘다; 디딘 발 뒤꿈치는 이제 막 뜨기 시작). H5~H8 은 먼 발로 같은 동작. **H4·H8 에서 드는 발은 엉덩이 열보다 앞**(아래 발 표) — 뒤에 남기거나 밀어 내는 자세가 아니다. 뒷발은 표보다 더 뒤로 빠지지 않고, 아무것도 x=32 / x=351 선에 닿지 않는다.
 - **높이**: 아래 「Height」 숫자는 **머리 꼭대기**(머리카락·투구·모자)일 뿐 — 무기 끝·지팡이 머리·깃털은 그보다 위로 가도 된다.
+- **허리띠**: 그리는 허리띠(코트·갑옷의 허리선)의 가운데는 마네킹 허리의 **갈색 띠** 가운데 — 노란 엉덩이 점이 아니다(점은 약 22px 아래, 골반 속). 프레임별 y: H1 672 / H2 677 / H3 675 / H4 674 / H5 672 / H6 677 / H7 675 / H8 674.
+- **머리카락 꼭대기 → 허리띠 = 대기의 길이(211px)**: 몸통·머리를 눌러 줄이거나 늘이지 않는다. 이 가이드의 머리 꼭대기 → 허리띠 줄 간격은 209px(몸통이 기울어 선 자세보다 화면에서 조금 짧다) — 머리·가슴을 한 덩어리로 프레임마다 「Height」 줄과 허리띠 줄로 옮긴다.
+- **주먹→끝 = 264px**: 쥔 주먹 가운데에서 무기 끝까지 모든 프레임에서 같다 — 끝 자리에 맞추려고 자루를 늘이거나 줄이지 않고, 주먹을 무기와 함께 옮긴다.
 - **손목 범위**: 무기의 손잡이 축(주먹에서 무기 끝 쪽; 활은 손잡이에서 위 활끝 쪽, 역수는 엄지 쪽)은 아래팔(팔꿈치→손목) 선에서 위쪽(엄지 쪽)으로 0~120도 안. 0 = 팔과 일직선. 그 밖으로 꺾어 늘어뜨리지 않는다 (덜렁거리는 칼 금지). 위로 들든 아래로 내리든 이 범위 안이면 된다.
 - **바닥**: 디딘 발바닥은 y=870, 공중 프레임은 y=852 위. 무기 끝·천 같은 소품이 바닥 줄 아래로 내려가면 그릴 때 손본다 (각도를 조금 바꿔 올린다) — 몸과 발의 바닥 규칙은 그대로.
 - **마네킹 픽셀은 전부 덮는다**: 3D 마네킹의 색이 한 프레임의 25% 이상 남거나, 실루엣이 가이드와 거의 같으면(색만 바꾼 마네킹, IoU > 0.93) `add_gait.py` 가 받지 않는다. 마네킹 머리는 자리 표시 — 캐릭터의 머리·머리카락·머리띠를 대기 그림 크기로 그린다.
@@ -120,6 +123,12 @@ THE MOVE (movement class heavy: heavy armour / tower shield / very large weapon:
   - Lean forward (hip to neck): H1/H5 10.1, H2/H6 10.7, H3/H7 10.1, H4/H8 9.9 deg.
   - Height: the HEAD top (hair / helmet / hat - NOT the weapon) is at y=463/468/466/465 in H1 H2 H3 H4 (the same in H5 H6 H7 H8): H1 +0, H2 +5, H3 +3, H4 +2 px from H1 (+ = lower) - move your head top by the same amounts (bob 5 px). A
     weapon tip, staff head, plume or raised cloth may go HIGHER than these rows - they never limit it.
+  - BELT per frame (y on the canvas = the centre of the mannequin's BROWN BAND at the waist - NOT the yellow hip dot,
+    which sits ~22 px lower in the pelvis): H1 672 / H2 677 / H3 675 / H4 674 / H5 672 / H6 677 / H7 675 / H8 674.
+    Paint the belt (and the waist line of a coat / armour) centred on these rows.
+  - hair top -> belt = the idle's span (211 px); do not squash or stretch the body or head.
+    In this guide the HEAD top -> BELT rows are 209 px apart (the leaning trunk is a little shorter on screen than
+    standing): move the whole head-and-chest block as ONE piece to the Height and BELT rows of each frame.
   - Stride: one step = 142.5 source px = 23.6 game px; 8 frames = two steps, 101 ms a frame in the game.
   - Stride rule: 23.6 game px = the heavy class stride: the fitted legs are within 5% of the class mannequin's (leg factor 1.010), so the class stride is kept. The cadence is the class's.
   - PLANTED FOOT: a foot on the floor never slides in the drawing. From its contact frame on, the SAME boot moves LEFT by
@@ -147,6 +156,8 @@ THE MOVE (movement class heavy: heavy armour / tower shield / very large weapon:
       H6: butt (231,696) fist (237,675) 2nd fist (247,644) tip (317,423)  angle 73 deg  butt->tip 286 px
       H7: butt (230,694) fist (236,673) 2nd fist (246,642) tip (316,420)  angle 73 deg  butt->tip 286 px
       H8: butt (230,693) fist (236,672) 2nd fist (246,642) tip (315,420)  angle 73 deg  butt->tip 286 px
+    FIST -> TIP = 264 px in every frame (the holding fist's centre to the weapon's tip; the same piece every frame):
+    keep that length - never lengthen the shaft to reach the tip row nor shorten it; move the fist WITH the weapon.
 
 PERSONALITY (this character's own run):
   - An OLD knight commander's heavy, weary march - he lost his order and his name, and still marches on: the trunk LEANS forward about 10 deg (the heavy class mannequin leans 5; Roderick stands at 3), the shoulders rounded under the plate, the chin DOWN so he looks ahead from under his heavy grey brows (the neck does not turn back up). The mannequin already has all of it - follow it.

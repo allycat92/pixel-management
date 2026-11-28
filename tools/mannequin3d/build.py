@@ -96,6 +96,11 @@ def frame_record(body, cam, mask, spec, meta, pose, slot_origin):
     wpx = weapon_px(body, cam, meta.get('props', []), slot_origin)
     if wpx:
         rec['weapon_px'] = wpx
+    bp = (getattr(body, 'render_info', None) or {}).get('belt_px')
+    if bp is not None:
+        # the centre of the mannequin's brown belt band as drawn (x like the joints) - where the painted belt goes; the
+        # hip joint dot sits lower, in the pelvis (diagnosis 2026-11-28: Oswin's belt was painted on the hip dot, ~20 px low)
+        rec['belt_px'] = [round(bp[0] + slot_origin, 1), round(bp[1], 1)]
     rec['joints'] = joints
     return rec
 
@@ -185,6 +190,23 @@ def render_frame(P, pose, cam, props, robe=None, fit_cam=True, **kw):
 def idle_frame(P, cam, carry, key):
     """the fitted mannequin in the idle stance with its props (contact sheet): the READY grip when the character has one,
     else the run carry at phase 0"""
+    _, img, mask = idle_body(P, cam, carry)
+    return img, mask
+
+
+def idle_span(P, carry, yaw):
+    """the fitted mannequin in the idle stance (its own camera): head top row, belt band centre and the head top -> belt
+    span (source px) - the idle's body length the README asks the painter to keep in every run frame"""
+    body, _, mask = idle_body(P, Camera(yaw=yaw), carry)
+    top = int(np.flatnonzero(mask.any(1)).min())
+    bp = body.render_info.get('belt_px')
+    if bp is None:
+        return None
+    return {'head_top_px': top, 'belt_y_px': round(bp[1], 1), 'head_top_to_belt_px': round(bp[1] - top, 1)}
+
+
+def idle_body(P, cam, carry):
+    """-> (body, image, mask) of idle_frame"""
     pose = fitmod.idle_pose(P)
     feet = pose.pop('_feet')
     pose, _ = lock_feet(P, pose, cam, feet)
@@ -195,8 +217,7 @@ def idle_frame(P, cam, carry, key):
     else:
         props = carry_props(carry, 0.0)
         two_hand(P, pose, carry, props)
-    _, img, mask = render_frame(P, pose, cam, props)
-    return img, mask
+    return render_frame(P, pose, cam, props)
 
 
 def render_gait(P, carry, spec, cam, scale):

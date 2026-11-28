@@ -211,6 +211,10 @@
     "fist_tip_px": 184.6,
     "fist_butt_px": 48.6
    },
+   "belt_px": [
+    199.4,
+    681.3
+   ],
    "joints": {
     "hip": [
      192.0,
@@ -421,6 +425,10 @@
     "fist_tip_px": 184.5,
     "fist_butt_px": 48.6
    },
+   "belt_px": [
+    582.2,
+    682.5
+   ],
    "joints": {
     "hip": [
      576.0,
@@ -631,6 +639,10 @@
     "fist_tip_px": 184.3,
     "fist_butt_px": 48.5
    },
+   "belt_px": [
+    968.2,
+    678.6
+   ],
    "joints": {
     "hip": [
      960.0,
@@ -839,6 +851,10 @@
     "fist_tip_px": 184.1,
     "fist_butt_px": 48.5
    },
+   "belt_px": [
+    1352.5,
+    675.3
+   ],
    "joints": {
     "hip": [
      1344.0,
@@ -1049,6 +1065,10 @@
     "fist_tip_px": 184.0,
     "fist_butt_px": 48.4
    },
+   "belt_px": [
+    198.9,
+    681.3
+   ],
    "joints": {
     "hip": [
      192.0,
@@ -1259,6 +1279,10 @@
     "fist_tip_px": 184.1,
     "fist_butt_px": 48.4
    },
+   "belt_px": [
+    582.0,
+    682.5
+   ],
    "joints": {
     "hip": [
      576.0,
@@ -1469,6 +1493,10 @@
     "fist_tip_px": 184.2,
     "fist_butt_px": 48.5
    },
+   "belt_px": [
+    968.2,
+    678.6
+   ],
    "joints": {
     "hip": [
      960.0,
@@ -1677,6 +1705,10 @@
     "fist_tip_px": 184.5,
     "fist_butt_px": 48.5
    },
+   "belt_px": [
+    1352.9,
+    675.3
+   ],
    "joints": {
     "hip": [
      1344.0,
@@ -1838,8 +1870,14 @@
    "[OK] weapon angle (one-handed): R1:155.3 R2:156.0 R3:158.7 R4:161.8 R5:163.4 R6:162.7 R7:160.0 R8:156.9  max step 3.06 deg (<= 3.5), range 8.12 deg (<= 8.5)",
    "[OK] weapon tip path (relative to its fist): moves 2 9 10 5 2 9 10 5 px (<= 19), 2 reversals (<= 2) - one smooth path, no back-and-forth",
    "[WARN] weapon idle angle not measured (carry3d props[].idle_deg) - the run carry (159 deg) cannot be compared with the idle drawing",
+   "[OK] sword vs face: weapon x - nose x at the nose row (px, + = ahead of the face) per frame R1:-158 R2:-160 R3:-190 R4:- R5:- R6:- R7:-197 R8:-172; closest 158 (FAIL < 8, WARN < 25: the painter needs room for the idle's face beside the weapon)",
    "[OK] blade over the head (px) per frame [0, 0, 0, 0, 0, 0, 0, 0] (info: overlap allowed, depth order decides)"
   ],
+  "idle": {
+   "head_top_px": 479,
+   "belt_y_px": 691.1,
+   "head_top_to_belt_px": 212.1
+  },
   "shading": "cel shading by depth: lighter = nearer the viewer, darker = farther (near limbs light, far limbs dark)"
  }
 }

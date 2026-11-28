@@ -253,6 +253,10 @@
     "fist_tip_px": 84.9,
     "fist_butt_px": 23.7
    },
+   "belt_px": [
+    194.2,
+    664.7
+   ],
    "joints": {
     "hip": [
      192.0,
@@ -471,6 +475,10 @@
     "fist_tip_px": 84.9,
     "fist_butt_px": 23.7
    },
+   "belt_px": [
+    194.4,
+    667.5
+   ],
    "joints": {
     "hip": [
      192.0,
@@ -689,6 +697,10 @@
     "fist_tip_px": 85.1,
     "fist_butt_px": 23.7
    },
+   "belt_px": [
+    194.2,
+    660.7
+   ],
    "joints": {
     "hip": [
      192.0,
@@ -907,6 +919,10 @@
     "fist_tip_px": 85.2,
     "fist_butt_px": 23.8
    },
+   "belt_px": [
+    194.0,
+    660.2
+   ],
    "joints": {
     "hip": [
      192.0,
@@ -1126,6 +1142,10 @@
     "fist_tip_px": 85.3,
     "fist_butt_px": 23.8
    },
+   "belt_px": [
+    194.2,
+    664.7
+   ],
    "joints": {
     "hip": [
      192.0,
@@ -1344,6 +1364,10 @@
     "fist_tip_px": 85.2,
     "fist_butt_px": 23.8
    },
+   "belt_px": [
+    194.4,
+    667.5
+   ],
    "joints": {
     "hip": [
      192.0,
@@ -1562,6 +1586,10 @@
     "fist_tip_px": 85.1,
     "fist_butt_px": 23.8
    },
+   "belt_px": [
+    194.2,
+    660.7
+   ],
    "joints": {
     "hip": [
      192.0,
@@ -1780,6 +1808,10 @@
     "fist_tip_px": 85.0,
     "fist_butt_px": 23.7
    },
+   "belt_px": [
+    194.0,
+    660.2
+   ],
    "joints": {
     "hip": [
      192.0,
@@ -1962,12 +1994,18 @@
    "[OK] weapon angle (one-handed): G1:53.0 G2:53.7 G3:56.3 G4:59.2 G5:60.8 G6:60.1 G7:57.5 G8:54.6  max step 2.94 deg (<= 3.5), range 7.79 deg (<= 8.5)",
    "[OK] weapon tip path (relative to its fist): moves 1 4 4 2 1 4 4 2 px (<= 9), 0 reversals (<= 2) - one smooth path, no back-and-forth",
    "[OK] weapon run angle 57 vs idle 63 deg (-6; > 15 -> WARN, the README states the change)",
+   "[OK] mace vs face: the weapon line never crosses the nose row (per frame G1:- G2:- G3:- G4:- G5:- G6:- G7:- G8:-)",
    "[OK] robe hem bottom above the floor (38-52, robe_base): [42, 42, 42, 42, 42, 42, 42, 42]",
    "[OK] robe hem width per frame [144, 144, 144, 144, 144, 144, 144, 144] px, max change 0% (<= 15%)",
    "[OK] robe widest row within 14 px of the hem (A-line, no bulge): [7, 7, 7, 7, 7, 7, 7, 7]",
    "[OK] robe hem back edge x [-68.1, -68.1, -68.1, -68.1, -68.1, -68.1, -68.1, -68.1]: moves [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], 0 reversals (<= 2 counting moves >= 2 px) - one smooth lagged path, no zig-zag",
    "[OK] robe hem front edge x [75.7, 75.7, 75.7, 75.7, 75.7, 75.7, 75.7, 75.7]: moves [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], 0 reversals (<= 2 counting moves >= 2 px) - one smooth lagged path, no zig-zag"
   ],
+  "idle": {
+   "head_top_px": 484,
+   "belt_y_px": 680.0,
+   "head_top_to_belt_px": 196.0
+  },
   "shading": "cel shading by depth: lighter = nearer the viewer, darker = farther (near limbs light, far limbs dark)"
  }
 }

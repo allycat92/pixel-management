@@ -33,6 +33,9 @@
 - **로브**: 반투명 로브 모양은 **움직이지 않는 대리 모양**이다 — 로브의 크기·자락 높이·무릎을 가린다는 것만 알려 주고, 걸음마다 일부러 움직이지 않는다(한 걸음 4프레임에서 걸음마다 움직이면 지그재그가 된다). 천의 작은 흔들림은 그 위에 한 프레임 늦게 그린다(닿기에서 뒷다리에 밀려 조금 뒤로, 지나가기까지 가라앉음) — 몇 px, 프레임 사이 매끈하게, 튀지 않게.
 - 단계(3D 가이드 그대로): G1 **닿기**(두 발 모두 바닥: 앞발은 막 디뎠고 뒷발은 발끝으로, 뒤꿈치 듦) - G2 **내려앉기**(엉덩이 가장 낮음, 뒷발이 떨어져 발끝이 몇 px 뜸) - G3 **지나가기**(드는 발이 디딘 발 옆을 지나 앞으로, 약 10px 뜸) - G4 **내딛기**(드는 발이 **엉덩이보다 앞**, 발끝을 들고 바닥 위 약 5px — 곧 디딘다; 디딘 발 뒤꿈치는 이제 막 뜨기 시작). G5~G8 은 먼 발로 같은 동작. **G4·G8 에서 드는 발은 엉덩이 열보다 앞**(아래 발 표) — 뒤에 남기거나 밀어 내는 자세가 아니다. 뒷발은 표보다 더 뒤로 빠지지 않고, 아무것도 x=32 / x=351 선에 닿지 않는다.
 - **높이**: 아래 「Height」 숫자는 **머리 꼭대기**(머리카락·투구·모자)일 뿐 — 무기 끝·지팡이 머리·깃털은 그보다 위로 가도 된다.
+- **허리띠**: 그리는 허리띠(코트·갑옷의 허리선)의 가운데는 마네킹 허리의 **갈색 띠** 가운데 — 노란 엉덩이 점이 아니다(점은 약 23px 아래, 골반 속). 프레임별 y: G1 650 / G2 652 / G3 647 / G4 646 / G5 650 / G6 652 / G7 647 / G8 646.
+- **머리카락 꼭대기 → 허리띠 = 대기의 길이(215px)**: 몸통·머리를 눌러 줄이거나 늘이지 않는다. 이 가이드의 머리 꼭대기 → 허리띠 줄 간격은 214-215px(몸통이 기울어 선 자세보다 화면에서 조금 짧다) — 머리·가슴을 한 덩어리로 프레임마다 「Height」 줄과 허리띠 줄로 옮긴다.
+- **주먹→끝 = 210px**: 쥔 주먹 가운데에서 무기 끝까지 모든 프레임에서 같다 — 끝 자리에 맞추려고 자루를 늘이거나 줄이지 않고, 주먹을 무기와 함께 옮긴다.
 - **손목 범위**: 무기의 손잡이 축(주먹에서 무기 끝 쪽; 활은 손잡이에서 위 활끝 쪽, 역수는 엄지 쪽)은 아래팔(팔꿈치→손목) 선에서 위쪽(엄지 쪽)으로 0~120도 안. 0 = 팔과 일직선. 그 밖으로 꺾어 늘어뜨리지 않는다 (덜렁거리는 칼 금지). 위로 들든 아래로 내리든 이 범위 안이면 된다.
 - **바닥**: 디딘 발바닥은 y=870, 공중 프레임은 y=852 위. 무기 끝·천 같은 소품이 바닥 줄 아래로 내려가면 그릴 때 손본다 (각도를 조금 바꿔 올린다) — 몸과 발의 바닥 규칙은 그대로.
 - **마네킹 픽셀은 전부 덮는다**: 3D 마네킹의 색이 한 프레임의 25% 이상 남거나, 실루엣이 가이드와 거의 같으면(색만 바꾼 마네킹, IoU > 0.93) `add_gait.py` 가 받지 않는다. 마네킹 머리는 자리 표시 — 캐릭터의 머리·머리카락·머리띠를 대기 그림 크기로 그린다.
@@ -126,6 +129,12 @@ THE MOVE (movement class robe: loose long cloth: running in it looks unnatural. 
   - Lean forward (hip to neck): G1/G5 5.6, G2/G6 6.1, G3/G7 5.3, G4/G8 5.3 deg.
   - Height: the HEAD top (hair / helmet / hat - NOT the weapon) is at y=435/437/432/432 in G1 G2 G3 G4 (the same in G5 G6 G7 G8): G1 +0, G2 +2, G3 -3, G4 -3 px from G1 (+ = lower) - move your head top by the same amounts (bob 5 px). A
     weapon tip, staff head, plume or raised cloth may go HIGHER than these rows - they never limit it.
+  - BELT per frame (y on the canvas = the centre of the mannequin's BROWN BAND at the waist - NOT the yellow hip dot,
+    which sits ~23 px lower in the pelvis): G1 650 / G2 652 / G3 647 / G4 646 / G5 650 / G6 652 / G7 647 / G8 646.
+    Paint the belt (and the waist line of a coat / armour) centred on these rows.
+  - hair top -> belt = the idle's span (215 px); do not squash or stretch the body or head.
+    In this guide the HEAD top -> BELT rows are 214-215 px apart (the leaning trunk is a little shorter on screen than
+    standing): move the whole head-and-chest block as ONE piece to the Height and BELT rows of each frame.
   - Stride: one step = 144.51 source px = 23.9 game px; 8 frames = two steps, 96 ms a frame in the game.
   - Stride rule: 23.9 game px = the robe class stride 22.2 px x leg factor 1.077: this character's fitted legs are 8% longer than the class mannequin's, so the same joint angles and stance-knee bend give a longer step (legs more than 5% off -> the stride follows the legs). The engine advances each sheet by its OWN runStride/4 per planted cell, so the planted foot does not slide; the unit's ground speed is unchanged (a few fewer steps). The cadence is the class's.
   - PLANTED FOOT: a foot on the floor never slides in the drawing. From its contact frame on, the SAME boot moves LEFT by
@@ -153,6 +162,8 @@ THE MOVE (movement class robe: loose long cloth: running in it looks unnatural. 
       G6: butt (243,698) fist (253,594) tip (273,385)  angle 85 deg  butt->tip 315 px
       G7: butt (240,701) fist (253,597) tip (280,388)  angle 83 deg  butt->tip 315 px
       G8: butt (236,710) fist (253,606) tip (288,400)  angle 81 deg  butt->tip 315 px
+    FIST -> TIP = 210 px in every frame (the holding fist's centre to the weapon's tip; the same piece every frame):
+    keep that length - never lengthen the shaft to reach the tip row nor shorten it; move the fist WITH the weapon.
 
 PERSONALITY (this character's own run):
   - An upright, hurried scholar's glide - a man late for the library, not a fighter: the trunk leans 1-2 deg LESS than the robe class (about 5-6 deg), the hips ride ~2 px higher on a straighter stance leg, and the neck pushes the head ~5 deg forward while the face stays level - chin leading, eyes on the road through the glasses (the mannequin already has all of it - follow it).

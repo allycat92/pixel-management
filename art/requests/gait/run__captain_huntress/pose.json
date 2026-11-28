@@ -211,6 +211,10 @@
     "fist_tip_px": 127.3,
     "fist_butt_px": 107.2
    },
+   "belt_px": [
+    197.6,
+    665.7
+   ],
    "joints": {
     "hip": [
      192.0,
@@ -421,6 +425,10 @@
     "fist_tip_px": 127.3,
     "fist_butt_px": 107.2
    },
+   "belt_px": [
+    580.4,
+    666.0
+   ],
    "joints": {
     "hip": [
      576.0,
@@ -631,6 +639,10 @@
     "fist_tip_px": 127.3,
     "fist_butt_px": 107.1
    },
+   "belt_px": [
+    967.0,
+    663.0
+   ],
    "joints": {
     "hip": [
      960.0,
@@ -839,6 +851,10 @@
     "fist_tip_px": 127.3,
     "fist_butt_px": 107.0
    },
+   "belt_px": [
+    1351.3,
+    662.5
+   ],
    "joints": {
     "hip": [
      1344.0,
@@ -1049,6 +1065,10 @@
     "fist_tip_px": 127.3,
     "fist_butt_px": 106.9
    },
+   "belt_px": [
+    197.2,
+    665.7
+   ],
    "joints": {
     "hip": [
      192.0,
@@ -1259,6 +1279,10 @@
     "fist_tip_px": 127.3,
     "fist_butt_px": 107.0
    },
+   "belt_px": [
+    580.1,
+    666.0
+   ],
    "joints": {
     "hip": [
      576.0,
@@ -1469,6 +1493,10 @@
     "fist_tip_px": 127.3,
     "fist_butt_px": 107.1
    },
+   "belt_px": [
+    967.0,
+    663.0
+   ],
    "joints": {
     "hip": [
      960.0,
@@ -1677,6 +1705,10 @@
     "fist_tip_px": 127.3,
     "fist_butt_px": 107.2
    },
+   "belt_px": [
+    1351.7,
+    662.5
+   ],
    "joints": {
     "hip": [
      1344.0,
@@ -1855,6 +1887,11 @@
    "[OK] weapon tip path (relative to its fist): moves 1 4 5 3 1 4 5 3 px (<= 18), 0 reversals (<= 2) - one smooth path, no back-and-forth",
    "[OK] weapon run angle 78 vs idle 69 deg (+9; > 15 -> WARN, the README states the change)"
   ],
+  "idle": {
+   "head_top_px": 444,
+   "belt_y_px": 684.2,
+   "head_top_to_belt_px": 240.2
+  },
   "shading": "cel shading by depth: lighter = nearer the viewer, darker = farther (near limbs light, far limbs dark)"
  }
 }
