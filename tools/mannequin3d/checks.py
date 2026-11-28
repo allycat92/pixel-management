@@ -14,9 +14,14 @@ Run (gait) checks - gait_checks():
   knees       the far knee is visible or >= 14 px from the near knee on screen                                     WARN
   upper body  each hand travels >= 12 px (relative to the hip) over the cycle - no frozen cut-out torso             FAIL
   props       a mace / weapon head is >= its radius + 8 px from the other hand (not sitting on the shield hand)     FAIL
+  weapon      hand range (owner 2026-11-28): every held weapon's angle to its forearm inside the character's
+              weapon_limit [0, 120] deg (0 = straight along the forearm, + = upward) in EVERY frame - a frame that
+              needed rig.py's clamp FAILs (no blade bent down past the arm line, dangling)                        FAIL
+  blade/head  (sword carriers) the blade never overlaps the head on screen                                          FAIL
   robe        hem bottom 38-52 px above the floor (robe_base); hem width change <= 15% between frames; the robe is
               widest within 14 px of its hem (cloth flares to the hem, no gourd)                                   FAIL
 Action checks - action_checks():
+  weapon      hand range as above, every action frame (READY and in-betweens included)                            FAIL
   blade/head  the blade never overlaps the head on screen in any frame                                             FAIL
   blade/trunk (hit) the blade never overlaps the trunk on screen                                                    FAIL
   blade dir   windup: blade tip up and behind the fist; only the strike points down                                FAIL
@@ -65,6 +70,21 @@ def visible_fraction(body, cam, parts, blockers=None):
 
 
 LEG = ('foot', 'instep', 'ankle', 'shin', 'thigh')
+
+
+def weapon_checks(label, names, bodies):
+    """hand range of motion: FAIL when any frame's requested weapon direction was outside [min, max] of its forearm
+    (rig.py clamped it); reports the measured angle per frame and the range"""
+    rows = [(n, w) for n, b in zip(names, bodies) for w in b.weapons]
+    if not rows:
+        return []
+    lim = rows[0][1]['limit']
+    bad = [f"{n} {w['kind']} {w['raw_deg']:.1f}" for n, w in rows if w['clamped']]
+    raws = [w['raw_deg'] for _, w in rows]
+    return [(FAIL if bad else OK,
+             f"{label}weapon angle to the forearm (deg, 0 = straight, + = up; range {lim[0]:g}..{lim[1]:g}) per frame "
+             + ' '.join(f"{n}:{w['raw_deg']:.0f}" for n, w in rows) + f"  -> {min(raws):.1f}..{max(raws):.1f}"
+             + (f"  OUTSIDE (clamped by the rig): {bad}" if bad else ''))]
 
 
 def gait_checks(spec, recs, bodies, plains, cam, carry=None):
@@ -159,6 +179,14 @@ def gait_checks(spec, recs, bodies, plains, cam, carry=None):
                     probs.append(f"{r['frame']} {d:.0f} px")
     if any(g['part'] == 'mace_head' for g in bodies[0].ghosts):
         out.append((FAIL if probs else OK, 'mace head clear of the shield hand (>= head radius + 8 px)' + (f': {probs}' if probs else '')))
+    # weapon hand range; a sword blade never over the head
+    out += weapon_checks('', [r['frame'] for r in recs], bodies)
+    if any(g['part'] == 'blade' for g in bodies[0].ghosts):
+        hd = []
+        for b in bodies:
+            cam.fit(b)
+            hd.append(blade_overlap(b, cam, {'head', 'nose'}))
+        out.append((FAIL if any(hd) else OK, f'blade over the head (px) per frame {hd} (must be 0)'))
     # robe
     if any(g['part'] == 'robe' for g in bodies[0].ghosts):
         out += robe_checks(recs, bodies, cam)
@@ -193,7 +221,7 @@ def blade_overlap(body, cam, parts):
 
 def action_checks(act, names, bodies, plains, recs, cam_of):
     """cam_of(i) -> the camera frame i was rendered with"""
-    out = []
+    out = weapon_checks(f'{act}: ', names, bodies)
     head = []
     for i, b in enumerate(bodies):
         head.append(blade_overlap(b, cam_of(i), {'head', 'nose'}))

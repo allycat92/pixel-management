@@ -8,6 +8,7 @@
     "chest_counter": "chest counter-rotation amplitude against the pelvis (default: the gait table's)",
     "arms": "per side N / F: shoulder = table_scale x the gait table's shoulder + shoulder + swing x wave; elbow (+ elbow_swing x wave) replaces the table's; wrist; abd (out to the side); lag = frames the swing trails the legs (secondary motion)",
     "props": "list: kind sword | mace | staff | shield; hand N | F. Weapons: abs_angle (deg from forward-horizontal, + = up), yaw (turn out of the side plane), length beyond the fist, back (pommel / butt behind the fist), swing (deg with the hand's wave), lag (frames). Shields: shape round (radius) | tower (half = [w, h], corner), face (deg from forward toward the viewer), lift (px up from the forearm middle), toward (px toward the viewer, so the shield covers its forearm and hand), offset (px out from the forearm). measured = where the value was read on the idle drawing",
+    "weapon_limit": "hand range of motion of every held weapon (sword, mace, staff; not shields), owner 2026-11-28: {min, max} deg of the weapon direction (fist -> tip; staff: its head end) from the FOREARM line (elbow -> wrist) in the arm's swing plane; 0 = straight along the forearm (fully extended), + = rotated UPWARD (thumb side: toward the head when the forearm points forward, back over the shoulder when it points up). Default {min 0, max 120}: the weapon never bends down past the arm line (no dangling blade). rig.py clamps to it (safety net) and checks.py FAILs any frame that needed the clamp",
     "two_hand": "second hand on a staff / two-handed weapon: prop index, other hand, along = px past the holding hand along the prop",
     "ready": "actions only: the idle's grip as the first key: hand_N = [x, h] of the sword fist on the idle drawing, blade_deg = blade angle on the idle drawing",
     "robe": "true: draw the robe proxy (run_robe)",
@@ -18,11 +19,15 @@
     "warrior": {
       "sheet": "sheet/class/warrior",
       "gait": "run_light",
+      "weapon_limit": {
+        "min": 0.0,
+        "max": 120.0
+      },
       "arms": {
         "N": {
-          "table_scale": 0.4,
-          "shoulder": 4.0,
-          "elbow": 40.0
+          "table_scale": 0.25,
+          "shoulder": 10.0,
+          "elbow": 70.0
         },
         "F": {
           "table_scale": 0.0,
@@ -36,13 +41,13 @@
         {
           "hand": "N",
           "kind": "sword",
-          "abs_angle": -145.0,
+          "abs_angle": 52.0,
           "yaw": 0.0,
           "length": 135.0,
           "back": 26.0,
           "swing": 5.0,
           "lag": 1,
-          "measured": "idle sword: fist (-25, 191), tip (116, 301), pommel (-45, 171) -> 179 px beyond the fist on the idle; the drawn run / windup / strike / hit show 112-160 px (foreshortened) -> 135 px used so the swing fits the slot band; run strips (art-inbox sheet_class_warrior_run_a/b) carry it low behind the hip, blade back and down ~30 deg below horizontal"
+          "measured": "idle sword: fist (-25, 191), tip (116, 301), pommel (-45, 171) -> 179 px beyond the fist on the idle; the drawn run / windup / strike / hit show 112-160 px (foreshortened) -> 135 px used so the swing fits the slot band. Run carry (owner 2026-11-28, weapon range): the idle's grip carried along - fist low in front of the hip, blade forward-up ~52 deg across the chest, 78-106 deg above the forearm line (inside 0..120), tip below the chin. The old carry (low behind the hip, blade back and down, as on the art-inbox run strips) bent the blade 50-85 deg BELOW the forearm line: the dangling the owner rejected"
         },
         {
           "hand": "F",
@@ -73,6 +78,10 @@
     "ironwall": {
       "sheet": "sheet/captain/ironwall",
       "gait": "run_heavy",
+      "weapon_limit": {
+        "min": 0.0,
+        "max": 120.0
+      },
       "chest_counter": 5.0,
       "arms": {
         "N": {
@@ -125,6 +134,10 @@
     "mage": {
       "sheet": "sheet/class/mage",
       "gait": "run_robe",
+      "weapon_limit": {
+        "min": 0.0,
+        "max": 120.0
+      },
       "robe": true,
       "chest_counter": 4.0,
       "arms": {

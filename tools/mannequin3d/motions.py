@@ -31,7 +31,7 @@ import math
 
 import numpy as np
 
-from rig import leg_ik, fk, full_pose, CANON, ankle_on_floor, arm_ik
+from rig import leg_ik, fk, full_pose, CANON, ankle_on_floor, arm_ik, WEAPONS, WEAPON_LIMIT
 
 CANON_LEG = CANON['thigh'] + CANON['shin'] + CANON['ankle_h']
 CANON_SCALE = 0.1654          # the scale the gait tables (and v2 / heavy_base / robe_base) were made for
@@ -225,11 +225,20 @@ def carry_arms(pose, carry, phi):
             pose['arm_abd_' + side] = a['abd']
 
 
+def weapon_limit(carry):
+    """[min, max] of the hand's weapon range (deg from the forearm line, + = upward) - carry3d.json `weapon_limit`"""
+    lim = (carry or {}).get('weapon_limit') or {}
+    return [float(lim.get('min', WEAPON_LIMIT[0])), float(lim.get('max', WEAPON_LIMIT[1]))]
+
+
 def carry_props(carry, phi):
-    """the props for cycle phase phi: a weapon's abs_angle swings `swing` deg with its hand's wave, `lag` frames late"""
+    """the props for cycle phase phi: a weapon's abs_angle swings `swing` deg with its hand's wave, `lag` frames late;
+    every weapon carries the character's hand range (`limit`, enforced by rig.add_prop)"""
     out = []
     for pr in carry.get('props', []):
         p = {k: v for k, v in pr.items() if k not in ('swing', 'lag', 'measured')}
+        if p.get('kind') in WEAPONS:
+            p['limit'] = weapon_limit(carry)
         if pr.get('swing') and p.get('abs_angle') is not None:
             p['abs_angle'] = p['abs_angle'] + pr['swing'] * wave(phi, pr.get('hand', 'N'), pr.get('lag', 0.0))
         if pr.get('swing') and p.get('kind') == 'shield':
@@ -247,8 +256,7 @@ def two_hand(P, pose, carry, props):
     body = fk(P, pose, props=props)
     J = body.joints
     pr = props[th.get('prop', 0)]
-    a_ = math.radians(pr['abs_angle'])
-    d = np.array([math.cos(a_), math.sin(a_), 0.0])
+    d = J['prop_dir_' + pr.get('kind', 'staff')]       # the direction after the hand's range limit
     target = J['hand' + pr.get('hand', 'N')] + d * th.get('along', 40.0)
     side = th.get('other', 'F')
     sh, el = arm_ik(P, pose, J['S' + side], target - (J['hand' + side] - J['wri' + side]))
@@ -396,7 +404,8 @@ def action_frames(keys, P, cam):
 def _sword(abs_angle, carry):
     sw = next((p for p in carry.get('props', []) if p.get('kind') == 'sword'), {})
     sh = next((p for p in carry.get('props', []) if p.get('kind') == 'shield'), {'hand': 'F', 'kind': 'shield'})
-    sword = {'hand': 'N', 'kind': 'sword', 'abs_angle': abs_angle, 'length': sw.get('length', 150.0), 'back': sw.get('back', 22.0)}
+    sword = {'hand': 'N', 'kind': 'sword', 'abs_angle': abs_angle, 'length': sw.get('length', 150.0), 'back': sw.get('back', 22.0),
+             'limit': weapon_limit(carry)}
     shield = {k: v for k, v in sh.items() if k not in ('swing', 'lag', 'measured')}
     return [sword, shield]
 
