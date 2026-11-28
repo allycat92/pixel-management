@@ -1235,7 +1235,7 @@
   },
   "sheet/captain/hedgemage": {
     "file": "assets/art/sheets/sheet_captain_hedgemage.png",
-    "h": 192,
+    "h": 384,
     "sheet": {
       "anchor": [
         48,
@@ -1266,6 +1266,20 @@
             240
           ],
           "to": 3
+        },
+        "run": {
+          "from": 7,
+          "ms": [
+            96,
+            96,
+            96,
+            96,
+            96,
+            96,
+            96,
+            96
+          ],
+          "to": 14
         }
       },
       "cell": [
@@ -1301,8 +1315,57 @@
         [
           192,
           96
+        ],
+        [
+          0,
+          192
+        ],
+        [
+          96,
+          192
+        ],
+        [
+          192,
+          192
+        ],
+        [
+          288,
+          192
+        ],
+        [
+          0,
+          288
+        ],
+        [
+          96,
+          288
+        ],
+        [
+          192,
+          288
+        ],
+        [
+          288,
+          288
         ]
-      ]
+      ],
+      "gait": "robe",
+      "gaits": {
+        "run": {
+          "center": 192,
+          "class": "robe",
+          "floor": 870,
+          "ms": 96,
+          "pose": "art/requests/gait/robe__captain_hedgemage/pose.json",
+          "src": [
+            "art/inbox/gait/sheet_captain_hedgemage_run_a.png",
+            "art/inbox/gait/sheet_captain_hedgemage_run_b.png"
+          ],
+          "step_px": 146.97,
+          "stride": 24.3
+        }
+      },
+      "runStride": 24.3
     },
     "w": 384
   },
@@ -1799,7 +1862,7 @@
   },
   "sheet/captain/lancer": {
     "file": "assets/art/sheets/sheet_captain_lancer.png",
-    "h": 224,
+    "h": 448,
     "sheet": {
       "anchor": [
         56,
@@ -1830,6 +1893,20 @@
             240
           ],
           "to": 3
+        },
+        "run": {
+          "from": 7,
+          "ms": [
+            101,
+            101,
+            101,
+            101,
+            101,
+            101,
+            101,
+            101
+          ],
+          "to": 14
         }
       },
       "cell": [
@@ -1865,8 +1942,57 @@
         [
           224,
           112
+        ],
+        [
+          0,
+          224
+        ],
+        [
+          112,
+          224
+        ],
+        [
+          224,
+          224
+        ],
+        [
+          336,
+          224
+        ],
+        [
+          0,
+          336
+        ],
+        [
+          112,
+          336
+        ],
+        [
+          224,
+          336
+        ],
+        [
+          336,
+          336
         ]
-      ]
+      ],
+      "gait": "heavy",
+      "gaits": {
+        "run": {
+          "center": 192,
+          "class": "heavy",
+          "floor": 870,
+          "ms": 101,
+          "pose": "art/requests/gait/heavy__captain_lancer/pose.json",
+          "src": [
+            "art/inbox/gait/sheet_captain_lancer_run_a.png",
+            "art/inbox/gait/sheet_captain_lancer_run_b.png"
+          ],
+          "step_px": 160.05,
+          "stride": 26.5
+        }
+      },
+      "runStride": 26.5
     },
     "w": 448
   },
