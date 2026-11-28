@@ -953,7 +953,7 @@
   },
   "sheet/captain/fieldmedic": {
     "file": "assets/art/sheets/sheet_captain_fieldmedic.png",
-    "h": 192,
+    "h": 384,
     "sheet": {
       "anchor": [
         48,
@@ -984,6 +984,20 @@
             240
           ],
           "to": 3
+        },
+        "run": {
+          "from": 7,
+          "ms": [
+            80,
+            80,
+            80,
+            80,
+            80,
+            80,
+            80,
+            80
+          ],
+          "to": 14
         }
       },
       "cell": [
@@ -1019,8 +1033,57 @@
         [
           192,
           96
+        ],
+        [
+          0,
+          192
+        ],
+        [
+          96,
+          192
+        ],
+        [
+          192,
+          192
+        ],
+        [
+          288,
+          192
+        ],
+        [
+          0,
+          288
+        ],
+        [
+          96,
+          288
+        ],
+        [
+          192,
+          288
+        ],
+        [
+          288,
+          288
         ]
-      ]
+      ],
+      "gait": "light",
+      "gaits": {
+        "run": {
+          "center": 192,
+          "class": "light",
+          "floor": 870,
+          "ms": 80,
+          "pose": "art/requests/gait/run__captain_fieldmedic/pose.json",
+          "src": [
+            "art/inbox/gait/sheet_captain_fieldmedic_run_a.png",
+            "art/inbox/gait/sheet_captain_fieldmedic_run_b.png"
+          ],
+          "step_px": 275.0,
+          "stride": 45.5
+        }
+      },
+      "runStride": 45.5
     },
     "w": 384
   },
@@ -4023,7 +4086,7 @@
   },
   "sheet/hero/astel": {
     "file": "assets/art/sheets/sheet_hero_astel.png",
-    "h": 192,
+    "h": 384,
     "sheet": {
       "anchor": [
         48,
@@ -4054,6 +4117,20 @@
             240
           ],
           "to": 3
+        },
+        "run": {
+          "from": 7,
+          "ms": [
+            96,
+            96,
+            96,
+            96,
+            96,
+            96,
+            96,
+            96
+          ],
+          "to": 14
         }
       },
       "cell": [
@@ -4089,14 +4166,63 @@
         [
           192,
           96
+        ],
+        [
+          0,
+          192
+        ],
+        [
+          96,
+          192
+        ],
+        [
+          192,
+          192
+        ],
+        [
+          288,
+          192
+        ],
+        [
+          0,
+          288
+        ],
+        [
+          96,
+          288
+        ],
+        [
+          192,
+          288
+        ],
+        [
+          288,
+          288
         ]
-      ]
+      ],
+      "gait": "robe",
+      "gaits": {
+        "run": {
+          "center": 192,
+          "class": "robe",
+          "floor": 870,
+          "ms": 96,
+          "pose": "art/requests/gait/robe__hero_astel/pose.json",
+          "src": [
+            "art/inbox/gait/sheet_hero_astel_run_a.png",
+            "art/inbox/gait/sheet_hero_astel_run_b.png"
+          ],
+          "step_px": 144.51,
+          "stride": 23.9
+        }
+      },
+      "runStride": 23.9
     },
     "w": 384
   },
   "sheet/hero/grom": {
     "file": "assets/art/sheets/sheet_hero_grom.png",
-    "h": 192,
+    "h": 384,
     "sheet": {
       "anchor": [
         48,
@@ -4127,6 +4253,20 @@
             240
           ],
           "to": 3
+        },
+        "run": {
+          "from": 7,
+          "ms": [
+            80,
+            80,
+            80,
+            80,
+            80,
+            80,
+            80,
+            80
+          ],
+          "to": 14
         }
       },
       "cell": [
@@ -4162,8 +4302,57 @@
         [
           192,
           96
+        ],
+        [
+          0,
+          192
+        ],
+        [
+          96,
+          192
+        ],
+        [
+          192,
+          192
+        ],
+        [
+          288,
+          192
+        ],
+        [
+          0,
+          288
+        ],
+        [
+          96,
+          288
+        ],
+        [
+          192,
+          288
+        ],
+        [
+          288,
+          288
         ]
-      ]
+      ],
+      "gait": "light",
+      "gaits": {
+        "run": {
+          "center": 192,
+          "class": "light",
+          "floor": 870,
+          "ms": 80,
+          "pose": "art/requests/gait/run__hero_grom/pose.json",
+          "src": [
+            "art/inbox/gait/sheet_hero_grom_run_a.png",
+            "art/inbox/gait/sheet_hero_grom_run_b.png"
+          ],
+          "step_px": 275.0,
+          "stride": 45.5
+        }
+      },
+      "runStride": 45.5
     },
     "w": 384
   },
