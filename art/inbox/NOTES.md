@@ -1418,3 +1418,231 @@ RISKS AT GAME SIZE: 밝은 지형에서 칼 끝과 흰 끈이 각각 읽히는�
 본 방법: 원본 두 띠, 1배·4배 등록 미리보기, 80ms × 8 GIF, 디딘 발 좌표와 공중 여유.
 고칠 점: 기술 검사에서 요구한 수정 없음. 게임 등록 전에 주인 시각 판정.
 남은 걱정: R2/R6과 R4/R8을 이어 볼 때 두 발 전환과 천·머리띠의 후행이 자연스러운지.
+
+## gait/sheet_captain_tactician_run - 이사벨 — 퇴역 참모 이동 8프레임
+CHECK: (a) RESULT: PASS; (b) RESULT: PASS
+```text
+  --dry-run: 시트·manifest 는 그대로. 새 시트 /tmp/pm-g2.oecJ/preview/sheet_captain_tactician.png · 등록될 항목 sheet_captain_tactician.entry.json · 미리보기 sheet_captain_tactician_preview_x4.png
+  sheet/captain/tactician: 시트 384x384, 15칸 — idle(4), attack(2), hit(1), run(8); runStride 48.5
+  다시 붙이는 명령: python3 tools/art/add_gait.py sheet/captain/tactician --gait run --src art/inbox/gait/sheet_captain_tactician_run_a.png art/inbox/gait/sheet_captain_tactician_run_b.png --pose art/requests/gait/run__captain_tactician/pose.json --ms 80
+```
+REFERENCES LOADED: guide, plain underlay, size (a/b), two GIFs, approved source & installed sheet, portrait, concept and pose.json → ok.
+CHANGED: 접점 x 291/218/144, 302/228/155; 디딘 발 y=870, 공중 y=842. 39색. 80ms × 8, 경량 보폭 48.5.
+DEVIATIONS: (a) 접점과 높이를 가이드 수치에 맞췄다. 팔꿈치·무릎 등 세부 관절 좌표는 실측하지 않았다. (b) 승인 시트의 장교모·크라바트·금테 코트와 머리/지팡이를 새로 그렸다. 세부 장식 픽셀은 일치하지 않는다. (c) 지팡이는 오른쪽 위로 유지. 길이와 프레임별 손목 각도는 실측하지 않았다.
+RISKS AT GAME SIZE: 실제 밝은 바닥에서 지팡이의 검은 자루가 계속 읽히는지와 두 발 교대 확인.
+3D GUIDE: 밝은 쪽으로 손과 다리의 앞뒤를 구분했다. 금손잡이와 얼굴의 간격은 승인 시트도 함께 확인했다.
+
+## 판정 — gait/sheet_captain_tactician_run
+결과: 기술 검사 통과 / 미감 주인 판정 대기.
+본 방법: 원본 띠, 등록용 1배·4배 미리보기, 접점과 바닥선, GIF 프레임 간격.
+고칠 점: 기술 검사 요구 없음. 게임 등록 전 주인 판정.
+남은 걱정: 실제 밝은 바닥에서 지팡이의 검은 자루가 계속 읽히는지와 두 발 교대 확인.
+
+## gait/sheet_captain_lancer_run - 로드릭 — 말을 잃은 기사 중량 이동 8프레임
+CHECK: (a) RESULT: PASS; (b) RESULT: PASS
+```text
+  --dry-run: 시트·manifest 는 그대로. 새 시트 /tmp/pm-g3.hG97/preview/sheet_captain_lancer.png · 등록될 항목 sheet_captain_lancer.entry.json · 미리보기 sheet_captain_lancer_preview_x4.png
+  sheet/captain/lancer: 시트 448x448, 15칸 — idle(4), attack(2), hit(1), run(8); runStride 26.5
+  다시 붙이는 명령: python3 tools/art/add_gait.py sheet/captain/lancer --gait run --src art/inbox/gait/sheet_captain_lancer_run_a.png art/inbox/gait/sheet_captain_lancer_run_b.png --pose art/requests/gait/heavy__captain_lancer/pose.json --ms 101
+```
+REFERENCES LOADED: guide, plain underlay, size (a/b), two GIFs, approved source & installed sheet, portrait, concept and pose.json → ok.
+CHANGED: 8장 모두 바닥 y=870. 기준 디딘 발끝 x=279/239/199/159, 292/252/212/172. 39색, 중량 보폭 26.5, 미리보기 명목 101ms.
+DEVIATIONS: (a) 접점과 높이를 가이드 수치에 맞췄다. 팔꿈치·무릎 등 세부 관절 좌표는 실측하지 않았다. (b) 사자 문장의 흰 겉옷, 파란 판금·깃털, 짧은 붉은 망토와 두 손 랜스를 새로 그렸다. (c) 랜스 길이·손목 각도와 H1/H5의 뒷발 접점은 개별 실측하지 않았다.
+RISKS AT GAME SIZE: 1배에서 낮은 뒷발과 철신 교대가 판금 무게감으로 읽히는지, 창 끝의 끄덕임이 충분한지 확인.
+3D GUIDE: 두 손으로 비껴 든 창 방향, 내려앉는 박자와 무게 이동을 잡는 데 도움이 됐다.
+
+## 판정 — gait/sheet_captain_lancer_run
+결과: 기술 검사 통과 / 미감 주인 판정 대기.
+본 방법: 원본 띠, 등록용 1배·4배 미리보기, 접점과 바닥선, GIF 프레임 간격.
+고칠 점: 기술 검사 요구 없음. 게임 등록 전 주인 판정.
+남은 걱정: 1배에서 낮은 뒷발과 철신 교대가 판금 무게감으로 읽히는지, 창 끝의 끄덕임이 충분한지 확인.
+
+## gait/sheet_captain_huntress_run - 키아라 — 숲의 덫꾼 이동 8프레임
+CHECK: (a) RESULT: PASS; (b) RESULT: PASS
+```text
+  --dry-run: 시트·manifest 는 그대로. 새 시트 /tmp/pm-g4.89iu/preview/sheet_captain_huntress.png · 등록될 항목 sheet_captain_huntress.entry.json · 미리보기 sheet_captain_huntress_preview_x4.png
+  sheet/captain/huntress: 시트 384x384, 15칸 — idle(4), attack(2), hit(1), run(8); runStride 45.5
+  다시 붙이는 명령: python3 tools/art/add_gait.py sheet/captain/huntress --gait run --src art/inbox/gait/sheet_captain_huntress_run_a.png art/inbox/gait/sheet_captain_huntress_run_b.png --pose art/requests/gait/run__captain_huntress/pose.json --ms 80
+```
+REFERENCES LOADED: guide, plain underlay, size (a/b), two GIFs, approved source & installed sheet, portrait, concept and pose.json → ok.
+CHANGED: 접점 x 284/216/147, 296/227/158, y=870; 공중 y=836. 39색, 경량 보폭 45.5, 명목 80ms.
+DEVIATIONS: (a) 접점과 높이를 가이드 수치에 맞췄다. 팔꿈치·무릎 등 세부 관절 좌표는 실측하지 않았다. (b) 승인 시트의 구리색 포니테일, 올리브 후드, 화살통·밧줄과 반곡궁을 새로 그렸다. (c) 활을 허리 앞에 낮게 유지하고 화살은 걸지 않았다. 활 길이·손목 각도는 실측하지 않았다.
+RISKS AT GAME SIZE: 1배에서 어두운 지형의 가는 시위와 가까운 발 교대가 읽히는지 확인.
+3D GUIDE: 발 높은 정도, 활의 위치와 몸 기준 시위 방향을 잡는 데 도움이 됐다.
+
+## 판정 — gait/sheet_captain_huntress_run
+결과: 기술 검사 통과 / 미감 주인 판정 대기.
+본 방법: 원본 띠, 등록용 1배·4배 미리보기, 접점과 바닥선, GIF 프레임 간격.
+고칠 점: 기술 검사 요구 없음. 게임 등록 전 주인 판정.
+남은 걱정: 1배에서 어두운 지형의 가는 시위와 가까운 발 교대가 읽히는지 확인.
+
+## gait/sheet_captain_hedgemage_run - 펠릭스 — 떠돌이 마법사 로브 이동 8프레임
+CHECK: (a) RESULT: PASS; (b) RESULT: PASS
+```text
+  --dry-run: 시트·manifest 는 그대로. 새 시트 /tmp/pm-g5.gExL/preview/sheet_captain_hedgemage.png · 등록될 항목 sheet_captain_hedgemage.entry.json · 미리보기 sheet_captain_hedgemage_preview_x4.png
+  sheet/captain/hedgemage: 시트 384x384, 15칸 — idle(4), attack(2), hit(1), run(8); runStride 24.3
+  다시 붙이는 명령: python3 tools/art/add_gait.py sheet/captain/hedgemage --gait run --src art/inbox/gait/sheet_captain_hedgemage_run_a.png art/inbox/gait/sheet_captain_hedgemage_run_b.png --pose art/requests/gait/robe__captain_hedgemage/pose.json --ms 96
+```
+REFERENCES LOADED: guide, plain underlay, size (a/b), two GIFs, approved source & installed sheet, portrait, concept and pose.json → ok.
+CHANGED: 8장 모두 y=870, 접점 x 280/244/207/170, 294/258/221/184. 43색, 로브 보폭 24.3, 미리보기 명목 96ms.
+DEVIATIONS: (a) 접점과 높이를 가이드 수치에 맞췄다. 팔꿈치·무릎 등 세부 관절 좌표는 실측하지 않았다. (b) 남보라 로브·기운 모자·노란 테두리, 가죽 가방과 나무 지팡이를 새로 그렸다. 불꽃·구슬 없음. (c) 두 손으로 지팡이를 잡고 프레임별 손목 각도, 두 번째 발의 접점은 실측하지 않았다.
+RISKS AT GAME SIZE: 1배에서 긴 로브 아래 발 교대와 나무 지팡이 끝 휨이 충분히 보이는지 확인.
+3D GUIDE: 로브 자락 아래 발 높이와 지팡이의 일관된 각도에 도움이 됐다.
+
+## 판정 — gait/sheet_captain_hedgemage_run
+결과: 기술 검사 통과 / 미감 주인 판정 대기.
+본 방법: 원본 띠, 등록용 1배·4배 미리보기, 접점과 바닥선, GIF 프레임 간격.
+고칠 점: 기술 검사 요구 없음. 게임 등록 전 주인 판정.
+남은 걱정: 1배에서 긴 로브 아래 발 교대와 나무 지팡이 끝 휨이 충분히 보이는지 확인.
+
+## gait/sheet_captain_fieldmedic_run - 마그다 — 야전 의무관 이동 8프레임
+CHECK: (a) RESULT: PASS; (b) RESULT: PASS
+```text
+  --dry-run: 시트·manifest 는 그대로. 새 시트 /tmp/pm-g6.WUD3/preview/sheet_captain_fieldmedic.png · 등록될 항목 sheet_captain_fieldmedic.entry.json · 미리보기 sheet_captain_fieldmedic_preview_x4.png
+  sheet/captain/fieldmedic: 시트 384x384, 15칸 — idle(4), attack(2), hit(1), run(8); runStride 45.5
+  다시 붙이는 명령: python3 tools/art/add_gait.py sheet/captain/fieldmedic --gait run --src art/inbox/gait/sheet_captain_fieldmedic_run_a.png art/inbox/gait/sheet_captain_fieldmedic_run_b.png --pose art/requests/gait/run__captain_fieldmedic/pose.json --ms 80
+```
+REFERENCES LOADED: guide, plain underlay, size (a/b), two GIFs, approved source & installed sheet, portrait, concept and pose.json → ok.
+CHANGED: x 284/215/146, 296/228/159; 착지 y=870, 공중 y=843. 경량 45.5, 명목 80ms.
+DEVIATIONS: (a) 접점과 높이를 가이드 수치에 맞췄다. 팔꿈치·무릎 등 세부 관절 좌표는 실측하지 않았다. (b) 황갈색 코트와 붉은 앞치마, 흰 머리 붕대, 두 손 철퇴. 십자가·효과 없음. (c) 코트·머리칼 지연과 손목 각도는 따로 실측하지 않았다.
+RISKS AT GAME SIZE: 1배에서 어깨를 가로지르는 철퇴의 머리와 뒷자락이 구분되는지 확인.
+3D GUIDE: 철퇴의 앞뒤 방향 및 선명한 앞무릎 기준이 도움이 됐다.
+
+## 판정 — gait/sheet_captain_fieldmedic_run
+결과: 기술 검사 통과 / 미감 주인 판정 대기.
+본 방법: 원본 띠, 등록용 1배·4배 미리보기, 접점과 바닥선, GIF 프레임 간격.
+고칠 점: 기술 검사 요구 없음. 게임 등록 전 주인 판정.
+남은 걱정: 1배에서 어깨를 가로지르는 철퇴의 머리와 뒷자락이 구분되는지 확인.
+
+## gait/sheet_captain_fixer_run - 진 — 뒷골목 해결사 이동 8프레임
+CHECK: (a) RESULT: PASS; (b) RESULT: PASS
+```text
+  --dry-run: 시트·manifest 는 그대로. 새 시트 /tmp/pm-g7.3apc/preview/sheet_captain_fixer.png · 등록될 항목 sheet_captain_fixer.entry.json · 미리보기 sheet_captain_fixer_preview_x4.png
+  sheet/captain/fixer: 시트 384x384, 15칸 — idle(4), attack(2), hit(1), run(8); runStride 49.3
+  다시 붙이는 명령: python3 tools/art/add_gait.py sheet/captain/fixer --gait run --src art/inbox/gait/sheet_captain_fixer_run_a.png art/inbox/gait/sheet_captain_fixer_run_b.png --pose art/requests/gait/run__captain_fixer/pose.json --ms 80
+```
+REFERENCES LOADED: guide, plain underlay, size (a/b), two GIFs, approved source & installed sheet, portrait, concept and pose.json → ok.
+CHANGED: x 292/217/143, 305/230/156; 착지 y=870, 공중 y=848. 경량 49.3, 명목 80ms.
+DEVIATIONS: (a) 접점과 높이를 가이드 수치에 맞췄다. 팔꿈치·무릎 등 세부 관절 좌표는 실측하지 않았다. (b) 회청색 후드·마스크와 후방을 향한 역수 단검, 앞쪽 빈 손 가드. (c) 손목 범위·단검 길이는 따로 실측하지 않았다.
+RISKS AT GAME SIZE: 어두운 배경에서 역수 단검과 후드 속 눈이 계속 읽히는지 확인.
+3D GUIDE: 가까운 단검과 턱 앞 먼 손 위치가 도움이 됐다.
+
+## 판정 — gait/sheet_captain_fixer_run
+결과: 기술 검사 통과 / 미감 주인 판정 대기.
+본 방법: 원본 띠, 등록용 1배·4배 미리보기, 접점과 바닥선, GIF 프레임 간격.
+고칠 점: 기술 검사 요구 없음. 게임 등록 전 주인 판정.
+남은 걱정: 어두운 배경에서 역수 단검과 후드 속 눈이 계속 읽히는지 확인.
+
+## gait/sheet_captain_veteran_run - 하랄드 — 노병 이동 8프레임
+CHECK: (a) RESULT: PASS; (b) RESULT: PASS
+```text
+  --dry-run: 시트·manifest 는 그대로. 새 시트 /tmp/pm-g8.fjK0/preview/sheet_captain_veteran.png · 등록될 항목 sheet_captain_veteran.entry.json · 미리보기 sheet_captain_veteran_preview_x4.png
+  sheet/captain/veteran: 시트 384x384, 15칸 — idle(4), attack(2), hit(1), run(8); runStride 45.5
+  다시 붙이는 명령: python3 tools/art/add_gait.py sheet/captain/veteran --gait run --src art/inbox/gait/sheet_captain_veteran_run_a.png art/inbox/gait/sheet_captain_veteran_run_b.png --pose art/requests/gait/run__captain_veteran/pose.json --ms 80
+```
+REFERENCES LOADED: guide, plain underlay, size (a/b), two GIFs, approved source & installed sheet, portrait, concept and pose.json → ok.
+CHANGED: x 284/215/146, 296/228/159; 착지 y=870, 공중 y=845. 경량 45.5, 명목 80ms.
+DEVIATIONS: (a) 접점과 높이를 가이드 수치에 맞췄다. 팔꿈치·무릎 등 세부 관절 좌표는 실측하지 않았다. (b) 흰 수염·누빈 갑옷·사슬치마, 둥근 나무 방패와 한손검을 새로 그렸다. (c) 검 끝과 방패의 가림은 그렸으나 손목과 방패 크기는 개별 실측하지 않았다.
+RISKS AT GAME SIZE: 1배에서 방패가 수염과 몸을 가리지 않는 정도와 낮은 뒷발 확인.
+3D GUIDE: 방패 높이, 검과 방패 테두리의 겹침이 도움이 됐다.
+
+## 판정 — gait/sheet_captain_veteran_run
+결과: 기술 검사 통과 / 미감 주인 판정 대기.
+본 방법: 원본 띠, 등록용 1배·4배 미리보기, 접점과 바닥선, GIF 프레임 간격.
+고칠 점: 기술 검사 요구 없음. 게임 등록 전 주인 판정.
+남은 걱정: 1배에서 방패가 수염과 몸을 가리지 않는 정도와 낮은 뒷발 확인.
+
+## gait/sheet_hero_astel_run - 아스텔 — 마탑의 마지막 제자 로브 이동 8프레임
+CHECK: (a) RESULT: PASS; (b) RESULT: PASS
+```text
+  --dry-run: 시트·manifest 는 그대로. 새 시트 /tmp/pm-g9.1wlp/preview/sheet_hero_astel.png · 등록될 항목 sheet_hero_astel.entry.json · 미리보기 sheet_hero_astel_preview_x4.png
+  sheet/hero/astel: 시트 384x384, 15칸 — idle(4), attack(2), hit(1), run(8); runStride 23.9
+  다시 붙이는 명령: python3 tools/art/add_gait.py sheet/hero/astel --gait run --src art/inbox/gait/sheet_hero_astel_run_a.png art/inbox/gait/sheet_hero_astel_run_b.png --pose art/requests/gait/robe__hero_astel/pose.json --ms 96
+```
+REFERENCES LOADED: guide, plain underlay, size (a/b), two GIFs, approved source & installed sheet, portrait, pose.json → ok (concept: not part of the requested hero reference set).
+CHANGED: 접점 x 279/243/207/171, 292/256/220/184; 착지 y=870 (공중 프레임 없음). robe 보폭 23.9, 명목 96ms.
+DEVIATIONS: (a) 접점과 높이를 가이드 수치에 맞췄다. 팔꿈치·무릎 등 세부 관절 좌표는 실측하지 않았다. (b) 은회색 묶은 머리와 안경, 금 자수 로브, 허리의 펼친 책과 보라 보석 고리 지팡이. (c) 한 손 고리 지팡이와 책은 유지. 손목 각도, 두 번째 발의 접점을 따로 실측하지 않았다.
+RISKS AT GAME SIZE: 1배에서 책·안경과 보석이 서로 섞이지 않고 읽히는지 확인.
+3D GUIDE: 긴 로브 아래 낮은 발과 가슴 앞 지팡이 자리를 잡는 데 도움이 됐다.
+
+## 판정 — gait/sheet_hero_astel_run
+결과: 기술 검사 통과 / 미감 주인 판정 대기.
+본 방법: 원본 띠, 등록용 1배·4배 미리보기, 접점과 바닥선, GIF 프레임 간격.
+고칠 점: 기술 검사 요구 없음. 게임 등록 전 주인 판정.
+남은 걱정: 1배에서 책·안경과 보석이 서로 섞이지 않고 읽히는지 확인.
+
+## gait/sheet_hero_grom_run - 그롬 — 투기장 챔피언 이동 8프레임
+CHECK: (a) RESULT: PASS; (b) RESULT: PASS
+```text
+  --dry-run: 시트·manifest 는 그대로. 새 시트 /tmp/pm-g10.DaDm/preview/sheet_hero_grom.png · 등록될 항목 sheet_hero_grom.entry.json · 미리보기 sheet_hero_grom_preview_x4.png
+  sheet/hero/grom: 시트 384x384, 15칸 — idle(4), attack(2), hit(1), run(8); runStride 45.5
+  다시 붙이는 명령: python3 tools/art/add_gait.py sheet/hero/grom --gait run --src art/inbox/gait/sheet_hero_grom_run_a.png art/inbox/gait/sheet_hero_grom_run_b.png --pose art/requests/gait/run__hero_grom/pose.json --ms 80
+```
+REFERENCES LOADED: guide, plain underlay, size (a/b), two GIFs, approved source & installed sheet, portrait, pose.json → ok (concept: not part of the requested hero reference set).
+CHANGED: 접점 x 284/215/146, 296/227/158; 착지 y=870, 공중 y=839. run 보폭 45.5, 명목 80ms.
+DEVIATIONS: (a) 접점과 높이를 가이드 수치에 맞췄다. 팔꿈치·무릎 등 세부 관절 좌표는 실측하지 않았다. (b) 올리브 피부, 밝은 털깃, 사자 허리띠와 붉은 앞자락, 양손 대검. (c) 프레임별 대검 길이·손목 각도는 실측하지 않았다.
+RISKS AT GAME SIZE: 1배에서 높은 무릎과 무게가 내려앉는 동작, 곧추 든 대검이 분리되는지 확인.
+3D GUIDE: 칼의 각도와 낮아지는 몸 중심을 참고했다.
+
+## 판정 — gait/sheet_hero_grom_run
+결과: 기술 검사 통과 / 미감 주인 판정 대기.
+본 방법: 원본 띠, 등록용 1배·4배 미리보기, 접점과 바닥선, GIF 프레임 간격.
+고칠 점: 기술 검사 요구 없음. 게임 등록 전 주인 판정.
+남은 걱정: 1배에서 높은 무릎과 무게가 내려앉는 동작, 곧추 든 대검이 분리되는지 확인.
+
+## gait/sheet_hero_kai_run - 카이 — 은빛 정찰병 이동 8프레임
+CHECK: (a) RESULT: PASS; (b) RESULT: PASS
+```text
+  --dry-run: 시트·manifest 는 그대로. 새 시트 /tmp/pm-g11.dTNS/preview/sheet_hero_kai.png · 등록될 항목 sheet_hero_kai.entry.json · 미리보기 sheet_hero_kai_preview_x4.png
+  sheet/hero/kai: 시트 384x384, 15칸 — idle(4), attack(2), hit(1), run(8); runStride 45.5
+  다시 붙이는 명령: python3 tools/art/add_gait.py sheet/hero/kai --gait run --src art/inbox/gait/sheet_hero_kai_run_a.png art/inbox/gait/sheet_hero_kai_run_b.png --pose art/requests/gait/run__hero_kai/pose.json --ms 80
+```
+REFERENCES LOADED: guide, plain underlay, size (a/b), two GIFs, approved source & installed sheet, portrait, pose.json → ok (concept: not part of the requested hero reference set).
+CHANGED: 접점 x 284/215/146, 296/227/159; 착지 y=870, 공중 y=845. run 보폭 45.5, 명목 80ms.
+DEVIATIONS: (a) 접점과 높이를 가이드 수치에 맞췄다. 팔꿈치·무릎 등 세부 관절 좌표는 실측하지 않았다. (b) 금발, 녹색 망토와 엘프 귀, 흰 깃 화살통과 은회색 반곡궁. 원본 대기의 색 수가 많아 등록된 승인 대기 칸의 40색으로 정리했다. (c) 활에 화살 없음. 활대 길이와 손목 각도를 실측하지 않았다.
+RISKS AT GAME SIZE: 1배에서 머리 흔들림이 과하지 않고, 은회색 활과 얇은 시위가 구분되는지 확인.
+3D GUIDE: 긴 걸음의 접점과 활의 앞쪽 기울기가 도움이 됐다.
+
+## 판정 — gait/sheet_hero_kai_run
+결과: 기술 검사 통과 / 미감 주인 판정 대기.
+본 방법: 원본 띠, 등록용 1배·4배 미리보기, 접점과 바닥선, GIF 프레임 간격.
+고칠 점: 기술 검사 요구 없음. 게임 등록 전 주인 판정.
+남은 걱정: 1배에서 머리 흔들림이 과하지 않고, 은회색 활과 얇은 시위가 구분되는지 확인.
+
+## gait/sheet_hero_oswin_run - 오스윈 — 몰락한 기사단장 중량 이동 8프레임
+CHECK: (a) RESULT: PASS; (b) RESULT: PASS
+```text
+  --dry-run: 시트·manifest 는 그대로. 새 시트 /tmp/pm-g12.briM/preview/sheet_hero_oswin.png · 등록될 항목 sheet_hero_oswin.entry.json · 미리보기 sheet_hero_oswin_preview_x4.png
+  sheet/hero/oswin: 시트 384x384, 15칸 — idle(4), attack(2), hit(1), run(8); runStride 23.6
+  다시 붙이는 명령: python3 tools/art/add_gait.py sheet/hero/oswin --gait run --src art/inbox/gait/sheet_hero_oswin_run_a.png art/inbox/gait/sheet_hero_oswin_run_b.png --pose art/requests/gait/heavy__hero_oswin/pose.json --ms 101
+```
+REFERENCES LOADED: guide, plain underlay, size (a/b), two GIFs, approved source & installed sheet, portrait, pose.json → ok (concept: not part of the requested hero reference set).
+CHANGED: 접점 x 269/233/198/162, 281/245/210/174; 착지 y=870 (공중 프레임 없음). heavy 보폭 23.6, 명목 101ms.
+DEVIATIONS: (a) 접점과 높이를 가이드 수치에 맞췄다. 팔꿈치·무릎 등 세부 관절 좌표는 실측하지 않았다. (b) 회색 머리·턱수염, 녹슨 은빛 판금, 찢어진 파란 앞자락·망토, 두 손 장검. (c) 장검 길이·손목 각도 및 뒤쪽 발의 접점을 따로 실측하지 않았다.
+RISKS AT GAME SIZE: 1배에서 몸을 낮춘 무거운 걸음과 검 기울기가 읽히는지 확인.
+3D GUIDE: 발이 뜨지 않는 접점과 각 프레임의 낮은 중심에 도움이 됐다.
+
+## 판정 — gait/sheet_hero_oswin_run
+결과: 기술 검사 통과 / 미감 주인 판정 대기.
+본 방법: 원본 띠, 등록용 1배·4배 미리보기, 접점과 바닥선, GIF 프레임 간격.
+고칠 점: 기술 검사 요구 없음. 게임 등록 전 주인 판정.
+남은 걱정: 1배에서 몸을 낮춘 무거운 걸음과 검 기울기가 읽히는지 확인.
+
+## gait/sheet_hero_seraphine_run - 세라핀 — 파문 성녀 로브 이동 8프레임
+CHECK: (a) RESULT: PASS; (b) RESULT: PASS
+```text
+  --dry-run: 시트·manifest 는 그대로. 새 시트 /tmp/pm-g13.nQiB/preview/sheet_hero_seraphine.png · 등록될 항목 sheet_hero_seraphine.entry.json · 미리보기 sheet_hero_seraphine_preview_x4.png
+  sheet/hero/seraphine: 시트 384x384, 15칸 — idle(4), attack(2), hit(1), run(8); runStride 22.2
+  다시 붙이는 명령: python3 tools/art/add_gait.py sheet/hero/seraphine --gait run --src art/inbox/gait/sheet_hero_seraphine_run_a.png art/inbox/gait/sheet_hero_seraphine_run_b.png --pose art/requests/gait/robe__hero_seraphine/pose.json --ms 96
+```
+REFERENCES LOADED: guide, plain underlay, size (a/b), two GIFs, approved source & installed sheet, portrait, pose.json → ok (concept: not part of the requested hero reference set).
+CHANGED: 접점 x 273/240/206/172, 285/251/218/184; 착지 y=870 (공중 프레임 없음). robe 보폭 22.2, 명목 96ms.
+DEVIATIONS: (a) 접점과 높이를 가이드 수치에 맞췄다. 팔꿈치·무릎 등 세부 관절 좌표는 실측하지 않았다. (b) 찢어진 크림 로브와 붉은 어깨띠, 작은 철퇴와 앞쪽 빈 손. 후광·마법 효과 없음. (c) 낮은 손과 철퇴 위치를 따랐으나 손목 각도와 뒤쪽 발의 접점을 따로 실측하지 않았다. 공통: 명목 GIF와 전투의 거리 기반 재생은 구분하고, 겹침은 최신 3D 깊이 규칙을 따랐다.
+RISKS AT GAME SIZE: 1배에서 빈 손이 철퇴와 겹쳐 보이지 않는지, 로브 자락에서 발이 읽히는지 확인.
+3D GUIDE: 발과 철퇴를 낮게 고정한 동작의 기준으로 썼다.
+
+## 판정 — gait/sheet_hero_seraphine_run
+결과: 기술 검사 통과 / 미감 주인 판정 대기.
+본 방법: 원본 띠, 등록용 1배·4배 미리보기, 접점과 바닥선, GIF 프레임 간격.
+고칠 점: 기술 검사 요구 없음. 게임 등록 전 주인 판정.
+남은 걱정: 1배에서 빈 손이 철퇴와 겹쳐 보이지 않는지, 로브 자락에서 발이 읽히는지 확인.
