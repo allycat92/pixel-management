@@ -7,7 +7,7 @@
 
 | 누구 | id | 상태 | 할 일 (자세한 것은 그 줄의 문서) |
 |---|---|---|---|
-| GPT | `G1-baren-run-3d` | READY | **(주인 11-28: Antigravity 한도 → GPT 대리, 그림)** 바렌 달리기 8프레임을 3D 마네킹 안내 그림 위에 그려 art-inbox 로 납품: `docs/agents/tasks/G1-baren-run-3d.md` |
+| GPT | `G1-baren-run-3d` | REVIEW | (art-inbox `fe91a36`) 바렌 3D 달리기 8칸 납품 — 기술 검사 PASS(공중 21px, 보폭 45.5). **주인 판정 대기** |
 
 ## 끝난 일
 
