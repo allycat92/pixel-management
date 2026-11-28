@@ -1458,6 +1458,7 @@ RISKS AT GAME SIZE: 1배에서 낮은 뒷발과 철신 교대가 판금 무게�
 남은 걱정: 1배에서 낮은 뒷발과 철신 교대가 판금 무게감으로 읽히는지, 창 끝의 끄덕임이 충분한지 확인.
 
 ## gait/sheet_captain_huntress_run - 키아라 — 숲의 덫꾼 이동 8프레임
+손질(G14): R5/R6 발끝 x=296/227 유지, 밑창 하단 3줄 중심 x=261→258 / 196→199로 안내 위치 근처에 정리. 두 밑창만 수정, 바닥 y=870과 나머지 칸 그대로. 두 띠 RESULT: PASS; add_gait --scale 0.1654 --dry-run: 96×96 / 15칸 / runStride 45.5.
 CHECK: (a) RESULT: PASS; (b) RESULT: PASS
 ```text
   --dry-run: 시트·manifest 는 그대로. 새 시트 /tmp/pm-g4.89iu/preview/sheet_captain_huntress.png · 등록될 항목 sheet_captain_huntress.entry.json · 미리보기 sheet_captain_huntress_preview_x4.png
@@ -1591,6 +1592,7 @@ RISKS AT GAME SIZE: 1배에서 높은 무릎과 무게가 내려앉는 동작, �
 남은 걱정: 1배에서 높은 무릎과 무게가 내려앉는 동작, 곧추 든 대검이 분리되는지 확인.
 
 ## gait/sheet_hero_kai_run - 카이 — 은빛 정찰병 이동 8프레임
+손질(G14): R7 디딘 발끝 x=85→159 / 밑창 하단 3줄 중심 x=70→144, 바닥 y=870. 디딘 다리만 수정, 몸·옷·활 및 나머지 칸 그대로. 두 띠 RESULT: PASS; add_gait --scale 0.1654 --dry-run: 96×96 / 15칸 / runStride 45.5.
 CHECK: (a) RESULT: PASS; (b) RESULT: PASS
 ```text
   --dry-run: 시트·manifest 는 그대로. 새 시트 /tmp/pm-g11.dTNS/preview/sheet_hero_kai.png · 등록될 항목 sheet_hero_kai.entry.json · 미리보기 sheet_hero_kai_preview_x4.png
