@@ -1298,18 +1298,6 @@
         ],
         "neck_up": -3.0,
         "pelvis_twist": 6.0,
-        "swing_add": {
-          "0.75": [
-            2.0,
-            6.0,
-            0.0
-          ],
-          "0.875": [
-            0.0,
-            10.0,
-            0.0
-          ]
-        },
         "summary_ko": "기사단과 이름을 잃은 노기사단장의 무거운 행군: 로드릭과 반대로 상체를 앞으로 숙이고(약 10도) 턱을 당겨 눈썹 아래로 앞을 보며, 엉덩이는 내내 낮게 깔려 거의 오르내리지 않는다(출렁임 약 3px). 대신 어깨와 골반이 좌우로 굴러(6/4) 장검이 그 흔들림을 따라 조금씩 기운다.",
         "notes": [
           "An OLD knight commander's heavy, weary march - he lost his order and his name, and still marches on: the trunk LEANS forward about 10 deg (the heavy class mannequin leans 5; Roderick stands at 3), the shoulders rounded under the plate, the chin DOWN so he looks ahead from under his heavy grey brows (the neck does not turn back up). The mannequin already has all of it - follow it.",
@@ -1324,7 +1312,19 @@
           "구르는 어깨: 엉덩이와 가슴이 중량 부류보다 **더** 돈다(골반 6도, 가슴 반대 회전 4) — 판금 입은 노인의 좌우로 흔들리는 무게, 로드릭의 네모나게 굳은 몸통이 아니다.",
           "양손 장검은 대기 그림처럼 제 길이 그대로 든다 — 두 주먹이 한 손잡이에(가까운 주먹은 허리띠 위, 먼 주먹은 십자 가드 바로 밑), 팔꿈치는 몸에 붙이고, 칼날은 앞-위로 약 72도. 구르는 어깨를 따라 한 프레임 늦게 양쪽으로 4도쯤 기운다 — 베거나 휘두르지 않는다.",
           "뒤쪽 파란 망토와 해진 타바드는 구르는 엉덩이를 따라 한 프레임 늦게 무겁게 흔들린다. 회색 머리와 수염은 거의 들리지 않는다(머리가 오르내리지 않는다)."
-        ]
+        ],
+        "swing_target_add": {
+          "0.75": [
+            0.0,
+            4.0,
+            0.0
+          ],
+          "0.875": [
+            0.0,
+            3.0,
+            0.0
+          ]
+        }
       },
       "request": {
         "look": "Oswin (오스윈), the fallen knight commander, exactly as on the accepted sheet: an old man with wild swept-back grey hair, heavy grey brows and a short grey beard, stern weathered face; weathered silver plate armour (big rounded pauldrons with brass rivet discs, breastplate, articulated arms and gauntlets, plate thighs, round knee cops, greaves and sabatons) covered in a few large RUST patches; a faded royal crest = one simple blue shield shape on the chest; a brown leather belt with brass buckles; a long tattered BLUE tabard hanging in front between the legs and a tattered blue cape behind; ONE two-handed European longsword (long straight blade with rust spots, brass cross-guard and pommel, leather grip) held in both hands.",
@@ -1386,13 +1386,6 @@
         ],
         "neck_up": -2.0,
         "pelvis_twist": 6.0,
-        "swing_add": {
-          "0.75": [
-            4.0,
-            2.0,
-            0.0
-          ]
-        },
         "notes": [
           "A soft, low, hurried glide - a sister running to the wounded: hips 3-5 px lower than the robe class mannequin (softer knees, as in her crouched idle), about 1 deg more lean and the head bowed a little (sorrowful, eyes on the road just ahead). The mannequin already has all of it - follow it.",
           "The hips turn more with each short step (pelvis twist 6 deg vs the class's 4) so the torn hem sways from side to side, while the chest stays quiet (counter-rotation 2 vs 3): the upper body is calm, the skirt does the moving. In the passing frames (G3/G7) the swing foot is carried a little further ahead so both boots read under the hem.",
@@ -1407,7 +1400,14 @@
           "빈 먼(왼) 손은 대기처럼 손바닥을 아래로 편 채 허벅지 앞에 낮게 앞으로 내민다(누군가를 붙들거나 축복하듯): 거의 펴진 팔이 걸음에 맞춰 앞뒤로 살짝 흔들린다. 빛·주문 없음.",
           "찢긴 베일 끝과 긴 웨이브 머리는 뒤로 날리며 한 프레임 늦다. 붉은 띠의 넓은 뒤 끝은 뒤 엉덩이 뒤에서 한 프레임 늦고, 좁은 끝은 다리 사이 가운데 앞에 남는다. 들쭉날쭉한 단 아래로 걸음마다 갈색 감은 장화가 보인다. 아무것도 y=870 에 닿지 않는다."
         ],
-        "summary_ko": "다친 이에게 서둘러 가는 파문 성녀의 미끄러짐: 엉덩이를 3~5px 낮추고 고개를 숙이며, 골반만 돌고(6도) 윗몸은 조용하다(2). 철퇴는 허리 앞에서 흔들지 않고, 빈 손바닥을 낮게 내민다."
+        "summary_ko": "다친 이에게 서둘러 가는 파문 성녀의 미끄러짐: 엉덩이를 3~5px 낮추고 고개를 숙이며, 골반만 돌고(6도) 윗몸은 조용하다(2). 철퇴는 허리 앞에서 흔들지 않고, 빈 손바닥을 낮게 내민다.",
+        "swing_target_add": {
+          "0.75": [
+            6.0,
+            0.0,
+            0.0
+          ]
+        }
       },
       "request": {
         "look": "Seraphine (세라핀), the excommunicated saint, exactly as on the accepted sheet: a pale young woman with long wavy blonde hair (front strands beside the face down to the collar); a torn cream hood / veil with ragged tails and a small gold cross clip; torn, layered cream saint robes with holes and a jagged uneven hem; small gold cross pendants on the chest; a RED sash crossing the chest from the far shoulder to a knot at the waist, with a broad tail behind the rear hip and a narrow end hanging at the centre front; brown wrapped boots under the hem; ONE short spiked mace (dark haft with gold bands and a gold pommel, grey spiked head) in the near right hand; sorrowful but kind face. No halo, no glow.",

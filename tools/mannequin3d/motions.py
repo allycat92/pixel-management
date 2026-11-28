@@ -37,7 +37,7 @@ import math
 
 import numpy as np
 
-from rig import leg_ik, fk, full_pose, CANON, ankle_on_floor, arm_ik, WEAPONS, WEAPON_LIMIT
+from rig import leg_ik, fk, full_pose, CANON, ankle_on_floor, arm_ik, WEAPONS, WEAPON_LIMIT, sole_y, lean, turn
 
 CANON_LEG = CANON['thigh'] + CANON['shin'] + CANON['ankle_h']
 CANON_SCALE = 0.1654          # the scale the gait tables (and v2 / heavy_base / robe_base) were made for
@@ -65,28 +65,37 @@ GAITS = {
     },
     'run_heavy': {
         'set': 'run3d_heavy', 'gait': 'heavy', 'class': 'heavy', 'prefix': 'H', 'ms': 101, 'step_px': 142.5,
-        'phases': ['contact', 'down', 'passing', 'push'],
+        'phases': ['contact', 'down', 'passing', 'reach'],
         'stance': [0.0, 0.125, 0.25, 0.375, 0.5],
         'toe0': 83.0,
         'stance_pitch': [0.0, 0.0, 0.0, -8.0, -26.0],
         'hip_h': [180.0, 172.9, 177.8, 179.5],
         'lean': [5.0, 5.6, 5.0, 4.8],
-        # passing (leg phase 0.75 = H3 far / H7 near): the swing foot is carried ahead of the stance foot (ankles ~20 px
-        # apart; was 36 deg -> 11 px, one blob) with the sole 13 px up (the class's 5-13 px knee-lift band)
-        'swing': {0.625: (14.0, 72.0, -18.0), 0.75: (41.0, 72.0, -8.0), 0.875: (40.0, 48.0, 4.0)},
+        # SWING FOOT BY TARGET (owner verdict 2026-11-28: the back foot snapped / trailed): leg phase -> (ankle x = screen px
+        # from the hip column on the body's mid plane at the canonical stride, lowest sole point above the floor, foot pitch);
+        # the leg is solved by IK, so a personality's hip drop or a long sheet scale never changes where the foot goes.
+        # Read off heavy_base/v1 (the accepted 2D mannequin, the ironwall reference): rear toe-off -91 -> lift -62 (toe 8 px
+        # up) -> passing -4 (beside the stance ankle, 11 px up) -> REACH +36 (ahead of the hip, 5 px up, toes up) -> contact
+        # +46 = steps 29 / 58 / 40 / 10 px. The old angle table front-loaded it (+16 at passing, +38 at reach, sole 1 px).
+        'swing_target': {0.625: (-62.0, 8.0, -40.0), 0.75: (-4.0, 11.0, -11.0), 0.875: (36.0, 6.0, 4.0)},
+        'swing_ref': [29.8, 57.2, 40.7, 9.9],     # heavy_base/v1 swing-ankle steps (px), rear contact -> lift -> passing -> reach -> contact
+        'contact_rear_flex_max': 28.0,             # the trailing leg at double support: nearly straight, angled back (2D 9 / 24)
         'arm': [(-4.0, 70.0), (-5.0, 66.0), (-2.0, 68.0), (2.0, 72.0), (4.0, 70.0), (5.0, 66.0), (2.0, 68.0), (-2.0, 72.0)],
         'pelvis_twist': 4.0, 'chest_counter': 2.0, 'head_pitch': 2.0,
     },
     'run_robe': {
         'set': 'run3d_robe', 'gait': 'robe', 'class': 'robe', 'prefix': 'G', 'ms': 96, 'step_px': 134.2,
-        'phases': ['contact', 'down', 'passing', 'push'],
+        'phases': ['contact', 'down', 'passing', 'reach'],
         'stance': [0.0, 0.125, 0.25, 0.375, 0.5],
         'toe0': 87.0,
         'stance_pitch': [0.0, 0.0, 0.0, -8.0, -24.0],
         'hip_h': [182.2, 180.5, 185.0, 185.5],
         'lean': [7.1, 7.6, 6.8, 6.8],
-        # passing (0.75 = G3 / G7): swing foot ahead of the stance foot, sole 13 px up (was 29 deg: ankles 3 px apart)
-        'swing': {0.625: (8.0, 60.0, -15.0), 0.75: (38.0, 62.0, -4.0), 0.875: (34.0, 38.0, 4.0)},
+        # swing foot by target (see run_heavy), read off robe_base/v1 (the mage reference): -79.5 -> -64 (toe 7 px up) ->
+        # passing -4 (9 px up) -> reach +37 (5 px up, toes up) -> contact +51 = steps 16 / 59 / 42 / 13 px
+        'swing_target': {0.625: (-64.0, 7.0, -37.0), 0.75: (-4.0, 9.0, -6.0), 0.875: (37.0, 6.0, 4.0)},
+        'swing_ref': [15.7, 59.4, 41.8, 13.2],     # robe_base/v1 swing-ankle steps (px)
+        'contact_rear_flex_max': 30.0,             # robe_base: 27 / 33
         'arm': [(-10.0, 72.0), (-12.0, 76.0), (-4.0, 74.0), (6.0, 72.0), (10.0, 72.0), (12.0, 76.0), (4.0, 74.0), (-6.0, 72.0)],
         'pelvis_twist': 4.0, 'chest_counter': 3.0, 'head_pitch': 2.0,
         # robe proxy: hem height (robe_base v1: 38-52 px, check fail < 38), hem corner lift, margins around the leading
@@ -167,7 +176,29 @@ def _solve_stances(spec, P, pose, phi, cam):
     return stance, ok_all
 
 
-PERSONALITY_KEYS = ('lean_add', 'hip_drop', 'neck_up', 'pelvis_twist', 'swing_add', 'notes', 'notes_ko', 'summary_ko', 'about')
+def _solve_swing(spec, P, pose, side, psi, cam, add=None):
+    """a target-solved swing leg (run_heavy / run_robe `swing_target`): IK the leg so that its ankle sits at the table's x
+    (mid plane, x the sheet's stride factor; world x / cos(yaw), like the stance rule) with the foot's lowest point the
+    table's height above the floor (x the leg factor) at the table's pitch. add = personality [dx px, d_sole px, d_pitch].
+    -> (thigh, knee, ankle, reached)"""
+    ax, sole, pitch = spec['swing_target'][psi]
+    dx, ds, dp = (list(add or []) + [0.0, 0.0, 0.0])[:3]
+    ax = ax * spec['stride_k'] + dx
+    sole = sole * spec.get('leg_k', 1.0) + ds
+    pitch = pitch + dp
+    q = full_pose(pose)
+    q['abd_' + side] = 0.0
+    body = fk(P, q)
+    hip = body.joints['H' + side]
+    c = math.cos(math.radians(cam.yaw))
+    ank = np.array([body.joints['hip'][0] + ax / c, 0.0, hip[2]])
+    ank[1] = sole - sole_y(ank, pitch, P)
+    thigh, knee, ok = leg_ik(P, hip[:2], ank[:2])
+    return thigh, knee, pitch - (thigh - knee), ok
+
+
+PERSONALITY_KEYS = ('lean_add', 'hip_drop', 'neck_up', 'pelvis_twist', 'swing_add', 'swing_target_add', 'notes', 'notes_ko',
+                    'summary_ko', 'about')
 
 
 def _per_half(v, half, default=0.0):
@@ -185,14 +216,22 @@ def personality(carry):
       hip_drop   px the hips sit lower than the table (number or 4 values; legs re-solved by IK -> more knee bend)
       neck_up    deg the neck turns back up against the extra lean (eyes stay on the road)
       pelvis_twist  replaces the table's pelvis twist amplitude
-      swing_add  {leg phase: [d_thigh, d_knee, d_foot_pitch]} added to the swing-leg table (e.g. tuck the heel higher in
-                 the flight frames so the lower hips keep the flight clearance)
+      swing_add  {leg phase: [d_thigh, d_knee, d_foot_pitch]} added to the swing-leg ANGLE table of run_light (e.g. tuck
+                 the heel higher in the flight frames so the lower hips keep the flight clearance)
+      swing_target_add  {leg phase: [d_ankle_x px, d_sole px, d_foot_pitch]} added to the swing-foot TARGETS of run_heavy /
+                 run_robe (their swing legs are solved by IK; swing_add is refused there)
       notes / notes_ko  prose for the request README (what the painter should feel in the motion)
       summary_ko  one short Korean line: what makes this run the character's own (top of the README's 개성)"""
     pz = dict(carry.get('personality') or {})
     bad = [k for k in pz if k not in PERSONALITY_KEYS]
     if bad:
         raise ValueError(f'carry3d personality: unknown keys {bad} (known: {PERSONALITY_KEYS})')
+    g = GAITS.get(carry.get('gait'), {})
+    if 'swing_target' in g and pz.get('swing_add'):
+        raise ValueError(f"carry3d personality: swing_add is for run_light's angle table; {carry.get('gait')} solves the swing "
+                         'foot from targets - use swing_target_add {leg phase: [d_ankle_x, d_sole, d_pitch]}')
+    if 'swing_target' not in g and pz.get('swing_target_add'):
+        raise ValueError(f"carry3d personality: swing_target_add is for run_heavy / run_robe, not {carry.get('gait')}")
     return pz
 
 
@@ -200,8 +239,10 @@ def gait_keys(spec, P, cam, carry):
     """the 8 key poses of a gait (dicts), with meta. Stance legs solved by IK. The character's `personality`
     (carry3d.json) offsets the lean, hip height, neck and swing legs - never the stride or the cadence."""
     k_leg = leg_factor(P)
+    spec = dict(spec, leg_k=k_leg)
     pz = personality(carry)
     swing_add = {round(float(k), 4): v for k, v in (pz.get('swing_add') or {}).items()}
+    target_add = {round(float(k), 4): v for k, v in (pz.get('swing_target_add') or {}).items()}
     rows = []
     for f in range(8):
         phi = f / 8.0
@@ -219,7 +260,7 @@ def gait_keys(spec, P, cam, carry):
         }
         for side, off in (('N', 0.0), ('F', 0.5)):
             psi = round((phi + off) % 1.0, 4)
-            if psi in spec['swing']:
+            if psi in spec.get('swing', {}):
                 th, kn, pitch = spec['swing'][psi]
                 dth, dkn, dp = (list(swing_add.get(psi, [])) + [0.0, 0.0, 0.0])[:3]
                 th, kn, pitch = th + dth, kn + dkn, pitch + dp
@@ -228,13 +269,35 @@ def gait_keys(spec, P, cam, carry):
             arm_f = (f + (0 if side == 'N' else 4)) % 8
             sh, el = spec['arm'][arm_f]
             pose['shoulder_' + side], pose['elbow_' + side] = sh, el
-        meta = {'hip_lowered': 0.0}
+        meta = {'hip_lowered': 0.0, 'hip_raised': 0.0}
+
+        def solve_legs():
+            ok_sw = True
+            for side, off in (('N', 0.0), ('F', 0.5)):
+                psi = round((phi + off) % 1.0, 4)
+                if psi in spec.get('swing_target', {}):
+                    th, kn, an, ok = _solve_swing(spec, P, pose, side, psi, cam, target_add.get(psi))
+                    pose['thigh_' + side], pose['knee_' + side], pose['ankle_' + side] = th, kn, an
+                    pose['abd_' + side] = 0.0
+                    ok_sw &= ok
+            st, ok_st = _solve_stances(spec, P, pose, phi, cam)
+            return st, ok_st and ok_sw
         for _ in range(13):        # a stance foot out of reach: lower the hip by 0.5 px steps (at most 6 px), report it
-            stance, ok_all = _solve_stances(spec, P, pose, phi, cam)
+            stance, ok_all = solve_legs()
             if ok_all:
                 break
             pose['hip_h'] -= 0.5
             meta['hip_lowered'] += 0.5
+        # double support (heavy / robe contact): the trailing leg stays nearly straight and angled back, as in the 2D bases
+        # (owner 11-28: 'only the foot trails back'). A personality hip drop that would fold its knee is given back here.
+        lim = spec.get('contact_rear_flex_max')
+        if lim and len(stance) == 2 and not meta['hip_lowered']:
+            rear = 'F' if half == 0 and f < 4 else 'N'
+            table_h = spec['hip_h'][half] * k_leg
+            while pose['knee_' + rear] > lim and pose['hip_h'] < table_h - 1e-6:
+                pose['hip_h'] = min(pose['hip_h'] + 0.5, table_h)
+                meta['hip_raised'] += 0.5
+                stance, ok_all = solve_legs()
         meta.update({'stance': stance, 'reached': ok_all})
         carry_arms(pose, carry, phi)
         rows.append((pose, meta))
