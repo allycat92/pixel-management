@@ -150,7 +150,9 @@
     "wrist_N": 0.0,
     "wrist_F": 0.0,
     "arm_abd_N": 6.0,
-    "arm_abd_F": 6.0
+    "arm_abd_F": 6.0,
+    "arm_twist_N": 0.0,
+    "arm_twist_F": 0.0
    },
    "props": [
     {
@@ -368,7 +370,9 @@
     "wrist_N": 0.0,
     "wrist_F": 0.0,
     "arm_abd_N": 6.0,
-    "arm_abd_F": 6.0
+    "arm_abd_F": 6.0,
+    "arm_twist_N": 0.0,
+    "arm_twist_F": 0.0
    },
    "props": [
     {
@@ -586,7 +590,9 @@
     "wrist_N": 0.0,
     "wrist_F": 0.0,
     "arm_abd_N": 6.0,
-    "arm_abd_F": 6.0
+    "arm_abd_F": 6.0,
+    "arm_twist_N": 0.0,
+    "arm_twist_F": 0.0
    },
    "props": [
     {
@@ -802,7 +808,9 @@
     "wrist_N": 0.0,
     "wrist_F": 0.0,
     "arm_abd_N": 6.0,
-    "arm_abd_F": 6.0
+    "arm_abd_F": 6.0,
+    "arm_twist_N": 0.0,
+    "arm_twist_F": 0.0
    },
    "props": [
     {
@@ -1020,7 +1028,9 @@
     "wrist_N": 0.0,
     "wrist_F": 0.0,
     "arm_abd_N": 6.0,
-    "arm_abd_F": 6.0
+    "arm_abd_F": 6.0,
+    "arm_twist_N": 0.0,
+    "arm_twist_F": 0.0
    },
    "props": [
     {
@@ -1238,7 +1248,9 @@
     "wrist_N": 0.0,
     "wrist_F": 0.0,
     "arm_abd_N": 6.0,
-    "arm_abd_F": 6.0
+    "arm_abd_F": 6.0,
+    "arm_twist_N": 0.0,
+    "arm_twist_F": 0.0
    },
    "props": [
     {
@@ -1456,7 +1468,9 @@
     "wrist_N": 0.0,
     "wrist_F": 0.0,
     "arm_abd_N": 6.0,
-    "arm_abd_F": 6.0
+    "arm_abd_F": 6.0,
+    "arm_twist_N": 0.0,
+    "arm_twist_F": 0.0
    },
    "props": [
     {
@@ -1672,7 +1686,9 @@
     "wrist_N": 0.0,
     "wrist_F": 0.0,
     "arm_abd_N": 6.0,
-    "arm_abd_F": 6.0
+    "arm_abd_F": 6.0,
+    "arm_twist_N": 0.0,
+    "arm_twist_F": 0.0
    },
    "props": [
     {
@@ -1918,6 +1934,7 @@
    "[OK] far knee readable (visible or >= 14 px from the near knee)",
    "[OK] hand travel over the cycle (>= 12 px): near 25, far 24",
    "[OK] weapon angle to the forearm (deg, 0 = straight, + = up; range 0..120) per frame R1:97 R2:92 R3:98 R4:95 R5:85 R6:82 R7:96 R8:102  -> 82.0..102.3",
+   "[OK] elbow flexion (3D, <= 145 deg = forearm-upper arm >= 35): max near 68, far 136; on screen the tightest elbow angle near 113, far 44 deg",
    "[OK] weapon rigid: butt->tip 183.8..184.5 px on screen (spread 0.4% of the mean, <= +-2%), fist->tip 154..155, one straight sword (a rigid capsule: never bent, shortened or stretched)",
    "[OK] weapon angle (one-handed): R1:46.0 R2:46.6 R3:48.5 R4:50.7 R5:51.9 R6:51.4 R7:49.5 R8:47.2  max step 2.22 deg (<= 3.5), range 5.90 deg (<= 8.5)",
    "[OK] weapon tip path (relative to its fist): moves 1 5 6 3 1 5 6 3 px (<= 15), 0 reversals (<= 2) - one smooth path, no back-and-forth",

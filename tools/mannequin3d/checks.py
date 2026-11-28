@@ -21,10 +21,19 @@ Run (gait) checks - gait_checks():
               side of the fist, the blade flipped) inside the character's
               weapon_limit [0, 120] deg (0 = straight along the forearm, + = upward) in EVERY frame - a frame that
               needed rig.py's clamp FAILs (no blade bent down past the arm line, dangling)                        FAIL
+  2nd hand    (two-handed) the second fist ON the drawn butt -> tip line: <= FIST2_LINE_TOL (1.5) px off it in every
+              frame (review 2026-11-28: a table 6 px off the line made the painter bend the spear at the second hand)  FAIL
+              - its wrist is part of 'weapon' (every hand on the weapon inside weapon_limit, measured in its own
+              forearm's bending plane)
+  elbow       every arm, every frame: elbow flexion <= ELBOW_FLEX_MAX (145 deg), i.e. the 3D forearm-to-upper-arm angle
+              >= 35 deg - no forearm folded flat onto the upper arm (review 2026-11-28); the on-screen angle is
+              reported (a foreshortened arm can look tighter)                                                    FAIL
   blade/head  (sword carriers) blade-over-head pixels, reported only (owner 11-28: overlaps are fine; the z-buffer
               draws the nearer part over the farther one)                                                        INFO
   robe        hem bottom 38-52 px above the floor (robe_base); hem width change <= 15% between frames; the robe is
-              widest within 14 px of its hem (cloth flares to the hem, no gourd)                                   FAIL
+              widest within 14 px of its hem (cloth flares to the hem, no gourd); each hem edge (pose.json hem
+              front / back x) follows one smooth path: <= HEM_REVERSALS (2) direction reversals a cycle between moves
+              >= HEM_MOVE_PX (2 px) (review 2026-11-28: the back edge rode the 15 px clamp, 4 reversals)          FAIL
 Action checks - action_checks():
   weapon      hand range as above, every action frame (READY and in-betweens included)                            FAIL
   blade/head, blade/trunk  overlap pixels, reported only (owner 11-28: overlaps fine, depth order decides)        INFO
@@ -87,15 +96,78 @@ def weapon_checks(label, names, bodies):
     if not rows:
         return []
     lim = rows[0][1]['limit']
-    bad = [f"{n} {w['kind']} {w['raw_deg']:.1f}" for n, w in rows if w['clamped']]
-    raws = [w['raw_deg'] for _, w in rows]
-    rv = [w['blade_deg'] for _, w in rows if w.get('grip') == 'reverse' and 'blade_deg' in w]
+    first = [(n, w) for n, w in rows if w.get('role') != 'second']
+    second = [(n, w) for n, w in rows if w.get('role') == 'second']
+    bad = [f"{n} {w['kind']} {w['raw_deg']:.1f}" for n, w in first if w['clamped']]
+    raws = [w['raw_deg'] for _, w in first]
+    rv = [w['blade_deg'] for _, w in first if w.get('grip') == 'reverse' and 'blade_deg' in w]
+    out = [(FAIL if bad else OK,
+            f"{label}weapon angle to the forearm (deg, 0 = straight, + = up; range {lim[0]:g}..{lim[1]:g}) per frame "
+            + ' '.join(f"{n}:{w['raw_deg']:.0f}" for n, w in first) + f"  -> {min(raws):.1f}..{max(raws):.1f}"
+            + (f"  OUTSIDE (clamped by the rig): {bad}" if bad else '')
+            + (f"  [REVERSE grip: measured on the grip axis (thumb side of the fist); the blade is flipped 180 deg -> "
+               f"{min(rv):.0f}..{max(rv):.0f} deg from the forearm]" if rv else ''))]
+    if second:
+        r2 = [w['raw_deg'] for _, w in second]
+        bad2 = [f"{n} {w['raw_deg']:.1f}" for n, w in second if w.get('outside')]
+        out.append((FAIL if bad2 else OK,
+                    f"{label}SECOND hand ({second[0][1]['hand']}) wrist: weapon vs its own forearm (deg, range "
+                    f"{lim[0]:g}..{lim[1]:g}) per frame " + ' '.join(f"{n}:{w['raw_deg']:.0f}" for n, w in second)
+                    + f"  -> {min(r2):.1f}..{max(r2):.1f}" + (f"  OUTSIDE: {bad2}" if bad2 else '')
+                    + ' (owner: the wrist rule holds for every hand on the weapon)'))
+    return out
+
+
+FIST2_LINE_TOL = 1.5        # px: the second fist of a two-handed grip on the drawn weapon line
+ELBOW_FLEX_MAX = 145.0      # deg of elbow flexion (forearm-to-upper-arm angle >= 35)
+HEM_REVERSALS = 2           # direction reversals of a hem edge per cycle ...
+HEM_MOVE_PX = 2.0           # ... counted between moves of at least this many px
+
+
+def path_reversals(xs, small):
+    """direction reversals of a periodic 1-D path, counted between successive moves >= small (smaller moves skipped)"""
+    n = len(xs)
+    mv = [xs[(i + 1) % n] - xs[i] for i in range(n)]
+    sig = [1 if m > 0 else -1 for m in mv if abs(m) >= small]
+    if len(sig) < 2:
+        return 0
+    return sum(1 for i in range(len(sig)) if sig[i] != sig[i - 1])
+
+
+def elbow_checks(recs, bodies, cam):
+    """every arm, every frame: 3D elbow flexion (180 - the angle between upper arm and forearm) <= ELBOW_FLEX_MAX; the
+    on-screen angle is reported"""
+    worst, bad, scr_min = {}, [], {}
+    for r, b in zip(recs, bodies):
+        J = b.joints
+        for sd in 'NF':
+            u, f = J['S' + sd] - J['elb' + sd], J['wri' + sd] - J['elb' + sd]
+            inner = math.degrees(math.acos(max(-1.0, min(1.0, float(u @ f / (np.linalg.norm(u) * np.linalg.norm(f)))))))
+            flex = 180.0 - inner
+            worst[sd] = max(worst.get(sd, -1e9), flex)
+            if flex > ELBOW_FLEX_MAX + 1e-6:
+                bad.append(f"{r['frame']} {'near' if sd == 'N' else 'far'} {flex:.0f}")
+            p = {k: np.asarray(r['joints'][k + sd], float) for k in ('S', 'elb', 'wri')}
+            a, c = p['S'] - p['elb'], p['wri'] - p['elb']
+            if np.hypot(*a) > 1e-6 and np.hypot(*c) > 1e-6:
+                ang = math.degrees(math.acos(max(-1.0, min(1.0, float(a @ c / (np.hypot(*a) * np.hypot(*c)))))))
+                scr_min[sd] = min(scr_min.get(sd, 1e9), ang)
     return [(FAIL if bad else OK,
-             f"{label}weapon angle to the forearm (deg, 0 = straight, + = up; range {lim[0]:g}..{lim[1]:g}) per frame "
-             + ' '.join(f"{n}:{w['raw_deg']:.0f}" for n, w in rows) + f"  -> {min(raws):.1f}..{max(raws):.1f}"
-             + (f"  OUTSIDE (clamped by the rig): {bad}" if bad else '')
-             + (f"  [REVERSE grip: measured on the grip axis (thumb side of the fist); the blade is flipped 180 deg -> "
-                f"{min(rv):.0f}..{max(rv):.0f} deg from the forearm]" if rv else ''))]
+             f"elbow flexion (3D, <= {ELBOW_FLEX_MAX:g} deg = forearm-upper arm >= {180 - ELBOW_FLEX_MAX:g}): max near "
+             f"{worst['N']:.0f}, far {worst['F']:.0f}; on screen the tightest elbow angle near {scr_min.get('N', 0):.0f}, far "
+             f"{scr_min.get('F', 0):.0f} deg" + (f"  OVER THE LIMIT: {bad}" if bad else ''))]
+
+
+def second_hand_checks(recs):
+    """two-handed: the second fist on the drawn weapon line (pose.json weapon_px fist2_off_line_px)"""
+    W = [(r['frame'], r.get('weapon_px')) for r in recs]
+    offs = [(f, w['fist2_off_line_px']) for f, w in W if w and w.get('fist2_off_line_px') is not None]
+    if not offs:
+        return []
+    bad = [f'{f} {o:+.1f}' for f, o in offs if abs(o) > FIST2_LINE_TOL]
+    return [(FAIL if bad else OK, f"second fist on the weapon line (<= {FIST2_LINE_TOL:g} px; a painter following the table "
+             f"must not bend the shaft): off by " + ' '.join(f'{f}:{o:+.1f}' for f, o in offs)
+             + (f"  OFF THE LINE: {bad}" if bad else ''))]
 
 
 # weapon stability (owner verdict 2026-11-28: bent spear, wobbling greatsword / mace): every held weapon is ONE rigid object
@@ -382,6 +454,8 @@ def gait_checks(spec, recs, bodies, plains, cam, carry=None):
         out.append((FAIL if probs else OK, 'mace head clear of the shield hand (>= head radius + 8 px)' + (f': {probs}' if probs else '')))
     # weapon hand range; weapon stability; a sword blade never over the head
     out += weapon_checks('', [r['frame'] for r in recs], bodies)
+    out += second_hand_checks(recs)
+    out += elbow_checks(recs, bodies, cam)
     out += weapon_stability(recs, carry)
     if any(g['part'] == 'blade' for g in bodies[0].ghosts):
         hd = []
@@ -412,6 +486,14 @@ def robe_checks(recs, bodies, cam):
     ch = [abs(widths[i] - widths[i - 1]) / max(widths[i - 1], 1) for i in range(len(widths))]
     out.append((OK if max(ch) <= 0.16 else FAIL, f'robe hem width per frame {widths} px, max change {max(ch) * 100:.0f}% (<= 15%)'))
     out.append((OK if max(widest) <= 14 else FAIL, f'robe widest row within 14 px of the hem (A-line, no bulge): {widest}'))
+    for edge in ('back', 'front'):
+        xs = [r['hem'][edge + '_x_px'] for r in recs if r.get('hem')]
+        if len(xs) == len(recs):
+            rev = path_reversals(xs, HEM_MOVE_PX)
+            mv = [round(xs[(i + 1) % len(xs)] - xs[i], 1) for i in range(len(xs))]
+            out.append((OK if rev <= HEM_REVERSALS else FAIL,
+                        f'robe hem {edge} edge x {[round(x, 1) for x in xs]}: moves {mv}, {rev} reversals (<= {HEM_REVERSALS} '
+                        f'counting moves >= {HEM_MOVE_PX:g} px) - one smooth lagged path, no zig-zag'))
     return out
 
 

@@ -19,7 +19,7 @@
 
 - 부류: **경량** — long warm-beige field coat with the back tails at the calf, red front apron to the upper shin, dark trousers and boots; mace. (tools/art/specs/gait_classes.json). 개성은 그 위에 얹는다 (아래 「개성」).
 - 납품: art-inbox `art/inbox/gait/sheet_captain_fieldmedic_run_a.png` (R1~R4) + `art/inbox/gait/sheet_captain_fieldmedic_run_b.png` (R5~R8) + `art/inbox/NOTES.md` 절 「gait/sheet_captain_fieldmedic_run - 마그다 — 종군 의무관 (야전 의무관) 이동」 + 「## 판정 — gait/sheet_captain_fieldmedic_run」. 파일 이름은 부류와 상관없이 `_run_` (엔진의 `anims.run`).
-- 무기: 철퇴 (가까운 손) — 아래팔에 대한 손목(손잡이 축) 각도 0~120도 안 (가이드: R1:102 R2:101 R3:102 R4:101 R5:100 R6:100 R7:102 R8:104).
+- 무기: 철퇴 (먼 손), 철퇴 (가까운 손) — 아래팔에 대한 손목(손잡이 축) 각도 0~120도 안 — 두 손으로 쥐면 두 손 모두 (가이드: R1:48 R2:46 R3:48 R4:46 R5:45 R6:44 R7:48 R8:50; 둘째 손(먼 손)은 제 아래팔에 대해: R1:108 R2:108 R3:108 R4:108 R5:109 R6:109 R7:108 R8:108).
 - 보폭: 한 걸음 게임 45.5px = 경량 부류 보폭 그대로 — 맞춘 다리가 부류 마네킹과 5% 안(다리 비율 1.040)이라 다리 비율 규칙을 쓰지 않는다. 박자(80ms)도 부류 그대로.
 - 디딘 발: 한 걸음 원본 275px(게임 45.5px) → 디딘 발은 칸마다 **정확히 68.8px**(±3, 게임 11.4px) 뒤로 — 발끝 x 는 Prompt 의 PLANTED FOOT 표.
 - 클라우드가 받은 뒤: `python3 tools/art/receive.py gait/sheet_captain_fieldmedic_run` (검사 + `add_gait.py --dry-run`) → 미리보기를 주인께 보이고, 붙이는 것은 `add_gait.py` (`--pose art/requests/gait/run__captain_fieldmedic/pose.json`). 그림이 좋은지는 주인이 직접 판정한다.
@@ -29,8 +29,8 @@
 - **명암 = 깊이**: 밝은 부분이 보는 사람에게 **가깝고**, 어두운 부분이 **멀다** (가까운 팔·다리는 밝은 베이지, 먼 팔·다리는 어두운 회청색). 덧그릴 때 이 앞뒤 순서를 지킨다 — **가까운 쪽이 먼 쪽 위에** 그려진다. 무기·몸·얼굴이 겹쳐도 그 순서만 맞으면 괜찮다.
 - **청록 반투명 = 든 무기**: 실선 윤곽은 무기가 앞에 있는 곳, 점선은 몸이 무기 앞을 가리는 곳. 무기는 대기 그림의 모양으로, 청록 모양의 **선 위에 그 길이·각도 그대로** 그린다 (프롬프트의 WEAPON 표: 프레임마다 밑동·주먹·끝 좌표).
   - 철퇴 = 자루와 둥근 머리.
-- **무기는 하나의 단단한 물체다.** 모든 프레임에서 길이·모양이 같다(아래 표: 밑동→끝, 주먹→끝). 곧은 자루·칼날은 밑동부터 끝까지 **한 직선** — 자로 그어 확인하고 절대 휘지 않는다. 어떤 선에 맞추려고 줄이거나 구부리거나 늘이지 않는다. 프레임마다 표의 밑동·주먹·끝 좌표(±4px)에 놓고, 각도는 대기와 달라도 표의 값. 무기 끝은 머리보다 위로 가도 된다 — 「높이」 숫자는 머리(머리카락·투구·모자) 꼭대기일 뿐, 프레임의 맨 윗점이 아니다. 이웃 프레임 사이 무기 각도는 3도(양손 무기 1.5도) 이하, 끝은 표의 매끈한 길을 따른다 — 앞뒤로 떨지 않는다. 양손 무기는 두 주먹이 매 프레임 손잡이의 같은 자리에 있고, 무기는 가슴을 따라 움직인다(b 띠 = a 띠).
-- **각도 바뀜**: 대기 그림은 철퇴을(를) 약 63도로 든다. 달리기에서는 표의 117도 — 117도로 그린다. 대기 각도를 그대로 두지 않는다(길이·모양은 대기 그대로).
+- **무기는 하나의 단단한 물체다.** 모든 프레임에서 길이·모양이 같다(아래 표: 밑동→끝, 주먹→끝). 곧은 자루·칼날은 밑동부터 끝까지 **한 직선** — 자로 그어 확인하고 절대 휘지 않는다. 어떤 선에 맞추려고 줄이거나 구부리거나 늘이지 않는다. 프레임마다 표의 밑동·주먹·끝 좌표(±4px)에 놓는다. 각도는 대기 그대로이거나 대기 가까이(얼마나·프레임마다 어떻게·왜 바뀌는지는 아래 「각도」 줄) — 대기의 무기를 쥔 주먹을 축으로 프레임마다 표의 각도까지 한 덩어리로 돌려 그린다. 무기 끝은 머리보다 위로 가도 된다 — 「높이」 숫자는 머리(머리카락·투구·모자) 꼭대기일 뿐, 프레임의 맨 윗점이 아니다. 이웃 프레임 사이 무기 각도는 최대 1.4도(이 마네킹에서 잰 값; 검사 한도 양손 무기 1.5도), 끝은 표의 매끈한 길을 따른다 — 앞뒤로 떨지 않는다. 양손 무기는 두 주먹이 매 프레임 손잡이의 같은 자리에 있고, 무기는 가슴을 따라 움직인다(b 띠 = a 띠). 표의 **둘째 주먹은 밑동→끝 직선 위**에 있다(1.5px 안으로 검사) — 자루를 두 주먹을 지나는 한 직선으로 긋고, 둘째 손에서 꺾지 않는다.
+- **각도**: 달리기는 철퇴을(를) 화면에서 약 77도로, 팔과 함께 77~78도 사이에서 흔들리며 이웃 프레임 사이 최대 1.4도씩 바뀐다(표 그대로) — 대기 약 63도에서 +14도(약 15도 안). 대기의 무기를 그대로(길이·모양·곧은 자루) 쥔 주먹을 축으로 그만큼만 한 덩어리로 돌린다 — 프레임마다 표의 각도로(매끈한 흔들림, 튀지 않게). 이 각도에서 잰 값: 무기를 포함한 그림 전체가 칸(x 32~351) 안쪽으로 8px 이상(검사는 8px 이상).
 - 단계: R1 닿기 - R2 받기(엉덩이 가장 낮음) - R3 밀기(뒤꿈치 듦) - R4 공중(두 발 모두 뜸). R5~R8 은 먼 발로 같은 동작.
 - **높이**: 아래 「Height」 숫자는 **머리 꼭대기**(머리카락·투구·모자)일 뿐 — 무기 끝·지팡이 머리·깃털은 그보다 위로 가도 된다.
 - **손목 범위**: 무기의 손잡이 축(주먹에서 무기 끝 쪽; 활은 손잡이에서 위 활끝 쪽, 역수는 엄지 쪽)은 아래팔(팔꿈치→손목) 선에서 위쪽(엄지 쪽)으로 0~120도 안. 0 = 팔과 일직선. 그 밖으로 꺾어 늘어뜨리지 않는다 (덜렁거리는 칼 금지). 위로 들든 아래로 내리든 이 범위 안이면 된다.
@@ -40,16 +40,16 @@
 
 ## 개성
 
-**한 줄**: 부상병에게 달려가는 의무관: 경량보다 3~4도 덜 기울고 고개를 들어 앞을 살핀다. 앞무릎은 높이, 뒤꿈치는 덜 차고, 긴 철퇴는 양손 「앞에 총」으로 가슴을 가로지른다(어깨가 거의 안 돎).
+**한 줄**: 부상병에게 달려가는 의무관: 경량보다 3~4도 덜 기울고 고개를 들어 앞을 살핀다. 앞무릎은 높이, 뒤꿈치는 덜 차고, 긴 철퇴는 대기처럼 양손으로 앞-위로 세워 든다(약 78도, 쇠공은 머리 위; 어깨가 거의 안 돎).
 
 - 부상병에게 달려가는 의무관의 단호한 달리기: 경량 마네킹보다 3~4도 덜 기울고 엉덩이는 약 2px 높다 — 바렌처럼 낮게가 아니라 꼿꼿하게 달린다. 고개는 들고 수평, 눈은 앞쪽 전장을 살핀다(3D 마네킹에 이미 들어 있다 — 따라 그린다).
 - 실용적으로 무릎을 끌어올리는 보폭: 착지 전에 앞 무릎이 조금 더 올라오고, 뒤로 차는 발뒤꿈치는 덜 접힌다 — 군더더기 없이.
-- 긴 철퇴는 양손으로 '앞에 총' 자세처럼 든다: 가까운 손(완장 팔)의 주먹은 가슴 아래 앞에, 먼 손은 자루를 따라 약 90px 위 먼 어깨 근처. 자루는 가슴을 가로질러 위·뒤로, 가시 쇠공은 머리 위 뒤쪽에 얹힌다. 양손으로 쥐어 어깨는 거의 돌지 않고, 철퇴는 가슴에 고정된다(대기는 앞-위 약 63도, 달리기는 「앞에 총」 약 117도 — 117도로 그린다): 모든 프레임에서 같은 각도·제 길이, 몸을 따라 움직일 뿐 — 휘두르거나 길이가 변하지 않는다.
+- 긴 철퇴는 대기처럼 양손으로 앞-위로 세워 들되 조금 더 세운다(화면에서 약 78도, 대기 약 63도 — 가시 쇠공이 머리 위로, 칸 안에 들어가는 가장 작은 변화): 가까운 손(완장 팔) 주먹은 가슴 앞, 먼 손은 자루를 따라 약 70px **아래** 배 앞(대기와 두 손의 위아래가 바뀐다 — 달리기의 앞 기울기에서 먼 손이 위에 있으면 먼 어깨에 접혀 붙는다). 양손으로 쥐어 어깨는 거의 돌지 않고, 철퇴는 가슴에 고정된다: 모든 프레임에서 같은 각도·제 길이, 쇠공은 머리 바로 위 — 휘두르거나 펌프질하지 않는다. 대기의 철퇴를 한 덩어리로 세울 뿐 짧게 다시 그리지 않는다.
 - 높게 묶은 포니테일과 따뜻한 베이지 코트 자락은 뒤로 날리며 한 프레임 늦다(공중 프레임 R4/R8 에서 가장 높이, 받는 프레임 R2/R6 에서 가라앉음). 짙은 붉은 앞치마는 무릎 사이에서 펄럭이고, 허리 주머니 둘은 한 프레임 늦게 튄다.
 
 ## 요약 (한국어)
 
-마그다 — 종군 의무관 (야전 의무관)의 경량 달리기 8프레임(R1~R8)을 이 폴더의 3D 마네킹 가이드 위에 덧그려 `art/inbox/gait/sheet_captain_fieldmedic_run_a.png`·`art/inbox/gait/sheet_captain_fieldmedic_run_b.png` 두 띠로 art-inbox 에 올린다. 모습 — 승인된 시트 그대로의 마그다: 붉은 끈으로 높게 묶은 검은 긴 포니테일, 이마의 흰 붕대, 갈색 피부, 짙은 빨강 스카프, 뒷자락이 종아리까지 오는 따뜻한 베이지 긴 야전 코트(절대 흰색 아님)와 가까운 위팔의 무늬 없는 짙은 빨강 완장, 정강이 위까지 오는 짙은 빨강 앞치마(십자·무늬 없음), 가죽 주머니 둘이 달린 갈색 허리띠, 짙은 바지, 갈색 장화, 긴 자루 철퇴 한 자루(검은 쇠 자루, 원뿔 가시가 박힌 둥근 쇠공 머리), 엄격하고 단호한 얼굴. 치유 빛 없음. 개성 — 부상병에게 달려가는 의무관: 경량보다 3~4도 덜 기울고 고개를 들어 앞을 살핀다. 앞무릎은 높이, 뒤꿈치는 덜 차고, 긴 철퇴는 양손 「앞에 총」으로 가슴을 가로지른다(어깨가 거의 안 돎). 명암은 깊이(밝음 = 가까움)이고 그 앞뒤 순서를 지킨다. 무기 손목은 아래팔 기준 0~120도 안. 바닥 아래 소품은 손본다. 마네킹 픽셀은 하나도 남기지 않는다. 디딘 발은 칸마다 68.8px 뒤로 (발끝 x 는 PLANTED FOOT 표). 끝나면 NOTES.md 에 절과 「판정」 절을 적고 멈춘다. 그림이 좋은지는 주인이 직접 본다.
+마그다 — 종군 의무관 (야전 의무관)의 경량 달리기 8프레임(R1~R8)을 이 폴더의 3D 마네킹 가이드 위에 덧그려 `art/inbox/gait/sheet_captain_fieldmedic_run_a.png`·`art/inbox/gait/sheet_captain_fieldmedic_run_b.png` 두 띠로 art-inbox 에 올린다. 모습 — 승인된 시트 그대로의 마그다: 붉은 끈으로 높게 묶은 검은 긴 포니테일, 이마의 흰 붕대, 갈색 피부, 짙은 빨강 스카프, 뒷자락이 종아리까지 오는 따뜻한 베이지 긴 야전 코트(절대 흰색 아님)와 가까운 위팔의 무늬 없는 짙은 빨강 완장, 정강이 위까지 오는 짙은 빨강 앞치마(십자·무늬 없음), 가죽 주머니 둘이 달린 갈색 허리띠, 짙은 바지, 갈색 장화, 긴 자루 철퇴 한 자루(검은 쇠 자루, 원뿔 가시가 박힌 둥근 쇠공 머리), 엄격하고 단호한 얼굴. 치유 빛 없음. 개성 — 부상병에게 달려가는 의무관: 경량보다 3~4도 덜 기울고 고개를 들어 앞을 살핀다. 앞무릎은 높이, 뒤꿈치는 덜 차고, 긴 철퇴는 대기처럼 양손으로 앞-위로 세워 든다(약 78도, 쇠공은 머리 위; 어깨가 거의 안 돎). 명암은 깊이(밝음 = 가까움)이고 그 앞뒤 순서를 지킨다. 무기 손목은 아래팔 기준 0~120도 안. 바닥 아래 소품은 손본다. 마네킹 픽셀은 하나도 남기지 않는다. 디딘 발은 칸마다 68.8px 뒤로 (발끝 x 는 PLANTED FOOT 표). 끝나면 NOTES.md 에 절과 「판정」 절을 적고 멈춘다. 그림이 좋은지는 주인이 직접 본다.
 
 ## Prompt for GPT
 
@@ -86,19 +86,27 @@ HOW TO READ THE 3D GUIDE:
   - The teal see-through shape is the held weapon: a solid outline where it is in front, dashed where a body part covers
     it. Paint the character's own weapon (the idle's shape) ON THAT LINE at the table's length and angle (WEAPON below):
     MACE = haft and round head.
-  - WEAPON = ONE RIGID OBJECT. In every frame it has the same length and shape (the table: butt -> tip, fist -> tip). A
-    straight shaft or blade is ONE straight line from butt to tip - check it with a ruler line, never curve it. Never
-    shorten, bend or stretch it to reach a point or to stay under a line. Place it by the table's BUTT, FIST(S) and TIP
-    for each frame (+-4 px); its angle is the table's even where it differs from the idle. The tip MAY be above the
-    head and is NOT limited by the Height numbers - those are the top of the HEAD (hair / helmet / hat) only. Between
-    neighbouring frames the weapon turns at most 3 deg (two-handed: 1.5) and its tip follows the smooth path of the
-    table - no back-and-forth. Two-handed: both fists stay at the same places on the grip in every frame, and the weapon
-    rides with the chest (strip b = strip a).
-  - ANGLE CHANGE: the idle drawing holds the mace at ~63 deg; the run carries it at 117 deg (the table) - draw 117, do NOT keep the idle angle (keep its length and shape).
-  - WRIST RANGE (owner rule): every held weapon's GRIP AXIS (fist -> weapon tip; a bow: grip -> upper tip; a reverse
+  - WEAPON = ONE RIGID OBJECT. In every frame it has the same length and shape (the table: butt -> tip, fist -> tip).
+    A straight shaft or blade is ONE straight line from butt to tip - check it with a ruler line, never curve it.
+    Never shorten, bend or stretch it to reach a point or to stay under a line. Place it by the table's BUTT, FIST(S)
+    and TIP for each frame (+-4 px). Its angle is the idle's or near it (the ANGLE line below says how much, how it
+    changes from frame to frame and why): draw the idle's own weapon turned as one piece about the holding fist to the
+    table's angle in each frame. The tip MAY be above the head and is NOT limited by the Height numbers - those are
+    the top of the HEAD (hair / helmet / hat) only. Between neighbouring frames the weapon turns at most 1.4 deg
+    (measured on this mannequin; the check allows 1.5 for a two-handed weapon) and its tip follows the smooth path of
+    the table - no back-and-forth. Two-handed: both fists stay at the same places on the grip in every frame, and the
+    weapon rides with the chest (strip b = strip a). The table's 2ND FIST is ON the butt -> tip line (checked <= 1.5
+    px): draw the shaft as one straight line through BOTH fists - never kink it at the second hand.
+  - ANGLE: the run carries the mace at about 77 deg on screen, swaying 77-78 deg with the arm and changing at most 1.4
+    deg between neighbouring frames, as in the table - +14 deg from the idle's ~63 (within ~15). Keep the idle's
+    weapon as drawn (same length, shape, straight shaft), turned as one piece about the holding fist by that little -
+    following the table frame by frame (a smooth sway, never a jump). Measured at this carry: the whole figure, weapon
+    included, stays >= 8 px inside the slot band x 32..351 (the check needs >= 8).
+  - WRIST RANGE (owner rule; EVERY hand on the weapon, a two-handed grip's second hand too): every held weapon's GRIP
+    AXIS (fist -> weapon tip; a bow: grip -> upper tip; a reverse
     grip: the thumb side of the fist) points 0-120 deg UPWARD (thumb side) from the forearm line (elbow -> wrist);
     0 = straight along the forearm. Up or down on screen does not matter, but never bend it past the arm line (no
-    dangling blade) nor beyond 120 deg. The guide is inside the range in every frame (R1:102 R2:101 R3:102 R4:101 R5:100 R6:100 R7:102 R8:104 deg).
+    dangling blade) nor beyond 120 deg. The guide is inside the range in every frame (R1:48 R2:46 R3:48 R4:46 R5:45 R6:44 R7:48 R8:50; the second (far) hand, against its own forearm: R1:108 R2:108 R3:108 R4:108 R5:109 R6:109 R7:108 R8:108 deg).
   - The mannequin's round head is a placeholder: paint the character's own head, hair and headgear at the idle's size on
     its neck. The joints, limbs and torso are fitted to the idle - put the character's own body exactly on them.
   - PAINT OVER EVERY MANNEQUIN PIXEL. add_gait.py refuses a strip in which >= 25% of a frame still has the mannequin's
@@ -133,19 +141,19 @@ THE MOVE (movement class light: the accepted run: lean forward, press down in fl
       R8: feet x 76 .. 316 (hip column 192; near toe 316, far toe 59), near 27 px up, far 66 px up
   - WEAPON per frame (x in the 384-px slot, y on the canvas; the same butt->tip length in every frame - one straight
     rigid piece; tip above the head is fine):
-      R1: butt (283,679) fist (247,609) 2nd fist (206,530) tip (148,420)  angle 118 deg  butt->tip 293 px
-      R2: butt (278,679) fist (241,609) 2nd fist (199,530) tip (141,421)  angle 118 deg  butt->tip 293 px
-      R3: butt (290,682) fist (255,610) 2nd fist (214,530) tip (159,420)  angle 117 deg  butt->tip 293 px
-      R4: butt (292,682) fist (257,611) 2nd fist (217,530) tip (162,419)  angle 116 deg  butt->tip 293 px
-      R5: butt (282,680) fist (245,609) 2nd fist (204,530) tip (146,420)  angle 118 deg  butt->tip 293 px
-      R6: butt (278,679) fist (240,609) 2nd fist (198,531) tip (140,421)  angle 118 deg  butt->tip 293 px
-      R7: butt (290,682) fist (255,611) 2nd fist (215,531) tip (159,420)  angle 117 deg  butt->tip 293 px
-      R8: butt (294,681) fist (258,610) 2nd fist (219,531) tip (164,419)  angle 116 deg  butt->tip 293 px
+      R1: butt (226,672) fist (243,594) 2nd fist (228,663) tip (288,385)  angle 78 deg  butt->tip 294 px
+      R2: butt (221,673) fist (237,594) 2nd fist (223,663) tip (281,384)  angle 78 deg  butt->tip 295 px
+      R3: butt (233,674) fist (251,596) 2nd fist (235,664) tip (300,387)  angle 77 deg  butt->tip 294 px
+      R4: butt (235,674) fist (254,596) 2nd fist (237,664) tip (303,388)  angle 77 deg  butt->tip 294 px
+      R5: butt (225,673) fist (242,595) 2nd fist (227,663) tip (287,385)  angle 78 deg  butt->tip 294 px
+      R6: butt (221,673) fist (237,595) 2nd fist (223,663) tip (280,384)  angle 78 deg  butt->tip 295 px
+      R7: butt (233,674) fist (251,596) 2nd fist (235,664) tip (300,387)  angle 77 deg  butt->tip 294 px
+      R8: butt (236,674) fist (255,596) 2nd fist (239,664) tip (304,387)  angle 77 deg  butt->tip 294 px
 
 PERSONALITY (this character's own run):
   - A field medic's purposeful dash to the wounded: more UPRIGHT than the light class mannequin (3-4 deg less lean) with the hips ~2 px higher - she runs tall, not low like Baren. The head is up and level, eyes scanning the field ahead (the mannequin already has all of this - follow it).
   - Practical, knee-driving stride: the front knee comes up a little higher before the landing, and the heel kicks back LESS behind her (a short tuck) - efficient, nothing flashy.
-  - The long mace is held at PORT ARMS with BOTH hands: the near (armband) fist in front of the lower chest, the far fist ~90 px up the haft near the far shoulder, the haft across the chest and the spiked ball riding above and behind her head. Her shoulders are locked by the two-handed grip (almost no counter-turn); the mace is LOCKED to the chest (the idle holds it forward-up at ~63 deg; the run carries it at port arms, ~117 - draw 117): the same angle and full length in every frame, it rides the body only - never swings, never pumps.
+  - The long mace is held FORWARD-UP in BOTH hands like the idle, only stood up a little more (~78 deg on screen against the idle's ~63 - the least that keeps the spiked ball above her head and inside the slot): the near (armband) fist in front of the chest, the far fist ~70 px LOWER on the haft in front of the belly (the hands swap their order on the haft against the idle: with the run's forward lean a far fist above the near one would sit folded on the far shoulder). Her shoulders are locked by the two-handed grip (almost no counter-turn); the mace is LOCKED to the chest: the same angle and full length in every frame, the ball riding just above the head - never swings, never pumps. Tilt the idle's mace up as one piece; do not redraw it shorter.
   - The high ponytail and the warm-beige coat tails stream back and lag one frame (highest in the flight frames R4/R8, settling in the catch frames R2/R6); the dark-red apron flaps between the knees; the two belt pouches bounce a frame late.
   - Face: exactly as in the idle in every frame.
 

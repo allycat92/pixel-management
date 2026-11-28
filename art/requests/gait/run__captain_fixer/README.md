@@ -19,7 +19,7 @@
 
 - 부류: **경량** — black leather jacket, trousers, boots, dagger; lean agile build. (tools/art/specs/gait_classes.json). 개성은 그 위에 얹는다 (아래 「개성」).
 - 납품: art-inbox `art/inbox/gait/sheet_captain_fixer_run_a.png` (R1~R4) + `art/inbox/gait/sheet_captain_fixer_run_b.png` (R5~R8) + `art/inbox/NOTES.md` 절 「gait/sheet_captain_fixer_run - 진 — 뒷골목 해결사 (해결사) 이동」 + 「## 판정 — gait/sheet_captain_fixer_run」. 파일 이름은 부류와 상관없이 `_run_` (엔진의 `anims.run`).
-- 무기: 단검 (가까운 손) — 역수(칼날이 새끼손가락 쪽) — 아래팔에 대한 손목(손잡이 축) 각도 0~120도 안 (가이드: R1:25 R2:25 R3:25 R4:25 R5:25 R6:25 R7:25 R8:25).
+- 무기: 단검 (가까운 손) — 역수(칼날이 새끼손가락 쪽) — 아래팔에 대한 손목(손잡이 축) 각도 0~120도 안 — 두 손으로 쥐면 두 손 모두 (가이드: R1:25 R2:25 R3:25 R4:25 R5:25 R6:25 R7:25 R8:25).
 - 보폭: 한 걸음 게임 49.3px = 경량 부류 보폭 45.48px × 다리 비율 1.085 — 맞춘 마네킹의 다리(허벅지+정강이+발목)가 부류 마네킹보다 +8% 길어, 같은 관절 각도·같은 무릎 굽힘으로 디디면 한 걸음이 그만큼 길다(다리 비율 규칙: 5% 넘게 다르면 보폭이 다리를 따른다; 그대로 부류 보폭을 쓰면 무릎이 펴지거나 발이 덜 나간다). 엔진(js/battle.js runCells)은 시트마다 그 시트의 runStride/4 씩 디딘 칸을 넘기므로 디딘 발은 미끄러지지 않는다. 유닛의 빠르기는 그대로(같은 거리에서 걸음 수만 조금 적다), 박자(80ms)는 부류 그대로.
 - 디딘 발: 한 걸음 원본 298.31px(게임 49.3px) → 디딘 발은 칸마다 **정확히 74.6px**(±3, 게임 12.3px) 뒤로 — 발끝 x 는 Prompt 의 PLANTED FOOT 표.
 - 클라우드가 받은 뒤: `python3 tools/art/receive.py gait/sheet_captain_fixer_run` (검사 + `add_gait.py --dry-run`) → 미리보기를 주인께 보이고, 붙이는 것은 `add_gait.py` (`--pose art/requests/gait/run__captain_fixer/pose.json`). 그림이 좋은지는 주인이 직접 판정한다.
@@ -30,8 +30,8 @@
 - **청록 반투명 = 든 무기**: 실선 윤곽은 무기가 앞에 있는 곳, 점선은 몸이 무기 앞을 가리는 곳. 무기는 대기 그림의 모양으로, 청록 모양의 **선 위에 그 길이·각도 그대로** 그린다 (프롬프트의 WEAPON 표: 프레임마다 밑동·주먹·끝 좌표).
   - 단검 = 짧은 날과 작은 코등이.
   - **역수(거꾸로 쥐기)**: 가까운 손의 단검은 칼날이 주먹의 **새끼손가락 쪽**(주먹 아래)으로 나온다 — 보통 쥐기에서 칼날만 180도 뒤집은 것이다. 손목 규칙은 칼날이 아니라 **손잡이 축**(주먹의 엄지 쪽 방향)에 잰다: 이 축이 아래팔 선에서 위로 0~120도 안(가이드: 25도)이고, 칼날은 그 반대쪽(아래팔 선에서 새끼손가락 쪽으로 155도 — 팔뚝을 따라 뒤로 눕는다). 손목을 비트는 것이 아니다.
-- **무기는 하나의 단단한 물체다.** 모든 프레임에서 길이·모양이 같다(아래 표: 밑동→끝, 주먹→끝). 곧은 자루·칼날은 밑동부터 끝까지 **한 직선** — 자로 그어 확인하고 절대 휘지 않는다. 어떤 선에 맞추려고 줄이거나 구부리거나 늘이지 않는다. 프레임마다 표의 밑동·주먹·끝 좌표(±4px)에 놓고, 각도는 대기와 달라도 표의 값. 무기 끝은 머리보다 위로 가도 된다 — 「높이」 숫자는 머리(머리카락·투구·모자) 꼭대기일 뿐, 프레임의 맨 윗점이 아니다. 이웃 프레임 사이 무기 각도는 3도(양손 무기 1.5도) 이하, 끝은 표의 매끈한 길을 따른다 — 앞뒤로 떨지 않는다. 양손 무기는 두 주먹이 매 프레임 손잡이의 같은 자리에 있고, 무기는 가슴을 따라 움직인다(b 띠 = a 띠).
-- **각도 바뀜**: 대기 그림은 단검을(를) 약 163도로 든다. 달리기에서는 표의 179도 — 179도로 그린다. 대기 각도를 그대로 두지 않는다(길이·모양은 대기 그대로).
+- **무기는 하나의 단단한 물체다.** 모든 프레임에서 길이·모양이 같다(아래 표: 밑동→끝, 주먹→끝). 곧은 자루·칼날은 밑동부터 끝까지 **한 직선** — 자로 그어 확인하고 절대 휘지 않는다. 어떤 선에 맞추려고 줄이거나 구부리거나 늘이지 않는다. 프레임마다 표의 밑동·주먹·끝 좌표(±4px)에 놓는다. 각도는 대기 그대로이거나 대기 가까이(얼마나·프레임마다 어떻게·왜 바뀌는지는 아래 「각도」 줄) — 대기의 무기를 쥔 주먹을 축으로 프레임마다 표의 각도까지 한 덩어리로 돌려 그린다. 무기 끝은 머리보다 위로 가도 된다 — 「높이」 숫자는 머리(머리카락·투구·모자) 꼭대기일 뿐, 프레임의 맨 윗점이 아니다. 무기는 주먹에 고정되어 아래팔을 따라간다: **아래팔에 대한 각도**가 25도로 그대로이고(이웃 프레임 사이 최대 0.1도, 이 마네킹에서 잰 값), 화면에서는 **팔 흔들림과 함께** 돈다(프레임마다 최대 25.9도, 표의 각도) — 주먹 안에서 따로 돌거나 손에 대해 앞뒤로 떨지 않는다. 양손 무기는 두 주먹이 매 프레임 손잡이의 같은 자리에 있고, 무기는 가슴을 따라 움직인다(b 띠 = a 띠). 표의 **둘째 주먹은 밑동→끝 직선 위**에 있다(1.5px 안으로 검사) — 자루를 두 주먹을 지나는 한 직선으로 긋고, 둘째 손에서 꺾지 않는다.
+- **각도 바뀜(+16도, 약 15도 넘음)**: 단검은(는) 주먹에 고정되어 아래팔을 따라간다 — 모든 프레임에서 아래팔에 대한 각도 하나(25도, 손잡이 축)를 지키고, 화면에서는 팔 흔들림으로만 돈다: 표의 164 -170 -162 -159 -163 177 157 151도(평균 179도, 대기 약 163도에서 +16도). 무기를 새로 그리지 않는다: 대기의 그 단검(길이·모양 그대로)을(를) 대기처럼 주먹에 끼우고 팔이 프레임마다 표의 각도로 옮기게 한다 — 화면에서 한 각도로 고정하지 않는다. 이 각도에서 잰 값: 무기를 포함한 그림 전체가 칸(x 32~351) 안쪽으로 11px 이상(검사는 8px 이상).
 - 단계: R1 닿기 - R2 받기(엉덩이 가장 낮음) - R3 밀기(뒤꿈치 듦) - R4 공중(두 발 모두 뜸). R5~R8 은 먼 발로 같은 동작.
 - **높이**: 아래 「Height」 숫자는 **머리 꼭대기**(머리카락·투구·모자)일 뿐 — 무기 끝·지팡이 머리·깃털은 그보다 위로 가도 된다.
 - **손목 범위**: 무기의 손잡이 축(주먹에서 무기 끝 쪽; 활은 손잡이에서 위 활끝 쪽, 역수는 엄지 쪽)은 아래팔(팔꿈치→손목) 선에서 위쪽(엄지 쪽)으로 0~120도 안. 0 = 팔과 일직선. 그 밖으로 꺾어 늘어뜨리지 않는다 (덜렁거리는 칼 금지). 위로 들든 아래로 내리든 이 범위 안이면 된다.
@@ -89,16 +89,26 @@ HOW TO READ THE 3D GUIDE:
     it. Paint the character's own weapon (the idle's shape) ON THAT LINE at the table's length and angle (WEAPON below):
     DAGGER = a short blade with a small guard.
     REVERSE GRIP (near hand dagger): the blade comes out of the LITTLE-FINGER side of the fist (under the fist) - a normal grip with only the blade flipped 180 deg, the pommel on the thumb side. The wrist rule is measured on the GRIP AXIS (the thumb side of the fist), not on the blade: that axis stays 0-120 deg up from the forearm line (guide: 25 deg) and the blade points the opposite way (155 deg from the forearm line on the little-finger side - lying back along the forearm). The wrist is not twisted for it.
-  - WEAPON = ONE RIGID OBJECT. In every frame it has the same length and shape (the table: butt -> tip, fist -> tip). A
-    straight shaft or blade is ONE straight line from butt to tip - check it with a ruler line, never curve it. Never
-    shorten, bend or stretch it to reach a point or to stay under a line. Place it by the table's BUTT, FIST(S) and TIP
-    for each frame (+-4 px); its angle is the table's even where it differs from the idle. The tip MAY be above the
-    head and is NOT limited by the Height numbers - those are the top of the HEAD (hair / helmet / hat) only. Between
-    neighbouring frames the weapon turns at most 3 deg (two-handed: 1.5) and its tip follows the smooth path of the
-    table - no back-and-forth. Two-handed: both fists stay at the same places on the grip in every frame, and the weapon
-    rides with the chest (strip b = strip a).
-  - ANGLE CHANGE: the idle drawing holds the dagger at ~163 deg; the run carries it at 179 deg (the table) - draw 179, do NOT keep the idle angle (keep its length and shape).
-  - WRIST RANGE (owner rule): every held weapon's GRIP AXIS (fist -> weapon tip; a bow: grip -> upper tip; a reverse
+  - WEAPON = ONE RIGID OBJECT. In every frame it has the same length and shape (the table: butt -> tip, fist -> tip).
+    A straight shaft or blade is ONE straight line from butt to tip - check it with a ruler line, never curve it.
+    Never shorten, bend or stretch it to reach a point or to stay under a line. Place it by the table's BUTT, FIST(S)
+    and TIP for each frame (+-4 px). Its angle is the idle's or near it (the ANGLE line below says how much, how it
+    changes from frame to frame and why): draw the idle's own weapon turned as one piece about the holding fist to the
+    table's angle in each frame. The tip MAY be above the head and is NOT limited by the Height numbers - those are
+    the top of the HEAD (hair / helmet / hat) only. The weapon is set in the fist and rides the forearm: its angle TO
+    THE FOREARM stays 25 deg (it turns at most 0.1 deg between neighbouring frames, measured on this mannequin), so on
+    screen it turns WITH THE ARM swing (up to 25.9 deg a frame, the table's angles) - never on its own in the fist, no
+    back-and-forth against the hand. Two-handed: both fists stay at the same places on the grip in every frame, and
+    the weapon rides with the chest (strip b = strip a). The table's 2ND FIST is ON the butt -> tip line (checked <=
+    1.5 px): draw the shaft as one straight line through BOTH fists - never kink it at the second hand.
+  - ANGLE CHANGE (+16 deg, more than ~15): the dagger is set in the fist and rides the forearm - it keeps ONE angle to
+    the forearm in every frame (25 deg, grip axis), so on screen it turns only with the arm swing: 164 -170 -162 -159
+    -163 177 157 151 deg in the table (on average 179, +16 deg from the idle's ~163). Do NOT redraw the weapon: set
+    the idle's own dagger (same length and shape) in the fist as the idle does and let the arm carry it to the table's
+    angle in each frame - never hold it at one screen angle. Measured at this carry: the whole figure, weapon
+    included, stays >= 11 px inside the slot band x 32..351 (the check needs >= 8).
+  - WRIST RANGE (owner rule; EVERY hand on the weapon, a two-handed grip's second hand too): every held weapon's GRIP
+    AXIS (fist -> weapon tip; a bow: grip -> upper tip; a reverse
     grip: the thumb side of the fist) points 0-120 deg UPWARD (thumb side) from the forearm line (elbow -> wrist);
     0 = straight along the forearm. Up or down on screen does not matter, but never bend it past the arm line (no
     dangling blade) nor beyond 120 deg. The guide is inside the range in every frame (R1:25 R2:25 R3:25 R4:25 R5:25 R6:25 R7:25 R8:25 deg).

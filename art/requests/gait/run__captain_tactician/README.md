@@ -19,7 +19,7 @@
 
 - 부류: **경량** — charcoal military coat to the knee, trousers, boots, short cane. (tools/art/specs/gait_classes.json). 개성은 그 위에 얹는다 (아래 「개성」).
 - 납품: art-inbox `art/inbox/gait/sheet_captain_tactician_run_a.png` (R1~R4) + `art/inbox/gait/sheet_captain_tactician_run_b.png` (R5~R8) + `art/inbox/NOTES.md` 절 「gait/sheet_captain_tactician_run - 이사벨 — 퇴역 참모 (전술가) 이동」 + 「## 판정 — gait/sheet_captain_tactician_run」. 파일 이름은 부류와 상관없이 `_run_` (엔진의 `anims.run`).
-- 무기: 지팡이 (가까운 손) — 아래팔에 대한 손목(손잡이 축) 각도 0~120도 안 (가이드: R1:82 R2:76 R3:83 R4:81 R5:70 R6:66 R7:81 R8:88).
+- 무기: 지팡이 (가까운 손) — 아래팔에 대한 손목(손잡이 축) 각도 0~120도 안 — 두 손으로 쥐면 두 손 모두 (가이드: R1:82 R2:76 R3:83 R4:81 R5:70 R6:66 R7:81 R8:88).
 - 보폭: 한 걸음 게임 48.5px = 경량 부류 보폭 45.48px × 다리 비율 1.066 — 맞춘 마네킹의 다리(허벅지+정강이+발목)가 부류 마네킹보다 +7% 길어, 같은 관절 각도·같은 무릎 굽힘으로 디디면 한 걸음이 그만큼 길다(다리 비율 규칙: 5% 넘게 다르면 보폭이 다리를 따른다; 그대로 부류 보폭을 쓰면 무릎이 펴지거나 발이 덜 나간다). 엔진(js/battle.js runCells)은 시트마다 그 시트의 runStride/4 씩 디딘 칸을 넘기므로 디딘 발은 미끄러지지 않는다. 유닛의 빠르기는 그대로(같은 거리에서 걸음 수만 조금 적다), 박자(80ms)는 부류 그대로.
 - 디딘 발: 한 걸음 원본 293.12px(게임 48.5px) → 디딘 발은 칸마다 **정확히 73.3px**(±3, 게임 12.1px) 뒤로 — 발끝 x 는 Prompt 의 PLANTED FOOT 표.
 - 클라우드가 받은 뒤: `python3 tools/art/receive.py gait/sheet_captain_tactician_run` (검사 + `add_gait.py --dry-run`) → 미리보기를 주인께 보이고, 붙이는 것은 `add_gait.py` (`--pose art/requests/gait/run__captain_tactician/pose.json`). 그림이 좋은지는 주인이 직접 판정한다.
@@ -29,8 +29,8 @@
 - **명암 = 깊이**: 밝은 부분이 보는 사람에게 **가깝고**, 어두운 부분이 **멀다** (가까운 팔·다리는 밝은 베이지, 먼 팔·다리는 어두운 회청색). 덧그릴 때 이 앞뒤 순서를 지킨다 — **가까운 쪽이 먼 쪽 위에** 그려진다. 무기·몸·얼굴이 겹쳐도 그 순서만 맞으면 괜찮다.
 - **청록 반투명 = 든 무기**: 실선 윤곽은 무기가 앞에 있는 곳, 점선은 몸이 무기 앞을 가리는 곳. 무기는 대기 그림의 모양으로, 청록 모양의 **선 위에 그 길이·각도 그대로** 그린다 (프롬프트의 WEAPON 표: 프레임마다 밑동·주먹·끝 좌표).
   - 지팡이 = 곧은 막대와 끝의 둥근 머리.
-- **무기는 하나의 단단한 물체다.** 모든 프레임에서 길이·모양이 같다(아래 표: 밑동→끝, 주먹→끝). 곧은 자루·칼날은 밑동부터 끝까지 **한 직선** — 자로 그어 확인하고 절대 휘지 않는다. 어떤 선에 맞추려고 줄이거나 구부리거나 늘이지 않는다. 프레임마다 표의 밑동·주먹·끝 좌표(±4px)에 놓고, 각도는 대기와 달라도 표의 값. 무기 끝은 머리보다 위로 가도 된다 — 「높이」 숫자는 머리(머리카락·투구·모자) 꼭대기일 뿐, 프레임의 맨 윗점이 아니다. 이웃 프레임 사이 무기 각도는 3도(양손 무기 1.5도) 이하, 끝은 표의 매끈한 길을 따른다 — 앞뒤로 떨지 않는다. 양손 무기는 두 주먹이 매 프레임 손잡이의 같은 자리에 있고, 무기는 가슴을 따라 움직인다(b 띠 = a 띠).
-- **각도 바뀜**: 대기 그림은 지팡이을(를) 약 -90도로 든다. 달리기에서는 표의 62도 — 62도로 그린다. 대기 각도를 그대로 두지 않는다(길이·모양은 대기 그대로).
+- **무기는 하나의 단단한 물체다.** 모든 프레임에서 길이·모양이 같다(아래 표: 밑동→끝, 주먹→끝). 곧은 자루·칼날은 밑동부터 끝까지 **한 직선** — 자로 그어 확인하고 절대 휘지 않는다. 어떤 선에 맞추려고 줄이거나 구부리거나 늘이지 않는다. 프레임마다 표의 밑동·주먹·끝 좌표(±4px)에 놓는다. 각도는 대기 그대로이거나 대기 가까이(얼마나·프레임마다 어떻게·왜 바뀌는지는 아래 「각도」 줄) — 대기의 무기를 쥔 주먹을 축으로 프레임마다 표의 각도까지 한 덩어리로 돌려 그린다. 무기 끝은 머리보다 위로 가도 된다 — 「높이」 숫자는 머리(머리카락·투구·모자) 꼭대기일 뿐, 프레임의 맨 윗점이 아니다. 이웃 프레임 사이 무기 각도는 최대 3도(이 마네킹에서 잰 값; 검사 한도 한 손 무기 3.5도), 끝은 표의 매끈한 길을 따른다 — 앞뒤로 떨지 않는다. 양손 무기는 두 주먹이 매 프레임 손잡이의 같은 자리에 있고, 무기는 가슴을 따라 움직인다(b 띠 = a 띠). 표의 **둘째 주먹은 밑동→끝 직선 위**에 있다(1.5px 안으로 검사) — 자루를 두 주먹을 지나는 한 직선으로 긋고, 둘째 손에서 꺾지 않는다.
+- **각도 바뀜(+152도, 약 15도 넘음)**: 대기 그림은 지팡이을(를) 약 -90도로 든다. 달리기에서는 화면에서 약 62도로, 팔과 함께 58~66도 사이에서 흔들리며 이웃 프레임 사이 최대 3도씩 바뀐다(표 그대로). 무기를 새로 그리지 않는다: 대기의 그 무기(길이·모양·곧은 자루 그대로)를 쥔 주먹을 축으로 한 덩어리로 돌린다 — 프레임마다 표의 각도로(매끈한 흔들림, 튀지 않게), 대기 각도 쪽으로 왔다 갔다 하지 않는다. 이 각도에서 잰 값: 무기를 포함한 그림 전체가 칸(x 32~351) 안쪽으로 14px 이상(검사는 8px 이상).
 - 단계: R1 닿기 - R2 받기(엉덩이 가장 낮음) - R3 밀기(뒤꿈치 듦) - R4 공중(두 발 모두 뜸). R5~R8 은 먼 발로 같은 동작.
 - **높이**: 아래 「Height」 숫자는 **머리 꼭대기**(머리카락·투구·모자)일 뿐 — 무기 끝·지팡이 머리·깃털은 그보다 위로 가도 된다.
 - **손목 범위**: 무기의 손잡이 축(주먹에서 무기 끝 쪽; 활은 손잡이에서 위 활끝 쪽, 역수는 엄지 쪽)은 아래팔(팔꿈치→손목) 선에서 위쪽(엄지 쪽)으로 0~120도 안. 0 = 팔과 일직선. 그 밖으로 꺾어 늘어뜨리지 않는다 (덜렁거리는 칼 금지). 위로 들든 아래로 내리든 이 범위 안이면 된다.
@@ -87,16 +87,25 @@ HOW TO READ THE 3D GUIDE:
   - The teal see-through shape is the held weapon: a solid outline where it is in front, dashed where a body part covers
     it. Paint the character's own weapon (the idle's shape) ON THAT LINE at the table's length and angle (WEAPON below):
     STAFF = a straight pole with a round knob at the end.
-  - WEAPON = ONE RIGID OBJECT. In every frame it has the same length and shape (the table: butt -> tip, fist -> tip). A
-    straight shaft or blade is ONE straight line from butt to tip - check it with a ruler line, never curve it. Never
-    shorten, bend or stretch it to reach a point or to stay under a line. Place it by the table's BUTT, FIST(S) and TIP
-    for each frame (+-4 px); its angle is the table's even where it differs from the idle. The tip MAY be above the
-    head and is NOT limited by the Height numbers - those are the top of the HEAD (hair / helmet / hat) only. Between
-    neighbouring frames the weapon turns at most 3 deg (two-handed: 1.5) and its tip follows the smooth path of the
-    table - no back-and-forth. Two-handed: both fists stay at the same places on the grip in every frame, and the weapon
-    rides with the chest (strip b = strip a).
-  - ANGLE CHANGE: the idle drawing holds the staff at ~-90 deg; the run carries it at 62 deg (the table) - draw 62, do NOT keep the idle angle (keep its length and shape).
-  - WRIST RANGE (owner rule): every held weapon's GRIP AXIS (fist -> weapon tip; a bow: grip -> upper tip; a reverse
+  - WEAPON = ONE RIGID OBJECT. In every frame it has the same length and shape (the table: butt -> tip, fist -> tip).
+    A straight shaft or blade is ONE straight line from butt to tip - check it with a ruler line, never curve it.
+    Never shorten, bend or stretch it to reach a point or to stay under a line. Place it by the table's BUTT, FIST(S)
+    and TIP for each frame (+-4 px). Its angle is the idle's or near it (the ANGLE line below says how much, how it
+    changes from frame to frame and why): draw the idle's own weapon turned as one piece about the holding fist to the
+    table's angle in each frame. The tip MAY be above the head and is NOT limited by the Height numbers - those are
+    the top of the HEAD (hair / helmet / hat) only. Between neighbouring frames the weapon turns at most 3 deg
+    (measured on this mannequin; the check allows 3.5 for a one-handed weapon) and its tip follows the smooth path of
+    the table - no back-and-forth. Two-handed: both fists stay at the same places on the grip in every frame, and the
+    weapon rides with the chest (strip b = strip a). The table's 2ND FIST is ON the butt -> tip line (checked <= 1.5
+    px): draw the shaft as one straight line through BOTH fists - never kink it at the second hand.
+  - ANGLE CHANGE (+152 deg, more than ~15): the idle holds the staff at ~-90 deg; the run carries it at about 62 deg
+    on screen, swaying 58-66 deg with the arm and changing at most 3 deg between neighbouring frames, as in the table.
+    Do NOT redraw the weapon: take the idle's own weapon (same length, shape and straight shaft) and turn it as ONE
+    piece about the holding fist to the table's angle, following the table frame by frame (a smooth sway, never a
+    jump); it never swings back toward the idle angle and forth. Measured at this carry: the whole figure, weapon
+    included, stays >= 14 px inside the slot band x 32..351 (the check needs >= 8).
+  - WRIST RANGE (owner rule; EVERY hand on the weapon, a two-handed grip's second hand too): every held weapon's GRIP
+    AXIS (fist -> weapon tip; a bow: grip -> upper tip; a reverse
     grip: the thumb side of the fist) points 0-120 deg UPWARD (thumb side) from the forearm line (elbow -> wrist);
     0 = straight along the forearm. Up or down on screen does not matter, but never bend it past the arm line (no
     dangling blade) nor beyond 120 deg. The guide is inside the range in every frame (R1:82 R2:76 R3:83 R4:81 R5:70 R6:66 R7:81 R8:88 deg).
