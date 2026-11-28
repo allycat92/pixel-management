@@ -1684,3 +1684,10 @@ effect of the forecast.
 TREE=<base> OUT=oosb node coll.js --strategy sensible --seeds 8101 --jobs 3      # new re-forecast seeds; also human 8101
 TREE=<tree> OUT=live_<tree> node coll.js --strategy sensible --seeds 10101 --jobs 4   # live; also human
 ```
+
+
+## Engine VER 2 — melee no longer carries ranged units (2026-11-28)
+
+**History note:** the VER 1→2 engine change (`HOLD` after an attack, `backOff()` for ranged units, `BACK_ROOM` near edges) landed by accident inside commit `d16be70`, whose message says "Merge C29 (display only)". The lead staged `js/battle.js` while the push-fix workflow was writing it. Anyone bisecting a win-rate or calibration shift: the movement change is in `d16be70`, not a later commit. Old battle-mode reports with VER 1 no longer replay (they open the written report directly; C30 `e3e10f3` removed the TypeError on that path).
+
+Measured (push-fix workflow, 6 seeds × 200 days of judged battles): edge episodes 440 → 0, "carried" ticks 14.9% → 1.4%, backwards idle-glide ticks 130,711 → 1,509; roll md5 unchanged (roll never reads the engine for state), battle.js 100 miss 0, shadow --check 0. Paired win rates: all 백중 50.9→49.2%, 우세 88.0→88.1%. **But bosses:** 백중 50.0→38.7% (n 62), 우세 88.5→85.4% (n 96) → boss calibration and the retreat look are being reworked (round 2).

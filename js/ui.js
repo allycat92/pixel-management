@@ -362,6 +362,8 @@ const UI = (() => {
         renderTop();
       });
       const head = battle.querySelector('.battle-head');
+      // 맞지 않는 옛 재생은 관전 창 없이 저장된 결과를 연다.
+      if (!head) return;
       head.firstChild.replaceWith(
         el('span', { class: 'battle-title', text: r.quest.title }), ' — ',
         el('span', { class: 'battle-region', text: PROVINCES[r.quest.province].name }));
