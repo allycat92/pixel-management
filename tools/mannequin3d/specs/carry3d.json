@@ -1325,17 +1325,17 @@
         ],
         "neck_up": -3.0,
         "pelvis_twist": 6.0,
-        "summary_ko": "기사단과 이름을 잃은 노기사단장의 무거운 행군: 로드릭과 반대로 상체를 앞으로 숙이고(약 10도) 턱을 당겨 눈썹 아래로 앞을 보며, 엉덩이는 내내 낮게 깔려 거의 오르내리지 않는다(출렁임 약 3px). 대신 어깨와 골반이 좌우로 구르지만(6/4) 두 손 장검은 가슴에 고정되어 기울지 않는다.",
+        "summary_ko": "기사단과 이름을 잃은 노기사단장의 무거운 행군: 로드릭과 반대로 상체를 앞으로 숙이고(약 10도) 턱을 당겨 눈썹 아래로 앞을 보며, 엉덩이는 내내 낮게 깔려 거의 오르내리지 않는다(출렁임 약 5px). 대신 어깨와 골반이 좌우로 구르지만(6/4) 두 손 장검은 가슴에 고정되어 기울지 않는다.",
         "notes": [
           "An OLD knight commander's heavy, weary march - he lost his order and his name, and still marches on: the trunk LEANS forward about 10 deg (the heavy class mannequin leans 5; Roderick stands at 3), the shoulders rounded under the plate, the chin DOWN so he looks ahead from under his heavy grey brows (the neck does not turn back up). The mannequin already has all of it - follow it.",
-          "Low and level: the knees stay bent the whole cycle, the hips sit 5-7 px below the class mannequin and barely rise or fall (about 3 px over the cycle - Roderick dips 11 px into each footfall and rises again). The lifted foot is picked up a little (foot a few px higher in the passing and reach frames) so the old boots clear the ground - a plodding, deliberate step.",
+          "Low and level: the knees stay bent the whole cycle, the hips sit 4-7 px below the class mannequin and barely rise or fall (about 5 px over the cycle; at the contact frames they come up ~3 px so the trailing boot stays within the reference stride - Roderick dips 11 px into each footfall and rises again). The lifted foot is picked up a little (foot a few px higher in the passing and reach frames) so the old boots clear the ground - a plodding, deliberate step.",
           "Rolling shoulders: the hips and the chest turn MORE than the heavy class (pelvis twist 6 deg, chest counter-turn 4) - a side-to-side heave of an old man in plate, not Roderick's square, locked trunk.",
           "The two-handed longsword is held as in the idle at its full length - BOTH fists on one hilt (near fist on the belt, far fist just under the cross-guard), elbows tucked, the blade forward-up at about 72 deg. It is LOCKED to the chest: the same angle and length in every frame, riding only the body's bob - it does not tip with the rolling shoulders, no slash, no swing.",
           "The rear blue cape and the tattered tabard swing heavily one frame late with the rolling hips; the grey hair and beard barely lift (the head does not bob)."
         ],
         "notes_ko": [
           "늙은 기사단장의 무겁고 지친 행군 — 기사단과 이름을 잃고도 걷는다: 몸통을 앞으로 약 10도 숙이고(중량 마네킹 5도, 로드릭은 3도로 꼿꼿), 판금 아래 어깨가 둥글게 말린다. 턱을 **당겨** 짙은 회색 눈썹 아래로 앞을 본다(목을 되세우지 않는다). 3D 마네킹에 이미 들어 있다 — 따라 그린다.",
-          "낮고 평평하게: 무릎은 내내 굽어 있고 엉덩이는 부류 마네킹보다 5~7px 낮게 깔려 거의 오르내리지 않는다(한 바퀴 출렁임 약 3px — 로드릭은 디딜 때마다 11px 가라앉았다 올라온다). 드는 발은 무릎을 조금 더 굽혀 낡은 장화가 땅에 걸리지 않게 — 터벅터벅 신중한 걸음.",
+          "낮고 평평하게: 무릎은 내내 굽어 있고 엉덩이는 부류 마네킹보다 4~7px 낮게 깔려 거의 오르내리지 않는다(한 바퀴 출렁임 약 5px — 닿기 프레임에서 뒷발이 기준 보폭 안에 있게 약 3px 올라온다 — 로드릭은 디딜 때마다 11px 가라앉았다 올라온다). 드는 발은 무릎을 조금 더 굽혀 낡은 장화가 땅에 걸리지 않게 — 터벅터벅 신중한 걸음.",
           "구르는 어깨: 엉덩이와 가슴이 중량 부류보다 **더** 돈다(골반 6도, 가슴 반대 회전 4) — 판금 입은 노인의 좌우로 흔들리는 무게, 로드릭의 네모나게 굳은 몸통이 아니다.",
           "양손 장검은 대기 그림처럼 제 길이 그대로 든다 — 두 주먹이 한 손잡이에(가까운 주먹은 허리띠 위, 먼 주먹은 십자 가드 바로 밑), 팔꿈치는 몸에 붙이고, 칼날은 앞-위로 약 72도. 장검은 가슴에 고정된다: 모든 프레임에서 같은 각도·같은 길이, 몸의 출렁임만 따른다 — 구르는 어깨를 따라 기울지 않고, 베거나 휘두르지 않는다.",
           "뒤쪽 파란 망토와 해진 타바드는 구르는 엉덩이를 따라 한 프레임 늦게 무겁게 흔들린다. 회색 머리와 수염은 거의 들리지 않는다(머리가 오르내리지 않는다)."

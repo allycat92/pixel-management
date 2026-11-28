@@ -622,11 +622,13 @@ def arm_ik3d(P, pose, side, goal, iters=80, weapon_dir=None, limit=None):
     wlo, whi = limit if limit is not None else WEAPON_LIMIT
     wlo, whi = wlo + WRIST_IK_MARGIN, whi - WRIST_IK_MARGIN
 
+    reg = [IK3D_REG]
+
     def resid(x):
         qq = dict(q)
         qq['shoulder_' + side], qq['elbow_' + side], qq['arm_abd_' + side], qq['arm_twist_' + side] = x
         _, _, hand, _, R_fa, _ = arm_chain(P, qq, side, sho, Rb)
-        extra = [IK3D_REG * x[2], IK3D_REG * x[3]]
+        extra = [reg[0] * x[2], reg[0] * x[3]]
         if weapon_dir is not None:
             v = R_fa.T @ weapon_dir         # the forearm runs along local -y: angle from it, + = the flex sense
             a = _wrap(math.degrees(math.atan2(v[1], v[0])) + 90.0)
@@ -659,6 +661,25 @@ def arm_ik3d(P, pose, side, goal, iters=80, weapon_dir=None, limit=None):
         if best is None or cost < best[0] - 1e-9:
             best = (cost, x)
     x = best[1]
+    # polish: the regularisation picked the family member; a few steps without it put the hand exactly on the goal
+    reg[0] = 1e-4
+    r = resid(x)
+    lam = 1e-3
+    for _ in range(20):
+        Jm = np.zeros((len(r), 4))
+        for k in range(4):
+            dx = np.zeros(4)
+            dx[k] = 0.02
+            Jm[:, k] = (resid(x + dx) - resid(x - dx)) / 0.04
+        xn = np.clip(x - np.linalg.solve(Jm.T @ Jm + lam * np.eye(4), Jm.T @ r), lo, hi)
+        rn = resid(xn)
+        if rn @ rn < r @ r:
+            x, r = xn, rn
+            lam *= 0.3
+        else:
+            lam *= 10.0
+        if np.linalg.norm(hand_of(x) - goal) < 1e-4 or lam > 1e6:
+            break
     res = float(np.linalg.norm(hand_of(x) - goal))
     return float(x[0]), float(x[1]), float(x[2]), float(x[3]), res
 

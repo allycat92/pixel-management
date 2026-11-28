@@ -95,7 +95,8 @@ GAITS = {
         'contact_rear_flex_max': 24.0,             # the trailing leg at double support: nearly straight, angled back (2D 9 / 24)
         'screen_mirror': True,                     # hips square to the camera, feet by screen x: strip b mirrors strip a
         'rear_heel_min': -0.81,                    # trailing heel at contact >= -0.81 step from the hip column (heavy_base -0.81,
-                                                   # the accepted ironwall run -0.70 / -0.77)
+                                                   # the accepted ironwall run -0.70 / -0.77) ...
+        'rear_heel_rise_max': 3.0,                 # ... giving back at most 3 px of a personality's hip drop for it
         'arm': [(-4.0, 70.0), (-5.0, 66.0), (-2.0, 68.0), (2.0, 72.0), (4.0, 70.0), (5.0, 66.0), (2.0, 68.0), (-2.0, 72.0)],
         'pelvis_twist': 4.0, 'chest_counter': 2.0, 'head_pitch': 2.0,
     },
@@ -115,6 +116,7 @@ GAITS = {
         'contact_rear_flex_max': 26.0,             # robe_base: 27 / 33
         'screen_mirror': True,
         'rear_heel_min': -0.81,                    # robe_base -0.77 / -0.75, the accepted mage run -0.69 / -0.70 (the fitted boots reach -0.81)
+        'rear_heel_rise_max': 3.0,
         'arm': [(-10.0, 72.0), (-12.0, 76.0), (-4.0, 74.0), (6.0, 72.0), (10.0, 72.0), (12.0, 76.0), (4.0, 74.0), (-6.0, 72.0)],
         'pelvis_twist': 4.0, 'chest_counter': 3.0, 'head_pitch': 2.0,
         # robe proxy: hem height (robe_base v1: 38-52 px, check fail < 38), hem corner lift, margins around the leading
@@ -363,12 +365,14 @@ def gait_keys(spec, P, cam, carry):
                 return ok_all and REAR_FLEX_MIN <= kn <= lim, ok_all and REAR_FLEX_MIN <= kn <= REAR_FLEX_LOOSE, heel_ok, heel
             strict, _, heel_ok, _ = state()
             if not (strict and heel_ok):
-                # candidates: hip given back 0, 0.5, ... px (up to the class table) x heel peel from the current pitch to
-                # PEEL_MIN. Wanted, in order: the knee inside the class limit and the heel inside the accepted range with the
-                # least hip given back; the same with the knee up to REAR_FLEX_LOOSE (< the 30 deg check); else the legal
-                # one with the heel furthest forward
+                # candidates: hip given back 0, 0.5, ... px (up to the class table) x heel peel PEEL_MAX..PEEL_MIN. Wanted, in
+                # order: the knee inside the class limit and the heel inside the accepted range (rear_heel_min) with at most
+                # rear_heel_rise_max px of the personality's hip drop given back; the same with the knee up to
+                # REAR_FLEX_LOOSE (< the 30 deg check); else the legal pose with the heel furthest forward within that hip
+                # budget (or what the knee alone needs) - a personality's low hips are kept over the last px of heel
                 h0 = pose['hip_h']
                 top = max(table_h, h0)
+                rmax = spec.get('rear_heel_rise_max', 0.0)
                 p_first = int(math.floor(sp[-1]))
                 cands = []
                 rise = 0.0
@@ -380,14 +384,21 @@ def gait_keys(spec, P, cam, carry):
                         stance, ok_all = solve_legs()
                         st, lo_, hok, heel = state()
                         if lo_:
-                            cands.append((st, hok, heel, pose['hip_h'], float(pl)))
+                            cands.append((st, hok, heel, pose['hip_h'], float(pl), pose['hip_h'] - h0))
                     if pose['hip_h'] >= top - 1e-6 or any(c[0] and c[1] for c in cands):
                         break
                     rise += 0.5
-                near = lambda c: (round(c[3], 2), abs(c[4] - p_first))      # least hip given back, pitch nearest the table
-                pick = (min((c for c in cands if c[0] and c[1]), key=near, default=None)
-                        or min((c for c in cands if c[1]), key=near, default=None)
-                        or max((c for c in cands if c[0]), key=lambda c: (c[2], -c[3]), default=None))
+                near = lambda c: (round(c[5], 2), abs(c[4] - p_first))      # least hip given back, pitch nearest the table
+                ok_r = lambda c: c[5] <= rmax + 1e-6
+                strict = [c for c in cands if c[0]]
+                rneed = min((c[5] for c in strict), default=None)
+                pool = [c for c in cands if rneed is not None and c[5] <= max(rmax, rneed) + 1e-6]
+                pick = (min((c for c in cands if c[0] and c[1] and ok_r(c)), key=near, default=None)
+                        or min((c for c in cands if c[1] and ok_r(c)), key=near, default=None)
+                        # the personality's hip drop is worth more than the last px of heel: the legal pose with the heel
+                        # furthest forward using no more hip than the knee needs (or rear_heel_rise_max)
+                        or max(pool, key=lambda c: (round(c[2], 1), -c[5]), default=None)
+                        or max(strict, key=lambda c: (c[2], -c[3]), default=None))
                 if pick:
                     pose['hip_h'], sp[-1] = pick[3], pick[4]
                 else:                                  # nothing legal: the incoming pitch at the personality's hip
@@ -542,7 +553,8 @@ def lock_grip(P, pose, ref, props, cam):
 
 CHANNELS = ['hip_h', 'pelvis_pitch', 'spine_pitch', 'chest_pitch', 'pelvis_yaw', 'chest_yaw', 'head_pitch', 'neck_pitch',
             'thigh_N', 'knee_N', 'ankle_N', 'thigh_F', 'knee_F', 'ankle_F',
-            'shoulder_N', 'elbow_N', 'shoulder_F', 'elbow_F', 'wrist_N', 'wrist_F', 'arm_abd_N', 'arm_abd_F']
+            'shoulder_N', 'elbow_N', 'shoulder_F', 'elbow_F', 'wrist_N', 'wrist_F', 'arm_abd_N', 'arm_abd_F',
+            'abd_N', 'abd_F']     # leg abduction too: a target-solved swing leg is solved in its sagittal plane (abd 0)
 
 
 def gait_frames(spec, P, cam, carry, n=8):

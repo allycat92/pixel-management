@@ -1764,9 +1764,11 @@ def write_request_3d(sid, folder, cls, stem, short, p, date, spec, man):
     wang1 = [(fr, w) for fr, w in wang if w.get('role') != 'second']
     wang2 = [(fr, w) for fr, w in wang if w.get('role') == 'second']
     wang_txt = ' '.join(f'{fr}:{w["deg"]:.0f}' for fr, w in wang1)
+    wang_ko = wang_txt
     if wang2:
-        wang_txt += (f'; the second ({"near" if wang2[0][1]["hand"] == "N" else "far"}) hand, against its own forearm: '
-                     + ' '.join(f'{fr}:{w["deg"]:.0f}' for fr, w in wang2))
+        w2 = ' '.join(f'{fr}:{w["deg"]:.0f}' for fr, w in wang2)
+        wang_txt += f'; the second ({"near" if wang2[0][1]["hand"] == "N" else "far"}) hand, against its own forearm: {w2}'
+        wang_ko += f'; 둘째 손({"가까운" if wang2[0][1]["hand"] == "N" else "먼"} 손)은 제 아래팔에 대해: {w2}'
     wl_ko, wl_en = weapon_lines(wang1, wmin, wmax)
     stride_ko, stride_en = stride_rule_lines(spec3, step, sc)
     summary_ko = pz.get('summary_ko')
@@ -1832,7 +1834,7 @@ def write_request_3d(sid, folder, cls, stem, short, p, date, spec, man):
         f'- 부류: **{ko_cls}** — {(spec["sheets"].get(sid) or {}).get("why", "")} ({SPEC}). 개성은 그 위에 얹는다 (아래 「개성」).',
         f'- 납품: art-inbox `{dl[0]}` ({frames[0]["frame"]}~{frames[3]["frame"]}) + `{dl[1]}` ({frames[4]["frame"]}~{frames[7]["frame"]}) + '
         f'`art/inbox/NOTES.md` 절 「{notes_h[3:]}」 + 「## 판정 — gait/{stem}_run」. 파일 이름은 부류와 상관없이 `_run_` (엔진의 `anims.run`).',
-        f'- 무기: {held_txt} — 아래팔에 대한 손목(손잡이 축) 각도 {wmin:g}~{wmax:g}도 안 (가이드: {wang_txt}).',
+        f'- 무기: {held_txt} — 아래팔에 대한 손목(손잡이 축) 각도 {wmin:g}~{wmax:g}도 안 — 두 손으로 쥐면 두 손 모두 (가이드: {wang_ko}).',
         stride_ko,
         f'- 디딘 발: 한 걸음 원본 {step:g}px(게임 {step * sc:.1f}px) → 디딘 발은 칸마다 **정확히 {q:.1f}px**(±3, 게임 {q * sc:.1f}px) 뒤로 — 발끝 x 는 '
         'Prompt 의 PLANTED FOOT 표.',
