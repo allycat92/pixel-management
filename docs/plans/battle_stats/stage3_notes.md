@@ -1691,3 +1691,80 @@ TREE=<tree> OUT=live_<tree> node coll.js --strategy sensible --seeds 10101 --job
 **History note:** the VER 1→2 engine change (`HOLD` after an attack, `backOff()` for ranged units, `BACK_ROOM` near edges) landed by accident inside commit `d16be70`, whose message says "Merge C29 (display only)". The lead staged `js/battle.js` while the push-fix workflow was writing it. Anyone bisecting a win-rate or calibration shift: the movement change is in `d16be70`, not a later commit. Old battle-mode reports with VER 1 no longer replay (they open the written report directly; C30 `e3e10f3` removed the TypeError on that path).
 
 Measured (push-fix workflow, 6 seeds × 200 days of judged battles): edge episodes 440 → 0, "carried" ticks 14.9% → 1.4%, backwards idle-glide ticks 130,711 → 1,509; roll md5 unchanged (roll never reads the engine for state), battle.js 100 miss 0, shadow --check 0. Paired win rates: all 백중 50.9→49.2%, 우세 88.0→88.1%. **But bosses:** 백중 50.0→38.7% (n 62), 우세 88.5→85.4% (n 96) → boss calibration and the retreat look are being reworked (round 2).
+
+### Round 2 — one retreat run instead of 6 px hops; boss bands re-measured (2026-11-28)
+
+**Owner review of round 1:**
+- The retreat started on the impact tick. The ranged unit flashed from the hit inside the attacker's swing pose and came out about 6 px further back; the attacker then stepped 6 px and hit again. It read as being knocked back step by step.
+- Facing flipped twice per retreat (one mage: about 30 flips in 11 s).
+
+**Change (`js/battle.js`, still `VER = 2`):** a ranged unit's retreat is now one run (`u.run` = start time, `u.runDir`, `u.runNext`).
+- **Start.** A run starts only when the hit reaction has played in place (`RUN_DELAY` 0.2 s ≥ the 0.18 s flash and hit-kick).
+  - Every enemy melee that targets the unit from close by must be in recovery: `RUN_DELAY` has passed since its last attack and its next attack is more than `RUN_SAFE` 0.3 s away. A stunned melee also counts.
+  - The running body leaves melee reach within about 0.1 s, so it is not hit while running (115 hits-while-running in 6,777 runs, mostly arrows).
+  - The run direction points away from all near melee units and the target, then bends halfway toward the allies. When melee units stand on both sides, the vectors cancel and the unit does not run.
+  - A run does not start when a body stands `RUN_LOOK` 10 px ahead (`clearAhead`).
+- **Duration.** The direction is fixed for the whole run, so the unit no longer turns mid-run when its target changes.
+  - Minimum: `RUN_MIN` 0.55 s. After that, the run stops once the gap beyond the chaser's reach reaches `RUN_GAP_OK` 16 px, or the unit is ready to shoot.
+  - Maximum: `RUN_MAX` 0.8 s.
+  - The run also stops when the unit is blocked or makes less than 30% of a step's progress in the run direction. This prevents a glide against facing.
+  - It also stops at `BACK_ROOM` from an edge, when caught by a moving chaser, or when stunned. Using a special skill ends the run.
+- **While running.** The unit does not shoot; it turns back once at the end and shoots. The next run waits `RUN_REST` 2.5 s.
+- **Chasers.** An enemy melee within `RUN_NEAR` 30 px of a running target stands until the run ends, then chases. The chaser never moves together with its target. If its attack comes ready while the target is still in reach, it swings.
+- **Retargeting.** A ranged unit now keeps its current target unless another target scores `RETARGET_KEEP` 12 points closer on the target score. Before this, a ranged unit standing between enemies on both sides turned left and right every 0.4–0.7 s.
+- **Unchanged.** Movement speed, `HOLD`, `BACK_ROOM`, and separation.
+- **Replays.** `VER` is not bumped. The replay already re-runs the spec and compares `ver` and `hash`, so a report written by round 1 (also `VER 2`) gets a hash mismatch. It opens the written report directly instead of a replay, exactly as a `VER` bump would make it do. Round-1 reports therefore no longer replay.
+
+**Probe:** 6 seeds × 200 days of judged battles, our ranged units in contact. Columns are VER 1 base (`d16be70^`) / round 1 (HEAD) / round 2.
+
+| | VER 1 | round 1 | round 2 |
+|---|---|---|---|
+| edge episodes | 440 | 0 | 0 |
+| carried ticks | 14.88% | 1.40% | 0.55% |
+| backwards glide ticks | 130,711 | 1,509 | 204 |
+| retreat episodes per contact-minute | 47.1 (backpedal) | 56.9 | 14.2 |
+| retreat length, median (p10–p90) | 1.8 px (0.6–18.5) | 3.1 px (1.1–10.8) | 13.7 px (6.3–16.8) |
+| retreat time, median | 0.1 s | 0.15 s | 0.55 s |
+| retreats under 8 px | 73% | 81% | 12% |
+| start after the chaser's attack, median (p10) | – | 0 s (0) | 0.35 s (0.15) |
+| facing flips per contact-second | 0.08 | 0.58 | 0.15 |
+
+The probe battles differ in number (1,492 / 1,552 / 1,366) because each engine changes the bot's trajectory.
+
+Gates:
+- Roll md5 `f1712f75dd50877f69a65caf254be083`, with and without `SIM_SHADOW=1`.
+- `node tools/sim/battle.js 100`: miss 0, soft 0.
+- `node tools/sim/shadow.js 6 365 --resolve battle --check --jobs 3`: all 0 (2,682 battles).
+
+**Bands, paired:** the same specs through all three engines; win % listed as VER 1 / round 1 / round 2.
+- Specs came from the battle-mode bot over 80 seeds × 365 days (101–180).
+  - Bosses: every distinct boss offer, plus every other free company mustered alone against the same boss. Rows with R < 0.55 were dropped; they cannot reach 열세 under any grid point.
+  - Non-boss: seeds 101–112 only. All sent battles, plus 12% of the distinct offers.
+
+| population | 열세 | 백중 | 우세 | 압도 |
+|---|---|---|---|---|
+| boss offers | 16.4/15.2/18.0 (1356) | 47.5/50.7/**50.0** (970) | 91.5/89.5/**88.8** (447) | 100 (66) |
+| boss sent | – | 43.2/46.2/**45.7** (199) | 93.3/91.3/**92.0** (300) | 100 (45) |
+| non-boss offers | 12.9/13.6/17.8 (286) | 50.7/55.8/54.8 (217) | 91.1/89.1/91.5 (293) | 100/99.6/100 (247) |
+| non-boss sent | – | 50.9/52.1/**50.6** (727) | 89.5/89.3/**89.8** (2638) | 99.8/100/100 (2215) |
+
+**Round 1's boss drop was mostly sample noise.**
+- On round 1's own boss specs (61 / 91 sent battles from `push/fix/specs_*`), 백중 reads 49.2 / 39.3 / 47.5 and 우세 89.0 / 85.7 / 85.7.
+- On the 15× larger set above, round 1 itself reads 50.7 / 89.5.
+
+**Boss refit:**
+- **Grid.** `BM_CAL_SPECIAL.boss` 0.70–0.90, `BM_CAL_BOSS.sure` 0.45–0.8, `arch` 1 / 1.5 / 2, `BM_CAL_HEAL.boss` 1 / 1.18. Fitted on round-2 winners of the boss offers.
+- **Score.** Distance to 백중 50% / 우세 87.5%, with n ≥ 150 per band.
+- **Result.**
+  - Best: sure 0.7 → offers 50.2 / 87.7 (823 / 472), sent 47.2 / 91.1.
+  - sure 0.65 → offers 50.2 / 87.9, sent 46.2 / 91.4; log-loss 0.2400 against 0.2404 now.
+  - The current values give 50.0 / 88.8 and 45.7 / 92.0.
+- **Decision.** All of these are inside the target and within one standard error of each other (about 1.7 pp at 백중, 1.5 pp at 우세). **The boss knobs stay as they are** (`BM_CAL_BOSS` arch 1.5, sure 0.6; `SPECIAL.boss` 0.87; `HEAL.boss` 1.18), and the tab digest is unchanged.
+- **Still open.** Sent boss 우세 is 92.0% (n 300), slightly above 90%. VER 1 read 93.3% on the same specs, so this is not new.
+
+**Owner GIFs** (game's own `Battle.play` in Chromium, deviceScaleFactor 1, upscaled ×2, virtual 25 fps clock so the GIFs play at true speed):
+- Location: the push-fix workflow's `push2/gif/` scratch folder.
+- Cases: archer vs bandits, mage vs bandits, and a boss (모래 폭군 against an archer). Each has a 1× clip and a 4× full battle.
+- Side-by-side crops of the same case in VER 1 / round 1 / round 2, as `sbs_*.gif` and `_strip.png`.
+
+**Seen, not changed:** when a standing ranged unit overlaps an ally that dashed into it, and then takes one step, separation moves it out up to about 9 px in one tick. This predates VER 2; the largest one-tick separation in contact is 25 px in VER 1 and 31 px in round 1, against 24 px now. It is not part of the retreat.
