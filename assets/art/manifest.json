@@ -1026,7 +1026,7 @@
   },
   "sheet/captain/fixer": {
     "file": "assets/art/sheets/sheet_captain_fixer.png",
-    "h": 192,
+    "h": 384,
     "sheet": {
       "anchor": [
         48,
@@ -1057,6 +1057,20 @@
             240
           ],
           "to": 3
+        },
+        "run": {
+          "from": 7,
+          "ms": [
+            80,
+            80,
+            80,
+            80,
+            80,
+            80,
+            80,
+            80
+          ],
+          "to": 14
         }
       },
       "cell": [
@@ -1092,8 +1106,57 @@
         [
           192,
           96
+        ],
+        [
+          0,
+          192
+        ],
+        [
+          96,
+          192
+        ],
+        [
+          192,
+          192
+        ],
+        [
+          288,
+          192
+        ],
+        [
+          0,
+          288
+        ],
+        [
+          96,
+          288
+        ],
+        [
+          192,
+          288
+        ],
+        [
+          288,
+          288
         ]
-      ]
+      ],
+      "gait": "light",
+      "gaits": {
+        "run": {
+          "center": 192,
+          "class": "light",
+          "floor": 870,
+          "ms": 80,
+          "pose": "art/requests/gait/run__captain_fixer/pose.json",
+          "src": [
+            "art/inbox/gait/sheet_captain_fixer_run_a.png",
+            "art/inbox/gait/sheet_captain_fixer_run_b.png"
+          ],
+          "step_px": 298.31,
+          "stride": 49.3
+        }
+      },
+      "runStride": 49.3
     },
     "w": 384
   },
@@ -1318,7 +1381,7 @@
   },
   "sheet/captain/huntress": {
     "file": "assets/art/sheets/sheet_captain_huntress.png",
-    "h": 192,
+    "h": 384,
     "sheet": {
       "anchor": [
         48,
@@ -1349,6 +1412,20 @@
             240
           ],
           "to": 3
+        },
+        "run": {
+          "from": 7,
+          "ms": [
+            80,
+            80,
+            80,
+            80,
+            80,
+            80,
+            80,
+            80
+          ],
+          "to": 14
         }
       },
       "cell": [
@@ -1384,8 +1461,57 @@
         [
           192,
           96
+        ],
+        [
+          0,
+          192
+        ],
+        [
+          96,
+          192
+        ],
+        [
+          192,
+          192
+        ],
+        [
+          288,
+          192
+        ],
+        [
+          0,
+          288
+        ],
+        [
+          96,
+          288
+        ],
+        [
+          192,
+          288
+        ],
+        [
+          288,
+          288
         ]
-      ]
+      ],
+      "gait": "light",
+      "gaits": {
+        "run": {
+          "center": 192,
+          "class": "light",
+          "floor": 870,
+          "ms": 80,
+          "pose": "art/requests/gait/run__captain_huntress/pose.json",
+          "src": [
+            "art/inbox/gait/sheet_captain_huntress_run_a.png",
+            "art/inbox/gait/sheet_captain_huntress_run_b.png"
+          ],
+          "step_px": 275.0,
+          "stride": 45.5
+        }
+      },
+      "runStride": 45.5
     },
     "w": 384
   },
@@ -2537,7 +2663,7 @@
   },
   "sheet/captain/tactician": {
     "file": "assets/art/sheets/sheet_captain_tactician.png",
-    "h": 192,
+    "h": 384,
     "sheet": {
       "anchor": [
         48,
@@ -2568,6 +2694,20 @@
             240
           ],
           "to": 3
+        },
+        "run": {
+          "from": 7,
+          "ms": [
+            80,
+            80,
+            80,
+            80,
+            80,
+            80,
+            80,
+            80
+          ],
+          "to": 14
         }
       },
       "cell": [
@@ -2603,8 +2743,57 @@
         [
           192,
           96
+        ],
+        [
+          0,
+          192
+        ],
+        [
+          96,
+          192
+        ],
+        [
+          192,
+          192
+        ],
+        [
+          288,
+          192
+        ],
+        [
+          0,
+          288
+        ],
+        [
+          96,
+          288
+        ],
+        [
+          192,
+          288
+        ],
+        [
+          288,
+          288
         ]
-      ]
+      ],
+      "gait": "light",
+      "gaits": {
+        "run": {
+          "center": 192,
+          "class": "light",
+          "floor": 870,
+          "ms": 80,
+          "pose": "art/requests/gait/run__captain_tactician/pose.json",
+          "src": [
+            "art/inbox/gait/sheet_captain_tactician_run_a.png",
+            "art/inbox/gait/sheet_captain_tactician_run_b.png"
+          ],
+          "step_px": 293.12,
+          "stride": 48.5
+        }
+      },
+      "runStride": 48.5
     },
     "w": 384
   },
@@ -2683,7 +2872,7 @@
   },
   "sheet/captain/veteran": {
     "file": "assets/art/sheets/sheet_captain_veteran.png",
-    "h": 192,
+    "h": 384,
     "sheet": {
       "anchor": [
         48,
@@ -2714,6 +2903,20 @@
             240
           ],
           "to": 3
+        },
+        "run": {
+          "from": 7,
+          "ms": [
+            80,
+            80,
+            80,
+            80,
+            80,
+            80,
+            80,
+            80
+          ],
+          "to": 14
         }
       },
       "cell": [
@@ -2749,8 +2952,57 @@
         [
           192,
           96
+        ],
+        [
+          0,
+          192
+        ],
+        [
+          96,
+          192
+        ],
+        [
+          192,
+          192
+        ],
+        [
+          288,
+          192
+        ],
+        [
+          0,
+          288
+        ],
+        [
+          96,
+          288
+        ],
+        [
+          192,
+          288
+        ],
+        [
+          288,
+          288
         ]
-      ]
+      ],
+      "gait": "light",
+      "gaits": {
+        "run": {
+          "center": 192,
+          "class": "light",
+          "floor": 870,
+          "ms": 80,
+          "pose": "art/requests/gait/run__captain_veteran/pose.json",
+          "src": [
+            "art/inbox/gait/sheet_captain_veteran_run_a.png",
+            "art/inbox/gait/sheet_captain_veteran_run_b.png"
+          ],
+          "step_px": 275.0,
+          "stride": 45.5
+        }
+      },
+      "runStride": 45.5
     },
     "w": 384
   },
@@ -3791,7 +4043,7 @@
   },
   "sheet/hero/kai": {
     "file": "assets/art/sheets/sheet_hero_kai.png",
-    "h": 192,
+    "h": 384,
     "sheet": {
       "anchor": [
         48,
@@ -3822,6 +4074,20 @@
             240
           ],
           "to": 3
+        },
+        "run": {
+          "from": 7,
+          "ms": [
+            80,
+            80,
+            80,
+            80,
+            80,
+            80,
+            80,
+            80
+          ],
+          "to": 14
         }
       },
       "cell": [
@@ -3857,8 +4123,57 @@
         [
           192,
           96
+        ],
+        [
+          0,
+          192
+        ],
+        [
+          96,
+          192
+        ],
+        [
+          192,
+          192
+        ],
+        [
+          288,
+          192
+        ],
+        [
+          0,
+          288
+        ],
+        [
+          96,
+          288
+        ],
+        [
+          192,
+          288
+        ],
+        [
+          288,
+          288
         ]
-      ]
+      ],
+      "gait": "light",
+      "gaits": {
+        "run": {
+          "center": 192,
+          "class": "light",
+          "floor": 870,
+          "ms": 80,
+          "pose": "art/requests/gait/run__hero_kai/pose.json",
+          "src": [
+            "art/inbox/gait/sheet_hero_kai_run_a.png",
+            "art/inbox/gait/sheet_hero_kai_run_b.png"
+          ],
+          "step_px": 275.0,
+          "stride": 45.5
+        }
+      },
+      "runStride": 45.5
     },
     "w": 384
   },
