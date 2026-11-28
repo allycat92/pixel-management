@@ -160,28 +160,61 @@ def _solve_stances(spec, P, pose, phi, cam):
     return stance, ok_all
 
 
+PERSONALITY_KEYS = ('lean_add', 'hip_drop', 'neck_up', 'pelvis_twist', 'swing_add', 'notes', 'notes_ko', 'about')
+
+
+def _per_half(v, half, default=0.0):
+    """a personality value: one number for all four half-cycle frames, or a list of four (contact, catch, push, flight)"""
+    if v is None:
+        return default
+    return float(v[half]) if isinstance(v, (list, tuple)) else float(v)
+
+
+def personality(carry):
+    """the character's movement personality (specs/carry3d.json `personality`) - small offsets ON TOP of the class
+    gait table, never its rhythm: the stride (step_px), the cadence (ms) and the stance-foot rule are the class's, so the
+    engine's runCells still keeps the planted foot still. Keys:
+      lean_add   deg added to the table lean (number or [contact, catch, push, flight])
+      hip_drop   px the hips sit lower than the table (number or 4 values; legs re-solved by IK -> more knee bend)
+      neck_up    deg the neck turns back up against the extra lean (eyes stay on the road)
+      pelvis_twist  replaces the table's pelvis twist amplitude
+      swing_add  {leg phase: [d_thigh, d_knee, d_foot_pitch]} added to the swing-leg table (e.g. tuck the heel higher in
+                 the flight frames so the lower hips keep the flight clearance)
+      notes / notes_ko  prose for the request README (what the painter should feel in the motion)"""
+    pz = dict(carry.get('personality') or {})
+    bad = [k for k in pz if k not in PERSONALITY_KEYS]
+    if bad:
+        raise ValueError(f'carry3d personality: unknown keys {bad} (known: {PERSONALITY_KEYS})')
+    return pz
+
+
 def gait_keys(spec, P, cam, carry):
-    """the 8 key poses of a gait (dicts), with meta. Stance legs solved by IK."""
+    """the 8 key poses of a gait (dicts), with meta. Stance legs solved by IK. The character's `personality`
+    (carry3d.json) offsets the lean, hip height, neck and swing legs - never the stride or the cadence."""
     k_leg = leg_factor(P)
+    pz = personality(carry)
+    swing_add = {round(float(k), 4): v for k, v in (pz.get('swing_add') or {}).items()}
     rows = []
     for f in range(8):
         phi = f / 8.0
         half = f % 4
-        L = spec['lean'][half]
+        L = spec['lean'][half] + _per_half(pz.get('lean_add'), half)
         cc = carry.get('chest_counter', spec['chest_counter'])
         pose = {
-            'hip_h': spec['hip_h'][half] * k_leg,
+            'hip_h': (spec['hip_h'][half] - _per_half(pz.get('hip_drop'), half)) * k_leg,
             # 1.2 x the table lean: the screen lean (hip -> neck base) of the turned, curved trunk comes out ~0.83 x
             'pelvis_pitch': L * 0.5, 'spine_pitch': L * 0.35, 'chest_pitch': L * 0.35,
-            'pelvis_yaw': carry.get('pelvis_yaw', 0.0) - spec['pelvis_twist'] * math.cos(2 * math.pi * phi),
+            'pelvis_yaw': carry.get('pelvis_yaw', 0.0) - pz.get('pelvis_twist', spec['pelvis_twist']) * math.cos(2 * math.pi * phi),
             'chest_yaw': carry.get('chest_open', 30.0) + cc * math.cos(2 * math.pi * phi) * 2,
             'head_pitch': spec['head_pitch'],
-            'neck_pitch': -L * 0.5,
+            'neck_pitch': -L * 0.5 - _per_half(pz.get('neck_up'), half),
         }
         for side, off in (('N', 0.0), ('F', 0.5)):
             psi = round((phi + off) % 1.0, 4)
             if psi in spec['swing']:
                 th, kn, pitch = spec['swing'][psi]
+                dth, dkn, dp = (list(swing_add.get(psi, [])) + [0.0, 0.0, 0.0])[:3]
+                th, kn, pitch = th + dth, kn + dkn, pitch + dp
                 pose['thigh_' + side], pose['knee_' + side], pose['ankle_' + side] = th, kn, pitch - (th - kn)
         for side in 'NF':
             arm_f = (f + (0 if side == 'N' else 4)) % 8

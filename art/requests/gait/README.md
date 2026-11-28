@@ -26,6 +26,12 @@
 - **디딘 발 규칙** (병과 전사 R5 를 한 번 고친 까닭): 엔진은 디딘 칸마다 유닛을 한 걸음의 1/4 만큼 나아가게 한다. 그래서 그림에서도 땅에 디딘 발은
   **칸마다 정확히 step/4 만큼 왼쪽으로**(경량 68.8px · 중량 35.6px · 로브 33.5px, ±3) 옮겨 그려야 게임에서 발이 땅에 붙어 있다. 요청서마다 칸 좌표의 발끝 x 표가 있고,
   `size_*.png` 에 노란 눈금으로 찍혀 있다. (전사 R5 는 디딘 발이 R1 보다 약 30px 앞에 그려져 R5→R6 에서 게임 5px 미끄러졌다 → 발 x 297 → 265 로 고침.)
+- **3D 마네킹 요청 (주인 2026-11-28, 시범: 바렌 `run__captain_blademaster/`)**: `python3 tools/art/gait_requests.py --write <시트> --guides 3d`
+  는 부류 공용 2D 마네킹 대신 그 캐릭터의 대기 그림에 맞춘 3D 마네킹(`tools/mannequin3d/request.py`, 캐릭터 항목은
+  `tools/mannequin3d/specs/carry3d.json` — 든 것·팔·손목 범위 0~120도·개성)으로 같은 폴더를 만든다: `guide_<p>_a/b.png`(관절 점·무기 유령·명암 = 깊이),
+  `guide_<p>_plain_a/b.png`(밑그림), `size_<p>_a/b.png`, `pose.json`(`mannequin3d` 표시, 시트 배율), `preview_<p>.gif`·`preview_<p>_game_x4.gif`.
+  보폭·박자·디딘 발 규칙은 부류 그대로이고, 개성(기울기·엉덩이 높이·무기 드는 법)만 캐릭터마다 다르다. `--check` 는 3D 폴더의
+  carry3d.json 항목과 가이드 PNG 가 만든 때와 같은지 본다. 납품에 마네킹 색이 남거나 실루엣이 가이드와 거의 같으면 `add_gait.py` 가 받지 않는다.
 
 ## 요청 목록
 
@@ -53,7 +59,7 @@
 | [`run__captain_admiral/`](run__captain_admiral/README.md) | `sheet/captain/admiral` 마렌 이동 | 경량 · `art/requests/guides/run_base/v2` | `art/inbox/gait/sheet_captain_admiral_run_a.png` + `_b.png` | 요청 |
 | [`run__captain_bard/`](run__captain_bard/README.md) | `sheet/captain/bard` 리코 — 노래하는 검 (음유 검객) 이동 | 경량 · `art/requests/guides/run_base/v2` | `art/inbox/gait/sheet_captain_bard_run_a.png` + `_b.png` | 요청 |
 | [`run__captain_beastmaster/`](run__captain_beastmaster/README.md) | `sheet/captain/beastmaster` 오르가 이동 | 경량 · `art/requests/guides/run_base/v2` | `art/inbox/gait/sheet_captain_beastmaster_run_a.png` + `_b.png` | 요청 |
-| [`run__captain_blademaster/`](run__captain_blademaster/README.md) | `sheet/captain/blademaster` 바렌 — 떠돌이 검귀 (검귀) 이동 | 경량 · `art/requests/guides/run_base/v2` | `art/inbox/gait/sheet_captain_blademaster_run_a.png` + `_b.png` | 요청 |
+| [`run__captain_blademaster/`](run__captain_blademaster/README.md) | `sheet/captain/blademaster` 바렌 — 떠돌이 검귀 (검귀) 이동 (3D 마네킹) | 경량 · 3D 마네킹 `art/requests/gait/run__captain_blademaster/` | `art/inbox/gait/sheet_captain_blademaster_run_a.png` + `_b.png` | 요청 |
 | [`run__captain_elfwarden/`](run__captain_elfwarden/README.md) | `sheet/captain/elfwarden` 세레니엘 이동 | 경량 · `art/requests/guides/run_base/v2` | `art/inbox/gait/sheet_captain_elfwarden_run_a.png` + `_b.png` | 요청 |
 | [`run__captain_fieldmedic/`](run__captain_fieldmedic/README.md) | `sheet/captain/fieldmedic` 마그다 이동 | 경량 · `art/requests/guides/run_base/v2` | `art/inbox/gait/sheet_captain_fieldmedic_run_a.png` + `_b.png` | 요청 |
 | [`run__captain_fixer/`](run__captain_fixer/README.md) | `sheet/captain/fixer` 진 — 뒷골목 해결사 (해결사) 이동 | 경량 · `art/requests/guides/run_base/v2` | `art/inbox/gait/sheet_captain_fixer_run_a.png` + `_b.png` | 요청 |

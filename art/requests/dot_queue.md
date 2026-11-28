@@ -19,6 +19,12 @@ Claude Code 가 받아서 확인한 결과는 `art/requests/feedback.md`에 남�
 
 > **⏸ 전부 보류 (주인 2026-11-28): 그림 납품을 멈춘다.** 그래픽 제작 방식을 다시 정하는 중이다. 아래 줄은 하나도 시작하지 말고, 그리던 것도 art-inbox 에 올리지 말고 멈춘다(작업 파일은 PC 에 보관). 클라우드는 이 표시를 지울 때까지 납품을 받지 않는다. 새 지시는 이 자리에 적는다.
 
+> **▶ 보류 예외 — 이 한 줄만 한다 (주인 2026-11-28 「이것도 시켜보자」): 3D 마네킹 시험.** 아래 표의 다른 줄은 여전히 보류.
+
+| 누구 | 종류 | id | 할 일 (자세한 것은 그 줄의 요청서) |
+|---|---|---|---|
+| Antigravity | **3D 시험** | `gait/sheet_captain_blademaster_run` | 바렌 달리기 8프레임 — **3D 마네킹 안내 그림 첫 시험**(2D 요청서를 대체). 낮게 앞으로 숙인 검사의 달리기, 카타나는 한 손으로 어깨에. 마네킹 픽셀은 전부 덮어 그린다(그대로 쓰면 add_gait 가 거부). 납품 NOTES 에 「3D GUIDE: 도움 된 점 / 헷갈린 점」 한 줄. 요청서 `art/requests/gait/run__captain_blademaster/README.md` |
+
 **2026-11-26 주인 결정: 그림 일은 모두 Antigravity 가 전담한다**(새 그림·동작 프레임·마네킹·Aseprite 손질). 아래 표에서 「누구」가 PC·GPT 로 적힌 옛 줄도 Antigravity 가 한다. GPT 계통은 시험·버그 수정·QA 로 옮겼다(`docs/agents/README.md`).
 
 | 누구 | 종류 | id | 할 일 (자세한 것은 그 줄의 요청서) |
@@ -27,7 +33,6 @@ Claude Code 가 받아서 확인한 결과는 `art/requests/feedback.md`에 남�
 | Antigravity | new | `gait/sheet_captain_saintknight_run` | 대장 성광 기사 중량 이동 8프레임 (C8 요청서, 클라우드 대조 검증 반영). 요청서 `art/requests/gait/heavy__captain_saintknight/README.md` |
 | Antigravity | new | `gait/sheet_captain_archmagus_run` | 대장 대현자 로브 이동 8프레임 (C8 요청서, 클라우드 대조 검증 반영). 요청서 `art/requests/gait/robe__captain_archmagus/README.md` |
 | Antigravity | new | `gait/sheet_captain_lightbearer_run` | 대장 빛의 사제 로브 이동 8프레임 (C8 요청서, 클라우드 대조 검증 반영). 요청서 `art/requests/gait/robe__captain_lightbearer/README.md` |
-| Antigravity | new | `gait/sheet_captain_blademaster_run` | 대장 검성 달리기 8프레임 (C8 요청서, 클라우드 대조 검증 반영). 요청서 `art/requests/gait/run__captain_blademaster/README.md` |
 | Antigravity | new | `gait/sheet_captain_huntress_run` | 대장 사냥꾼 달리기 8프레임 (C8 요청서, 클라우드 대조 검증 반영). 요청서 `art/requests/gait/run__captain_huntress/README.md` |
 | Antigravity | new | `gait/sheet_captain_bard_run` | 대장 음유시인 달리기 8프레임 (C8 요청서, 클라우드 대조 검증 반영). 요청서 `art/requests/gait/run__captain_bard/README.md` |
 | Antigravity | new | `gait/sheet_captain_fixer_run` | 대장 해결사 달리기 8프레임 (C8 요청서, 클라우드 대조 검증 반영). 요청서 `art/requests/gait/run__captain_fixer/README.md` |

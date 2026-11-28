@@ -10,7 +10,7 @@ The cloud Claude session is the planning lead: it writes the requests, runs the 
 Read AGENTS.md and docs/agents/README.md (sections 「그림 전담」 and 「공통 규칙」). Talk to the owner in Korean, short and plain.
 Every time you are told "계속" / "continue":
 
-0. **HOLD (owner 2026-11-28): all art deliveries are paused while the owner rethinks the graphics method.** If 「지금 차례」 in dot_queue.md starts with the ⏸ 보류 note, do not start, continue or push any art; report IDLE and wait. Keep unfinished work files on the PC only.
+0. **HOLD (owner 2026-11-28): all art deliveries are paused while the owner rethinks the graphics method.** If 「지금 차례」 in dot_queue.md starts with the ⏸ 보류 note, do not start, continue or push any art; report IDLE and wait. EXCEPTION (owner 2026-11-28): rows listed under the '▶ 보류 예외' note right below the banner ARE to be done (currently: the 3D-mannequin pilot `gait/sheet_captain_blademaster_run`). Keep unfinished work files on the PC only.
 1. git fetch origin. On origin/claude/dot-fantasy-management-game-saupju read art/requests/dot_queue.md, section 「지금 차례」.
 2. Take the TOP art row that is ready (status DOT_READY / NEEDS_FIX / 다시; rows whose owner column says Antigravity, PC or GPT are
    all yours now; skip rows marked 보류). No such row -> say "할 일 없음" and stop.

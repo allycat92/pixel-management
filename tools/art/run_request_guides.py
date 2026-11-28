@@ -332,6 +332,109 @@ def scale_strip(strip, ratio):
     return out
 
 
+def idle_panel(geo):
+    """the accepted idle for the SIZE panel -> (idle rgb, idle mask, y offset, x offset of idle column 0 in the panel)"""
+    sheet = np.asarray(Image.open(path(geo['source'])).convert('RGB'))
+    ix0, ix1 = geo['idle_x']
+    idle = gait_idle_source(sheet, geo['source_layout'], geo['source_split'])[:, ix0:ix1 + 1]
+    idle_y = 0
+    if geo['source_layout'] == '2x2':
+        # 위 왼쪽 원본은 y≈461에 디딘다. 위치 비교판은 y=870으로 옮기고 배율은 유지한다.
+        idle_y = FLOOR - geo['idle_low'] + geo['idle_top']
+        idle = idle[geo['idle_top']:geo['idle_low'] + 1]
+    imask = fig_mask(idle)
+    ox = int(round(HIP - (geo['anchor_col'] - ix0)))        # idle column 0 lands here in the SIZE panel
+    return idle, imask, idle_y, ox
+
+
+def size_panel(geo, cls, half, strip, frs, flight_any, mannequin_label, out_path, outline_strip=None, notes=()):
+    """write one size_<p>_<half>.png: the SIZE panel (the accepted idle, faint, placed as the engine places it, with the
+    first mannequin frame of the strip outlined over it at the same scale) + the 4 strip frames in their delivery slots with
+    the floor line, hip columns, the 32-px band, planted-toe ticks and (light run) the flight line.
+    strip = the frames shown in the 4 slots; outline_strip = the frames whose first slot is outlined on the idle (default:
+    strip); notes = extra paragraphs under the two standard ones (3D guides)."""
+    idle, imask, idle_y, ox = idle_panel(geo)
+    outline_strip = strip if outline_strip is None else outline_strip
+    f_reg = ImageFont.truetype(FONT, 22)
+    f_small = ImageFont.truetype(FONT, 18)
+    f_big = ImageFont.truetype(FONTB, 28)
+    W = SLOT * 5
+    canvas = np.zeros((1024, W, 3), np.uint8)
+    canvas[:] = MAG
+    # SIZE panel (slot 0): faint idle, anchor column on x=192, soles on y=870 (2x2 idle is moved down without resizing)
+    lo, hi = max(0, -ox), min(idle.shape[1], SLOT - ox)
+    faint = (idle.astype(float) * 0.45 + np.array([235, 235, 235]) * 0.55).astype(np.uint8)
+    sub = canvas[idle_y:idle_y + idle.shape[0], ox + lo:ox + hi]
+    m = imask[:, lo:hi]
+    sub[m] = faint[:, lo:hi][m]
+    # mannequin first frame of this strip as a cyan outline over it
+    canvas[:, 0:SLOT][outline(fig_mask(outline_strip[:, 0:SLOT]))] = (0, 200, 255)
+    im = Image.fromarray(canvas)
+    d = ImageDraw.Draw(im)
+    d.rectangle([0, 300, SLOT - 1, 1023], outline=(255, 255, 255), width=3)
+    dashed_v(d, HIP, 362, 882, (255, 255, 255), dash=8, gap=8, w=1)
+    for s in range(4):
+        x0 = SLOT + s * SLOT
+        d.rectangle([x0, 300, x0 + SLOT - 1, 1023], outline=(60, 0, 60), width=1)
+        dashed_v(d, x0 + BAND, 362, 882, (150, 60, 150), dash=4, gap=8, w=1)
+        dashed_v(d, x0 + SLOT - 1 - BAND, 362, 882, (150, 60, 150), dash=4, gap=8, w=1)
+        dashed_v(d, x0 + HIP, 362, 882, (255, 255, 255), dash=8, gap=8, w=1)
+        if s < len(frs) and frs[s].get('phase') == 'flight':
+            d.line([(x0 + 40, FLIGHT_LINE), (x0 + 344, FLIGHT_LINE)], fill=(255, 255, 0), width=1)
+    dashed_h(d, 0, W, FLOOR + 1, (255, 255, 255), dash=14, gap=8, w=2)
+    arr = np.asarray(im).copy()
+    smask = fig_mask(strip)
+    arr[:, SLOT:][smask] = strip[smask]
+    im = Image.fromarray(arr)
+    d = ImageDraw.Draw(im)
+    for s, fr in enumerate(frs[:4]):
+        x0 = SLOT + s * SLOT
+        d.text((x0 + 10, 310), frame_label(fr), font=f_reg, fill=(255, 255, 255))
+        if fr.get('lean_deg') is not None:
+            d.text((x0 + 10, 336), f'lean {fr["lean_deg"]:g} deg  head top y={fr.get("top_px", "?")}', font=f_small,
+                   fill=(255, 255, 255))
+        if fr.get('phase') == 'flight':
+            clear = FLOOR - fr.get('lowest_px', FLOOR)
+            d.text((x0 + 40, 885), f'lowest pixel at or above y={FLIGHT_LINE}', font=f_small, fill=(255, 255, 0))
+            d.text((x0 + 40, 907), f'(mannequin: {clear} px clear)', font=f_small, fill=(255, 255, 0))
+            continue
+        for j, (tx, lab) in enumerate(stance_toes(fr)):
+            x = int(round(x0 + HIP + tx))
+            d.line([(x, FLOOR + 4), (x, FLOOR + 22)], fill=(255, 255, 0), width=3)
+            d.text((min(x - 30, x0 + SLOT - 150), 897 + 22 * j), f'{lab} x={int(round(HIP + tx))}', font=f_small,
+                   fill=(255, 255, 0))
+    if flight_any:
+        floor_txt = ('white dashed line: floor y=870 (sole of the standing foot)  |  yellow tick: the planted toe (x in the slot) '
+                     '|  yellow line: flight, nothing below y=852')
+    else:
+        floor_txt = ('white dashed line: floor y=870 - a sole on it in EVERY frame (no flight)  |  yellow tick: the planted toe '
+                     '(x in the slot)')
+    d.text((392, 960), floor_txt, font=f_small, fill=(255, 255, 255))
+    d.text((392, 985), 'white dashes in each slot: hip column x=192  |  purple dashes: x=32 and x=351 - keep every pixel between them',
+           font=f_small, fill=(255, 255, 255))
+    d.text((10, 945), 'faint = accepted idle (its own', font=f_small, fill=(255, 255, 255))
+    d.text((10, 967), 'head/body size); cyan = mannequin', font=f_small, fill=(255, 255, 255))
+    d.text((10, 989), '(pose and placement only)', font=f_small, fill=(255, 255, 255))
+    rng = f'{frs[0]["frame"]}-{frs[-1]["frame"]}' if frs else ''
+    d.text((14, 20), f'{geo["short"].upper()} {cls.upper()} {"RUN" if cls == "light" else "MOVE"} - strip {half.upper()}  '
+           f'(frames {rng}, mannequin {mannequin_label})', font=f_big, fill=(255, 255, 255))
+    y = 62
+    for para in (f'LEFT PANEL (not delivered): the accepted idle from {geo["source"]}, faint, placed as the game places it '
+                 f'(anchor column on x=192, soles on y=870), with the cyan outline of the mannequin\'s '
+                 f'{frs[0]["frame"] if frs else ""} on top: the SAME SCALE. Draw the character at the size of its idle (its own '
+                 'head, torso, boots) - never shrink it.',
+                 'RIGHT 4 SLOTS = the delivery layout (1536x1024 = this image without the left panel). Follow each '
+                 'mannequin\'s legs, torso lean and arm swing. '
+                 + ('' if flight_any else 'NO flight: one sole stays on y=870 in every frame. ')
+                 + 'The guide lines and text are for reading only - the delivered strip has nothing but the character '
+                 'on flat #FF00FF.', *notes):
+        for line in wrap(d, para, f_reg, W - 28):
+            d.text((14, y), line, font=f_reg, fill=(255, 255, 255))
+            y += 30
+    d.text((10, 310), 'SIZE (idle + mannequin)', font=f_reg, fill=(255, 255, 255))
+    im.save(out_path, optimize=True)
+
+
 def build(sid, outdir, cls=None, man=None, force=False):
     """write guide_<p>_a/b.png + size_<p>_a/b.png for one sheet into outdir -> geometry dict (+ class, mannequin)"""
     man = man or load_json(MANIFEST)
@@ -349,19 +452,6 @@ def build(sid, outdir, cls=None, man=None, force=False):
         there = [n for n in names if os.path.exists(os.path.join(outdir, n))]
         if there:
             raise Fail(f'{outdir}: {", ".join(there)} already there - pass --force to rebuild')
-    sheet = np.asarray(Image.open(path(geo['source'])).convert('RGB'))
-    ix0, ix1 = geo['idle_x']
-    idle = gait_idle_source(sheet, geo['source_layout'], geo['source_split'])[:, ix0:ix1 + 1]
-    idle_y = 0
-    if geo['source_layout'] == '2x2':
-        # 위 왼쪽 원본은 y≈461에 디딘다. 위치 비교판은 y=870으로 옮기고 배율은 유지한다.
-        idle_y = FLOOR - geo['idle_low'] + geo['idle_top']
-        idle = idle[geo['idle_top']:geo['idle_low'] + 1]
-    imask = fig_mask(idle)
-    ox = int(round(HIP - (geo['anchor_col'] - ix0)))        # idle column 0 lands here in the SIZE panel
-    f_reg = ImageFont.truetype(FONT, 22)
-    f_small = ImageFont.truetype(FONT, 18)
-    f_big = ImageFont.truetype(FONTB, 28)
     guide_strips = [np.asarray(Image.open(path(p)).convert('RGB')) for p in strips]
     if scaled:
         pose = scale_pose(source_pose, pose, geo['scale'])
@@ -385,85 +475,12 @@ def build(sid, outdir, cls=None, man=None, force=False):
         else:
             shutil.copyfile(path(strips[k]), guide)
         frs = [fr for fr in frames if fr.get('strip') == half] or frames[k * 4:(k + 1) * 4]
-        W = SLOT * 5
-        canvas = np.zeros((1024, W, 3), np.uint8)
-        canvas[:] = MAG
-        # SIZE panel (slot 0): faint idle, anchor column on x=192, soles on y=870 (2x2 idle is moved down without resizing)
-        lo, hi = max(0, -ox), min(idle.shape[1], SLOT - ox)
-        faint = (idle.astype(float) * 0.45 + np.array([235, 235, 235]) * 0.55).astype(np.uint8)
-        sub = canvas[idle_y:idle_y + idle.shape[0], ox + lo:ox + hi]
-        m = imask[:, lo:hi]
-        sub[m] = faint[:, lo:hi][m]
-        # mannequin first frame of this strip as a cyan outline over it
-        canvas[:, 0:SLOT][outline(fig_mask(strip[:, 0:SLOT]))] = (0, 200, 255)
-        im = Image.fromarray(canvas)
-        d = ImageDraw.Draw(im)
-        d.rectangle([0, 300, SLOT - 1, 1023], outline=(255, 255, 255), width=3)
-        dashed_v(d, HIP, 362, 882, (255, 255, 255), dash=8, gap=8, w=1)
-        for s in range(4):
-            x0 = SLOT + s * SLOT
-            d.rectangle([x0, 300, x0 + SLOT - 1, 1023], outline=(60, 0, 60), width=1)
-            dashed_v(d, x0 + BAND, 362, 882, (150, 60, 150), dash=4, gap=8, w=1)
-            dashed_v(d, x0 + SLOT - 1 - BAND, 362, 882, (150, 60, 150), dash=4, gap=8, w=1)
-            dashed_v(d, x0 + HIP, 362, 882, (255, 255, 255), dash=8, gap=8, w=1)
-            if s < len(frs) and frs[s].get('phase') == 'flight':
-                d.line([(x0 + 40, FLIGHT_LINE), (x0 + 344, FLIGHT_LINE)], fill=(255, 255, 0), width=1)
-        dashed_h(d, 0, W, FLOOR + 1, (255, 255, 255), dash=14, gap=8, w=2)
-        arr = np.asarray(im).copy()
-        smask = fig_mask(strip)
-        arr[:, SLOT:][smask] = strip[smask]
-        im = Image.fromarray(arr)
-        d = ImageDraw.Draw(im)
-        for s, fr in enumerate(frs[:4]):
-            x0 = SLOT + s * SLOT
-            d.text((x0 + 10, 310), frame_label(fr), font=f_reg, fill=(255, 255, 255))
-            if fr.get('lean_deg') is not None:
-                d.text((x0 + 10, 336), f'lean {fr["lean_deg"]:g} deg  head top y={fr.get("top_px", "?")}', font=f_small,
-                       fill=(255, 255, 255))
-            if fr.get('phase') == 'flight':
-                clear = FLOOR - fr.get('lowest_px', FLOOR)
-                d.text((x0 + 40, 885), f'lowest pixel at or above y={FLIGHT_LINE}', font=f_small, fill=(255, 255, 0))
-                d.text((x0 + 40, 907), f'(mannequin: {clear} px clear)', font=f_small, fill=(255, 255, 0))
-                continue
-            for j, (tx, lab) in enumerate(stance_toes(fr)):
-                x = int(round(x0 + HIP + tx))
-                d.line([(x, FLOOR + 4), (x, FLOOR + 22)], fill=(255, 255, 0), width=3)
-                d.text((min(x - 30, x0 + SLOT - 150), 897 + 22 * j), f'{lab} x={int(round(HIP + tx))}', font=f_small,
-                       fill=(255, 255, 0))
-        if flight_any:
-            floor_txt = ('white dashed line: floor y=870 (sole of the standing foot)  |  yellow tick: the planted toe (x in the slot) '
-                         '|  yellow line: flight, nothing below y=852')
-        else:
-            floor_txt = ('white dashed line: floor y=870 - a sole on it in EVERY frame (no flight)  |  yellow tick: the planted toe '
-                         '(x in the slot)')
-        d.text((392, 960), floor_txt, font=f_small, fill=(255, 255, 255))
-        d.text((392, 985), 'white dashes in each slot: hip column x=192  |  purple dashes: x=32 and x=351 - keep every pixel between them',
-               font=f_small, fill=(255, 255, 255))
-        d.text((10, 945), 'faint = accepted idle (its own', font=f_small, fill=(255, 255, 255))
-        d.text((10, 967), 'head/body size); cyan = mannequin', font=f_small, fill=(255, 255, 255))
-        d.text((10, 989), '(pose and placement only)', font=f_small, fill=(255, 255, 255))
-        rng = f'{frs[0]["frame"]}-{frs[-1]["frame"]}' if frs else ''
-        d.text((14, 20), f'{geo["short"].upper()} {cls.upper()} {"RUN" if cls == "light" else "MOVE"} - strip {half.upper()}  '
-               f'(frames {rng}, mannequin {os.path.dirname(pj)})', font=f_big, fill=(255, 255, 255))
-        y = 62
-        for para in (f'LEFT PANEL (not delivered): the accepted idle from {geo["source"]}, faint, placed as the game places it '
-                     f'(anchor column on x=192, soles on y=870), with the cyan outline of the mannequin\'s '
-                     f'{frs[0]["frame"] if frs else ""} on top: the SAME SCALE. Draw the character at the size of its idle (its own '
-                     'head, torso, boots) - never shrink it.',
-                     'RIGHT 4 SLOTS = the delivery layout (1536x1024 = this image without the left panel). Follow each '
-                     'mannequin\'s legs, torso lean and arm swing. '
-                     + ('' if flight_any else 'NO flight: one sole stays on y=870 in every frame. ')
-                     + 'The guide lines and text are for reading only - the delivered strip has nothing but the character '
-                     'on flat #FF00FF.'):
-            for line in wrap(d, para, f_reg, W - 28):
-                d.text((14, y), line, font=f_reg, fill=(255, 255, 255))
-                y += 30
-        d.text((10, 310), 'SIZE (idle + mannequin)', font=f_reg, fill=(255, 255, 255))
-        im.save(os.path.join(outdir, f'size_{p}_{half}.png'), optimize=True)
+        size_panel(geo, cls, half, strip, frs, flight_any, os.path.dirname(pj), os.path.join(outdir, f'size_{p}_{half}.png'))
     if scaled:
         with open(local_pose, 'w', encoding='utf-8', newline='\n') as f:
             json.dump(pose, f, ensure_ascii=False, indent=2)
             f.write('\n')
+    ox = idle_panel(geo)[3]
     geo.update(cls=cls, prefix=p, pose=pj, source_pose=source_pose, scaled=scaled, strips=strips, idle_offset=ox, files=names)
     return geo
 

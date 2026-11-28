@@ -4,8 +4,9 @@
 
 determinism, floor / planting / IK / knee / mirror / band / feet / upper-body checks for the three movement classes,
 a short-legged body (stride follows the legs), the sword never over the head (attack) nor the trunk (hit), the robe
-hem, the weapon hand range (rig clamp + check, and no authored frame outside it), and that add_gait refuses an
-unpainted 3D guide written anywhere (palette signature).
+hem, the weapon hand range (rig clamp + check, and no authored frame outside it), that add_gait refuses an
+unpainted 3D guide written anywhere (palette signature), a character's movement personality (Baren: lower, more lean,
+same stride and cadence) and the 3D request folder (request.py: files, marker, verify, refusal of its plain strip).
 """
 import os
 import sys
@@ -70,6 +71,46 @@ class Gaits(unittest.TestCase):
         _, g2, _ = run('warrior')
         for a, b in zip(g1['plain'], g2['plain']):
             self.assertTrue(np.array_equal(np.asarray(a), np.asarray(b)))
+
+
+class Personality(unittest.TestCase):
+    def test_baren_passes_and_keeps_the_class_rhythm(self):
+        spec, g, res = run('baren')
+        self.assertEqual(fails(res), [])
+        self.assertEqual((spec['step_px'], spec['ms']), (275.0, 80))          # class stride + cadence (engine runCells)
+        _, gw, _ = run('warrior')
+        hips = [r['hip_height_px'] for r in g['recs']]
+        hips_w = [r['hip_height_px'] for r in gw['recs']]
+        self.assertTrue(all(a < b for a, b in zip(hips, hips_w)))            # lower hips in every frame
+        self.assertGreater(min(r['lean_deg'] for r in g['recs']), min(r['lean_deg'] for r in gw['recs']))
+        ws = [w for b in g['bodies'] for w in b.weapons]
+        self.assertTrue(ws and all(not w['clamped'] and 0.0 <= w['deg'] <= 120.0 for w in ws))
+
+    def test_unknown_personality_key_refused(self):
+        from motions import personality
+        with self.assertRaises(ValueError):
+            personality({'personality': {'stride_add': 10}})                   # the stride is the class's, never personal
+
+
+class Request3D(unittest.TestCase):
+    def test_request_folder(self):
+        import request
+        import add_gait
+        with tempfile.TemporaryDirectory() as tmp:
+            out = os.path.join(tmp, 'run__captain_blademaster')
+            geo = request.build_request('sheet/captain/blademaster', out, force=True)
+            self.assertEqual(sorted(os.listdir(out)), sorted(request.names('run')))
+            self.assertEqual([m for lv, m in geo['m3d']['checks'] if lv == checks.FAIL], [])
+            import json
+            with open(os.path.join(out, 'pose.json'), encoding='utf-8') as f:
+                pose = json.load(f)
+            self.assertIn('mannequin3d', pose['source'])
+            self.assertEqual((pose['scale'], pose['step_px'], pose['nominal_ms']), (0.1654, 275.0, 80))
+            self.assertEqual(request.verify(out, 'sheet/captain/blademaster'), [])
+            for h in 'ab':
+                self.assertIsNotNone(add_gait.mannequin3d_reason(os.path.join(out, f'guide_run_plain_{h}.png')))
+            with self.assertRaises(Exception):
+                request.build_request('sheet/captain/blademaster', out)            # no --force: refuses to overwrite
 
 
 class Actions(unittest.TestCase):
