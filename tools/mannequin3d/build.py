@@ -104,7 +104,10 @@ def gait_pose_json(spec, P, cam, carry, recs, rep, scale):
         'baseline': FLOOR, 'scale': scale, 'frames_per_cycle': 8, 'nominal_ms': spec['ms'], 'step_px': spec['step_px'],
         'run_stride_game_px': round(spec['step_px'] * scale, 1),
         'stride_rule': (f"class game stride {spec['stride_game_class']} px / sheet scale {scale} x leg factor "
-                        f"{spec['leg_factor_used']} (fitted {spec['leg_factor']}; within 5% -> 1)"),
+                        f"{spec['leg_factor_used']} (fitted {spec['leg_factor']}; "
+                        + ("more than 5% off the class mannequin's legs -> the stride follows the legs; the engine advances "
+                           "this sheet by its own runStride, so the planted foot stays put)"
+                           if spec['leg_factor_used'] != 1.0 else "within 5% -> 1: the class stride)")),
         'speed_at_nominal_ms_game_px_s': round(spec['step_px'] / 4 * scale / (spec['ms'] / 1000.0), 1),
         'bob_px': round(max(hips) - min(hips), 1), 'lean_deg': [min(leans), max(leans)],
         'bones_px': {'thigh': round(P['thigh'], 2), 'shin': round(P['shin'], 2), 'upper_arm': round(P['upper_arm'], 2),

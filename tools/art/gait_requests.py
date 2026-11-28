@@ -1469,17 +1469,97 @@ def write_request(sid, out=None, force=False, date=None, spec=None, man=None, gu
 
 
 # ───────── --write --guides 3d: 3D 마네킹 가이드 요청 (주인 2026-11-28) ─────────
-# 주인 결정 2026-11-28: 가상 3D 마네킹 → 동작 → 스프라이트 띠 → Antigravity 가 그 위에 캐릭터를 덧그린다. 무기 손목 범위는
+# 주인 결정 2026-11-28: 가상 3D 마네킹 → 동작 → 스프라이트 띠 → 그림 담당이 그 위에 캐릭터를 덧그린다(누가 그리나 =
+# tools/mannequin3d/specs/carry3d.json 의 painter.name 한 곳 — 주인 11-28: 다시 바꾸라고 할 때까지 GPT). 무기 손목 범위는
 # 아래팔에 대해 0~120도(위든 아래든 그 안이면 된다), 무기·몸·얼굴이 겹쳐도 가까운 쪽이 먼 쪽 위에 그려지면 된다(깊이 순서),
 # 바닥 줄 아래로 내려간 소품은 그릴 때 손본다, 견본은 기준선일 뿐, 부류·캐릭터마다 자기 움직임 개성, 색만 바꾼 자산은 없다,
 # 그림 판정은 주인이 직접 한다(리드가 그림을 통과·탈락시키지 않는다).
-OWNER_3D_KO = ('"가상의 3D 마네킹 → 동작 → 스프라이트 띠 → Antigravity 가 그 위에 캐릭터를 덧그린다" (주인 2026-11-28). '
+OWNER_3D_KO = ('"가상의 3D 마네킹 → 동작 → 스프라이트 띠 → 그 위에 캐릭터를 덧그린다" (주인 2026-11-28). '
                '무기 손목은 아래팔 기준 0~120도 안(위·아래 상관없음), 겹침은 가까운 쪽이 위에 그려지면 괜찮다, 바닥 아래로 '
                '내려간 소품은 그릴 때 손본다, 견본은 기준선일 뿐, 캐릭터마다 자기 움직임 개성, 색만 바꾼 자산은 없다, '
                '그림 판정은 주인이 직접 한다.')
 
 
-KIND_KO = {'sword': '칼', 'mace': '철퇴', 'staff': '지팡이'}
+KIND_KO = {'sword': '칼', 'mace': '철퇴', 'staff': '지팡이', 'bow': '활', 'spear': '창', 'dagger': '단검'}
+KIND_EN = {'sword': 'sword', 'mace': 'mace', 'staff': 'staff', 'bow': 'bow', 'spear': 'spear', 'dagger': 'dagger'}
+# 가이드의 청록 반투명 무기 모양 (tools/mannequin3d/rig.py add_prop) - 종류별 읽는 법
+GHOST_KO = {
+    'bow': '활 = 휜 활대 둘(손잡이에서 위·아래 활끝으로, 끝으로 갈수록 시위 쪽으로 휜다)과 활끝을 잇는 가는 시위 선. 한 손으로 손잡이를 '
+           '쥔다. 손목 규칙은 손잡이에서 위 활끝 쪽으로 가는 활대 방향(손잡이 축)에 잰다',
+    'spear': '창 = 긴 자루와 끝의 잎 모양 강철 창끝. 두 손으로 쥘 수 있다(두 손이 같은 자루 위)',
+    'dagger': '단검 = 짧은 날과 작은 코등이',
+    'sword': '칼 = 손잡이, 십자 코등이, 칼날',
+    'mace': '철퇴 = 자루와 둥근 머리',
+    'staff': '지팡이 = 곧은 막대와 끝의 둥근 머리',
+}
+GHOST_EN = {
+    'bow': 'BOW = two curved limbs (from the grip to each tip, curling back toward the string near the tips) and a thin string '
+           'line tip to tip; ONE hand on the grip. The wrist rule is measured on the stave at the grip, toward the upper tip',
+    'spear': 'SPEAR = a long shaft with a leaf-shaped steel head at the end; both hands may hold the shaft',
+    'dagger': 'DAGGER = a short blade with a small guard',
+    'sword': 'SWORD = grip, cross guard, blade',
+    'mace': 'MACE = haft and round head',
+    'staff': 'STAFF = a straight pole with a round knob at the end',
+}
+
+
+def stride_rule_lines(spec3, step, sc):
+    """(한국어 줄, English line): 이 캐릭터의 보폭이 얼마이고 왜 그런지 (motions.gait_spec 의 다리 비율 규칙)"""
+    g = step * sc
+    cg = spec3['stride_game_class']
+    lf, lfu = spec3['leg_factor'], spec3['leg_factor_used']
+    if abs(lfu - 1.0) > 1e-9:
+        pct = (lfu - 1.0) * 100
+        ko = (f'- 보폭: 한 걸음 게임 {g:.1f}px = {KO_CLS_OF(spec3)} 부류 보폭 {cg:g}px × 다리 비율 {lfu:.3f} — 맞춘 마네킹의 다리(허벅지+정강이+'
+              f'발목)가 부류 마네킹보다 {pct:+.0f}% {"길어" if pct > 0 else "짧아"}, 같은 관절 각도·같은 무릎 굽힘으로 디디면 한 걸음이 '
+              f'그만큼 {"길다" if pct > 0 else "짧다"}(다리 비율 규칙: 5% 넘게 다르면 보폭이 다리를 따른다; 그대로 부류 보폭을 쓰면 무릎이 '
+              f'펴지거나 발이 덜 나간다). 엔진(js/battle.js runCells)은 시트마다 그 시트의 runStride/4 씩 디딘 칸을 넘기므로 디딘 발은 '
+              f'미끄러지지 않는다. 유닛의 빠르기는 그대로(같은 거리에서 걸음 수만 조금 {"적다" if pct > 0 else "많다"}), 박자({spec3["ms"]}ms)는 부류 그대로.')
+        en = (f'  - Stride rule: {g:.1f} game px = the {spec3["class"]} class stride {cg:g} px x leg factor {lfu:.3f}: this character\'s '
+              f'fitted legs are {abs(pct):.0f}% {"longer" if pct > 0 else "shorter"} than the class mannequin\'s, so the same joint angles '
+              f'and stance-knee bend give a {"longer" if pct > 0 else "shorter"} step (legs more than 5% off -> the stride follows the '
+              'legs). The engine advances each sheet by its OWN runStride/4 per planted cell, so the planted foot does not slide; the '
+              'unit\'s ground speed is unchanged (a few fewer steps). The cadence is the class\'s.')
+    else:
+        ko = (f'- 보폭: 한 걸음 게임 {g:.1f}px = {KO_CLS_OF(spec3)} 부류 보폭 그대로 — 맞춘 다리가 부류 마네킹과 5% 안(다리 비율 {lf:.3f})'
+              f'이라 다리 비율 규칙을 쓰지 않는다. 박자({spec3["ms"]}ms)도 부류 그대로.')
+        en = (f'  - Stride rule: {g:.1f} game px = the {spec3["class"]} class stride: the fitted legs are within 5% of the class '
+              f'mannequin\'s (leg factor {lf:.3f}), so the class stride is kept. The cadence is the class\'s.')
+    return ko, en
+
+
+def KO_CLS_OF(spec3):
+    return KO.get(spec3['class'], spec3['class'])
+
+
+def weapon_lines(wang, wmin, wmax):
+    """(한국어 줄들, English lines) about the held weapons: kind-specific ghost reading + a reverse grip stated plainly"""
+    kinds = []
+    for _, w in wang:
+        if w['kind'] not in kinds:
+            kinds.append(w['kind'])
+    ko = [f'  - {GHOST_KO[k]}.' for k in kinds if k in GHOST_KO]
+    en = [f'    {GHOST_EN[k]}.' for k in kinds if k in GHOST_EN]
+    rev = [w for _, w in wang if w.get('grip') == 'reverse']
+    if rev:
+        ax = sorted({round(w['deg']) for w in rev})
+        bl = sorted({round(w['blade_deg']) for w in rev})
+        kk = KIND_KO.get(rev[0]['kind'], rev[0]['kind'])
+        ke = KIND_EN.get(rev[0]['kind'], rev[0]['kind'])
+        hand_ko = '가까운' if rev[0]['hand'] == 'N' else '먼'
+        hand_en = 'near' if rev[0]['hand'] == 'N' else 'far'
+        axs = '/'.join(f'{a:g}' for a in ax)
+        bls = '/'.join(f'{abs(b):g}' for b in bl)
+        ko.append(f'  - **역수(거꾸로 쥐기)**: {hand_ko} 손의 {kk}은 칼날이 주먹의 **새끼손가락 쪽**(주먹 아래)으로 나온다 — 보통 쥐기에서 '
+                  f'칼날만 180도 뒤집은 것이다. 손목 규칙은 칼날이 아니라 **손잡이 축**(주먹의 엄지 쪽 방향)에 잰다: 이 축이 아래팔 선에서 '
+                  f'위로 {wmin:g}~{wmax:g}도 안(가이드: {axs}도)이고, 칼날은 그 반대쪽(아래팔 선에서 새끼손가락 쪽으로 {bls}도 — 팔뚝을 따라 뒤로 눕는다). '
+                  '손목을 비트는 것이 아니다.')
+        en.append(f'    REVERSE GRIP ({hand_en} hand {ke}): the blade comes out of the LITTLE-FINGER side of the fist (under the fist) - '
+                  'a normal grip with only the blade flipped 180 deg, the pommel on the thumb side. The wrist rule is measured on '
+                  f'the GRIP AXIS (the thumb side of the fist), not on the blade: that axis stays {wmin:g}-{wmax:g} deg up from the '
+                  f'forearm line (guide: {axs} deg) and the blade points the opposite way ({bls} deg from the forearm line on the '
+                  'little-finger side - lying back along the forearm). The wrist is not twisted for it.')
+    return ko, en
 
 
 def write_request_3d(sid, folder, cls, stem, short, p, date, spec, man):
@@ -1491,6 +1571,8 @@ def write_request_3d(sid, folder, cls, stem, short, p, date, spec, man):
     item = phase3_item(sid)
     entry = geo['m3d']['entry']
     pz = geo['m3d']['personality']
+    painter = geo['m3d']['painter']          # carry3d.json painter.name (GPT until the owner switches back to Antigravity)
+    spec3 = geo['m3d']['spec']
     look = (entry.get('request') or {}).get('look')
     look_ko = (entry.get('request') or {}).get('look_ko')
     pkg = item.get('package') or geo.get('package')
@@ -1537,7 +1619,12 @@ def write_request_3d(sid, folder, cls, stem, short, p, date, spec, man):
     wang = [(f['frame'], w) for f in frames for w in (f.get('weapon_angle') or [])]
     held = sorted({(w['kind'], 'near' if w['hand'] == 'N' else 'far') for _, w in wang})
     held_txt = ', '.join(f'{KIND_KO.get(k, k)} ({"가까운" if h == "near" else "먼"} 손)' for k, h in held) or '없음'
+    if any(w.get('grip') == 'reverse' for _, w in wang):
+        held_txt += ' — 역수(칼날이 새끼손가락 쪽)'
     wang_txt = ' '.join(f'{fr}:{w["deg"]:.0f}' for fr, w in wang)
+    wl_ko, wl_en = weapon_lines(wang, wmin, wmax)
+    stride_ko, stride_en = stride_rule_lines(spec3, step, sc)
+    summary_ko = pz.get('summary_ko')
     colours = []
     if geo.get('tint'):
         o, a = geo['tint'].get('outfit', []), geo['tint'].get('accent', [])
@@ -1571,15 +1658,16 @@ def write_request_3d(sid, folder, cls, stem, short, p, date, spec, man):
         f'# {title} · `{sid}` → `gait/{stem}_run`',
         '',
         f'**상태: 요청 ({date}, 클라우드 — `python3 tools/art/gait_requests.py --write {sid} --guides 3d` 로 만듦; 3D 마네킹 시범).** '
-        'Antigravity 가 이 README 하나와 아래 그림만으로 끝낼 수 있게 적었다. 규칙 충돌 시 `art/requests/gpt_handoff_notes.md` '
-        '「Rules changed」가 우선.',
+        f'**그림: {painter}** (주인 2026-11-28: 다시 바꾸라고 할 때까지 그림은 GPT — 이름은 `tools/mannequin3d/specs/carry3d.json` 의 '
+        f'`painter` 한 곳). {painter} 가 이 README 하나와 아래 그림만으로 끝낼 수 있게 적었다. 규칙 충돌 시 '
+        '`art/requests/gpt_handoff_notes.md` 「Rules changed」가 우선.',
         '',
         f'**왜**: {OWNER_3D_KO}',
         f'→ 이 폴더의 가이드는 부류 공용 2D 마네킹이 아니라 **이 캐릭터의 승인된 대기 그림에 맞춘 3D 마네킹**(`tools/mannequin3d`, '
         f'`tools/mannequin3d/specs/carry3d.json` 의 `{geo["m3d"]["key"]}`)이 {ko_cls}({cls}) 달리기를 하는 8프레임이다. 그 위에 캐릭터를 '
         '프레임마다 덧그리고, 마네킹 픽셀은 하나도 남기지 않는다.',
         f'그려 온 띠는 `tools/art/add_gait.py` 가 시트 아래에 `anims.run` 칸으로 붙이고, 엔진(`js/battle.js`)이 {ms}ms 박자로 넘긴다'
-        f'{" (뜬 칸 포함)" if flight else ""}. 보폭·박자·디딘 발 규칙은 {ko_cls} 부류 그대로다 (엔진의 runCells).',
+        f'{" (뜬 칸 포함)" if flight else ""}. 박자·디딘 발 규칙은 {ko_cls} 부류 그대로이고(엔진의 runCells), 보폭은 아래 「보폭」 줄대로.',
         '',
         '| 파일 | 내용 |',
         '|---|---|',
@@ -1598,7 +1686,8 @@ def write_request_3d(sid, folder, cls, stem, short, p, date, spec, man):
         f'- 부류: **{ko_cls}** — {(spec["sheets"].get(sid) or {}).get("why", "")} ({SPEC}). 개성은 그 위에 얹는다 (아래 「개성」).',
         f'- 납품: art-inbox `{dl[0]}` ({frames[0]["frame"]}~{frames[3]["frame"]}) + `{dl[1]}` ({frames[4]["frame"]}~{frames[7]["frame"]}) + '
         f'`art/inbox/NOTES.md` 절 「{notes_h[3:]}」 + 「## 판정 — gait/{stem}_run」. 파일 이름은 부류와 상관없이 `_run_` (엔진의 `anims.run`).',
-        f'- 무기: {held_txt} — 아래팔에 대한 손목 각도 {wmin:g}~{wmax:g}도 안 (가이드: {wang_txt}).',
+        f'- 무기: {held_txt} — 아래팔에 대한 손목(손잡이 축) 각도 {wmin:g}~{wmax:g}도 안 (가이드: {wang_txt}).',
+        stride_ko,
         f'- 디딘 발: 한 걸음 원본 {step:g}px(게임 {step * sc:.1f}px) → 디딘 발은 칸마다 **정확히 {q:.1f}px**(±3, 게임 {q * sc:.1f}px) 뒤로 — 발끝 x 는 '
         'Prompt 의 PLANTED FOOT 표.',
         f'- 클라우드가 받은 뒤: `{receive}` (검사 + `add_gait.py --dry-run`) → 미리보기를 주인께 보이고, 붙이는 것은 `add_gait.py` '
@@ -1609,8 +1698,9 @@ def write_request_3d(sid, folder, cls, stem, short, p, date, spec, man):
         '- **명암 = 깊이**: 밝은 부분이 보는 사람에게 **가깝고**, 어두운 부분이 **멀다** (가까운 팔·다리는 밝은 베이지, 먼 팔·다리는 '
         '어두운 회청색). 덧그릴 때 이 앞뒤 순서를 지킨다 — **가까운 쪽이 먼 쪽 위에** 그려진다. 무기·몸·얼굴이 겹쳐도 그 순서만 맞으면 괜찮다.',
         '- **청록 반투명 = 든 무기**: 실선 윤곽은 무기가 앞에 있는 곳, 점선은 몸이 무기 앞을 가리는 곳. 무기는 대기 그림의 **실제 크기·모양**'
-        '으로 그 선을 따라 그린다 (가이드의 길이는 자리 표시).',
-        f'- **손목 범위**: 무기 방향은 아래팔(팔꿈치→손목) 선에서 위쪽(엄지 쪽)으로 {wmin:g}~{wmax:g}도 안. 0 = 팔과 일직선. 그 밖으로 꺾어 '
+        '으로 그 자리를 따라 그린다 (가이드의 모양은 자리 표시).',
+        *wl_ko,
+        f'- **손목 범위**: 무기의 손잡이 축(주먹에서 무기 끝 쪽; 활은 손잡이에서 위 활끝 쪽, 역수는 엄지 쪽)은 아래팔(팔꿈치→손목) 선에서 위쪽(엄지 쪽)으로 {wmin:g}~{wmax:g}도 안. 0 = 팔과 일직선. 그 밖으로 꺾어 '
         '늘어뜨리지 않는다 (덜렁거리는 칼 금지). 위로 들든 아래로 내리든 이 범위 안이면 된다.',
         '- **바닥**: 디딘 발바닥은 y=870, 공중 프레임은 y=852 위. 무기 끝·천 같은 소품이 바닥 줄 아래로 내려가면 그릴 때 손본다 '
         '(각도를 조금 바꿔 올린다) — 몸과 발의 바닥 규칙은 그대로.',
@@ -1620,13 +1710,15 @@ def write_request_3d(sid, folder, cls, stem, short, p, date, spec, man):
         '',
         '## 개성',
         '',
+        *([f'**한 줄**: {summary_ko}', ''] if summary_ko else []),
         *[f'- {s}' for s in pnotes_ko],
         '',
         '## 요약 (한국어)',
         '',
         f'{name}의 {ko_cls} 달리기 8프레임(R1~R8)을 이 폴더의 3D 마네킹 가이드 위에 덧그려 `{dl[0]}`·`{dl[1]}` 두 띠로 art-inbox 에 올린다. '
         f'모습 — {look_ko or "승인된 시트의 대기 그림 그대로 (carry3d.json request.look_ko 없음)"} '
-        '명암은 깊이(밝음 = 가까움)이고 그 앞뒤 순서를 지킨다. 무기 손목은 아래팔 기준 '
+        + (f'개성 — {summary_ko} ' if summary_ko else '')
+        + '명암은 깊이(밝음 = 가까움)이고 그 앞뒤 순서를 지킨다. 무기 손목은 아래팔 기준 '
         f'{wmin:g}~{wmax:g}도 안. 바닥 아래 소품은 손본다. 마네킹 픽셀은 하나도 남기지 않는다. 디딘 발은 칸마다 {q:.1f}px 뒤로 '
         '(발끝 x 는 PLANTED FOOT 표). 끝나면 NOTES.md 에 절과 「판정」 절을 적고 멈춘다. 그림이 좋은지는 주인이 직접 본다.',
     ]
@@ -1661,10 +1753,12 @@ def write_request_3d(sid, folder, cls, stem, short, p, date, spec, man):
         '    arm / far leg dark slate). KEEP THAT DEPTH ORDER when you paint: the nearer part is always drawn over the farther one.',
         '    Weapon, body and face may overlap - that is fine as long as the nearer part is on top.',
         '  - The teal see-through shape is the held weapon: a solid outline where it is in front, dashed where a body part covers',
-        '    it. Paint the character\'s OWN weapon at its idle size and shape along that line (the ghost only marks the line).',
-        f'  - WRIST RANGE (owner rule): every held weapon points {wmin:g}-{wmax:g} deg UPWARD (thumb side) from the forearm line',
-        '    (elbow -> wrist); 0 = straight along the forearm. Up or down on screen does not matter, but never bend it past the',
-        f'    arm line (no dangling blade) nor beyond {wmax:g} deg. The guide is inside the range in every frame ({wang_txt} deg).',
+        '    it. Paint the character\'s OWN weapon at its idle size and shape in that place (the ghost only marks it):',
+        *wl_en,
+        '  - WRIST RANGE (owner rule): every held weapon\'s GRIP AXIS (fist -> weapon tip; a bow: grip -> upper tip; a reverse',
+        f'    grip: the thumb side of the fist) points {wmin:g}-{wmax:g} deg UPWARD (thumb side) from the forearm line (elbow -> wrist);',
+        '    0 = straight along the forearm. Up or down on screen does not matter, but never bend it past the arm line (no',
+        f'    dangling blade) nor beyond {wmax:g} deg. The guide is inside the range in every frame ({wang_txt} deg).',
         '  - The mannequin\'s round head is a placeholder: paint the character\'s own head, hair and headgear at the idle\'s size on',
         '    its neck. The joints, limbs and torso are fitted to the idle - put the character\'s own body exactly on them.',
         '  - PAINT OVER EVERY MANNEQUIN PIXEL. add_gait.py refuses a strip in which >= 25% of a frame still has the mannequin\'s',
@@ -1683,6 +1777,7 @@ def write_request_3d(sid, folder, cls, stem, short, p, date, spec, man):
         + (f' (the same in {fb})' if tops[:4] == tops[4:] else f' and {"/".join(str(t) for t in tops[4:])} in {fb}')
         + f': {dtop} px from {frames[0]["frame"]} (+ = lower) - move your head top by the same amounts (bob {bob} px).',
         stride_line(pose, sc),
+        stride_en,
         '  - PLANTED FOOT: a foot on the floor never slides in the drawing. From its contact frame on, the SAME boot moves LEFT by',
         f'    exactly step/4 = {q:.1f} px per frame (the mannequin: {rmin:.1f}-{rmax:.1f} px; tolerance 3 px) - the engine moves the unit',
         f'    {q * sc:.1f} game px per frame, so the boot stays still on the ground. Toe tip = the FRONT-MOST pixel of the planted boot',
@@ -1726,12 +1821,12 @@ def write_request_3d(sid, folder, cls, stem, short, p, date, spec, man):
         f'  ## 판정 — gait/{stem}_run',
         '  결과: 통과 | 고침 | 다시   (your own verdict as animation head: natural? in character? does the contact frame read?)',
         '  본 방법: (game 1x/4x, the preview GIF, frames - what you looked at)',
-        '  고칠 점: (who - Antigravity/cloud - what, with frame numbers; "없음" if it passes)',
+        f'  고칠 점: (who - {painter}/cloud - what, with frame numbers; "없음" if it passes)',
         '  남은 걱정: (what the owner\'s look should check; "없음" if none)',
         '  캐릭터 메모: (direction for this character\'s next motions; omit if none)',
         'The owner judges the result himself. Push to art-inbox only. Do not touch files outside art/inbox/. Then stop.',
     ]
-    lines += ['', '## Prompt for Antigravity', '', '```', *P, '```', '']
+    lines += ['', f'## Prompt for {painter}', '', '```', *P, '```', '']
     with open(os.path.join(folder, 'README.md'), 'w', encoding='utf-8') as f:
         f.write('\n'.join(lines))
     return rel_folder, True, geo, checks

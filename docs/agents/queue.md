@@ -7,12 +7,24 @@
 
 | 누구 | id | 상태 | 할 일 (자세한 것은 그 줄의 문서) |
 |---|---|---|---|
-| GPT | `G1-baren-run-3d` | REVIEW | **(주인 11-28: Antigravity 한도 → GPT 대리, 그림)** 바렌 달리기 8프레임을 3D 마네킹 안내 그림 위에 그려 art-inbox 로 납품: `docs/agents/tasks/G1-baren-run-3d.md` |
+| GPT | `G2-tactician-3d` | REVIEW | 이사벨(전술가) 이동 8프레임(3D 마네킹): `docs/agents/tasks/G2-tactician-3d.md` |
+| GPT | `G3-lancer-3d` | READY | 로드릭(창기병) 이동 8프레임(3D 마네킹): `docs/agents/tasks/G3-lancer-3d.md` |
+| GPT | `G4-huntress-3d` | READY | 키아라(사냥꾼) 이동 8프레임(3D 마네킹): `docs/agents/tasks/G4-huntress-3d.md` |
+| GPT | `G5-hedgemage-3d` | READY | 펠릭스(떠돌이 마법사) 이동 8프레임(3D 마네킹): `docs/agents/tasks/G5-hedgemage-3d.md` |
+| GPT | `G6-fieldmedic-3d` | READY | 마그다(야전 의무관) 이동 8프레임(3D 마네킹): `docs/agents/tasks/G6-fieldmedic-3d.md` |
+| GPT | `G7-fixer-3d` | READY | 진(해결사) 이동 8프레임(3D 마네킹): `docs/agents/tasks/G7-fixer-3d.md` |
+| GPT | `G8-veteran-3d` | READY | 하랄드(노병) 이동 8프레임(3D 마네킹): `docs/agents/tasks/G8-veteran-3d.md` |
+| GPT | `G9-astel-3d` | READY | 아스텔 이동 8프레임(3D 마네킹): `docs/agents/tasks/G9-astel-3d.md` |
+| GPT | `G10-grom-3d` | READY | 그롬 이동 8프레임(3D 마네킹): `docs/agents/tasks/G10-grom-3d.md` |
+| GPT | `G11-kai-3d` | READY | 카이 이동 8프레임(3D 마네킹): `docs/agents/tasks/G11-kai-3d.md` |
+| GPT | `G12-oswin-3d` | READY | 오스윈 이동 8프레임(3D 마네킹): `docs/agents/tasks/G12-oswin-3d.md` |
+| GPT | `G13-seraphine-3d` | READY | 세라핀 이동 8프레임(3D 마네킹): `docs/agents/tasks/G13-seraphine-3d.md` |
 
 ## 끝난 일
 
 | 누구 | id | 결과 |
 |---|---|---|
+| GPT | `G1-baren-run-3d` | **DONE** (11-28, art-inbox `fe91a36` 등록): 3D 마네킹 안내 그림 첫 시험 — 주인 판정 「저정도면 훌륭해」. 바렌 달리기 8칸 `sheet/captain/blademaster` 에 붙임(runStride 45.5, light) |
 | GPT | `C30-replay-preload` | **DONE** (11-28, `e3e10f3` 합침): 관전 전 그 전투의 우선 시트를 최대 1.5초 기다림 — 새로고침 직후 코드 그림 0. 해시가 다른(옛 VER) 저장의 관전도 예외 없이 결과로. 게이트 그대로 |
 | GPT | `C31-return-skip-calamity-popup` | **DONE** (11-28, `4a4d2c5` 합침): 직속이 다 나가고 외부단만 대기면 「직속 귀환까지 ▶▶」(외부단 자동 파견 없음, 보고·정산·특별 의뢰·재앙에서 멈춤). 재앙 알림은 두 사건이 아니라 한 창의 두 줄 타자기였음 → 한 화면 「확인」 한 번. 게이트 그대로 |
 | GPT | `Q27-battle-default-longrun` | **DONE** (11-28, `491070a` 보고만): 전투 판정 기본 200일 PASS — 109일 S, 114일 고룡 결전 승, 160귀환 시간패·전사·막힘 0. 우세 43/50(86%)·백중 17/28·압도 82/82, 파견 예상=보고서 160/160, ★ 160/160. 남은 것 2건 → C31 |

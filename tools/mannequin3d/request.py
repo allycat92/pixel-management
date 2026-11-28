@@ -1,5 +1,6 @@
 """3D-mannequin guides for a movement request folder (owner decision 2026-11-28: graphics via a virtual 3D mannequin ->
-motion -> sprite strips -> Antigravity paints the character over them).
+motion -> sprite strips -> the painter paints the character over them; who paints = specs/carry3d.json `painter.name`,
+common.load_painter - GPT until the owner switches back to Antigravity).
 
   python3 tools/mannequin3d/request.py sheet/captain/blademaster --out DIR [--force]     # guides only (scratch)
   python3 tools/art/gait_requests.py --write sheet/captain/blademaster --guides 3d [--force]   # the whole request + README
@@ -44,7 +45,7 @@ import build  # noqa: E402
 import checks  # noqa: E402
 import fit as fitmod  # noqa: E402
 import run_request_guides as rg  # noqa: E402
-from common import CARRY_JSON, CELL, ANCHOR, load_carry, sheet_scale, on_bg, save_gif, strip_of  # noqa: E402
+from common import CARRY_JSON, CELL, ANCHOR, load_carry, load_painter, sheet_scale, on_bg, save_gif, strip_of  # noqa: E402
 from motions import gait_spec, leg_factor, personality  # noqa: E402
 from render import Camera, SLOT_W  # noqa: E402
 
@@ -157,6 +158,7 @@ def build_request(sid, outdir, cls=None, man=None, force=False, carry_path=CARRY
         'carry': os.path.relpath(carry_path, REPO).replace(os.sep, '/'), 'carry_key': r['key'],
         'carry_sha256': carry_sha(r['entry']),
         'sheet_scale_from': 'art/requests/phase3.json',
+        'painter': load_painter(carry_path),
         'weapon_limit': r['carry'].get('weapon_limit', {'min': 0.0, 'max': 120.0}),
         'personality': r['personality'],
         'guides': {n: file_sha(os.path.join(outdir, n)) for n in files if n.endswith('.png') and n.startswith('guide_')},
@@ -169,7 +171,7 @@ def build_request(sid, outdir, cls=None, man=None, force=False, carry_path=CARRY
     geo.update(cls=cls, prefix=p, pose=pj, source_pose=pj, scaled=False, strips=[f'guide_{p}_a.png', f'guide_{p}_b.png'],
                idle_offset=rg.idle_panel(geo)[3], files=files,
                m3d={'key': r['key'], 'entry': r['entry'], 'personality': r['personality'], 'checks': r['checks'],
-                    'spec': spec, 'fit': r['rep']})
+                    'spec': spec, 'fit': r['rep'], 'painter': load_painter(carry_path)})
     return geo
 
 

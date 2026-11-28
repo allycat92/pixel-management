@@ -797,24 +797,111 @@ const Battle = (() => {
   // 주인 기준: 쫓고 쫓기는 것은 괜찮지만 몸으로 밀리는 것처럼 보이면 안 된다 (근접이 제자리에서 휘두르는 동안 원거리가 빠지는 것은 괜찮다).
   const HOLD = 0.35;                 // 공격·치유를 쓴 몸은 그 동작(화면 0.28~0.5초) 동안 제자리에 선다 — 휘두르며·쏘며 미끄러지지 않게
   const BACK_ROOM = 30, BACK_ROOM_Y = 12;   // 물러나는 원거리는 가장자리에서 이만큼 안쪽까지만 간다 (그 앞에서는 선 채로 싸우거나 옆으로 비킨다)
-  // 원거리가 붙은 적 tg 에게서 물러날 방향 (물러나지 않으면 null). 제 발로 제 빠르기로 뛰어 물러난다:
-  // 나를 노리고 붙은 근접 적이 모두 제자리에서 휘두르는 중(hold)이거나 기절했을 때만 — 따라오는 적 앞에서 뒷걸음질하면 함께 미끄러져 밀리는 것처럼 보인다.
-  // 아군 쪽(아군 무리의 가운데)으로 반쯤 꺾고, 가장자리로 가는 성분은 BACK_ROOM 앞에서 지운다. 적 쪽으로는 가지 않는다.
-  function backOff(st, u, live, dx, dy, d) {
-    for (const e of live) {
-      if (e.side === u.side || e.target !== u || e.g.routed || !isMelee(e) || e.hold > st.t || e.stunUntil > st.t) continue;
-      if (meleeDist(e, u) - sizeOf(e) < (e.skills[0].range + BODY) * 2) return null;
+  // 2판 (주인 검토 2026-11-28): 1판은 휘두르는 틱에 곧바로 물러나, 맞아 번쩍이는 몸이 휘두르는 그림과 겹친 채 6px 씩 뒤로 빠졌다 — 한 대씩 맞아 밀려나는 것처럼 보였고
+  // 물러날 때마다 두 번 돌아섰다 (마법사 11초에 30번). 이제 물러서기는 한 번의 「달리기」다:
+  //  · 맞는 반응(번쩍임·흔들림 0.18초)이 제자리에서 끝난 뒤(RUN_DELAY) 시작한다 — 나를 노리고 붙은 근접 적이 모두 회복 중일 때만
+  //    (마지막 공격에서 RUN_DELAY 가 지났고 다음 공격까지 RUN_SAFE 넘게 남았다, 또는 기절). 달리는 몸은 근접 공격 거리를 0.1초 안에 벗어난다.
+  //  · 한 번 달리면 RUN_MIN~RUN_MAX 초 동안 이어 달린다 (근접 공격 거리에서 RUN_GAP_OK 만큼 벌어졌거나, RUN_MIN 이 지나 쏠 준비가 됐으면 멈춘다).
+  //    달리는 동안은 쏘지 않는다: 다 달린 뒤 한 번 돌아서서 쏜다. 다음 달리기는 RUN_REST 초 뒤부터 (그 사이에는 선 채로 쏘고 맞는다).
+  //  · 달아나는 표적 곁(RUN_NEAR 안)의 근접 적은 그 달리기가 끝날 때까지 제자리에서 기다렸다가 쫓는다 — 함께 붙어 움직이지 않는다 (몸으로 미는 것처럼 보이지 않게).
+  // 빠르기는 그대로다 (달리기는 제 빠르기).
+  const RETARGET_KEEP = 12;          // 원거리 표적 바꾸기의 여유(px, 위 목표 재선정 점수)
+  const RUN_DELAY = 0.2, RUN_PAD = 4, RUN_SAFE = 0.3, RUN_MIN = 0.55, RUN_MAX = 0.8, RUN_GAP_OK = 16, RUN_REST = 2.5, RUN_NEAR = 30;
+  // 원거리 u 가 물러날 방향 (물러나지 않으면 null). dir 이 없으면 새로 달리기를 시작하는 것이다: 붙은 근접 적이 모두 회복 중인지 보고,
+  // 표적과 가까이 붙은 근접 적들 모두에게서 멀어지는 쪽을 고른 뒤 아군 쪽(아군 무리의 가운데)으로 반쯤 꺾는다 — 양쪽에서 붙었으면 달리지 않는다.
+  // dir(달리기를 시작할 때 고른 방향)이 있으면 그 방향을 그대로 쓴다 (달리는 도중에 돌아서지 않게).
+  // 가장자리로 가는 성분은 BACK_ROOM 앞에서 지운다. 적(표적) 쪽으로는 가지 않는다.
+  function backOff(st, u, live, dx, dy, d, dir) {
+    let ax, ay;
+    if (dir) { ax = dir[0]; ay = dir[1]; }
+    else {
+      if (st.t - (u.hitT == null ? -9 : u.hitT) < RUN_DELAY - 1e-6) return null;   // 맞은 반응(번쩍임)이 아직 끝나지 않았다 — 누구에게 맞았든
+      // 날아오는 화살·마법이 곧 닿으면 그것도 맞은 것으로 친다 (탄은 유닛 이동 뒤에 처리되므로 hitT 로는 이 틱의 명중을 못 본다)
+      for (const sh of st.shots) if (sh.to === u && !sh.heal && len2(sh.to.x - sh.x, sh.to.y - 9 - sh.y) <= sh.speed * RUN_DELAY) return null;
+      ax = -dx / d; ay = -dy / d;
+      for (const e of live) {
+        if (e.side === u.side || e.g.routed || !isMelee(e)) continue;
+        const md = meleeDist(e, u) - sizeOf(e), near = (e.skills[0].range + BODY) * 2, sp = e.skills[1];
+        // 곁의 근접 적의 특기가 곧 준비된다: 특기는 닿는 아무에게나 먼저 쓴다 (돌진은 60px 밖에서도)
+        if (sp && sp.tgt !== 'hurt' && e.stunUntil <= st.t && sp.left < RUN_SAFE && md < (sp.dash ? max(near, 60) : near)) return null;
+        if (md >= near) continue;
+        if (e.stunUntil <= st.t) {
+          if (e.target === u && (st.t < (e.hold || -9) - HOLD + RUN_DELAY || e.skills[0].left < RUN_SAFE)) return null;
+          // 다른 몸을 노리는 근접도 공격이 곧 준비되고 나에게 닿는 거리면 이번 틱 뒤쪽에서 나로 표적을 바꿔 칠 수 있다 (나보다 뒤에 움직이는 몸) — 그때도 달리지 않는다
+          if (e.target !== u && e.skills[0].left < RUN_SAFE && md + sizeOf(e) <= e.skills[0].range + sizeOf(u) + BODY + RUN_PAD) return null;
+        }
+        if (e === u.target) continue;
+        const ex = u.x - e.x, ey = u.y - e.y, el = len2(ex, ey) || 1;
+        ax += ex / el; ay += ey / el;
+      }
+      let cx = 0, cy = 0, n = 0;
+      for (const a of live) if (a.side === u.side && a !== u && !a.g.routed) { cx += a.x; cy += a.y; n++; }
+      if (n) { const bx = cx / n - u.x, by = cy / n - u.y, bl = len2(bx, by); if (bl > 1) { ax += (bx / bl) * 0.5; ay += (by / bl) * 0.5; } }
     }
-    let ax = -dx / d, ay = -dy / d, cx = 0, cy = 0, n = 0;
-    for (const a of live) if (a.side === u.side && a !== u && !a.g.routed) { cx += a.x; cy += a.y; n++; }
-    if (n) { const bx = cx / n - u.x, by = cy / n - u.y, bl = len2(bx, by); if (bl > 1) { ax += (bx / bl) * 0.5; ay += (by / bl) * 0.5; } }
-    const e = EDGE + sizeOf(u) * EDGE_BIG;
-    if ((ax < 0 && u.x < e + BACK_ROOM) || (ax > 0 && u.x > W - e - BACK_ROOM)) ax = 0;
-    if ((ay < 0 && u.y < TOP + BACK_ROOM_Y) || (ay > 0 && u.y > BOTTOM - BACK_ROOM_Y)) ay = 0;
+    // 새로 달리기 시작할 때는 RUN_LOOK px 앞의 자리로 가장자리를 본다 — 한두 걸음 만에 BACK_ROOM 에 걸려 멈추면 돌아서기만 두 번 한다
+    const e = EDGE + sizeOf(u) * EDGE_BIG, l0 = dir ? 0 : RUN_LOOK / (len2(ax, ay) || 1), x = u.x + ax * l0, y = u.y + ay * l0;
+    if ((ax < 0 && x < e + BACK_ROOM) || (ax > 0 && x > W - e - BACK_ROOM)) ax = 0;
+    if ((ay < 0 && y < TOP + BACK_ROOM_Y) || (ay > 0 && y > BOTTOM - BACK_ROOM_Y)) ay = 0;
     const l = len2(ax, ay);
     if (l < 0.35 || ax * dx + ay * dy > 0) return null;
     return [ax / l, ay / l];
   }
+  // 달리기를 이어 갈지: 나를 노리는 가까운 근접 적과의 틈(그 적의 공격 거리 밖으로 벌어진 px)과 따라붙었는지.
+  // 앞이 막혀 지난 틱에 달린 쪽으로 걸음의 3할도 못 나아갔으면 (몸에 막혀 떠밀리면) 멈춘다 — 달리는 쪽과 반대로 미끄러지지 않게
+  function keepRunning(st, u, live, basic) {
+    const el = st.t - u.run;
+    if (el >= RUN_MAX || u.blocked > 0) return false;
+    if (el > DT * 1.5 && (u.vx || 0) * u.runDir[0] + (u.vy || 0) * u.runDir[1] < u.speed * DT * 0.3) return false;
+    let gap = Infinity;
+    for (const e of live) {
+      if (e.side === u.side || e.target !== u || e.g.routed || !isMelee(e)) continue;
+      const g = meleeDist(e, u) - (e.skills[0].range + sizeOf(u) + BODY);
+      if (g < gap) gap = g;
+      if (g < 3 && e.moving && st.t - u.run > 0.15) return false;   // 따라붙었다: 선다
+    }
+    return el < RUN_MIN || (gap < RUN_GAP_OK && basic.left > 0);
+  }
+  // 달릴 쪽 RUN_LOOK px 앞에 몸(아군·적)이 깊이 서 있으면 달리기를 시작하지 않는다 — 몇 걸음 만에 막혀 서면 돌아서기만 두 번 한다
+  const RUN_LOOK = 10;
+  function clearAhead(u, live, mx, my) {
+    const px = u.x + mx * RUN_LOOK, py = u.y + my * RUN_LOOK;
+    for (const o of live) {
+      if (o === u || o.x <= px - 36 || o.x >= px + 36 || o.y <= py - 30 || o.y >= py + 30) continue;
+      const same = o.side === u.side, big = sizeOf(u) + sizeOf(o);
+      const sx = (same ? SEP_X : SEP_FOE_X) + big * 0.75, sy = (same ? SEP_Y : SEP_FOE_Y) + big * 0.5;
+      const ox = o.x - u.x, oy = o.y - u.y;
+      if (ox * mx + oy * my <= 0) continue;   // 뒤나 옆에 선 몸은 상관없다
+      const nx = (o.x - px) / sx, ny = (o.y - py) / sy;
+      if (nx * nx + ny * ny < 0.6) return false;
+    }
+    return true;
+  }
+  // 달리기 첫 걸음을 미리 걸어 본다: 달릴 때와 같은 비켜 가기(steer)로 꺾은 쪽으로 한 걸음 내딛고, 겹침 방지(아래)가 그 자리의 몸들에게서
+  // 물릴 만큼을 빼 본다. 남는 걸음이 달릴 쪽(bk)으로 한 걸음의 RUN_FREE 배도 안 되면 (막혀 제자리에 서거나 옆·뒤로 밀릴 걸음이면) 달리지 않는다 — 돌아서지도 않는다.
+  // 걸을 수 있으면 그 꺾은 방향을 돌려준다 (첫 틱에 그대로 쓴다)
+  const RUN_FREE = 0.5;
+  function runStep(u, live, bk, tg, SPD) {
+    let mx = bk[0], my = bk[1];
+    const sv = steer(u, live, mx, my, u.x + mx * 40, u.y + my * 40, tg);
+    if (sv) { mx = sv[0]; my = sv[1]; }
+    const step = SPD * DT, ee = EDGE + sizeOf(u) * EDGE_BIG;
+    let px = clamp(u.x + mx * step, ee, W - ee), py = clamp(u.y + my * step, TOP, BOTTOM);
+    for (const o of live) {
+      if (o === u || !o.alive || o.fled || o.x <= px - 36 || o.x >= px + 36 || o.y <= py - 30 || o.y >= py + 30) continue;
+      const same = o.side === u.side;
+      if (same && o.g.routed) continue;
+      const big = sizeOf(u) + sizeOf(o), sx = (same ? SEP_X : SEP_FOE_X) + big * 0.75, sy = (same ? SEP_Y : SEP_FOE_Y) + big * 0.5;
+      const nx = (o.x - px) / sx, ny = (o.y - py) / sy, nd = sqrt(nx * nx + ny * ny);
+      if (nd >= 1 || nd < 1e-6) continue;
+      const om = o.x !== o.ox || o.y !== o.oy || o.moving;   // 이번 틱에 (또는 지난 틱에) 제 발로 움직인 몸은 반씩 비킨다
+      const p = om ? (1 - nd) * 0.5 : (same ? (u.far ? 0 : 0.85) : 1) - nd;
+      if (p <= 0) continue;
+      px -= (nx / nd) * p * sx; py -= (ny / nd) * p * sy * 0.8;
+    }
+    px = clamp(px, ee, W - ee); py = clamp(py, TOP, BOTTOM);
+    return (px - u.x) * bk[0] + (py - u.y) * bk[1] >= step * RUN_FREE ? [mx, my] : null;
+  }
+  const endRun = (st, u) => { if (u.run != null) { u.run = null; u.runNext = st.t + RUN_REST; } };
   // 원거리·치유: 서 있는 아군과 몸이 깊이 겹친 채로는 멈추지 않는다 (조금 더 걸어 나가 선다)
   function crowdedAt(u, live) {
     for (const o of live) {
@@ -842,7 +929,7 @@ const Battle = (() => {
     if (src) src.dealt += min(dmg, target.hp);
     target.taken += dmg;
     target.hp -= dmg;
-    target.flash = 0.18;
+    target.flash = 0.18; target.hitT = st.t;
     st.fx.push({ kind: 'pop', x: target.x, y: target.y - 18, text: String(st.real ? showNum(dmg) : Math.round(dmg)), crit, ally: target.side === 0,
       mine: !!(src && src.side === 0 && src.unique), named: !!target.named, t: 0 });
     if (target.hp <= 0) {
@@ -1020,14 +1107,15 @@ const Battle = (() => {
         const sv = steer(u, live, dir, 0, dir * 1000, u.y, null);
         u.x += (sv ? sv[0] : dir) * SPD * 1.25 * DT; u.y += (sv ? sv[1] : 0) * SPD * 1.25 * DT; u.face = dir; u.moving = true;
         if (u.x < -12 || u.x > W + 12) u.fled = true;
+        u.run = null;
         continue;
       }
-      if (st.over || u.stunUntil > st.t) continue;
+      if (st.over || u.stunUntil > st.t) { endRun(st, u); continue; }
       // 특기: 준비되면 먼저 쓴다
       const special = u.skills[1];
       if (special && special.left <= 0) {
         const t = pickTarget(st, u, special, live);
-        if (t) { useSkill(st, u, special, t, live); continue; }
+        if (t) { endRun(st, u); useSkill(st, u, special, t, live); continue; }
       }
       const basic = u.skills[0];
       // 치유형: 다친 아군이 있으면 치유, 없으면 전열 뒤를 따라간다
@@ -1051,13 +1139,16 @@ const Battle = (() => {
       const crowd = isMelee(u);
       if (!u.target || !u.target.alive || u.target.fled || u.target.side === u.side || u.target.g.routed || u.retarget <= 0) {
         u.retarget = 0.4 + r() * 0.3;
-        let best = null, bd = Infinity;
+        let best = null, bd = Infinity, cd = Infinity;
+        const cur = u.target && u.target.alive && !u.target.fled && u.target.side !== u.side && !u.target.g.routed ? u.target : null;
         for (const e of live) {
           if (e.side === u.side || e.g.routed) continue;
           const d = abs(e.x - u.x) + abs(e.y - u.y) * 1.4 + (e.captain ? -6 : 0) + (crowd ? min(48, crowdOf(e, u) * 16) : 0);
+          if (e === cur) cd = d;
           if (d < bd) { bd = d; best = e; }
         }
-        u.target = best;
+        // 원거리는 지금 표적이 RETARGET_KEEP 보다 더 멀어지지 않았으면 그대로 쏜다 — 양쪽의 적 사이에서 0.5초마다 표적을 바꿔 좌우로 돌아서지 않게 (2판)
+        u.target = cur && !crowd && u.skills[0].shot && cd < bd + RETARGET_KEEP ? cur : best;
       }
       const tg = u.target;
       if (!tg) continue;
@@ -1076,8 +1167,25 @@ const Battle = (() => {
       u.sq = u.squeeze > st.t; u.short = md > reach; u.md = md;
       u.far = md > reach + GHOST_FAR || u.sq;   // 거듭 막혔던 걸음은 잠깐 서 있는 아군 사이를 비집고 지나간다 (아래 stuckN)
       const hold = u.hold > st.t;   // 방금 쓴 공격 동작이 끝날 때까지 제자리 (HOLD)
-      let bk = null;
-      if (hold) { /* 선 채로 */ }
+      // 달아나는 표적(원거리의 달리기) 곁의 근접은 그 달리기가 끝날 때까지 제자리에서 기다린다 (RUN_NEAR; 닿는 동안 공격 준비가 되면 그대로 휘두른다)
+      const waitRun = melee && tg.run != null && md <= reach + RUN_NEAR;
+      let bk = null, running = false, first = null;
+      if (u.run != null) {
+        // 달리는 중: 끝날 때까지 같은 쪽으로 (가장자리 BACK_ROOM 앞이면 멈춘다)
+        if (keepRunning(st, u, live, basic) && (bk = backOff(st, u, live, dx, dy, d, u.runDir))) running = true;
+        else endRun(st, u);
+      } else if (!hold && basic.shot && d < reach * 0.45 && basic.left > 0 && !(u.runNext > st.t) && !(special && special.left > 0 && special.left < RUN_MIN) && (bk = backOff(st, u, live, dx, dy, d, null)) && clearAhead(u, live, bk[0], bk[1]) && (first = runStep(u, live, bk, tg, SPD))) {
+        u.run = st.t; u.runDir = bk; running = true; u.runFace = u.face;
+      }
+      if (running) {
+        // 원거리 유닛은 너무 붙으면 물러난다 — 적이 휘두르고 난 틈에, 돌아서서 제 빠르기로 뛰어 (backOff). 서 있는 몸은 돌아간다 (steer)
+        let mx = bk[0], my = bk[1];
+        const sv = first || steer(u, live, mx, my, u.x + mx * 40, u.y + my * 40, tg);
+        if (sv) { mx = sv[0]; my = sv[1]; }
+        u.x += mx * SPD * DT; u.y += my * SPD * DT;
+        if (abs(mx) > 0.05) u.face = mx > 0 ? 1 : -1;
+        u.moving = true; u.wantStep = SPD * DT;
+      } else if (hold || waitRun) { /* 선 채로 */ }
       else if (md > reach || (melee && ed > 3) || (!melee && crowdedAt(u, live))) {
         // 대장 근처로 모이려는 힘을 약간 섞는다 (부대 대형 유지) — 목표에 닿기 전까지만
         let mx = ex / (ed || 1), my = ey / (ed || 1);
@@ -1094,16 +1202,8 @@ const Battle = (() => {
         const stepLen = min(v, ed || v);
         u.x += (mx / ml) * stepLen; u.y += (my / ml) * stepLen;
         u.moving = stepLen > 0.2; u.wantStep = stepLen;
-      } else if (basic.shot && d < reach * 0.45 && basic.left > 0 && (bk = backOff(st, u, live, dx, dy, d))) {
-        // 원거리 유닛은 너무 붙으면 물러난다 — 적이 휘두르는 틈에, 돌아서서 제 빠르기로 뛰어 (backOff). 서 있는 몸은 돌아간다 (steer)
-        let mx = bk[0], my = bk[1];
-        const sv = steer(u, live, mx, my, u.x + mx * 40, u.y + my * 40, tg);
-        if (sv) { mx = sv[0]; my = sv[1]; }
-        u.x += mx * SPD * DT; u.y += my * SPD * DT;
-        if (abs(mx) > 0.05) u.face = mx > 0 ? 1 : -1;
-        u.moving = true; u.wantStep = SPD * DT;
       }
-      if (md <= reach && basic.left <= 0) useSkill(st, u, basic, tg, live);
+      if (!running && md <= reach && basic.left <= 0) useSkill(st, u, basic, tg, live);
     }
     // 겹침 방지: 가로로 넓고 깊이(세로)로 얕은 타원 간격. 큰 도트가 한 덩어리로 뭉개지지 않게 한다.
     // 이번 틱에 제 발로 움직인 쪽(걷기·물러서기·도주·돌진)이 비켜 선다: 서 있는 유닛은 지나가는 유닛에게 밀리지 않는다.
@@ -1146,6 +1246,8 @@ const Battle = (() => {
     for (const u of live) {
       if (!u.moving || u.g.routed || !u.wantStep || u.dashed) { if (!u.blocked) { u.stuckN = 0; u.jit = 0; u.gt = null; } continue; }
       const frozen = len2(u.x - u.ox, u.y - u.oy) < u.wantStep * 0.3;
+      // 첫 걸음부터 막힌 (달릴 쪽으로 한 걸음의 3할도 못 간) 달리기는 없던 일로 한다: 돌아섰던 몸을 되돌린다 (제자리에서 한 틱 돌아섰다 돌아오지 않게)
+      if (u.run === st.t && (frozen || (u.x - u.ox) * u.runDir[0] + (u.y - u.oy) * u.runDir[1] < u.wantStep * 0.3)) { u.face = u.runFace; endRun(st, u); }
       if (frozen) { u.x = u.ox; u.y = u.oy; u.moving = false; u.blocked = (u.blocked || 0) + DT; }
       else {
         u.blocked = 0;

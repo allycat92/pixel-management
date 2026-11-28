@@ -512,6 +512,8 @@ phase3.forEach((it) => {
   if (it.id === 'sheet/captain/liberator') it.gait_source = 'sheet_captain_liberator_chain.png';
   // 우르그의 대기와 준비 자세는 x 투영만 겹친다. 등록과 같이 덩어리로 분리한다.
   if (it.id === 'sheet/captain/titan') it.gait_split = 'components';
+  // 하랄드의 대기 방패와 준비 자세 검끝도 x 투영만 겹친다(서로 닿지 않음) — 같은 방법으로 분리한다.
+  if (it.id === 'sheet/captain/veteran') it.gait_split = 'components';
 });
 fs.writeFileSync(path.join(ROOT, 'art/requests/phase3.json'), JSON.stringify({ version: 1, phase: 3, inbox: 'art/inbox/', items: phase3 }, null, 2) + '\n');
 const md3 = [

@@ -29,7 +29,11 @@ the sheets), and the RATIOS drawing / mannequin set the factors: height -> unifo
 trunk length from shoulder - hip (0.85-1.2); legs from a measured crotch only (0.85-1.15); limb bulk (0.85-1.45).
 Arms keep the canonical arm : height ratio. A last pass rescales so the fitted mannequin's idle has the measured height.
 Values the silhouette cannot show (the hip under a tabard or robe, the arm length) can be set once per character in
-specs/carry3d.json `fit_override` ({'hip_h': px, 'arm': factor}); the report then says 'override'.
+specs/carry3d.json `fit_override` ({'hip_h': px, 'arm': factor; 'top': head-top row y when a hat / prop above the
+head fools the top / hat-brim search (a slanted or plumed brim, a staff head or blade wider than 14 px above the hair);
+'head': top-to-neck px, 'shoulder_h': px above the floor, 'leg_w': lower-leg px for bulky armour}); the report then
+says 'override'. `head_top_y` (source y of the head top under headgear as wide as its brim, e.g. a peaked cap) instead
+drops every silhouette row above it before measuring, and the normal rules then run on the rest.
 hem_w: widest run 34-46 px above the floor (a robe's hem width) - the robe proxy's minimum hem width.
 The result is a rig proportions dict (rig.CANON keys).
 """
@@ -132,13 +136,20 @@ def run_through(row, col):
     return x0, x1 + 1
 
 
-def measure(mask, anchor_col, heads=4):
-    """silhouette measurements (see the module doc). mask: bool HxW in source px, floor row 870."""
+def measure(mask, anchor_col, heads=4, ov=None):
+    """silhouette measurements (see the module doc). mask: bool HxW in source px, floor row 870.
+    ov = carry3d.json fit_override, the rows a human measured once: top (head-top row y: a weapon raised above the
+    head makes the first wide row a blade and the hair under it a false hat brim), head (px from the top to the neck),
+    shoulder_h (shoulder row height above the floor), leg_w (lower-leg width) for bulky armour, where the pauldrons
+    start above the chin and the narrowest-row / widening searches land on the wrong rows, or cape tatters beside the
+    greaves pass for a thin leg."""
+    ov = ov or {}
     rows = mask.sum(1)
     ys = np.flatnonzero(rows)
     top_raw = int(ys.min())
     low = int(ys.max())
-    top = int(next(y for y in ys if rows[y] >= MIN_TOP_W))
+    top_override = ov.get('top')
+    top = int(top_override) if top_override else int(next(y for y in ys if rows[y] >= MIN_TOP_W))
     H = FLOOR + 1 - top
     # head centre column: centroid of the top 10% rows
     band = mask[top:top + int(0.1 * H)]
@@ -152,11 +163,13 @@ def measure(mask, anchor_col, heads=4):
     # a hat brim (a band much wider than the rows 15 px above and below it): the hat is costume, not body ->
     # the head top is put 0.45 head under the brim (a brim sits about at the eyes)
     brim = None
-    for y in range(top + 15, top + int(0.35 * H)):
+    for y in (range(0) if top_override else range(top + 15, top + int(0.35 * H))):
         if widths[y] >= 1.5 * max(widths[y - 15], 1) and widths[y] >= 1.5 * max(widths[min(y + 15, FLOOR)], 1):
             if brim is None or widths[y] > widths[brim]:
                 brim = y
-    if brim is not None:
+    if top_override:
+        m['top_method'] = 'override (carry3d.json fit_override.top)'
+    elif brim is not None:
         m['hat_brim_y'] = brim
         top = int(round(brim - 0.45 * (FLOOR + 1 - brim) / (heads - 0.45)))
         H = FLOOR + 1 - top
@@ -167,7 +180,10 @@ def measure(mask, anchor_col, heads=4):
     seg = [(widths[y], y) for y in range(y0, y1)]
     wmin, ny = min(seg)
     spec_head = H / heads
-    if abs((ny - top) - spec_head) <= 0.15 * spec_head:
+    if ov.get('head'):
+        m['head_method'] = 'override (carry3d.json fit_override.head)'
+        ny = top + int(round(float(ov['head'])))
+    elif abs((ny - top) - spec_head) <= 0.15 * spec_head:
         m['head_method'] = 'neck = narrowest row under the head'
     else:
         m['head_method'] = f'height / {heads} heads (narrowest row gave {ny - top} px: helmet / hat / hood)'
@@ -179,7 +195,9 @@ def measure(mask, anchor_col, heads=4):
     # shoulder line = the biggest widening over 6 rows below the neck (arms and shoulders start)
     jumps = [(widths[min(y + 6, FLOOR)] - widths[y], y + 6) for y in range(ny - int(0.1 * head), ny + int(0.6 * head))]
     jmax, sy = max(jumps)
-    if jmax >= 15:
+    if ov.get('shoulder_h'):
+        sy, m['shoulder_method'] = FLOOR + 1 - int(round(float(ov['shoulder_h']))), 'override (carry3d.json fit_override.shoulder_h)'
+    elif jmax >= 15:
         m['shoulder_method'] = 'biggest widening under the neck'
     else:
         sy, m['shoulder_method'] = ny + int(0.22 * head), 'neck + 0.22 head'
@@ -239,6 +257,8 @@ def measure(mask, anchor_col, heads=4):
         m['leg_w_rows'] = len(legs)
     else:
         m['leg_w'] = None
+    if ov.get('leg_w'):
+        m['leg_w'], m['leg_w_method'] = float(ov['leg_w']), 'override (carry3d.json fit_override.leg_w)'
     return m
 
 
@@ -264,10 +284,17 @@ def render_mask(P, pose, yaw=15.0):
 
 def fit(sid, yaw=15.0, verbose=False, override=None):
     """-> (proportions, report, (rgb, idle mask, info)). override = carry3d.json 'fit_override': {'hip_h': source px,
-    'arm': arm length factor} - values a human measured once where the silhouette cannot show them."""
+    'arm': arm length factor, 'top' / 'head_top_y' / 'head' / 'shoulder_h' / 'leg_w' (see the module doc)} - values a
+    human measured once where the silhouette cannot show them."""
     override = override or {}
     rgb, mask, info = idle_drawing(sid)
-    m = measure(mask, info['anchor_col'], info['heads'])
+    mbody = mask
+    if override.get('head_top_y'):      # headgear above the head top is costume, not body height
+        mbody = mask.copy()
+        mbody[:int(override['head_top_y'])] = False
+    m = measure(mbody, info['anchor_col'], info['heads'], override)
+    if override.get('head_top_y'):
+        m['top_method'] = 'override (carry3d.json fit_override.head_top_y): ' + m['top_method']
     if override.get('hip_h'):
         m['hip_h'], m['hip_method'] = float(override['hip_h']), 'override (carry3d.json fit_override.hip_h)'
     # the same numbers on the canonical mannequin in its idle stance

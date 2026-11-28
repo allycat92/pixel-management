@@ -23,6 +23,16 @@ def load_carry(path=CARRY_JSON):
         return json.load(f)['chars']
 
 
+def load_painter(path=CARRY_JSON):
+    """who paints over the 3D guides (carry3d.json `painter.name`; owner 2026-11-28: GPT until he switches back to
+    Antigravity) - the ONE place the 3D request READMEs take the painter's name from"""
+    with open(path, encoding='utf-8') as f:
+        name = (json.load(f).get('painter') or {}).get('name')
+    if not name:
+        raise ValueError(f'{path}: no painter.name - set who paints the 3D requests (GPT or Antigravity)')
+    return name
+
+
 def sheet_scale(sid):
     """the sheet's registration scale from art/requests/phase3.json (the same source run_request_guides uses)"""
     with open(os.path.join(REPO, 'art', 'requests', 'phase3.json'), encoding='utf-8') as f:
