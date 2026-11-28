@@ -1494,3 +1494,22 @@ RISKS AT GAME SIZE: 1배에서 긴 로브 아래 발 교대와 나무 지팡이 
 본 방법: 원본 띠, 등록용 1배·4배 미리보기, 접점과 바닥선, GIF 프레임 간격.
 고칠 점: 기술 검사 요구 없음. 게임 등록 전 주인 판정.
 남은 걱정: 1배에서 긴 로브 아래 발 교대와 나무 지팡이 끝 휨이 충분히 보이는지 확인.
+
+## gait/sheet_captain_fieldmedic_run - 마그다 — 야전 의무관 이동 8프레임
+CHECK: (a) RESULT: PASS; (b) RESULT: PASS
+```text
+  --dry-run: 시트·manifest 는 그대로. 새 시트 /tmp/pm-g6.WUD3/preview/sheet_captain_fieldmedic.png · 등록될 항목 sheet_captain_fieldmedic.entry.json · 미리보기 sheet_captain_fieldmedic_preview_x4.png
+  sheet/captain/fieldmedic: 시트 384x384, 15칸 — idle(4), attack(2), hit(1), run(8); runStride 45.5
+  다시 붙이는 명령: python3 tools/art/add_gait.py sheet/captain/fieldmedic --gait run --src art/inbox/gait/sheet_captain_fieldmedic_run_a.png art/inbox/gait/sheet_captain_fieldmedic_run_b.png --pose art/requests/gait/run__captain_fieldmedic/pose.json --ms 80
+```
+REFERENCES LOADED: guide, plain underlay, size (a/b), two GIFs, approved source & installed sheet, portrait, concept and pose.json → ok.
+CHANGED: x 284/215/146, 296/228/159; 착지 y=870, 공중 y=843. 경량 45.5, 명목 80ms.
+DEVIATIONS: (a) 접점과 높이를 가이드 수치에 맞췄다. 팔꿈치·무릎 등 세부 관절 좌표는 실측하지 않았다. (b) 황갈색 코트와 붉은 앞치마, 흰 머리 붕대, 두 손 철퇴. 십자가·효과 없음. (c) 코트·머리칼 지연과 손목 각도는 따로 실측하지 않았다.
+RISKS AT GAME SIZE: 1배에서 어깨를 가로지르는 철퇴의 머리와 뒷자락이 구분되는지 확인.
+3D GUIDE: 철퇴의 앞뒤 방향 및 선명한 앞무릎 기준이 도움이 됐다.
+
+## 판정 — gait/sheet_captain_fieldmedic_run
+결과: 기술 검사 통과 / 미감 주인 판정 대기.
+본 방법: 원본 띠, 등록용 1배·4배 미리보기, 접점과 바닥선, GIF 프레임 간격.
+고칠 점: 기술 검사 요구 없음. 게임 등록 전 주인 판정.
+남은 걱정: 1배에서 어깨를 가로지르는 철퇴의 머리와 뒷자락이 구분되는지 확인.
