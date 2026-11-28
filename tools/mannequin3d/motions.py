@@ -77,9 +77,9 @@ GAITS = {
         # Read off heavy_base/v1 (the accepted 2D mannequin, the ironwall reference): rear toe-off -91 -> lift -62 (toe 8 px
         # up) -> passing -4 (beside the stance ankle, 11 px up) -> REACH +36 (ahead of the hip, 5 px up, toes up) -> contact
         # +46 = steps 29 / 58 / 40 / 10 px. The old angle table front-loaded it (+16 at passing, +38 at reach, sole 1 px).
-        'swing_target': {0.625: (-62.0, 8.0, -40.0), 0.75: (-4.0, 11.0, -11.0), 0.875: (36.0, 6.0, 4.0)},
+        'swing_target': {0.625: (-62.0, 8.0, -40.0), 0.75: (-2.0, 12.0, -11.0), 0.875: (36.0, 6.0, 4.0)},
         'swing_ref': [29.8, 57.2, 40.7, 9.9],     # heavy_base/v1 swing-ankle steps (px), rear contact -> lift -> passing -> reach -> contact
-        'contact_rear_flex_max': 28.0,             # the trailing leg at double support: nearly straight, angled back (2D 9 / 24)
+        'contact_rear_flex_max': 24.0,             # the trailing leg at double support: nearly straight, angled back (2D 9 / 24)
         'arm': [(-4.0, 70.0), (-5.0, 66.0), (-2.0, 68.0), (2.0, 72.0), (4.0, 70.0), (5.0, 66.0), (2.0, 68.0), (-2.0, 72.0)],
         'pelvis_twist': 4.0, 'chest_counter': 2.0, 'head_pitch': 2.0,
     },
@@ -93,15 +93,18 @@ GAITS = {
         'lean': [7.1, 7.6, 6.8, 6.8],
         # swing foot by target (see run_heavy), read off robe_base/v1 (the mage reference): -79.5 -> -64 (toe 7 px up) ->
         # passing -4 (9 px up) -> reach +37 (5 px up, toes up) -> contact +51 = steps 16 / 59 / 42 / 13 px
-        'swing_target': {0.625: (-64.0, 7.0, -37.0), 0.75: (-4.0, 9.0, -6.0), 0.875: (37.0, 6.0, 4.0)},
+        'swing_target': {0.625: (-64.0, 7.0, -37.0), 0.75: (-2.0, 10.0, -6.0), 0.875: (37.0, 6.0, 4.0)},
         'swing_ref': [15.7, 59.4, 41.8, 13.2],     # robe_base/v1 swing-ankle steps (px)
-        'contact_rear_flex_max': 30.0,             # robe_base: 27 / 33
+        'contact_rear_flex_max': 26.0,             # robe_base: 27 / 33
         'arm': [(-10.0, 72.0), (-12.0, 76.0), (-4.0, 74.0), (6.0, 72.0), (10.0, 72.0), (12.0, 76.0), (4.0, 74.0), (-6.0, 72.0)],
         'pelvis_twist': 4.0, 'chest_counter': 3.0, 'head_pitch': 2.0,
         # robe proxy: hem height (robe_base v1: 38-52 px, check fail < 38), hem corner lift, margins around the leading
         # knee / trailing heel; the hem follows one cell late when the legs close (robe_base hem lag)
-        'robe': {'hem_h': 42.0, 'lift_front': 6.0, 'lift_back': 8.0, 'knee_margin': 18.0, 'heel_margin': 14.0,
-                 'max_change': 0.15},
+        # 11-28 owner verdict: the hem's back edge followed the trailing HEEL (+14 px) and jumped ~30 px at contact, the hem
+        # 180-230 px wide (robe_base 120-157): now the back edge follows the trailing ANKLE (robe_base: back edge ~ ankle - 4),
+        # the front the leading knee, and the back edge moves <= max_edge_px a frame (the boot shows under the hem).
+        'robe': {'hem_h': 42.0, 'lift_front': 6.0, 'lift_back': 8.0, 'knee_margin': 4.0, 'ankle_margin': 2.0,
+                 'max_change': 0.15, 'max_edge_px': 15.0},
     },
 }
 
@@ -142,7 +145,7 @@ def interp_linear(keys_t, keys_v, t):
 def _stance_target(spec, psi):
     """toe tip x (screen px from the hip column, for a foot on the body's mid plane) and foot pitch at leg phase psi"""
     toe_tip = spec['toe0'] - 2.0 * spec['step_px'] * psi
-    pitch = interp_linear(spec['stance'], spec['stance_pitch'], psi)
+    pitch = interp_linear(spec['stance'], spec.get('stance_pitch_used') or spec['stance_pitch'], psi)
     return toe_tip, pitch
 
 
@@ -174,6 +177,9 @@ def _solve_stances(spec, P, pose, phi, cam):
             stance.append(side)
             ok_all &= ok
     return stance, ok_all
+
+
+PEEL_MIN = -10.0     # the trailing heel at double support peels at least this much (deg) when it is flattened
 
 
 def _solve_swing(spec, P, pose, side, psi, cam, add=None):
@@ -239,6 +245,9 @@ def gait_keys(spec, P, cam, carry):
     """the 8 key poses of a gait (dicts), with meta. Stance legs solved by IK. The character's `personality`
     (carry3d.json) offsets the lean, hip height, neck and swing legs - never the stride or the cadence."""
     k_leg = leg_factor(P)
+    base_spec = spec
+    base_spec.pop('stance_pitch_used', None)
+    base_spec['leg_k'] = round(k_leg, 4)
     spec = dict(spec, leg_k=k_leg)
     pz = personality(carry)
     swing_add = {round(float(k), 4): v for k, v in (pz.get('swing_add') or {}).items()}
@@ -290,13 +299,24 @@ def gait_keys(spec, P, cam, carry):
             meta['hip_lowered'] += 0.5
         # double support (heavy / robe contact): the trailing leg stays nearly straight and angled back, as in the 2D bases
         # (owner 11-28: 'only the foot trails back'). A personality hip drop that would fold its knee is given back here.
+        # First the trailing heel peels less (its pitch flattens toward PEEL_MIN; the toe stays where the planted-foot rule
+        # puts it - stored in the caller's spec as stance_pitch_used, so the sampled frames solve the same foot), then the
+        # personality's hip drop is given back (up to the class table's height).
         lim = spec.get('contact_rear_flex_max')
         if lim and len(stance) == 2 and not meta['hip_lowered']:
-            rear = 'F' if half == 0 and f < 4 else 'N'
+            rear = 'F' if f < 4 else 'N'
             table_h = spec['hip_h'][half] * k_leg
-            while pose['knee_' + rear] > lim and pose['hip_h'] < table_h - 1e-6:
-                pose['hip_h'] = min(pose['hip_h'] + 0.5, table_h)
-                meta['hip_raised'] += 0.5
+            sp = list(base_spec.get('stance_pitch_used') or spec['stance_pitch'])
+            while pose['knee_' + rear] > lim:
+                if sp[-1] < PEEL_MIN - 1e-6:
+                    sp[-1] = min(sp[-1] + 1.0, PEEL_MIN)
+                    base_spec['stance_pitch_used'] = sp
+                    spec['stance_pitch_used'] = sp
+                elif pose['hip_h'] < table_h - 1e-6:
+                    pose['hip_h'] = min(pose['hip_h'] + 0.5, table_h)
+                    meta['hip_raised'] += 0.5
+                else:
+                    break
                 stance, ok_all = solve_legs()
         meta.update({'stance': stance, 'reached': ok_all})
         carry_arms(pose, carry, phi)
@@ -335,37 +355,118 @@ def weapon_limit(carry):
     return [float(lim.get('min', WEAPON_LIMIT[0])), float(lim.get('max', WEAPON_LIMIT[1]))]
 
 
-def carry_props(carry, phi):
-    """the props for cycle phase phi: a weapon's abs_angle swings `swing` deg with its hand's wave, `lag` frames late;
-    every weapon carries the character's hand range (`limit`, enforced by rig.add_prop)"""
+LOCK_LEAN_GAIN = 0.12        # a chest-locked weapon turns with 12% of the trunk's lean change (the light run leans 19-31
+                             # deg: the full change would rock a two-handed greatsword 12 deg; heavy / robe lean ~1 deg)
+ONE_HAND_SWING_MAX = 4.0     # deg: a one-handed weapon may sway with its arm at most +-4 (owner 11-28: no wobble)
+PROP_KEYS_OUT = ('swing', 'lag', 'measured', 'idle_deg', 'idle_measured')
+
+
+def locked_prop(carry):
+    """index of the prop locked to the chest (a two-handed carry: carry3d `two_hand`), or None"""
+    th = carry.get('two_hand')
+    return th.get('prop', 0) if th else None
+
+
+def carry_props(carry, phi, lean_delta=None):
+    """the props for cycle phase phi: a one-handed weapon's abs_angle swings `swing` deg (at most ONE_HAND_SWING_MAX) with
+    its hand's wave, `lag` frames late; a TWO-HANDED weapon (carry `two_hand`) is locked to the chest - no swing, its
+    angle turns only with the chest's lean change (lean_delta, deg, + = more forward lean -> the weapon tips forward).
+    Every weapon carries the character's hand range (`limit`, enforced by rig.add_prop)"""
     out = []
-    for pr in carry.get('props', []):
-        p = {k: v for k, v in pr.items() if k not in ('swing', 'lag', 'measured')}
+    lock = locked_prop(carry)
+    for i, pr in enumerate(carry.get('props', [])):
+        p = {k: v for k, v in pr.items() if k not in PROP_KEYS_OUT}
         if p.get('kind') in WEAPONS:
             p['limit'] = weapon_limit(carry)
-        if pr.get('swing') and p.get('abs_angle') is not None:
-            p['abs_angle'] = p['abs_angle'] + pr['swing'] * wave(phi, pr.get('hand', 'N'), pr.get('lag', 0.0))
+        if i == lock and p.get('abs_angle') is not None:
+            p['abs_angle'] = p['abs_angle'] - (lean_delta or 0.0)
+            p['chest_locked'] = True
+        elif pr.get('swing') and p.get('abs_angle') is not None:
+            sw = min(pr['swing'], ONE_HAND_SWING_MAX) if p.get('kind') in WEAPONS else pr['swing']
+            p['abs_angle'] = p['abs_angle'] + sw * wave(phi, pr.get('hand', 'N'), pr.get('lag', 0.0))
         if pr.get('swing') and p.get('kind') == 'shield':
             p['face'] = p.get('face', 30.0) + pr['swing'] * wave(phi, pr.get('hand', 'F'), pr.get('lag', 0.0))
         out.append(p)
     return out
 
 
-def two_hand(P, pose, carry, props):
+def two_hand(P, pose, carry, props, cam=None):
     """second hand on a staff / two-handed weapon: carry['two_hand'] = {'prop': index, 'other': 'F', 'along': px}
-    -> the other wrist is IK'd onto the prop line `along` px past the holding hand"""
+    -> the other wrist is IK'd onto the prop line `along` px past the holding hand. With the camera, the fist is put on
+    that point ON SCREEN (the arm IK works in the arm's swing plane; the far fist's depth is corrected along x), so both
+    fists keep their places on the grip in every frame (owner 11-28)"""
     th = carry.get('two_hand')
     if not th:
         return
+    pose['arm_abd_' + th.get('other', 'F')] = th.get('abd', 0.0)
     body = fk(P, pose, props=props)
     J = body.joints
     pr = props[th.get('prop', 0)]
     d = J['prop_dir_' + pr.get('kind', 'staff')]       # the direction after the hand's range limit
-    target = J['hand' + pr.get('hand', 'N')] + d * th.get('along', 40.0)
+    goal = J['hand' + pr.get('hand', 'N')] + d * th.get('along', 40.0)
     side = th.get('other', 'F')
-    sh, el = arm_ik(P, pose, J['S' + side], target - (J['hand' + side] - J['wri' + side]))
-    pose['shoulder_' + side], pose['elbow_' + side] = sh, el
-    pose['arm_abd_' + side] = th.get('abd', 0.0)
+    corr = np.zeros(3)
+    for _ in range(5 if cam is not None else 1):
+        target = goal + corr
+        sh, el = arm_ik(P, pose, J['S' + side], target - (J['hand' + side] - J['wri' + side]))
+        pose['shoulder_' + side], pose['elbow_' + side] = sh, el
+        if cam is None:
+            break
+        body = fk(P, pose, props=props)
+        J = body.joints
+        err = _scr(cam, goal - J['hand' + side])
+        if np.hypot(*err) < 0.2:
+            break
+        c = math.cos(math.radians(cam.yaw))
+        corr += np.array([err[0] / c, err[1], 0.0])
+
+
+def _lean_total(pose):
+    q = full_pose(pose)
+    return q['pelvis_pitch'] + q['spine_pitch'] + q['chest_pitch']
+
+
+def _scr(cam, v):
+    """screen offset (x right, y up) of a world offset v at the camera's yaw (no perspective)"""
+    c, s = math.cos(math.radians(cam.yaw)), math.sin(math.radians(cam.yaw))
+    return np.array([c * v[0] - s * v[2], v[1]])
+
+
+def chest_lock_ref(P, keys, carry, cam):
+    """the two-handed grip as a fixed point of the chest: the holding fist of the authored carry (arms of the 8 key poses)
+    relative to the chest centre (it rides the chest's bob and lean, not the arm's swing or the hips' twist), averaged
+    over the cycle -> (offset, mean lean, hand) or None"""
+    lock = locked_prop(carry)
+    if lock is None:
+        return None
+    hand = carry['props'][lock].get('hand', 'N')
+    pts, leans = [], []
+    for k, (pose, _) in enumerate(keys):
+        props = carry_props(carry, k / 8.0)
+        body = fk(P, pose, props=props)
+        pts.append(_scr(cam, body.joints['hand' + hand] - body.joints['chest']))
+        leans.append(_lean_total(pose))
+    return np.mean(pts, axis=0), float(np.mean(leans)), hand
+
+
+def lock_grip(P, pose, ref, props, cam):
+    """IK the holding arm so its fist sits on the chest-fixed grip point ON SCREEN (the arm IK works in the arm's swing
+    plane; the depth the hip twist gives the fist is corrected by moving the target along x)"""
+    g_scr, _, hand = ref
+    c = math.cos(math.radians(cam.yaw))
+    body = fk(P, pose, props=props)
+    corr = np.zeros(3)
+    for _ in range(5):
+        J = body.joints
+        target = J['chest'] + np.array([g_scr[0] / c, g_scr[1], 0.0]) + corr
+        target[2] = J['hand' + hand][2]
+        sh, el = arm_ik(P, pose, J['S' + hand], target - (J['hand' + hand] - J['wri' + hand]))
+        pose['shoulder_' + hand], pose['elbow_' + hand] = sh, el
+        body = fk(P, pose, props=props)
+        err = g_scr - _scr(cam, body.joints['hand' + hand] - body.joints['chest'])
+        if np.hypot(*err) < 0.2:
+            break
+        corr += np.array([err[0] / c, err[1], 0.0])
 
 
 CHANNELS = ['hip_h', 'pelvis_pitch', 'spine_pitch', 'chest_pitch', 'pelvis_yaw', 'chest_yaw', 'head_pitch', 'neck_pitch',
@@ -376,6 +477,7 @@ CHANNELS = ['hip_h', 'pelvis_pitch', 'spine_pitch', 'chest_pitch', 'pelvis_yaw',
 def gait_frames(spec, P, cam, carry, n=8):
     """sample n frames of a gait cycle -> list of (pose, meta); meta has phase, stance, frame name and the props"""
     keys = gait_keys(spec, P, cam, carry)
+    ref = chest_lock_ref(P, keys, carry, cam)
     out = []
     for i in range(n):
         phi = i / n
@@ -384,8 +486,12 @@ def gait_frames(spec, P, cam, carry, n=8):
             vals = [full_pose(k[0])[ch] for k in keys]
             pose[ch] = float(catmull_periodic(vals, phi))
         stance, reached = _solve_stances(spec, P, pose, phi, cam)
-        props = carry_props(carry, phi)
-        two_hand(P, pose, carry, props)
+        if ref is not None:          # two-handed: the grip rides the chest, the weapon turns only with the lean
+            props = carry_props(carry, phi, LOCK_LEAN_GAIN * (_lean_total(pose) - ref[1]))
+            lock_grip(P, pose, ref, props, cam)
+        else:
+            props = carry_props(carry, phi)
+        two_hand(P, pose, carry, props, cam)
         k = i * 8 / n
         meta = {'phi': phi, 'stance': stance, 'reached': reached, 'props': props, 'key': abs(k - round(k)) < 1e-9}
         if meta['key']:
@@ -398,19 +504,33 @@ def gait_frames(spec, P, cam, carry, n=8):
 
 def robe_hems(spec, P, bodies):
     """hem of the robe proxy per frame (a cycle, in order): front edge = the leading knee + margin, back edge = the
-    trailing heel - margin; the hem pushes out at once but falls back one cell late (robe_base), and its width never
-    changes by more than max_change between neighbouring frames (no balloon)."""
+    trailing ANKLE - its shin radius - margin (robe_base); the hem pushes out at once but falls back one cell late
+    (robe_base), each edge moves at most max_edge_px (scaled to the frame count) between neighbouring frames, and its width
+    never changes by more than max_change (no balloon)."""
     r = spec['robe']
     n = len(bodies)
     raw = []
     for b in bodies:
         J = b.joints
         front = max(J['kneeN'][0], J['kneeF'][0]) + P['r_thigh'][1] + r['knee_margin']
-        back = min(J['heelN'][0], J['heelF'][0]) - P['r_foot'] - r['heel_margin']
+        back = min(J['ankN'][0], J['ankF'][0]) - P['r_shin'][1] - r['ankle_margin']
         raw.append([front, back, J['hip'][0]])
     raw = np.array(raw)
-    front = np.array([max(raw[i, 0], raw[i - 1, 0]) for i in range(n)])
-    back = np.array([min(raw[i, 1], raw[i - 1, 1]) for i in range(n)])
+    lag = max(1, n // 8)
+    front = np.array([max(raw[i, 0], raw[i - lag, 0]) for i in range(n)])
+    back = np.array([min(raw[i, 1], raw[i - lag, 1]) for i in range(n)])
+    step = r.get('max_edge_px', 1e9) * 8.0 / n
+    for _ in range(4 * n):          # each edge moves <= step a frame (cyclic): never jump out to the trailing boot
+        moved = False
+        for i in range(n):
+            for e in (front, back):
+                lo, hi = e[i - 1] - step, e[i - 1] + step
+                v = min(max(e[i], lo), hi)
+                if abs(v - e[i]) > 1e-9:
+                    e[i] = v
+                    moved = True
+        if not moved:
+            break
     mid, half = (front + back) / 2, (front - back) / 2
     lim = 1.0 + r['max_change']
     for _ in range(50):

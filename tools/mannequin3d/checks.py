@@ -12,7 +12,8 @@ Run (gait) checks - gait_checks():
   band        everything incl. props inside the slot band x 32..351                                                FAIL
   margin      every frame keeps >= 8 px (BAND_MARGIN) to that band, props included - room for the painted cloth, hair
               and the real weapon shape (review 2026-11-28); fix it by carry angles / positions, never by shrinking   WARN
-  feet        each foot keeps >= 75% of its own area clear of the other leg (no two-feet blob in passing frames)                  FAIL
+  feet        each foot keeps >= 75% of its own area clear of the other leg (no two-feet blob); a foot lifted >= 8 px
+              while passing a planted one >= 45% (it may go behind the planted ankle, as in the 2D bases)        FAIL
   knees       the far knee is visible or >= 14 px from the near knee on screen                                     WARN
   upper body  each hand travels >= 12 px (relative to the hip) over the cycle - no frozen cut-out torso             FAIL
   props       a mace / weapon head is >= its radius + 8 px from the other hand (not sitting on the shield hand)     FAIL
@@ -41,6 +42,7 @@ from render import rasterize, FLOOR, HIP_X, SLOT_W
 BAND = (32, SLOT_W - 1 - 32)
 BAND_MARGIN = 8
 FAIL, WARN, OK = 'FAIL', 'WARN', 'OK'
+FEET_VIS, FEET_VIS_PASSING, FEET_LIFT = 0.75, 0.45, 8
 
 
 def extent_x(img, bg=(255, 0, 255)):
@@ -96,6 +98,176 @@ def weapon_checks(label, names, bodies):
                 f"{min(rv):.0f}..{max(rv):.0f} deg from the forearm]" if rv else ''))]
 
 
+# weapon stability (owner verdict 2026-11-28: bent spear, wobbling greatsword / mace): every held weapon is ONE rigid object
+W_LEN_TOL = 0.02            # on-screen butt -> tip length within +-2% over the cycle
+W_STEP = {1: 3.5, 2: 1.5}   # deg between neighbouring frames: one-handed (arm sway) / two-handed (chest-locked)
+W_RANGE = {1: 8.5, 2: 4.0}  # deg over the cycle (one-handed: +-4 deg sway, seen at the 3/4 camera)
+W_TIP_STEP = 0.08           # tip move per frame <= 0.08 x the weapon length, relative to the chest (two-handed) or
+                            # to its fist (one-handed: the weapon's own turn, the arm's swing excluded)
+W_REVERSALS = 2             # tip path direction reversals (turn > 120 deg between moves >= max(2 px, 1% length)) per cycle
+W_GRIP_TOL = 3.0            # two-handed: the grip stays within +-3 px of its chest-fixed place; strip a vs b <= 3 px / 1 deg
+W_IDLE_WARN = 15.0          # |run carry angle - idle angle| above this: WARN, and the README must say it
+
+
+def _wrapd(a):
+    return (a + 180.0) % 360.0 - 180.0
+
+
+SWING_STEP_MAX = 1.5        # each swing-foot step <= 1.5 x the accepted 2D base's step (x the sheet's stride factor)
+REACH_SOLE_MIN = 4          # the reach frame's swing sole >= 4 px up (not a second contact frame)
+TOE_OFF_SOLE_MAX = 10       # the first swing frame lifts the foot <= 10 px (x the leg factor): no snap up
+REACH_AHEAD_MIN = 15        # the reach frame's swing ankle >= 15 px ahead of the hip column (x the stride factor)
+REAR_FLEX_MAX = 30.0        # the trailing leg at double support: knee flex <= 30 deg ...
+REAR_THIGH_MAX = -12.0      # ... and its thigh >= 12 deg behind vertical on screen (2D bases: -16..-28)
+
+
+def foot_paths(spec, recs, slot_rel=True):
+    """per leg, the swing cycle of a no-flight gait (heavy / robe): [(frame, ankle x, sole px up, knee x, thigh deg)] from
+    the trailing contact through lift, passing and reach to the next contact (hip-relative screen px)"""
+    out = {}
+    for s, start in (('N', 4), ('F', 0)):
+        seq = []
+        for k in range(5):
+            r = recs[(start + k) % 8]
+            J = r['joints']
+            org = (r['slot'] - 1) * 384 if spec['gait'] == 'run' else 0
+            hx = J['hip'][0] - org
+            H, K, A = J['H' + s], J['knee' + s], J['ank' + s]
+            seq.append((r['frame'], round(A[0] - org - hx, 1), FLOOR - r['sole_px'][s], round(K[0] - org - hx, 1),
+                        round(math.degrees(math.atan2(K[0] - H[0], K[1] - H[1])), 1), r['knee_flex_deg'][s]))
+        out[s] = seq
+    return out
+
+
+def foot_path_checks(spec, recs):
+    """owner verdict 2026-11-28 (the back foot snapped, only the foot trailed back): the swing foot of heavy / robe moves
+    forward every frame in the accepted 2D bases' rhythm, the reach frame is a reach (ahead of the hip, off the floor), the
+    toe-off does not snap up, and the trailing leg at double support is a straight-ish leg angled back"""
+    if 'swing_target' not in spec:
+        return []
+    k = spec['stride_k']
+    kh = spec.get('leg_k', 1.0)
+    ref = spec['swing_ref']
+    out = []
+    for s, seq in foot_paths(spec, recs).items():
+        leg = 'near' if s == 'N' else 'far'
+        xs = [a for _, a, _, _, _, _ in seq]
+        steps = [round(xs[i + 1] - xs[i], 1) for i in range(4)]
+        lim = [round(SWING_STEP_MAX * r * k, 1) for r in ref]
+        bad = [i for i in range(4) if steps[i] <= 0 or steps[i] > lim[i]]
+        out.append((FAIL if bad else OK, f'{leg} swing foot: ankle x {" -> ".join(f"{f} {a:+.0f}" for f, a, *_ in seq)} = steps '
+                    f'{steps} px (each > 0 and <= 1.5 x the 2D base {lim}; 2D {[round(r * k, 1) for r in ref]})'))
+        kx = [kx_ for _, _, _, kx_, _, _ in seq[1:4]]
+        over = any(kx[i + 1] < kx[i] - 2.0 for i in range(2))
+        out.append((FAIL if over else OK, f'{leg} swing knee x (lift / passing / reach) {kx} - moves forward, no overshoot'))
+        lift, reach = seq[1], seq[3]
+        okr = reach[2] >= REACH_SOLE_MIN and reach[1] >= REACH_AHEAD_MIN * k
+        out.append((OK if okr else FAIL, f'{leg} REACH {reach[0]}: swing ankle {reach[1]:+.0f} px ahead of the hip '
+                    f'(>= {REACH_AHEAD_MIN * k:.0f}), sole {reach[2]} px up (>= {REACH_SOLE_MIN}) - not a second contact'))
+        okt = lift[2] <= TOE_OFF_SOLE_MAX * kh
+        out.append((OK if okt else FAIL, f'{leg} toe-off {lift[0]}: sole {lift[2]} px up (<= {TOE_OFF_SOLE_MAX * kh:.0f}) - '
+                    'no snap up'))
+        rear = seq[0]
+        okc = rear[5] <= REAR_FLEX_MAX and rear[4] <= REAR_THIGH_MAX
+        out.append((OK if okc else FAIL, f'{leg} trailing leg at contact {rear[0]}: knee flex {rear[5]} (<= {REAR_FLEX_MAX:g}), '
+                    f'thigh {rear[4]:+.0f} deg (<= {REAR_THIGH_MAX:g}: angled back, not a vertical thigh with the foot '
+                    'dragged behind)'))
+    return out
+
+
+def weapon_stability(recs, carry=None):
+    """the weapon rules on pose.json `weapon_px` (build.weapon_px) -> [(level, message)]"""
+    W = [r.get('weapon_px') for r in recs]
+    if not all(W):
+        return []
+    n = len(W)
+    hands = 2 if W[0].get('two_hand') else 1
+    rel = lambda w, k: np.array(w[k]) - np.array(w['chest'])
+    out = []
+    L = np.array([w['length_px'] for w in W])
+    dl = (L.max() - L.min()) / L.mean()
+    out.append((FAIL if dl > 2 * W_LEN_TOL else OK,
+                f"weapon rigid: butt->tip {L.min():.1f}..{L.max():.1f} px on screen ({dl * 100:.1f}% change, <= {2 * W_LEN_TOL * 100:.0f}%), "
+                f"fist->tip {min(w['fist_tip_px'] for w in W):.0f}..{max(w['fist_tip_px'] for w in W):.0f}, one straight "
+                f"{W[0]['kind']} (a rigid capsule: never bent, shortened or stretched)"))
+    A = np.array([w['angle_deg'] for w in W])
+    wp = next((p for p in (carry or {}).get('props', []) if p.get('kind') == W[0]['kind']), {})
+    # a weapon set in the HAND frame (no abs_angle: e.g. a reverse-gripped dagger lying along the forearm) is part of the
+    # forearm - it turns with the arm pump; it must hold its angle TO THE FOREARM instead
+    in_hand = bool(wp) and wp.get('abs_angle') is None and not wp.get('between')
+    if in_hand:
+        F = np.array([w0['raw_deg'] for r in recs for w0 in (r.get('weapon_angle') or [])[:1]])
+        steps = [abs(_wrapd(F[(i + 1) % n] - F[i])) for i in range(n)]
+        rng = float(max(abs(_wrapd(a - b)) for a in F for b in F))
+        ok = max(steps) <= W_STEP[1] + 1e-6 and rng <= W_RANGE[1] + 1e-6
+        out.append((OK if ok else FAIL, f"weapon held in the hand frame (it rides the forearm): angle TO THE FOREARM per frame "
+                    + ' '.join(f"{r['frame']}:{a:.1f}" for r, a in zip(recs, F))
+                    + f"  max step {max(steps):.2f} deg (<= {W_STEP[1]}), range {rng:.2f} (<= {W_RANGE[1]}); on screen "
+                    f"{' '.join(f'{a:.0f}' for a in A)} with the arm"))
+    else:
+        steps = [abs(_wrapd(A[(i + 1) % n] - A[i])) for i in range(n)]
+        rng = float(max(abs(_wrapd(a - b)) for a in A for b in A))
+        ok = max(steps) <= W_STEP[hands] + 1e-6 and rng <= W_RANGE[hands] + 1e-6
+        out.append((OK if ok else FAIL,
+                    f"weapon angle ({'two-handed, chest-locked' if hands == 2 else 'one-handed'}): "
+                    + ' '.join(f"{r['frame']}:{a:.1f}" for r, a in zip(recs, A))
+                    + f"  max step {max(steps):.2f} deg (<= {W_STEP[hands]}), range {rng:.2f} deg (<= {W_RANGE[hands]})"))
+    T = [rel(w, 'tip') if hands == 2 else np.array(w['tip']) - np.array(w['fist']) for w in W]
+    mv = [float(np.hypot(*(T[(i + 1) % n] - T[i]))) for i in range(n)]
+    rev = 0
+    small = max(2.0, 0.01 * L.mean())
+    for i in range(n):
+        a, b = T[i] - T[i - 1], T[(i + 1) % n] - T[i]
+        if np.hypot(*a) >= small and np.hypot(*b) >= small:
+            c = float(a @ b / (np.hypot(*a) * np.hypot(*b)))
+            if c < math.cos(math.radians(120)):
+                rev += 1
+    lim = W_TIP_STEP * L.mean()
+    if in_hand:
+        out.append((OK, f'weapon tip path: rides the forearm (hand-frame weapon) - moves {" ".join(f"{m:.0f}" for m in mv)} px '
+                        'with the arm pump (checked as the angle to the forearm above)'))
+    else:
+        out.append((OK if max(mv) <= lim and rev <= W_REVERSALS else FAIL,
+                    f'weapon tip path (relative to {"the chest" if hands == 2 else "its fist"}): moves '
+                    f'{" ".join(f"{m:.0f}" for m in mv)} px (<= {lim:.0f}), {rev} reversals (<= {W_REVERSALS}) - one smooth '
+                    'path, no back-and-forth'))
+    if hands == 2:
+        G = np.array([rel(w, 'fist') for w in W])
+        dev = float(np.max(np.hypot(*(G - G.mean(0)).T)))
+        ab = []
+        if n == 8:
+            for i in range(4):
+                j = i + 4
+                ab.append(max(abs(_wrapd(A[i] - A[j])),
+                              *(float(np.hypot(*(rel(W[i], k) - rel(W[j], k))))
+                                for k in ('fist', 'tip'))))
+        al = [w.get('fist2_along_px') for w in W if w.get('fist2_along_px') is not None]
+        spread = (max(al) - min(al)) if al else 0.0
+        okg = (dev <= W_GRIP_TOL + 1e-6 and (not ab or max(ab) <= W_GRIP_TOL + 1e-6)
+               and spread <= 2 * W_GRIP_TOL + 1e-6)
+        out.append((OK if okg else FAIL, f'two-handed grip fixed to the chest: deviation {dev:.1f} px (<= {W_GRIP_TOL:g}); '
+                    f'strip a vs b at the same leg phase (deg / px) {" ".join(f"{v:.1f}" for v in ab)} (<= {W_GRIP_TOL:g}); '
+                    f'fist-to-fist on screen {min(al or [0]):.0f}..{max(al or [0]):.0f} px (spread <= {2 * W_GRIP_TOL:g}: both '
+                    'fists keep their places on the grip)'))
+    idle = wp.get('idle_deg')
+    run = run_angle(W)
+    if idle is None:
+        out.append((WARN, f'weapon idle angle not measured (carry3d props[].idle_deg) - the run carry ({run:.0f} deg) cannot '
+                          'be compared with the idle drawing'))
+    else:
+        d = _wrapd(run - float(idle))
+        out.append((WARN if abs(d) > W_IDLE_WARN else OK,
+                    f'weapon run angle {run:.0f} vs idle {float(idle):.0f} deg ({d:+.0f}; > {W_IDLE_WARN:g} -> WARN, the README '
+                    'states the change)'))
+    return out
+
+
+def run_angle(W):
+    """circular mean of the on-screen weapon angle (butt -> tip, deg from forward, + = up) over the frames"""
+    a = np.radians([w['angle_deg'] for w in W])
+    return float(math.degrees(math.atan2(np.sin(a).mean(), np.cos(a).mean())))
+
+
 def gait_checks(spec, recs, bodies, plains, cam, carry=None):
     out = []
     step4 = spec['step_px'] / 4
@@ -126,6 +298,7 @@ def gait_checks(spec, recs, bodies, plains, cam, carry=None):
                                          f"(target {step4:.1f} +-1)"))
     bad = [r['frame'] for r in recs if not r['ik_reached']]
     out.append((FAIL if bad else OK, 'IK: every stance foot reached' if not bad else f'IK could not reach: {bad}'))
+    out += foot_path_checks(spec, recs)
     lowered = [(r['frame'], r['hip_lowered_px']) for r in recs if r.get('hip_lowered_px')]
     if lowered:
         out.append((WARN, 'hip lowered to reach the planted foot: ' + ', '.join(f'{f} {v} px' for f, v in lowered)))
@@ -152,13 +325,24 @@ def gait_checks(spec, recs, bodies, plains, cam, carry=None):
     out.append((OK if mg >= BAND_MARGIN else WARN, f'band margin (>= {BAND_MARGIN} px to x {BAND[0]}..{BAND[1]}, props included): '
                 f'min {mg} px'))
     # feet / knees
-    fv = []
+    fv, low = [], []
     for r, b in zip(recs, bodies):
         cam.fit(b)
-        fv.append((r['frame'], visible_fraction(b, cam, {'footN', 'instepN', 'ankleN'}, {p + 'F' for p in LEG}),
-                   visible_fraction(b, cam, {'footF', 'instepF', 'ankleF'}, {p + 'N' for p in LEG})))
-    low = [f'{f} {"near" if n < 0.75 else "far"} {min(n, fa):.2f}' for f, n, fa in fv if min(n, fa) < 0.75]
-    out.append((FAIL if low else OK, 'feet not covered by the other leg (>= 0.75): '
+        vis = {'N': visible_fraction(b, cam, {'footN', 'instepN', 'ankleN'}, {p + 'F' for p in LEG}),
+               'F': visible_fraction(b, cam, {'footF', 'instepF', 'ankleF'}, {p + 'N' for p in LEG})}
+        fv.append((r['frame'], vis['N'], vis['F']))
+        for s in 'NF':
+            o = 'F' if s == 'N' else 'N'
+            # passing frame (one foot lifted >= 8 px past a planted one): the feet may overlap as in the accepted 2D bases
+            # (swing ankle -4 beside the stance ankle -25); the height difference keeps them two feet - depth order decides
+            # (owner 11-28). Otherwise two feet merging into one blob FAIL.
+            passing = ((FLOOR - r['sole_px'][s] >= FEET_LIFT and r['sole_px'][o] == FLOOR)
+                       or (FLOOR - r['sole_px'][o] >= FEET_LIFT and r['sole_px'][s] == FLOOR))
+            need = FEET_VIS_PASSING if passing else FEET_VIS
+            if vis[s] < need:
+                low.append(f'{r["frame"]} {"near" if s == "N" else "far"} {vis[s]:.2f} (< {need})')
+    out.append((FAIL if low else OK, f'feet not covered by the other leg (>= {FEET_VIS}; a foot lifted >= {FEET_LIFT} px past '
+                f'a planted one >= {FEET_VIS_PASSING}): '
                 + ' '.join(f'{f}:{n:.2f}/{fa:.2f}' for f, n, fa in fv) + (f'  merged: {low}' if low else '')))
     kw = []
     for r, b in zip(recs, bodies):
@@ -174,8 +358,13 @@ def gait_checks(spec, recs, bodies, plains, cam, carry=None):
         pts = np.array([[r['joints']['hand' + s][0] - r['joints']['hip'][0], r['joints']['hand' + s][1] - r['joints']['hip'][1]]
                         for r in recs])
         trav[s] = float(max(np.hypot(*(pts[i] - pts[j])) for i in range(8) for j in range(8)))
+    locked = bool((carry or {}).get('two_hand'))
     lowh = [s for s in 'NF' if trav[s] < 12.0]
-    out.append((FAIL if lowh else OK, f"hand travel over the cycle (>= 12 px): near {trav['N']:.0f}, far {trav['F']:.0f}"))
+    if locked:      # both fists on a chest-locked weapon: they ride the trunk (bob, lean, twist) by design
+        out.append((OK, f"hand travel over the cycle: near {trav['N']:.0f}, far {trav['F']:.0f} px (both fists on the "
+                        "chest-locked two-handed weapon - they ride the trunk; the >= 12 px rule is for free hands)"))
+    else:
+        out.append((FAIL if lowh else OK, f"hand travel over the cycle (>= 12 px): near {trav['N']:.0f}, far {trav['F']:.0f}"))
     # props: weapon head vs the other hand
     probs = []
     for r, b in zip(recs, bodies):
@@ -191,8 +380,9 @@ def gait_checks(spec, recs, bodies, plains, cam, carry=None):
                     probs.append(f"{r['frame']} {d:.0f} px")
     if any(g['part'] == 'mace_head' for g in bodies[0].ghosts):
         out.append((FAIL if probs else OK, 'mace head clear of the shield hand (>= head radius + 8 px)' + (f': {probs}' if probs else '')))
-    # weapon hand range; a sword blade never over the head
+    # weapon hand range; weapon stability; a sword blade never over the head
     out += weapon_checks('', [r['frame'] for r in recs], bodies)
+    out += weapon_stability(recs, carry)
     if any(g['part'] == 'blade' for g in bodies[0].ghosts):
         hd = []
         for b in bodies:

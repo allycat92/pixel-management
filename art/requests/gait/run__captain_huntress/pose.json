@@ -107,6 +107,7 @@
    "stance": "near",
    "hip_height_px": 183.6,
    "top_px": 435,
+   "head_top_px": 435,
    "lowest_px": 870,
    "sole_px": {
     "N": 870,
@@ -179,6 +180,35 @@
      "clamped": false
     }
    ],
+   "weapon_px": {
+    "kind": "bow",
+    "hand": "F",
+    "two_hand": false,
+    "butt": [
+     270.3,
+     776.1
+    ],
+    "fist": [
+     309.2,
+     676.2
+    ],
+    "tip": [
+     305.2,
+     549.0
+    ],
+    "chest": [
+     224.4,
+     595.8
+    ],
+    "hip": [
+     192.0,
+     686.4
+    ],
+    "angle_deg": 81.27,
+    "length_px": 229.8,
+    "fist_tip_px": 127.3,
+    "fist_butt_px": 107.2
+   },
    "joints": {
     "hip": [
      192.0,
@@ -285,6 +315,7 @@
    "stance": "near",
    "hip_height_px": 183.0,
    "top_px": 431,
+   "head_top_px": 431,
    "lowest_px": 870,
    "sole_px": {
     "N": 870,
@@ -357,6 +388,35 @@
      "clamped": false
     }
    ],
+   "weapon_px": {
+    "kind": "bow",
+    "hand": "F",
+    "two_hand": false,
+    "butt": [
+     651.6,
+     766.6
+    ],
+    "fist": [
+     691.4,
+     667.1
+    ],
+    "tip": [
+     688.5,
+     539.8
+    ],
+    "chest": [
+     601.4,
+     594.1
+    ],
+    "hip": [
+     576.0,
+     687.0
+    ],
+    "angle_deg": 80.75,
+    "length_px": 229.8,
+    "fist_tip_px": 127.3,
+    "fist_butt_px": 107.2
+   },
    "joints": {
     "hip": [
      576.0,
@@ -463,6 +523,7 @@
    "stance": "near",
    "hip_height_px": 186.9,
    "top_px": 438,
+   "head_top_px": 438,
    "lowest_px": 870,
    "sole_px": {
     "N": 870,
@@ -535,6 +596,35 @@
      "clamped": false
     }
    ],
+   "weapon_px": {
+    "kind": "bow",
+    "hand": "F",
+    "two_hand": false,
+    "butt": [
+     1021.8,
+     783.9
+    ],
+    "fist": [
+     1065.0,
+     685.9
+    ],
+    "tip": [
+     1066.3,
+     558.6
+    ],
+    "chest": [
+     1000.0,
+     596.6
+    ],
+    "hip": [
+     960.0,
+     683.1
+    ],
+    "angle_deg": 78.85,
+    "length_px": 229.7,
+    "fist_tip_px": 127.3,
+    "fist_butt_px": 107.1
+   },
    "joints": {
     "hip": [
      960.0,
@@ -639,6 +729,7 @@
    "stance": null,
    "hip_height_px": 187.6,
    "top_px": 440,
+   "head_top_px": 440,
    "lowest_px": 836,
    "sole_px": {
     "N": 804,
@@ -711,6 +802,35 @@
      "clamped": false
     }
    ],
+   "weapon_px": {
+    "kind": "bow",
+    "hand": "F",
+    "two_hand": false,
+    "butt": [
+     1391.4,
+     784.7
+    ],
+    "fist": [
+     1438.2,
+     688.5
+    ],
+    "tip": [
+     1444.2,
+     561.3
+    ],
+    "chest": [
+     1385.6,
+     597.6
+    ],
+    "hip": [
+     1344.0,
+     682.4
+    ],
+    "angle_deg": 76.69,
+    "length_px": 229.6,
+    "fist_tip_px": 127.3,
+    "fist_butt_px": 107.0
+   },
    "joints": {
     "hip": [
      1344.0,
@@ -817,6 +937,7 @@
    "stance": "far",
    "hip_height_px": 183.6,
    "top_px": 435,
+   "head_top_px": 435,
    "lowest_px": 870,
    "sole_px": {
     "N": 745,
@@ -889,6 +1010,35 @@
      "clamped": false
     }
    ],
+   "weapon_px": {
+    "kind": "bow",
+    "hand": "F",
+    "two_hand": false,
+    "butt": [
+     235.4,
+     775.2
+    ],
+    "fist": [
+     284.2,
+     680.0
+    ],
+    "tip": [
+     292.8,
+     553.0
+    ],
+    "chest": [
+     221.9,
+     595.9
+    ],
+    "hip": [
+     192.0,
+     686.4
+    ],
+    "angle_deg": 75.53,
+    "length_px": 229.5,
+    "fist_tip_px": 127.3,
+    "fist_butt_px": 106.9
+   },
    "joints": {
     "hip": [
      192.0,
@@ -995,6 +1145,7 @@
    "stance": "far",
    "hip_height_px": 183.0,
    "top_px": 431,
+   "head_top_px": 431,
    "lowest_px": 870,
    "sole_px": {
     "N": 744,
@@ -1067,6 +1218,35 @@
      "clamped": false
     }
    ],
+   "weapon_px": {
+    "kind": "bow",
+    "hand": "F",
+    "two_hand": false,
+    "butt": [
+     624.5,
+     769.2
+    ],
+    "fist": [
+     672.4,
+     673.5
+    ],
+    "tip": [
+     679.9,
+     546.4
+    ],
+    "chest": [
+     600.0,
+     594.2
+    ],
+    "hip": [
+     576.0,
+     687.0
+    ],
+    "angle_deg": 76.05,
+    "length_px": 229.5,
+    "fist_tip_px": 127.3,
+    "fist_butt_px": 107.0
+   },
    "joints": {
     "hip": [
      576.0,
@@ -1173,6 +1353,7 @@
    "stance": "far",
    "hip_height_px": 186.9,
    "top_px": 438,
+   "head_top_px": 438,
    "lowest_px": 870,
    "sole_px": {
     "N": 809,
@@ -1245,6 +1426,35 @@
      "clamped": false
     }
    ],
+   "weapon_px": {
+    "kind": "bow",
+    "hand": "F",
+    "two_hand": false,
+    "butt": [
+     1017.7,
+     784.8
+    ],
+    "fist": [
+     1062.4,
+     687.4
+    ],
+    "tip": [
+     1065.7,
+     560.2
+    ],
+    "chest": [
+     1000.0,
+     596.6
+    ],
+    "hip": [
+     960.0,
+     683.1
+    ],
+    "angle_deg": 77.94,
+    "length_px": 229.6,
+    "fist_tip_px": 127.3,
+    "fist_butt_px": 107.1
+   },
    "joints": {
     "hip": [
      960.0,
@@ -1349,6 +1559,7 @@
    "stance": null,
    "hip_height_px": 187.6,
    "top_px": 440,
+   "head_top_px": 440,
    "lowest_px": 836,
    "sole_px": {
     "N": 836,
@@ -1421,6 +1632,35 @@
      "clamped": false
     }
    ],
+   "weapon_px": {
+    "kind": "bow",
+    "hand": "F",
+    "two_hand": false,
+    "butt": [
+     1413.1,
+     790.0
+    ],
+    "fist": [
+     1454.0,
+     691.0
+    ],
+    "tip": [
+     1452.5,
+     563.7
+    ],
+    "chest": [
+     1388.0,
+     597.5
+    ],
+    "hip": [
+     1344.0,
+     682.4
+    ],
+    "angle_deg": 80.11,
+    "length_px": 229.8,
+    "fist_tip_px": 127.3,
+    "fist_butt_px": 107.2
+   },
    "joints": {
     "hip": [
      1344.0,
@@ -1521,7 +1761,7 @@
   "tool": "tools/mannequin3d/request.py",
   "carry": "tools/mannequin3d/specs/carry3d.json",
   "carry_key": "huntress",
-  "carry_sha256": "bf917d5161188c8af01ab707a6d6d536da414535cb4e7cc75cde73f6633085fc",
+  "carry_sha256": "bf248961e0a406a2914934a01c2063bc4186e4d8036a750e56a4d483e9a7bcb7",
   "sheet_scale_from": "art/requests/phase3.json",
   "painter": "GPT",
   "weapon_limit": {
@@ -1589,10 +1829,14 @@
    "[OK] mirror halves: knee flex near(f) vs far(f+4) max diff 0.0 deg (<= 3), hip height max diff 0.0 px (<= 1)",
    "[OK] x extent incl. props per frame (slot band 32..351): 72-321 95-319 88-314 43-333 59-299 83-299 99-314 56-320",
    "[OK] band margin (>= 8 px to x 32..351, props included): min 11 px",
-   "[OK] feet not covered by the other leg (>= 0.75): R1:1.00/1.00 R2:1.00/1.00 R3:1.00/1.00 R4:1.00/1.00 R5:1.00/1.00 R6:1.00/1.00 R7:1.00/1.00 R8:1.00/1.00",
+   "[OK] feet not covered by the other leg (>= 0.75; a foot lifted >= 8 px past a planted one >= 0.45): R1:1.00/1.00 R2:1.00/1.00 R3:1.00/1.00 R4:1.00/1.00 R5:1.00/1.00 R6:1.00/1.00 R7:1.00/1.00 R8:1.00/1.00",
    "[OK] far knee readable (visible or >= 14 px from the near knee)",
    "[OK] hand travel over the cycle (>= 12 px): near 106, far 34",
-   "[OK] weapon angle to the forearm (deg, 0 = straight, + = up; range 0..120) per frame R1:97 R2:92 R3:108 R4:114 R5:105 R6:99 R7:109 R8:109  -> 92.5..113.7"
+   "[OK] weapon angle to the forearm (deg, 0 = straight, + = up; range 0..120) per frame R1:97 R2:92 R3:108 R4:114 R5:105 R6:99 R7:109 R8:109  -> 92.5..113.7",
+   "[OK] weapon rigid: butt->tip 229.5..229.8 px on screen (0.1% change, <= 4%), fist->tip 127..127, one straight bow (a rigid capsule: never bent, shortened or stretched)",
+   "[OK] weapon angle (one-handed): R1:81.3 R2:80.8 R3:78.8 R4:76.7 R5:75.5 R6:76.0 R7:77.9 R8:80.1  max step 2.17 deg (<= 3.5), range 5.74 deg (<= 8.5)",
+   "[OK] weapon tip path (relative to its fist): moves 1 4 5 3 1 4 5 3 px (<= 18), 0 reversals (<= 2) - one smooth path, no back-and-forth",
+   "[OK] weapon run angle 78 vs idle 69 deg (+9; > 15 -> WARN, the README states the change)"
   ],
   "shading": "cel shading by depth: lighter = nearer the viewer, darker = farther (near limbs light, far limbs dark)"
  }
