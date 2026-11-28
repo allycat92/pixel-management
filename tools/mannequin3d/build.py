@@ -127,6 +127,10 @@ def weapon_px(body, cam, props, slot_origin=0.0):
     out['fist_butt_px'] = round(float(np.hypot(*(pts['butt'] - pts['fist']))), 1)
     if other:
         out['fist2_along_px'] = round(float(np.hypot(*(pts['fist2'] - pts['fist']))), 1)
+        # signed distance of the 2nd fist from the drawn butt -> tip line (screen px; checks FAIL > FIST2_LINE_TOL)
+        u = v / max(float(np.hypot(*v)), 1e-9)
+        r = pts['fist2'] - pts['butt']
+        out['fist2_off_line_px'] = round(float(r[0] * u[1] - r[1] * u[0]), 2)
     return out
 
 

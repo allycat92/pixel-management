@@ -168,6 +168,23 @@ def ankle_on_floor(P, tip, pitch):
     return ank
 
 
+def arm_chain(P, q, s, sho, R_armbase):
+    """one arm from its shoulder point: -> (elbow, wrist, hand centre, R_upper_arm, R_forearm, R_hand)"""
+    sg = SIDES[s]
+    R_ua = R_armbase @ rz(q['shoulder_' + s]) @ rx(-sg * q['arm_abd_' + s])
+    elb = sho + R_ua @ (DOWN * P['upper_arm'])
+    R_fa = R_ua @ rz(q['elbow_' + s])
+    wri = elb + R_fa @ (DOWN * P['forearm'])
+    R_hd = R_fa @ rz(q['wrist_' + s])
+    hand = wri + R_hd @ (DOWN * (P['hand'] * 0.55))
+    return elb, wri, hand, R_ua, R_fa, R_hd
+
+
+def arm_base(q):
+    """the arms' swing frame: the torso lean plane turned by the pelvis yaw"""
+    return turn(q['pelvis_yaw']) @ lean(q['pelvis_pitch'] + q['spine_pitch'] + q['chest_pitch'])
+
+
 def fk(P, pose, props=None, robe=None):
     """forward kinematics. P = proportions, pose = angle dict (see module doc), props = list of prop dicts,
     robe = None or {'hem_h', 'front', 'back', 'depth'} (see robe_rings; a see-through cloth proxy)."""
@@ -215,17 +232,11 @@ def fk(P, pose, props=None, robe=None):
     J['hip'] = (J['HN'] + J['HF']) / 2
 
     # arms: shoulders on the (turned) chest, swing in the torso's lean plane
-    lean_total = q['pelvis_pitch'] + q['spine_pitch'] + q['chest_pitch']
-    R_armbase = turn(q['pelvis_yaw']) @ lean(lean_total)
+    R_armbase = arm_base(q)
     Fm['armbase'] = turn(q['pelvis_yaw'])      # the arms' swing plane = its xy plane (weapon limit is measured in it)
     for s, sg in SIDES.items():
         sho = neck0 + R_chest @ np.array([-4.0, -P['shoulder_drop'], sg * P['shoulder_w']])
-        R_ua = R_armbase @ rz(q['shoulder_' + s]) @ rx(-sg * q['arm_abd_' + s])
-        elb = sho + R_ua @ (DOWN * P['upper_arm'])
-        R_fa = R_ua @ rz(q['elbow_' + s])
-        wri = elb + R_fa @ (DOWN * P['forearm'])
-        R_hd = R_fa @ rz(q['wrist_' + s])
-        hand = wri + R_hd @ (DOWN * (P['hand'] * 0.55))
+        elb, wri, hand, R_ua, R_fa, R_hd = arm_chain(P, q, s, sho, R_armbase)
         J['S' + s], J['elb' + s], J['wri' + s], J['hand' + s] = sho, elb, wri, hand
         Fm['upper_arm' + s], Fm['forearm' + s], Fm['hand' + s] = R_ua, R_fa, R_hd
 
@@ -432,6 +443,15 @@ def add_prop(B, P, pr):
         if grip_mode == 'reverse':
             rec['blade_deg'] = round(_wrap(fin + 180.0), 2)
         B.weapons.append(rec)
+    h2 = pr.get('hand2')
+    if h2 and h2 != hold and pr.get('limit', True) is not False:
+        # the SECOND hand on a two-handed weapon (owner 2026-11-28: the wrist rule holds for EVERY hand on the weapon): its
+        # grip axis is the same weapon direction; it is not clamped (the first hand sets the weapon) - checks.py FAILs it
+        a2 = weapon_angle(B, h2, d)
+        lim = tuple(pr['limit']) if isinstance(pr.get('limit'), (list, tuple)) else WEAPON_LIMIT
+        B.weapons.append({'kind': kind, 'hand': h2, 'role': 'second', 'grip': grip_mode, 'raw_deg': round(a2, 2),
+                          'deg': round(a2, 2), 'limit': [lim[0], lim[1]], 'clamped': False,
+                          'outside': not (lim[0] - 1e-6 <= a2 <= lim[1] + 1e-6)})
     J['prop_axis_' + kind] = d                   # the grip axis (thumb side of the fist; the wrist rule)
     if grip_mode == 'reverse':
         d = -d                                   # the blade leaves the little-finger side
@@ -551,6 +571,67 @@ def arm_ik(P, pose, sho, target):
     alpha = math.degrees(math.acos(max(-1.0, min(1.0, (a * a + d * d - b * b) / (2 * a * d)))))
     elbow = 180.0 - math.degrees(math.acos(max(-1.0, min(1.0, (a * a + b * b - d * d) / (2 * a * b)))))
     return ang - alpha, elbow
+
+
+ELBOW_FLEX_MAX = 145.0     # a human elbow: flexion at most 145 deg (forearm-to-upper-arm angle >= 35 deg) - checks.py
+ARM_ABD_RANGE = (-75.0, 60.0)   # arm out to the side (+) / across the body (-), deg
+
+
+def arm_ik3d(P, pose, side, goal, iters=60, score=None):
+    """3D arm IK: (shoulder, elbow, arm_abd) of `side` that put its HAND centre (rig.fk 'hand' joint, wrist bend kept) on
+    the world point `goal` - across the body when the goal is on the other side (a two-handed grip), elbow inside
+    0..ELBOW_FLEX_MAX, abduction inside ARM_ABD_RANGE. The arm has three angles for three coordinates, so the solutions
+    are a few separate branches (elbow down / out / up ...): damped least squares from a grid of starts, then among the
+    branches that reach the goal (< 0.05 px) the lowest elbow wins (a hanging, relaxed elbow), or `score(q) -> key`
+    (smaller is better) when given. -> (shoulder, elbow, abd, residual px)"""
+    q = full_pose(pose)
+    B = fk(P, q)
+    sho = B.joints['S' + side]
+    Rb = arm_base(q)
+    goal = np.asarray(goal, float)
+    lo = np.array([-120.0, 0.0, ARM_ABD_RANGE[0]])
+    hi = np.array([160.0, ELBOW_FLEX_MAX, ARM_ABD_RANGE[1]])
+
+    def chain(x):
+        qq = dict(q)
+        qq['shoulder_' + side], qq['elbow_' + side], qq['arm_abd_' + side] = x
+        return qq, arm_chain(P, qq, side, sho, Rb)
+
+    def hand_of(x):
+        return chain(x)[1][2]
+
+    sols = []
+    for sh0 in (-20.0, 20.0, 60.0, 100.0):
+        for abd0 in (0.0, -25.0, -50.0):
+            x = np.array([sh0, 60.0, abd0])
+            lam = 1e-2
+            r = hand_of(x) - goal
+            for _ in range(iters):
+                Jm = np.zeros((3, 3))
+                for k in range(3):
+                    dx = np.zeros(3)
+                    dx[k] = 0.05
+                    Jm[:, k] = (hand_of(x + dx) - hand_of(x - dx)) / 0.1
+                step = -np.linalg.solve(Jm.T @ Jm + lam * np.eye(3), Jm.T @ r)
+                xn = np.clip(x + np.clip(step, -15.0, 15.0), lo, hi)
+                rn = hand_of(xn) - goal
+                if rn @ rn < r @ r:
+                    x, r = xn, rn
+                    lam = max(lam * 0.3, 1e-6)
+                else:
+                    lam *= 10.0
+                if np.linalg.norm(r) < 1e-4 or lam > 1e8:
+                    break
+            sols.append((float(np.linalg.norm(r)), x))
+    best_res = min(r for r, _ in sols)
+    ok = [(r, x) for r, x in sols if r <= max(0.05, best_res + 1e-6)]
+
+    def key(item):
+        r, x = item
+        qq, (elb, *_rest) = chain(x)
+        return (score(qq) if score else 0.0, round(float(elb[1]), 3), round(float(x[0]), 3))
+    r, x = min(ok, key=key)
+    return float(x[0]), float(x[1]), float(x[2]), r
 
 
 def scaled(P, k):

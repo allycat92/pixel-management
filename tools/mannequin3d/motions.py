@@ -44,7 +44,7 @@ import math
 
 import numpy as np
 
-from rig import leg_ik, fk, full_pose, CANON, ankle_on_floor, arm_ik, WEAPONS, WEAPON_LIMIT, sole_y, lean, turn
+from rig import leg_ik, fk, full_pose, CANON, ankle_on_floor, arm_ik, arm_ik3d, WEAPONS, WEAPON_LIMIT, sole_y, lean, turn
 
 CANON_LEG = CANON['thigh'] + CANON['shin'] + CANON['ankle_h']
 CANON_SCALE = 0.1654          # the scale the gait tables (and v2 / heavy_base / robe_base) were made for
@@ -381,10 +381,13 @@ def carry_props(carry, phi, lean_delta=None):
     Every weapon carries the character's hand range (`limit`, enforced by rig.add_prop)"""
     out = []
     lock = locked_prop(carry)
+    th = carry.get('two_hand') or {}
     for i, pr in enumerate(carry.get('props', [])):
         p = {k: v for k, v in pr.items() if k not in PROP_KEYS_OUT}
         if p.get('kind') in WEAPONS:
             p['limit'] = weapon_limit(carry)
+            if th and i == th.get('prop', 0):
+                p['hand2'] = th.get('other', 'F')        # the second hand: its wrist is recorded and checked too
         if i == lock and p.get('abs_angle') is not None:
             p['abs_angle'] = p['abs_angle'] - (lean_delta or 0.0)
             p['chest_locked'] = True
@@ -399,33 +402,23 @@ def carry_props(carry, phi, lean_delta=None):
 
 def two_hand(P, pose, carry, props, cam=None):
     """second hand on a staff / two-handed weapon: carry['two_hand'] = {'prop': index, 'other': 'F', 'along': px}
-    -> the other wrist is IK'd onto the prop line `along` px past the holding hand. With the camera, the fist is put on
-    that point ON SCREEN (the arm IK works in the arm's swing plane; the far fist's depth is corrected along x), so both
-    fists keep their places on the grip in every frame (owner 11-28)"""
+    -> the other HAND is put on the weapon's own 3D line `along` px past the holding fist (rig.arm_ik3d: shoulder, elbow
+    and arm abduction - the far arm reaches across the body to the shaft, as a real two-handed grip does). The fist is ON
+    the shaft in 3D, so it is on the drawn shaft line on screen in every frame too (review 2026-11-28: the old screen-only
+    IK left Roderick's second fist 6 px off the spear line - a painter following the table bent the spear there - and
+    folded the far elbow flat, the fist at the shoulder). The elbow stays inside rig.ELBOW_FLEX_MAX; the second hand's
+    wrist (weapon vs its forearm) is recorded by rig.add_prop (prop `hand2`) and checked like the first hand's."""
     th = carry.get('two_hand')
     if not th:
         return
-    pose['arm_abd_' + th.get('other', 'F')] = th.get('abd', 0.0)
+    side = th.get('other', 'F')
     body = fk(P, pose, props=props)
     J = body.joints
     pr = props[th.get('prop', 0)]
     d = J['prop_dir_' + pr.get('kind', 'staff')]       # the direction after the hand's range limit
-    goal = J['hand' + pr.get('hand', 'N')] + d * th.get('along', 40.0)
-    side = th.get('other', 'F')
-    corr = np.zeros(3)
-    for _ in range(5 if cam is not None else 1):
-        target = goal + corr
-        sh, el = arm_ik(P, pose, J['S' + side], target - (J['hand' + side] - J['wri' + side]))
-        pose['shoulder_' + side], pose['elbow_' + side] = sh, el
-        if cam is None:
-            break
-        body = fk(P, pose, props=props)
-        J = body.joints
-        err = _scr(cam, goal - J['hand' + side])
-        if np.hypot(*err) < 0.2:
-            break
-        c = math.cos(math.radians(cam.yaw))
-        corr += np.array([err[0] / c, err[1], 0.0])
+    goal = J['prop_grip'] + d * th.get('along', 40.0)
+    sh, el, abd, _ = arm_ik3d(P, pose, side, goal)
+    pose['shoulder_' + side], pose['elbow_' + side], pose['arm_abd_' + side] = sh, el, abd
 
 
 def _lean_total(pose):
