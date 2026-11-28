@@ -8,21 +8,28 @@
     "chest_counter": "chest counter-rotation amplitude against the pelvis (default: the gait table's)",
     "arms": "per side N / F: shoulder = table_scale x the gait table's shoulder + shoulder + swing x wave; elbow (+ elbow_swing x wave) replaces the table's; wrist; abd (out to the side); lag = frames the swing trails the legs (secondary motion)",
     "props": "list: kind sword | mace | staff | shield; hand N | F. Weapons: abs_angle (deg from forward-horizontal, + = up), yaw (turn out of the side plane), length beyond the fist, back (pommel / butt behind the fist), swing (deg with the hand's wave), lag (frames). Shields: shape round (radius) | tower (half = [w, h], corner), face (deg from forward toward the viewer), lift (px up from the forearm middle), toward (px toward the viewer, so the shield covers its forearm and hand), offset (px out from the forearm). measured = where the value was read on the idle drawing",
+    "weapon_limit": "hand range of motion of every held weapon (sword, mace, staff; not shields), owner 2026-11-28: {min, max} deg of the weapon direction (fist -> tip; staff: its head end) from the FOREARM line (elbow -> wrist) in the arm's swing plane; 0 = straight along the forearm (fully extended), + = rotated UPWARD (thumb side: toward the head when the forearm points forward, back over the shoulder when it points up). Default {min 0, max 120}: the weapon never bends down past the arm line (no dangling blade). rig.py clamps to it (safety net) and checks.py FAILs any frame that needed the clamp",
     "two_hand": "second hand on a staff / two-handed weapon: prop index, other hand, along = px past the holding hand along the prop",
     "ready": "actions only: the idle's grip as the first key: hand_N = [x, h] of the sword fist on the idle drawing, blade_deg = blade angle on the idle drawing",
     "robe": "true: draw the robe proxy (run_robe)",
     "fit_override": "optional fit values a human measured once: hip_h (hip joint height, source px, when clothing hides the crotch), arm (arm length factor vs the canonical arm : height ratio)",
-    "actions": "list of action guides to render (warrior only so far)"
+    "actions": "list of action guides to render (warrior only so far)",
+    "personality": "the character's own movement personality ON TOP of the class gait (owner 2026-11-28: 'give types and characters their own movement personality'), never its rhythm: stride (step_px), cadence (ms) and the planted-foot rule stay the class's so the engine's runCells keeps working. lean_add (deg, one value or [contact, catch, push, flight]), hip_drop (px lower hips, legs re-solved by IK), neck_up (deg, head kept up against the extra lean), pelvis_twist (replaces the table amplitude), swing_add ({leg phase: [d_thigh, d_knee, d_foot_pitch]} on the swing-leg table), notes / notes_ko (prose for the request README) - motions.personality()",
+    "request": "optional: the character's 3D request (tools/mannequin3d/request.py, gait_requests.py --write SHEET --guides 3d): look = what the painter paints over the mannequin (outfit, hair, cloth, colours) in English, look_ko = the same in Korean"
   },
   "chars": {
     "warrior": {
       "sheet": "sheet/class/warrior",
       "gait": "run_light",
+      "weapon_limit": {
+        "min": 0.0,
+        "max": 120.0
+      },
       "arms": {
         "N": {
-          "table_scale": 0.4,
-          "shoulder": 4.0,
-          "elbow": 40.0
+          "table_scale": 0.25,
+          "shoulder": 10.0,
+          "elbow": 70.0
         },
         "F": {
           "table_scale": 0.0,
@@ -36,13 +43,13 @@
         {
           "hand": "N",
           "kind": "sword",
-          "abs_angle": -145.0,
+          "abs_angle": 52.0,
           "yaw": 0.0,
           "length": 135.0,
           "back": 26.0,
           "swing": 5.0,
           "lag": 1,
-          "measured": "idle sword: fist (-25, 191), tip (116, 301), pommel (-45, 171) -> 179 px beyond the fist on the idle; the drawn run / windup / strike / hit show 112-160 px (foreshortened) -> 135 px used so the swing fits the slot band; run strips (art-inbox sheet_class_warrior_run_a/b) carry it low behind the hip, blade back and down ~30 deg below horizontal"
+          "measured": "idle sword: fist (-25, 191), tip (116, 301), pommel (-45, 171) -> 179 px beyond the fist on the idle; the drawn run / windup / strike / hit show 112-160 px (foreshortened) -> 135 px used so the swing fits the slot band. Run carry (owner 2026-11-28, weapon range): the idle's grip carried along - fist low in front of the hip, blade forward-up ~52 deg across the chest, 78-106 deg above the forearm line (inside 0..120), tip below the chin. The old carry (low behind the hip, blade back and down, as on the art-inbox run strips) bent the blade 50-85 deg BELOW the forearm line: the dangling the owner rejected"
         },
         {
           "hand": "F",
@@ -73,6 +80,10 @@
     "ironwall": {
       "sheet": "sheet/captain/ironwall",
       "gait": "run_heavy",
+      "weapon_limit": {
+        "min": 0.0,
+        "max": 120.0
+      },
       "chest_counter": 5.0,
       "arms": {
         "N": {
@@ -125,6 +136,10 @@
     "mage": {
       "sheet": "sheet/class/mage",
       "gait": "run_robe",
+      "weapon_limit": {
+        "min": 0.0,
+        "max": 120.0
+      },
       "robe": true,
       "chest_counter": 4.0,
       "arms": {
@@ -156,6 +171,72 @@
         "prop": 0,
         "other": "F",
         "along": 52.0
+      }
+    },
+    "baren": {
+      "sheet": "sheet/captain/blademaster",
+      "gait": "run_light",
+      "weapon_limit": {
+        "min": 0.0,
+        "max": 120.0
+      },
+      "chest_counter": 7.0,
+      "arms": {
+        "N": {
+          "table_scale": 0.0,
+          "shoulder": 40.0,
+          "swing": 4.0,
+          "elbow": 146.0,
+          "elbow_swing": 3.0,
+          "lag": 1
+        },
+        "F": {
+          "table_scale": 0.85
+        }
+      },
+      "props": [
+        {
+          "hand": "N",
+          "kind": "sword",
+          "abs_angle": 160.0,
+          "yaw": 0.0,
+          "length": 190.0,
+          "back": 50.0,
+          "swing": 4.0,
+          "lag": 1,
+          "measured": "idle katana (art/inbox/sheet_captain_blademaster.png pose 1): both fists on the hilt at the belt, upper fist ~(+65, 205) from the anchor column, blade forward-up to the tip ~(+165, 383): about 190-200 px beyond the upper fist, hilt ~50 px below it -> length 190, back 50. Run carry (personality, owner 2026-11-28 weapon range): ONE hand - the near fist in front of the near shoulder, elbow folded down in front of the chest, the blade resting back over the near shoulder, back-up ~20 deg above horizontal; 91-108 deg above the forearm line (inside 0..120)"
+        }
+      ],
+      "personality": {
+        "lean_add": [
+          5.0,
+          5.0,
+          4.0,
+          4.0
+        ],
+        "hip_drop": [
+          6.0,
+          6.0,
+          5.0,
+          3.0
+        ],
+        "neck_up": 5.0,
+        "notes": [
+          "A low, forward-leaning, light-footed swordsman's run: hips 3-6 px lower than the light class mannequin and 4-5 deg more lean (the mannequin already has both - follow it), the head kept up with the eyes on the road ahead.",
+          "The katana rests on his near shoulder in ONE hand (back of the blade on the shoulder, edge up, tip trailing back and a little up): relaxed, but ready to draw a cut from there. It rides with the shoulder and bobs only a few px - no swinging.",
+          "The free (far) hand is a loose fist that pumps tight and quick beside the chest.",
+          "The white headband tails and the dark crimson half cape stream BACK and lag the body by one frame: they lift most in the flight frames (R4/R8), settle in the catch frames (R2/R6)."
+        ],
+        "notes_ko": [
+          "낮게 앞으로 기운 가벼운 검객의 달리기: 경량 마네킹보다 엉덩이 3~6px 낮고 4~5도 더 기운다(3D 마네킹에 이미 들어 있다 — 따라 그린다). 고개는 들어 앞길을 본다.",
+          "카타나는 한 손으로 가까운 어깨에 걸친다(칼등이 어깨에, 날은 위, 칼끝은 뒤로 약간 위). 느긋하지만 그 자리에서 바로 벨 수 있는 자세. 어깨와 함께 몇 px 만 흔들린다 — 휘두르지 않는다.",
+          "빈 손(먼 손)은 느슨한 주먹으로 가슴 옆에서 짧고 빠르게 흔든다.",
+          "흰 머리띠 끝과 짙은 진홍 반망토는 뒤로 날리며 몸보다 한 프레임 늦다: 공중 프레임(R4/R8)에서 가장 높이 뜨고, 받는 프레임(R2/R6)에서 가라앉는다."
+        ]
+      },
+      "request": {
+        "look": "Baren (바렌), the wandering sword-ghost captain, exactly as on the accepted sheet: messy dark-brown hair; a WHITE headband with two long tails; a thin scar across one cheek; a fitted dark-navy tunic with a leather belt and a cross strap; a DARK CRIMSON half cape / hip wrap hanging on one side; dark trousers; brown boots; ONE katana (slim, curved, single-edged, dark wrapped hilt, small round guard); calm, focused expression.",
+        "look_ko": "승인된 시트 그대로의 바렌: 헝클어진 짙은 갈색 머리, 긴 끈 두 가닥이 달린 흰 머리띠, 한쪽 뺨의 가는 흉터, 몸에 붙는 짙은 남색 튜닉과 가죽 허리띠·가슴끈, 한쪽으로 늘어진 짙은 진홍 반망토(허리천), 짙은 바지, 갈색 장화, 카타나 한 자루(가늘고 휜 외날, 검게 감은 손잡이, 작은 둥근 코등이), 차분하고 집중한 얼굴."
       }
     }
   }

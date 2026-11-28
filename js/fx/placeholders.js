@@ -48,39 +48,25 @@ const FxPlaceholders = (() => {
         }
       },
     },
-    // 늦게 열리는 갈라짐: 선이 벌어져 어두운 틈이 렌즈 모양으로 열렸다가 조각만 남는다
+    // 갈라짐 이음매 빛(seam sheen): 몸 자체는 FxPlayer.victim().split 으로 잘려 윗부분이 미끄러진다(코드).
+    // 이 조각은 그 틈(가른 선 바로 위 한 줄, 기준점 y-1)에 얹히는 빛만 — 0 틈 전체 상아 → 1 앞쪽 끝만 밝음 → 2 양끝 불티 → 3 사라지는 점.
     split: {
       size: [24, 24], origin: [12, 12], frames: 4,
       draw(f, px, run) {
-        const cy = 12;
-        if (f === 0) {
-          run(2, 21, cy - 1, 'key'); run(3, 20, cy, 'tone'); run(2, 21, cy + 1, 'accent');
-          return;
-        }
-        const hMax = f === 1 ? 3 : f === 2 ? 4 : 5;
-        for (let x = 0; x <= 23; x++) {
-          const h = Math.round(hMax * Math.sin((Math.PI * (x + 0.5)) / 24));
-          const broken = f >= 2 && x % (f === 2 ? 6 : 3) === 0;
-          if (f < 3) for (let y = cy - h; y <= cy + h; y++) px(x, y, 'tone', f === 2);
-          if (!broken) { px(x, cy - h - 1, 'key', f === 3); px(x, cy + h + 1, 'accent', f === 3); }
-        }
-        // 양끝 파편
-        const s = f;
-        px(0 - s + 1, cy - 2 - s, 'key'); px(1 - s + 1, cy - 1 - s, 'key', true);
-        px(23 + s - 1, cy + 2 + s, 'key'); px(22 + s - 1, cy + 1 + s, 'key', true);
+        const r = 11;
+        if (f === 0) { run(3, 20, r, 'key'); run(1, 2, r, 'key', true); run(21, 22, r, 'key', true); return; }
+        if (f === 1) { run(17, 21, r, 'key'); run(14, 16, r, 'key', true); run(2, 4, r, 'key', true); px(22, r - 1, 'key', true); return; }
+        if (f === 2) { run(20, 21, r, 'key'); px(23, r - 2, 'key', true); px(1, r + 1, 'accent'); px(0, r + 2, 'accent', true); return; }
+        px(22, r - 1, 'key', true);
       },
     },
-    // 찢긴 천 조각: 붉은 몸 + 와인 그늘 + 너덜한 끝. 3칸 나풀거림
+    // 찢긴 천 조각: 굵은 와인 사각 조각(4x3 / 3x2)이 2칸으로 뒤집히며 떨어진다. 0 넓은 면, 1 옆으로 선 면(얇게), 2 기운 면
     band_tail: {
       size: [10, 6], origin: [5, 3], frames: 3,
       draw(f, px, run) {
-        if (f === 0) {
-          run(1, 7, 2, 'accent'); run(2, 8, 3, 'body'); run(3, 5, 1, 'accent', true); px(9, 4, 'body'); px(8, 4, 'body', true);
-        } else if (f === 1) {
-          run(3, 6, 1, 'accent'); run(2, 5, 2, 'accent'); run(2, 5, 3, 'body'); run(1, 3, 4, 'body'); px(0, 5, 'body', true);
-        } else {
-          run(1, 8, 3, 'accent'); run(3, 6, 2, 'accent', true); px(9, 3, 'body');
-        }
+        if (f === 0) { run(3, 6, 2, 'accent'); run(3, 6, 3, 'accent'); run(3, 6, 4, 'body'); px(7, 3, 'accent', true); }
+        else if (f === 1) { run(4, 6, 2, 'accent'); run(3, 5, 3, 'body'); }
+        else { run(4, 5, 1, 'accent'); run(3, 6, 2, 'accent'); run(3, 6, 3, 'body'); px(2, 3, 'body', true); }
       },
     },
     // 칼끝 번뜩임: 0 십자 → 1 작은 X

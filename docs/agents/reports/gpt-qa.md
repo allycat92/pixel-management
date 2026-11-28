@@ -1494,3 +1494,9 @@ console.error(seed,rows.length,extra.length);
 ## G1-baren-run-3d — 막힘
 
 게임 브랜치 `f79cbb8`의 GPT READY 요청을 확인했다. 기존 GPT-QA 지시는 그림 제작과 `art-inbox` 쓰기를 금지한다. 바렌 한 건에 한해 두 작업을 허용한다는 주인의 확인이 필요하다. 확인 전에는 제작·납품·대기열 상태 변경을 하지 않았다.
+
+## G1-baren-run-3d — 바렌 달리기 납품
+
+- 주인이 2026-11-28 직접 승인하여 위의 범위 막힘을 해소했다. 두 PNG와 검사 메모: art-inbox `fe91a36`. 게임 시트·코드와 게임 브랜치는 건드리지 않았다.
+- 두 띠 `check_delivery.py --flight-slots 4`: 모두 `RESULT: PASS`. 전체 원격 마네킹(호환 LibreSprite 내보내기 포함) 비교 및 `add_gait.py --dry-run` 통과. 96×96, anchor 48,92, 80ms × 8, runStride 45.5. 원본 접점 x 284→216→147 / 296→227→158, 바닥 y=870; R4/R8 y=849.
+- 원본·1배/4배 미리보기를 비교했다. 관절/손목 각도와 천의 정확한 지연은 실측하지 않았다. 실제 지형에서 칼 실루엣과 발 교대의 자연스러움은 주인이 판정한다. 게임 등록 전 검토 대기.

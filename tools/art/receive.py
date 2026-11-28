@@ -704,7 +704,8 @@ def gait_class(sheet):
 
 
 def gait_pose(sheet, gait):
-    """the request whose stride (and, for run, whose movement class) the gait frames follow: guides/<gait>_<sheet without 'sheet_'>,
+    """the request whose stride (and, for run, whose movement class) the gait frames follow: the request folder's own pose.json
+    (art/requests/gait/<prefix>__<body>/ - scaled class mannequin or 3D mannequin), guides/<gait>_<sheet without 'sheet_'>,
     <gait>_<last name part>, else - run - the base set of the sheet's class in gait_classes.json (light run_base, heavy heavy_base,
     robe robe_base; newest v<n>/, else draft/) or - walk - walk_base"""
     body = sheet[len('sheet_'):]
@@ -718,7 +719,9 @@ def gait_pose(sheet, gait):
                 pose = json.load(f)
             if not isinstance(pose, dict):
                 raise ValueError(f'{requested}: expected a JSON object')
-            if pose.get('scaled_from'):
+            # a request-local pose.json: the class mannequin scaled to the sheet, or a 3D mannequin fitted to the character
+            # (tools/mannequin3d/request.py - its own stride numbers and joints, at the sheet scale)
+            if pose.get('scaled_from') or (pose.get('mannequin3d') and 'mannequin3d' in str(pose.get('source', ''))):
                 return requested, pose
     for set_name in (f'{gait}_{body}', f'{gait}_{body.split("_")[-1]}', base):
         p, d = latest_pose(set_name)

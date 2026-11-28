@@ -14,12 +14,19 @@ Run (gait) checks - gait_checks():
   knees       the far knee is visible or >= 14 px from the near knee on screen                                     WARN
   upper body  each hand travels >= 12 px (relative to the hip) over the cycle - no frozen cut-out torso             FAIL
   props       a mace / weapon head is >= its radius + 8 px from the other hand (not sitting on the shield hand)     FAIL
+  weapon      hand range (owner 2026-11-28): every held weapon's angle to its forearm inside the character's
+              weapon_limit [0, 120] deg (0 = straight along the forearm, + = upward) in EVERY frame - a frame that
+              needed rig.py's clamp FAILs (no blade bent down past the arm line, dangling)                        FAIL
+  blade/head  (sword carriers) blade-over-head pixels, reported only (owner 11-28: overlaps are fine; the z-buffer
+              draws the nearer part over the farther one)                                                        INFO
   robe        hem bottom 38-52 px above the floor (robe_base); hem width change <= 15% between frames; the robe is
               widest within 14 px of its hem (cloth flares to the hem, no gourd)                                   FAIL
 Action checks - action_checks():
-  blade/head  the blade never overlaps the head on screen in any frame                                             FAIL
-  blade/trunk (hit) the blade never overlaps the trunk on screen                                                    FAIL
-  blade dir   windup: blade tip up and behind the fist; only the strike points down                                FAIL
+  weapon      hand range as above, every action frame (READY and in-betweens included)                            FAIL
+  blade/head, blade/trunk  overlap pixels, reported only (owner 11-28: overlaps fine, depth order decides)        INFO
+  blade dir   screen direction of the blade, reported only (owner 11-28: up or down does not matter as long as
+              the wrist range relative to the forearm holds - that is the 'weapon' check)                          INFO
+  (props below the floor line are touched up when drawn - owner 11-28; body/feet floor rules stay FAIL)
   band, floor, ik as above (each frame placed by its own feet centre, the sheets' pose_feet_x rule)               FAIL
 """
 import math
@@ -65,6 +72,21 @@ def visible_fraction(body, cam, parts, blockers=None):
 
 
 LEG = ('foot', 'instep', 'ankle', 'shin', 'thigh')
+
+
+def weapon_checks(label, names, bodies):
+    """hand range of motion: FAIL when any frame's requested weapon direction was outside [min, max] of its forearm
+    (rig.py clamped it); reports the measured angle per frame and the range"""
+    rows = [(n, w) for n, b in zip(names, bodies) for w in b.weapons]
+    if not rows:
+        return []
+    lim = rows[0][1]['limit']
+    bad = [f"{n} {w['kind']} {w['raw_deg']:.1f}" for n, w in rows if w['clamped']]
+    raws = [w['raw_deg'] for _, w in rows]
+    return [(FAIL if bad else OK,
+             f"{label}weapon angle to the forearm (deg, 0 = straight, + = up; range {lim[0]:g}..{lim[1]:g}) per frame "
+             + ' '.join(f"{n}:{w['raw_deg']:.0f}" for n, w in rows) + f"  -> {min(raws):.1f}..{max(raws):.1f}"
+             + (f"  OUTSIDE (clamped by the rig): {bad}" if bad else ''))]
 
 
 def gait_checks(spec, recs, bodies, plains, cam, carry=None):
@@ -159,6 +181,14 @@ def gait_checks(spec, recs, bodies, plains, cam, carry=None):
                     probs.append(f"{r['frame']} {d:.0f} px")
     if any(g['part'] == 'mace_head' for g in bodies[0].ghosts):
         out.append((FAIL if probs else OK, 'mace head clear of the shield hand (>= head radius + 8 px)' + (f': {probs}' if probs else '')))
+    # weapon hand range; a sword blade never over the head
+    out += weapon_checks('', [r['frame'] for r in recs], bodies)
+    if any(g['part'] == 'blade' for g in bodies[0].ghosts):
+        hd = []
+        for b in bodies:
+            cam.fit(b)
+            hd.append(blade_overlap(b, cam, {'head', 'nose'}))
+        out.append((OK, f'blade over the head (px) per frame {hd} (info: overlap allowed, depth order decides)'))
     # robe
     if any(g['part'] == 'robe' for g in bodies[0].ghosts):
         out += robe_checks(recs, bodies, cam)
@@ -193,14 +223,14 @@ def blade_overlap(body, cam, parts):
 
 def action_checks(act, names, bodies, plains, recs, cam_of):
     """cam_of(i) -> the camera frame i was rendered with"""
-    out = []
+    out = weapon_checks(f'{act}: ', names, bodies)
     head = []
     for i, b in enumerate(bodies):
         head.append(blade_overlap(b, cam_of(i), {'head', 'nose'}))
-    out.append((FAIL if any(head) else OK, f'{act}: blade over the head (px) per frame {head} (must be 0)'))
+    out.append((OK, f'{act}: blade over the head (px) per frame {head} (info: overlap allowed, depth order decides)'))
     if act == 'hit':
         tr = [blade_overlap(b, cam_of(i), {'pelvis', 'spine', 'chest'}) for i, b in enumerate(bodies)]
-        out.append((FAIL if any(tr) else OK, f'{act}: blade over the trunk (px) per frame {tr} (must be 0)'))
+        out.append((OK, f'{act}: blade over the trunk (px) per frame {tr} (info: overlap allowed, depth order decides)'))
     # blade direction (screen): tip relative to the fist
     dirs = []
     for i, b in enumerate(bodies):
@@ -221,8 +251,8 @@ def action_checks(act, names, bodies, plains, recs, cam_of):
         for nm, (dx, dy) in zip(names, dirs):
             if not (dy < 0 and dx <= 0):
                 bad.append(f'{nm} blade not down and back {dx, dy}')
-    out.append((FAIL if bad else OK, f'{act}: blade direction (tip - fist, screen x fwd / y up) {dict(zip(names, dirs))}'
-                + (f'  wrong: {bad}' if bad else '')))
+    out.append((OK, f'{act}: blade direction (tip - fist, screen x fwd / y up) {dict(zip(names, dirs))} (info only)'
+                + (f'  differs from the old preference: {bad}' if bad else '')))
     ext = [extent_x(im) for im in plains]
     okb = all(a >= BAND[0] and b <= BAND[1] for a, b in ext)
     out.append((OK if okb else FAIL, f'{act}: x extent incl. props per frame {[f"{a}-{b}" for a, b in ext]} '

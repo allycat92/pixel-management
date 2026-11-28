@@ -142,6 +142,50 @@ const FxSkel = (() => {
     },
   });
 
+  // place.minGap: 가로로 겹치는 선끼리 세로 간격을 gap px 이상으로 벌린다(각 선은 자기 [ymin,ymax] 안에서만 움직임).
+  // items: [{ x0, x1, y, ymin, ymax }] → 새 y 목록. 결정론(정렬·반복 횟수 고정). 못 벌리면(몸이 너무 겹침) 남은 채로 둔다.
+  def('place.minGap', {
+    kind: 'place',
+    params: { gap: { type: 'num', def: 5, tag: 'style' }, iters: { type: 'num', def: 24, tag: 'physics' } },
+    fn: (p, items) => {
+      const y = items.map((it) => it.y);
+      const ov = (a, b) => items[a].x0 < items[b].x1 && items[b].x0 < items[a].x1;
+      for (let k = 0; k < p.iters; k++) {
+        let moved = false;
+        const ord = y.map((_, i) => i).sort((a, b) => y[a] - y[b] || a - b);
+        for (let a = 0; a < ord.length; a++) for (let b = a + 1; b < ord.length; b++) {
+          const i = ord[a], j = ord[b];
+          if (!ov(i, j)) continue;
+          const d = y[j] - y[i];
+          if (d >= p.gap) continue;
+          const push = (p.gap - d) / 2;
+          const ni = Math.max(items[i].ymin, y[i] - push), nj = Math.min(items[j].ymax, y[j] + push);
+          // 한쪽이 벽에 막히면 다른 쪽이 나머지를 진다
+          const left = p.gap - (nj - ni);
+          y[i] = left > 0 ? Math.max(items[i].ymin, ni - left) : ni;
+          y[j] = left > 0 && y[i] === items[i].ymin ? Math.min(items[j].ymax, y[i] + p.gap) : nj;
+          moved = true;
+        }
+        if (!moved) break;
+      }
+      return y.map((v) => Math.round(v));
+    },
+  });
+
+  // ───────── 표적 반응 ─────────
+  // victim.slide: 베인 표적의 윗부분이 가른 선을 따라 미끄러진다. steps: [[dx,dy],...] 칸별 ms. 끝나면 null(통째 몸으로 돌아감).
+  def('victim.slide', {
+    kind: 'actor',
+    params: { steps: { type: 'list', def: [[2, -1]], tag: 'style' }, ms: { type: 'list', def: [120], tag: 'style' }, spinDir: { type: 'num', def: 1, tag: 'style' } },
+    fn: (p, u) => {
+      if (u < 0) return null;
+      let x = u * 1000;
+      for (let i = 0; i < p.steps.length; i++) { const m = p.ms[Math.min(i, p.ms.length - 1)]; if (x < m) return p.steps[i]; x -= m; }
+      return null;
+    },
+    len: (p) => p.steps.reduce((a, _, i) => a + p.ms[Math.min(i, p.ms.length - 1)], 0) / 1000,
+  });
+
   // ───────── 방출기 (닫힌 식: 어느 t 든 바로 계산 → 되감기·한 칸 넘기기가 같은 그림) ─────────
   // emit.fan: 방향 dir(라디안) ± spread/2 로 n 개. 가로는 공기 저항(drag, 1/s), 세로는 중력. sway: 나풀거림(px, Hz).
   def('emit.fan', {
@@ -213,6 +257,18 @@ const FxSkel = (() => {
     },
   });
 
+  // screen.punch: 정수 배율 확대(컷인 '당겨 붙기'). [at, at+dur) 동안 zoom, 앞뒤는 1 — 사이 값 없이 끊어 바꾼다(snap).
+  def('screen.punch', {
+    kind: 'screen',
+    params: { at: { type: 'num', def: 0, tag: 'style' }, dur: { type: 'num', def: 0.5, tag: 'style' }, zoom: { type: 'num', def: 2, tag: 'style' } },
+    fn: (p, t) => (t >= p.at && t < p.at + p.dur ? Math.max(1, Math.round(p.zoom)) : 1),
+  });
+  // 확대 중심을 화면 안으로 묶는다 (정수)
+  function clampView(cx, cy, z, W, H) {
+    const hw = W / (2 * z), hh = H / (2 * z);
+    return [Math.round(Math.min(W - hw, Math.max(hw, cx))), Math.round(Math.min(H - hh, Math.max(hh, cy)))];
+  }
+
   // ───────── 앵커 (몸 칸의 불투명 상자 → 이름 붙은 점) ─────────
   // box: {x0,y0,x1,y1} (화면 px, 발 기준으로 이미 옮긴 값). which: feet/chest/head/ground/center
   function anchorFromBox(box, which, k) {
@@ -226,7 +282,7 @@ const FxSkel = (() => {
     }
   }
 
-  return { def, get, list, resolve, rng, fnv, pick, clamp01, lerp, clockLen, frozenClock, anchorFromBox };
+  return { def, get, list, resolve, rng, fnv, pick, clamp01, lerp, clockLen, frozenClock, anchorFromBox, clampView };
 })();
 
 if (typeof module !== 'undefined') module.exports = FxSkel;

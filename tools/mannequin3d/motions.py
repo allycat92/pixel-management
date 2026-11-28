@@ -31,7 +31,7 @@ import math
 
 import numpy as np
 
-from rig import leg_ik, fk, full_pose, CANON, ankle_on_floor, arm_ik
+from rig import leg_ik, fk, full_pose, CANON, ankle_on_floor, arm_ik, WEAPONS, WEAPON_LIMIT
 
 CANON_LEG = CANON['thigh'] + CANON['shin'] + CANON['ankle_h']
 CANON_SCALE = 0.1654          # the scale the gait tables (and v2 / heavy_base / robe_base) were made for
@@ -160,28 +160,61 @@ def _solve_stances(spec, P, pose, phi, cam):
     return stance, ok_all
 
 
+PERSONALITY_KEYS = ('lean_add', 'hip_drop', 'neck_up', 'pelvis_twist', 'swing_add', 'notes', 'notes_ko', 'about')
+
+
+def _per_half(v, half, default=0.0):
+    """a personality value: one number for all four half-cycle frames, or a list of four (contact, catch, push, flight)"""
+    if v is None:
+        return default
+    return float(v[half]) if isinstance(v, (list, tuple)) else float(v)
+
+
+def personality(carry):
+    """the character's movement personality (specs/carry3d.json `personality`) - small offsets ON TOP of the class
+    gait table, never its rhythm: the stride (step_px), the cadence (ms) and the stance-foot rule are the class's, so the
+    engine's runCells still keeps the planted foot still. Keys:
+      lean_add   deg added to the table lean (number or [contact, catch, push, flight])
+      hip_drop   px the hips sit lower than the table (number or 4 values; legs re-solved by IK -> more knee bend)
+      neck_up    deg the neck turns back up against the extra lean (eyes stay on the road)
+      pelvis_twist  replaces the table's pelvis twist amplitude
+      swing_add  {leg phase: [d_thigh, d_knee, d_foot_pitch]} added to the swing-leg table (e.g. tuck the heel higher in
+                 the flight frames so the lower hips keep the flight clearance)
+      notes / notes_ko  prose for the request README (what the painter should feel in the motion)"""
+    pz = dict(carry.get('personality') or {})
+    bad = [k for k in pz if k not in PERSONALITY_KEYS]
+    if bad:
+        raise ValueError(f'carry3d personality: unknown keys {bad} (known: {PERSONALITY_KEYS})')
+    return pz
+
+
 def gait_keys(spec, P, cam, carry):
-    """the 8 key poses of a gait (dicts), with meta. Stance legs solved by IK."""
+    """the 8 key poses of a gait (dicts), with meta. Stance legs solved by IK. The character's `personality`
+    (carry3d.json) offsets the lean, hip height, neck and swing legs - never the stride or the cadence."""
     k_leg = leg_factor(P)
+    pz = personality(carry)
+    swing_add = {round(float(k), 4): v for k, v in (pz.get('swing_add') or {}).items()}
     rows = []
     for f in range(8):
         phi = f / 8.0
         half = f % 4
-        L = spec['lean'][half]
+        L = spec['lean'][half] + _per_half(pz.get('lean_add'), half)
         cc = carry.get('chest_counter', spec['chest_counter'])
         pose = {
-            'hip_h': spec['hip_h'][half] * k_leg,
+            'hip_h': (spec['hip_h'][half] - _per_half(pz.get('hip_drop'), half)) * k_leg,
             # 1.2 x the table lean: the screen lean (hip -> neck base) of the turned, curved trunk comes out ~0.83 x
             'pelvis_pitch': L * 0.5, 'spine_pitch': L * 0.35, 'chest_pitch': L * 0.35,
-            'pelvis_yaw': carry.get('pelvis_yaw', 0.0) - spec['pelvis_twist'] * math.cos(2 * math.pi * phi),
+            'pelvis_yaw': carry.get('pelvis_yaw', 0.0) - pz.get('pelvis_twist', spec['pelvis_twist']) * math.cos(2 * math.pi * phi),
             'chest_yaw': carry.get('chest_open', 30.0) + cc * math.cos(2 * math.pi * phi) * 2,
             'head_pitch': spec['head_pitch'],
-            'neck_pitch': -L * 0.5,
+            'neck_pitch': -L * 0.5 - _per_half(pz.get('neck_up'), half),
         }
         for side, off in (('N', 0.0), ('F', 0.5)):
             psi = round((phi + off) % 1.0, 4)
             if psi in spec['swing']:
                 th, kn, pitch = spec['swing'][psi]
+                dth, dkn, dp = (list(swing_add.get(psi, [])) + [0.0, 0.0, 0.0])[:3]
+                th, kn, pitch = th + dth, kn + dkn, pitch + dp
                 pose['thigh_' + side], pose['knee_' + side], pose['ankle_' + side] = th, kn, pitch - (th - kn)
         for side in 'NF':
             arm_f = (f + (0 if side == 'N' else 4)) % 8
@@ -225,11 +258,20 @@ def carry_arms(pose, carry, phi):
             pose['arm_abd_' + side] = a['abd']
 
 
+def weapon_limit(carry):
+    """[min, max] of the hand's weapon range (deg from the forearm line, + = upward) - carry3d.json `weapon_limit`"""
+    lim = (carry or {}).get('weapon_limit') or {}
+    return [float(lim.get('min', WEAPON_LIMIT[0])), float(lim.get('max', WEAPON_LIMIT[1]))]
+
+
 def carry_props(carry, phi):
-    """the props for cycle phase phi: a weapon's abs_angle swings `swing` deg with its hand's wave, `lag` frames late"""
+    """the props for cycle phase phi: a weapon's abs_angle swings `swing` deg with its hand's wave, `lag` frames late;
+    every weapon carries the character's hand range (`limit`, enforced by rig.add_prop)"""
     out = []
     for pr in carry.get('props', []):
         p = {k: v for k, v in pr.items() if k not in ('swing', 'lag', 'measured')}
+        if p.get('kind') in WEAPONS:
+            p['limit'] = weapon_limit(carry)
         if pr.get('swing') and p.get('abs_angle') is not None:
             p['abs_angle'] = p['abs_angle'] + pr['swing'] * wave(phi, pr.get('hand', 'N'), pr.get('lag', 0.0))
         if pr.get('swing') and p.get('kind') == 'shield':
@@ -247,8 +289,7 @@ def two_hand(P, pose, carry, props):
     body = fk(P, pose, props=props)
     J = body.joints
     pr = props[th.get('prop', 0)]
-    a_ = math.radians(pr['abs_angle'])
-    d = np.array([math.cos(a_), math.sin(a_), 0.0])
+    d = J['prop_dir_' + pr.get('kind', 'staff')]       # the direction after the hand's range limit
     target = J['hand' + pr.get('hand', 'N')] + d * th.get('along', 40.0)
     side = th.get('other', 'F')
     sh, el = arm_ik(P, pose, J['S' + side], target - (J['hand' + side] - J['wri' + side]))
@@ -396,16 +437,20 @@ def action_frames(keys, P, cam):
 def _sword(abs_angle, carry):
     sw = next((p for p in carry.get('props', []) if p.get('kind') == 'sword'), {})
     sh = next((p for p in carry.get('props', []) if p.get('kind') == 'shield'), {'hand': 'F', 'kind': 'shield'})
-    sword = {'hand': 'N', 'kind': 'sword', 'abs_angle': abs_angle, 'length': sw.get('length', 150.0), 'back': sw.get('back', 22.0)}
+    sword = {'hand': 'N', 'kind': 'sword', 'abs_angle': abs_angle, 'length': sw.get('length', 150.0), 'back': sw.get('back', 22.0),
+             'limit': weapon_limit(carry)}
     shield = {k: v for k, v in sh.items() if k not in ('swing', 'lag', 'measured')}
     return [sword, shield]
 
 
 def warrior_attack(P, carry):
     """overhead sword swing (sheet cells 4-5): READY (the idle's grip) -> WINDUP (key: fist up behind the head, blade
-    cocked back and up ~45 deg) -> 1/3 (fist over the head, blade vertical) -> 2/3 (fist over the brow, blade level
-    forward, above the head) -> STRIKE (key: arm forward and down, blade forward and down). Only the strike points
-    down. The body stays over its feet (feet centre = the sheet anchor) so the whole swing fits the slot band."""
+    cocked back and up ~45 deg) -> 1/3 (fist over the head, blade vertical) -> 2/3 (fist forward of the brow, arm
+    reaching forward-up, blade forward-up 60 deg along it) -> STRIKE (key: arm straight forward and down, blade forward
+    and down 45 deg). Only the strike points down. Hand range (owner 2026-11-28): the blade stays 14-89 deg ABOVE the
+    forearm line in every frame (it never bends down past the arm - the old 2/3 (blade level over an upright forearm)
+    and strike were 61 / 43 deg below it). The body stays over its feet (feet centre = the sheet anchor) so the whole
+    swing fits the slot band."""
     k = leg_factor(P)
     hr = P['head_r']
     feet = {'N': (-52.0 * k, -8.0), 'F': (100.0 * k, 0.0)}
@@ -428,16 +473,18 @@ def warrior_attack(P, carry):
         {'name': 'windup>strike 1/3', 'key': False, 'pose': lerp_pose(windup, strike, u1), 'feet': ff(u1),
          'props': _sword(95.0, carry), 'arms': {'N': ('head', -hr[0] * 0.1, hr[1] + 20.0), 'F': ('angles', 34.0, 96.0)}},
         {'name': 'windup>strike 2/3', 'key': False, 'pose': lerp_pose(windup, strike, u2), 'feet': ff(u2),
-         'props': _sword(12.0, carry), 'arms': {'N': ('head', hr[0] * 0.1, hr[1] + 16.0), 'F': ('angles', 10.0, 90.0)}},
-        {'name': 'strike', 'pose': strike, 'feet': feet_lunge, 'props': _sword(-50.0, carry),
-         'arms': {'N': ('shoulder', 58.0 * k, -74.0 * k), 'F': ('angles', -10.0, 80.0)}},
+         'props': _sword(60.0, carry), 'arms': {'N': ('head', hr[0] * 1.3, hr[1] * 0.6), 'F': ('angles', 10.0, 90.0)}},
+        {'name': 'strike', 'pose': strike, 'feet': feet_lunge, 'props': _sword(-45.0, carry),
+         'arms': {'N': ('shoulder', 50.0 * k, -130.0 * k), 'F': ('angles', -10.0, 80.0)}},
     ]
     return keys
 
 
 def warrior_hit(P, carry):
-    """hit reaction (sheet cell 6): IMPACT (key: trunk thrown back, sword arm flung back and down, blade pointing down
-    and back clear of the trunk, shield up) -> RECOVER (key)"""
+    """hit reaction (sheet cell 6): IMPACT (key: trunk thrown back, sword arm flung back and down nearly straight, the
+    blade continuing it ~12 deg above the arm line - pointing down, behind the hip, clear of the trunk -, shield up)
+    -> RECOVER (key; arm still back, blade down and a little back, ~14 deg above the forearm line). The old frames had
+    the fist forward of a bent elbow with the blade 47-82 deg BELOW the forearm line (dangling)."""
     k = leg_factor(P)
     feet = {'N': (-70.0 * k, -6.0), 'F': (92.0 * k, 8.0)}
     co = carry.get('chest_open', 30.0)
@@ -446,8 +493,8 @@ def warrior_hit(P, carry):
                   head_pitch=-18)
     recover = dict(base, hip_h=162 * k, x=-12.0 * k, pelvis_pitch=0, spine_pitch=-2, chest_pitch=0, head_pitch=0)
     return [
-        {'name': 'impact', 'pose': impact, 'feet': feet, 'props': _sword(-118.0, carry),
-         'arms': {'N': ('hip', -58.0 * k, -6.0 * k), 'F': ('angles', 70.0, 104.0)}},
-        {'name': 'recover', 'pose': recover, 'feet': feet, 'props': _sword(-104.0, carry),
-         'arms': {'N': ('hip', -44.0 * k, 4.0 * k), 'F': ('angles', 46.0, 106.0)}},
+        {'name': 'impact', 'pose': impact, 'feet': feet, 'props': _sword(-90.0, carry),
+         'arms': {'N': ('hip', -110.0 * k, -40.0 * k), 'F': ('angles', 70.0, 104.0)}},
+        {'name': 'recover', 'pose': recover, 'feet': feet, 'props': _sword(-95.0, carry),
+         'arms': {'N': ('hip', -80.0 * k, -40.0 * k), 'F': ('angles', 46.0, 106.0)}},
     ]

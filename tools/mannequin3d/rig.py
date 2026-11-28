@@ -19,6 +19,15 @@ Pose angles are in degrees:
   prop      prop: {'hand': 'N'|'F', 'kind': 'sword'|'mace'|'staff'|'shield', 'angle': deg in the hand's plane,
             'roll': deg about the forearm} - optional held weapon bone
 
+Weapon joint limit (owner 2026-11-28: no weapon that bends down past the arm line and dangles): every held WEAPON
+(sword, mace, staff - not a shield) has a hard range of motion at the hand, measured in the arm's swing plane as the
+angle from the FOREARM direction (elbow -> wrist) to the weapon direction (fist -> tip; for a staff the head end):
+  0 deg = the weapon straight along the forearm (fully extended), + = rotated UPWARD = toward the thumb side, i.e. the
+  head side when the forearm points forward, back over the shoulder when it points up (the elbow's flex sense);
+  allowed [limit_min, limit_max] = [0, 120] by default (specs/carry3d.json `weapon_limit` per character).
+A requested direction outside the range is CLAMPED to the nearest bound (safety net) and recorded in Body.weapons
+(raw and final angle, clamped flag); checks.py FAILs any frame that needed the clamp - motions must be authored inside.
+
 fk(prop_set, pose) -> Body: joint positions (3-vectors), the part frames (3x3) and the primitive list for render.py.
 """
 import copy
@@ -105,6 +114,11 @@ class Body:
         self.prims = []
         self.ghosts = []      # see-through extras (props, robe) drawn over the body as outlines + light fill
         self.grips = set()    # hands ('N' / 'F') that hold a prop (render marks them)
+        self.weapons = []     # per held weapon: kind, hand, raw / final angle to the forearm (deg), limit, clamped
+
+    @property
+    def weapon_clamps(self):
+        return sum(1 for w in self.weapons if w['clamped'])
 
     def add_capsule(self, a, b, r0, r1, mat, part, ghost=False):
         (self.ghosts if ghost else self.prims).append(
@@ -201,6 +215,7 @@ def fk(P, pose, props=None, robe=None):
     # arms: shoulders on the (turned) chest, swing in the torso's lean plane
     lean_total = q['pelvis_pitch'] + q['spine_pitch'] + q['chest_pitch']
     R_armbase = turn(q['pelvis_yaw']) @ lean(lean_total)
+    Fm['armbase'] = turn(q['pelvis_yaw'])      # the arms' swing plane = its xy plane (weapon limit is measured in it)
     for s, sg in SIDES.items():
         sho = neck0 + R_chest @ np.array([-4.0, -P['shoulder_drop'], sg * P['shoulder_w']])
         R_ua = R_armbase @ rz(q['shoulder_' + s]) @ rx(-sg * q['arm_abd_' + s])
@@ -256,6 +271,45 @@ def fk(P, pose, props=None, robe=None):
 
 PROP_LEN = {'sword': 150.0, 'mace': 120.0, 'staff': 330.0, 'shield': 0.0}
 PROP_BACK = {'sword': 22.0, 'mace': 14.0, 'staff': 140.0}
+WEAPONS = ('sword', 'mace', 'staff')
+WEAPON_LIMIT = (0.0, 120.0)     # default hand range of motion: weapon vs forearm, deg (0 = straight, + = upward)
+
+
+def _wrap(a):
+    return (a + 180.0) % 360.0 - 180.0
+
+
+def weapon_angle(B, side, d):
+    """signed angle (deg) from the forearm of `side` to direction d in the arm swing plane: 0 = straight along the
+    forearm, + = upward (thumb side, the elbow's flex sense), - = bent down past the arm line"""
+    Rb = B.frames.get('armbase', np.eye(3))
+    f = Rb.T @ (B.joints['wri' + side] - B.joints['elb' + side])
+    v = Rb.T @ np.asarray(d, float)
+    return _wrap(math.degrees(math.atan2(v[1], v[0]) - math.atan2(f[1], f[0])))
+
+
+def limit_weapon(B, side, d, limit=None):
+    """hard joint limit: -> (direction inside [min, max] of the forearm, raw angle, final angle, clamped). Out of range
+    = rotated in the swing plane to the nearest bound (out-of-plane part kept)."""
+    lo, hi = limit if limit is not None else WEAPON_LIMIT
+    raw = weapon_angle(B, side, d)
+    if lo - 1e-6 <= raw <= hi + 1e-6:
+        return np.asarray(d, float), raw, raw, False
+    # nearest bound on the circle
+    to_lo = (lo - raw) % 360.0
+    to_hi = (raw - hi) % 360.0
+    new = lo if to_lo <= to_hi else hi
+    Rb = B.frames.get('armbase', np.eye(3))
+    v = Rb.T @ np.asarray(d, float)
+    m = math.hypot(v[0], v[1])
+    rot = math.radians(new - raw)
+    c, s_ = math.cos(rot), math.sin(rot)
+    v2 = np.array([c * v[0] - s_ * v[1], s_ * v[0] + c * v[1], v[2]])
+    if m < 1e-9:
+        v2 = v
+    d2 = Rb @ v2
+    d2 = d2 / max(np.linalg.norm(d2), 1e-9)
+    return d2, raw, weapon_angle(B, side, d2), True
 
 
 def add_slab(B, c, u, v, half, corner, mat, part, ghost=True):
@@ -311,6 +365,13 @@ def add_prop(B, P, pr):
     else:
         R = R_hd @ rx(pr.get('roll', 0.0)) @ rz(pr.get('angle', 0.0))
         d = R @ FWD
+    hold = pr['between'][0] if pr.get('between') else s
+    if kind in WEAPONS and pr.get('limit', True) is not False:
+        lim = pr.get('limit')
+        lim = tuple(lim) if isinstance(lim, (list, tuple)) else WEAPON_LIMIT
+        d, raw, fin, clamped = limit_weapon(B, hold, d, lim)
+        B.weapons.append({'kind': kind, 'hand': hold, 'raw_deg': round(raw, 2), 'deg': round(fin, 2),
+                          'limit': [lim[0], lim[1]], 'clamped': clamped})
     L = pr.get('length', PROP_LEN[kind])
     back = pr.get('back', PROP_BACK[kind])
     base, tip = grip - d * back, grip + d * L

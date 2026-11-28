@@ -18,6 +18,12 @@
             그림은 tools/art/run_request_guides.py 의 build() 가 만든다. 이미 있는 폴더는 --force 없이는 건드리지 않는다.
             --out DIR 로 다른 곳(시험용)에 쓸 수 있다 (시트 하나). 끝나면 art/requests/gait/README.md 의 목록을 다시 쓴다.
   --index   art/requests/gait/README.md 의 요청 목록(표시 줄 사이)만 다시 쓴다.
+  --write <시트> --guides 3d   (주인 2026-11-28) 부류 공용 2D 마네킹 대신 그 캐릭터의 대기 그림에 맞춘 3D 마네킹
+            (tools/mannequin3d/request.py; tools/mannequin3d/specs/carry3d.json 에 그 시트의 항목 — 든 것·팔·손목 범위·개성 — 이
+            있어야 한다)으로 같은 폴더를 만든다: guide_<p>_a/b.png(관절 점·무기 유령) + guide_<p>_plain_a/b.png(밑그림) +
+            size_<p>_a/b.png + pose.json(mannequin3d 표시, 시트 배율) + preview_<p>.gif / preview_<p>_game_x4.gif + 3D 용 README.
+            이미 3D 로 만든 폴더는 --guides 없이 --force 해도 3D 로 다시 만든다 (--guides 2d 로 되돌릴 수 있다).
+            --check 는 3D 폴더를 부류 마네킹 띠와 비교하지 않고, carry3d.json 항목과 가이드 PNG 가 만든 때와 같은지(sha256) 본다.
 
 요청 폴더: art/requests/gait/<요청>__<시트 png 이름에서 sheet_ 뺀 것>/ — 경량 run__, 중량 heavy__, 로브 robe__
 (이미 있는 run__class_warrior, run__captain_shadowqueen 과 같은 꼴). 부류와 상관없이 엔진에는 시트의 anims.run 한 줄로 붙는다:
@@ -195,6 +201,14 @@ def check_requests(spec, man):
         want = os.path.basename(folder).split('__', 1)[0]
         if want != REQ_PREFIX[cls]:
             errs.append(f'{name}: 폴더 머리 {want}__ 인데 {sid} 는 {cls} ({REQ_PREFIX[cls]}__)')
+            continue
+        if is_3d_folder(folder):                       # 3D 마네킹 가이드 (--guides 3d): 부류 마네킹 띠와 비교하지 않는다
+            try:
+                sc = sheet_scale(sid)
+            except Fail as e:
+                errs.append(f'{name}: {e}')
+                continue
+            errs += check_request_3d(name, folder, sid, text, sc)
             continue
         g, _ = guide_of(cls, spec)
         pose = load(g)
@@ -1150,8 +1164,28 @@ def stride_line(pose, scale):
             f'8 frames = two steps, {pose["nominal_ms"]} ms a frame in the game.')
 
 
-def write_request(sid, out=None, force=False, date=None, spec=None, man=None):
-    """요청 폴더 하나 → (폴더 rel, CARRY 표에서 왔는가)"""
+def is_3d_folder(folder):
+    """요청 폴더가 3D 마네킹 가이드로 만들어졌는가 (pose.json 의 mannequin3d 표시)"""
+    try:
+        pj = load(os.path.join(folder, 'pose.json'))
+    except (OSError, ValueError):
+        return False
+    return isinstance(pj, dict) and bool(pj.get('mannequin3d')) and 'mannequin3d' in str(pj.get('source', ''))
+
+
+def m3d_module():
+    """tools/mannequin3d/request.py (3D 가이드)"""
+    d = os.path.join(ROOT, 'tools', 'mannequin3d')
+    if d not in sys.path:
+        sys.path.insert(0, d)
+    import request as m3d_request
+    return m3d_request
+
+
+def write_request(sid, out=None, force=False, date=None, spec=None, man=None, guides=None):
+    """요청 폴더 하나 → (폴더 rel, CARRY 표에서 왔는가, geo, 자체 검사 명령).
+    guides = '2d' (부류 확정 마네킹 띠, 기본) | '3d' (tools/mannequin3d — 캐릭터에 맞춘 3D 마네킹, carry3d.json 항목 필요) |
+    None (이미 3D 로 만든 폴더면 3d, 아니면 2d)."""
     sys.path.insert(0, os.path.join(ROOT, 'tools', 'art'))
     import run_request_guides as rg
     spec = spec or load(SPEC)
@@ -1170,6 +1204,17 @@ def write_request(sid, out=None, force=False, date=None, spec=None, man=None):
             raise rg.Fail(f'{rel(folder)}/README.md 가 이미 있다 (그려 받은 요청일 수 있다) — 다시 만들려면 --force')
         if 'gait_requests.py --write' not in open(old, encoding='utf-8').read():
             raise rg.Fail(f'{rel(folder)}/README.md 는 손으로 쓴 요청이다 (run__class_warrior 같은 본보기) — --force 로도 덮어쓰지 않는다')
+    if guides is None:
+        guides = '3d' if is_3d_folder(folder) else '2d'
+    if guides == '3d':
+        return write_request_3d(sid, folder, cls, stem, short, p, date, spec, man)
+    if is_3d_folder(folder):
+        # 3D 요청을 2D 로 되돌린다: 3D 만의 파일을 지운다 (2D 와 이름이 같은 guide/size 는 아래에서 덮어쓴다)
+        for n in m3d_module().names(p):
+            if n not in (f'guide_{p}_a.png', f'guide_{p}_b.png', f'size_{p}_a.png', f'size_{p}_b.png'):
+                fp = os.path.join(folder, n)
+                if os.path.exists(fp):
+                    os.remove(fp)
     geo = rg.build(sid, folder, cls, man, force=True)
     pose = load(geo['pose'])
     frames = pose['frames']
@@ -1423,6 +1468,296 @@ def write_request(sid, out=None, force=False, date=None, spec=None, man=None):
     return rel_folder, not generic, geo, checks
 
 
+# ───────── --write --guides 3d: 3D 마네킹 가이드 요청 (주인 2026-11-28) ─────────
+# 주인 결정 2026-11-28: 가상 3D 마네킹 → 동작 → 스프라이트 띠 → Antigravity 가 그 위에 캐릭터를 덧그린다. 무기 손목 범위는
+# 아래팔에 대해 0~120도(위든 아래든 그 안이면 된다), 무기·몸·얼굴이 겹쳐도 가까운 쪽이 먼 쪽 위에 그려지면 된다(깊이 순서),
+# 바닥 줄 아래로 내려간 소품은 그릴 때 손본다, 견본은 기준선일 뿐, 부류·캐릭터마다 자기 움직임 개성, 색만 바꾼 자산은 없다,
+# 그림 판정은 주인이 직접 한다(리드가 그림을 통과·탈락시키지 않는다).
+OWNER_3D_KO = ('"가상의 3D 마네킹 → 동작 → 스프라이트 띠 → Antigravity 가 그 위에 캐릭터를 덧그린다" (주인 2026-11-28). '
+               '무기 손목은 아래팔 기준 0~120도 안(위·아래 상관없음), 겹침은 가까운 쪽이 위에 그려지면 괜찮다, 바닥 아래로 '
+               '내려간 소품은 그릴 때 손본다, 견본은 기준선일 뿐, 캐릭터마다 자기 움직임 개성, 색만 바꾼 자산은 없다, '
+               '그림 판정은 주인이 직접 한다.')
+
+
+KIND_KO = {'sword': '칼', 'mace': '철퇴', 'staff': '지팡이'}
+
+
+def write_request_3d(sid, folder, cls, stem, short, p, date, spec, man):
+    """3D 마네킹 가이드 요청 폴더 (tools/mannequin3d/request.py 의 그림 + 3D 용 README) → write_request 와 같은 꼴"""
+    m3d = m3d_module()
+    geo = m3d.build_request(sid, folder, cls, man, force=True)
+    pose = load(geo['pose'])           # rel to the repo, or an absolute --out path (os.path.join keeps it)
+    frames = pose['frames']
+    item = phase3_item(sid)
+    entry = geo['m3d']['entry']
+    pz = geo['m3d']['personality']
+    look = (entry.get('request') or {}).get('look')
+    look_ko = (entry.get('request') or {}).get('look_ko')
+    pkg = item.get('package') or geo.get('package')
+    if not pkg and os.path.isdir(os.path.join(ROOT, 'art', 'requests', 'phase3', short)):
+        pkg = f'art/requests/phase3/{short}'
+    name = item.get('name', sid)
+    title = f'{name} 이동 (3D 마네킹)'
+    if not look:
+        look = character_line(pkg) or '(no look in carry3d.json request.look - describe the idle of the accepted sheet)'
+    fa = ' '.join(f['frame'] for f in frames[:4])
+    fb = ' '.join(f['frame'] for f in frames[4:])
+    flight = [f['frame'] for f in frames if f.get('phase') == 'flight']
+    step = pose['step_px']
+    q = step / 4
+    sc = geo['scale']
+    ms = pose['nominal_ms']
+    dl = [f'art/inbox/gait/{stem}_run_a.png', f'art/inbox/gait/{stem}_run_b.png']
+    work = '<temp dir>'
+    fl = ' --flight-slots 4' if flight else ''
+    checks = [f'python3 tools/art/check_delivery.py {dl[0]}{fl}', f'python3 tools/art/check_delivery.py {dl[1]}{fl}',
+              f'python3 tools/art/add_gait.py {shlex.quote(sid)} --gait run --src {dl[0]} {dl[1]} --pose {shlex.quote(geo["pose"])} --dry-run --work {work}']
+    clsd = spec['classes'][cls]
+    ko_cls = KO[cls]
+    rel_folder = rel(folder) if folder.startswith(ROOT) else folder
+    reqdir = f'art/requests/gait/{p}__{short}'
+    refs_pkg = []
+    if pkg and os.path.exists(os.path.join(ROOT, pkg, 'concept.png')):
+        refs_pkg.append((f'{pkg}/concept.png', 'the design draft (design only - not proportions or rendering)'))
+    if pkg and os.path.exists(os.path.join(ROOT, pkg, 'portrait.png')):
+        refs_pkg.append((f'{pkg}/portrait.png', 'the approved portrait (face, hair, colours only)'))
+    tops = [f.get('top_px') for f in frames]
+    t0 = tops[0]
+    dtop = ', '.join(f'{f["frame"]} {t - t0:+d}' for f, t in zip(frames[:4], tops[:4]))
+    bob = max(tops) - min(tops)
+    rows = planted_rows(pose)
+    retreats = []
+    for leg, seq, rear in rows:
+        xs = [x for _, x in seq] + ([rear[1]] if rear else [])
+        retreats += [a - b for a, b in zip(xs, xs[1:])]
+    rmin, rmax = (min(retreats), max(retreats)) if retreats else (q, q)
+    lean = pairs(frames, 'lean_deg')
+    wl = (entry.get('weapon_limit') or {'min': 0.0, 'max': 120.0})
+    wmin, wmax = float(wl.get('min', 0.0)), float(wl.get('max', 120.0))
+    wang = [(f['frame'], w) for f in frames for w in (f.get('weapon_angle') or [])]
+    held = sorted({(w['kind'], 'near' if w['hand'] == 'N' else 'far') for _, w in wang})
+    held_txt = ', '.join(f'{KIND_KO.get(k, k)} ({"가까운" if h == "near" else "먼"} 손)' for k, h in held) or '없음'
+    wang_txt = ' '.join(f'{fr}:{w["deg"]:.0f}' for fr, w in wang)
+    colours = []
+    if geo.get('tint'):
+        o, a = geo['tint'].get('outfit', []), geo['tint'].get('accent', [])
+        colours.append(f'KEY COLOURS (the engine recolours them per faction): the uniform cloth uses ONLY the exact sheet keys '
+                       f'{" ".join(o)} (outfit) and the trim ONLY {" ".join(a)} (accent), on the SAME areas as in the sheet.')
+    elif item.get('colors'):
+        cs = '; '.join(f'{k} {v}' for k, v in item['colors'].items())
+        colours.append(f'COLOURS: take every colour from the accepted sheet (same palette, ~40 colours); the design colours were {cs}.')
+    if item.get('spots'):
+        colours.append(f'SPOT COLOURS (tiny must-show colours, keep them exactly): {", ".join(item["spots"])}.')
+    move_word = 'RUN' if cls == 'light' else ('HEAVY TRUDGE (fast, purposeful)' if cls == 'heavy' else 'ROBE GLIDE (hurried, purposeful)')
+    fmt_lines = [f'  - the hip centre of every frame on the slot\'s column x={HIP_X} (the body stays in place, the feet move);']
+    if flight:
+        fmt_lines += [f'  - {" ".join(f["frame"] for f in frames if f.get("phase") != "flight")}: the sole of the standing foot on '
+                      f'y={FLOOR_Y} (lowest pixel), the other foot well above it;',
+                      f'  - {" / ".join(flight)} (FLIGHT): NOTHING touches y={FLOOR_Y} - the lowest pixel of the whole figure (boots, '
+                      'weapon, cloth) at or above y=852;']
+    else:
+        fmt_lines += [f'  - EVERY frame: the lowest pixel of the figure is the standing sole on y={FLOOR_Y} (no flight frame);']
+    fmt_lines += ['  - every pixel of a frame between x=32 and x=351 of its slot (at least 32 px of magenta to the slot edges - '
+                  'nothing may cross into the next slot, including weapons, cloth and hair);',
+                  f'  - the SCALE of the accepted sheet ({sc:g} source -> game: the idle is {geo["game_idle_h"]} game px tall); the '
+                  f'mannequin is fitted to the idle (the same height and limb lengths), its head top near y={min(tops)}-{max(tops)}.']
+    receive = f'python3 tools/art/receive.py gait/{stem}_run'
+    notes_h = f'## gait/{stem}_run - {name} 이동'
+    refs_list = [f'guide_{p}_a/b', f'guide_{p}_plain_a/b', f'size_{p}_a/b', f'preview_{p}.gif', os.path.basename(geo['source'])] \
+        + [os.path.basename(r) for r, _ in refs_pkg] + ['pose.json']
+    pnotes = pz.get('notes') or []
+    pnotes_ko = pz.get('notes_ko') or []
+    lines = [
+        f'# {title} · `{sid}` → `gait/{stem}_run`',
+        '',
+        f'**상태: 요청 ({date}, 클라우드 — `python3 tools/art/gait_requests.py --write {sid} --guides 3d` 로 만듦; 3D 마네킹 시범).** '
+        'Antigravity 가 이 README 하나와 아래 그림만으로 끝낼 수 있게 적었다. 규칙 충돌 시 `art/requests/gpt_handoff_notes.md` '
+        '「Rules changed」가 우선.',
+        '',
+        f'**왜**: {OWNER_3D_KO}',
+        f'→ 이 폴더의 가이드는 부류 공용 2D 마네킹이 아니라 **이 캐릭터의 승인된 대기 그림에 맞춘 3D 마네킹**(`tools/mannequin3d`, '
+        f'`tools/mannequin3d/specs/carry3d.json` 의 `{geo["m3d"]["key"]}`)이 {ko_cls}({cls}) 달리기를 하는 8프레임이다. 그 위에 캐릭터를 '
+        '프레임마다 덧그리고, 마네킹 픽셀은 하나도 남기지 않는다.',
+        f'그려 온 띠는 `tools/art/add_gait.py` 가 시트 아래에 `anims.run` 칸으로 붙이고, 엔진(`js/battle.js`)이 {ms}ms 박자로 넘긴다'
+        f'{" (뜬 칸 포함)" if flight else ""}. 보폭·박자·디딘 발 규칙은 {ko_cls} 부류 그대로다 (엔진의 runCells).',
+        '',
+        '| 파일 | 내용 |',
+        '|---|---|',
+        f'| `guide_{p}_a.png` / `guide_{p}_b.png` | **자세·자리·깊이 가이드** = 3D 마네킹 {frames[0]["frame"]}~{frames[3]["frame"]} / '
+        f'{frames[4]["frame"]}~{frames[7]["frame"]}. 관절 점(SPEC.md 색), 든 무기는 청록 반투명(앞에 몸이 있으면 점선), 무기를 쥔 손에 '
+        f'청록 고리. 1536x1024, 384px 칸 4개, 칸마다 엉덩이 열 x=192, 디딘 발바닥 y=870{", " + "·".join(flight) + " 은 공중" if flight else ""} |',
+        f'| `guide_{p}_plain_a.png` / `guide_{p}_plain_b.png` | 같은 프레임, 점·고리·바닥 줄 없음 — 밑그림(언더레이)용 |',
+        f'| `size_{p}_a.png` / `size_{p}_b.png` | 읽기용: 왼쪽 칸 = 승인된 대기 자세(흐리게, 게임처럼 앵커 열을 x=192 에) 위에 3D 마네킹 '
+        f'{frames[0]["frame"]}/{frames[4]["frame"]} 윤곽(하늘색) — **같은 배율**. 오른쪽 4칸 = 가이드 + 바닥 줄·엉덩이 열·x=32/351 선·'
+        '디딘 발끝 자리(노란 눈금) |',
+        f'| `preview_{p}.gif` / `preview_{p}_game_x4.gif` | 움직임 미리보기: 가이드 크기 / 게임 크기 x4, {ms}ms 박자 |',
+        f'| `pose.json` | 이 요청의 좌표·보폭·관절(시트 배율 {sc:g}, `mannequin3d` 표시 + 검사 결과). `add_gait.py --pose` 에 쓴다 |',
+        *[f'| `{r}` | {"승인된 초상화 — 얼굴·머리·색" if "portrait" in r else "디자인 초안 — 디자인만"} |' for r, _ in refs_pkg],
+        f'| `{geo["source"]}` | **승인된 전투 시트 원본** — 디자인·색·크기의 기준. 1번 자세가 대기 |',
+        '',
+        f'- 부류: **{ko_cls}** — {(spec["sheets"].get(sid) or {}).get("why", "")} ({SPEC}). 개성은 그 위에 얹는다 (아래 「개성」).',
+        f'- 납품: art-inbox `{dl[0]}` ({frames[0]["frame"]}~{frames[3]["frame"]}) + `{dl[1]}` ({frames[4]["frame"]}~{frames[7]["frame"]}) + '
+        f'`art/inbox/NOTES.md` 절 「{notes_h[3:]}」 + 「## 판정 — gait/{stem}_run」. 파일 이름은 부류와 상관없이 `_run_` (엔진의 `anims.run`).',
+        f'- 무기: {held_txt} — 아래팔에 대한 손목 각도 {wmin:g}~{wmax:g}도 안 (가이드: {wang_txt}).',
+        f'- 디딘 발: 한 걸음 원본 {step:g}px(게임 {step * sc:.1f}px) → 디딘 발은 칸마다 **정확히 {q:.1f}px**(±3, 게임 {q * sc:.1f}px) 뒤로 — 발끝 x 는 '
+        'Prompt 의 PLANTED FOOT 표.',
+        f'- 클라우드가 받은 뒤: `{receive}` (검사 + `add_gait.py --dry-run`) → 미리보기를 주인께 보이고, 붙이는 것은 `add_gait.py` '
+        f'(`--pose {geo["pose"]}`). 그림이 좋은지는 주인이 직접 판정한다.',
+        '',
+        '## 3D 가이드 읽는 법',
+        '',
+        '- **명암 = 깊이**: 밝은 부분이 보는 사람에게 **가깝고**, 어두운 부분이 **멀다** (가까운 팔·다리는 밝은 베이지, 먼 팔·다리는 '
+        '어두운 회청색). 덧그릴 때 이 앞뒤 순서를 지킨다 — **가까운 쪽이 먼 쪽 위에** 그려진다. 무기·몸·얼굴이 겹쳐도 그 순서만 맞으면 괜찮다.',
+        '- **청록 반투명 = 든 무기**: 실선 윤곽은 무기가 앞에 있는 곳, 점선은 몸이 무기 앞을 가리는 곳. 무기는 대기 그림의 **실제 크기·모양**'
+        '으로 그 선을 따라 그린다 (가이드의 길이는 자리 표시).',
+        f'- **손목 범위**: 무기 방향은 아래팔(팔꿈치→손목) 선에서 위쪽(엄지 쪽)으로 {wmin:g}~{wmax:g}도 안. 0 = 팔과 일직선. 그 밖으로 꺾어 '
+        '늘어뜨리지 않는다 (덜렁거리는 칼 금지). 위로 들든 아래로 내리든 이 범위 안이면 된다.',
+        '- **바닥**: 디딘 발바닥은 y=870, 공중 프레임은 y=852 위. 무기 끝·천 같은 소품이 바닥 줄 아래로 내려가면 그릴 때 손본다 '
+        '(각도를 조금 바꿔 올린다) — 몸과 발의 바닥 규칙은 그대로.',
+        '- **마네킹 픽셀은 전부 덮는다**: 3D 마네킹의 색이 한 프레임의 25% 이상 남거나, 실루엣이 가이드와 거의 같으면(색만 바꾼 마네킹, '
+        'IoU > 0.93) `add_gait.py` 가 받지 않는다. 마네킹 머리는 자리 표시 — 캐릭터의 머리·머리카락·머리띠를 대기 그림 크기로 그린다.',
+        '- 견본(다른 캐릭터의 달리기)은 기준선일 뿐 — 이 캐릭터의 움직임은 아래 개성대로. 색만 바꾼 다른 캐릭터의 띠는 받지 않는다.',
+        '',
+        '## 개성',
+        '',
+        *[f'- {s}' for s in pnotes_ko],
+        '',
+        '## 요약 (한국어)',
+        '',
+        f'{name}의 {ko_cls} 달리기 8프레임(R1~R8)을 이 폴더의 3D 마네킹 가이드 위에 덧그려 `{dl[0]}`·`{dl[1]}` 두 띠로 art-inbox 에 올린다. '
+        f'모습 — {look_ko or "승인된 시트의 대기 그림 그대로 (carry3d.json request.look_ko 없음)"} '
+        '명암은 깊이(밝음 = 가까움)이고 그 앞뒤 순서를 지킨다. 무기 손목은 아래팔 기준 '
+        f'{wmin:g}~{wmax:g}도 안. 바닥 아래 소품은 손본다. 마네킹 픽셀은 하나도 남기지 않는다. 디딘 발은 칸마다 {q:.1f}px 뒤로 '
+        '(발끝 x 는 PLANTED FOOT 표). 끝나면 NOTES.md 에 절과 「판정」 절을 적고 멈춘다. 그림이 좋은지는 주인이 직접 본다.',
+    ]
+    P = [
+        f'TASK: draw the {move_word} CYCLE (8 frames, movement class {cls.upper()}) of {name} as TWO new PNG strips on the '
+        'art-inbox branch:',
+        f'  {dl[0]}  = frames {fa}',
+        f'  {dl[1]}  = frames {fb}',
+        '(the file names say "run" for every movement class: the engine plays them as the sheet\'s run.)',
+        'PAINT the character OVER this folder\'s 3D MANNEQUIN, frame by frame. The mannequin is fitted to the accepted idle (same',
+        'height, limb lengths and stance width) and already moves with this character\'s personality - copy its pose, depth and',
+        'placement; do not take the idle art and bend, shear or rotate it.',
+        '',
+        'REFERENCES (load all; if the sheet or a guide does not load, do not draw - write "## 막힘" in NOTES.md and stop):',
+        f'  - {reqdir}/guide_{p}_a.png, guide_{p}_b.png = THE POSE, PLACEMENT AND DEPTH GUIDE for every frame (joint dots, the',
+        '    held weapon as a teal see-through ghost, a teal ring on the hand that holds it; same canvas as your delivery:',
+        '    1536x1024, 4 frames per strip in 384-px slots).',
+        f'  - {reqdir}/guide_{p}_plain_a.png, guide_{p}_plain_b.png = the same frames without dots / rings / ground line: open',
+        '    them as an UNDERLAY and paint on your own layers - the delivered PNGs contain ONLY your painting.',
+        f'  - {reqdir}/size_{p}_a.png, size_{p}_b.png = the same frames with guide lines and planted-toe ticks, and on the left the',
+        '    accepted idle (faint) with the mannequin outline on top: the two are the SAME SCALE.',
+        f'  - {reqdir}/preview_{p}.gif, preview_{p}_game_x4.gif = the motion at speed ({ms} ms a frame).',
+        f'  - {geo["source"]} (pose 1 = idle) = the accepted battle sheet: design, colours, outline, rendering and SIZE.',
+        '    Same character, same pixel size, same palette.',
+        *[f'  - {r} = {what}.' for r, what in refs_pkg],
+        f'  - {geo["pose"]} = the coordinates of every joint per frame, the stride and the checks the guide passed.',
+        '',
+        f'CHARACTER (unchanged from the accepted sheet): {look}',
+        '',
+        'HOW TO READ THE 3D GUIDE:',
+        '  - SHADING = DEPTH: lighter parts are NEARER the viewer, darker parts are FARTHER (near arm / near leg light beige, far',
+        '    arm / far leg dark slate). KEEP THAT DEPTH ORDER when you paint: the nearer part is always drawn over the farther one.',
+        '    Weapon, body and face may overlap - that is fine as long as the nearer part is on top.',
+        '  - The teal see-through shape is the held weapon: a solid outline where it is in front, dashed where a body part covers',
+        '    it. Paint the character\'s OWN weapon at its idle size and shape along that line (the ghost only marks the line).',
+        f'  - WRIST RANGE (owner rule): every held weapon points {wmin:g}-{wmax:g} deg UPWARD (thumb side) from the forearm line',
+        '    (elbow -> wrist); 0 = straight along the forearm. Up or down on screen does not matter, but never bend it past the',
+        f'    arm line (no dangling blade) nor beyond {wmax:g} deg. The guide is inside the range in every frame ({wang_txt} deg).',
+        '  - The mannequin\'s round head is a placeholder: paint the character\'s own head, hair and headgear at the idle\'s size on',
+        '    its neck. The joints, limbs and torso are fitted to the idle - put the character\'s own body exactly on them.',
+        '  - PAINT OVER EVERY MANNEQUIN PIXEL. add_gait.py refuses a strip in which >= 25% of a frame still has the mannequin\'s',
+        '    colours, and a recoloured mannequin (silhouette IoU > 0.93 with this guide). Clothing, hair, cloth and the real',
+        '    weapon change the silhouette - that is the work.',
+        f'  - FLOOR: the standing sole on y={FLOOR_Y}; nothing of the body below it. A weapon tip or cloth that would dip below the',
+        '    floor line (or below y=852 in a flight frame) is touched up while painting - lift it a little.',
+        '  - Samples of other characters are only baselines. Do not recolour another character\'s strip.',
+        '',
+        f'THE MOVE (movement class {cls}: {clsd["summary"]} - with this character\'s personality on top, already in the mannequin):',
+        f'  - {frames[0]["frame"]} contact - {frames[1]["frame"]} catch (lowest hips) - {frames[2]["frame"]} push-off (heel up) - '
+        f'{frames[3]["frame"]} {"FLIGHT (both feet off the ground)" if frames[3].get("phase") == "flight" else frames[3].get("phase")}. '
+        f'{frames[4]["frame"]}-{frames[7]["frame"]} = the same with the far foot.',
+        f'  - Lean forward (hip to neck): {lean} deg.',
+        f'  - Height: the mannequin\'s head top is at y={"/".join(str(t) for t in tops[:4])} in {fa}'
+        + (f' (the same in {fb})' if tops[:4] == tops[4:] else f' and {"/".join(str(t) for t in tops[4:])} in {fb}')
+        + f': {dtop} px from {frames[0]["frame"]} (+ = lower) - move your head top by the same amounts (bob {bob} px).',
+        stride_line(pose, sc),
+        '  - PLANTED FOOT: a foot on the floor never slides in the drawing. From its contact frame on, the SAME boot moves LEFT by',
+        f'    exactly step/4 = {q:.1f} px per frame (the mannequin: {rmin:.1f}-{rmax:.1f} px; tolerance 3 px) - the engine moves the unit',
+        f'    {q * sc:.1f} game px per frame, so the boot stays still on the ground. Toe tip = the FRONT-MOST pixel of the planted boot',
+        '    = the yellow tick in size_*.png; x in the 384-px slot:',
+        *toe_lines(pose),
+        *([f'      ({" / ".join(flight)}: flight - no foot on the floor; the next contact lands ahead again)'] if flight else []),
+        '',
+        'PERSONALITY (this character\'s own run):',
+        *[f'  - {s}' for s in pnotes],
+        '  - Face: exactly as in the idle in every frame.',
+        '',
+        'MUST NOT CHANGE: outfit, colours, proportions, headgear, weapon shape and size, and the SCALE of the accepted sheet. The',
+        'body must not be shrunk to fit - change a weapon\'s angle (inside the wrist range) instead.',
+        *colours,
+        '',
+        'FORMAT (each strip): 1536x1024 PNG, 4 frames in ONE row, frame n in the 384-px slot n (x = 384*(n-1) .. 384*n-1), facing RIGHT,',
+        f'front three-quarter view, light from the upper left, exactly the placement of guide_{p}_a/b.png:',
+        *fmt_lines,
+        'STYLE: crisp pixel art like the accepted sheet - about 40 colours, hard pixel edges, no anti-aliasing into the background.',
+        'BACKGROUND: perfectly flat #FF00FF. Every figure colour at RGB distance >= 170 from #FF00FF (hard minimum 150).',
+        'NO effects: no dust, speed lines, motion blur, afterimages, shadows, floor, text, joint dots or guide lines in the delivery.',
+        '',
+        'SELF-CHECK (repository root; on Windows without Python: uv run --no-project --with pillow --with numpy python ...):',
+        *[f'  {cmd}' for cmd in checks],
+        ('The first two must print RESULT: PASS (with --flight-slots 4: slot 4 is the flight frame). '
+         if flight else 'The first two must print RESULT: PASS. ')
+        + 'The third must end without an error and write',
+        f'{work}/{stem}_preview_x4.png and {stem}_run_x4.gif - LOOK at them (the bottom two rows of the preview are your 8 frames at',
+        '4x game size) and at the GIF at game speed: the character must look like its idle self moving, not squashed or shrunk; the',
+        'planted boot must not slide. (add_gait refuses mannequin pixels: the frames must be your painting.)',
+        '',
+        'DELIVERY: commit only the two PNGs under art/inbox/gait/ and add to art/inbox/NOTES.md:',
+        f'  {notes_h}',
+        '  CHECK: the RESULT lines of both check_delivery.py runs and the last lines of add_gait.py --dry-run, verbatim (or "not run")',
+        f'  REFERENCES LOADED: {", ".join(refs_list)} -> ok / FAILED (reason)',
+        '  CHANGED: what you painted, frame by frame where it matters (planted toe x per frame as you measured it)',
+        '  DEVIATIONS: (a) from the 3D mannequin pose / position / depth order per frame (b) from the sheet design (c) from the',
+        '              PERSONALITY and wrist-range lines - write "none" explicitly for each',
+        '  RISKS AT GAME SIZE: what you could not verify at ~64 px',
+        '  3D GUIDE: what helped, what was unclear (shading, ghost weapon, plain underlay) - this is the first 3D-mannequin request',
+        f'  ## 판정 — gait/{stem}_run',
+        '  결과: 통과 | 고침 | 다시   (your own verdict as animation head: natural? in character? does the contact frame read?)',
+        '  본 방법: (game 1x/4x, the preview GIF, frames - what you looked at)',
+        '  고칠 점: (who - Antigravity/cloud - what, with frame numbers; "없음" if it passes)',
+        '  남은 걱정: (what the owner\'s look should check; "없음" if none)',
+        '  캐릭터 메모: (direction for this character\'s next motions; omit if none)',
+        'The owner judges the result himself. Push to art-inbox only. Do not touch files outside art/inbox/. Then stop.',
+    ]
+    lines += ['', '## Prompt for Antigravity', '', '```', *P, '```', '']
+    with open(os.path.join(folder, 'README.md'), 'w', encoding='utf-8') as f:
+        f.write('\n'.join(lines))
+    return rel_folder, True, geo, checks
+
+
+def check_request_3d(name, folder, sid, text, sc):
+    """--check 의 3D 요청 폴더 몫: 표시·carry3d 항목·가이드 해시·파일 (tools/mannequin3d/request.py verify) + README 의 --pose·보폭·발끝"""
+    errs = [f'{name}: {e}' for e in m3d_module().verify(folder, sid)]
+    local = os.path.join(folder, 'pose.json')
+    try:
+        pose = load(local)
+    except (OSError, ValueError):
+        return errs
+    expected_path = rel(local)
+    poses = re.findall(r"""--pose\s+["']?([^\s`"'<>]+)""", text)
+    if not poses or any(p_ != expected_path for p_ in poses):
+        errs.append(f'{name}/README.md: 3D 마네킹 {expected_path} 를 가리키지 않는다 — --write {sid} --guides 3d --force')
+    actual = [line.strip() for line in text.splitlines()
+              if line.lstrip().startswith(('- Stride:', 'near foot:', 'far foot:'))]
+    if actual != [stride_line(pose, sc).strip(), *(line.strip() for line in toe_lines(pose))]:
+        errs.append(f'{name}/README.md: 보폭 또는 디딤 발끝 숫자가 pose.json 과 다르다')
+    for m2 in re.finditer(r'the guide (bow|spear|lance|sword|staff|mace|blade|draws)|as long as the guide', text):
+        errs.append(f'{name}/README.md: 「{m2.group(0)}」 - 「the idle」 기준으로 바꿀 것')
+    return errs
+
+
 INDEX_HDR = ['| 요청 | 시트 | 부류 · 마네킹 | 납품 (art-inbox) | 상태 |', '|---|---|---|---|---|']
 
 
@@ -1441,6 +1776,7 @@ def index_rows(spec=None, man=None):
         r = st.get(sid, {})
         cls = r.get('class') or '?'
         g = os.path.dirname(r.get('guide') or '') or '?'
+        mq = f'3D 마네킹 `{g}/`' if is_3d_folder(os.path.dirname(d)) else f'`{g}`'
         stem = r.get('stem', '')
         if r.get('state') == 'done':
             state = '그려짐 · 등록'
@@ -1449,7 +1785,7 @@ def index_rows(spec=None, man=None):
         else:
             state = '요청'
         folder = os.path.basename(os.path.dirname(d))
-        rows.append(f'| [`{folder}/`]({folder}/README.md) | `{sid}` {title} | {KO.get(cls, cls)} · `{g}` | '
+        rows.append(f'| [`{folder}/`]({folder}/README.md) | `{sid}` {title} | {KO.get(cls, cls)} · {mq} | '
                     f'`art/inbox/gait/{stem}_run_a.png` + `_b.png` | {state} |')
     return rows
 
@@ -1480,6 +1816,9 @@ def main():
     ap.add_argument('--out', help='--write: 이 폴더에 쓴다 (시트 하나, 시험용 — 목록은 고치지 않는다)')
     ap.add_argument('--date', default=datetime.date.today().isoformat(), help='--write: README 의 요청 날짜 (기본 오늘)')
     ap.add_argument('--index', action='store_true', help='art/requests/gait/README.md 의 요청 목록만 다시 쓴다')
+    ap.add_argument('--guides', choices=('2d', '3d'),
+                    help='--write: 2d = 부류 확정 마네킹 띠 / 3d = 캐릭터에 맞춘 3D 마네킹 (tools/mannequin3d, carry3d.json 항목 필요). '
+                         '기본: 이미 3D 로 만든 폴더는 3d, 나머지는 2d')
     a = ap.parse_args()
     spec, man = load(SPEC), load(MANIFEST)
     if a.write:
@@ -1491,12 +1830,15 @@ def main():
         rc = 0
         for s in a.write:
             try:
-                folder, from_table, geo, checks = write_request(s, os.path.abspath(a.out) if a.out else None, a.force, a.date, spec, man)
+                folder, from_table, geo, checks = write_request(s, os.path.abspath(a.out) if a.out else None, a.force, a.date, spec, man,
+                                                                 a.guides)
             except rg.Fail as e:
                 print(f'FAIL {s}: {e}', file=sys.stderr)
                 rc = 1
                 continue
-            print(f'{geo["sheet"]} [{geo["cls"]}] → {folder}/ README.md {" ".join(geo["files"])}')
+            print(f'{geo["sheet"]} [{geo["cls"]}{" 3D" if geo.get("m3d") else ""}] → {folder}/ README.md {" ".join(geo["files"])}')
+            for lv, msg in (geo.get('m3d') or {}).get('checks', []):
+                print(f'   3D [{lv}] {msg}')
             print(f'   대기 x {geo["idle_x"][0]}-{geo["idle_x"][1]}, 앵커 열 {geo["anchor_col"]}, 배율 {geo["scale"]} ({geo["scale_src"]}; '
                   f'등록된 대기 높이로 {geo["scale_registered"]}), 마네킹 {geo["pose"]}')
             if not from_table:

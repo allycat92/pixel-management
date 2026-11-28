@@ -9,7 +9,7 @@ Per character (specs/carry3d.json): fit the mannequin to the accepted idle (fit.
                                  hip column x=192 per slot, standing soles on y=870, #FF00FF, ground line y=871,
                                  SPEC.md joint dots (near bright / far dark), props + robe see-through (teal outline;
                                  dashed light outline where a body part is in front), a teal ring on each hand that holds
-                                 a prop
+                                 a prop; every held weapon inside the hand range (carry3d.json weapon_limit, rig.py)
   <set>_plain_a/b.png            the same without joint dots, rings and ground line
   pose.json                      2D joints per frame in the run_base/heavy_base/robe_base pose.json schema
                                  (source: 'tools/mannequin3d ...' - add_gait treats request folders with it as mannequins)
@@ -91,6 +91,7 @@ def frame_record(body, cam, mask, spec, meta, pose, slot_origin):
                       'front_x_px': round(float(hf[0] - hip[0]), 1), 'back_x_px': round(float(hb[0] - hip[0]), 1)}
     rec['angles_deg'] = {k: round(v, 2) for k, v in q.items() if k not in ('x',) and not k.startswith('_')}
     rec['props'] = meta.get('props', [])
+    rec['weapon_angle'] = body.weapons     # deg to the forearm (0 = straight, + = up), limit, clamped (rig.py)
     rec['joints'] = joints
     return rec
 
@@ -276,7 +277,7 @@ def render_action(act, P, carry, yaw):
                      'feet_centre_x': round(HIP_X + push, 1), 'pushed_in_px': push,
                      'top_px': int(np.flatnonzero(m.any(1)).min()), 'lowest_px': int(np.flatnonzero(m.any(1)).max()),
                      'angles_deg': {k: round(v, 2) for k, v in full_pose(pose).items() if not k.startswith('_')},
-                     'props': props})
+                     'props': props, 'weapon_angle': body.weapons})
     return {'names': names, 'imgs': imgs, 'plain': plain, 'bodies': bodies, 'cams': cams, 'recs': recs, 'shifts': shifts}
 
 
