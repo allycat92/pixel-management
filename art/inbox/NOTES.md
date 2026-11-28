@@ -1513,3 +1513,22 @@ RISKS AT GAME SIZE: 1배에서 어깨를 가로지르는 철퇴의 머리와 뒷
 본 방법: 원본 띠, 등록용 1배·4배 미리보기, 접점과 바닥선, GIF 프레임 간격.
 고칠 점: 기술 검사 요구 없음. 게임 등록 전 주인 판정.
 남은 걱정: 1배에서 어깨를 가로지르는 철퇴의 머리와 뒷자락이 구분되는지 확인.
+
+## gait/sheet_captain_fixer_run - 진 — 뒷골목 해결사 이동 8프레임
+CHECK: (a) RESULT: PASS; (b) RESULT: PASS
+```text
+  --dry-run: 시트·manifest 는 그대로. 새 시트 /tmp/pm-g7.3apc/preview/sheet_captain_fixer.png · 등록될 항목 sheet_captain_fixer.entry.json · 미리보기 sheet_captain_fixer_preview_x4.png
+  sheet/captain/fixer: 시트 384x384, 15칸 — idle(4), attack(2), hit(1), run(8); runStride 49.3
+  다시 붙이는 명령: python3 tools/art/add_gait.py sheet/captain/fixer --gait run --src art/inbox/gait/sheet_captain_fixer_run_a.png art/inbox/gait/sheet_captain_fixer_run_b.png --pose art/requests/gait/run__captain_fixer/pose.json --ms 80
+```
+REFERENCES LOADED: guide, plain underlay, size (a/b), two GIFs, approved source & installed sheet, portrait, concept and pose.json → ok.
+CHANGED: x 292/217/143, 305/230/156; 착지 y=870, 공중 y=848. 경량 49.3, 명목 80ms.
+DEVIATIONS: (a) 접점과 높이를 가이드 수치에 맞췄다. 팔꿈치·무릎 등 세부 관절 좌표는 실측하지 않았다. (b) 회청색 후드·마스크와 후방을 향한 역수 단검, 앞쪽 빈 손 가드. (c) 손목 범위·단검 길이는 따로 실측하지 않았다.
+RISKS AT GAME SIZE: 어두운 배경에서 역수 단검과 후드 속 눈이 계속 읽히는지 확인.
+3D GUIDE: 가까운 단검과 턱 앞 먼 손 위치가 도움이 됐다.
+
+## 판정 — gait/sheet_captain_fixer_run
+결과: 기술 검사 통과 / 미감 주인 판정 대기.
+본 방법: 원본 띠, 등록용 1배·4배 미리보기, 접점과 바닥선, GIF 프레임 간격.
+고칠 점: 기술 검사 요구 없음. 게임 등록 전 주인 판정.
+남은 걱정: 어두운 배경에서 역수 단검과 후드 속 눈이 계속 읽히는지 확인.
