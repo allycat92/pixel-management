@@ -1399,3 +1399,22 @@ RISKS AT GAME SIZE: 없음 (R1–R8 전 프레임 1:1 허벅지-장화 크롭, 1
 본 방법: seams: checked R1-R8; `rogue_seam_check_1x4x.png`(R1–R8 + 대기 1:1 허리-장화 크롭 및 1×/4× 개별 프레임 어두운/풀밭 배경 대조), `work_v2/sheet_class_rogue_preview_x4.png`, `rogue_gif_frames_v2.png`(`add_gait --dry-run` 4× GIF 전 8프레임), `rogue_tint_mask.png`, `rogue_guide_overlay_a/b.png` 육안 대조
 고칠 점: 없음
 남은 걱정: 없음
+
+## gait/sheet_captain_blademaster_run - 바렌 — 떠돌이 검귀 (검귀) 이동
+CHECK: (a) RESULT: PASS; (b) RESULT: PASS
+```text
+  --dry-run: 시트·manifest 는 그대로. 새 시트 /tmp/pm-g1.g5VZ/preview/sheet_captain_blademaster.png · 등록될 항목 sheet_captain_blademaster.entry.json · 미리보기 sheet_captain_blademaster_preview_x4.png
+  sheet/captain/blademaster: 시트 384x384, 15칸 — idle(4), attack(2), hit(1), run(8); runStride 45.5
+  다시 붙이는 명령: python3 tools/art/add_gait.py sheet/captain/blademaster --gait run --src art/inbox/gait/sheet_captain_blademaster_run_a.png art/inbox/gait/sheet_captain_blademaster_run_b.png --pose art/requests/gait/run__captain_blademaster/pose.json --ms 80
+```
+REFERENCES LOADED: guide_run_a.png → ok, guide_run_b.png → ok; guide_run_plain_a.png → ok, guide_run_plain_b.png → ok; size_run_a.png → ok, size_run_b.png → ok; preview_run.gif → ok, preview_run_game_x4.gif → ok; art-inbox 원본 sheet_captain_blademaster.png → ok, 등록 시트 → ok; concept.png → ok, portrait.png → ok; pose.json → ok.
+CHANGED: 3D 가이드 위에 새 그림으로 8장 제작. R1~R3/R5~R7 디딘 발끝 x=284,216,147 / 296,227,158, 바닥 y=870. R4/R8 공중 y=849. 승인 대기의 39색, 배경 #FF00FF. 양쪽 띠 가로 1536×1024. 공중에서 허리천이 들리고, 뒤쪽 다리는 명암으로 구분했다. 원격 art-inbox .aseprite 마네킹까지 호환 LibreSprite로 내보내 원본 검사기의 실루엣 비교를 통과했다.
+DEVIATIONS: (a) 발 접점과 높이·앵커 기준은 맞췄지만 팔꿈치·무릎 및 먼 손의 정확한 관절 좌표를 프레임별로 추적하지 않았다. (b) 승인 시트의 팔레트·의상은 유지, 얼굴·흉터 및 칼 곡률은 새로 그려 픽셀 단위로 같지 않다. (c) 가까운 어깨에 한 손으로 든 칼은 구현. 손목 0~120°의 프레임별 실측은 없고, 머리띠/허리천의 정확한 1프레임 지연은 재현 보증하지 않는다.
+RISKS AT GAME SIZE: 밝은 지형에서 칼 끝과 흰 끈이 각각 읽히는지, 1배에서 근/원 발이 바뀌는 순간이 명확한지 실제 전투에서 봐야 한다. 얼굴의 흉터는 축소하면 거의 읽히지 않는다.
+3D GUIDE: 명암과 무기 고스트가 앞뒤 순서·칼 방향을 잡는 데 도움이 됐다. 공중 프레임의 발 접점과 칼 길이는 관절표·승인 시트를 함께 봐야 했다.
+
+## 판정 — gait/sheet_captain_blademaster_run
+결과: 기술 검사 통과 / 미감 주인 판정 대기.
+본 방법: 원본 두 띠, 1배·4배 등록 미리보기, 80ms × 8 GIF, 디딘 발 좌표와 공중 여유.
+고칠 점: 기술 검사에서 요구한 수정 없음. 게임 등록 전에 주인 시각 판정.
+남은 걱정: R2/R6과 R4/R8을 이어 볼 때 두 발 전환과 천·머리띠의 후행이 자연스러운지.
