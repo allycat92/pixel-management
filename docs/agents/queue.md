@@ -14,11 +14,11 @@
 | GPT | `G6-fieldmedic-3d` | REVIEW | 마그다 달리기 8칸 — 기술 검사 PASS(공중 27px, 보폭 45.5). **주인 판정 대기** |
 | GPT | `G7-fixer-3d` | REVIEW | 진 달리기 8칸(역수 단검) — 기술 검사 PASS(공중 22px, 보폭 49.3). **주인 판정 대기** |
 | GPT | `G8-veteran-3d` | REVIEW | (art-inbox `47a3ab4`) 하랄드 달리기 8칸 — 기술 검사 PASS(공중 25px, 보폭 45.5). **주인 판정 대기** |
-| GPT | `G9-astel-3d` | READY | 아스텔 이동 8프레임(3D 마네킹): `docs/agents/tasks/G9-astel-3d.md` |
-| GPT | `G10-grom-3d` | READY | 그롬 이동 8프레임(3D 마네킹): `docs/agents/tasks/G10-grom-3d.md` |
-| GPT | `G11-kai-3d` | READY | 카이 이동 8프레임(3D 마네킹): `docs/agents/tasks/G11-kai-3d.md` |
-| GPT | `G12-oswin-3d` | READY | 오스윈 이동 8프레임(3D 마네킹): `docs/agents/tasks/G12-oswin-3d.md` |
-| GPT | `G13-seraphine-3d` | READY | 세라핀 이동 8프레임(3D 마네킹): `docs/agents/tasks/G13-seraphine-3d.md` |
+| GPT | `G9-astel-3d` | REVIEW | 아스텔 로브 이동 — PASS(보폭 23.9). **주인 판정 대기** |
+| GPT | `G10-grom-3d` | REVIEW | 그롬 달리기 — PASS(공중 31px, 보폭 45.5). **주인 판정 대기** |
+| GPT | `G11-kai-3d` | REVIEW | 카이 달리기 — PASS(공중 25px, 보폭 45.5). **주인 판정 대기** |
+| GPT | `G12-oswin-3d` | REVIEW | 오스윈 중량 이동 — PASS(보폭 23.6). **주인 판정 대기** |
+| GPT | `G13-seraphine-3d` | REVIEW | 세라핀 로브 이동 — PASS(보폭 22.2). **주인 판정 대기** |
 
 ## 끝난 일
 
