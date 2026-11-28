@@ -1883,7 +1883,7 @@
    "[OK] hand travel over the cycle: near 19, far 21 px (both fists on the chest-locked two-handed weapon - they ride the trunk; the >= 12 px rule is for free hands)",
    "[OK] mace head clear of the shield hand (>= head radius + 8 px)",
    "[OK] weapon angle to the forearm (deg, 0 = straight, + = up; range 0..120) per frame R1:102 R2:101 R3:102 R4:101 R5:100 R6:100 R7:102 R8:104  -> 99.5..104.2",
-   "[OK] weapon rigid: butt->tip 292.7..292.9 px on screen (0.1% change, <= 4%), fist->tip 213..214, one straight mace (a rigid capsule: never bent, shortened or stretched)",
+   "[OK] weapon rigid: butt->tip 292.7..292.9 px on screen (spread 0.1% of the mean, <= +-2%), fist->tip 213..214, one straight mace (a rigid capsule: never bent, shortened or stretched)",
    "[OK] weapon angle (two-handed, chest-locked): R1:117.6 R2:118.1 R3:116.7 R4:116.4 R5:117.6 R6:118.1 R7:116.7 R8:116.4  max step 1.37 deg (<= 1.5), range 1.70 deg (<= 4.0)",
    "[OK] weapon tip path (relative to the chest): moves 2 5 1 4 2 5 1 4 px (<= 23), 0 reversals (<= 2) - one smooth path, no back-and-forth",
    "[OK] two-handed grip fixed to the chest: deviation 0.4 px (<= 3); strip a vs b at the same leg phase (deg / px) 0.5 0.4 0.1 0.4 (<= 3); fist-to-fist on screen 88..90 px (spread <= 6: both fists keep their places on the grip)",

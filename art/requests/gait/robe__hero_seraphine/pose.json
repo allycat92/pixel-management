@@ -1941,7 +1941,7 @@
    "[OK] hand travel over the cycle (>= 12 px): near 22, far 40",
    "[OK] mace head clear of the shield hand (>= head radius + 8 px)",
    "[OK] weapon angle to the forearm (deg, 0 = straight, + = up; range 0..120) per frame G1:65 G2:64 G3:60 G4:56 G5:55 G6:56 G7:59 G8:62  -> 54.9..64.7",
-   "[OK] weapon rigid: butt->tip 108.6..109.1 px on screen (0.5% change, <= 4%), fist->tip 85..85, one straight mace (a rigid capsule: never bent, shortened or stretched)",
+   "[OK] weapon rigid: butt->tip 108.6..109.1 px on screen (spread 0.5% of the mean, <= +-2%), fist->tip 85..85, one straight mace (a rigid capsule: never bent, shortened or stretched)",
    "[OK] weapon angle (one-handed): G1:53.0 G2:53.7 G3:56.3 G4:59.2 G5:60.8 G6:60.1 G7:57.5 G8:54.6  max step 2.94 deg (<= 3.5), range 7.79 deg (<= 8.5)",
    "[OK] weapon tip path (relative to its fist): moves 1 4 4 2 1 4 4 2 px (<= 9), 0 reversals (<= 2) - one smooth path, no back-and-forth",
    "[OK] weapon run angle 57 vs idle 63 deg (-6; > 15 -> WARN, the README states the change)",

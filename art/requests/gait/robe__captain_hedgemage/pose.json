@@ -1966,7 +1966,7 @@
    "[OK] far knee readable (visible or >= 14 px from the near knee)",
    "[OK] hand travel over the cycle: near 1, far 2 px (both fists on the chest-locked two-handed weapon - they ride the trunk; the >= 12 px rule is for free hands)",
    "[OK] weapon angle to the forearm (deg, 0 = straight, + = up; range 0..120) per frame G1:86 G2:86 G3:86 G4:86 G5:86 G6:86 G7:86 G8:86  -> 85.8..86.3",
-   "[OK] weapon rigid: butt->tip 359.0..359.0 px on screen (0.0% change, <= 4%), fist->tip 254..254, one straight staff (a rigid capsule: never bent, shortened or stretched)",
+   "[OK] weapon rigid: butt->tip 359.0..359.0 px on screen (spread 0.0% of the mean, <= +-2%), fist->tip 254..254, one straight staff (a rigid capsule: never bent, shortened or stretched)",
    "[OK] weapon angle (two-handed, chest-locked): G1:73.5 G2:73.5 G3:73.6 G4:73.6 G5:73.5 G6:73.5 G7:73.6 G8:73.6  max step 0.12 deg (<= 1.5), range 0.12 deg (<= 4.0)",
    "[OK] weapon tip path (relative to the chest): moves 0 1 0 0 0 1 0 0 px (<= 29), 0 reversals (<= 2) - one smooth path, no back-and-forth",
    "[OK] two-handed grip fixed to the chest: deviation 0.3 px (<= 3); strip a vs b at the same leg phase (deg / px) 0.5 0.5 0.4 0.2 (<= 3); fist-to-fist on screen 62..62 px (spread <= 6: both fists keep their places on the grip)",

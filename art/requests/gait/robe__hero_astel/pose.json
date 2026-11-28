@@ -1915,7 +1915,7 @@
    "[OK] far knee readable (visible or >= 14 px from the near knee)",
    "[OK] hand travel over the cycle (>= 12 px): near 27, far 39",
    "[OK] weapon angle to the forearm (deg, 0 = straight, + = up; range 0..120) per frame G1:65 G2:64 G3:58 G4:52 G5:49 G6:51 G7:55 G8:61  -> 48.9..64.7",
-   "[OK] weapon rigid: butt->tip 314.6..314.9 px on screen (0.1% change, <= 4%), fist->tip 210..210, one straight staff (a rigid capsule: never bent, shortened or stretched)",
+   "[OK] weapon rigid: butt->tip 314.6..314.9 px on screen (spread 0.1% of the mean, <= +-2%), fist->tip 210..210, one straight staff (a rigid capsule: never bent, shortened or stretched)",
    "[OK] weapon angle (one-handed): G1:79.4 G2:79.9 G3:81.8 G4:84.0 G5:85.1 G6:84.6 G7:82.7 G8:80.6  max step 2.16 deg (<= 3.5), range 5.73 deg (<= 8.5)",
    "[OK] weapon tip path (relative to its fist): moves 2 7 8 4 2 7 8 4 px (<= 25), 0 reversals (<= 2) - one smooth path, no back-and-forth",
    "[OK] weapon run angle 82 vs idle 78 deg (+4; > 15 -> WARN, the README states the change)",

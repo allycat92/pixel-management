@@ -187,7 +187,7 @@ def weapon_stability(recs, carry=None):
     L = np.array([w['length_px'] for w in W])
     dl = (L.max() - L.min()) / L.mean()
     out.append((FAIL if dl > 2 * W_LEN_TOL else OK,
-                f"weapon rigid: butt->tip {L.min():.1f}..{L.max():.1f} px on screen ({dl * 100:.1f}% change, <= {2 * W_LEN_TOL * 100:.0f}%), "
+                f"weapon rigid: butt->tip {L.min():.1f}..{L.max():.1f} px on screen (spread {dl * 100:.1f}% of the mean, <= +-{W_LEN_TOL * 100:.0f}%), "
                 f"fist->tip {min(w['fist_tip_px'] for w in W):.0f}..{max(w['fist_tip_px'] for w in W):.0f}, one straight "
                 f"{W[0]['kind']} (a rigid capsule: never bent, shortened or stretched)"))
     A = np.array([w['angle_deg'] for w in W])

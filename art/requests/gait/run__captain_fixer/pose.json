@@ -1851,7 +1851,7 @@
    "[OK] far knee readable (visible or >= 14 px from the near knee)",
    "[OK] hand travel over the cycle (>= 12 px): near 64, far 33",
    "[OK] weapon angle to the forearm (deg, 0 = straight, + = up; range 0..120) per frame R1:25 R2:25 R3:25 R4:25 R5:25 R6:25 R7:25 R8:25  -> 24.9..24.9  [REVERSE grip: measured on the grip axis (thumb side of the fist); the blade is flipped 180 deg -> -155..-155 deg from the forearm]",
-   "[OK] weapon rigid: butt->tip 112.4..115.0 px on screen (2.3% change, <= 4%), fist->tip 97..99, one straight dagger (a rigid capsule: never bent, shortened or stretched)",
+   "[OK] weapon rigid: butt->tip 112.4..115.0 px on screen (spread 2.3% of the mean, <= +-2%), fist->tip 97..99, one straight dagger (a rigid capsule: never bent, shortened or stretched)",
    "[OK] weapon held in the hand frame (it rides the forearm): angle TO THE FOREARM per frame R1:24.9 R2:24.9 R3:24.9 R4:24.9 R5:24.9 R6:24.9 R7:24.9 R8:24.9  max step 0.02 deg (<= 3.5), range 0.04 (<= 8.5); on screen 164 -170 -162 -159 -163 177 157 151 with the arm",
    "[OK] weapon tip path: rides the forearm (hand-frame weapon) - moves 44 14 4 7 33 34 10 22 px with the arm pump (checked as the angle to the forearm above)",
    "[WARN] weapon run angle 179 vs idle 163 deg (+16; > 15 -> WARN, the README states the change)",

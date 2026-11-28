@@ -2,11 +2,16 @@
 
 Gaits (8 frames a cycle, frame k at cycle phase k/8; the far leg / far arm run half a cycle behind the near ones):
   run_light  R1..R8  contact, down, push-off, FLIGHT        (art/requests/guides/run_base/v2: 80 ms, step 275 px)
-  run_heavy  H1..H8  contact (both feet), down, passing, push (heavy_base/v1: 101 ms, step 142.5 px, no flight)
-  run_robe   G1..G8  contact (both feet), down, passing, push (robe_base/v1: 96 ms, step 134.2 px, no flight)
+  run_heavy  H1..H8  contact (both feet), down, passing, REACH (heavy_base/v1: 101 ms, step 142.5 px, no flight)
+  run_robe   G1..G8  contact (both feet), down, passing, REACH (robe_base/v1: 96 ms, step 134.2 px, no flight)
+  (the 4th phase was called 'push' until 2026-11-28; it is the swing foot REACHING ahead of the hip before it lands)
 
 How a gait frame is made:
-  1. the SWING leg (off the floor) comes straight from the table SWING: thigh angle, knee bend, foot pitch;
+  1. the SWING leg (off the floor): run_light from the angle table SWING (thigh, knee bend, foot pitch); run_heavy /
+     run_robe from the TARGET table swing_target (ankle x from the hip column, sole height, foot pitch - read off the
+     accepted 2D bases), solved by IK, so a personality's hip drop never moves the foot (owner verdict 2026-11-28);
+     at double support the trailing leg stays nearly straight and angled back (contact_rear_flex_max: its heel peels
+     less, then a personality hip drop is given back);
   2. the STANCE leg is foot-locked: its toe tip sits on the floor (toe0 - 2*step*phase) / cos(yaw) in front of the hip
      midpoint (world x), i.e. exactly step/4 further back every cell on screen - the rule the engine needs to keep feet
      planted (js/battle.js runCells moves the unit step/4 per stance cell). Both legs use the same WORLD rule, so the
@@ -14,7 +19,9 @@ How a gait frame is made:
      far toe 5 px in front of the mid-plane value. A 2-bone IK (rig.leg_ik) finds thigh + knee, the table's
      STANCE_PITCH gives the foot angle (heel rising at push-off);
   3. hip height, lean, chest counter-turn come from the per-frame tables; arms and props from the character's carry
-     (specs/carry3d.json: arm swing with a lag, prop swing with a lag, two-hand grips);
+     (specs/carry3d.json: arm swing with a lag, a one-handed weapon's sway <= 4 deg with a lag; a TWO-HANDED weapon is
+     locked to the chest - its holding fist IK'd to a chest-fixed point on screen, the other fist on the shaft, its angle
+     turning only with 12% of the lean change, so strip b = strip a and nothing nods or wobbles);
   4. the 8 key frames are joined by periodic Catmull-Rom splines, so any number of in-between frames can be sampled
      (stance legs are re-solved with IK at every sampled phase). With n = 8 the frames ARE the table rows.
 The numbers were read off the accepted 2D mannequins (pose.json of the three base sets: hip heights, lean, toe x,
