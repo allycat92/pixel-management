@@ -1689,3 +1689,99 @@ CHANGED: 펠릭스 8칸 새로 그림. 모자·골드 테두리·나무 지팡�
 DEVIATIONS: 지팡이의 맨 아래는 손·옷 뒤에 가려지는 칸이 있다. 가려진 부분의 길이와 손목 각도는 실측하지 않았다.
 RISKS AT GAME SIZE: 1×에서 발이 가운 바로 아래로 나오는 짧은 구간과 지팡이 아래쪽 가림을 확인할 것.
 3D GUIDE: 새 로브 REACH와 바닥 좌표가 앞발 위치 결정에 유용했다.
+
+## 다시 그리기 — G6-fieldmedic-3d (마네킹 2차)
+
+CHECK: 양쪽 RESULT: PASS. add_gait --scale 0.1654 --dry-run 성공.
+```text
+[OK] R1: feet x 219..284 (guide 219..284; hip column 192)
+  [OK] R2: feet x 150..215 (guide 150..215; hip column 192)
+  [OK] R3: feet x 84..146 (guide 84..146; hip column 192)
+  [OK] R5: feet x 231..296 (guide 231..296; hip column 192)
+  [OK] R6: feet x 162..228 (guide 162..228; hip column 192)
+  [OK] R7: feet x 97..159 (guide 97..159; hip column 192)
+RESULT: PASS (sheet_captain_fieldmedic_run_a.png, sheet_captain_fieldmedic_run_b.png vs art/requests/gait/run__captain_fieldmedic/pose.json)
+```
+REFERENCES LOADED: 최신 guide, plain, size 띠 a/b, 비교 GIF 2개, pose.json, 승인 대기 시트·초상, concept.
+CHANGED: 마그다 8칸 새로 그림. 승인 철퇴 머리를 한 형상으로 고정하고 직선 손잡이를 새 가이드 축에 맞췄다. 접지 6칸, R4/R8 두 발 뜸 유지.
+DEVIATIONS: 대기보다 철퇴를 세운다. 가려진 구간의 두 손 축과 손목 각도는 실측하지 않았다.
+RISKS AT GAME SIZE: 대기에서 철퇴가 서는 각도 변화가 보이며, 이번 전투 출발 뒤 관측된 것은 이동→공격 준비였다. 직접 이동→대기 경계는 미포착.
+3D GUIDE: 볼과 축을 분리하고 접지 위치·뜸을 맞추는 데 유용했다.
+
+## 다시 그리기 — G9-astel-3d (마네킹 2차)
+
+CHECK: 양쪽 RESULT: PASS. add_gait --scale 0.1654 --dry-run 성공.
+```text
+[OK] G1: feet x 80..286 (guide 80..286; hip column 192)
+  [OK] G2: feet x 95..250 (guide 95..250; hip column 192)
+  [OK] G3: feet x 147..236 (guide 147..236; hip column 192)
+  [OK] G4: feet x 113..271 (guide 112..272; hip column 192)
+  [OK] G5: feet x 80..286 (guide 80..286; hip column 192)
+  [OK] G6: feet x 95..250 (guide 95..250; hip column 192)
+  [OK] G7: feet x 147..236 (guide 147..236; hip column 192)
+  [OK] G8: feet x 113..271 (guide 112..272; hip column 192)
+RESULT: PASS (sheet_hero_astel_run_a.png, sheet_hero_astel_run_b.png vs art/requests/gait/robe__hero_astel/pose.json)
+```
+REFERENCES LOADED: 최신 guide, plain, size 띠 a/b, 비교 GIF 2개, pose.json, 승인 대기 시트·초상.
+CHANGED: 아스텔 8칸 새로 그림. G4/G8에서 앞 장화가 가운 밖으로 나오며 전방 끝 x271(가이드 x272), 두 발의 다음 접지 단계가 구분된다. 원형 지팡이 머리는 승인 형상을 사용.
+DEVIATIONS: 가운이 무릎 일부를 가린다. 뒤쪽 부츠의 하중과 손목은 실측하지 않았다.
+RISKS AT GAME SIZE: 게임 1×의 발끝 간격은 확대보다 작아서 최종 동작 감각은 확인이 필요하다.
+3D GUIDE: G8 발이 뒤로 미는 칸이 아니라 앞에 닿기 직전이라는 점을 반영.
+
+## 다시 그리기 — G10-grom-3d (마네킹 2차)
+
+CHECK: 양쪽 RESULT: PASS. add_gait --scale 0.1654 --dry-run 성공.
+```text
+[OK] R1: feet x 221..284 (guide 221..284; hip column 192)
+  [OK] R2: feet x 153..215 (guide 153..215; hip column 192)
+  [OK] R3: feet x 87..146 (guide 87..146; hip column 192)
+  [OK] R5: feet x 233..296 (guide 233..296; hip column 192)
+  [OK] R6: feet x 165..227 (guide 165..227; hip column 192)
+  [OK] R7: feet x 99..158 (guide 99..158; hip column 192)
+RESULT: PASS (sheet_hero_grom_run_a.png, sheet_hero_grom_run_b.png vs art/requests/gait/run__hero_grom/pose.json)
+```
+REFERENCES LOADED: 최신 guide, plain, size 띠 a/b, 비교 GIF 2개, pose.json, 승인 대기 시트·초상.
+CHANGED: 그롬 8칸 새로 그림. 승인 대검의 한 날 형상을 각 칸의 같은 축과 길이로 놓고 양손 가드를 유지했다. 경량 접지·뜸 보존.
+DEVIATIONS: 몸통에 가려지는 그립 일부의 손가락 위치는 실측하지 않았다.
+RISKS AT GAME SIZE: 대기에서 더 세워지는 대검 각의 변화와 1×에서 손잡이 접점을 주인이 확인할 것.
+3D GUIDE: 대검 축과 몸의 높이를 별도로 맞췄고 공중 칸의 양발을 칸 경계에서 떼었다.
+
+## 다시 그리기 — G12-oswin-3d (마네킹 2차)
+
+CHECK: 양쪽 RESULT: PASS. add_gait --scale 0.1654 --dry-run 성공.
+```text
+[OK] H1: feet x 74..275 (guide 74..275; hip column 192)
+  [OK] H2: feet x 104..239 (guide 104..239; hip column 192)
+  [OK] H3: feet x 141..233 (guide 141..233; hip column 192)
+  [OK] H4: feet x 106..266 (guide 106..266; hip column 192)
+  [OK] H5: feet x 74..275 (guide 74..275; hip column 192)
+  [OK] H6: feet x 104..239 (guide 104..239; hip column 192)
+  [OK] H7: feet x 141..233 (guide 141..233; hip column 192)
+  [OK] H8: feet x 106..266 (guide 106..266; hip column 192)
+RESULT: PASS (sheet_hero_oswin_run_a.png, sheet_hero_oswin_run_b.png vs art/requests/gait/heavy__hero_oswin/pose.json)
+```
+REFERENCES LOADED: 최신 guide, plain, size 띠 a/b, 비교 GIF 2개, pose.json, 승인 대기 시트·초상.
+CHANGED: 오스윈 8칸 새로 그림. H4/H8에 무게를 버티는 뒷발과 전방의 든 장화를 따로 그렸다. 8칸 바닥 접지 유지.
+DEVIATIONS: 앞 무릎 일부는 청색 천 뒤에 가린다. 검의 가려진 양손 좌표는 실측하지 않았다.
+RISKS AT GAME SIZE: H8에서 H1으로 넘어갈 때 앞 장화가 닿는 타이밍은 실제 속도로 볼 것.
+3D GUIDE: 앞에 뻗는 장화와 몸을 떠받치는 뒷발을 구분하는 새 네 번째 자세를 썼다.
+
+## 다시 그리기 — G13-seraphine-3d (마네킹 2차)
+
+CHECK: 양쪽 RESULT: PASS. add_gait --scale 0.1654 --dry-run 성공.
+```text
+[OK] G1: feet x 84..279 (guide 84..279; hip column 192)
+  [OK] G2: feet x 102..245 (guide 102..245; hip column 192)
+  [OK] G3: feet x 150..240 (guide 149..240; hip column 192)
+  [OK] G4: feet x 116..268 (guide 117..267; hip column 192)
+  [OK] G5: feet x 84..279 (guide 84..279; hip column 192)
+  [OK] G6: feet x 102..245 (guide 102..245; hip column 192)
+  [OK] G7: feet x 149..240 (guide 149..240; hip column 192)
+  [OK] G8: feet x 117..267 (guide 117..267; hip column 192)
+RESULT: PASS (sheet_hero_seraphine_run_a.png, sheet_hero_seraphine_run_b.png vs art/requests/gait/robe__hero_seraphine/pose.json)
+```
+REFERENCES LOADED: 최신 guide, plain, size 띠 a/b, 비교 GIF 2개, pose.json, 승인 대기 시트·초상.
+CHANGED: 세라핀 8칸 새로 그림. 찢긴 장포의 폭과 붉은 띠를 유지하며 네 번째·여덟 번째 칸 발을 전방으로 내보냈다. 8칸 바닥 접지.
+DEVIATIONS: 장포 뒤 무릎과 둔부 관절 일부는 보이지 않는다. 철퇴 손목의 각도는 실측하지 않았다.
+RISKS AT GAME SIZE: 1×에서 발이 장포 끝과 겹치는 순간과 빠른 발 디딤의 가독성은 주인 판정.
+3D GUIDE: 전방 뻗기에서 옷의 밑단보다 앞쪽 부츠가 먼저 읽히도록 했다.
