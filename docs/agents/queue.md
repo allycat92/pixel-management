@@ -7,7 +7,7 @@
 
 | 누구 | id | 상태 | 할 일 (자세한 것은 그 줄의 문서) |
 |---|---|---|---|
-| GPT | `G2-tactician-3d` | READY | 이사벨(전술가) 이동 8프레임(3D 마네킹): `docs/agents/tasks/G2-tactician-3d.md` |
+| GPT | `G2-tactician-3d` | REVIEW | (art-inbox `19db5f5`) 이사벨 달리기 8칸 — 기술 검사 PASS(공중 28px, 보폭 48.5). **주인 판정 대기** |
 | GPT | `G3-lancer-3d` | READY | 로드릭(창기병) 이동 8프레임(3D 마네킹): `docs/agents/tasks/G3-lancer-3d.md` |
 | GPT | `G4-huntress-3d` | READY | 키아라(사냥꾼) 이동 8프레임(3D 마네킹): `docs/agents/tasks/G4-huntress-3d.md` |
 | GPT | `G5-hedgemage-3d` | READY | 펠릭스(떠돌이 마법사) 이동 8프레임(3D 마네킹): `docs/agents/tasks/G5-hedgemage-3d.md` |
