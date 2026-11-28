@@ -1,25 +1,47 @@
-# 마리솔 — 닻을 잃은 해적 선장 (해적 선장) 이동 · `sheet/hero/marisol` → `gait/sheet_hero_marisol_run`
+# 마리솔 — 닻을 잃은 해적 선장 (해적 선장) 이동 (3D 마네킹) · `sheet/hero/marisol` → `gait/sheet_hero_marisol_run`
 
-**상태: 요청 (2026-11-27, 클라우드 — `python3 tools/art/gait_requests.py --write sheet/hero/marisol` 로 만듦).** Antigravity 가 이 README 하나와 아래 그림만으로 끝낼 수 있게 적었다. 규칙 충돌 시 `art/requests/gpt_handoff_notes.md` 「Rules changed」가 우선.
+**상태: 요청 (2026-11-28, 클라우드 — `python3 tools/art/gait_requests.py --write sheet/hero/marisol --guides 3d` 로 만듦; 3D 마네킹 시범).** Antigravity 가 이 README 하나와 아래 그림만으로 끝낼 수 있게 적었다. 규칙 충돌 시 `art/requests/gpt_handoff_notes.md` 「Rules changed」가 우선.
 
-**왜 (주인 2026-11-26)**: "달리기를 실제 캐릭터 그래픽에 적용할때 캐릭터가 찌그러져 보여. 아마 스탠딩 원화(혹은 기준 에셋)를 조작하는것보다는
-스켈레톤 혹은 마네킹 기준으로 덧그리게 하는게 확실할걸. 그러려고 스프라이트식으로 하자고 한거고"
-→ 대기 그림을 잘라 기울이고 구부리는 코드 이동은 쓰지 않는다. **이동 부류 경량(light)의 확정 마네킹(`art/requests/guides/run_base/v2/`) 8프레임 위에 캐릭터를 프레임마다 덧그린다.** 그린 그림은 찌그러뜨리지 않는다(엔진은 칸을 그대로 넘긴다).
-그려 온 띠는 `tools/art/add_gait.py` 가 시트 아래에 `anims.run` 칸으로 붙이고, 엔진(`js/battle.js`)이 80ms 박자로 넘긴다 (뜬 칸 포함).
+**왜**: "가상의 3D 마네킹 → 동작 → 스프라이트 띠 → Antigravity 가 그 위에 캐릭터를 덧그린다" (주인 2026-11-28). 무기 손목은 아래팔 기준 0~120도 안(위·아래 상관없음), 겹침은 가까운 쪽이 위에 그려지면 괜찮다, 바닥 아래로 내려간 소품은 그릴 때 손본다, 견본은 기준선일 뿐, 캐릭터마다 자기 움직임 개성, 색만 바꾼 자산은 없다, 그림 판정은 주인이 직접 한다.
+→ 이 폴더의 가이드는 부류 공용 2D 마네킹이 아니라 **이 캐릭터의 승인된 대기 그림에 맞춘 3D 마네킹**(`tools/mannequin3d`, `tools/mannequin3d/specs/carry3d.json` 의 `marisol`)이 경량(light) 달리기를 하는 8프레임이다. 그 위에 캐릭터를 프레임마다 덧그리고, 마네킹 픽셀은 하나도 남기지 않는다.
+그려 온 띠는 `tools/art/add_gait.py` 가 시트 아래에 `anims.run` 칸으로 붙이고, 엔진(`js/battle.js`)이 80ms 박자로 넘긴다 (뜬 칸 포함). 보폭·박자·디딘 발 규칙은 경량 부류 그대로다 (엔진의 runCells).
 
 | 파일 | 내용 |
 |---|---|
-| `guide_run_a.png` / `guide_run_b.png` | **자세·자리 가이드** = 확정 경량 마네킹 띠 그대로(R1~R4 / R5~R8). 1536x1024, 384px 칸 4개, 칸마다 엉덩이 열 x=192, 디딘 발바닥 y=870, R4·R8 은 공중 |
-| `size_run_a.png` / `size_run_b.png` | 읽기용: 왼쪽 칸 = 승인된 대기 자세(흐리게, 게임처럼 앵커 열을 x=192 에) 위에 마네킹 R1/R5 윤곽(하늘색) — **같은 배율**. 오른쪽 4칸 = 마네킹 + 바닥 줄·엉덩이 열·x=32/351 선·디딘 발끝 자리(노란 눈금) |
+| `guide_run_a.png` / `guide_run_b.png` | **자세·자리·깊이 가이드** = 3D 마네킹 R1~R4 / R5~R8. 관절 점(SPEC.md 색), 든 무기는 청록 반투명(앞에 몸이 있으면 점선), 무기를 쥔 손에 청록 고리. 1536x1024, 384px 칸 4개, 칸마다 엉덩이 열 x=192, 디딘 발바닥 y=870, R4·R8 은 공중 |
+| `guide_run_plain_a.png` / `guide_run_plain_b.png` | 같은 프레임, 점·고리·바닥 줄 없음 — 밑그림(언더레이)용 |
+| `size_run_a.png` / `size_run_b.png` | 읽기용: 왼쪽 칸 = 승인된 대기 자세(흐리게, 게임처럼 앵커 열을 x=192 에) 위에 3D 마네킹 R1/R5 윤곽(하늘색) — **같은 배율**. 오른쪽 4칸 = 가이드 + 바닥 줄·엉덩이 열·x=32/351 선·디딘 발끝 자리(노란 눈금) |
+| `preview_run.gif` / `preview_run_game_x4.gif` | 움직임 미리보기: 가이드 크기 / 게임 크기 x4, 80ms 박자 |
+| `pose.json` | 이 요청의 좌표·보폭·관절(시트 배율 0.1654, `mannequin3d` 표시 + 검사 결과). `add_gait.py --pose` 에 쓴다 |
 | `art/requests/phase3/hero_marisol/portrait.png` | 승인된 초상화 — 얼굴·머리·색 |
 | `art/inbox/sheet_hero_marisol.png` | **승인된 전투 시트 원본** — 디자인·색·크기의 기준. 1번 자세가 대기 |
-| `art/requests/guides/run_base/v2/` (`pose.json`, `run_base_preview.gif`, `run_base.aseprite`) | 마네킹 원본 — 숫자·움직임 확인용 |
 
-- 부류: **경량** — pirate captain: split navy coat, trousers and tall boots, with a carried bow and holstered pistol. (tools/art/specs/gait_classes.json)
+- 부류: **경량** — pirate captain: split navy coat, trousers and tall boots, with a carried bow and holstered pistol. (tools/art/specs/gait_classes.json). 개성은 그 위에 얹는다 (아래 「개성」).
 - 납품: art-inbox `art/inbox/gait/sheet_hero_marisol_run_a.png` (R1~R4) + `art/inbox/gait/sheet_hero_marisol_run_b.png` (R5~R8) + `art/inbox/NOTES.md` 절 「gait/sheet_hero_marisol_run - 마리솔 — 닻을 잃은 해적 선장 (해적 선장) 이동」 + 「## 판정 — gait/sheet_hero_marisol_run」. 파일 이름은 부류와 상관없이 `_run_` (엔진의 `anims.run`).
-- 팔·무기: 먼 왼손의 활을 들고 권총은 가까운 허리에 고정한다. 앞쪽 머리카락과 코트 앞섶을 유지한다.
-- 디딘 발: 한 걸음 원본 275px(게임 45.5px) → 디딘 발은 칸마다 **정확히 68.8px**(±3, 게임 11.4px) 뒤로 — 발끝 x 는 Prompt 의 PLANTED FOOT 표. (병과 전사 R5 는 디딘 발이 30px 앞에 그려져 한 번 고쳤다.)
-- 클라우드가 받은 뒤: `python3 tools/art/receive.py gait/sheet_hero_marisol_run` (검사 + `add_gait.py --dry-run`) → 미리보기를 보고 `add_gait.py` 로 붙인다 (`--pose art/requests/guides/run_base/v2/pose.json`).
+- 무기: 지팡이 (먼 손) — 아래팔에 대한 손목 각도 0~120도 안 (가이드: R1:72 R2:68 R3:81 R4:86 R5:78 R6:73 R7:82 R8:82).
+- 디딘 발: 한 걸음 원본 275px(게임 45.5px) → 디딘 발은 칸마다 **정확히 68.8px**(±3, 게임 11.4px) 뒤로 — 발끝 x 는 Prompt 의 PLANTED FOOT 표.
+- 클라우드가 받은 뒤: `python3 tools/art/receive.py gait/sheet_hero_marisol_run` (검사 + `add_gait.py --dry-run`) → 미리보기를 주인께 보이고, 붙이는 것은 `add_gait.py` (`--pose art/requests/gait/run__hero_marisol/pose.json`). 그림이 좋은지는 주인이 직접 판정한다.
+
+## 3D 가이드 읽는 법
+
+- **명암 = 깊이**: 밝은 부분이 보는 사람에게 **가깝고**, 어두운 부분이 **멀다** (가까운 팔·다리는 밝은 베이지, 먼 팔·다리는 어두운 회청색). 덧그릴 때 이 앞뒤 순서를 지킨다 — **가까운 쪽이 먼 쪽 위에** 그려진다. 무기·몸·얼굴이 겹쳐도 그 순서만 맞으면 괜찮다.
+- **청록 반투명 = 든 무기**: 실선 윤곽은 무기가 앞에 있는 곳, 점선은 몸이 무기 앞을 가리는 곳. 무기는 대기 그림의 **실제 크기·모양**으로 그 선을 따라 그린다 (가이드의 길이는 자리 표시).
+- **손목 범위**: 무기 방향은 아래팔(팔꿈치→손목) 선에서 위쪽(엄지 쪽)으로 0~120도 안. 0 = 팔과 일직선. 그 밖으로 꺾어 늘어뜨리지 않는다 (덜렁거리는 칼 금지). 위로 들든 아래로 내리든 이 범위 안이면 된다.
+- **바닥**: 디딘 발바닥은 y=870, 공중 프레임은 y=852 위. 무기 끝·천 같은 소품이 바닥 줄 아래로 내려가면 그릴 때 손본다 (각도를 조금 바꿔 올린다) — 몸과 발의 바닥 규칙은 그대로.
+- **마네킹 픽셀은 전부 덮는다**: 3D 마네킹의 색이 한 프레임의 25% 이상 남거나, 실루엣이 가이드와 거의 같으면(색만 바꾼 마네킹, IoU > 0.93) `add_gait.py` 가 받지 않는다. 마네킹 머리는 자리 표시 — 캐릭터의 머리·머리카락·머리띠를 대기 그림 크기로 그린다.
+- 견본(다른 캐릭터의 달리기)은 기준선일 뿐 — 이 캐릭터의 움직임은 아래 개성대로. 색만 바꾼 다른 캐릭터의 띠는 받지 않는다.
+
+## 개성
+
+- 선장의 당당한 갑판 달리기: 가슴을 펴고 보는 쪽으로 열며, 경량 마네킹보다 3~4도 더 곧게 서고 엉덩이는 1~2px 높다(통통 튀는 느낌, 웅크리지 않는다 — 바렌의 낮은 검객 달리기와 반대. 3D 마네킹에 이미 들어 있다 — 따라 그린다). 엉덩이가 좌우로 더 크게 돌고(골반 비틀림 7도 대신 10도) 가슴이 반대로 받는다: 자신 있게 흔들리는 걸음, 턱은 든다.
+- 공중 프레임(R4/R8)에서 뒤쪽 장화 뒤꿈치가 높이 튀어 오른다(뒷무릎이 부류보다 약 10도 더 접힘): 가볍고 탄력 있는 발걸음.
+- 활은 8프레임 내내 먼 손에 가슴 앞에서 똑바로 세워 든다. 위쪽 금색 끝은 수직보다 조금 앞, 시위는 몸 쪽에서 끝에서 끝까지 곧게(당기지 않고 화살 없음). 몸과 함께 몇 px 만 흔들릴 뿐 몽둥이처럼 휘두르지 않는다. 마네킹의 활은 곧은 막대(활의 현 길이 선)로 보인다: 그 둘레에 앞쪽(몸 반대쪽)으로 휜 활 몸을 그린다. 대기처럼 주먹에서 위 활대 약 145px, 아래 활대 약 137px.
+- 빈 가까운 손은 느슨한 장갑 주먹으로 크게 여유 있게 흔든다(부류보다 조금 크게, 한 프레임 늦게) — R4/R8 에서 가슴 높이로 활 손 앞을 지나간다(그 위에 그린다).
+- 크림색 깃털, 등 뒤로 늘어진 긴 곱슬 검은 머리, 모자 아래 빨간 리본, 찢어진 뒤 코트 자락은 뒤로 날리며 몸보다 한 프레임 늦다: 공중 프레임(R4/R8)에서 가장 높이 뜨고, 받는 프레임(R2/R6)에서 가라앉는다. 삼각모는 벗겨지지 않고 수평을 유지한다.
+
+## 요약 (한국어)
+
+마리솔 — 닻을 잃은 해적 선장 (해적 선장)의 경량 달리기 8프레임(R1~R8)을 이 폴더의 3D 마네킹 가이드 위에 덧그려 `art/inbox/gait/sheet_hero_marisol_run_a.png`·`art/inbox/gait/sheet_hero_marisol_run_b.png` 두 띠로 art-inbox 에 올린다. 모습 — 승인된 시트 그대로의 마리솔: 빨간 테두리·금색 해골 휘장·큰 크림색 깃털이 달린 남색 삼각모, 모자 아래 뒤통수에 묶은 빨간 리본; 등 뒤로 내려오는 긴 짙은 갈색 곱슬머리와 먼 쪽 턱 앞에 늘어진 머리 한 가닥; 따뜻한 갈색 피부, 가까운 뺨의 금색 고리 귀걸이와 가는 흉터(가리지 않는다); 진홍 테두리·소매, 놋쇠 단추, 찢어진 밑단과 긴 뒤 자락이 있는 긴 남색 코트(앞자락은 허리에서 갈라짐); 흰 셔츠와 금 펜던트, 갈색 가슴띠와 놋쇠 버클 허리띠; 가까운 허리 권총집에 꽂힌 플린트락 권총(뽑거나 쏘지 않는다); 등에 맨 흰 깃 화살 화살통; 짙은 남색 바지; 버클 달린 갈색 긴 장화; 갈색 장갑; 리커브 활 한 자루(크림색 활대, 빨강·금색 감은 손잡이, 양끝 금색 둥근 끝, 가는 밝은 시위) — 달릴 때 화살은 걸지 않는다; 자신 있고 집중한 얼굴. 명암은 깊이(밝음 = 가까움)이고 그 앞뒤 순서를 지킨다. 무기 손목은 아래팔 기준 0~120도 안. 바닥 아래 소품은 손본다. 마네킹 픽셀은 하나도 남기지 않는다. 디딘 발은 칸마다 68.8px 뒤로 (발끝 x 는 PLANTED FOOT 표). 끝나면 NOTES.md 에 절과 「판정」 절을 적고 멈춘다. 그림이 좋은지는 주인이 직접 본다.
 
 ## Prompt for Antigravity
 
@@ -28,49 +50,67 @@ TASK: draw the RUN CYCLE (8 frames, movement class LIGHT) of 마리솔 — 닻�
   art/inbox/gait/sheet_hero_marisol_run_a.png  = frames R1 R2 R3 R4
   art/inbox/gait/sheet_hero_marisol_run_b.png  = frames R5 R6 R7 R8
 (the file names say "run" for every movement class: the engine plays them as the sheet's run.)
-Draw the character OVER the accepted light mannequin, frame by frame - like a sprite sheet traced over a skeleton.
-Do NOT take the standing/idle art and bend, shear or rotate it: that is exactly what made the moves look squashed.
+PAINT the character OVER this folder's 3D MANNEQUIN, frame by frame. The mannequin is fitted to the accepted idle (same
+height, limb lengths and stance width) and already moves with this character's personality - copy its pose, depth and
+placement; do not take the idle art and bend, shear or rotate it.
 
 REFERENCES (load all; if the sheet or a guide does not load, do not draw - write "## 막힘" in NOTES.md and stop):
-  - art/requests/gait/run__hero_marisol/guide_run_a.png, guide_run_b.png = THE POSE AND PLACEMENT GUIDE for every frame
-    (the accepted mannequin, same canvas as your delivery: 1536x1024, 4 frames per strip in 384-px slots).
-  - art/requests/gait/run__hero_marisol/size_run_a.png, size_run_b.png = the same frames with guide lines and the planted-toe ticks, and on the left
-    the accepted idle (faint) with the mannequin outline on top: the two are the SAME SCALE.
+  - art/requests/gait/run__hero_marisol/guide_run_a.png, guide_run_b.png = THE POSE, PLACEMENT AND DEPTH GUIDE for every frame (joint dots, the
+    held weapon as a teal see-through ghost, a teal ring on the hand that holds it; same canvas as your delivery:
+    1536x1024, 4 frames per strip in 384-px slots).
+  - art/requests/gait/run__hero_marisol/guide_run_plain_a.png, guide_run_plain_b.png = the same frames without dots / rings / ground line: open
+    them as an UNDERLAY and paint on your own layers - the delivered PNGs contain ONLY your painting.
+  - art/requests/gait/run__hero_marisol/size_run_a.png, size_run_b.png = the same frames with guide lines and planted-toe ticks, and on the left the
+    accepted idle (faint) with the mannequin outline on top: the two are the SAME SCALE.
+  - art/requests/gait/run__hero_marisol/preview_run.gif, preview_run_game_x4.gif = the motion at speed (80 ms a frame).
   - art/inbox/sheet_hero_marisol.png (pose 1 = idle) = the accepted battle sheet: design, colours, outline, rendering and SIZE.
     Same character, same pixel size, same palette.
   - art/requests/phase3/hero_marisol/portrait.png = the approved portrait (face, hair, colours only).
-  - art/requests/guides/run_base/v2/pose.json (the numbers below come from it), art/requests/guides/run_base/v2/run_base_preview.gif (the motion at speed), art/requests/guides/run_base/v2/run_base.aseprite (the mannequin source -
-    you may open it as an underlay and draw on your own layers, but the delivered PNGs contain ONLY your drawing).
+  - art/requests/gait/run__hero_marisol/pose.json = the coordinates of every joint per frame, the stride and the checks the guide passed.
 
-CHARACTER (unchanged from the accepted sheet): Corsair captain with a feathered tricorn, long navy coat with red trim, tall boots, quiver, a bow and a holstered flintlock, as in the accepted idle.
+CHARACTER (unchanged from the accepted sheet): Marisol (마리솔), the pirate captain who lost her anchor, exactly as on the accepted sheet: a navy TRICORN hat with red trim, a gold skull-and-crossbones badge and a big cream plume, a red ribbon tied at the back of the head under the hat; long dark-brown wavy hair down the back, one loose lock hanging in front of the jaw on the far side; warm brown skin, a gold hoop earring and a thin scar on the near cheek (kept bare); a long NAVY coat with crimson trim and cuffs, brass buttons, a torn ragged hem and long rear coat tails, front coat panels open at the hips; white shirt with a gold pendant, a brown cross-belt and belt with a brass buckle; a FLINTLOCK pistol holstered on the near hip (never drawn or fired); a QUIVER of white-fletched arrows strapped on the back; dark navy trousers; tall brown buckled boots; brown gloves; ONE recurve bow (cream limbs, red-and-gold wrapped grip, gold knobs at both tips, a thin pale string) - no arrow nocked in the run; confident, focused expression.
 
-THE MOVE (owner's three movement classes; light: the accepted run: lean forward, press down in flight, rise a little after the landing is caught, hip nearly level, slight float, no hopping. It is already in the mannequin - copy it, do not invent another):
-  - Each frame: the legs, the torso lean and the arm swing of that mannequin frame. Joint for joint: hips, knees, ankles, feet,
-    shoulders, elbows (hands: see ARMS - where the text moves a hand, that is intended, not a deviation).
-    The mannequin's big round head is a placeholder: draw the character's own head on the mannequin's neck, at its own size
-    (as in the sheet).
-  - R1 contact (near foot lands a little ahead, knee bent) - R2 catch (the hips drop onto the foot: lowest hips, but the torso straightens, so the head top is the HIGHEST of the cycle - see Height) - R3 push-off (stance leg extends behind, heel up) - R4 FLIGHT (both feet clearly off the ground, legs scissored, body pressed forward and leaning the most). R5-R8 = the same with the far foot.
-  - The hips stay nearly level: the top of the head stays within about 10 px of the same height in all 8 frames. NO hopping, no bouncing up and down.
-  - Lean forward (hip to neck): R1/R5 24, R2/R6 19.4, R3/R7 29.1, R4/R8 31.4 deg.
-  - Height: the mannequin's head top is at y=453/450/457/459 in R1 R2 R3 R4 (the same in R5 R6 R7 R8): R1 +0, R2 -3, R3 +4, R4 +6 px from R1 (+ = lower) - move your head top by the same amounts (bob 9 px).
+HOW TO READ THE 3D GUIDE:
+  - SHADING = DEPTH: lighter parts are NEARER the viewer, darker parts are FARTHER (near arm / near leg light beige, far
+    arm / far leg dark slate). KEEP THAT DEPTH ORDER when you paint: the nearer part is always drawn over the farther one.
+    Weapon, body and face may overlap - that is fine as long as the nearer part is on top.
+  - The teal see-through shape is the held weapon: a solid outline where it is in front, dashed where a body part covers
+    it. Paint the character's OWN weapon at its idle size and shape along that line (the ghost only marks the line).
+  - WRIST RANGE (owner rule): every held weapon points 0-120 deg UPWARD (thumb side) from the forearm line
+    (elbow -> wrist); 0 = straight along the forearm. Up or down on screen does not matter, but never bend it past the
+    arm line (no dangling blade) nor beyond 120 deg. The guide is inside the range in every frame (R1:72 R2:68 R3:81 R4:86 R5:78 R6:73 R7:82 R8:82 deg).
+  - The mannequin's round head is a placeholder: paint the character's own head, hair and headgear at the idle's size on
+    its neck. The joints, limbs and torso are fitted to the idle - put the character's own body exactly on them.
+  - PAINT OVER EVERY MANNEQUIN PIXEL. add_gait.py refuses a strip in which >= 25% of a frame still has the mannequin's
+    colours, and a recoloured mannequin (silhouette IoU > 0.93 with this guide). Clothing, hair, cloth and the real
+    weapon change the silhouette - that is the work.
+  - FLOOR: the standing sole on y=870; nothing of the body below it. A weapon tip or cloth that would dip below the
+    floor line (or below y=852 in a flight frame) is touched up while painting - lift it a little.
+  - Samples of other characters are only baselines. Do not recolour another character's strip.
+
+THE MOVE (movement class light: the accepted run: lean forward, press down in flight, rise a little after the landing is caught, hip nearly level, slight float, no hopping. - with this character's personality on top, already in the mannequin):
+  - R1 contact - R2 catch (lowest hips) - R3 push-off (heel up) - R4 FLIGHT (both feet off the ground). R5-R8 = the same with the far foot.
+  - Lean forward (hip to neck): R1 20, R2 16.3, R3 24.5, R4 25.9, R5 18.4, R6 15.4, R7 24.5, R8 27.3 deg.
+  - Height: the mannequin's head top is at y=449/449/452/453 in R1 R2 R3 R4 and 449/448/452/453 in R5 R6 R7 R8: R1 +0, R2 +0, R3 +3, R4 +4 px from R1 (+ = lower) - move your head top by the same amounts (bob 5 px).
   - Stride: one step = 275 source px = 45.5 game px; 8 frames = two steps, 80 ms a frame in the game.
-  - PLANTED FOOT (the rule the class warrior's R5 needed a fix for): a foot on the floor never slides in the drawing. From its
-    contact frame on, the SAME boot moves LEFT by exactly step/4 = 68.8 px per frame (the mannequin: 67-69 px;
-    tolerance 3 px) - the engine moves the unit 11.4 game px per frame, so the boot stays still on the ground.
-    Toe tip of the planted boot = its FRONT-MOST pixel (the toe; on a tapered boot it may sit a few px above y=870, as on the     mannequin) = the yellow tick in size_*.png; x in the 384-px slot:
-      near foot: R1 x=290 -> R2 x=222 -> R3 x=155
-      far foot: R5 x=295 -> R6 x=227 -> R7 x=158
+  - PLANTED FOOT: a foot on the floor never slides in the drawing. From its contact frame on, the SAME boot moves LEFT by
+    exactly step/4 = 68.8 px per frame (the mannequin: 68.7-68.8 px; tolerance 3 px) - the engine moves the unit
+    11.4 game px per frame, so the boot stays still on the ground. Toe tip = the FRONT-MOST pixel of the planted boot
+    = the yellow tick in size_*.png; x in the 384-px slot:
+      near foot: R1 x=284 -> R2 x=215 -> R3 x=146
+      far foot: R5 x=296 -> R6 x=228 -> R7 x=159
       (R4 / R8: flight - no foot on the floor; the next contact lands ahead again)
-    Draw the planted boot once, then copy it from frame to frame and only shift it (lift the heel in the push frame); measure
-    YOUR toe tip against these numbers (the size_* images mark them with yellow ticks).
 
-ARMS AND WEAPONS:
-  - Far left hand carries the bow by its idle grip. Bring the grip inside x=300 and above y=690 by folding the forearm in. In the idle the near right gloved hand pinches the string beside the grip. For the run it lets go and swings with the mannequin's near arm as a loose fist, with no draw. The string then runs straight from the upper knob to the lower knob. Keep the approximately 140 px upper and 145 px lower bow halves; tilt the upper tip 3–8 deg forward from vertical and the lower tip back. Keep the flintlock holstered on the near hip and the quiver strapped on.
-  - The cream plume, the long dark wavy hair down the back and the rear coat tails follow the step one frame late (hair and tails inside x>=32). Keep the red ribbon tied at the back of the head under the hat and the front coat panels at the hips. Keep the loose dark lock that hangs from under the brim in front of the jaw on the far side of the face. The near cheek (scar, gold hoop earring) stays bare.
+PERSONALITY (this character's own run):
+  - A captain's swaggering deck-runner's run: chest up and open to the viewer, 3-4 deg MORE UPRIGHT than the light class mannequin and the hips 1-2 px higher (springy, never crouched - the opposite of Baren's low swordsman's run; the mannequin already has it - follow it). The hips roll more from side to side (pelvis twist 10 deg instead of 7) and the chest counters them: a confident sway, chin up.
+  - The trailing boot heel flicks up high behind in the flight frames (R4/R8: the rear knee folded ~10 deg more than the class): a light, bouncy step.
+  - The bow stays UPRIGHT in the far hand in front of the chest in all 8 frames, the upper gold knob a little forward of vertical, the string on the body side, straight from knob to knob (nothing drawn, no arrow). It only rides with the body and bobs a few px - it never swings like a club. The mannequin shows the bow as a straight staff line (the chord): paint the curved limbs bulging forward around it, upper limb about 145 px and lower limb about 137 px from the fist as in the idle.
+  - The free near hand is a loose gloved fist with a BIG relaxed swing (a little larger than the class, one frame late) - it crosses in front of the bow hand at chest height in R4/R8 (drawn over it).
+  - The cream plume, the long wavy dark hair down the back, the red ribbon under the hat and the torn rear coat tails stream back and lag the body by one frame: they lift most in the flight frames (R4/R8), settle in the catch frames (R2/R6). The tricorn stays on and level.
   - Face: exactly as in the idle in every frame.
 
-MUST NOT CHANGE: outfit, colours, proportions, headgear, weapon and shield shapes and sizes, and the SCALE of the accepted
-sheet. The body must not be shrunk to fit - change a weapon's angle instead.
+MUST NOT CHANGE: outfit, colours, proportions, headgear, weapon shape and size, and the SCALE of the accepted sheet. The
+body must not be shrunk to fit - change a weapon's angle (inside the wrist range) instead.
 
 FORMAT (each strip): 1536x1024 PNG, 4 frames in ONE row, frame n in the 384-px slot n (x = 384*(n-1) .. 384*n-1), facing RIGHT,
 front three-quarter view, light from the upper left, exactly the placement of guide_run_a/b.png:
@@ -78,33 +118,34 @@ front three-quarter view, light from the upper left, exactly the placement of gu
   - R1 R2 R3 R5 R6 R7: the sole of the standing foot on y=870 (lowest pixel), the other foot well above it;
   - R4 / R8 (FLIGHT): NOTHING touches y=870 - the lowest pixel of the whole figure (boots, weapon, cloth) at or above y=852;
   - every pixel of a frame between x=32 and x=351 of its slot (at least 32 px of magenta to the slot edges - nothing may cross into the next slot, including weapons, cloth and hair);
-  - head 110 px scale = the scale of the accepted sheet (0.1654 source -> game: the idle is 73 game px tall); the figure about as tall as the idle stood up (the mannequin's head top is near y=450-459).
+  - the SCALE of the accepted sheet (0.1654 source -> game: the idle is 73 game px tall); the mannequin is fitted to the idle (the same height and limb lengths), its head top near y=448-453.
 STYLE: crisp pixel art like the accepted sheet - about 40 colours, hard pixel edges, no anti-aliasing into the background.
 BACKGROUND: perfectly flat #FF00FF. Every figure colour at RGB distance >= 170 from #FF00FF (hard minimum 150).
-NO effects: no dust, speed lines, motion blur, afterimages, shadows, floor, text or guide lines in the delivery.
+NO effects: no dust, speed lines, motion blur, afterimages, shadows, floor, text, joint dots or guide lines in the delivery.
 
 SELF-CHECK (repository root; on Windows without Python: uv run --no-project --with pillow --with numpy python ...):
   python3 tools/art/check_delivery.py art/inbox/gait/sheet_hero_marisol_run_a.png --flight-slots 4
   python3 tools/art/check_delivery.py art/inbox/gait/sheet_hero_marisol_run_b.png --flight-slots 4
-  python3 tools/art/add_gait.py sheet/hero/marisol --gait run --src art/inbox/gait/sheet_hero_marisol_run_a.png art/inbox/gait/sheet_hero_marisol_run_b.png --pose art/requests/guides/run_base/v2/pose.json --dry-run --work <temp dir>
+  python3 tools/art/add_gait.py sheet/hero/marisol --gait run --src art/inbox/gait/sheet_hero_marisol_run_a.png art/inbox/gait/sheet_hero_marisol_run_b.png --pose art/requests/gait/run__hero_marisol/pose.json --dry-run --work <temp dir>
 The first two must print RESULT: PASS (with --flight-slots 4: slot 4 is the flight frame). The third must end without an error and write
 <temp dir>/sheet_hero_marisol_preview_x4.png and sheet_hero_marisol_run_x4.gif - LOOK at them (the bottom two rows of the preview are your 8 frames at
 4x game size) and at the GIF at game speed: the character must look like its idle self moving, not squashed or shrunk; the
-planted boot must not slide. (add_gait refuses mannequin pixels: the frames must be your drawing.)
+planted boot must not slide. (add_gait refuses mannequin pixels: the frames must be your painting.)
 
 DELIVERY: commit only the two PNGs under art/inbox/gait/ and add to art/inbox/NOTES.md:
   ## gait/sheet_hero_marisol_run - 마리솔 — 닻을 잃은 해적 선장 (해적 선장) 이동
   CHECK: the RESULT lines of both check_delivery.py runs and the last lines of add_gait.py --dry-run, verbatim (or "not run")
-  REFERENCES LOADED: guide_run_a/b, size_run_a/b, sheet_hero_marisol.png, portrait.png, pose.json -> ok / FAILED (reason)
-  CHANGED: what you drew, frame by frame where it matters (planted toe x per frame as you measured it)
-  DEVIATIONS: (a) from the mannequin pose/position per frame (b) from the sheet design (c) from the ARMS AND WEAPONS
-              lines - write "none" explicitly for each
+  REFERENCES LOADED: guide_run_a/b, guide_run_plain_a/b, size_run_a/b, preview_run.gif, sheet_hero_marisol.png, portrait.png, pose.json -> ok / FAILED (reason)
+  CHANGED: what you painted, frame by frame where it matters (planted toe x per frame as you measured it)
+  DEVIATIONS: (a) from the 3D mannequin pose / position / depth order per frame (b) from the sheet design (c) from the
+              PERSONALITY and wrist-range lines - write "none" explicitly for each
   RISKS AT GAME SIZE: what you could not verify at ~64 px
+  3D GUIDE: what helped, what was unclear (shading, ghost weapon, plain underlay) - this is the first 3D-mannequin request
   ## 판정 — gait/sheet_hero_marisol_run
   결과: 통과 | 고침 | 다시   (your own verdict as animation head: natural? in character? does the contact frame read?)
   본 방법: (game 1x/4x, the preview GIF, frames - what you looked at)
   고칠 점: (who - Antigravity/cloud - what, with frame numbers; "없음" if it passes)
-  남은 걱정: (what the QA cross-check should look at; "없음" if none)
+  남은 걱정: (what the owner's look should check; "없음" if none)
   캐릭터 메모: (direction for this character's next motions; omit if none)
-Push to art-inbox only. Do not touch files outside art/inbox/. Then stop.
+The owner judges the result himself. Push to art-inbox only. Do not touch files outside art/inbox/. Then stop.
 ```

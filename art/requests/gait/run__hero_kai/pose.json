@@ -1,0 +1,1583 @@
+{
+ "set": "run3d_light",
+ "gait": "run",
+ "movement_class": "light",
+ "head_px": 94.8,
+ "baseline": 870,
+ "scale": 0.1654,
+ "frames_per_cycle": 8,
+ "nominal_ms": 80,
+ "step_px": 275.0,
+ "run_stride_game_px": 45.5,
+ "stride_rule": "class game stride 45.48 px / sheet scale 0.1654 x leg factor 1.0 (fitted 0.9774; within 5% -> 1)",
+ "speed_at_nominal_ms_game_px_s": 142.1,
+ "bob_px": 5.4,
+ "lean_deg": [
+  15.4,
+  29.5
+ ],
+ "bones_px": {
+  "thigh": 87.62,
+  "shin": 87.62,
+  "upper_arm": 66.66,
+  "forearm_hand": 69.88
+ },
+ "source": "tools/mannequin3d (request.py) 3D mannequin guide - a MANNEQUIN, never game art (add_gait refuses it)",
+ "character": "sheet/hero/kai",
+ "fit_source": "art/inbox/sheet_hero_kai.png",
+ "camera": {
+  "yaw_deg": 15.0,
+  "chest_open_deg": 30.0
+ },
+ "joint_x": "strip-wide x (slot offset added) like run_base",
+ "hip_height_px": "FLOOR 870 - hip joint y",
+ "proportions": {
+  "thigh": 87.62,
+  "shin": 87.62,
+  "ankle_h": 16.81,
+  "heel": 13.68,
+  "toe": 25.41,
+  "hip_w": 23.67,
+  "hip_drop": 6.84,
+  "spine": 53.82,
+  "chest": 71.76,
+  "neck": 15.64,
+  "head_r": [
+   42.31,
+   47.38,
+   38.92
+  ],
+  "head_c": 37.23,
+  "shoulder_w": 45.08,
+  "shoulder_drop": 13.68,
+  "upper_arm": 66.66,
+  "forearm": 54.73,
+  "hand": 15.15,
+  "r_thigh": [
+   26.81,
+   20.43
+  ],
+  "r_shin": [
+   20.43,
+   15.32
+  ],
+  "r_foot": 12.77,
+  "r_upper_arm": [
+   17.88,
+   15.32
+  ],
+  "r_forearm": [
+   15.32,
+   12.77
+  ],
+  "r_hand": 15.32,
+  "pelvis_r": [
+   33.81,
+   27.05,
+   36.07
+  ],
+  "chest_r": [
+   38.32,
+   47.34,
+   49.59
+  ],
+  "r_spine": 29.3,
+  "r_neck": 10.75,
+  "r_shoulder": 19.15
+ },
+ "fit_factors": {
+  "height": 0.9774,
+  "head": 0.8657,
+  "legs": 1.0,
+  "trunk": 1.1473,
+  "limb_bulk": 1.3064,
+  "trunk_bulk": 1.1532,
+  "arms": 1.0
+ },
+ "flight_clearance_px": 26,
+ "frames": [
+  {
+   "frame": "R1",
+   "strip": "a",
+   "slot": 1,
+   "phase": "contact",
+   "feet_down": [
+    "near"
+   ],
+   "stance": "near",
+   "hip_height_px": 177.9,
+   "top_px": 470,
+   "lowest_px": 870,
+   "sole_px": {
+    "N": 870,
+    "F": 740
+   },
+   "toe_x_px": 92.0,
+   "knee_flex_deg": {
+    "N": 23.1,
+    "F": 124.0
+   },
+   "elbow_flex_deg": {
+    "N": 80.0,
+    "F": 96.0
+   },
+   "lean_deg": 21.2,
+   "neck_x_px": 47.6,
+   "ik_reached": true,
+   "angles_deg": {
+    "hip_h": 178.86,
+    "pelvis_pitch": 10.5,
+    "pelvis_yaw": -10.0,
+    "pelvis_roll": 0.0,
+    "spine_pitch": 7.35,
+    "chest_pitch": 7.35,
+    "chest_yaw": 40.0,
+    "neck_pitch": -12.5,
+    "head_pitch": 4.0,
+    "thigh_N": 31.55,
+    "thigh_F": -6.0,
+    "knee_N": 23.07,
+    "knee_F": 124.0,
+    "ankle_N": -5.48,
+    "ankle_F": -15.0,
+    "abd_N": 0.0,
+    "abd_F": 2.0,
+    "shoulder_N": -17.6,
+    "shoulder_F": 16.94,
+    "elbow_N": 80.0,
+    "elbow_F": 95.95,
+    "wrist_N": 0.0,
+    "wrist_F": 0.0,
+    "arm_abd_N": 6.0,
+    "arm_abd_F": 6.0
+   },
+   "props": [
+    {
+     "hand": "F",
+     "kind": "staff",
+     "abs_angle": 84.96306502178541,
+     "yaw": 0.0,
+     "length": 125.0,
+     "back": 128.0,
+     "limit": [
+      0.0,
+      120.0
+     ]
+    }
+   ],
+   "weapon_angle": [
+    {
+     "kind": "staff",
+     "hand": "F",
+     "raw_deg": 87.38,
+     "deg": 87.38,
+     "limit": [
+      0.0,
+      120.0
+     ],
+     "clamped": false
+    }
+   ],
+   "joints": {
+    "hip": [
+     192.0,
+     692.1
+    ],
+    "HN": [
+     189.9,
+     692.1
+    ],
+    "HF": [
+     194.1,
+     692.1
+    ],
+    "kneeN": [
+     234.2,
+     766.8
+    ],
+    "kneeF": [
+     186.0,
+     779.2
+    ],
+    "ankN": [
+     246.7,
+     853.5
+    ],
+    "ankF": [
+     120.7,
+     722.9
+    ],
+    "heelN": [
+     233.7,
+     858.2
+    ],
+    "heelF": [
+     129.3,
+     711.8
+    ],
+    "toetipN": [
+     284.0,
+     860.4
+    ],
+    "toetipF": [
+     85.6,
+     737.6
+    ],
+    "SN": [
+     201.7,
+     569.1
+    ],
+    "SF": [
+     261.0,
+     591.2
+    ],
+    "elbN": [
+     156.2,
+     617.7
+    ],
+    "elbF": [
+     252.1,
+     656.8
+    ],
+    "wriN": [
+     189.1,
+     661.3
+    ],
+    "wriF": [
+     306.5,
+     659.1
+    ],
+    "handN": [
+     194.2,
+     667.9
+    ],
+    "handF": [
+     314.8,
+     659.4
+    ],
+    "neck0": [
+     239.6,
+     569.1
+    ],
+    "head": [
+     248.4,
+     517.3
+    ],
+    "headtop": [
+     250.8,
+     470.0
+    ],
+    "nose": [
+     275.6,
+     525.7
+    ]
+   }
+  },
+  {
+   "frame": "R2",
+   "strip": "a",
+   "slot": 2,
+   "phase": "down",
+   "feet_down": [
+    "near"
+   ],
+   "stance": "near",
+   "hip_height_px": 176.3,
+   "top_px": 468,
+   "lowest_px": 870,
+   "sole_px": {
+    "N": 870,
+    "F": 743
+   },
+   "toe_x_px": 23.2,
+   "knee_flex_deg": {
+    "N": 46.8,
+    "F": 138.0
+   },
+   "elbow_flex_deg": {
+    "N": 92.0,
+    "F": 95.2
+   },
+   "lean_deg": 16.4,
+   "neck_x_px": 37.3,
+   "ik_reached": true,
+   "angles_deg": {
+    "hip_h": 177.29,
+    "pelvis_pitch": 8.2,
+    "pelvis_yaw": -7.07,
+    "pelvis_roll": 0.0,
+    "spine_pitch": 5.74,
+    "chest_pitch": 5.74,
+    "chest_yaw": 37.07,
+    "neck_pitch": -10.2,
+    "head_pitch": 4.0,
+    "thigh_N": 19.53,
+    "thigh_F": 0.0,
+    "knee_N": 46.77,
+    "knee_F": 138.0,
+    "ankle_N": 27.24,
+    "ankle_F": 13.0,
+    "abd_N": 0.0,
+    "abd_F": 2.0,
+    "shoulder_N": 11.2,
+    "shoulder_F": 16.05,
+    "elbow_N": 92.0,
+    "elbow_F": 95.24,
+    "wrist_N": 0.0,
+    "wrist_F": 0.0,
+    "arm_abd_N": 6.0,
+    "arm_abd_F": 6.0
+   },
+   "props": [
+    {
+     "hand": "F",
+     "kind": "staff",
+     "abs_angle": 84.42705098312484,
+     "yaw": 0.0,
+     "length": 125.0,
+     "back": 128.0,
+     "limit": [
+      0.0,
+      120.0
+     ]
+    }
+   ],
+   "weapon_angle": [
+    {
+     "kind": "staff",
+     "hand": "F",
+     "raw_deg": 82.9,
+     "deg": 82.9,
+     "limit": [
+      0.0,
+      120.0
+     ],
+     "clamped": false
+    }
+   ],
+   "joints": {
+    "hip": [
+     576.0,
+     693.7
+    ],
+    "HN": [
+     572.7,
+     693.7
+    ],
+    "HF": [
+     579.3,
+     693.7
+    ],
+    "kneeN": [
+     601.0,
+     776.3
+    ],
+    "kneeF": [
+     580.1,
+     781.3
+    ],
+    "ankN": [
+     562.3,
+     854.2
+    ],
+    "ankF": [
+     522.8,
+     716.2
+    ],
+    "heelN": [
+     549.1,
+     858.2
+    ],
+    "heelF": [
+     527.2,
+     702.7
+    ],
+    "toetipN": [
+     599.2,
+     863.1
+    ],
+    "toetipF": [
+     494.6,
+     742.4
+    ],
+    "SN": [
+     575.6,
+     570.7
+    ],
+    "SF": [
+     636.8,
+     587.0
+    ],
+    "elbN": [
+     564.9,
+     636.2
+    ],
+    "elbF": [
+     633.6,
+     653.2
+    ],
+    "wriN": [
+     618.8,
+     642.4
+    ],
+    "wriF": [
+     687.7,
+     651.7
+    ],
+    "handN": [
+     627.0,
+     643.4
+    ],
+    "handF": [
+     695.9,
+     651.5
+    ],
+    "neck0": [
+     613.3,
+     567.1
+    ],
+    "head": [
+     621.1,
+     514.9
+    ],
+    "headtop": [
+     623.5,
+     467.7
+    ],
+    "nose": [
+     648.3,
+     523.3
+    ]
+   }
+  },
+  {
+   "frame": "R3",
+   "strip": "a",
+   "slot": 3,
+   "phase": "push-off",
+   "feet_down": [
+    "near"
+   ],
+   "stance": "near",
+   "hip_height_px": 180.0,
+   "top_px": 473,
+   "lowest_px": 870,
+   "sole_px": {
+    "N": 870,
+    "F": 825
+   },
+   "toe_x_px": -45.6,
+   "knee_flex_deg": {
+    "N": 16.9,
+    "F": 110.0
+   },
+   "elbow_flex_deg": {
+    "N": 104.0,
+    "F": 92.6
+   },
+   "lean_deg": 25.5,
+   "neck_x_px": 56.3,
+   "ik_reached": true,
+   "angles_deg": {
+    "hip_h": 181.01,
+    "pelvis_pitch": 13.05,
+    "pelvis_yaw": -0.0,
+    "pelvis_roll": 0.0,
+    "spine_pitch": 9.13,
+    "chest_pitch": 9.13,
+    "chest_yaw": 30.0,
+    "neck_pitch": -15.05,
+    "head_pitch": 4.0,
+    "thigh_N": -17.23,
+    "thigh_F": 60.0,
+    "knee_N": 16.92,
+    "knee_F": 110.0,
+    "ankle_N": 18.15,
+    "ankle_F": 5.0,
+    "abd_N": 0.0,
+    "abd_F": 2.0,
+    "shoulder_N": 32.0,
+    "shoulder_F": 12.78,
+    "elbow_N": 104.0,
+    "elbow_F": 92.63,
+    "wrist_N": 0.0,
+    "wrist_F": 0.0,
+    "arm_abd_N": 6.0,
+    "arm_abd_F": 6.0
+   },
+   "props": [
+    {
+     "hand": "F",
+     "kind": "staff",
+     "abs_angle": 82.46930339512069,
+     "yaw": 0.0,
+     "length": 125.0,
+     "back": 128.0,
+     "limit": [
+      0.0,
+      120.0
+     ]
+    }
+   ],
+   "weapon_angle": [
+    {
+     "kind": "staff",
+     "hand": "F",
+     "raw_deg": 98.4,
+     "deg": 98.4,
+     "limit": [
+      0.0,
+      120.0
+     ],
+     "clamped": false
+    }
+   ],
+   "joints": {
+    "hip": [
+     960.0,
+     690.0
+    ],
+    "HN": [
+     953.9,
+     690.0
+    ],
+    "HF": [
+     966.1,
+     690.0
+    ],
+    "kneeN": [
+     928.8,
+     773.7
+    ],
+    "kneeF": [
+     1040.2,
+     733.8
+    ],
+    "ankN": [
+     881.3,
+     846.2
+    ],
+    "ankF": [
+     975.1,
+     790.1
+    ],
+    "heelN": [
+     867.5,
+     846.3
+    ],
+    "heelF": [
+     963.0,
+     783.3
+    ],
+    "toetipN": [
+     914.4,
+     865.3
+    ],
+    "toetipF": [
+     995.1,
+     823.4
+    ],
+    "SN": [
+     978.0,
+     571.5
+    ],
+    "SF": [
+     1036.6,
+     592.4
+    ],
+    "elbN": [
+     976.9,
+     637.7
+    ],
+    "elbF": [
+     1018.0,
+     655.3
+    ],
+    "wriN": [
+     1028.4,
+     623.9
+    ],
+    "wriF": [
+     1068.8,
+     670.3
+    ],
+    "handN": [
+     1036.3,
+     621.8
+    ],
+    "handF": [
+     1076.5,
+     672.6
+    ],
+    "neck0": [
+     1016.3,
+     572.1
+    ],
+    "head": [
+     1026.0,
+     520.4
+    ],
+    "headtop": [
+     1028.4,
+     473.2
+    ],
+    "nose": [
+     1053.2,
+     528.8
+    ]
+   }
+  },
+  {
+   "frame": "R4",
+   "strip": "a",
+   "slot": 4,
+   "phase": "flight",
+   "feet_down": [],
+   "stance": null,
+   "hip_height_px": 181.7,
+   "top_px": 475,
+   "lowest_px": 844,
+   "sole_px": {
+    "N": 808,
+    "F": 844
+   },
+   "toe_x_px": null,
+   "knee_flex_deg": {
+    "N": 72.0,
+    "F": 44.0
+   },
+   "elbow_flex_deg": {
+    "N": 108.0,
+    "F": 89.6
+   },
+   "lean_deg": 27.8,
+   "neck_x_px": 60.2,
+   "ik_reached": true,
+   "angles_deg": {
+    "hip_h": 182.67,
+    "pelvis_pitch": 14.7,
+    "pelvis_yaw": 7.07,
+    "pelvis_roll": 0.0,
+    "spine_pitch": 10.29,
+    "chest_pitch": 10.29,
+    "chest_yaw": 22.93,
+    "neck_pitch": -16.7,
+    "head_pitch": 4.0,
+    "thigh_N": -14.0,
+    "thigh_F": 55.0,
+    "knee_N": 72.0,
+    "knee_F": 44.0,
+    "ankle_N": -34.0,
+    "ankle_F": 4.0,
+    "abd_N": 2.0,
+    "abd_F": 2.0,
+    "shoulder_N": 36.8,
+    "shoulder_F": 9.06,
+    "elbow_N": 108.0,
+    "elbow_F": 89.65,
+    "wrist_N": 0.0,
+    "wrist_F": 0.0,
+    "arm_abd_N": 6.0,
+    "arm_abd_F": 6.0
+   },
+   "props": [
+    {
+     "hand": "F",
+     "kind": "staff",
+     "abs_angle": 80.23664424312258,
+     "yaw": 0.0,
+     "length": 125.0,
+     "back": 128.0,
+     "limit": [
+      0.0,
+      120.0
+     ]
+    }
+   ],
+   "weapon_angle": [
+    {
+     "kind": "staff",
+     "hand": "F",
+     "raw_deg": 106.88,
+     "deg": 106.88,
+     "limit": [
+      0.0,
+      120.0
+     ],
+     "clamped": false
+    }
+   ],
+   "joints": {
+    "hip": [
+     1344.0,
+     688.3
+    ],
+    "HN": [
+     1335.1,
+     688.3
+    ],
+    "HF": [
+     1352.9,
+     688.3
+    ],
+    "kneeN": [
+     1313.9,
+     773.3
+    ],
+    "kneeF": [
+     1423.0,
+     738.6
+    ],
+    "ankN": [
+     1229.2,
+     779.4
+    ],
+    "ankF": [
+     1439.7,
+     824.5
+    ],
+    "heelN": [
+     1232.4,
+     765.5
+    ],
+    "heelF": [
+     1427.9,
+     832.0
+    ],
+    "toetipN": [
+     1203.3,
+     808.0
+    ],
+    "toetipF": [
+     1477.5,
+     823.3
+    ],
+    "SN": [
+     1365.4,
+     574.2
+    ],
+    "SF": [
+     1424.3,
+     592.4
+    ],
+    "elbN": [
+     1364.4,
+     640.5
+    ],
+    "elbF": [
+     1399.8,
+     651.9
+    ],
+    "wriN": [
+     1412.9,
+     622.3
+    ],
+    "wriF": [
+     1445.2,
+     676.3
+    ],
+    "handN": [
+     1420.2,
+     619.5
+    ],
+    "handF": [
+     1452.1,
+     680.1
+    ],
+    "neck0": [
+     1404.2,
+     574.3
+    ],
+    "head": [
+     1414.2,
+     522.8
+    ],
+    "headtop": [
+     1416.5,
+     475.5
+    ],
+    "nose": [
+     1441.4,
+     531.1
+    ]
+   }
+  },
+  {
+   "frame": "R5",
+   "strip": "b",
+   "slot": 1,
+   "phase": "contact",
+   "feet_down": [
+    "far"
+   ],
+   "stance": "far",
+   "hip_height_px": 177.9,
+   "top_px": 470,
+   "lowest_px": 870,
+   "sole_px": {
+    "N": 740,
+    "F": 870
+   },
+   "toe_x_px": 104.0,
+   "knee_flex_deg": {
+    "N": 124.0,
+    "F": 23.1
+   },
+   "elbow_flex_deg": {
+    "N": 100.0,
+    "F": 88.0
+   },
+   "lean_deg": 19.4,
+   "neck_x_px": 43.2,
+   "ik_reached": true,
+   "angles_deg": {
+    "hip_h": 178.86,
+    "pelvis_pitch": 10.5,
+    "pelvis_yaw": 10.0,
+    "pelvis_roll": 0.0,
+    "spine_pitch": 7.35,
+    "chest_pitch": 7.35,
+    "chest_yaw": 20.0,
+    "neck_pitch": -12.5,
+    "head_pitch": 4.0,
+    "thigh_N": -6.0,
+    "thigh_F": 31.55,
+    "knee_N": 124.0,
+    "knee_F": 23.07,
+    "ankle_N": -15.0,
+    "ankle_F": -5.48,
+    "abd_N": 2.0,
+    "abd_F": 0.0,
+    "shoulder_N": 22.4,
+    "shoulder_F": 7.06,
+    "elbow_N": 100.0,
+    "elbow_F": 88.05,
+    "wrist_N": 0.0,
+    "wrist_F": 0.0,
+    "arm_abd_N": 6.0,
+    "arm_abd_F": 6.0
+   },
+   "props": [
+    {
+     "hand": "F",
+     "kind": "staff",
+     "abs_angle": 79.03693497821459,
+     "yaw": 0.0,
+     "length": 125.0,
+     "back": 128.0,
+     "limit": [
+      0.0,
+      120.0
+     ]
+    }
+   ],
+   "weapon_angle": [
+    {
+     "kind": "staff",
+     "hand": "F",
+     "raw_deg": 99.28,
+     "deg": 99.28,
+     "limit": [
+      0.0,
+      120.0
+     ],
+     "clamped": false
+    }
+   ],
+   "joints": {
+    "hip": [
+     192.0,
+     692.1
+    ],
+    "HN": [
+     182.0,
+     692.1
+    ],
+    "HF": [
+     202.0,
+     692.1
+    ],
+    "kneeN": [
+     172.4,
+     779.2
+    ],
+    "kneeF": [
+     246.3,
+     766.8
+    ],
+    "ankN": [
+     108.0,
+     722.9
+    ],
+    "ankF": [
+     258.8,
+     853.5
+    ],
+    "heelN": [
+     116.6,
+     711.8
+    ],
+    "heelF": [
+     245.8,
+     858.2
+    ],
+    "toetipN": [
+     72.8,
+     737.6
+    ],
+    "toetipF": [
+     296.0,
+     860.4
+    ],
+    "SN": [
+     196.7,
+     574.1
+    ],
+    "SF": [
+     258.3,
+     585.8
+    ],
+    "elbN": [
+     190.8,
+     640.4
+    ],
+    "elbF": [
+     242.5,
+     648.8
+    ],
+    "wriN": [
+     240.4,
+     633.6
+    ],
+    "wriF": [
+     289.2,
+     667.6
+    ],
+    "handN": [
+     248.0,
+     632.5
+    ],
+    "handF": [
+     296.3,
+     670.5
+    ],
+    "neck0": [
+     235.2,
+     569.2
+    ],
+    "head": [
+     243.5,
+     517.2
+    ],
+    "headtop": [
+     245.8,
+     469.9
+    ],
+    "nose": [
+     270.6,
+     525.6
+    ]
+   }
+  },
+  {
+   "frame": "R6",
+   "strip": "b",
+   "slot": 2,
+   "phase": "down",
+   "feet_down": [
+    "far"
+   ],
+   "stance": "far",
+   "hip_height_px": 176.3,
+   "top_px": 468,
+   "lowest_px": 870,
+   "sole_px": {
+    "N": 743,
+    "F": 870
+   },
+   "toe_x_px": 35.3,
+   "knee_flex_deg": {
+    "N": 138.0,
+    "F": 46.8
+   },
+   "elbow_flex_deg": {
+    "N": 86.0,
+    "F": 88.8
+   },
+   "lean_deg": 15.4,
+   "neck_x_px": 34.8,
+   "ik_reached": true,
+   "angles_deg": {
+    "hip_h": 177.29,
+    "pelvis_pitch": 8.2,
+    "pelvis_yaw": 7.07,
+    "pelvis_roll": 0.0,
+    "spine_pitch": 5.74,
+    "chest_pitch": 5.74,
+    "chest_yaw": 22.93,
+    "neck_pitch": -10.2,
+    "head_pitch": 4.0,
+    "thigh_N": 0.0,
+    "thigh_F": 19.53,
+    "knee_N": 138.0,
+    "knee_F": 46.77,
+    "ankle_N": 13.0,
+    "ankle_F": 27.24,
+    "abd_N": 2.0,
+    "abd_F": 0.0,
+    "shoulder_N": -14.4,
+    "shoulder_F": 7.95,
+    "elbow_N": 86.0,
+    "elbow_F": 88.76,
+    "wrist_N": 0.0,
+    "wrist_F": 0.0,
+    "arm_abd_N": 6.0,
+    "arm_abd_F": 6.0
+   },
+   "props": [
+    {
+     "hand": "F",
+     "kind": "staff",
+     "abs_angle": 79.57294901687516,
+     "yaw": 0.0,
+     "length": 125.0,
+     "back": 128.0,
+     "limit": [
+      0.0,
+      120.0
+     ]
+    }
+   ],
+   "weapon_angle": [
+    {
+     "kind": "staff",
+     "hand": "F",
+     "raw_deg": 92.6,
+     "deg": 92.6,
+     "limit": [
+      0.0,
+      120.0
+     ],
+     "clamped": false
+    }
+   ],
+   "joints": {
+    "hip": [
+     576.0,
+     693.7
+    ],
+    "HN": [
+     567.1,
+     693.7
+    ],
+    "HF": [
+     584.9,
+     693.7
+    ],
+    "kneeN": [
+     566.3,
+     781.3
+    ],
+    "kneeF": [
+     613.2,
+     776.3
+    ],
+    "ankN": [
+     510.3,
+     716.2
+    ],
+    "ankF": [
+     574.5,
+     854.2
+    ],
+    "heelN": [
+     514.7,
+     702.7
+    ],
+    "heelF": [
+     561.2,
+     858.2
+    ],
+    "toetipN": [
+     482.1,
+     742.4
+    ],
+    "toetipF": [
+     611.3,
+     863.1
+    ],
+    "SN": [
+     572.9,
+     573.5
+    ],
+    "SF": [
+     635.1,
+     584.0
+    ],
+    "elbN": [
+     535.8,
+     628.4
+    ],
+    "elbF": [
+     625.3,
+     648.9
+    ],
+    "wriN": [
+     575.6,
+     662.1
+    ],
+    "wriF": [
+     674.7,
+     661.2
+    ],
+    "handN": [
+     581.7,
+     667.3
+    ],
+    "handF": [
+     682.3,
+     663.0
+    ],
+    "neck0": [
+     610.8,
+     567.1
+    ],
+    "head": [
+     618.3,
+     514.9
+    ],
+    "headtop": [
+     620.7,
+     467.6
+    ],
+    "nose": [
+     645.5,
+     523.3
+    ]
+   }
+  },
+  {
+   "frame": "R7",
+   "strip": "b",
+   "slot": 3,
+   "phase": "push-off",
+   "feet_down": [
+    "far"
+   ],
+   "stance": "far",
+   "hip_height_px": 180.0,
+   "top_px": 473,
+   "lowest_px": 870,
+   "sole_px": {
+    "N": 825,
+    "F": 870
+   },
+   "toe_x_px": -33.4,
+   "knee_flex_deg": {
+    "N": 110.0,
+    "F": 16.9
+   },
+   "elbow_flex_deg": {
+    "N": 80.0,
+    "F": 91.4
+   },
+   "lean_deg": 25.5,
+   "neck_x_px": 56.3,
+   "ik_reached": true,
+   "angles_deg": {
+    "hip_h": 181.01,
+    "pelvis_pitch": 13.05,
+    "pelvis_yaw": 0.0,
+    "pelvis_roll": 0.0,
+    "spine_pitch": 9.13,
+    "chest_pitch": 9.13,
+    "chest_yaw": 30.0,
+    "neck_pitch": -15.05,
+    "head_pitch": 4.0,
+    "thigh_N": 60.0,
+    "thigh_F": -17.23,
+    "knee_N": 110.0,
+    "knee_F": 16.92,
+    "ankle_N": 5.0,
+    "ankle_F": 18.15,
+    "abd_N": 2.0,
+    "abd_F": 0.0,
+    "shoulder_N": -27.2,
+    "shoulder_F": 11.22,
+    "elbow_N": 80.0,
+    "elbow_F": 91.37,
+    "wrist_N": 0.0,
+    "wrist_F": 0.0,
+    "arm_abd_N": 6.0,
+    "arm_abd_F": 6.0
+   },
+   "props": [
+    {
+     "hand": "F",
+     "kind": "staff",
+     "abs_angle": 81.53069660487931,
+     "yaw": 0.0,
+     "length": 125.0,
+     "back": 128.0,
+     "limit": [
+      0.0,
+      120.0
+     ]
+    }
+   ],
+   "weapon_angle": [
+    {
+     "kind": "staff",
+     "hand": "F",
+     "raw_deg": 100.27,
+     "deg": 100.27,
+     "limit": [
+      0.0,
+      120.0
+     ],
+     "clamped": false
+    }
+   ],
+   "joints": {
+    "hip": [
+     960.0,
+     690.0
+    ],
+    "HN": [
+     953.9,
+     690.0
+    ],
+    "HF": [
+     966.1,
+     690.0
+    ],
+    "kneeN": [
+     1026.3,
+     733.8
+    ],
+    "kneeF": [
+     941.1,
+     773.7
+    ],
+    "ankN": [
+     961.8,
+     790.1
+    ],
+    "ankF": [
+     893.5,
+     846.2
+    ],
+    "heelN": [
+     949.7,
+     783.3
+    ],
+    "heelF": [
+     879.8,
+     846.3
+    ],
+    "toetipN": [
+     981.8,
+     823.4
+    ],
+    "toetipF": [
+     926.6,
+     865.3
+    ],
+    "SN": [
+     978.0,
+     571.5
+    ],
+    "SF": [
+     1036.6,
+     592.4
+    ],
+    "elbN": [
+     921.6,
+     606.1
+    ],
+    "elbF": [
+     1016.4,
+     654.7
+    ],
+    "wriN": [
+     940.7,
+     657.0
+    ],
+    "wriF": [
+     1066.4,
+     672.3
+    ],
+    "handN": [
+     943.6,
+     664.7
+    ],
+    "handF": [
+     1074.0,
+     675.0
+    ],
+    "neck0": [
+     1016.3,
+     572.1
+    ],
+    "head": [
+     1026.0,
+     520.4
+    ],
+    "headtop": [
+     1028.4,
+     473.2
+    ],
+    "nose": [
+     1053.2,
+     528.8
+    ]
+   }
+  },
+  {
+   "frame": "R8",
+   "strip": "b",
+   "slot": 4,
+   "phase": "flight",
+   "feet_down": [],
+   "stance": null,
+   "hip_height_px": 181.7,
+   "top_px": 476,
+   "lowest_px": 844,
+   "sole_px": {
+    "N": 844,
+    "F": 808
+   },
+   "toe_x_px": null,
+   "knee_flex_deg": {
+    "N": 44.0,
+    "F": 72.0
+   },
+   "elbow_flex_deg": {
+    "N": 78.0,
+    "F": 94.4
+   },
+   "lean_deg": 29.5,
+   "neck_x_px": 64.5,
+   "ik_reached": true,
+   "angles_deg": {
+    "hip_h": 182.67,
+    "pelvis_pitch": 14.7,
+    "pelvis_yaw": -7.07,
+    "pelvis_roll": 0.0,
+    "spine_pitch": 10.29,
+    "chest_pitch": 10.29,
+    "chest_yaw": 37.07,
+    "neck_pitch": -16.7,
+    "head_pitch": 4.0,
+    "thigh_N": 55.0,
+    "thigh_F": -14.0,
+    "knee_N": 44.0,
+    "knee_F": 72.0,
+    "ankle_N": 4.0,
+    "ankle_F": -34.0,
+    "abd_N": 2.0,
+    "abd_F": 2.0,
+    "shoulder_N": -28.8,
+    "shoulder_F": 14.94,
+    "elbow_N": 78.0,
+    "elbow_F": 94.35,
+    "wrist_N": 0.0,
+    "wrist_F": 0.0,
+    "arm_abd_N": 6.0,
+    "arm_abd_F": 6.0
+   },
+   "props": [
+    {
+     "hand": "F",
+     "kind": "staff",
+     "abs_angle": 83.76335575687742,
+     "yaw": 0.0,
+     "length": 125.0,
+     "back": 128.0,
+     "limit": [
+      0.0,
+      120.0
+     ]
+    }
+   ],
+   "weapon_angle": [
+    {
+     "kind": "staff",
+     "hand": "F",
+     "raw_deg": 99.82,
+     "deg": 99.82,
+     "limit": [
+      0.0,
+      120.0
+     ],
+     "clamped": false
+    }
+   ],
+   "joints": {
+    "hip": [
+     1344.0,
+     688.3
+    ],
+    "HN": [
+     1340.7,
+     688.3
+    ],
+    "HF": [
+     1347.3,
+     688.3
+    ],
+    "kneeN": [
+     1409.2,
+     738.6
+    ],
+    "kneeF": [
+     1327.6,
+     773.3
+    ],
+    "ankN": [
+     1424.8,
+     824.5
+    ],
+    "ankF": [
+     1243.4,
+     779.4
+    ],
+    "heelN": [
+     1413.0,
+     832.0
+    ],
+    "heelF": [
+     1246.6,
+     765.5
+    ],
+    "toetipN": [
+     1462.6,
+     823.3
+    ],
+    "toetipF": [
+     1217.5,
+     808.0
+    ],
+    "SN": [
+     1370.7,
+     569.3
+    ],
+    "SF": [
+     1426.4,
+     597.6
+    ],
+    "elbN": [
+     1310.7,
+     598.3
+    ],
+    "elbF": [
+     1404.6,
+     659.7
+    ],
+    "wriN": [
+     1323.6,
+     651.4
+    ],
+    "wriF": [
+     1456.6,
+     674.8
+    ],
+    "handN": [
+     1325.6,
+     659.5
+    ],
+    "handF": [
+     1464.5,
+     677.1
+    ],
+    "neck0": [
+     1408.5,
+     574.2
+    ],
+    "head": [
+     1419.0,
+     522.9
+    ],
+    "headtop": [
+     1421.4,
+     475.6
+    ],
+    "nose": [
+     1446.2,
+     531.3
+    ]
+   }
+  }
+ ],
+ "mannequin3d": {
+  "tool": "tools/mannequin3d/request.py",
+  "carry": "tools/mannequin3d/specs/carry3d.json",
+  "carry_key": "kai",
+  "carry_sha256": "3e14136acbf6c90882711548217f39a4feb5f0d65a7ebf59e549bfe2b26f3d1b",
+  "sheet_scale_from": "art/requests/phase3.json",
+  "weapon_limit": {
+   "min": 0.0,
+   "max": 120.0
+  },
+  "personality": {
+   "lean_add": [
+    -3.0,
+    -3.0,
+    -3.0,
+    -2.0
+   ],
+   "hip_drop": -3.0,
+   "neck_up": 2.0,
+   "pelvis_twist": 10.0,
+   "swing_add": {
+    "0.5": [
+     0.0,
+     10.0,
+     0.0
+    ],
+    "0.625": [
+     0.0,
+     8.0,
+     0.0
+    ]
+   },
+   "notes": [
+    "A light, quiet, UPRIGHT scout's run - the opposite of Baren's low prowl: the torso 2-3 deg more upright than the light class mannequin and the hips ~3 px higher (the mannequin already has both - follow it). The head stays level and still, eyes scanning the road ahead.",
+    "Springy, near-silent feet with long easy strides: the trailing heel kicks up a little higher behind in the passing and flight frames, the hips swing a touch more (pelvis twist), the chest stays calm - gliding, not hard pumping.",
+    "The BOW rides UPRIGHT in the FAR (left) hand at the idle grip, held close in front of the belly/chest with the elbow bent about 90 deg: upper limb tip up and slightly forward, lower limb tip down and a little back, the string toward the body, no arrow nocked. The teal staff-like ghost on the guide is ONLY the bow's tip-to-tip line (the 3D rig has no bow shape; its round head = the upper limb tip): paint the silver recurve limbs, the wrapped grip and the thin string along it at the idle size (~125 px grip to upper tip, ~130 px to lower tip). It sways only a few px with the arm.",
+    "The near (right) hand is free: a loose, half-open hand that swings forward and back with the legs, one frame behind them - relaxed, not a tight fist.",
+    "The quiver stays fixed on the back (white fletchings over the far shoulder). The long blond hair below the green ribbon, the rear edge of the green shoulder cloak and the knee-length rear tunic flap trail back one frame late: highest in the flight frames (R4/R8), settling in the catch frames (R2/R6)."
+   ],
+   "notes_ko": [
+    "가볍고 조용한, 상체를 세운 정찰병의 달리기 — 바렌의 낮게 웅크린 달리기와 반대: 경량 마네킹보다 상체가 2~3도 더 서 있고 엉덩이가 약 3px 높다(3D 마네킹에 이미 들어 있다 — 따라 그린다). 머리는 수평으로 흔들림 없이, 눈은 앞길을 살핀다.",
+    "탄력 있고 소리 없는 발, 길고 편한 보폭: 지나가는 프레임과 공중 프레임에서 뒤쪽 발뒤꿈치가 조금 더 높이 차 올라가고, 엉덩이가 조금 더 돌며(골반 비틀기), 가슴은 차분하다 — 힘껏 펌프질하지 않고 미끄러지듯.",
+    "활은 먼 손(왼손)에 대기 그림의 손잡이 그대로 똑바로 세워 든다. 팔꿈치를 약 90도 굽혀 배·가슴 앞에 가까이: 위 활끝은 위로 약간 앞으로, 아래 활끝은 아래로 약간 뒤로, 시위는 몸 쪽, 화살은 걸지 않는다. 가이드의 청록 지팡이 모양 윤곽은 활의 끝-끝 선일 뿐이다(3D 리그에 활 모양이 없다; 둥근 머리 = 위 활끝): 그 선을 따라 은빛 리커브 활대, 감은 손잡이, 가는 시위를 대기 그림 크기로 그린다(손잡이에서 위 끝 약 125px, 아래 끝 약 130px). 팔과 함께 몇 px 만 흔들린다.",
+    "가까운 손(오른손)은 비어 있다: 느슨하게 반쯤 편 손이 다리와 반대로 앞뒤로 흔들리며 한 프레임 늦게 따라간다 — 꽉 쥔 주먹이 아니다.",
+    "화살통은 등에 고정(흰 깃이 먼 어깨 위로). 녹색 리본 아래의 긴 금발, 녹색 어깨 망토의 뒷자락, 무릎까지 오는 튜닉 뒷자락은 뒤로 날리며 한 프레임 늦다: 공중 프레임(R4/R8)에서 가장 높이 뜨고, 받는 프레임(R2/R6)에서 가라앉는다."
+   ]
+  },
+  "guides": {
+   "guide_run_a.png": "a08705a4675c692cd65760915f0d7473f748a68f9035e458a7e10f3ea03549f4",
+   "guide_run_b.png": "3cf29c2797acaad07e844e37034bb4409e097221c6a0509fc49fb2a126224fab",
+   "guide_run_plain_a.png": "4fe0b651a69d63f20d32a92a82a02a52d2694b804ebe1f08f4466af60cdfaca0",
+   "guide_run_plain_b.png": "6f891a6992f24f4c1b7d5dec3eaee59250aa8faf79d5219120e2579259519ddf"
+  },
+  "checks": [
+   "[OK] fit source: art/inbox/sheet_hero_kai.png",
+   "[OK] head top y 468..476 (spread 8 px), hip height 176.3..181.7, lean 15.4..29.5 deg",
+   "[OK] floor: lowest pixel per frame R1:870 R2:870 R3:870 R4:844 R5:870 R6:870 R7:870 R8:844",
+   "[OK] flight clearance (>= 18 px): R4 26 px, R8 26 px",
+   "[OK] planted near toe x [92.0, 23.2, -45.6] -> retreat per cell [68.8, 68.8] (target 68.8 +-1)",
+   "[OK] planted far toe x [104.0, 35.3, -33.4] -> retreat per cell [68.7, 68.7] (target 68.8 +-1)",
+   "[OK] IK: every stance foot reached",
+   "[OK] stance knee flex >= 10 deg: min 16.9",
+   "[OK] mirror halves: knee flex near(f) vs far(f+4) max diff 0.0 deg (<= 3), hip height max diff 0.0 px (<= 1)",
+   "[OK] x extent incl. props per frame (slot band 32..351): 84-334 107-333 87-333 47-330 71-328 95-329 99-333 61-335",
+   "[OK] feet not covered by the other leg (>= 0.75): R1:1.00/1.00 R2:1.00/1.00 R3:1.00/1.00 R4:1.00/1.00 R5:1.00/1.00 R6:1.00/1.00 R7:1.00/1.00 R8:1.00/1.00",
+   "[OK] far knee readable (visible or >= 14 px from the near knee)",
+   "[OK] hand travel over the cycle (>= 12 px): near 103, far 36",
+   "[OK] weapon angle to the forearm (deg, 0 = straight, + = up; range 0..120) per frame R1:87 R2:83 R3:98 R4:107 R5:99 R6:93 R7:100 R8:100  -> 82.9..106.9"
+  ],
+  "shading": "cel shading by depth: lighter = nearer the viewer, darker = farther (near limbs light, far limbs dark)"
+ }
+}

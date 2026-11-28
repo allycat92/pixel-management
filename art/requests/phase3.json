@@ -398,7 +398,8 @@
         "source": "art/concepts/selections.json (#3)"
       },
       "scale": 0.1654,
-      "cell": 96
+      "cell": 96,
+      "gait_split": "components"
     },
     {
       "kind": "sheet",
