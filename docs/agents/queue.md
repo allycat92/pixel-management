@@ -10,8 +10,8 @@
 | GPT | `G2-tactician-3d` | REVIEW | (art-inbox `19db5f5`) 이사벨 달리기 8칸 — 기술 검사 PASS(공중 28px, 보폭 48.5). **주인 판정 대기** |
 | GPT | `G3-lancer-3d` | REVIEW | (art-inbox `c7131ce`) 로드릭 중량 이동 8칸 — 기술 검사 PASS(보폭 26.5). **주인 판정 대기** |
 | GPT | `G4-huntress-3d` | REVIEW | (art-inbox `59ff697`) 키아라 달리기 8칸 — 기술 검사 PASS(공중 34px, 보폭 45.5). **주인 판정 대기** |
-| GPT | `G5-hedgemage-3d` | REVIEW | 펠릭스(떠돌이 마법사) 이동 8프레임(3D 마네킹): `docs/agents/tasks/G5-hedgemage-3d.md` |
-| GPT | `G6-fieldmedic-3d` | READY | 마그다(야전 의무관) 이동 8프레임(3D 마네킹): `docs/agents/tasks/G6-fieldmedic-3d.md` |
+| GPT | `G5-hedgemage-3d` | REVIEW | (art-inbox `5e91e1a`) 펠릭스 로브 이동 8칸 — 기술 검사 PASS(보폭 24.3). **주인 판정 대기** |
+| GPT | `G6-fieldmedic-3d` | REVIEW | 마그다(야전 의무관) 이동 8프레임(3D 마네킹): `docs/agents/tasks/G6-fieldmedic-3d.md` |
 | GPT | `G7-fixer-3d` | READY | 진(해결사) 이동 8프레임(3D 마네킹): `docs/agents/tasks/G7-fixer-3d.md` |
 | GPT | `G8-veteran-3d` | READY | 하랄드(노병) 이동 8프레임(3D 마네킹): `docs/agents/tasks/G8-veteran-3d.md` |
 | GPT | `G9-astel-3d` | READY | 아스텔 이동 8프레임(3D 마네킹): `docs/agents/tasks/G9-astel-3d.md` |
