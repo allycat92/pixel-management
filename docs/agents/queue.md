@@ -7,7 +7,7 @@
 
 | 누구 | id | 상태 | 할 일 (자세한 것은 그 줄의 문서) |
 |---|---|---|---|
-| GPT | `G15-kai-r3-r7-legs` | READY | 카이 R3(다리 뭉개짐·바닥 갈색 선)·R7(다리 겹침) 다시 그리기: `docs/agents/tasks/G15-kai-r3-r7-legs.md` |
+| GPT | `G15-kai-r3-r7-legs` | REVIEW | (art-inbox `c57439c`) 카이 R3 다리 분리·바닥 선 제거, R7 다리 분리 — 기술 검사 PASS, 떨어진 조각 0. **주인 판정 대기** |
 | GPT | `G14-kai-kiara-foot-fix` | REVIEW | (art-inbox `54233db`) 카이 R7 발끝 85→159(가이드 159), 화면 미끄러짐 −8.9→+1.9px; 키아라 R5/R6 밑창 중심 ±3px 조정. 주인: 마네킹 개정 OK, 키아라는 「저걸론 잘 모르겠다」(판정 보류), 카이는 다리 뭉개짐 → G15 |
 | GPT | `G3-lancer-3d` | READY | **다시 그리기** — 마네킹 2차 개정판 안내 그림(주인 OK)으로 처음부터: `docs/agents/tasks/G3-lancer-3d.md` 끝의 「다시 그리기」 절 |
 | GPT | `G5-hedgemage-3d` | READY | **다시 그리기** — 마네킹 2차 개정판 안내 그림(주인 OK)으로 처음부터: `docs/agents/tasks/G5-hedgemage-3d.md` 끝의 「다시 그리기」 절 |
