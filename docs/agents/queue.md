@@ -11,11 +11,11 @@
 | GPT | `G14-kai-kiara-foot-fix` | REVIEW | (art-inbox `54233db`) 카이 R7 발끝 85→159(가이드 159), 화면 미끄러짐 −8.9→+1.9px; 키아라 R5/R6 밑창 중심 ±3px 조정. 주인: 마네킹 개정 OK, 키아라는 「저걸론 잘 모르겠다」(판정 보류), 카이는 다리 뭉개짐 → G15 |
 | GPT | `G3-lancer-3d` | REVIEW | **다시 그리기** — 마네킹 2차 개정판 안내 그림(주인 OK)으로 처음부터: `docs/agents/tasks/G3-lancer-3d.md` 끝의 「다시 그리기」 절 |
 | GPT | `G5-hedgemage-3d` | REVIEW | **다시 그리기** — 마네킹 2차 개정판 안내 그림(주인 OK)으로 처음부터: `docs/agents/tasks/G5-hedgemage-3d.md` 끝의 「다시 그리기」 절 |
-| GPT | `G6-fieldmedic-3d` | READY | **다시 그리기** — 마네킹 2차 개정판 안내 그림(주인 OK)으로 처음부터: `docs/agents/tasks/G6-fieldmedic-3d.md` 끝의 「다시 그리기」 절 |
-| GPT | `G9-astel-3d` | READY | **다시 그리기** — 마네킹 2차 개정판 안내 그림(주인 OK)으로 처음부터: `docs/agents/tasks/G9-astel-3d.md` 끝의 「다시 그리기」 절 |
-| GPT | `G10-grom-3d` | READY | **다시 그리기** — 마네킹 2차 개정판 안내 그림(주인 OK)으로 처음부터: `docs/agents/tasks/G10-grom-3d.md` 끝의 「다시 그리기」 절 |
-| GPT | `G12-oswin-3d` | READY | **다시 그리기** — 마네킹 2차 개정판 안내 그림(주인 OK)으로 처음부터: `docs/agents/tasks/G12-oswin-3d.md` 끝의 「다시 그리기」 절 |
-| GPT | `G13-seraphine-3d` | READY | **다시 그리기** — 마네킹 2차 개정판 안내 그림(주인 OK)으로 처음부터: `docs/agents/tasks/G13-seraphine-3d.md` 끝의 「다시 그리기」 절 |
+| GPT | `G6-fieldmedic-3d` | REVIEW | **다시 그리기** — 마네킹 2차 개정판 안내 그림(주인 OK)으로 처음부터: `docs/agents/tasks/G6-fieldmedic-3d.md` 끝의 「다시 그리기」 절 |
+| GPT | `G9-astel-3d` | REVIEW | **다시 그리기** — 마네킹 2차 개정판 안내 그림(주인 OK)으로 처음부터: `docs/agents/tasks/G9-astel-3d.md` 끝의 「다시 그리기」 절 |
+| GPT | `G10-grom-3d` | REVIEW | **다시 그리기** — 마네킹 2차 개정판 안내 그림(주인 OK)으로 처음부터: `docs/agents/tasks/G10-grom-3d.md` 끝의 「다시 그리기」 절 |
+| GPT | `G12-oswin-3d` | REVIEW | **다시 그리기** — 마네킹 2차 개정판 안내 그림(주인 OK)으로 처음부터: `docs/agents/tasks/G12-oswin-3d.md` 끝의 「다시 그리기」 절 |
+| GPT | `G13-seraphine-3d` | REVIEW | **다시 그리기** — 마네킹 2차 개정판 안내 그림(주인 OK)으로 처음부터: `docs/agents/tasks/G13-seraphine-3d.md` 끝의 「다시 그리기」 절 |
 
 ## 끝난 일
 
