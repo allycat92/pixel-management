@@ -1927,3 +1927,96 @@ RISKS AT GAME SIZE: 1×에서는 귀고리와 눈썹을 별개로 식별하기 �
 본 방법: 등록용 96px 원본 셀 및 [x4 확대](shots/G10/03-round3-preview-x4.png) 확인. 실전 재시험 미실행.
 측정: 정수리→턱 89px 및 귀고리→얼굴 앞 기준 50px를 R1–R8에 동일 적용(대기 목표 49). 정수리 y 479/481/477/473/476/481/477/474, 턱 y 568/570/566/562/565/570/566/563. 코 높이 밝은 칼날과 얼굴 기준점 차이 30/23/31/37/25/28/30/39px. 칼날 하부 사선이 턱 아래에 가까운 칸은 별도 확인. H3 1.00, V1 1.003; R4/R8 뜸 31px.
 남은 걱정: 1×에서는 귀고리와 눈썹을 별개로 식별하기 어렵다. 검과 손잡이 연결부는 이번 머리 수정 범위에서 유지.
+
+## 3차 다시 그리기 — G12-oswin-3d
+
+CHECK: 후보 띠를 임시 로컬 ref에 넣어 receive.py --no-fetch 실행. 두 띠 PASS, 새 몸 검사 FAIL 0.
+```text
+# sheet_hero_oswin_run (gait frames for sheet_hero_oswin, run) — tip ce09aa6
+- art/inbox/gait/sheet_hero_oswin_run_a.png: art-inbox ce09aa6e
+- art/inbox/gait/sheet_hero_oswin_run_b.png: art-inbox ce09aa6e
+- not a base sheet: sheets.py is never run on these; they are attached to the registered sheet with add_gait.py
+- movement class (tools/art/specs/gait_classes.json): heavy -> mannequin art/requests/gait/heavy__hero_oswin/pose.json (gait heavy); strips checked without --flight-slots (no flight: every slot stands on y=870)
+- sheet_hero_oswin_run_a.png: RESULT: PASS
+- sheet_hero_oswin_run_b.png: RESULT: PASS
+- against the 3D request art/requests/gait/heavy__hero_oswin/pose.json (tools/mannequin3d/delivery.py):
+  (9 frame lines OK)
+- body against the idle drawing (tools/art/gait_body.py: H1 width pump, H2 same-phase, H3 head aspect, V1 figure height, weapon length, seam):
+    ok: idle art/inbox/sheet_hero_oswin.png: head top y 475, neck y 567, head block 90 px wide
+    ok: head block per frame (sx/sy/top y): F1:1.00/1.00/464 F2:1.00/1.00/469 F3:1.00/1.00/467 F4:1.00/1.00/466 F5:1.00/1.00/464 F6:1.00/1.00/469 F7:1.00/1.00/467 F8:1.00/1.00/466
+    ok: H1 width pump: phase-pair mean head sx 1.000 1.000 1.000 1.000 -> range 0.000 (FAIL > 0.09)
+    ok: H2 same-phase mismatch: |s(n) - s(n+4)| sx 0.000 0.000 0.000 0.000, sy 0.000 0.000 0.000 0.000 -> max 0.000 (FAIL > 0.15)
+    ok: H3 head aspect vs the idle: median sx/sy 1.00 (FAIL < 0.78 or > 1.25)
+    ok: V1 figure height vs the idle: (870 - head-band top) / (870 - idle top 475) = 1.024 median (head-band top 463 468 466 465 463 468 466 465; FAIL < 0.97)
+    ok: gait_body checks took 7 s
+- stride from art/requests/gait/heavy__hero_oswin/pose.json (step_px 142.5)
+- add_gait.py --dry-run:
+    sheet/hero/oswin: run ← /tmp/pm-round3.ShS39p/oswin-receive/gait/sheet_hero_oswin_run_a.png, /tmp/pm-round3.ShS39p/oswin-receive/gait/sheet_hero_oswin_run_b.png
+    8 프레임, 배율 0.1654, 칸 96x96, anchor 48,92, 팔레트 40색 (시트의 기본 칸에서)
+    프레임별 맨 아래 픽셀 (바닥 줄 위 게임 px): 1:0 2:0 3:0 4:0 5:0 6:0 7:0 8:0
+    sheet.gait = heavy (run 칸이 그려진 마네킹의 부류)
+    --dry-run: 시트·manifest 는 그대로. 새 시트 /tmp/pm-round3.ShS39p/oswin-receive/add_gait/sheet_hero_oswin.png · 등록될 항목 sheet_hero_oswin.entry.json · 미리보기 sheet_hero_oswin_preview_x4.png
+    sheet/hero/oswin: 시트 384x384, 15칸 — idle(4), attack(2), hit(1), run(8); runStride 23.6
+    다시 붙이는 명령: python3 tools/art/add_gait.py sheet/hero/oswin --gait run --src oswin-receive/gait/sheet_hero_oswin_run_a.png oswin-receive/gait/sheet_hero_oswin_run_b.png --pose art/requests/gait/heavy__hero_oswin/pose.json --ms 101
+- register after judging (copy the files in first): python3 tools/art/add_gait.py sheet/hero/oswin --gait run --src art/inbox/gait/sheet_hero_oswin_run_a.png art/inbox/gait/sheet_hero_oswin_run_b.png --pose art/requests/gait/heavy__hero_oswin/pose.json
+- work folder: /tmp/pm-round3.ShS39p/oswin-receive
+- after judging (pass or fail): git checkout ce09aa6 -- <the delivered paths>   (it then counts as reviewed)
+```
+REFERENCES LOADED: 최신 guide, plain, size 띠 a/b, 비교 GIF 2개, pose.json, 승인 대기 시트·초상.
+CHANGED: 8칸 모두 허리띠·흉갑과 대기 머리 비율을 올려서 복구. 허리 밑 판금과 망토를 다시 이어 그렸다. 기존의 칼과 쥔 위치, 무릎·발·연속 접지를 보존.
+DEVIATIONS: (a) 골반과 팔꿈치 접합부 보완만, 가이드 띠와 목표 높이 사용. (b) 없음, 머리 대기 폭/높이 유지. (c) 없음.
+RISKS AT GAME SIZE: 크게 볼 때 새 골반 판금의 경계와 판금의 녹 자국 강도가 종전과 다르게 읽힐 수 있다. 실전에서 이동과 정지 직전 위치 변화 미검증.
+3D GUIDE: 윗몸을 올려도 칼·두 주먹 좌표가 그대로여야 함을 확인하는 데 유용했다.
+
+## 판정 — gait/sheet_hero_oswin_run (3차)
+결과: 기술 통과, 주인 시각 판정 대기
+본 방법: 대기와 등록용 96px 셀에서 키 비교, [x4 확대](shots/G12/03-round3-preview-x4.png) 확인. 실전 재시험 미실행.
+측정: H1–H8 머리 꼭대기 y 463/468/466/465/463/468/466/465. 허리띠 중심 표본 y 671/676/675/674/672/678/675/674. 장식 금속을 빼고 파랑이 6px 이상 이어지는 첫 줄 597/602/600/599/597/602/600/599. H3 1.00, V1 1.024. 머리~발 402–407px (좌표차), 대기보다 내려가지 않음.
+남은 걱정: 크게 볼 때 새 골반 판금의 경계와 판금의 녹 자국 강도가 종전과 다르게 읽힐 수 있다. 실전에서 이동과 정지 직전 위치 변화 미검증.
+
+## 3차 다시 그리기 — G13-seraphine-3d
+
+CHECK: 후보 띠를 임시 로컬 ref에 넣어 receive.py --no-fetch 실행. 두 띠 PASS, 새 몸 검사 FAIL 0.
+```text
+# sheet_hero_seraphine_run (gait frames for sheet_hero_seraphine, run) — tip 20bfa2c
+- art/inbox/gait/sheet_hero_seraphine_run_a.png: art-inbox 20bfa2cc
+- art/inbox/gait/sheet_hero_seraphine_run_b.png: art-inbox 20bfa2cc
+- not a base sheet: sheets.py is never run on these; they are attached to the registered sheet with add_gait.py
+- movement class (tools/art/specs/gait_classes.json): robe -> mannequin art/requests/gait/robe__hero_seraphine/pose.json (gait robe); strips checked without --flight-slots (no flight: every slot stands on y=870)
+- sheet_hero_seraphine_run_a.png: RESULT: PASS
+- sheet_hero_seraphine_run_b.png: RESULT: PASS
+- against the 3D request art/requests/gait/robe__hero_seraphine/pose.json (tools/mannequin3d/delivery.py):
+  (9 frame lines OK)
+- body against the idle drawing (tools/art/gait_body.py: H1 width pump, H2 same-phase, H3 head aspect, V1 figure height, weapon length, seam):
+    ok: idle art/inbox/sheet_hero_seraphine.png: head top y 486, neck y 582, head block 136 px wide
+    ok: head block per frame (sx/sy/top y): F1:1.00/1.05/470 F2:1.00/1.05/473 F3:1.00/1.05/466 F4:1.00/1.05/465 F5:1.00/1.05/470 F6:1.00/1.05/473 F7:1.00/1.05/466 F8:1.00/1.05/465
+    ok: H1 width pump: phase-pair mean head sx 1.000 1.000 1.000 1.000 -> range 0.000 (FAIL > 0.09)
+    ok: H2 same-phase mismatch: |s(n) - s(n+4)| sx 0.000 0.000 0.000 0.000, sy 0.000 0.000 0.000 0.000 -> max 0.000 (FAIL > 0.15)
+    ok: H3 head aspect vs the idle: median sx/sy 0.95 (FAIL < 0.78 or > 1.25)
+    ok: V1 figure height vs the idle: (870 - head-band top) / (870 - idle top 486) = 1.049 median (head-band top 469 472 465 464 469 472 465 464; FAIL < 0.97)
+  WARN: WEAPON (mace) rigid length: painted weapon longer (+) / shorter (-) than in frame 1, per frame +0 +4 +10 +18 +16 +16 +11 +8 px -> range 18.0 px (WARN > 12, mace: WARN only) - the weapon is not one rigid piece: the shaft was stretched / shortened (or the hand left behind while the tip follows the guide). Cut the idle weapon out once and only move / turn it
+    ok: gait_body checks took 8 s
+- stride from art/requests/gait/robe__hero_seraphine/pose.json (step_px 134.2)
+- add_gait.py --dry-run:
+    sheet/hero/seraphine: run ← /tmp/pm-round3.ShS39p/seraphine-receive/gait/sheet_hero_seraphine_run_a.png, /tmp/pm-round3.ShS39p/seraphine-receive/gait/sheet_hero_seraphine_run_b.png
+    8 프레임, 배율 0.1654, 칸 96x96, anchor 48,92, 팔레트 40색 (시트의 기본 칸에서)
+    프레임별 맨 아래 픽셀 (바닥 줄 위 게임 px): 1:0 2:0 3:0 4:0 5:0 6:0 7:0 8:0
+    sheet.gait = robe (run 칸이 그려진 마네킹의 부류)
+    --dry-run: 시트·manifest 는 그대로. 새 시트 /tmp/pm-round3.ShS39p/seraphine-receive/add_gait/sheet_hero_seraphine.png · 등록될 항목 sheet_hero_seraphine.entry.json · 미리보기 sheet_hero_seraphine_preview_x4.png
+    sheet/hero/seraphine: 시트 384x384, 15칸 — idle(4), attack(2), hit(1), run(8); runStride 22.2
+    다시 붙이는 명령: python3 tools/art/add_gait.py sheet/hero/seraphine --gait run --src seraphine-receive/gait/sheet_hero_seraphine_run_a.png seraphine-receive/gait/sheet_hero_seraphine_run_b.png --pose art/requests/gait/robe__hero_seraphine/pose.json --ms 96
+- register after judging (copy the files in first): python3 tools/art/add_gait.py sheet/hero/seraphine --gait run --src art/inbox/gait/sheet_hero_seraphine_run_a.png art/inbox/gait/sheet_hero_seraphine_run_b.png --pose art/requests/gait/robe__hero_seraphine/pose.json
+- work folder: /tmp/pm-round3.ShS39p/seraphine-receive
+- after judging (pass or fail): git checkout 20bfa2c -- <the delivered paths>   (it then counts as reviewed)
+```
+REFERENCES LOADED: 최신 guide, plain, size 띠 a/b, 비교 GIF 2개, pose.json, 승인 대기 시트·초상.
+CHANGED: 기존 G3 머리·윗가슴을 통째로 옮겨서 두 걸음의 반복 높이를 맞춤. 뒤 베일과 붉은 띠만 박자 맞춰 고쳤고 기존 발·치맛단 및 철퇴 배치는 유지.
+DEVIATIONS: (a) 눈 위치 +2px(허용 상한). (b) 없음, 원래 G3 형태 유지. (c) 없음, 기존 철퇴의 길이 검사 WARN 18.0px가 수정 전후 동일하므로 철퇴 수정하지 않음.
+RISKS AT GAME SIZE: 1×에서 뒤쪽 베일과 붉은 띠 윤곽을 각각 읽기 어렵다. 철퇴 길이 18.0px 경고는 변경 범위 밖으로 남겨 둠.
+3D GUIDE: 같은 포즈 짝을 동기화하고 베일이 어디까지 움직이는지 비교하기 좋았다.
+
+## 판정 — gait/sheet_hero_seraphine_run (3차)
+결과: 기술 통과, 주인 시각 판정 대기
+본 방법: 등록용 96px 셀 및 [x4 확대](shots/G13/03-round3-preview-x4.png) 확인. 실전 재시험 미실행.
+측정: G1–G8 머리 y 469/472/465/464/469/472/465/464. G3 기준 조각 눈까지 50px/붉은 띠까지 149px, 동일 배율로 복제(눈은 목표보다 2px 아래). 같은 단계 짝 높이 차 0. y620 베일 뒤 x 99/98/90/90/99/98/90/90 (인접 최대 9px, 짝 0px). 동일 후방 붉은색 마스크 표본 면적 3776/3542/2951/2989/3672/3745/3139/2835px(평균에서 ±15% 이내; 마스크를 x<174/y665~764로 고정).
+남은 걱정: 1×에서 뒤쪽 베일과 붉은 띠 윤곽을 각각 읽기 어렵다. 철퇴 길이 18.0px 경고는 변경 범위 밖으로 남겨 둠.
