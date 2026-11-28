@@ -1621,6 +1621,20 @@ def weapon_table(pose, light):
     return rows
 
 
+def weapon_run_idle(pose, entry):
+    """(kind, idle deg, run deg) of the held weapon (circular mean of the on-screen angle over the frames) or None"""
+    ws = [fr.get('weapon_px') for fr in pose['frames']]
+    if not all(ws):
+        return None
+    kind = ws[0]['kind']
+    idle = next((p.get('idle_deg') for p in entry.get('props', []) if p.get('kind') == kind), None)
+    if idle is None:
+        return None
+    a = [math.radians(w['angle_deg']) for w in ws]
+    run = math.degrees(math.atan2(sum(map(math.sin, a)) / len(a), sum(map(math.cos, a)) / len(a)))
+    return kind, float(idle), run
+
+
 def weapon_idle_change(pose, entry):
     """(kind, idle deg, run deg) when the run carry differs from the idle's by more than 15 deg, else None"""
     ws = [fr.get('weapon_px') for fr in pose['frames']]
@@ -1640,18 +1654,22 @@ WEAPON_RULE_EN = [
     '  - WEAPON = ONE RIGID OBJECT. In every frame it has the same length and shape (the table: butt -> tip, fist -> tip). A',
     '    straight shaft or blade is ONE straight line from butt to tip - check it with a ruler line, never curve it. Never',
     '    shorten, bend or stretch it to reach a point or to stay under a line. Place it by the table\'s BUTT, FIST(S) and TIP',
-    '    for each frame (+-4 px); its angle is the table\'s even where it differs from the idle. The tip MAY be above the',
+    '    for each frame (+-4 px). Its angle is the idle\'s or within ~15 deg of it (the ANGLE line below says how much and',
+    '    why): draw the idle\'s own weapon turned by that much as one piece about the holding fist. The tip MAY be above the',
     '    head and is NOT limited by the Height numbers - those are the top of the HEAD (hair / helmet / hat) only. Between',
     '    neighbouring frames the weapon turns at most 3 deg (two-handed: 1.5) and its tip follows the smooth path of the',
     '    table - no back-and-forth. Two-handed: both fists stay at the same places on the grip in every frame, and the weapon',
-    '    rides with the chest (strip b = strip a).',
+    '    rides with the chest (strip b = strip a). The table\'s 2ND FIST is ON the butt -> tip line (checked <= 1.5 px): draw',
+    '    the shaft as one straight line through BOTH fists - never kink it at the second hand.',
 ]
 WEAPON_RULE_KO = (
     '- **무기는 하나의 단단한 물체다.** 모든 프레임에서 길이·모양이 같다(아래 표: 밑동→끝, 주먹→끝). 곧은 자루·칼날은 밑동부터 끝까지 '
     '**한 직선** — 자로 그어 확인하고 절대 휘지 않는다. 어떤 선에 맞추려고 줄이거나 구부리거나 늘이지 않는다. 프레임마다 표의 밑동·주먹·끝 '
-    '좌표(±4px)에 놓고, 각도는 대기와 달라도 표의 값. 무기 끝은 머리보다 위로 가도 된다 — 「높이」 숫자는 머리(머리카락·투구·모자) '
+    '좌표(±4px)에 놓는다. 각도는 대기 그대로이거나 대기에서 약 15도 안(얼마나·왜 바뀌는지는 아래 「각도」 줄) — 대기의 무기를 쥔 '
+    '주먹을 축으로 그만큼 한 덩어리로 돌려 그린다. 무기 끝은 머리보다 위로 가도 된다 — 「높이」 숫자는 머리(머리카락·투구·모자) '
     '꼭대기일 뿐, 프레임의 맨 윗점이 아니다. 이웃 프레임 사이 무기 각도는 3도(양손 무기 1.5도) 이하, 끝은 표의 매끈한 길을 따른다 — '
-    '앞뒤로 떨지 않는다. 양손 무기는 두 주먹이 매 프레임 손잡이의 같은 자리에 있고, 무기는 가슴을 따라 움직인다(b 띠 = a 띠).')
+    '앞뒤로 떨지 않는다. 양손 무기는 두 주먹이 매 프레임 손잡이의 같은 자리에 있고, 무기는 가슴을 따라 움직인다(b 띠 = a 띠). 표의 '
+    '**둘째 주먹은 밑동→끝 직선 위**에 있다(1.5px 안으로 검사) — 자루를 두 주먹을 지나는 한 직선으로 긋고, 둘째 손에서 꺾지 않는다.')
 
 
 def write_request_3d(sid, folder, cls, stem, short, p, date, spec, man):
@@ -1701,12 +1719,29 @@ def write_request_3d(sid, folder, cls, stem, short, p, date, spec, man):
     feet_rows = feet_table(pose, light)
     w_rows = weapon_table(pose, light)
     w_change = weapon_idle_change(pose, entry)
+    w_angle = weapon_run_idle(pose, entry)
     if w_change:
         wk, wi, wr = w_change
-        change_en = [f'  - ANGLE CHANGE: the idle drawing holds the {KIND_EN.get(wk, wk)} at ~{wi:.0f} deg; the run carries it at '
-                     f'{wr:.0f} deg (the table) - draw {wr:.0f}, do NOT keep the idle angle (keep its length and shape).']
-        change_ko = [f'- **각도 바뀜**: 대기 그림은 {KIND_KO.get(wk, wk)}을(를) 약 {wi:.0f}도로 든다. 달리기에서는 표의 {wr:.0f}도 — '
-                     f'{wr:.0f}도로 그린다. 대기 각도를 그대로 두지 않는다(길이·모양은 대기 그대로).']
+        d = wr - wi
+        why_en = (f'the full-length {KIND_EN.get(wk, wk)} has to stay >= 8 px inside the slot band (x 32..351) and clear of the '
+                  'head at the run\'s lean - the idle angle does not fit there')
+        why_ko = (f'{KIND_KO.get(wk, wk)}이(가) 제 길이 그대로 칸(x 32~351) 안 8px 이상, 달리기의 기울기에서 머리를 비켜 들어가야 해서 '
+                  '— 대기 각도로는 들어가지 않는다')
+        change_en = [f'  - ANGLE CHANGE ({d:+.0f} deg, more than ~15): the idle holds the {KIND_EN.get(wk, wk)} at ~{wi:.0f} deg; the run '
+                     f'carries it at {wr:.0f} deg because {why_en}. Do NOT redraw the weapon: take the idle\'s own weapon (same length, '
+                     'shape and straight shaft) and turn it as ONE piece about the holding fist to the table\'s angle; the angle is '
+                     'then the same in every frame (it never swings back toward the idle angle and forth).']
+        change_ko = [f'- **각도 바뀜({d:+.0f}도, 약 15도 넘음)**: 대기 그림은 {KIND_KO.get(wk, wk)}을(를) 약 {wi:.0f}도로 든다. 달리기에서는 '
+                     f'{wr:.0f}도 — {why_ko}. 무기를 새로 그리지 않는다: 대기의 그 무기(길이·모양·곧은 자루 그대로)를 쥔 주먹을 축으로 '
+                     '한 덩어리로 표의 각도까지 돌린다. 그 각도는 모든 프레임에서 같다(대기 각도 쪽으로 왔다 갔다 하지 않는다).']
+    elif w_angle:
+        wk, wi, wr = w_angle
+        d = wr - wi
+        change_en = [f'  - ANGLE: the run carries the {KIND_EN.get(wk, wk)} at {wr:.0f} deg on screen, {d:+.0f} deg from the idle\'s ~{wi:.0f} '
+                     '(within ~15) - keep the idle\'s weapon as drawn (same length, shape, straight shaft), turned as one piece '
+                     'about the holding fist by that little; the same angle in every frame.']
+        change_ko = [f'- **각도**: 달리기는 {KIND_KO.get(wk, wk)}을(를) 화면에서 {wr:.0f}도로 든다 — 대기 약 {wi:.0f}도에서 {d:+.0f}도(약 15도 안). '
+                     '대기의 무기를 그대로(길이·모양·곧은 자루) 쥔 주먹을 축으로 그만큼만 한 덩어리로 돌린다. 모든 프레임에서 같은 각도.']
     else:
         change_en, change_ko = [], []
     t0 = tops[0]
@@ -1726,8 +1761,13 @@ def write_request_3d(sid, folder, cls, stem, short, p, date, spec, man):
     held_txt = ', '.join(f'{KIND_KO.get(k, k)} ({"가까운" if h == "near" else "먼"} 손)' for k, h in held) or '없음'
     if any(w.get('grip') == 'reverse' for _, w in wang):
         held_txt += ' — 역수(칼날이 새끼손가락 쪽)'
-    wang_txt = ' '.join(f'{fr}:{w["deg"]:.0f}' for fr, w in wang)
-    wl_ko, wl_en = weapon_lines(wang, wmin, wmax)
+    wang1 = [(fr, w) for fr, w in wang if w.get('role') != 'second']
+    wang2 = [(fr, w) for fr, w in wang if w.get('role') == 'second']
+    wang_txt = ' '.join(f'{fr}:{w["deg"]:.0f}' for fr, w in wang1)
+    if wang2:
+        wang_txt += (f'; the second ({"near" if wang2[0][1]["hand"] == "N" else "far"}) hand, against its own forearm: '
+                     + ' '.join(f'{fr}:{w["deg"]:.0f}' for fr, w in wang2))
+    wl_ko, wl_en = weapon_lines(wang1, wmin, wmax)
     stride_ko, stride_en = stride_rule_lines(spec3, step, sc)
     summary_ko = pz.get('summary_ko')
     colours = []
@@ -1808,6 +1848,9 @@ def write_request_3d(sid, folder, cls, stem, short, p, date, spec, man):
         *wl_ko,
         *([WEAPON_RULE_KO] if w_rows else []),
         *change_ko,
+        *(['- **로브**: 반투명 로브 모양은 **움직이지 않는 대리 모양**이다 — 로브의 크기·자락 높이·무릎을 가린다는 것만 알려 주고, 걸음마다 '
+           '일부러 움직이지 않는다(한 걸음 4프레임에서 걸음마다 움직이면 지그재그가 된다). 천의 작은 흔들림은 그 위에 한 프레임 늦게 '
+           '그린다(닿기에서 뒷다리에 밀려 조금 뒤로, 지나가기까지 가라앉음) — 몇 px, 프레임 사이 매끈하게, 튀지 않게.'] if cls == 'robe' else []),
         ph_ko,
         '- **높이**: 아래 「Height」 숫자는 **머리 꼭대기**(머리카락·투구·모자)일 뿐 — 무기 끝·지팡이 머리·깃털은 그보다 위로 가도 된다.',
         f'- **손목 범위**: 무기의 손잡이 축(주먹에서 무기 끝 쪽; 활은 손잡이에서 위 활끝 쪽, 역수는 엄지 쪽)은 아래팔(팔꿈치→손목) 선에서 위쪽(엄지 쪽)으로 {wmin:g}~{wmax:g}도 안. 0 = 팔과 일직선. 그 밖으로 꺾어 '
@@ -1867,10 +1910,15 @@ def write_request_3d(sid, folder, cls, stem, short, p, date, spec, man):
         *wl_en,
         *(WEAPON_RULE_EN if w_rows else []),
         *change_en,
-        '  - WRIST RANGE (owner rule): every held weapon\'s GRIP AXIS (fist -> weapon tip; a bow: grip -> upper tip; a reverse',
+        '  - WRIST RANGE (owner rule; EVERY hand on the weapon, a two-handed grip\'s second hand too): every held weapon\'s GRIP',
+        '    AXIS (fist -> weapon tip; a bow: grip -> upper tip; a reverse',
         f'    grip: the thumb side of the fist) points {wmin:g}-{wmax:g} deg UPWARD (thumb side) from the forearm line (elbow -> wrist);',
         '    0 = straight along the forearm. Up or down on screen does not matter, but never bend it past the arm line (no',
         f'    dangling blade) nor beyond {wmax:g} deg. The guide is inside the range in every frame ({wang_txt} deg).',
+        *(['  - ROBE: the see-through robe shape is a STEADY proxy - it gives the robe\'s size, its hem height and that the hem',
+           '    covers the knees; it does not move with each step on purpose (moved per step at 4 frames a step it zig-zagged).',
+           '    Paint the cloth\'s own small one-frame-late sway on it (the hem pushed back a little by the trailing leg at',
+           '    contact, settling by passing) - a few px, smooth from frame to frame, never a jump.'] if cls == 'robe' else []),
         '  - The mannequin\'s round head is a placeholder: paint the character\'s own head, hair and headgear at the idle\'s size on',
         '    its neck. The joints, limbs and torso are fitted to the idle - put the character\'s own body exactly on them.',
         '  - PAINT OVER EVERY MANNEQUIN PIXEL. add_gait.py refuses a strip in which >= 25% of a frame still has the mannequin\'s',

@@ -16,6 +16,8 @@ Pose angles are in degrees:
   arms      shoulder_N/_F       upper arm angle from the TORSO's down axis, forward + (the arm follows the lean)
             elbow_N/_F          elbow bend (+ = forearm comes forward/up)
             wrist_N/_F          hand bend, arm_abd_N/_F arm out to the side
+            arm_twist_N/_F      upper-arm (humeral) rotation, + = inward (a bent forearm turns across the body); 0 for every
+                                carry so far except the second hand of a two-handed grip (motions.two_hand, arm_ik3d)
   prop      prop: {'hand': 'N'|'F', 'kind': 'sword'|'mace'|'staff'|'bow'|'spear'|'dagger'|'shield', 'angle': deg in
             the hand's plane, 'roll': deg about the forearm, 'grip': 'normal'|'reverse'} - optional held weapon bone
             (add_prop: a bow is held at its grip in one hand, a spear may take two hands, a reverse grip flips the blade)
@@ -97,7 +99,7 @@ DEFAULT_POSE = {
     'thigh_N': 0.0, 'thigh_F': 0.0, 'knee_N': 0.0, 'knee_F': 0.0, 'ankle_N': 0.0, 'ankle_F': 0.0,
     'abd_N': 2.0, 'abd_F': 2.0,
     'shoulder_N': 0.0, 'shoulder_F': 0.0, 'elbow_N': 20.0, 'elbow_F': 20.0, 'wrist_N': 0.0, 'wrist_F': 0.0,
-    'arm_abd_N': 6.0, 'arm_abd_F': 6.0,
+    'arm_abd_N': 6.0, 'arm_abd_F': 6.0, 'arm_twist_N': 0.0, 'arm_twist_F': 0.0,
 }
 
 
@@ -171,7 +173,7 @@ def ankle_on_floor(P, tip, pitch):
 def arm_chain(P, q, s, sho, R_armbase):
     """one arm from its shoulder point: -> (elbow, wrist, hand centre, R_upper_arm, R_forearm, R_hand)"""
     sg = SIDES[s]
-    R_ua = R_armbase @ rz(q['shoulder_' + s]) @ rx(-sg * q['arm_abd_' + s])
+    R_ua = R_armbase @ rz(q['shoulder_' + s]) @ rx(-sg * q['arm_abd_' + s]) @ ry(sg * q.get('arm_twist_' + s, 0.0))
     elb = sho + R_ua @ (DOWN * P['upper_arm'])
     R_fa = R_ua @ rz(q['elbow_' + s])
     wri = elb + R_fa @ (DOWN * P['forearm'])
@@ -299,6 +301,18 @@ def weapon_angle(B, side, d):
     Rb = B.frames.get('armbase', np.eye(3))
     f = Rb.T @ (B.joints['wri' + side] - B.joints['elb' + side])
     v = Rb.T @ np.asarray(d, float)
+    return _wrap(math.degrees(math.atan2(v[1], v[0]) - math.atan2(f[1], f[0])))
+
+
+def weapon_angle_hand(B, side, d):
+    """signed angle (deg) from the forearm of `side` to direction d in that forearm's OWN bending plane (perpendicular to
+    its elbow hinge): the wrist rule for an arm that reaches across the body (the second hand of a two-handed grip, a
+    twisted upper arm). Same sense as weapon_angle (+ = the elbow's flex sense = upward for a forward forearm); for an
+    untwisted, unabducted arm the two are equal."""
+    Rf = B.frames['forearm' + side]
+    f = Rf.T @ (B.joints['wri' + side] - B.joints['elb' + side])
+    v = Rf.T @ np.asarray(d, float)
+    # forearm local frame: the forearm runs along -y, the hinge is z; measured like weapon_angle (from the forearm, + = z)
     return _wrap(math.degrees(math.atan2(v[1], v[0]) - math.atan2(f[1], f[0])))
 
 
@@ -447,7 +461,7 @@ def add_prop(B, P, pr):
     if h2 and h2 != hold and pr.get('limit', True) is not False:
         # the SECOND hand on a two-handed weapon (owner 2026-11-28: the wrist rule holds for EVERY hand on the weapon): its
         # grip axis is the same weapon direction; it is not clamped (the first hand sets the weapon) - checks.py FAILs it
-        a2 = weapon_angle(B, h2, d)
+        a2 = weapon_angle_hand(B, h2, d)
         lim = tuple(pr['limit']) if isinstance(pr.get('limit'), (list, tuple)) else WEAPON_LIMIT
         B.weapons.append({'kind': kind, 'hand': h2, 'role': 'second', 'grip': grip_mode, 'raw_deg': round(a2, 2),
                           'deg': round(a2, 2), 'limit': [lim[0], lim[1]], 'clamped': False,
@@ -574,64 +588,79 @@ def arm_ik(P, pose, sho, target):
 
 
 ELBOW_FLEX_MAX = 145.0     # a human elbow: flexion at most 145 deg (forearm-to-upper-arm angle >= 35 deg) - checks.py
-ARM_ABD_RANGE = (-75.0, 60.0)   # arm out to the side (+) / across the body (-), deg
+ARM_ABD_RANGE = (-70.0, 60.0)   # arm out to the side (+) / across the body (-), deg
+ARM_TWIST_RANGE = (-30.0, 90.0)  # upper-arm rotation: + = inward (the forearm turns across the body), deg
+IK3D_REG = 0.04            # px of reach traded per deg of abduction / twist away from 0 (picks the relaxed arm of the family)
 
 
-def arm_ik3d(P, pose, side, goal, iters=60, score=None):
-    """3D arm IK: (shoulder, elbow, arm_abd) of `side` that put its HAND centre (rig.fk 'hand' joint, wrist bend kept) on
-    the world point `goal` - across the body when the goal is on the other side (a two-handed grip), elbow inside
-    0..ELBOW_FLEX_MAX, abduction inside ARM_ABD_RANGE. The arm has three angles for three coordinates, so the solutions
-    are a few separate branches (elbow down / out / up ...): damped least squares from a grid of starts, then among the
-    branches that reach the goal (< 0.05 px) the lowest elbow wins (a hanging, relaxed elbow), or `score(q) -> key`
-    (smaller is better) when given. -> (shoulder, elbow, abd, residual px)"""
+WRIST_IK_MARGIN = 12.0     # arm_ik3d keeps the second hand's wrist this far inside its range when the arm family allows
+WRIST_IK_W = 0.6           # px of reach traded per deg the wrist is outside that margin
+
+
+def arm_ik3d(P, pose, side, goal, iters=80, weapon_dir=None, limit=None):
+    """3D arm IK: (shoulder, elbow, arm_abd, arm_twist) of `side` that put its HAND centre (rig.fk 'hand' joint, wrist
+    bend kept) on the world point `goal` - across the body when the goal is on the other side (the second hand of a
+    two-handed grip: the upper arm turns inward, arm_twist). Four angles for three coordinates: of the family that reaches
+    the goal the most relaxed arm is taken (abduction and twist kept near 0, IK3D_REG); the elbow stays inside
+    0..ELBOW_FLEX_MAX. With `weapon_dir` (the weapon the hand holds) the family member whose wrist (weapon vs this
+    forearm in its own bending plane, weapon_angle_hand) is inside `limit` (default WEAPON_LIMIT) by WRIST_IK_MARGIN is
+    preferred - the wrist rule holds for the second hand too. Damped least squares from a few starts.
+    -> (shoulder, elbow, abd, twist, residual px)"""
     q = full_pose(pose)
     B = fk(P, q)
     sho = B.joints['S' + side]
     Rb = arm_base(q)
     goal = np.asarray(goal, float)
-    lo = np.array([-120.0, 0.0, ARM_ABD_RANGE[0]])
-    hi = np.array([160.0, ELBOW_FLEX_MAX, ARM_ABD_RANGE[1]])
-
-    def chain(x):
-        qq = dict(q)
-        qq['shoulder_' + side], qq['elbow_' + side], qq['arm_abd_' + side] = x
-        return qq, arm_chain(P, qq, side, sho, Rb)
+    lo = np.array([-120.0, 0.0, ARM_ABD_RANGE[0], ARM_TWIST_RANGE[0]])
+    hi = np.array([160.0, ELBOW_FLEX_MAX, ARM_ABD_RANGE[1], ARM_TWIST_RANGE[1]])
 
     def hand_of(x):
-        return chain(x)[1][2]
+        qq = dict(q)
+        qq['shoulder_' + side], qq['elbow_' + side], qq['arm_abd_' + side], qq['arm_twist_' + side] = x
+        return arm_chain(P, qq, side, sho, Rb)[2]
 
-    sols = []
-    for sh0 in (-20.0, 20.0, 60.0, 100.0):
-        for abd0 in (0.0, -25.0, -50.0):
-            x = np.array([sh0, 60.0, abd0])
-            lam = 1e-2
-            r = hand_of(x) - goal
-            for _ in range(iters):
-                Jm = np.zeros((3, 3))
-                for k in range(3):
-                    dx = np.zeros(3)
-                    dx[k] = 0.05
-                    Jm[:, k] = (hand_of(x + dx) - hand_of(x - dx)) / 0.1
-                step = -np.linalg.solve(Jm.T @ Jm + lam * np.eye(3), Jm.T @ r)
-                xn = np.clip(x + np.clip(step, -15.0, 15.0), lo, hi)
-                rn = hand_of(xn) - goal
-                if rn @ rn < r @ r:
-                    x, r = xn, rn
-                    lam = max(lam * 0.3, 1e-6)
-                else:
-                    lam *= 10.0
-                if np.linalg.norm(r) < 1e-4 or lam > 1e8:
+    wlo, whi = limit if limit is not None else WEAPON_LIMIT
+    wlo, whi = wlo + WRIST_IK_MARGIN, whi - WRIST_IK_MARGIN
+
+    def resid(x):
+        qq = dict(q)
+        qq['shoulder_' + side], qq['elbow_' + side], qq['arm_abd_' + side], qq['arm_twist_' + side] = x
+        _, _, hand, _, R_fa, _ = arm_chain(P, qq, side, sho, Rb)
+        extra = [IK3D_REG * x[2], IK3D_REG * x[3]]
+        if weapon_dir is not None:
+            v = R_fa.T @ weapon_dir         # the forearm runs along local -y: angle from it, + = the flex sense
+            a = _wrap(math.degrees(math.atan2(v[1], v[0])) + 90.0)
+            extra.append(WRIST_IK_W * (max(0.0, wlo - a) + max(0.0, a - whi)))
+        return np.concatenate([hand - goal, extra])
+
+    sh0, el0 = arm_ik(P, q, sho, goal - (B.joints['hand' + side] - B.joints['wri' + side]))
+    best = None
+    for start in ((sh0, max(el0, 5.0), 0.0, 0.0), (sh0, 60.0, -30.0, 40.0), (40.0, 90.0, -20.0, 70.0), (0.0, 60.0, 0.0, 20.0)):
+        x = np.clip(np.array(start, float), lo, hi)
+        lam = 1e-2
+        r = resid(x)
+        for _ in range(iters):
+            Jm = np.zeros((len(r), 4))
+            for k in range(4):
+                dx = np.zeros(4)
+                dx[k] = 0.05
+                Jm[:, k] = (resid(x + dx) - resid(x - dx)) / 0.1
+            step = -np.linalg.solve(Jm.T @ Jm + lam * np.eye(4), Jm.T @ r)
+            xn = np.clip(x + np.clip(step, -15.0, 15.0), lo, hi)
+            rn = resid(xn)
+            if rn @ rn < r @ r - 1e-12:
+                x, r = xn, rn
+                lam = max(lam * 0.3, 1e-7)
+            else:
+                lam *= 10.0
+                if lam > 1e8:
                     break
-            sols.append((float(np.linalg.norm(r)), x))
-    best_res = min(r for r, _ in sols)
-    ok = [(r, x) for r, x in sols if r <= max(0.05, best_res + 1e-6)]
-
-    def key(item):
-        r, x = item
-        qq, (elb, *_rest) = chain(x)
-        return (score(qq) if score else 0.0, round(float(elb[1]), 3), round(float(x[0]), 3))
-    r, x = min(ok, key=key)
-    return float(x[0]), float(x[1]), float(x[2]), r
+        cost = float(r @ r)
+        if best is None or cost < best[0] - 1e-9:
+            best = (cost, x)
+    x = best[1]
+    res = float(np.linalg.norm(hand_of(x) - goal))
+    return float(x[0]), float(x[1]), float(x[2]), float(x[3]), res
 
 
 def scaled(P, k):

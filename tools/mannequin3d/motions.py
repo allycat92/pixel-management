@@ -12,6 +12,10 @@ How a gait frame is made:
      accepted 2D bases), solved by IK, so a personality's hip drop never moves the foot (owner verdict 2026-11-28);
      at double support the trailing leg stays nearly straight and angled back (contact_rear_flex_max: its heel peels
      less, then a personality hip drop is given back);
+  1b. heavy / robe (`screen_mirror`, review 2026-11-28): the hips are squared to the camera (the chest turned on by as
+     much) and every foot is placed by its ON-SCREEN x, so strip b mirrors strip a on screen as well as in 3D (Oswin's
+     strip-b trailing foot was ~11 px further back than strip a's); the trailing heel at contact stays inside the
+     accepted references (`rear_heel_min` x step: more heel peel, then the personality's hip drop given back);
   2. the STANCE leg is foot-locked: its toe tip sits on the floor (toe0 - 2*step*phase) / cos(yaw) in front of the hip
      midpoint (world x), i.e. exactly step/4 further back every cell on screen - the rule the engine needs to keep feet
      planted (js/battle.js runCells moves the unit step/4 per stance cell). Both legs use the same WORLD rule, so the
@@ -84,9 +88,14 @@ GAITS = {
         # Read off heavy_base/v1 (the accepted 2D mannequin, the ironwall reference): rear toe-off -91 -> lift -62 (toe 8 px
         # up) -> passing -4 (beside the stance ankle, 11 px up) -> REACH +36 (ahead of the hip, 5 px up, toes up) -> contact
         # +46 = steps 29 / 58 / 40 / 10 px. The old angle table front-loaded it (+16 at passing, +38 at reach, sole 1 px).
-        'swing_target': {0.625: (-62.0, 8.0, -40.0), 0.75: (-2.0, 12.0, -11.0), 0.875: (36.0, 6.0, 4.0)},
+        # Passing +6 (2D -4; review 2026-11-28): with the hips squared to the camera (screen_mirror) the far swing foot
+        # passes right behind the planted near shin - 10 px further on it shows its toes in front of that shin (>= 45%).
+        'swing_target': {0.625: (-62.0, 8.0, -40.0), 0.75: (6.0, 12.0, -11.0), 0.875: (36.0, 6.0, 4.0)},
         'swing_ref': [29.8, 57.2, 40.7, 9.9],     # heavy_base/v1 swing-ankle steps (px), rear contact -> lift -> passing -> reach -> contact
         'contact_rear_flex_max': 24.0,             # the trailing leg at double support: nearly straight, angled back (2D 9 / 24)
+        'screen_mirror': True,                     # hips square to the camera, feet by screen x: strip b mirrors strip a
+        'rear_heel_min': -0.81,                    # trailing heel at contact >= -0.81 step from the hip column (heavy_base -0.81,
+                                                   # the accepted ironwall run -0.70 / -0.77)
         'arm': [(-4.0, 70.0), (-5.0, 66.0), (-2.0, 68.0), (2.0, 72.0), (4.0, 70.0), (5.0, 66.0), (2.0, 68.0), (-2.0, 72.0)],
         'pelvis_twist': 4.0, 'chest_counter': 2.0, 'head_pitch': 2.0,
     },
@@ -99,10 +108,13 @@ GAITS = {
         'hip_h': [182.2, 180.5, 185.0, 185.5],
         'lean': [7.1, 7.6, 6.8, 6.8],
         # swing foot by target (see run_heavy), read off robe_base/v1 (the mage reference): -79.5 -> -64 (toe 7 px up) ->
-        # passing -4 (9 px up) -> reach +37 (5 px up, toes up) -> contact +51 = steps 16 / 59 / 42 / 13 px
-        'swing_target': {0.625: (-64.0, 7.0, -37.0), 0.75: (-2.0, 10.0, -6.0), 0.875: (37.0, 6.0, 4.0)},
+        # passing -4 (9 px up) -> reach +37 (5 px up, toes up) -> contact +51 = steps 16 / 59 / 42 / 13 px; passing +6 as
+        # in run_heavy (the far foot passes behind the planted near shin with the hips squared)
+        'swing_target': {0.625: (-64.0, 7.0, -37.0), 0.75: (6.0, 10.0, -6.0), 0.875: (37.0, 6.0, 4.0)},
         'swing_ref': [15.7, 59.4, 41.8, 13.2],     # robe_base/v1 swing-ankle steps (px)
         'contact_rear_flex_max': 26.0,             # robe_base: 27 / 33
+        'screen_mirror': True,
+        'rear_heel_min': -0.81,                    # robe_base -0.77 / -0.75, the accepted mage run -0.69 / -0.70 (the fitted boots reach -0.81)
         'arm': [(-10.0, 72.0), (-12.0, 76.0), (-4.0, 74.0), (6.0, 72.0), (10.0, 72.0), (12.0, 76.0), (4.0, 74.0), (-6.0, 72.0)],
         'pelvis_twist': 4.0, 'chest_counter': 3.0, 'head_pitch': 2.0,
         # robe proxy: hem height (robe_base v1: 38-52 px, check fail < 38), hem corner lift, margins around the leading
@@ -110,8 +122,10 @@ GAITS = {
         # 11-28 owner verdict: the hem's back edge followed the trailing HEEL (+14 px) and jumped ~30 px at contact, the hem
         # 180-230 px wide (robe_base 120-157): now the back edge follows the trailing ANKLE (robe_base: back edge ~ ankle - 4),
         # the front the leading knee, and the back edge moves <= max_edge_px a frame (the boot shows under the hem).
+        # 11-28 review: riding that clamp the back edge zig-zagged (4 reversals a cycle) - the edges now follow a smooth
+        # lagged path (robe_hems / smooth_lagged: cycle mean + first harmonic, hem_lag cells late); max_edge_px is a net.
         'robe': {'hem_h': 42.0, 'lift_front': 6.0, 'lift_back': 8.0, 'knee_margin': 4.0, 'ankle_margin': 2.0,
-                 'max_change': 0.15, 'max_edge_px': 15.0},
+                 'max_change': 0.15, 'max_edge_px': 15.0, 'hem_lag': 1.0},
     },
 }
 
@@ -156,18 +170,29 @@ def _stance_target(spec, psi):
     return toe_tip, pitch
 
 
-def _solve_stance(P, pose, side, toe_tip_screen, pitch, cam):
+def _foot_world_x(body, side, x_screen, cam, mirror):
+    """world x for a foot of `side` whose point should sit x_screen px in front of the hip midpoint. mirror = False: the
+    WORLD rule (x_screen / cos(yaw) on the body's mid plane - the 3/4 yaw then shows the near foot s*hip_w behind, the
+    far foot s*hip_w ahead); mirror = True: the SCREEN rule - the foot itself lands at x_screen on screen whichever leg it
+    is, so the two halves of the cycle mirror on screen (review 2026-11-28, Oswin: strip b's trailing foot ~11 px further
+    back than strip a's)"""
+    hip_mid = body.joints['hip']
+    c, s_ = math.cos(math.radians(cam.yaw)), math.sin(math.radians(cam.yaw))
+    dz = (body.joints['H' + side][2] - hip_mid[2]) if mirror else 0.0
+    return hip_mid[0] + (x_screen + s_ * dz) / c
+
+
+def _solve_stance(P, pose, side, toe_tip_screen, pitch, cam, mirror=False):
     """IK one stance leg so that its toe tip lands on the floor at toe_tip_screen / cos(yaw) in front of the hip midpoint
     (world x). Both legs use the SAME world rule, so the far leg at phase psi mirrors the near leg at phase psi exactly
     (same knee bend); on screen the 3/4 yaw then puts the near toe s*hip_w behind and the far toe s*hip_w in front of the
-    mid-plane value - a constant per leg, so each planted foot still retreats exactly step/4 a cell."""
+    mid-plane value - a constant per leg, so each planted foot still retreats exactly step/4 a cell. mirror (gait
+    `screen_mirror`): the toe lands at toe_tip_screen ON SCREEN for both legs instead (_foot_world_x)."""
     q = full_pose(pose)
     q['abd_' + side] = 0.0
     body = fk(P, q)
     hip = body.joints['H' + side]
-    hip_mid = body.joints['hip']
-    c = math.cos(math.radians(cam.yaw))
-    ank = ankle_on_floor(P, np.array([hip_mid[0] + toe_tip_screen / c, 0.0, hip[2]]), pitch)
+    ank = ankle_on_floor(P, np.array([_foot_world_x(body, side, toe_tip_screen, cam, mirror), 0.0, hip[2]]), pitch)
     thigh, knee, ok = leg_ik(P, hip[:2], ank[:2])
     return thigh, knee, pitch - (thigh - knee), ok
 
@@ -178,7 +203,7 @@ def _solve_stances(spec, P, pose, phi, cam):
         psi = round((phi + off) % 1.0, 6)
         if psi <= spec['stance'][-1] + 1e-6:
             tip, pitch = _stance_target(spec, psi)
-            th, kn, an, ok = _solve_stance(P, pose, side, tip, pitch, cam)
+            th, kn, an, ok = _solve_stance(P, pose, side, tip, pitch, cam, spec.get('screen_mirror', False))
             pose['thigh_' + side], pose['knee_' + side], pose['ankle_' + side] = th, kn, an
             pose['abd_' + side] = 0.0
             stance.append(side)
@@ -186,7 +211,18 @@ def _solve_stances(spec, P, pose, phi, cam):
     return stance, ok_all
 
 
+REAR_FLEX_MIN = 10.0  # ... and keeps at least this knee bend (checks.py: stance knee >= 10)
+REAR_FLEX_LOOSE = 28.0  # ... and at most this one when the class limit cannot keep the heel in range (checks.py: <= 30)
+PEEL_MAX = -40.0     # ... and at most this much (the heel up on the toe; a flatter foot reaches further back)
 PEEL_MIN = -10.0     # the trailing heel at double support peels at least this much (deg) when it is flattened
+
+
+def rear_heel_x(P, pose, side, cam):
+    """screen x of the back of `side`'s heel (heel ball - r_foot) from the hip midpoint (the feet table's rear foot)"""
+    J = fk(P, pose).joints
+    c, s_ = math.cos(math.radians(cam.yaw)), math.sin(math.radians(cam.yaw))
+    v = J['heel' + side] - J['hip']
+    return c * v[0] - s_ * v[2] - P['r_foot']
 
 
 def _solve_swing(spec, P, pose, side, psi, cam, add=None):
@@ -203,8 +239,7 @@ def _solve_swing(spec, P, pose, side, psi, cam, add=None):
     q['abd_' + side] = 0.0
     body = fk(P, q)
     hip = body.joints['H' + side]
-    c = math.cos(math.radians(cam.yaw))
-    ank = np.array([body.joints['hip'][0] + ax / c, 0.0, hip[2]])
+    ank = np.array([_foot_world_x(body, side, ax, cam, spec.get('screen_mirror', False)), 0.0, hip[2]])
     ank[1] = sole - sole_y(ank, pitch, P)
     thigh, knee, ok = leg_ik(P, hip[:2], ank[:2])
     return thigh, knee, pitch - (thigh - knee), ok
@@ -260,6 +295,10 @@ def gait_keys(spec, P, cam, carry):
     swing_add = {round(float(k), 4): v for k, v in (pz.get('swing_add') or {}).items()}
     target_add = {round(float(k), 4): v for k, v in (pz.get('swing_target_add') or {}).items()}
     rows = []
+    # screen_mirror (heavy / robe, review 2026-11-28): the hips are squared to the camera (pelvis turned back by the camera
+    # yaw, the chest turned on by as much, so the trunk, head and arms keep their 3/4 look) and both feet are placed by
+    # their ON-SCREEN x (_foot_world_x) - the legs then mirror on screen AND in 3D: strip b = strip a with the legs swapped
+    sq = cam.yaw if spec.get('screen_mirror') else 0.0
     for f in range(8):
         phi = f / 8.0
         half = f % 4
@@ -269,8 +308,9 @@ def gait_keys(spec, P, cam, carry):
             'hip_h': (spec['hip_h'][half] - _per_half(pz.get('hip_drop'), half)) * k_leg,
             # 1.2 x the table lean: the screen lean (hip -> neck base) of the turned, curved trunk comes out ~0.83 x
             'pelvis_pitch': L * 0.5, 'spine_pitch': L * 0.35, 'chest_pitch': L * 0.35,
-            'pelvis_yaw': carry.get('pelvis_yaw', 0.0) - pz.get('pelvis_twist', spec['pelvis_twist']) * math.cos(2 * math.pi * phi),
-            'chest_yaw': carry.get('chest_open', 30.0) + cc * math.cos(2 * math.pi * phi) * 2,
+            'pelvis_yaw': (carry.get('pelvis_yaw', 0.0) - sq - pz.get('pelvis_twist', spec['pelvis_twist'])
+                           * math.cos(2 * math.pi * phi)),
+            'chest_yaw': carry.get('chest_open', 30.0) + sq + cc * math.cos(2 * math.pi * phi) * 2,
             'head_pitch': spec['head_pitch'],
             'neck_pitch': -L * 0.5 - _per_half(pz.get('neck_up'), half),
         }
@@ -314,17 +354,48 @@ def gait_keys(spec, P, cam, carry):
             rear = 'F' if f < 4 else 'N'
             table_h = spec['hip_h'][half] * k_leg
             sp = list(base_spec.get('stance_pitch_used') or spec['stance_pitch'])
-            while pose['knee_' + rear] > lim:
-                if sp[-1] < PEEL_MIN - 1e-6:
-                    sp[-1] = min(sp[-1] + 1.0, PEEL_MIN)
-                    base_spec['stance_pitch_used'] = sp
-                    spec['stance_pitch_used'] = sp
-                elif pose['hip_h'] < table_h - 1e-6:
-                    pose['hip_h'] = min(pose['hip_h'] + 0.5, table_h)
-                    meta['hip_raised'] += 0.5
-                else:
-                    break
+            hmin = spec.get('rear_heel_min')
+
+            def state():
+                kn = pose['knee_' + rear]
+                heel = rear_heel_x(P, pose, rear, cam)
+                heel_ok = hmin is None or heel >= hmin * spec['step_px'] - 1e-6
+                return ok_all and REAR_FLEX_MIN <= kn <= lim, ok_all and REAR_FLEX_MIN <= kn <= REAR_FLEX_LOOSE, heel_ok, heel
+            strict, _, heel_ok, _ = state()
+            if not (strict and heel_ok):
+                # candidates: hip given back 0, 0.5, ... px (up to the class table) x heel peel from the current pitch to
+                # PEEL_MIN. Wanted, in order: the knee inside the class limit and the heel inside the accepted range with the
+                # least hip given back; the same with the knee up to REAR_FLEX_LOOSE (< the 30 deg check); else the legal
+                # one with the heel furthest forward
+                h0 = pose['hip_h']
+                top = max(table_h, h0)
+                p_first = int(math.floor(sp[-1]))
+                cands = []
+                rise = 0.0
+                while True:
+                    pose['hip_h'] = min(h0 + rise, top)
+                    for pl in range(int(PEEL_MAX), int(PEEL_MIN) + 1):
+                        sp[-1] = float(pl)
+                        spec['stance_pitch_used'] = sp
+                        stance, ok_all = solve_legs()
+                        st, lo_, hok, heel = state()
+                        if lo_:
+                            cands.append((st, hok, heel, pose['hip_h'], float(pl)))
+                    if pose['hip_h'] >= top - 1e-6 or any(c[0] and c[1] for c in cands):
+                        break
+                    rise += 0.5
+                near = lambda c: (round(c[3], 2), abs(c[4] - p_first))      # least hip given back, pitch nearest the table
+                pick = (min((c for c in cands if c[0] and c[1]), key=near, default=None)
+                        or min((c for c in cands if c[1]), key=near, default=None)
+                        or max((c for c in cands if c[0]), key=lambda c: (c[2], -c[3]), default=None))
+                if pick:
+                    pose['hip_h'], sp[-1] = pick[3], pick[4]
+                else:                                  # nothing legal: the incoming pitch at the personality's hip
+                    pose['hip_h'], sp[-1] = h0, float(p_first)
+                spec['stance_pitch_used'] = sp
+                base_spec['stance_pitch_used'] = sp
                 stance, ok_all = solve_legs()
+                meta['hip_raised'] = round(pose['hip_h'] - h0, 2)
         meta.update({'stance': stance, 'reached': ok_all})
         carry_arms(pose, carry, phi)
         rows.append((pose, meta))
@@ -417,8 +488,8 @@ def two_hand(P, pose, carry, props, cam=None):
     pr = props[th.get('prop', 0)]
     d = J['prop_dir_' + pr.get('kind', 'staff')]       # the direction after the hand's range limit
     goal = J['prop_grip'] + d * th.get('along', 40.0)
-    sh, el, abd, _ = arm_ik3d(P, pose, side, goal)
-    pose['shoulder_' + side], pose['elbow_' + side], pose['arm_abd_' + side] = sh, el, abd
+    sh, el, abd, tw, _ = arm_ik3d(P, pose, side, goal, weapon_dir=d, limit=pr.get('limit'))
+    pose['shoulder_' + side], pose['elbow_' + side], pose['arm_abd_' + side], pose['arm_twist_' + side] = sh, el, abd, tw
 
 
 def _lean_total(pose):
@@ -502,25 +573,51 @@ def gait_frames(spec, P, cam, carry, n=8):
     return out
 
 
-def robe_hems(spec, P, bodies):
-    """hem of the robe proxy per frame (a cycle, in order): front edge = the leading knee + margin, back edge = the
-    trailing ANKLE - its shin radius - margin (robe_base); the hem pushes out at once but falls back one cell late
-    (robe_base), each edge moves at most max_edge_px (scaled to the frame count) between neighbouring frames, and its width
-    never changes by more than max_change (no balloon)."""
+HEM_HARMONICS = 1            # the hem edges keep the cycle mean + this many harmonics of their lagged leg targets
+
+
+def smooth_lagged(vals, lag_frames, n_per_cycle):
+    """a periodic path through `vals` (one cycle, len n) as its mean + the first HEM_HARMONICS Fourier harmonics, delayed
+    by lag_frames (in 8-frame cycle frames): one smooth swing per cycle, no frame-to-frame zig-zag"""
+    v = np.asarray(vals, float)
+    n = len(v)
+    k = np.arange(n)
+    out = np.full(n, v.mean())
+    shift = lag_frames * n / n_per_cycle
+    for h in range(1, HEM_HARMONICS + 1):
+        c = 2.0 / n * np.sum(v * np.cos(2 * np.pi * h * k / n))
+        s_ = 2.0 / n * np.sum(v * np.sin(2 * np.pi * h * k / n))
+        ph = 2 * np.pi * h * (k - shift) / n
+        out += c * np.cos(ph) + s_ * np.sin(ph)
+    return out
+
+
+def robe_hems(spec, P, bodies, cam=None):
+    """hem of the robe proxy per frame (a cycle, in order). Targets: front edge = the leading knee + margin, back edge =
+    the trailing ANKLE - its shin radius - margin (robe_base). The hem FOLLOWS those targets as a smooth lagged path (review 2026-11-28:
+    clamped to 15 px a frame the back edge rode the clamp and zig-zagged, 4 reversals a cycle): each edge = the mean + the
+    first harmonic of its targets (as they show on screen, `cam`), one cell late (smooth_lagged). The legs alternate every
+    half cycle, so the per-step push is the 2nd harmonic and is left out: with the mirrored heavy / robe legs the proxy hem
+    rides the hips steadily (no per-step flutter - that is the painter's one-frame-late cloth bounce, README), swaying
+    only with what differs between the halves; the front edge is moved forward as far as needed to keep the leading knee
+    inside it (within its margin).
+    Each edge still moves at most max_edge_px a frame and the width changes at most max_change (no balloon)."""
     r = spec['robe']
     n = len(bodies)
+    tz = math.tan(math.radians(cam.yaw)) if cam is not None else 0.0
+    sx = lambda v: v[0] - tz * v[2]          # where the joint shows on screen, as a world x on the body's mid plane
     raw = []
     for b in bodies:
         J = b.joints
-        front = max(J['kneeN'][0], J['kneeF'][0]) + P['r_thigh'][1] + r['knee_margin']
-        back = min(J['ankN'][0], J['ankF'][0]) - P['r_shin'][1] - r['ankle_margin']
+        front = max(sx(J['kneeN']), sx(J['kneeF'])) + P['r_thigh'][1] + r['knee_margin']
+        back = min(sx(J['ankN']), sx(J['ankF'])) - P['r_shin'][1] - r['ankle_margin']
         raw.append([front, back, J['hip'][0]])
     raw = np.array(raw)
-    lag = max(1, n // 8)
-    front = np.array([max(raw[i, 0], raw[i - lag, 0]) for i in range(n)])
-    back = np.array([min(raw[i, 1], raw[i - lag, 1]) for i in range(n)])
+    front = smooth_lagged(raw[:, 0], r.get('hem_lag', 1.0), 8)
+    front += max(0.0, float(np.max(raw[:, 0] - front)) - r['knee_margin'])     # the leading knee never pokes through
+    back = smooth_lagged(raw[:, 1], r.get('hem_lag', 1.0), 8)
     step = r.get('max_edge_px', 1e9) * 8.0 / n
-    for _ in range(4 * n):          # each edge moves <= step a frame (cyclic): never jump out to the trailing boot
+    for _ in range(4 * n):          # safety net: each edge moves <= step a frame (cyclic)
         moved = False
         for i in range(n):
             for e in (front, back):

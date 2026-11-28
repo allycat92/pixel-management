@@ -7,7 +7,9 @@ a short-legged body (stride follows the legs), the sword never over the head (at
 hem, the weapon hand range (rig clamp + check, and no authored frame outside it), that add_gait refuses an
 unpainted 3D guide written anywhere (palette signature), a character's movement personality (Baren: lower, more lean,
 same stride and cadence), the bow / spear / dagger props and the reverse grip (the wrist rule on the grip axis), and
-the 3D request folder (request.py: files, marker, verify, refusal of its plain strip).
+the 3D request folder (request.py: files, marker, verify, refusal of its plain strip); review 2026-11-28: the second hand
+of a two-handed grip on the weapon line with its own wrist rule and a human elbow (rig.arm_ik3d), strips a / b of heavy /
+robe mirrored on screen with the trailing heel in range, the robe hem on one smooth path.
 """
 import os
 import sys
@@ -156,9 +158,89 @@ class WeaponStability(unittest.TestCase):
         self.assertTrue(any('rigid' in m for m in msgs) and any('weapon angle' in m for m in msgs), msgs)
 
     def test_idle_angle_change_warns(self):
+        # round 1 carried Roderick's lance at 68 deg (idle 36): WARN; the run carry now stays within ~15 deg of the idle
         _, g, _ = run('lancer')
         res = checks.weapon_stability(g['recs'], CARRY['lancer'])
+        self.assertTrue(any(lv == checks.OK and 'vs idle 36' in m for lv, m in res), res)
+        old = dict(CARRY['lancer'], props=[dict(CARRY['lancer']['props'][0], abs_angle=68.0)],
+                   arms={'N': dict(CARRY['lancer']['arms']['N'], shoulder=6.0, elbow=78.0, abd=6.0)})
+        cam = Camera(yaw=15.0)
+        spec = gait_spec(old['gait'], 0.1654, 1.0)
+        g2 = build.render_gait(CANON, dict(old, chest_open=34.0), spec, cam, 0.1654)
+        res = checks.weapon_stability(g2['recs'], old)
         self.assertTrue(any(lv == checks.WARN and 'vs idle 36' in m for lv, m in res), res)
+
+
+class SecondHand(unittest.TestCase):
+    """review 2026-11-28: the second hand of a two-handed grip - on the weapon line, its own wrist rule, a human elbow"""
+    def test_two_handed_carries(self):
+        for key in ('lancer', 'oswin', 'felix', 'grom', 'magda'):
+            with self.subTest(key=key):
+                _, g, res = run(key)
+                self.assertEqual(fails(res), [])
+                offs = [r['weapon_px']['fist2_off_line_px'] for r in g['recs']]
+                self.assertLessEqual(max(abs(o) for o in offs), checks.FIST2_LINE_TOL)
+                second = [w for b in g['bodies'] for w in b.weapons if w.get('role') == 'second']
+                self.assertEqual(len(second), 8)
+                self.assertTrue(all(0.0 <= w['deg'] <= 120.0 and not w['outside'] for w in second), second)
+                for b in g['bodies']:
+                    J = b.joints
+                    for sd in 'NF':
+                        u, f = J['S' + sd] - J['elb' + sd], J['wri' + sd] - J['elb' + sd]
+                        inner = np.degrees(np.arccos(u @ f / np.linalg.norm(u) / np.linalg.norm(f)))
+                        self.assertGreaterEqual(inner, 180.0 - checks.ELBOW_FLEX_MAX - 1e-6)
+
+    def test_arm_ik3d_reaches_across_the_body(self):
+        from rig import arm_ik3d, full_pose
+        pose = {'chest_yaw': 30.0}
+        B = fk(CANON, pose)
+        goal = B.joints['chest'] + np.array([60.0, -30.0, 30.0])        # in front of the chest, on the NEAR side
+        sh, el, abd, tw, res = arm_ik3d(CANON, pose, 'F', goal)
+        self.assertLess(res, 0.05)
+        self.assertLessEqual(el, 145.0)
+        q = dict(full_pose(pose), shoulder_F=sh, elbow_F=el, arm_abd_F=abd, arm_twist_F=tw)
+        np.testing.assert_allclose(fk(CANON, q).joints['handF'], goal, atol=0.05)
+
+    def test_checks_catch_off_line_bad_wrist_and_folded_elbow(self):
+        _, g, _ = run('lancer')
+        recs = [dict(r) for r in g['recs']]
+        recs[3] = dict(recs[3], weapon_px=dict(recs[3]['weapon_px'], fist2_off_line_px=6.1))   # round 1's off-line fist
+        self.assertTrue(fails(checks.second_hand_checks(recs)))
+        b = g['bodies'][0]
+        b.weapons = [dict(w, outside=True, raw_deg=-35.0) if w.get('role') == 'second' else w for w in b.weapons]
+        self.assertTrue(any('SECOND' in m for m in fails(checks.weapon_checks('', ['x'], [b]))))
+        folded = fk(CANON, {'elbow_F': 160.0})                              # round 1's far elbow
+        self.assertTrue(fails(checks.elbow_checks([g['recs'][0]], [folded], Camera(yaw=15.0))))
+
+
+class MirrorAndHem(unittest.TestCase):
+    """review 2026-11-28: heavy / robe strips a and b mirror on screen; the robe hem follows one smooth path"""
+    def test_heavy_and_robe_halves_mirror_on_screen(self):
+        for key in ('oswin', 'seraphine'):
+            with self.subTest(key=key):
+                spec, g, res = run(key)
+                self.assertEqual(fails(res), [])
+                R = g['recs']
+                for f in range(4):
+                    a, b = R[f]['joints'], R[f + 4]['joints']
+                    for s, o in (('N', 'F'), ('F', 'N')):
+                        for j in ('toetip', 'heel', 'ank'):
+                            self.assertLessEqual(abs((a[j + s][0] - a['hip'][0]) - (b[j + o][0] - b['hip'][0])),
+                                                 2.0 if j == 'ank' else 3.0,
+                                                 (R[f]['frame'], j, s))
+                rf = g['bodies'][0].joints['heelN']           # noqa: F841  (the heel ball; the table subtracts r_foot)
+                for f in (0, 4):
+                    J = R[f]['joints']
+                    rear = min(J['heelN'][0], J['heelF'][0]) - CANON['r_foot'] - J['hip'][0]
+                    self.assertGreaterEqual(rear / spec['step_px'], spec['rear_heel_min'] - 0.01)
+
+    def test_hem_follows_a_smooth_path(self):
+        self.assertEqual(checks.path_reversals([-89.0, -103.4, -89.4, -74.9, -89.4, -103.9, -89.4, -74.9], 2.0), 4)
+        spec, g, res = run('mage')
+        self.assertEqual(fails(res), [])
+        for edge in ('front', 'back'):
+            xs = [r['hem'][edge + '_x_px'] for r in g['recs']]
+            self.assertLessEqual(checks.path_reversals(xs, checks.HEM_MOVE_PX), checks.HEM_REVERSALS)
 
 
 class Request3D(unittest.TestCase):
@@ -239,7 +321,7 @@ class WeaponLimit(unittest.TestCase):
         for key in ('warrior', 'ironwall', 'mage'):
             with self.subTest(key=key):
                 _, g, _ = run(key)
-                ws = [w for b in g['bodies'] for w in b.weapons]
+                ws = [w for b in g['bodies'] for w in b.weapons if w.get('role') != 'second']
                 self.assertEqual(len(ws), 8)
                 self.assertEqual([w for w in ws if w['clamped']], [])
                 self.assertTrue(all(0.0 <= w['deg'] <= 120.0 for w in ws))
@@ -274,7 +356,8 @@ class PropKinds(unittest.TestCase):
         self.assertEqual(b.weapons[0]['kind'], 'spear')
         spec, g, res = run('lancer', scale=0.1654)
         self.assertEqual(fails(res), [])
-        self.assertTrue(all(len(bd.weapons) == 1 and bd.weapons[0]['kind'] == 'spear' for bd in g['bodies']))
+        self.assertTrue(all(len(bd.weapons) == 2 and bd.weapons[0]['kind'] == 'spear' and bd.weapons[1]['role'] == 'second'
+                            for bd in g['bodies']))
 
     def test_reverse_grip_flips_the_blade_not_the_rule(self):
         fwd = self.body({'hand': 'N', 'kind': 'dagger', 'abs_angle': 30.0})

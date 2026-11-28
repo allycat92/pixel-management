@@ -205,7 +205,7 @@ def render_gait(P, carry, spec, cam, scale):
     # robe: a first pass without the robe gives the legs; the hem follows them (robe_hems), then the real render
     robes = [None] * 8
     if carry.get('robe'):
-        robes = robe_hems(spec, P, [fk(P, pose) for pose, _ in frames])
+        robes = robe_hems(spec, P, [fk(P, pose) for pose, _ in frames], cam)
     out = {k: [] for k in ('slots', 'plain', 'masks', 'recs', 'cells', 'bodies')}
     for i, (pose, meta) in enumerate(frames):
         body, img, m = render_frame(P, pose, cam, meta['props'], robes[i])
@@ -254,7 +254,7 @@ def build_char(key, carry, out, yaw, chest_open, log, allow_coarse=False):
              os.path.join(od, f'{s}_game_x4.gif'), spec['ms'])
     save_gif([im.crop((0, 380, SLOT_W, 900)) for im in slots], os.path.join(od, f'{s}_guide.gif'), spec['ms'])
     smooth_frames = gait_frames(spec, P, cam, carry, n=24)
-    srobes = robe_hems(spec, P, [fk(P, p) for p, _ in smooth_frames]) if carry.get('robe') else [None] * 24
+    srobes = robe_hems(spec, P, [fk(P, p) for p, _ in smooth_frames], cam) if carry.get('robe') else [None] * 24
     smooth = []
     for (pose, meta), rb in zip(smooth_frames, srobes):
         _, im, _ = render_frame(P, pose, cam, meta['props'], rb)
