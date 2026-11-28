@@ -1834,3 +1834,96 @@ RISKS AT GAME SIZE: R1/R5와 R3/R7은 서로 다른 앞다리에 천이 가려�
 본 방법: 등록 변환 96px 셀과 x4 확대 그림 확인. [대기·전투·달리기 15칸 비교](shots/G6/03-body-width-preview-x4.png). 이번 3차에서는 실전 재생 결과를 다시 측정하지 않음.
 측정: R1–R8 소매·주먹 몸통 기준선 x (한 줄 대표, 뒤→앞): 133→256 / 125→248 / 145→268 / 148→271 / 132→255 / 125→248 / 145→268 / 150→273 (=123px), y=639/638/643/644/639/638/643/644; 완장 상단 16줄을 통째로 잡으면 머리카락과 먼 팔이 겹쳐 폭을 따로 확인하지 못함. 동일 마스크 피부 38×54 및 완장 47×29px (8칸 각각 동일). H1 0.138→0.000, H2 0.063→0.000, 철퇴 길이 검사 범위 3.1px, R4/8 바닥에서 27px.
 남은 걱정: R1/R5와 R3/R7은 서로 다른 앞다리에 천이 가려지므로 실제 발뒤쪽 자락의 가시 면적과 R7 허리 앞 밝은 천 흔들림은 주인 눈으로 재확인. V2 머리 띠 경고는 남음.
+
+## 3차 다시 그리기 — G9-astel-3d
+
+CHECK: 후보 띠를 임시 로컬 ref에 넣어 receive.py --no-fetch 실행. 두 띠 PASS, 새 몸 검사 FAIL 0.
+```text
+# sheet_hero_astel_run (gait frames for sheet_hero_astel, run) — tip 8a5871c
+- art/inbox/gait/sheet_hero_astel_run_a.png: art-inbox 8a5871c9
+- art/inbox/gait/sheet_hero_astel_run_b.png: art-inbox 8a5871c9
+- not a base sheet: sheets.py is never run on these; they are attached to the registered sheet with add_gait.py
+- movement class (tools/art/specs/gait_classes.json): robe -> mannequin art/requests/gait/robe__hero_astel/pose.json (gait robe); strips checked without --flight-slots (no flight: every slot stands on y=870)
+- sheet_hero_astel_run_a.png: RESULT: PASS
+- sheet_hero_astel_run_b.png: RESULT: PASS
+- against the 3D request art/requests/gait/robe__hero_astel/pose.json (tools/mannequin3d/delivery.py):
+  (9 frame lines OK)
+- body against the idle drawing (tools/art/gait_body.py: H1 width pump, H2 same-phase, H3 head aspect, V1 figure height, weapon length, seam):
+    ok: idle art/inbox/sheet_hero_astel.png: head top y 458, neck y 561, head block 111 px wide
+    ok: head block per frame (sx/sy/top y): F1:1.09/1.06/462 F2:1.08/1.06/464 F3:1.05/1.05/459 F4:0.99/1.05/458 F5:0.96/1.05/461 F6:0.96/1.04/466 F7:1.06/1.06/460 F8:1.05/1.09/456
+    ok: H1 width pump: phase-pair mean head sx 1.025 1.019 1.056 1.019 -> range 0.037 (FAIL > 0.09)
+    ok: H2 same-phase mismatch: |s(n) - s(n+4)| sx 0.125 0.113 0.012 0.062, sy 0.012 0.025 0.012 0.037 -> max 0.125 (FAIL > 0.15)
+    ok: H3 head aspect vs the idle: median sx/sy 0.98 (FAIL < 0.78 or > 1.25)
+    ok: V1 figure height vs the idle: (870 - head-band top) / (870 - idle top 458) = 1.091 median (head-band top 460 462 423 412 411 416 418 454; FAIL < 0.97)
+    ok: WEAPON (staff) rigid length: painted weapon longer (+) / shorter (-) than in frame 1, per frame +0 -0 +0 -1 +0 -0 -0 -0 px -> range 1.1 px (WARN > 12, FAIL > 18)
+    ok: gait_body checks took 9 s
+- stride from art/requests/gait/robe__hero_astel/pose.json (step_px 144.51)
+- add_gait.py --dry-run:
+    sheet/hero/astel: run ← /tmp/pm-round3.ShS39p/astel-receive/gait/sheet_hero_astel_run_a.png, /tmp/pm-round3.ShS39p/astel-receive/gait/sheet_hero_astel_run_b.png
+    8 프레임, 배율 0.1654, 칸 96x96, anchor 48,92, 팔레트 40색 (시트의 기본 칸에서)
+    프레임별 맨 아래 픽셀 (바닥 줄 위 게임 px): 1:0 2:0 3:0 4:0 5:0 6:0 7:0 8:0
+    sheet.gait = robe (run 칸이 그려진 마네킹의 부류)
+    --dry-run: 시트·manifest 는 그대로. 새 시트 /tmp/pm-round3.ShS39p/astel-receive/add_gait/sheet_hero_astel.png · 등록될 항목 sheet_hero_astel.entry.json · 미리보기 sheet_hero_astel_preview_x4.png
+    sheet/hero/astel: 시트 384x384, 15칸 — idle(4), attack(2), hit(1), run(8); runStride 23.9
+    다시 붙이는 명령: python3 tools/art/add_gait.py sheet/hero/astel --gait run --src astel-receive/gait/sheet_hero_astel_run_a.png astel-receive/gait/sheet_hero_astel_run_b.png --pose art/requests/gait/robe__hero_astel/pose.json --ms 96
+- register after judging (copy the files in first): python3 tools/art/add_gait.py sheet/hero/astel --gait run --src art/inbox/gait/sheet_hero_astel_run_a.png art/inbox/gait/sheet_hero_astel_run_b.png --pose art/requests/gait/robe__hero_astel/pose.json
+- work folder: /tmp/pm-round3.ShS39p/astel-receive
+- after judging (pass or fail): git checkout 8a5871c -- <the delivered paths>   (it then counts as reviewed)
+```
+REFERENCES LOADED: 최신 guide, plain, size 띠 a/b, 비교 GIF 2개, pose.json, 승인 대기 시트·초상.
+CHANGED: 승인 대기 지팡이의 고리·나무 자루·금마개를 한 조각으로 옮기고 돌렸다. 주먹과 아래팔도 같이 올려 붙이고, 옛 중간 금띠·밑동 금장식 조각을 지웠다. 로브 앞쪽은 옛 아래팔이 놓였던 작은 구역만 다시 칠했다.
+DEVIATIONS: (a) ±4 좌표 목표 일부 칸 1~2px 초과. (b) 착색/팔 접합부는 승인 팔레트와 로브 주름으로 복구. (c) 없음, 장식 없는 자루의 나뭇결 명도만 게임 크기로 맞춤.
+RISKS AT GAME SIZE: 게임 크기에서 지팡이는 불투명 한 줄로 이어지지만 어두운 나무 부분은 배경과 잘 구분되지 않을 수 있다. 고리의 보라 돌은 작은 상태에서 대비 약함.
+3D GUIDE: 기준 가이드의 고리 방향과 그립을 함께 옮기는 데 유용. 표의 양끝 간격과 승인 대기의 실제 길이가 조금 다르므로 승인한 길이를 우선했다.
+
+## 판정 — gait/sheet_hero_astel_run (3차)
+결과: 기술 통과, 주인 시각 판정 대기
+본 방법: 등록용 96px 원본 셀과 [x4 확대](shots/G9/03-round3-preview-x4.png) 확인. 저대비 나무 자루의 알파 연속성도 점검. 실전 재시험 미실행.
+측정: G1–G8 주먹 중심 x/y 252/612, 253/612, 253/597, 252/586, 252/585, 253/590, 253/593, 253/602. 원본 조각을 투영한 주먹→고리 210.9px, 밑동→고리 324.0px(여덟 칸 동일, 픽셀 반올림 오차). 새 검사에서 지팡이 길이 변동 1.1px, 이전 측정 26.3px. 고리 끝 y는 좌표표보다 -3.5~5.3px, 밑동 y +4~4.5px로 일부 칸이 ±4를 약간 넘는다. 조각 길이는 늘이거나 줄이지 않았다.
+남은 걱정: 게임 크기에서 지팡이는 불투명 한 줄로 이어지지만 어두운 나무 부분은 배경과 잘 구분되지 않을 수 있다. 고리의 보라 돌은 작은 상태에서 대비 약함.
+
+## 3차 다시 그리기 — G10-grom-3d
+
+CHECK: 후보 띠를 임시 로컬 ref에 넣어 receive.py --no-fetch 실행. 두 띠 PASS, 새 몸 검사 FAIL 0.
+```text
+# sheet_hero_grom_run (gait frames for sheet_hero_grom, run) — tip c4ac383
+- art/inbox/gait/sheet_hero_grom_run_a.png: art-inbox c4ac3833
+- art/inbox/gait/sheet_hero_grom_run_b.png: art-inbox c4ac3833
+- not a base sheet: sheets.py is never run on these; they are attached to the registered sheet with add_gait.py
+- movement class (tools/art/specs/gait_classes.json): light -> mannequin art/requests/gait/run__hero_grom/pose.json (gait run); strips checked with --flight-slots 4 (the light run is in the air in slot 4)
+- sheet_hero_grom_run_a.png (--flight-slots 4): info: pose 4 (flight): 31 px above the guide line (>= 18) | RESULT: PASS
+- sheet_hero_grom_run_b.png (--flight-slots 4): info: pose 4 (flight): 31 px above the guide line (>= 18) | RESULT: PASS
+- against the 3D request art/requests/gait/run__hero_grom/pose.json (tools/mannequin3d/delivery.py):
+  (7 frame lines OK)
+- body against the idle drawing (tools/art/gait_body.py: H1 width pump, H2 same-phase, H3 head aspect, V1 figure height, weapon length, seam):
+    ok: idle art/inbox/sheet_hero_grom.png: head top y 478, neck y 567, head block 86 px wide
+    ok: head block per frame (sx/sy/top y): F1:1.00/1.00/478 F2:1.00/1.00/480 F3:1.00/1.00/476 F4:1.00/1.00/472 F5:1.00/1.00/475 F6:1.00/1.00/480 F7:1.00/1.00/476 F8:1.00/1.00/473
+    ok: H1 width pump: phase-pair mean head sx 1.000 1.000 1.000 1.000 -> range 0.000 (FAIL > 0.09)
+    ok: H2 same-phase mismatch: |s(n) - s(n+4)| sx 0.000 0.000 0.000 0.000, sy 0.000 0.000 0.000 0.000 -> max 0.000 (FAIL > 0.15)
+    ok: H3 head aspect vs the idle: median sx/sy 1.00 (FAIL < 0.78 or > 1.25)
+    ok: V1 figure height vs the idle: (870 - head-band top) / (870 - idle top 478) = 1.003 median (head-band top 478 480 477 474 475 480 477 476; FAIL < 0.97)
+    ok: gait_body checks took 6 s
+- stride from art/requests/gait/run__hero_grom/pose.json (step_px 275.0)
+- add_gait.py --dry-run:
+    sheet/hero/grom: run ← /tmp/pm-round3.ShS39p/grom-receive/gait/sheet_hero_grom_run_a.png, /tmp/pm-round3.ShS39p/grom-receive/gait/sheet_hero_grom_run_b.png
+    8 프레임, 배율 0.1654, 칸 96x96, anchor 48,92, 팔레트 40색 (시트의 기본 칸에서)
+    프레임별 맨 아래 픽셀 (바닥 줄 위 게임 px): 1:0 2:0 3:0 4:5 5:0 6:0 7:0 8:5
+    sheet.gait = light (run 칸이 그려진 마네킹의 부류)
+    --dry-run: 시트·manifest 는 그대로. 새 시트 /tmp/pm-round3.ShS39p/grom-receive/add_gait/sheet_hero_grom.png · 등록될 항목 sheet_hero_grom.entry.json · 미리보기 sheet_hero_grom_preview_x4.png
+    sheet/hero/grom: 시트 384x384, 15칸 — idle(4), attack(2), hit(1), run(8); runStride 45.5
+    다시 붙이는 명령: python3 tools/art/add_gait.py sheet/hero/grom --gait run --src grom-receive/gait/sheet_hero_grom_run_a.png grom-receive/gait/sheet_hero_grom_run_b.png --pose art/requests/gait/run__hero_grom/pose.json --ms 80
+- register after judging (copy the files in first): python3 tools/art/add_gait.py sheet/hero/grom --gait run --src art/inbox/gait/sheet_hero_grom_run_a.png art/inbox/gait/sheet_hero_grom_run_b.png --pose art/requests/gait/run__hero_grom/pose.json
+- work folder: /tmp/pm-round3.ShS39p/grom-receive
+- after judging (pass or fail): git checkout c4ac383 -- <the delivered paths>   (it then counts as reviewed)
+```
+REFERENCES LOADED: 최신 guide, plain, size 띠 a/b, 비교 GIF 2개, pose.json, 승인 대기 시트·초상.
+CHANGED: 새 안내 그림을 확인하고 대기 머리(귀고리·갈기·이마·턱)를 가로/세로 1.0으로 옮겨 목 연결만 다듬었다. 검, 하체, 접지/비행은 기존 그림 유지.
+DEVIATIONS: (a) 없음, 새 가이드는 겹침 확인에 사용했고 움직임/검 자리는 현재 게임용으로 그려 둔 값 유지. (b) 옆얼굴에서 승인 대기 머리의 모양을 100% 사용해 대기와 동일한 표정. (c) 없음.
+RISKS AT GAME SIZE: 1×에서는 귀고리와 눈썹을 별개로 식별하기 어렵다. 검과 손잡이 연결부는 이번 머리 수정 범위에서 유지.
+3D GUIDE: 검을 다시 움직이지 않고 얼굴 뒤쪽 폭을 살릴 여유를 확인하는 데 도움이 됐다.
+
+## 판정 — gait/sheet_hero_grom_run (3차)
+결과: 기술 통과, 주인 시각 판정 대기
+본 방법: 등록용 96px 원본 셀 및 [x4 확대](shots/G10/03-round3-preview-x4.png) 확인. 실전 재시험 미실행.
+측정: 정수리→턱 89px 및 귀고리→얼굴 앞 기준 50px를 R1–R8에 동일 적용(대기 목표 49). 정수리 y 479/481/477/473/476/481/477/474, 턱 y 568/570/566/562/565/570/566/563. 코 높이 밝은 칼날과 얼굴 기준점 차이 30/23/31/37/25/28/30/39px. 칼날 하부 사선이 턱 아래에 가까운 칸은 별도 확인. H3 1.00, V1 1.003; R4/R8 뜸 31px.
+남은 걱정: 1×에서는 귀고리와 눈썹을 별개로 식별하기 어렵다. 검과 손잡이 연결부는 이번 머리 수정 범위에서 유지.
