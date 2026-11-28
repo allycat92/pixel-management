@@ -9,6 +9,8 @@ Checks the dot_queue / package README spec for a 1x4 strip (or a 2x2 grid):
     pose 4 a flight frame (lowest pixel >= 18 px above y=870 instead of on it)
   * >= 32 px of magenta between poses and to the border
   * WARN for a straight break that shifts opposite sides of a pose; enlarged crops go to --work (or a temp folder)
+  * WARN for debris per pose: loose fragments (>= 3 px, 8-connected) more than 6 px from the figure, flat loose slivers within
+    12 px above the soles line, and thin strokes (< 7 px thick, >= 24 px wide) sticking out of the figure in the 50 px above it
 Optionally exports an .aseprite source with Aseprite (--aseprite) and checks that it equals the PNG.
 
 Usage:
@@ -298,6 +300,140 @@ def report_pose_seams(rgb, mask, box, pose, stem, work, warns):
     return work
 
 
+STRAY_MIN = 3        # px: smaller loose specks are anti-alias noise and are ignored
+STRAY_GAP = 6        # px: a loose part this close to the figure (figure mask dilated by 6 px) is a design part (tassel, string, spark)
+FLOOR_BAND = 12      # px above the soles line where a loose flat sliver (wider than FLOOR_RATIO x its height) is a ground line
+FLOOR_RATIO = 3
+SPUR_OPEN = 7        # an opening with a 7x7 square keeps everything 7 px thick or more: what it strips off are thin strokes
+SPUR_BAND = 50       # px above the soles line searched for thin strokes attached to the figure (lines dragged out of a boot)
+SPUR_MIN_W, SPUR_RATIO, SPUR_MIN_PX = 24, 2.5, 40   # a flagged stroke: >= 24 px wide, >= 2.5x wider than tall, >= 40 px
+
+
+def label8(mask):
+    """8-connected components of a mode-"1" / "L" mask (row runs + union-find, no numpy): [(bbox, pixel count, runs)],
+    runs as (y, x_start, x_end) with x_end exclusive, bbox (x0, y0, x1, y1) exclusive like getbbox()."""
+    w, h = mask.size
+    raw = mask.convert("L").tobytes()
+    run_re = re.compile(rb"[^\x00]+")
+    runs, parent, prev = [], [], []
+
+    def find(a):
+        while parent[a] != a:
+            parent[a] = parent[parent[a]]
+            a = parent[a]
+        return a
+
+    for y in range(h):
+        cur = []
+        for m in run_re.finditer(raw, y * w, (y + 1) * w):
+            s, e = m.start() - y * w, m.end() - y * w
+            i = len(runs)
+            runs.append((y, s, e))
+            parent.append(i)
+            cur.append(i)
+            for j in prev:
+                if runs[j][1] <= e and runs[j][2] >= s:   # touching or diagonal neighbours in the row above
+                    a, b = find(i), find(j)
+                    if a != b:
+                        parent[a] = b
+        prev = cur
+    groups = {}
+    for i, r in enumerate(runs):
+        groups.setdefault(find(i), []).append(r)
+    out = []
+    for rs in groups.values():
+        bb = (min(r[1] for r in rs), min(r[0] for r in rs), max(r[2] for r in rs), max(r[0] for r in rs) + 1)
+        out.append((bb, sum(r[2] - r[1] for r in rs), rs))
+    return out
+
+
+def paint_runs(size, runs, box=(0, 0)):
+    """L image of `size` with the runs (canvas coords, shifted by -box) painted 255."""
+    im = Image.new("L", size, 0)
+    d = ImageDraw.Draw(im)
+    for y, s, e in runs:
+        d.line((s - box[0], y - box[1], e - 1 - box[0], y - box[1]), fill=255)
+    return im
+
+
+def fmt_box(bb):
+    return f"x {bb[0]}-{bb[2] - 1}, y {bb[1]}-{bb[3] - 1} ({bb[2] - bb[0]}x{bb[3] - bb[1]} px)"
+
+
+def report_strays(mask, layout, feet, warns):
+    """Debris around each pose: loose specks of >= STRAY_MIN px more than STRAY_GAP px from the figure (the largest 8-connected
+    part of the pose), flat loose slivers just above the soles line (ground lines), and thin strokes dragged out of the figure
+    near the floor (an attached line below the feet that is not part of the design)."""
+    w, h = mask.size
+    if layout == "1x4":
+        slots = [((k * w // 4, 0, (k + 1) * w // 4, h), feet) for k in range(4)]
+    elif layout == "2x2":
+        slots = [((x0, y0, x0 + w // 2, y0 + h // 2), y0 + feet) for y0 in (0, h // 2) for x0 in (0, w // 2)]
+    else:
+        slots = [((0, 0, w, h), feet)]
+    comps = label8(mask)
+    owner = lambda bb: next((k for k, (s, _) in enumerate(slots)  # noqa: E731 - slot of a part's bbox centre
+                             if s[0] <= (bb[0] + bb[2]) / 2 < s[2] and s[1] <= (bb[1] + bb[3]) / 2 < s[3]), None)
+    per_slot = [[] for _ in slots]
+    for c in comps:
+        k = owner(c[0])
+        if k is not None:
+            per_slot[k].append(c)
+    figures = []
+    for k, ((sx0, sy0, sx1, sy1), fy) in enumerate(slots):
+        parts = sorted(per_slot[k], key=lambda c: -c[1])
+        if not parts:
+            continue
+        fig = parts[0]
+        figures.append(fig)
+        pad = STRAY_GAP + 1
+        fb = fig[0]
+        box = (max(0, fb[0] - pad), max(0, fb[1] - pad), min(w, fb[2] + pad), min(h, fb[3] + pad))
+        grown = paint_runs((box[2] - box[0], box[3] - box[1]), fig[2], box)
+        for _ in range(STRAY_GAP):   # Chebyshev dilation by STRAY_GAP px
+            grown = grown.filter(ImageFilter.MaxFilter(3))
+        gp = grown.load()
+
+        def near(runs):
+            for y, s, e in runs:
+                if box[1] <= y < box[3]:
+                    for x in range(max(s, box[0]), min(e, box[2])):
+                        if gp[x - box[0], y - box[1]]:
+                            return True
+            return False
+
+        for bb, n, runs in parts[1:]:
+            if n < STRAY_MIN:
+                continue
+            bw, bh = bb[2] - bb[0], bb[3] - bb[1]
+            if bb[1] >= fy - FLOOR_BAND and bb[3] <= fy + 1 and bw > FLOOR_RATIO * bh:
+                warns.append(f"pose {k + 1}: thin line just above the floor at {fmt_box(bb)}, {n} px, not connected to the figure "
+                             f"(a ground line or leftover stroke is not part of the sprite: erase it)")
+            elif not near(runs):
+                warns.append(f"pose {k + 1}: stray fragment at {fmt_box(bb)}, {n} px, more than {STRAY_GAP} px from the figure "
+                             f"(leftover pixels or debris: erase it, or join it to the figure if it is part of the design)")
+    # thin strokes attached to the figure near the floor: what an opening with a SPUR_OPEN square strips off the figure
+    for k, ((sx0, sy0, sx1, sy1), fy) in enumerate(slots):
+        fig = next((f for f in figures if owner(f[0]) == k), None)
+        if fig is None:
+            continue
+        pad = SPUR_OPEN
+        top = max(0, fy - SPUR_BAND)
+        box = (max(0, fig[0][0] - pad), max(0, top - pad), min(w, fig[0][2] + pad), min(h, fy + 1 + pad))
+        fm = paint_runs((box[2] - box[0], box[3] - box[1]), fig[2], box)
+        opened = fm.filter(ImageFilter.MinFilter(SPUR_OPEN)).filter(ImageFilter.MaxFilter(SPUR_OPEN))
+        residue = ImageChops.subtract(fm, opened)
+        band = Image.new("L", residue.size, 0)
+        band.paste(255, (0, top - box[1], residue.width, fy + 1 - box[1]))
+        residue = ImageChops.multiply(residue, band)
+        for bb, n, _ in label8(residue):
+            bw, bh = bb[2] - bb[0], bb[3] - bb[1]
+            if n >= SPUR_MIN_PX and bw >= SPUR_MIN_W and bw >= SPUR_RATIO * bh:
+                cb = (bb[0] + box[0], bb[1] + box[1], bb[2] + box[0], bb[3] + box[1])
+                warns.append(f"pose {k + 1}: thin line sticking out of the figure near the floor at {fmt_box(cb)}, {n} px thinner "
+                             f"than {SPUR_OPEN} px (a stroke dragged out of a foot or a ground line? erase it unless it is part of the design)")
+
+
 def check_png(path, layout, feet, cell=None, scale=None, flight=(), report_seams=False, work=None):
     """flight: 1-based pose numbers of a 1x4 strip that are flight frames of a run (both feet off the ground): their lowest
     pixel must be FLIGHT_CLEAR px or more above the soles line instead of on it."""
@@ -400,6 +536,7 @@ def check_png(path, layout, feet, cell=None, scale=None, flight=(), report_seams
             warns.append(f"pose {i}: lowest pixel at y={rel}, guide line is {fy}")
         if report_seams:
             work = report_pose_seams(rgb, pose_mask, bb, i, os.path.splitext(stem)[0], work, warns)
+    report_strays(mask, layout, fy, warns)
     trapped = trapped_key_pixels(rgb)
     info.append(f"magenta pixels enclosed by the figure: {trapped} (fine if they are real gaps, e.g. bow and string)")
     return errors, warns, info

@@ -1772,7 +1772,7 @@ def weapon_angle_lines(wm, idle, margin):
     if wm['rng'] < 1.0:
         how_en = f'at {wm["mean"]:.0f} deg on screen, the same angle in every frame (the table: {_deg_span(wm["lo"], wm["hi"])})'
         how_ko = f'화면에서 {wm["mean"]:.0f}도로, 모든 프레임에서 같은 각도(표: {_deg_span(wm["lo"], wm["hi"], "~")}도)'
-        frame_en, frame_ko = 'the same angle in every frame', '모든 프레임에서 같은 각도'
+        frame_en, frame_ko = 'one fixed angle', '그 한 각도로'
     else:
         st = _ceil1(wm['step'])
         how_en = (f'at about {wm["mean"]:.0f} deg on screen, swaying {wm["lo"]:.0f}-{wm["hi"]:.0f} deg with the '
