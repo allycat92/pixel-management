@@ -17,14 +17,16 @@ Run (gait) checks - gait_checks():
   weapon      hand range (owner 2026-11-28): every held weapon's angle to its forearm inside the character's
               weapon_limit [0, 120] deg (0 = straight along the forearm, + = upward) in EVERY frame - a frame that
               needed rig.py's clamp FAILs (no blade bent down past the arm line, dangling)                        FAIL
-  blade/head  (sword carriers) the blade never overlaps the head on screen                                          FAIL
+  blade/head  (sword carriers) blade-over-head pixels, reported only (owner 11-28: overlaps are fine; the z-buffer
+              draws the nearer part over the farther one)                                                        INFO
   robe        hem bottom 38-52 px above the floor (robe_base); hem width change <= 15% between frames; the robe is
               widest within 14 px of its hem (cloth flares to the hem, no gourd)                                   FAIL
 Action checks - action_checks():
   weapon      hand range as above, every action frame (READY and in-betweens included)                            FAIL
-  blade/head  the blade never overlaps the head on screen in any frame                                             FAIL
-  blade/trunk (hit) the blade never overlaps the trunk on screen                                                    FAIL
-  blade dir   windup: blade tip up and behind the fist; only the strike points down                                FAIL
+  blade/head, blade/trunk  overlap pixels, reported only (owner 11-28: overlaps fine, depth order decides)        INFO
+  blade dir   screen direction of the blade, reported only (owner 11-28: up or down does not matter as long as
+              the wrist range relative to the forearm holds - that is the 'weapon' check)                          INFO
+  (props below the floor line are touched up when drawn - owner 11-28; body/feet floor rules stay FAIL)
   band, floor, ik as above (each frame placed by its own feet centre, the sheets' pose_feet_x rule)               FAIL
 """
 import math
@@ -186,7 +188,7 @@ def gait_checks(spec, recs, bodies, plains, cam, carry=None):
         for b in bodies:
             cam.fit(b)
             hd.append(blade_overlap(b, cam, {'head', 'nose'}))
-        out.append((FAIL if any(hd) else OK, f'blade over the head (px) per frame {hd} (must be 0)'))
+        out.append((OK, f'blade over the head (px) per frame {hd} (info: overlap allowed, depth order decides)'))
     # robe
     if any(g['part'] == 'robe' for g in bodies[0].ghosts):
         out += robe_checks(recs, bodies, cam)
@@ -225,10 +227,10 @@ def action_checks(act, names, bodies, plains, recs, cam_of):
     head = []
     for i, b in enumerate(bodies):
         head.append(blade_overlap(b, cam_of(i), {'head', 'nose'}))
-    out.append((FAIL if any(head) else OK, f'{act}: blade over the head (px) per frame {head} (must be 0)'))
+    out.append((OK, f'{act}: blade over the head (px) per frame {head} (info: overlap allowed, depth order decides)'))
     if act == 'hit':
         tr = [blade_overlap(b, cam_of(i), {'pelvis', 'spine', 'chest'}) for i, b in enumerate(bodies)]
-        out.append((FAIL if any(tr) else OK, f'{act}: blade over the trunk (px) per frame {tr} (must be 0)'))
+        out.append((OK, f'{act}: blade over the trunk (px) per frame {tr} (info: overlap allowed, depth order decides)'))
     # blade direction (screen): tip relative to the fist
     dirs = []
     for i, b in enumerate(bodies):
@@ -249,8 +251,8 @@ def action_checks(act, names, bodies, plains, recs, cam_of):
         for nm, (dx, dy) in zip(names, dirs):
             if not (dy < 0 and dx <= 0):
                 bad.append(f'{nm} blade not down and back {dx, dy}')
-    out.append((FAIL if bad else OK, f'{act}: blade direction (tip - fist, screen x fwd / y up) {dict(zip(names, dirs))}'
-                + (f'  wrong: {bad}' if bad else '')))
+    out.append((OK, f'{act}: blade direction (tip - fist, screen x fwd / y up) {dict(zip(names, dirs))} (info only)'
+                + (f'  differs from the old preference: {bad}' if bad else '')))
     ext = [extent_x(im) for im in plains]
     okb = all(a >= BAND[0] and b <= BAND[1] for a, b in ext)
     out.append((OK if okb else FAIL, f'{act}: x extent incl. props per frame {[f"{a}-{b}" for a, b in ext]} '
