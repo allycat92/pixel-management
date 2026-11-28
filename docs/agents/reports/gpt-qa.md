@@ -1490,3 +1490,7 @@ console.error(seed,rows.length,extra.length);
 | 기존 버튼 경계 | 대기 외부단이 없고 모두 나갔으면 「귀환까지 ▶▶」 유지. 실제로 나갈 수 있는 두 번째 직속이 있으면 숨김 유지. |
 
 - 회귀: 변경 JS 4개 `node --check` 통과. roll(기본·`SIM_SHADOW=1`) md5 둘 다 `f1712f75dd50877f69a65caf254be083`. `node tools/sim/battle.js 100` 400건 miss/soft 0. `node tools/sim/shadow.js 6 365 --resolve battle --check --jobs 3` 3,072전, 재실행·JSON·틱·결판 이후·편성·공유 난수/상태 위반 모두 0. 그림·판정·저장 형식을 수정하지 않았다.
+
+## G1-baren-run-3d — 막힘
+
+게임 브랜치 `f79cbb8`의 GPT READY 요청을 확인했다. 기존 GPT-QA 지시는 그림 제작과 `art-inbox` 쓰기를 금지한다. 바렌 한 건에 한해 두 작업을 허용한다는 주인의 확인이 필요하다. 확인 전에는 제작·납품·대기열 상태 변경을 하지 않았다.
