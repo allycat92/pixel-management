@@ -1456,3 +1456,22 @@ RISKS AT GAME SIZE: 1배에서 낮은 뒷발과 철신 교대가 판금 무게�
 본 방법: 원본 띠, 등록용 1배·4배 미리보기, 접점과 바닥선, GIF 프레임 간격.
 고칠 점: 기술 검사 요구 없음. 게임 등록 전 주인 판정.
 남은 걱정: 1배에서 낮은 뒷발과 철신 교대가 판금 무게감으로 읽히는지, 창 끝의 끄덕임이 충분한지 확인.
+
+## gait/sheet_captain_huntress_run - 키아라 — 숲의 덫꾼 이동 8프레임
+CHECK: (a) RESULT: PASS; (b) RESULT: PASS
+```text
+  --dry-run: 시트·manifest 는 그대로. 새 시트 /tmp/pm-g4.89iu/preview/sheet_captain_huntress.png · 등록될 항목 sheet_captain_huntress.entry.json · 미리보기 sheet_captain_huntress_preview_x4.png
+  sheet/captain/huntress: 시트 384x384, 15칸 — idle(4), attack(2), hit(1), run(8); runStride 45.5
+  다시 붙이는 명령: python3 tools/art/add_gait.py sheet/captain/huntress --gait run --src art/inbox/gait/sheet_captain_huntress_run_a.png art/inbox/gait/sheet_captain_huntress_run_b.png --pose art/requests/gait/run__captain_huntress/pose.json --ms 80
+```
+REFERENCES LOADED: guide, plain underlay, size (a/b), two GIFs, approved source & installed sheet, portrait, concept and pose.json → ok.
+CHANGED: 접점 x 284/216/147, 296/227/158, y=870; 공중 y=836. 39색, 경량 보폭 45.5, 명목 80ms.
+DEVIATIONS: (a) 접점과 높이를 가이드 수치에 맞췄다. 팔꿈치·무릎 등 세부 관절 좌표는 실측하지 않았다. (b) 승인 시트의 구리색 포니테일, 올리브 후드, 화살통·밧줄과 반곡궁을 새로 그렸다. (c) 활을 허리 앞에 낮게 유지하고 화살은 걸지 않았다. 활 길이·손목 각도는 실측하지 않았다.
+RISKS AT GAME SIZE: 1배에서 어두운 지형의 가는 시위와 가까운 발 교대가 읽히는지 확인.
+3D GUIDE: 발 높은 정도, 활의 위치와 몸 기준 시위 방향을 잡는 데 도움이 됐다.
+
+## 판정 — gait/sheet_captain_huntress_run
+결과: 기술 검사 통과 / 미감 주인 판정 대기.
+본 방법: 원본 띠, 등록용 1배·4배 미리보기, 접점과 바닥선, GIF 프레임 간격.
+고칠 점: 기술 검사 요구 없음. 게임 등록 전 주인 판정.
+남은 걱정: 1배에서 어두운 지형의 가는 시위와 가까운 발 교대가 읽히는지 확인.
