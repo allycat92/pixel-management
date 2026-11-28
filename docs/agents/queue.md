@@ -12,8 +12,8 @@
 | GPT | `G6-fieldmedic-3d` | REVIEW | (art-inbox `f264347`) 마그다 3차 — 몸 검사 PASS(폭 출렁임 0.000, 짝 차이 0, 얼굴 비율 1.13, 철퇴 길이 ±2px), 머리 높이 안내 그림보다 19px 아래(WARN). **주인 판정 대기** |
 | GPT | `G9-astel-3d` | REVIEW | (art-inbox `0e48087`) 아스텔 3차 — 몸 검사 PASS(지팡이 길이 ±1px, 얼굴 0.98). **주인 판정 대기** |
 | GPT | `G10-grom-3d` | REVIEW | (art-inbox `0e48087`) 그롬 3차(새 안내 그림) — 몸 검사 PASS(얼굴 비율 1.00, 폭 출렁임 0). **주인 판정 대기** |
-| GPT | `G12-oswin-3d` | READY | **3차 다시 그리기** — 오스윈: 작업 문서 끝 「3차」 절(주인 지적 + 칸별 기준 숫자). 납품 전 `receive.py` 의 새 몸 검사(H1·H2·H3·V1·무기 길이) FAIL 0 |
-| GPT | `G13-seraphine-3d` | READY | **3차 다시 그리기** — 세라핀: 작업 문서 끝 「3차」 절(주인 지적 + 칸별 기준 숫자). 납품 전 `receive.py` 의 새 몸 검사(H1·H2·H3·V1·무기 길이) FAIL 0 |
+| GPT | `G12-oswin-3d` | REVIEW | **3차 다시 그리기** — 오스윈: 작업 문서 끝 「3차」 절(주인 지적 + 칸별 기준 숫자). 납품 전 `receive.py` 의 새 몸 검사(H1·H2·H3·V1·무기 길이) FAIL 0 |
+| GPT | `G13-seraphine-3d` | REVIEW | **3차 다시 그리기** — 세라핀: 작업 문서 끝 「3차」 절(주인 지적 + 칸별 기준 숫자). 납품 전 `receive.py` 의 새 몸 검사(H1·H2·H3·V1·무기 길이) FAIL 0 |
 
 ## 끝난 일
 
