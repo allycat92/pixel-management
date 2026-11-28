@@ -1649,3 +1649,43 @@ RISKS AT GAME SIZE: 1배에서 빈 손이 철퇴와 겹쳐 보이지 않는지, 
 본 방법: 원본 띠, 등록용 1배·4배 미리보기, 접점과 바닥선, GIF 프레임 간격.
 고칠 점: 기술 검사 요구 없음. 게임 등록 전 주인 판정.
 남은 걱정: 1배에서 빈 손이 철퇴와 겹쳐 보이지 않는지, 로브 자락에서 발이 읽히는지 확인.
+
+## 다시 그리기 — G3-lancer-3d (마네킹 2차)
+
+CHECK: 양쪽 RESULT: PASS. add_gait --scale 0.1654 --dry-run 성공.
+```text
+[OK] H1: feet x 65..285 (guide 65..285; hip column 192)
+  [OK] H2: feet x 94..245 (guide 94..245; hip column 192)
+  [OK] H3: feet x 138..236 (guide 138..236; hip column 192)
+  [OK] H4: feet x 100..273 (guide 99..273; hip column 192)
+  [OK] H5: feet x 65..285 (guide 65..285; hip column 192)
+  [OK] H6: feet x 94..245 (guide 94..245; hip column 192)
+  [OK] H7: feet x 138..236 (guide 138..236; hip column 192)
+  [OK] H8: feet x 100..273 (guide 99..273; hip column 192)
+RESULT: PASS (sheet_captain_lancer_run_a.png, sheet_captain_lancer_run_b.png vs art/requests/gait/heavy__captain_lancer/pose.json)
+```
+REFERENCES LOADED: 최신 guide, plain, size 띠 a/b, 비교 GIF 2개, pose.json, 승인 대기 시트·초상, concept.
+CHANGED: 로드릭 8칸을 새 중량 보행 위에 처음부터 그렸다. 창날·페넌트는 승인 대기 그림의 한 형상을 같은 길이로 재배치했고 손잡이 축을 가이드에 맞췄다. H4/H8 전방 발끝 x273, 바닥 접지 8/8.
+DEVIATIONS: 두 손과 창자루의 화면상 연결을 보았지만 손가락별 그립과 팔꿈치 각도는 실측하지 않았다.
+RISKS AT GAME SIZE: 대기↔이동에서 창이 더 세워지는 전환은 남는다. 등록 점검과 최종 판정은 주인.
+3D GUIDE: 상단 무기 한계와 머리 높이를 분리하고 H4/H8의 전방 뻗기를 기준으로 삼았다.
+
+## 다시 그리기 — G5-hedgemage-3d (마네킹 2차)
+
+CHECK: 양쪽 RESULT: PASS. add_gait --scale 0.1654 --dry-run 성공.
+```text
+[OK] G1: feet x 73..287 (guide 73..287; hip column 192)
+  [OK] G2: feet x 93..250 (guide 93..250; hip column 192)
+  [OK] G3: feet x 142..239 (guide 142..239; hip column 192)
+  [OK] G4: feet x 107..275 (guide 107..275; hip column 192)
+  [OK] G5: feet x 73..287 (guide 73..287; hip column 192)
+  [OK] G6: feet x 93..250 (guide 93..250; hip column 192)
+  [OK] G7: feet x 142..239 (guide 142..239; hip column 192)
+  [OK] G8: feet x 107..275 (guide 107..275; hip column 192)
+RESULT: PASS (sheet_captain_hedgemage_run_a.png, sheet_captain_hedgemage_run_b.png vs art/requests/gait/robe__captain_hedgemage/pose.json)
+```
+REFERENCES LOADED: 최신 guide, plain, size 띠 a/b, 비교 GIF 2개, pose.json, 승인 대기 시트·초상, concept.
+CHANGED: 펠릭스 8칸 새로 그림. 모자·골드 테두리·나무 지팡이를 유지하고 G4/G8 앞발이 가운 앞으로 나오게 했다. 전방 발끝 x275, 전 칸 접지.
+DEVIATIONS: 지팡이의 맨 아래는 손·옷 뒤에 가려지는 칸이 있다. 가려진 부분의 길이와 손목 각도는 실측하지 않았다.
+RISKS AT GAME SIZE: 1×에서 발이 가운 바로 아래로 나오는 짧은 구간과 지팡이 아래쪽 가림을 확인할 것.
+3D GUIDE: 새 로브 REACH와 바닥 좌표가 앞발 위치 결정에 유용했다.
