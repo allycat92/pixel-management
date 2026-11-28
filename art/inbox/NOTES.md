@@ -1570,3 +1570,22 @@ RISKS AT GAME SIZE: 1배에서 책·안경과 보석이 서로 섞이지 않고 
 본 방법: 원본 띠, 등록용 1배·4배 미리보기, 접점과 바닥선, GIF 프레임 간격.
 고칠 점: 기술 검사 요구 없음. 게임 등록 전 주인 판정.
 남은 걱정: 1배에서 책·안경과 보석이 서로 섞이지 않고 읽히는지 확인.
+
+## gait/sheet_hero_grom_run - 그롬 — 투기장 챔피언 이동 8프레임
+CHECK: (a) RESULT: PASS; (b) RESULT: PASS
+```text
+  --dry-run: 시트·manifest 는 그대로. 새 시트 /tmp/pm-g10.DaDm/preview/sheet_hero_grom.png · 등록될 항목 sheet_hero_grom.entry.json · 미리보기 sheet_hero_grom_preview_x4.png
+  sheet/hero/grom: 시트 384x384, 15칸 — idle(4), attack(2), hit(1), run(8); runStride 45.5
+  다시 붙이는 명령: python3 tools/art/add_gait.py sheet/hero/grom --gait run --src art/inbox/gait/sheet_hero_grom_run_a.png art/inbox/gait/sheet_hero_grom_run_b.png --pose art/requests/gait/run__hero_grom/pose.json --ms 80
+```
+REFERENCES LOADED: guide, plain underlay, size (a/b), two GIFs, approved source & installed sheet, portrait, pose.json → ok (concept: not part of the requested hero reference set).
+CHANGED: 접점 x 284/215/146, 296/227/158; 착지 y=870, 공중 y=839. run 보폭 45.5, 명목 80ms.
+DEVIATIONS: (a) 접점과 높이를 가이드 수치에 맞췄다. 팔꿈치·무릎 등 세부 관절 좌표는 실측하지 않았다. (b) 올리브 피부, 밝은 털깃, 사자 허리띠와 붉은 앞자락, 양손 대검. (c) 프레임별 대검 길이·손목 각도는 실측하지 않았다.
+RISKS AT GAME SIZE: 1배에서 높은 무릎과 무게가 내려앉는 동작, 곧추 든 대검이 분리되는지 확인.
+3D GUIDE: 칼의 각도와 낮아지는 몸 중심을 참고했다.
+
+## 판정 — gait/sheet_hero_grom_run
+결과: 기술 검사 통과 / 미감 주인 판정 대기.
+본 방법: 원본 띠, 등록용 1배·4배 미리보기, 접점과 바닥선, GIF 프레임 간격.
+고칠 점: 기술 검사 요구 없음. 게임 등록 전 주인 판정.
+남은 걱정: 1배에서 높은 무릎과 무게가 내려앉는 동작, 곧추 든 대검이 분리되는지 확인.
