@@ -29,8 +29,8 @@
 - **명암 = 깊이**: 밝은 부분이 보는 사람에게 **가깝고**, 어두운 부분이 **멀다** (가까운 팔·다리는 밝은 베이지, 먼 팔·다리는 어두운 회청색). 덧그릴 때 이 앞뒤 순서를 지킨다 — **가까운 쪽이 먼 쪽 위에** 그려진다. 무기·몸·얼굴이 겹쳐도 그 순서만 맞으면 괜찮다.
 - **청록 반투명 = 든 무기**: 실선 윤곽은 무기가 앞에 있는 곳, 점선은 몸이 무기 앞을 가리는 곳. 무기는 대기 그림의 모양으로, 청록 모양의 **선 위에 그 길이·각도 그대로** 그린다 (프롬프트의 WEAPON 표: 프레임마다 밑동·주먹·끝 좌표).
   - 창 = 긴 자루와 끝의 잎 모양 강철 창끝. 두 손으로 쥘 수 있다(두 손이 같은 자루 위).
-- **무기는 하나의 단단한 물체다.** 모든 프레임에서 길이·모양이 같다(아래 표: 밑동→끝, 주먹→끝). 곧은 자루·칼날은 밑동부터 끝까지 **한 직선** — 자로 그어 확인하고 절대 휘지 않는다. 어떤 선에 맞추려고 줄이거나 구부리거나 늘이지 않는다. 프레임마다 표의 밑동·주먹·끝 좌표(±4px)에 놓는다. 각도는 대기 그대로이거나 대기에서 약 15도 안(얼마나·왜 바뀌는지는 아래 「각도」 줄) — 대기의 무기를 쥔 주먹을 축으로 그만큼 한 덩어리로 돌려 그린다. 무기 끝은 머리보다 위로 가도 된다 — 「높이」 숫자는 머리(머리카락·투구·모자) 꼭대기일 뿐, 프레임의 맨 윗점이 아니다. 이웃 프레임 사이 무기 각도는 3도(양손 무기 1.5도) 이하, 끝은 표의 매끈한 길을 따른다 — 앞뒤로 떨지 않는다. 양손 무기는 두 주먹이 매 프레임 손잡이의 같은 자리에 있고, 무기는 가슴을 따라 움직인다(b 띠 = a 띠). 표의 **둘째 주먹은 밑동→끝 직선 위**에 있다(1.5px 안으로 검사) — 자루를 두 주먹을 지나는 한 직선으로 긋고, 둘째 손에서 꺾지 않는다.
-- **각도**: 달리기는 창을(를) 화면에서 51도로 든다 — 대기 약 36도에서 +15도(약 15도 안). 대기의 무기를 그대로(길이·모양·곧은 자루) 쥔 주먹을 축으로 그만큼만 한 덩어리로 돌린다. 모든 프레임에서 같은 각도.
+- **무기는 하나의 단단한 물체다.** 모든 프레임에서 길이·모양이 같다(아래 표: 밑동→끝, 주먹→끝). 곧은 자루·칼날은 밑동부터 끝까지 **한 직선** — 자로 그어 확인하고 절대 휘지 않는다. 어떤 선에 맞추려고 줄이거나 구부리거나 늘이지 않는다. 프레임마다 표의 밑동·주먹·끝 좌표(±4px)에 놓는다. 각도는 대기 그대로이거나 대기 가까이(얼마나·프레임마다 어떻게·왜 바뀌는지는 아래 「각도」 줄) — 대기의 무기를 쥔 주먹을 축으로 프레임마다 표의 각도까지 한 덩어리로 돌려 그린다. 무기 끝은 머리보다 위로 가도 된다 — 「높이」 숫자는 머리(머리카락·투구·모자) 꼭대기일 뿐, 프레임의 맨 윗점이 아니다. 이웃 프레임 사이 무기 각도는 최대 0.2도(이 마네킹에서 잰 값; 검사 한도 양손 무기 1.5도), 끝은 표의 매끈한 길을 따른다 — 앞뒤로 떨지 않는다. 양손 무기는 두 주먹이 매 프레임 손잡이의 같은 자리에 있고, 무기는 가슴을 따라 움직인다(b 띠 = a 띠). 표의 **둘째 주먹은 밑동→끝 직선 위**에 있다(1.5px 안으로 검사) — 자루를 두 주먹을 지나는 한 직선으로 긋고, 둘째 손에서 꺾지 않는다.
+- **각도**: 달리기는 창을(를) 화면에서 51도로, 모든 프레임에서 같은 각도(표: 51도) — 대기 약 36도에서 +15도(약 15도 안). 대기의 무기를 그대로(길이·모양·곧은 자루) 쥔 주먹을 축으로 그만큼만 한 덩어리로 돌린다 — 모든 프레임에서 같은 각도. 이 각도에서 잰 값: 무기를 포함한 그림 전체가 칸(x 32~351) 안쪽으로 13px 이상(검사는 8px 이상).
 - 단계(3D 가이드 그대로): H1 **닿기**(두 발 모두 바닥: 앞발은 막 디뎠고 뒷발은 발끝으로, 뒤꿈치 듦) - H2 **내려앉기**(엉덩이 가장 낮음, 뒷발이 떨어져 발끝이 몇 px 뜸) - H3 **지나가기**(드는 발이 디딘 발 옆을 지나 앞으로, 약 10px 뜸) - H4 **내딛기**(드는 발이 **엉덩이보다 앞**, 발끝을 들고 바닥 위 약 5px — 곧 디딘다; 디딘 발 뒤꿈치는 이제 막 뜨기 시작). H5~H8 은 먼 발로 같은 동작. **H4·H8 에서 드는 발은 엉덩이 열보다 앞**(아래 발 표) — 뒤에 남기거나 밀어 내는 자세가 아니다. 뒷발은 표보다 더 뒤로 빠지지 않고, 아무것도 x=32 / x=351 선에 닿지 않는다.
 - **높이**: 아래 「Height」 숫자는 **머리 꼭대기**(머리카락·투구·모자)일 뿐 — 무기 끝·지팡이 머리·깃털은 그보다 위로 가도 된다.
 - **손목 범위**: 무기의 손잡이 축(주먹에서 무기 끝 쪽; 활은 손잡이에서 위 활끝 쪽, 역수는 엄지 쪽)은 아래팔(팔꿈치→손목) 선에서 위쪽(엄지 쪽)으로 0~120도 안. 0 = 팔과 일직선. 그 밖으로 꺾어 늘어뜨리지 않는다 (덜렁거리는 칼 금지). 위로 들든 아래로 내리든 이 범위 안이면 된다.
@@ -44,7 +44,7 @@
 
 - 말을 잃었어도 아직 돌격을 이끄는 듯 걷는 기사: 자부심 있게 꼿꼿한 중량 걸음 — 중량 마네킹보다 1~2도 덜 기울고, 가슴은 보는 쪽으로 열려(사자 문장이 보이게) 턱을 들고 시선은 앞을 본다(3D 마네킹에 이미 들어 있다 — 따라 그린다).
 - 발을 디딜 때마다 판금 무게가 실린다: 내려앉는 프레임(H2/H6)이 부류 마네킹보다 약 3px 더 낮고, 천천히 다시 올라온다 — 묵직하고 신중한 박자, 통통 튀지 않는다.
-- 랜스는 대기처럼 내내 두 손으로 낮게 든다: 가까운 손 주먹은 엉덩이 옆(팔꿈치는 뒤로), 먼 손은 자루를 따라 약 93px 위 가슴 앞. 랜스는 가슴에 고정되어 화면에서 약 51도 — 대기의 약 36도보다 15도 더 세운 것이고, 이것이 랜스 제 길이로 칸 안(x=351 안쪽 8px)에 들어가는 가장 작은 변화다(길이·곧은 자루 그대로, 가까운 주먹을 축으로 한 덩어리로만 세운다). 모든 프레임에서 같은 각도, 몸의 출렁임만 따른다 — 끄덕이지도 휘두르지도 않고, 바닥 쪽으로 처지지 않는다.
+- 랜스는 대기처럼 내내 두 손으로 낮게 든다: 가까운 손 주먹은 엉덩이 옆(팔꿈치는 뒤로), 먼 손은 자루를 따라 약 93px 위 가슴 앞. 랜스는 가슴에 고정되어 화면에서 약 51도 — 대기의 약 36도보다 15도 더 세운 것이다 — 대기 각도로는 랜스 제 길이의 끝이 칸 선 x=351 을 약 35px 넘고, 51도에서는 끝이 x=351 안쪽 약 14px 에 든다(그림 전체는 13px 이상, 잰 값)(길이·곧은 자루 그대로, 가까운 주먹을 축으로 한 덩어리로만 세운다). 모든 프레임에서 같은 각도, 몸의 출렁임만 따른다 — 끄덕이지도 휘두르지도 않고, 바닥 쪽으로 처지지 않는다.
 - 두 손이 한 자루를 잡고 있어 엉덩이·어깨 비틀림은 부류 마네킹보다 작다. 파란 깃털, 파란 창 깃발, 해진 붉은 망토와 겉옷 자락은 한 프레임 늦게 절제된 흔들림으로 따라오고, 내려앉는 프레임에서 가라앉는다.
 
 ## 요약 (한국어)
@@ -86,17 +86,21 @@ HOW TO READ THE 3D GUIDE:
   - The teal see-through shape is the held weapon: a solid outline where it is in front, dashed where a body part covers
     it. Paint the character's own weapon (the idle's shape) ON THAT LINE at the table's length and angle (WEAPON below):
     SPEAR = a long shaft with a leaf-shaped steel head at the end; both hands may hold the shaft.
-  - WEAPON = ONE RIGID OBJECT. In every frame it has the same length and shape (the table: butt -> tip, fist -> tip). A
-    straight shaft or blade is ONE straight line from butt to tip - check it with a ruler line, never curve it. Never
-    shorten, bend or stretch it to reach a point or to stay under a line. Place it by the table's BUTT, FIST(S) and TIP
-    for each frame (+-4 px). Its angle is the idle's or within ~15 deg of it (the ANGLE line below says how much and
-    why): draw the idle's own weapon turned by that much as one piece about the holding fist. The tip MAY be above the
-    head and is NOT limited by the Height numbers - those are the top of the HEAD (hair / helmet / hat) only. Between
-    neighbouring frames the weapon turns at most 3 deg (two-handed: 1.5) and its tip follows the smooth path of the
-    table - no back-and-forth. Two-handed: both fists stay at the same places on the grip in every frame, and the weapon
-    rides with the chest (strip b = strip a). The table's 2ND FIST is ON the butt -> tip line (checked <= 1.5 px): draw
-    the shaft as one straight line through BOTH fists - never kink it at the second hand.
-  - ANGLE: the run carries the spear at 51 deg on screen, +15 deg from the idle's ~36 (within ~15) - keep the idle's weapon as drawn (same length, shape, straight shaft), turned as one piece about the holding fist by that little; the same angle in every frame.
+  - WEAPON = ONE RIGID OBJECT. In every frame it has the same length and shape (the table: butt -> tip, fist -> tip).
+    A straight shaft or blade is ONE straight line from butt to tip - check it with a ruler line, never curve it.
+    Never shorten, bend or stretch it to reach a point or to stay under a line. Place it by the table's BUTT, FIST(S)
+    and TIP for each frame (+-4 px). Its angle is the idle's or near it (the ANGLE line below says how much, how it
+    changes from frame to frame and why): draw the idle's own weapon turned as one piece about the holding fist to the
+    table's angle in each frame. The tip MAY be above the head and is NOT limited by the Height numbers - those are
+    the top of the HEAD (hair / helmet / hat) only. Between neighbouring frames the weapon turns at most 0.2 deg
+    (measured on this mannequin; the check allows 1.5 for a two-handed weapon) and its tip follows the smooth path of
+    the table - no back-and-forth. Two-handed: both fists stay at the same places on the grip in every frame, and the
+    weapon rides with the chest (strip b = strip a). The table's 2ND FIST is ON the butt -> tip line (checked <= 1.5
+    px): draw the shaft as one straight line through BOTH fists - never kink it at the second hand.
+  - ANGLE: the run carries the spear at 51 deg on screen, the same angle in every frame (the table: 51) - +15 deg from
+    the idle's ~36 (within ~15). Keep the idle's weapon as drawn (same length, shape, straight shaft), turned as one
+    piece about the holding fist by that little - the same angle in every frame. Measured at this carry: the whole
+    figure, weapon included, stays >= 13 px inside the slot band x 32..351 (the check needs >= 8).
   - WRIST RANGE (owner rule; EVERY hand on the weapon, a two-handed grip's second hand too): every held weapon's GRIP
     AXIS (fist -> weapon tip; a bow: grip -> upper tip; a reverse
     grip: the thumb side of the fist) points 0-120 deg UPWARD (thumb side) from the forearm line (elbow -> wrist);
@@ -148,7 +152,7 @@ THE MOVE (movement class heavy: heavy armour / tower shield / very large weapon:
 PERSONALITY (this character's own run):
   - A dismounted knight who still marches as if leading a charge: a proud, UPRIGHT heavy trudge - 1-2 deg less lean than the heavy class mannequin, chest open to the viewer (the lion emblem shows), chin up, eyes fixed ahead (the mannequin already has it - follow it).
   - Each footfall settles into the plate: the down frames (H2/H6) sit ~3 px lower than the class mannequin, then he rises back slowly - a deliberate, weighty rhythm, never a bounce.
-  - The lance is held LOW in BOTH hands the whole time, as the idle couches it: the near fist at the hip (the elbow back), the far fist ~93 px up the shaft in front of the chest. It is LOCKED to the chest at ~51 deg on screen - 15 deg steeper than the idle's ~36, which is only what the slot band needs for the full-length lance (keep its length and its straight shaft; tilt it up as one piece about the near fist): the same angle in every frame, riding only the body's bob - no nod, no swing, never toward the floor.
+  - The lance is held LOW in BOTH hands the whole time, as the idle couches it: the near fist at the hip (the elbow back), the far fist ~93 px up the shaft in front of the chest. It is LOCKED to the chest at ~51 deg on screen - 15 deg steeper than the idle's ~36 - at the idle's angle the full-length lance would reach ~35 px past the slot line x=351; at 51 deg its tip stays ~14 px inside it (the whole figure >= 13 px, measured) (keep its length and its straight shaft; tilt it up as one piece about the near fist): the same angle in every frame, riding only the body's bob - no nod, no swing, never toward the floor.
   - Hips and shoulders turn less than the class mannequin (both hands locked on one shaft). The blue plume, the blue pennant, the tattered red cape and the surcoat hem trail one frame late with restrained sway, settling in the down frames.
   - Face: exactly as in the idle in every frame.
 
