@@ -9,7 +9,7 @@
  "nominal_ms": 80,
  "step_px": 275.0,
  "run_stride_game_px": 45.5,
- "stride_rule": "class game stride 45.48 px / sheet scale 0.1654 x leg factor 1.0 (fitted 1.0405; within 5% -> 1)",
+ "stride_rule": "class game stride 45.48 px / sheet scale 0.1654 x leg factor 1.0 (fitted 1.0405; within 5% -> 1: the class stride)",
  "speed_at_nominal_ms_game_px_s": 142.1,
  "bob_px": 5.7,
  "lean_deg": [
@@ -170,6 +170,7 @@
     {
      "kind": "mace",
      "hand": "N",
+     "grip": "normal",
      "raw_deg": 102.97,
      "deg": 102.97,
      "limit": [
@@ -348,6 +349,7 @@
     {
      "kind": "mace",
      "hand": "N",
+     "grip": "normal",
      "raw_deg": 97.8,
      "deg": 97.8,
      "limit": [
@@ -526,6 +528,7 @@
     {
      "kind": "mace",
      "hand": "N",
+     "grip": "normal",
      "raw_deg": 106.23,
      "deg": 106.23,
      "limit": [
@@ -702,6 +705,7 @@
     {
      "kind": "mace",
      "hand": "N",
+     "grip": "normal",
      "raw_deg": 105.23,
      "deg": 105.23,
      "limit": [
@@ -880,6 +884,7 @@
     {
      "kind": "mace",
      "hand": "N",
+     "grip": "normal",
      "raw_deg": 93.1,
      "deg": 93.1,
      "limit": [
@@ -1058,6 +1063,7 @@
     {
      "kind": "mace",
      "hand": "N",
+     "grip": "normal",
      "raw_deg": 89.73,
      "deg": 89.73,
      "limit": [
@@ -1236,6 +1242,7 @@
     {
      "kind": "mace",
      "hand": "N",
+     "grip": "normal",
      "raw_deg": 104.67,
      "deg": 104.67,
      "limit": [
@@ -1412,6 +1419,7 @@
     {
      "kind": "mace",
      "hand": "N",
+     "grip": "normal",
      "raw_deg": 111.1,
      "deg": 111.1,
      "limit": [
@@ -1521,8 +1529,9 @@
   "tool": "tools/mannequin3d/request.py",
   "carry": "tools/mannequin3d/specs/carry3d.json",
   "carry_key": "magda",
-  "carry_sha256": "73867883dcb35c28dbebf3c82aedbdade3253f908499b29b0c936ffcb8a4b61f",
+  "carry_sha256": "63fcc37953c703fcc13b3e5faa2688df53217d7423fb1c332e52085f39e73f1a",
   "sheet_scale_from": "art/requests/phase3.json",
+  "painter": "GPT",
   "weapon_limit": {
    "min": 0.0,
    "max": 120.0
@@ -1560,7 +1569,8 @@
     "실용적으로 무릎을 끌어올리는 보폭: 착지 전에 앞 무릎이 조금 더 올라오고, 뒤로 차는 발뒤꿈치는 덜 접힌다 — 군더더기 없이.",
     "긴 철퇴는 양손으로 '앞에 총' 자세처럼 든다: 가까운 손(완장 팔)의 주먹은 가슴 아래 앞에, 먼 손은 자루를 따라 약 90px 위 먼 어깨 근처. 자루는 가슴을 가로질러 위·뒤로, 가시 쇠공은 머리 위 뒤쪽에 얹힌다. 양손으로 쥐어 어깨는 거의 돌지 않고, 철퇴 전체가 걸음에 맞춰 몇 px 만 흔들린다 — 휘두르지 않는다.",
     "높게 묶은 포니테일과 따뜻한 베이지 코트 자락은 뒤로 날리며 한 프레임 늦다(공중 프레임 R4/R8 에서 가장 높이, 받는 프레임 R2/R6 에서 가라앉음). 짙은 붉은 앞치마는 무릎 사이에서 펄럭이고, 허리 주머니 둘은 한 프레임 늦게 튄다."
-   ]
+   ],
+   "summary_ko": "부상병에게 달려가는 의무관: 경량보다 3~4도 덜 기울고 고개를 들어 앞을 살핀다. 앞무릎은 높이, 뒤꿈치는 덜 차고, 긴 철퇴는 양손 「앞에 총」으로 가슴을 가로지른다(어깨가 거의 안 돎)."
   },
   "guides": {
    "guide_run_a.png": "ba2ba9ca5eb41e057b8e3da5faf88b92589895e652d3d6715d7e48d5ace3ad99",
@@ -1579,6 +1589,7 @@
    "[OK] stance knee flex >= 10 deg: min 25.0",
    "[OK] mirror halves: knee flex near(f) vs far(f+4) max diff 0.0 deg (<= 3), hip height max diff 0.0 px (<= 1)",
    "[OK] x extent incl. props per frame (slot band 32..351): 64-287 95-282 84-301 40-331 50-296 82-287 97-300 55-316",
+   "[OK] band margin (>= 8 px to x 32..351, props included): min 8 px",
    "[OK] feet not covered by the other leg (>= 0.75): R1:1.00/1.00 R2:1.00/1.00 R3:1.00/1.00 R4:1.00/1.00 R5:1.00/1.00 R6:1.00/1.00 R7:1.00/1.00 R8:1.00/1.00",
    "[OK] far knee readable (visible or >= 14 px from the near knee)",
    "[OK] hand travel over the cycle (>= 12 px): near 30, far 25",

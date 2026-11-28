@@ -9,7 +9,7 @@
  "nominal_ms": 96,
  "step_px": 144.51,
  "run_stride_game_px": 23.9,
- "stride_rule": "class game stride 22.2 px / sheet scale 0.1654 x leg factor 1.0768 (fitted 1.0768; within 5% -> 1)",
+ "stride_rule": "class game stride 22.2 px / sheet scale 0.1654 x leg factor 1.0768 (fitted 1.0768; more than 5% off the class mannequin's legs -> the stride follows the legs; the engine advances this sheet by its own runStride, so the planted foot stays put)",
  "speed_at_nominal_ms_game_px_s": 62.2,
  "bob_px": 5.4,
  "lean_deg": [
@@ -210,6 +210,7 @@
     {
      "kind": "staff",
      "hand": "N",
+     "grip": "normal",
      "raw_deg": 64.68,
      "deg": 64.68,
      "limit": [
@@ -394,6 +395,7 @@
     {
      "kind": "staff",
      "hand": "N",
+     "grip": "normal",
      "raw_deg": 63.83,
      "deg": 63.83,
      "limit": [
@@ -578,6 +580,7 @@
     {
      "kind": "staff",
      "hand": "N",
+     "grip": "normal",
      "raw_deg": 57.64,
      "deg": 57.64,
      "limit": [
@@ -762,6 +765,7 @@
     {
      "kind": "staff",
      "hand": "N",
+     "grip": "normal",
      "raw_deg": 51.73,
      "deg": 51.73,
      "limit": [
@@ -947,6 +951,7 @@
     {
      "kind": "staff",
      "hand": "N",
+     "grip": "normal",
      "raw_deg": 48.91,
      "deg": 48.91,
      "limit": [
@@ -1131,6 +1136,7 @@
     {
      "kind": "staff",
      "hand": "N",
+     "grip": "normal",
      "raw_deg": 50.92,
      "deg": 50.92,
      "limit": [
@@ -1315,6 +1321,7 @@
     {
      "kind": "staff",
      "hand": "N",
+     "grip": "normal",
      "raw_deg": 55.15,
      "deg": 55.15,
      "limit": [
@@ -1499,6 +1506,7 @@
     {
      "kind": "staff",
      "hand": "N",
+     "grip": "normal",
      "raw_deg": 61.1,
      "deg": 61.1,
      "limit": [
@@ -1608,8 +1616,9 @@
   "tool": "tools/mannequin3d/request.py",
   "carry": "tools/mannequin3d/specs/carry3d.json",
   "carry_key": "astel",
-  "carry_sha256": "27c707088b51d95a29fe12aff5fa8e171b70210b4ea5c2872ea934d88fdcb89c",
+  "carry_sha256": "5b511cde9143f5cb0b6b0a2d157c209e49ecb861b0083f98ad6414d5681c9223",
   "sheet_scale_from": "art/requests/phase3.json",
+  "painter": "GPT",
   "weapon_limit": {
    "min": 0.0,
    "max": 120.0
@@ -1632,7 +1641,8 @@
     "지팡이는 대기 그림 그대로의 쥠새로 가까운 손이 가슴 높이에서 곧게 세워 든다(고리 머리가 약 8도 앞으로, 얼굴 앞 가장자리 앞). 걸음에 몇 px 만 까딱이고 휘두르지 않으며, 밑동은 바닥에 닿지 않는다.",
     "빈 손(먼 손)은 느슨한 주먹으로 허리띠 버클 앞에서 짧고 빠르게 흔든다 — 낮고 몸 가까이, 가슴 옆에서 흔드는 바렌과 다르다.",
     "묶은 긴 머리 꼬리와 짧은 어깨 망토는 한 프레임 늦다(G3/G7 에서 조금 뜨고 G1/G5 에서 가라앉는다). 가까운 허리의 펼친 책은 끈에 매인 채 엉덩이와 함께 2~3px 튄다."
-   ]
+   ],
+   "summary_ko": "서고에 늦은 학자의 종종걸음: 로브 부류보다 덜 기울고 턱이 앞서 나가며, 엉덩이가 크게 비틀려(6도) 트인 로브 자락이 좌우로 스친다. 지팡이는 가슴 앞에 곧게."
   },
   "guides": {
    "guide_robe_a.png": "9a5af0f995c745852809039fa3248a9d92668aa9e389de2cb8bb888c1207cf46",
@@ -1650,6 +1660,7 @@
    "[OK] stance knee flex >= 10 deg: min 26.9",
    "[OK] mirror halves: knee flex near(f) vs far(f+4) max diff 0.0 deg (<= 3), hip height max diff 0.0 px (<= 1)",
    "[OK] x extent incl. props per frame (slot band 32..351): 70-301 70-304 90-292 100-286 70-291 70-277 90-285 100-295",
+   "[OK] band margin (>= 8 px to x 32..351, props included): min 38 px",
    "[OK] feet not covered by the other leg (>= 0.75): G1:1.00/1.00 G2:1.00/1.00 G3:1.00/1.00 G4:1.00/1.00 G5:1.00/1.00 G6:1.00/1.00 G7:1.00/0.84 G8:1.00/1.00",
    "[OK] far knee readable (visible or >= 14 px from the near knee)",
    "[OK] hand travel over the cycle (>= 12 px): near 27, far 39",

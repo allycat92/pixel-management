@@ -29,22 +29,22 @@ Claude Code 가 받아서 확인한 결과는 `art/requests/feedback.md`에 남�
 
 | 누구 | 종류 | id | 할 일 (자세한 것은 그 줄의 요청서) |
 |---|---|---|---|
-| Antigravity | new | `gait/sheet_captain_lancer_run` | 대장 창기병 중량 이동 8프레임 (C8 요청서, 클라우드 대조 검증 반영). 요청서 `art/requests/gait/heavy__captain_lancer/README.md` |
+| ~~Antigravity~~ → GPT `G3` | 3D 로 교체 | `gait/sheet_captain_lancer_run` | 대장 창기병 중량 이동 8프레임 (C8 요청서, 클라우드 대조 검증 반영). 요청서 `art/requests/gait/heavy__captain_lancer/README.md` |
 | Antigravity | new | `gait/sheet_captain_saintknight_run` | 대장 성광 기사 중량 이동 8프레임 (C8 요청서, 클라우드 대조 검증 반영). 요청서 `art/requests/gait/heavy__captain_saintknight/README.md` |
 | Antigravity | new | `gait/sheet_captain_archmagus_run` | 대장 대현자 로브 이동 8프레임 (C8 요청서, 클라우드 대조 검증 반영). 요청서 `art/requests/gait/robe__captain_archmagus/README.md` |
 | Antigravity | new | `gait/sheet_captain_lightbearer_run` | 대장 빛의 사제 로브 이동 8프레임 (C8 요청서, 클라우드 대조 검증 반영). 요청서 `art/requests/gait/robe__captain_lightbearer/README.md` |
-| Antigravity | new | `gait/sheet_captain_huntress_run` | 대장 사냥꾼 달리기 8프레임 (C8 요청서, 클라우드 대조 검증 반영). 요청서 `art/requests/gait/run__captain_huntress/README.md` |
+| ~~Antigravity~~ → GPT `G4` | 3D 로 교체 | `gait/sheet_captain_huntress_run` | 대장 사냥꾼 달리기 8프레임 (C8 요청서, 클라우드 대조 검증 반영). 요청서 `art/requests/gait/run__captain_huntress/README.md` |
 | Antigravity | new | `gait/sheet_captain_bard_run` | 대장 음유시인 달리기 8프레임 (C8 요청서, 클라우드 대조 검증 반영). 요청서 `art/requests/gait/run__captain_bard/README.md` |
-| Antigravity | new | `gait/sheet_captain_fixer_run` | 대장 해결사 달리기 8프레임 (C8 요청서, 클라우드 대조 검증 반영). 요청서 `art/requests/gait/run__captain_fixer/README.md` |
-| Antigravity | new | `gait/sheet_captain_veteran_run` | 대장 노병 달리기 8프레임 (C8 요청서, 클라우드 대조 검증 반영). 요청서 `art/requests/gait/run__captain_veteran/README.md` |
-| Antigravity | new | `gait/sheet_captain_tactician_run` | 대장 전술가 달리기 8프레임 (C8 요청서, 클라우드 대조 검증 반영). 요청서 `art/requests/gait/run__captain_tactician/README.md` |
-| Antigravity | new | `gait/sheet_hero_kai_run` | 카이 달리기 8프레임 (C9 요청서, 클라우드 대조 검증 반영). 요청서 `art/requests/gait/run__hero_kai/README.md` |
-| Antigravity | new | `gait/sheet_hero_grom_run` | 그롬 달리기 8프레임 (C9 요청서, 클라우드 대조 검증 반영). 요청서 `art/requests/gait/run__hero_grom/README.md` |
+| ~~Antigravity~~ → GPT `G7` | 3D 로 교체 | `gait/sheet_captain_fixer_run` | 대장 해결사 달리기 8프레임 (C8 요청서, 클라우드 대조 검증 반영). 요청서 `art/requests/gait/run__captain_fixer/README.md` |
+| ~~Antigravity~~ → GPT `G8` | 3D 로 교체 | `gait/sheet_captain_veteran_run` | 대장 노병 달리기 8프레임 (C8 요청서, 클라우드 대조 검증 반영). 요청서 `art/requests/gait/run__captain_veteran/README.md` |
+| ~~Antigravity~~ → GPT `G2` | 3D 로 교체 | `gait/sheet_captain_tactician_run` | 대장 전술가 달리기 8프레임 (C8 요청서, 클라우드 대조 검증 반영). 요청서 `art/requests/gait/run__captain_tactician/README.md` |
+| ~~Antigravity~~ → GPT `G11` | 3D 로 교체 | `gait/sheet_hero_kai_run` | 카이 달리기 8프레임 (C9 요청서, 클라우드 대조 검증 반영). 요청서 `art/requests/gait/run__hero_kai/README.md` |
+| ~~Antigravity~~ → GPT `G10` | 3D 로 교체 | `gait/sheet_hero_grom_run` | 그롬 달리기 8프레임 (C9 요청서, 클라우드 대조 검증 반영). 요청서 `art/requests/gait/run__hero_grom/README.md` |
 | Antigravity | new | `gait/sheet_hero_lyra_run` | 리라 달리기 8프레임 (C9 요청서, 클라우드 대조 검증 반영). 요청서 `art/requests/gait/run__hero_lyra/README.md` |
 | Antigravity | new | `gait/sheet_hero_marisol_run` | 마리솔 달리기 8프레임 (C9 요청서, 클라우드 대조 검증 반영). 요청서 `art/requests/gait/run__hero_marisol/README.md` |
-| Antigravity | new | `gait/sheet_hero_oswin_run` | 오스윈 중량 이동 8프레임 (C9 요청서, 클라우드 대조 검증 반영). 요청서 `art/requests/gait/heavy__hero_oswin/README.md` |
-| Antigravity | new | `gait/sheet_hero_astel_run` | 아스텔 로브 이동 8프레임 (C9 요청서, 클라우드 대조 검증 반영). 요청서 `art/requests/gait/robe__hero_astel/README.md` |
-| Antigravity | new | `gait/sheet_hero_seraphine_run` | 세라핀 로브 이동 8프레임 (C9 요청서, 클라우드 대조 검증 반영). 요청서 `art/requests/gait/robe__hero_seraphine/README.md` |
+| ~~Antigravity~~ → GPT `G12` | 3D 로 교체 | `gait/sheet_hero_oswin_run` | 오스윈 중량 이동 8프레임 (C9 요청서, 클라우드 대조 검증 반영). 요청서 `art/requests/gait/heavy__hero_oswin/README.md` |
+| ~~Antigravity~~ → GPT `G9` | 3D 로 교체 | `gait/sheet_hero_astel_run` | 아스텔 로브 이동 8프레임 (C9 요청서, 클라우드 대조 검증 반영). 요청서 `art/requests/gait/robe__hero_astel/README.md` |
+| ~~Antigravity~~ → GPT `G13` | 3D 로 교체 | `gait/sheet_hero_seraphine_run` | 세라핀 로브 이동 8프레임 (C9 요청서, 클라우드 대조 검증 반영). 요청서 `art/requests/gait/robe__hero_seraphine/README.md` |
 | Antigravity | new | `gait/sheet_monster_skeleton_run` | 해골 병사 달리기 8프레임 (C9 요청서, 클라우드 대조 검증 반영). 요청서 `art/requests/gait/run__monster_skeleton/README.md` |
 | Antigravity | new | `gait/sheet_monster_bandit_run` | 산적 달리기 8프레임 (C9 요청서, 클라우드 대조 검증 반영). 요청서 `art/requests/gait/run__monster_bandit/README.md` |
 | Antigravity | new | `gait/sheet_captain_frostjarl_run` | 비요른 달리기 8프레임 (C10, **배율 요청**: 마네킹 ×0.919 — 이 폴더의 `guide_run_a/b.png` 위에만 그린다, 표준 `run_base.aseprite` 위에 그리지 말 것). 도끼는 몸을 가로질러 뒤로 기울여 든다(총괄 결정, 대기와 다른 의도된 변경). 요청서 `art/requests/gait/run__captain_frostjarl/README.md` |
@@ -54,13 +54,13 @@ Claude Code 가 받아서 확인한 결과는 `art/requests/feedback.md`에 남�
 | Antigravity | new | `gait/sheet_captain_khan_run` | 초원의 칸 달리기 8프레임 (C15 요청서, 클라우드 그림 대조 반영). 요청서 `art/requests/gait/run__captain_khan/README.md` |
 | Antigravity | new | `gait/sheet_captain_elfwarden_run` | 엘프 숲지기 달리기 8프레임 (C15 요청서, 클라우드 그림 대조 반영). 요청서 `art/requests/gait/run__captain_elfwarden/README.md` |
 | Antigravity | new | `gait/sheet_captain_windhunter_run` | 바람 사냥꾼 달리기 8프레임 (C15 요청서, 클라우드 그림 대조 반영). 요청서 `art/requests/gait/run__captain_windhunter/README.md` |
-| Antigravity | new | `gait/sheet_captain_fieldmedic_run` | 야전 의무관 달리기 8프레임 (C15 요청서, 클라우드 그림 대조 반영). 요청서 `art/requests/gait/run__captain_fieldmedic/README.md` |
+| ~~Antigravity~~ → GPT `G6` | 3D 로 교체 | `gait/sheet_captain_fieldmedic_run` | 야전 의무관 달리기 8프레임 (C15 요청서, 클라우드 그림 대조 반영). 요청서 `art/requests/gait/run__captain_fieldmedic/README.md` |
 | Antigravity | new | `gait/sheet_captain_shadowlord_run` | 그림자 두목 달리기 8프레임 (C15 요청서, 클라우드 그림 대조 반영). 요청서 `art/requests/gait/run__captain_shadowlord/README.md` |
 | Antigravity | new | `gait/sheet_captain_spellblade_run` | 마검사 달리기 8프레임 (C15 요청서, 클라우드 그림 대조 반영). 요청서 `art/requests/gait/run__captain_spellblade/README.md` |
 | Antigravity | new | `gait/sheet_captain_pirateking_run` | 해적왕 달리기 (배율 요청 ×0.894 — 이 폴더 guide 위에만) 8프레임 (C15 요청서, 클라우드 그림 대조 반영). 요청서 `art/requests/gait/run__captain_pirateking/README.md` |
 | Antigravity | new | `gait/sheet_captain_dragonslayer_run` | 용살자 중량 이동 8프레임 (C15 요청서, 클라우드 그림 대조 반영). 요청서 `art/requests/gait/heavy__captain_dragonslayer/README.md` |
 | Antigravity | new | `gait/sheet_captain_runesmith_run` | 룬 대장장이 중량 이동 8프레임 (C15 요청서, 클라우드 그림 대조 반영). 요청서 `art/requests/gait/heavy__captain_runesmith/README.md` |
-| Antigravity | new | `gait/sheet_captain_hedgemage_run` | 떠돌이 마법사 로브 이동 8프레임 (C15 요청서, 클라우드 그림 대조 반영). 요청서 `art/requests/gait/robe__captain_hedgemage/README.md` |
+| ~~Antigravity~~ → GPT `G5` | 3D 로 교체 | `gait/sheet_captain_hedgemage_run` | 떠돌이 마법사 로브 이동 8프레임 (C15 요청서, 클라우드 그림 대조 반영). 요청서 `art/requests/gait/robe__captain_hedgemage/README.md` |
 | Antigravity | new | `gait/sheet_captain_pilgrim_run` | 순례 기사 로브 이동 8프레임 (C15 요청서, 클라우드 그림 대조 반영). 요청서 `art/requests/gait/robe__captain_pilgrim/README.md` |
 | Antigravity | new | `gait/sheet_monster_goblin_run` | 고블린 달리기 8프레임 (C17, 클라우드 대조 반영: **작은 몸 그대로** — 마네킹은 관절 각도만, 키 55~57 게임 px). 요청서 `art/requests/gait/run__monster_goblin/README.md` |
 | Antigravity | new | `gait/sheet_monster_desert-bandit_run` | 사막 도적 달리기 8프레임 (C17, 대조 반영: 칼은 뒤아래, 뒤 부츠 위에 겹쳐 외곽선으로 분리). 요청서 `art/requests/gait/run__monster_desert-bandit/README.md` |

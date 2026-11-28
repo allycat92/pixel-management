@@ -7,6 +7,18 @@
 
 | 누구 | id | 상태 | 할 일 (자세한 것은 그 줄의 문서) |
 |---|---|---|---|
+| GPT | `G2-tactician-3d` | READY | 이사벨(전술가) 이동 8프레임(3D 마네킹): `docs/agents/tasks/G2-tactician-3d.md` |
+| GPT | `G3-lancer-3d` | READY | 로드릭(창기병) 이동 8프레임(3D 마네킹): `docs/agents/tasks/G3-lancer-3d.md` |
+| GPT | `G4-huntress-3d` | READY | 키아라(사냥꾼) 이동 8프레임(3D 마네킹): `docs/agents/tasks/G4-huntress-3d.md` |
+| GPT | `G5-hedgemage-3d` | READY | 펠릭스(떠돌이 마법사) 이동 8프레임(3D 마네킹): `docs/agents/tasks/G5-hedgemage-3d.md` |
+| GPT | `G6-fieldmedic-3d` | READY | 마그다(야전 의무관) 이동 8프레임(3D 마네킹): `docs/agents/tasks/G6-fieldmedic-3d.md` |
+| GPT | `G7-fixer-3d` | READY | 진(해결사) 이동 8프레임(3D 마네킹): `docs/agents/tasks/G7-fixer-3d.md` |
+| GPT | `G8-veteran-3d` | READY | 하랄드(노병) 이동 8프레임(3D 마네킹): `docs/agents/tasks/G8-veteran-3d.md` |
+| GPT | `G9-astel-3d` | READY | 아스텔 이동 8프레임(3D 마네킹): `docs/agents/tasks/G9-astel-3d.md` |
+| GPT | `G10-grom-3d` | READY | 그롬 이동 8프레임(3D 마네킹): `docs/agents/tasks/G10-grom-3d.md` |
+| GPT | `G11-kai-3d` | READY | 카이 이동 8프레임(3D 마네킹): `docs/agents/tasks/G11-kai-3d.md` |
+| GPT | `G12-oswin-3d` | READY | 오스윈 이동 8프레임(3D 마네킹): `docs/agents/tasks/G12-oswin-3d.md` |
+| GPT | `G13-seraphine-3d` | READY | 세라핀 이동 8프레임(3D 마네킹): `docs/agents/tasks/G13-seraphine-3d.md` |
 
 ## 끝난 일
 

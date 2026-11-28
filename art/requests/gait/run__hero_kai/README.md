@@ -1,10 +1,10 @@
 # 카이 — 숲을 떠난 엘프 정찰병 (은빛 순찰자) 이동 (3D 마네킹) · `sheet/hero/kai` → `gait/sheet_hero_kai_run`
 
-**상태: 요청 (2026-11-28, 클라우드 — `python3 tools/art/gait_requests.py --write sheet/hero/kai --guides 3d` 로 만듦; 3D 마네킹 시범).** Antigravity 가 이 README 하나와 아래 그림만으로 끝낼 수 있게 적었다. 규칙 충돌 시 `art/requests/gpt_handoff_notes.md` 「Rules changed」가 우선.
+**상태: 요청 (2026-11-28, 클라우드 — `python3 tools/art/gait_requests.py --write sheet/hero/kai --guides 3d` 로 만듦; 3D 마네킹 시범).** **그림: GPT** (주인 2026-11-28: 다시 바꾸라고 할 때까지 그림은 GPT — 이름은 `tools/mannequin3d/specs/carry3d.json` 의 `painter` 한 곳). GPT 가 이 README 하나와 아래 그림만으로 끝낼 수 있게 적었다. 규칙 충돌 시 `art/requests/gpt_handoff_notes.md` 「Rules changed」가 우선.
 
-**왜**: "가상의 3D 마네킹 → 동작 → 스프라이트 띠 → Antigravity 가 그 위에 캐릭터를 덧그린다" (주인 2026-11-28). 무기 손목은 아래팔 기준 0~120도 안(위·아래 상관없음), 겹침은 가까운 쪽이 위에 그려지면 괜찮다, 바닥 아래로 내려간 소품은 그릴 때 손본다, 견본은 기준선일 뿐, 캐릭터마다 자기 움직임 개성, 색만 바꾼 자산은 없다, 그림 판정은 주인이 직접 한다.
+**왜**: "가상의 3D 마네킹 → 동작 → 스프라이트 띠 → 그 위에 캐릭터를 덧그린다" (주인 2026-11-28). 무기 손목은 아래팔 기준 0~120도 안(위·아래 상관없음), 겹침은 가까운 쪽이 위에 그려지면 괜찮다, 바닥 아래로 내려간 소품은 그릴 때 손본다, 견본은 기준선일 뿐, 캐릭터마다 자기 움직임 개성, 색만 바꾼 자산은 없다, 그림 판정은 주인이 직접 한다.
 → 이 폴더의 가이드는 부류 공용 2D 마네킹이 아니라 **이 캐릭터의 승인된 대기 그림에 맞춘 3D 마네킹**(`tools/mannequin3d`, `tools/mannequin3d/specs/carry3d.json` 의 `kai`)이 경량(light) 달리기를 하는 8프레임이다. 그 위에 캐릭터를 프레임마다 덧그리고, 마네킹 픽셀은 하나도 남기지 않는다.
-그려 온 띠는 `tools/art/add_gait.py` 가 시트 아래에 `anims.run` 칸으로 붙이고, 엔진(`js/battle.js`)이 80ms 박자로 넘긴다 (뜬 칸 포함). 보폭·박자·디딘 발 규칙은 경량 부류 그대로다 (엔진의 runCells).
+그려 온 띠는 `tools/art/add_gait.py` 가 시트 아래에 `anims.run` 칸으로 붙이고, 엔진(`js/battle.js`)이 80ms 박자로 넘긴다 (뜬 칸 포함). 박자·디딘 발 규칙은 경량 부류 그대로이고(엔진의 runCells), 보폭은 아래 「보폭」 줄대로.
 
 | 파일 | 내용 |
 |---|---|
@@ -18,32 +18,36 @@
 
 - 부류: **경량** — elf scout: green shoulder cloak and split tunic over trousers and boots, with a bow and quiver. (tools/art/specs/gait_classes.json). 개성은 그 위에 얹는다 (아래 「개성」).
 - 납품: art-inbox `art/inbox/gait/sheet_hero_kai_run_a.png` (R1~R4) + `art/inbox/gait/sheet_hero_kai_run_b.png` (R5~R8) + `art/inbox/NOTES.md` 절 「gait/sheet_hero_kai_run - 카이 — 숲을 떠난 엘프 정찰병 (은빛 순찰자) 이동」 + 「## 판정 — gait/sheet_hero_kai_run」. 파일 이름은 부류와 상관없이 `_run_` (엔진의 `anims.run`).
-- 무기: 지팡이 (먼 손) — 아래팔에 대한 손목 각도 0~120도 안 (가이드: R1:87 R2:83 R3:98 R4:107 R5:99 R6:93 R7:100 R8:100).
+- 무기: 활 (먼 손) — 아래팔에 대한 손목(손잡이 축) 각도 0~120도 안 (가이드: R1:96 R2:91 R3:104 R4:109 R5:102 R6:96 R7:104 R8:105).
+- 보폭: 한 걸음 게임 45.5px = 경량 부류 보폭 그대로 — 맞춘 다리가 부류 마네킹과 5% 안(다리 비율 0.977)이라 다리 비율 규칙을 쓰지 않는다. 박자(80ms)도 부류 그대로.
 - 디딘 발: 한 걸음 원본 275px(게임 45.5px) → 디딘 발은 칸마다 **정확히 68.8px**(±3, 게임 11.4px) 뒤로 — 발끝 x 는 Prompt 의 PLANTED FOOT 표.
 - 클라우드가 받은 뒤: `python3 tools/art/receive.py gait/sheet_hero_kai_run` (검사 + `add_gait.py --dry-run`) → 미리보기를 주인께 보이고, 붙이는 것은 `add_gait.py` (`--pose art/requests/gait/run__hero_kai/pose.json`). 그림이 좋은지는 주인이 직접 판정한다.
 
 ## 3D 가이드 읽는 법
 
 - **명암 = 깊이**: 밝은 부분이 보는 사람에게 **가깝고**, 어두운 부분이 **멀다** (가까운 팔·다리는 밝은 베이지, 먼 팔·다리는 어두운 회청색). 덧그릴 때 이 앞뒤 순서를 지킨다 — **가까운 쪽이 먼 쪽 위에** 그려진다. 무기·몸·얼굴이 겹쳐도 그 순서만 맞으면 괜찮다.
-- **청록 반투명 = 든 무기**: 실선 윤곽은 무기가 앞에 있는 곳, 점선은 몸이 무기 앞을 가리는 곳. 무기는 대기 그림의 **실제 크기·모양**으로 그 선을 따라 그린다 (가이드의 길이는 자리 표시).
-- **손목 범위**: 무기 방향은 아래팔(팔꿈치→손목) 선에서 위쪽(엄지 쪽)으로 0~120도 안. 0 = 팔과 일직선. 그 밖으로 꺾어 늘어뜨리지 않는다 (덜렁거리는 칼 금지). 위로 들든 아래로 내리든 이 범위 안이면 된다.
+- **청록 반투명 = 든 무기**: 실선 윤곽은 무기가 앞에 있는 곳, 점선은 몸이 무기 앞을 가리는 곳. 무기는 대기 그림의 **실제 크기·모양**으로 그 자리를 따라 그린다 (가이드의 모양은 자리 표시).
+  - 활 = 휜 활대 둘(손잡이에서 위·아래 활끝으로, 끝으로 갈수록 시위 쪽으로 휜다)과 활끝을 잇는 가는 시위 선. 한 손으로 손잡이를 쥔다. 손목 규칙은 손잡이에서 위 활끝 쪽으로 가는 활대 방향(손잡이 축)에 잰다.
+- **손목 범위**: 무기의 손잡이 축(주먹에서 무기 끝 쪽; 활은 손잡이에서 위 활끝 쪽, 역수는 엄지 쪽)은 아래팔(팔꿈치→손목) 선에서 위쪽(엄지 쪽)으로 0~120도 안. 0 = 팔과 일직선. 그 밖으로 꺾어 늘어뜨리지 않는다 (덜렁거리는 칼 금지). 위로 들든 아래로 내리든 이 범위 안이면 된다.
 - **바닥**: 디딘 발바닥은 y=870, 공중 프레임은 y=852 위. 무기 끝·천 같은 소품이 바닥 줄 아래로 내려가면 그릴 때 손본다 (각도를 조금 바꿔 올린다) — 몸과 발의 바닥 규칙은 그대로.
 - **마네킹 픽셀은 전부 덮는다**: 3D 마네킹의 색이 한 프레임의 25% 이상 남거나, 실루엣이 가이드와 거의 같으면(색만 바꾼 마네킹, IoU > 0.93) `add_gait.py` 가 받지 않는다. 마네킹 머리는 자리 표시 — 캐릭터의 머리·머리카락·머리띠를 대기 그림 크기로 그린다.
 - 견본(다른 캐릭터의 달리기)은 기준선일 뿐 — 이 캐릭터의 움직임은 아래 개성대로. 색만 바꾼 다른 캐릭터의 띠는 받지 않는다.
 
 ## 개성
 
-- 가볍고 조용한, 상체를 세운 정찰병의 달리기 — 바렌의 낮게 웅크린 달리기와 반대: 경량 마네킹보다 상체가 2~3도 더 서 있고 엉덩이가 약 3px 높다(3D 마네킹에 이미 들어 있다 — 따라 그린다). 머리는 수평으로 흔들림 없이, 눈은 앞길을 살핀다.
-- 탄력 있고 소리 없는 발, 길고 편한 보폭: 지나가는 프레임과 공중 프레임에서 뒤쪽 발뒤꿈치가 조금 더 높이 차 올라가고, 엉덩이가 조금 더 돌며(골반 비틀기), 가슴은 차분하다 — 힘껏 펌프질하지 않고 미끄러지듯.
-- 활은 먼 손(왼손)에 대기 그림의 손잡이 그대로 똑바로 세워 든다. 팔꿈치를 약 90도 굽혀 배·가슴 앞에 가까이: 위 활끝은 위로 약간 앞으로, 아래 활끝은 아래로 약간 뒤로, 시위는 몸 쪽, 화살은 걸지 않는다. 가이드의 청록 지팡이 모양 윤곽은 활의 끝-끝 선일 뿐이다(3D 리그에 활 모양이 없다; 둥근 머리 = 위 활끝): 그 선을 따라 은빛 리커브 활대, 감은 손잡이, 가는 시위를 대기 그림 크기로 그린다(손잡이에서 위 끝 약 125px, 아래 끝 약 130px). 팔과 함께 몇 px 만 흔들린다.
-- 가까운 손(오른손)은 비어 있다: 느슨하게 반쯤 편 손이 다리와 반대로 앞뒤로 흔들리며 한 프레임 늦게 따라간다 — 꽉 쥔 주먹이 아니다.
-- 화살통은 등에 고정(흰 깃이 먼 어깨 위로). 녹색 리본 아래의 긴 금발, 녹색 어깨 망토의 뒷자락, 무릎까지 오는 튜닉 뒷자락은 뒤로 날리며 한 프레임 늦다: 공중 프레임(R4/R8)에서 가장 높이 뜨고, 받는 프레임(R2/R6)에서 가라앉는다.
+**한 줄**: 숲을 떠난 엘프 정찰병의 미끄러지는 활보: 키아라와 반대로 머리·엉덩이가 거의 오르내리지 않고(출렁임 1px 미만) 고개는 수평에 못 박혀 앞을 살피며(목 7도 되세움), 골반·어깨가 작게(5/3) 돈다. 무릎은 낮게, 앞발은 길게 뻗고, 활은 팔을 길게 내려 앞으로 기울여 든다.
+
+- 엘프 정찰병의 미끄러지는 활보 — 키아라의 통통 튀는 숲 달리기와 반대: 엉덩이가 한 바퀴 내내 **수평**이다(마네킹의 엉덩이 높이가 1px 도 안 변한다 — 오르내림 없음). 기울기는 경량 마네킹보다 1~2도 더하고, 머리는 수평에 고정해 눈은 지평선을 본다(기운 만큼 목을 7도 되세움 — '매의 눈'). 3D 마네킹에 이미 들어 있다 — 따라 그린다.
+- 조용하고 아끼는 엉덩이·어깨: 골반 비틀림 작게(5도, 부류 7), 가슴 반대 회전 작게(3, 부류 6) — 몸통이 거의 돌지 않는다. 길고 **낮게** 뻗는 보폭: 지나가는 프레임에서 무릎을 낮게 끌고, 뒤로 빠진 뒤꿈치도 낮게(차올리지 않음), 착지 전 앞발을 길게 뻗는다 — 땅을 먹어 들어가는 미끄러짐, 전력 질주가 아니다.
+- 활은 **준비 자세로 낮게, 앞으로 기울여** 먼 손(왼손)에 대기 그림의 손잡이 그대로 든다: 먼 팔은 거의 힘을 뺀 채 앞아래로 뻗고(팔꿈치 약 70도), 활대는 앞으로 약 64도 기운다 — 위 활끝은 가슴 앞, 아래 활끝은 무릎 뒤, 시위는 몸 쪽, 화살은 걸지 않는다. 팔과 함께 몇 px 만 흔들린다. 가이드의 청록 반투명 활(휜 활대, 가는 시위)이 자리를 보여 준다: 은빛 리커브 활대, 감은 손잡이, 가는 시위를 대기 그림 크기로 그린다(손잡이에서 위 끝 약 125px, 아래 끝 약 128px).
+- 가까운 손(오른손)은 비어 있고 조용하다: 느슨하게 반쯤 편 손이 **작게**(부류 흔들기의 절반 아래, 한 프레임 늦게) 흔들린다 — 팔을 펌프질하지 않는다.
+- 화살통은 등에 고정(흰 깃이 먼 어깨 위로). 녹색 리본 아래의 긴 금발, 녹색 어깨 망토의 뒷자락, 무릎까지 오는 튜닉 뒷자락은 한 프레임 늦게 고르게 뒤로 흐른다 — 몸이 오르내리지 않으니 튀지 않고 매끈한 선으로 끌린다.
 
 ## 요약 (한국어)
 
-카이 — 숲을 떠난 엘프 정찰병 (은빛 순찰자)의 경량 달리기 8프레임(R1~R8)을 이 폴더의 3D 마네킹 가이드 위에 덧그려 `art/inbox/gait/sheet_hero_kai_run_a.png`·`art/inbox/gait/sheet_hero_kai_run_b.png` 두 띠로 art-inbox 에 올린다. 모습 — 승인된 시트 그대로의 카이(숲을 떠난 엘프 정찰병): 뾰족한 엘프 귀, 뒤통수 귀 높이에서 짙은 녹색 리본으로 묶은 긴 물결 금발(풀린 머리는 등 뒤로 허리띠쯤까지, 볼 옆에 짧은 앞머리 몇 가닥), 녹색 눈과 차분하고 단호한 얼굴, 크림색 테두리와 둥근 잎 브로치가 달린 팔꿈치 길이의 짙은 녹색 어깨 망토, 금색 잎 자수와 크림색 단의 짙은 녹색 트임 튜닉(다리 사이 크림 테두리 앞자락, 무릎까지 오는 뒷자락), 갈색 가죽 팔보호대·허리띠·네모 버클 가슴끈, 갈색 바지, 접힌 단의 갈색 장화, 은회색 짧은 리커브 활 한 자루(검게 감은 손잡이, 금색 띠, 가는 흰 시위), 흰 깃 화살이 든 갈색 화살통(등). 명암은 깊이(밝음 = 가까움)이고 그 앞뒤 순서를 지킨다. 무기 손목은 아래팔 기준 0~120도 안. 바닥 아래 소품은 손본다. 마네킹 픽셀은 하나도 남기지 않는다. 디딘 발은 칸마다 68.8px 뒤로 (발끝 x 는 PLANTED FOOT 표). 끝나면 NOTES.md 에 절과 「판정」 절을 적고 멈춘다. 그림이 좋은지는 주인이 직접 본다.
+카이 — 숲을 떠난 엘프 정찰병 (은빛 순찰자)의 경량 달리기 8프레임(R1~R8)을 이 폴더의 3D 마네킹 가이드 위에 덧그려 `art/inbox/gait/sheet_hero_kai_run_a.png`·`art/inbox/gait/sheet_hero_kai_run_b.png` 두 띠로 art-inbox 에 올린다. 모습 — 승인된 시트 그대로의 카이(숲을 떠난 엘프 정찰병): 뾰족한 엘프 귀, 뒤통수 귀 높이에서 짙은 녹색 리본으로 묶은 긴 물결 금발(풀린 머리는 등 뒤로 허리띠쯤까지, 볼 옆에 짧은 앞머리 몇 가닥), 녹색 눈과 차분하고 단호한 얼굴, 크림색 테두리와 둥근 잎 브로치가 달린 팔꿈치 길이의 짙은 녹색 어깨 망토, 금색 잎 자수와 크림색 단의 짙은 녹색 트임 튜닉(다리 사이 크림 테두리 앞자락, 무릎까지 오는 뒷자락), 갈색 가죽 팔보호대·허리띠·네모 버클 가슴끈, 갈색 바지, 접힌 단의 갈색 장화, 은회색 짧은 리커브 활 한 자루(검게 감은 손잡이, 금색 띠, 가는 흰 시위), 흰 깃 화살이 든 갈색 화살통(등). 개성 — 숲을 떠난 엘프 정찰병의 미끄러지는 활보: 키아라와 반대로 머리·엉덩이가 거의 오르내리지 않고(출렁임 1px 미만) 고개는 수평에 못 박혀 앞을 살피며(목 7도 되세움), 골반·어깨가 작게(5/3) 돈다. 무릎은 낮게, 앞발은 길게 뻗고, 활은 팔을 길게 내려 앞으로 기울여 든다. 명암은 깊이(밝음 = 가까움)이고 그 앞뒤 순서를 지킨다. 무기 손목은 아래팔 기준 0~120도 안. 바닥 아래 소품은 손본다. 마네킹 픽셀은 하나도 남기지 않는다. 디딘 발은 칸마다 68.8px 뒤로 (발끝 x 는 PLANTED FOOT 표). 끝나면 NOTES.md 에 절과 「판정」 절을 적고 멈춘다. 그림이 좋은지는 주인이 직접 본다.
 
-## Prompt for Antigravity
+## Prompt for GPT
 
 ```
 TASK: draw the RUN CYCLE (8 frames, movement class LIGHT) of 카이 — 숲을 떠난 엘프 정찰병 (은빛 순찰자) as TWO new PNG strips on the art-inbox branch:
@@ -75,10 +79,12 @@ HOW TO READ THE 3D GUIDE:
     arm / far leg dark slate). KEEP THAT DEPTH ORDER when you paint: the nearer part is always drawn over the farther one.
     Weapon, body and face may overlap - that is fine as long as the nearer part is on top.
   - The teal see-through shape is the held weapon: a solid outline where it is in front, dashed where a body part covers
-    it. Paint the character's OWN weapon at its idle size and shape along that line (the ghost only marks the line).
-  - WRIST RANGE (owner rule): every held weapon points 0-120 deg UPWARD (thumb side) from the forearm line
-    (elbow -> wrist); 0 = straight along the forearm. Up or down on screen does not matter, but never bend it past the
-    arm line (no dangling blade) nor beyond 120 deg. The guide is inside the range in every frame (R1:87 R2:83 R3:98 R4:107 R5:99 R6:93 R7:100 R8:100 deg).
+    it. Paint the character's OWN weapon at its idle size and shape in that place (the ghost only marks it):
+    BOW = two curved limbs (from the grip to each tip, curling back toward the string near the tips) and a thin string line tip to tip; ONE hand on the grip. The wrist rule is measured on the stave at the grip, toward the upper tip.
+  - WRIST RANGE (owner rule): every held weapon's GRIP AXIS (fist -> weapon tip; a bow: grip -> upper tip; a reverse
+    grip: the thumb side of the fist) points 0-120 deg UPWARD (thumb side) from the forearm line (elbow -> wrist);
+    0 = straight along the forearm. Up or down on screen does not matter, but never bend it past the arm line (no
+    dangling blade) nor beyond 120 deg. The guide is inside the range in every frame (R1:96 R2:91 R3:104 R4:109 R5:102 R6:96 R7:104 R8:105 deg).
   - The mannequin's round head is a placeholder: paint the character's own head, hair and headgear at the idle's size on
     its neck. The joints, limbs and torso are fitted to the idle - put the character's own body exactly on them.
   - PAINT OVER EVERY MANNEQUIN PIXEL. add_gait.py refuses a strip in which >= 25% of a frame still has the mannequin's
@@ -90,9 +96,10 @@ HOW TO READ THE 3D GUIDE:
 
 THE MOVE (movement class light: the accepted run: lean forward, press down in flight, rise a little after the landing is caught, hip nearly level, slight float, no hopping. - with this character's personality on top, already in the mannequin):
   - R1 contact - R2 catch (lowest hips) - R3 push-off (heel up) - R4 FLIGHT (both feet off the ground). R5-R8 = the same with the far foot.
-  - Lean forward (hip to neck): R1 21.2, R2 16.4, R3 25.5, R4 27.8, R5 19.4, R6 15.4, R7 25.5, R8 29.5 deg.
-  - Height: the mannequin's head top is at y=470/468/473/475 in R1 R2 R3 R4 and 470/468/473/476 in R5 R6 R7 R8: R1 +0, R2 -2, R3 +3, R4 +5 px from R1 (+ = lower) - move your head top by the same amounts (bob 8 px).
+  - Lean forward (hip to neck): R1 25.9, R2 21.2, R3 29.5, R4 31.3, R5 24.8, R6 20.6, R7 29.5, R8 32.2 deg.
+  - Height: the mannequin's head top is at y=478/474/483/486 in R1 R2 R3 R4 (the same in R5 R6 R7 R8): R1 +0, R2 -4, R3 +5, R4 +8 px from R1 (+ = lower) - move your head top by the same amounts (bob 12 px).
   - Stride: one step = 275 source px = 45.5 game px; 8 frames = two steps, 80 ms a frame in the game.
+  - Stride rule: 45.5 game px = the light class stride: the fitted legs are within 5% of the class mannequin's (leg factor 0.977), so the class stride is kept. The cadence is the class's.
   - PLANTED FOOT: a foot on the floor never slides in the drawing. From its contact frame on, the SAME boot moves LEFT by
     exactly step/4 = 68.8 px per frame (the mannequin: 68.7-68.8 px; tolerance 3 px) - the engine moves the unit
     11.4 game px per frame, so the boot stays still on the ground. Toe tip = the FRONT-MOST pixel of the planted boot
@@ -102,11 +109,11 @@ THE MOVE (movement class light: the accepted run: lean forward, press down in fl
       (R4 / R8: flight - no foot on the floor; the next contact lands ahead again)
 
 PERSONALITY (this character's own run):
-  - A light, quiet, UPRIGHT scout's run - the opposite of Baren's low prowl: the torso 2-3 deg more upright than the light class mannequin and the hips ~3 px higher (the mannequin already has both - follow it). The head stays level and still, eyes scanning the road ahead.
-  - Springy, near-silent feet with long easy strides: the trailing heel kicks up a little higher behind in the passing and flight frames, the hips swing a touch more (pelvis twist), the chest stays calm - gliding, not hard pumping.
-  - The BOW rides UPRIGHT in the FAR (left) hand at the idle grip, held close in front of the belly/chest with the elbow bent about 90 deg: upper limb tip up and slightly forward, lower limb tip down and a little back, the string toward the body, no arrow nocked. The teal staff-like ghost on the guide is ONLY the bow's tip-to-tip line (the 3D rig has no bow shape; its round head = the upper limb tip): paint the silver recurve limbs, the wrapped grip and the thin string along it at the idle size (~125 px grip to upper tip, ~130 px to lower tip). It sways only a few px with the arm.
-  - The near (right) hand is free: a loose, half-open hand that swings forward and back with the legs, one frame behind them - relaxed, not a tight fist.
-  - The quiver stays fixed on the back (white fletchings over the far shoulder). The long blond hair below the green ribbon, the rear edge of the green shoulder cloak and the knee-length rear tunic flap trail back one frame late: highest in the flight frames (R4/R8), settling in the catch frames (R2/R6).
+  - An elf scout's GLIDING lope - the opposite of Kiara's bouncing forest run: the hips stay LEVEL through the whole cycle (the mannequin's hip height changes by less than 1 px - no rise and fall), the lean 1-2 deg more than the light class mannequin, and the head is pinned level, eyes on the horizon (the neck turned back up 7 deg against the lean - the 'hawkeye' scan). The mannequin already has all of it - follow it.
+  - Quiet, economical hips and shoulders: small pelvis twist (5 deg, class 7) and chest counter-turn (3, class 6) - the trunk barely turns. Long, LOW, reaching strides: the knee drives low through the passing frame, the recovering heel stays low behind (no kick-up), and the front foot reaches out long before each landing - a ground-eating glide, not a sprint.
+  - The BOW is carried READY, low and canted forward, in the FAR (left) hand at the idle grip: the far arm reaches down and forward almost relaxed (elbow ~70 deg), the stave tilted forward about 64 deg - upper limb tip ahead of the chest, lower limb tip back by the knee, string toward the body, no arrow nocked. It sways only a few px with the arm. The teal see-through bow on the guide (curved limbs, thin string) marks it: paint the silver recurve limbs, the wrapped grip and the thin string at the idle size (~125 px grip to upper tip, ~128 px to lower tip).
+  - The near (right) hand is free and quiet: a loose, half-open hand with a SMALL swing (under half the class swing, one frame late) - he does not pump his arms.
+  - The quiver stays fixed on the back (white fletchings over the far shoulder). The long blond hair below the green ribbon, the rear edge of the green shoulder cloak and the knee-length rear tunic flap stream back evenly one frame late - because the body does not bob, they trail in a smooth line rather than bouncing.
   - Face: exactly as in the idle in every frame.
 
 MUST NOT CHANGE: outfit, colours, proportions, headgear, weapon shape and size, and the SCALE of the accepted sheet. The
@@ -118,7 +125,7 @@ front three-quarter view, light from the upper left, exactly the placement of gu
   - R1 R2 R3 R5 R6 R7: the sole of the standing foot on y=870 (lowest pixel), the other foot well above it;
   - R4 / R8 (FLIGHT): NOTHING touches y=870 - the lowest pixel of the whole figure (boots, weapon, cloth) at or above y=852;
   - every pixel of a frame between x=32 and x=351 of its slot (at least 32 px of magenta to the slot edges - nothing may cross into the next slot, including weapons, cloth and hair);
-  - the SCALE of the accepted sheet (0.1654 source -> game: the idle is 66 game px tall); the mannequin is fitted to the idle (the same height and limb lengths), its head top near y=468-476.
+  - the SCALE of the accepted sheet (0.1654 source -> game: the idle is 66 game px tall); the mannequin is fitted to the idle (the same height and limb lengths), its head top near y=474-486.
 STYLE: crisp pixel art like the accepted sheet - about 40 colours, hard pixel edges, no anti-aliasing into the background.
 BACKGROUND: perfectly flat #FF00FF. Every figure colour at RGB distance >= 170 from #FF00FF (hard minimum 150).
 NO effects: no dust, speed lines, motion blur, afterimages, shadows, floor, text, joint dots or guide lines in the delivery.
@@ -144,7 +151,7 @@ DELIVERY: commit only the two PNGs under art/inbox/gait/ and add to art/inbox/NO
   ## 판정 — gait/sheet_hero_kai_run
   결과: 통과 | 고침 | 다시   (your own verdict as animation head: natural? in character? does the contact frame read?)
   본 방법: (game 1x/4x, the preview GIF, frames - what you looked at)
-  고칠 점: (who - Antigravity/cloud - what, with frame numbers; "없음" if it passes)
+  고칠 점: (who - GPT/cloud - what, with frame numbers; "없음" if it passes)
   남은 걱정: (what the owner's look should check; "없음" if none)
   캐릭터 메모: (direction for this character's next motions; omit if none)
 The owner judges the result himself. Push to art-inbox only. Do not touch files outside art/inbox/. Then stop.

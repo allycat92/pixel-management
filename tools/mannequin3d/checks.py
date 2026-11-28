@@ -10,11 +10,14 @@ Run (gait) checks - gait_checks():
   knee        stance knee flex >= 10 deg (a locked straight knee reads as a stilt; too long a stride)              FAIL
   mirror      knee flex of the near leg at frame f == far leg at f+4 (+-3 deg); hip height +-1 px                   FAIL
   band        everything incl. props inside the slot band x 32..351                                                FAIL
+  margin      every frame keeps >= 8 px (BAND_MARGIN) to that band, props included - room for the painted cloth, hair
+              and the real weapon shape (review 2026-11-28); fix it by carry angles / positions, never by shrinking   WARN
   feet        each foot keeps >= 75% of its own area clear of the other leg (no two-feet blob in passing frames)                  FAIL
   knees       the far knee is visible or >= 14 px from the near knee on screen                                     WARN
   upper body  each hand travels >= 12 px (relative to the hip) over the cycle - no frozen cut-out torso             FAIL
   props       a mace / weapon head is >= its radius + 8 px from the other hand (not sitting on the shield hand)     FAIL
-  weapon      hand range (owner 2026-11-28): every held weapon's angle to its forearm inside the character's
+  weapon      hand range (owner 2026-11-28): every held weapon's GRIP AXIS angle to its forearm (a reverse grip: the thumb
+              side of the fist, the blade flipped) inside the character's
               weapon_limit [0, 120] deg (0 = straight along the forearm, + = upward) in EVERY frame - a frame that
               needed rig.py's clamp FAILs (no blade bent down past the arm line, dangling)                        FAIL
   blade/head  (sword carriers) blade-over-head pixels, reported only (owner 11-28: overlaps are fine; the z-buffer
@@ -36,6 +39,7 @@ import numpy as np
 from render import rasterize, FLOOR, HIP_X, SLOT_W
 
 BAND = (32, SLOT_W - 1 - 32)
+BAND_MARGIN = 8
 FAIL, WARN, OK = 'FAIL', 'WARN', 'OK'
 
 
@@ -83,10 +87,13 @@ def weapon_checks(label, names, bodies):
     lim = rows[0][1]['limit']
     bad = [f"{n} {w['kind']} {w['raw_deg']:.1f}" for n, w in rows if w['clamped']]
     raws = [w['raw_deg'] for _, w in rows]
+    rv = [w['blade_deg'] for _, w in rows if w.get('grip') == 'reverse' and 'blade_deg' in w]
     return [(FAIL if bad else OK,
              f"{label}weapon angle to the forearm (deg, 0 = straight, + = up; range {lim[0]:g}..{lim[1]:g}) per frame "
              + ' '.join(f"{n}:{w['raw_deg']:.0f}" for n, w in rows) + f"  -> {min(raws):.1f}..{max(raws):.1f}"
-             + (f"  OUTSIDE (clamped by the rig): {bad}" if bad else ''))]
+             + (f"  OUTSIDE (clamped by the rig): {bad}" if bad else '')
+             + (f"  [REVERSE grip: measured on the grip axis (thumb side of the fist); the blade is flipped 180 deg -> "
+                f"{min(rv):.0f}..{max(rv):.0f} deg from the forearm]" if rv else ''))]
 
 
 def gait_checks(spec, recs, bodies, plains, cam, carry=None):
@@ -141,6 +148,9 @@ def gait_checks(spec, recs, bodies, plains, cam, carry=None):
     okb = all(a >= BAND[0] and b <= BAND[1] for a, b in ext)
     out.append((OK if okb else FAIL, f'x extent incl. props per frame (slot band {BAND[0]}..{BAND[1]}): '
                 + ' '.join(f'{a}-{b}' for a, b in ext)))
+    mg = min(min(a - BAND[0], BAND[1] - b) for a, b in ext)
+    out.append((OK if mg >= BAND_MARGIN else WARN, f'band margin (>= {BAND_MARGIN} px to x {BAND[0]}..{BAND[1]}, props included): '
+                f'min {mg} px'))
     # feet / knees
     fv = []
     for r, b in zip(recs, bodies):

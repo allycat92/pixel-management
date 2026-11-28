@@ -1,10 +1,10 @@
 # 하랄드 — 백발의 노병 (노병) 이동 (3D 마네킹) · `sheet/captain/veteran` → `gait/sheet_captain_veteran_run`
 
-**상태: 요청 (2026-11-28, 클라우드 — `python3 tools/art/gait_requests.py --write sheet/captain/veteran --guides 3d` 로 만듦; 3D 마네킹 시범).** Antigravity 가 이 README 하나와 아래 그림만으로 끝낼 수 있게 적었다. 규칙 충돌 시 `art/requests/gpt_handoff_notes.md` 「Rules changed」가 우선.
+**상태: 요청 (2026-11-28, 클라우드 — `python3 tools/art/gait_requests.py --write sheet/captain/veteran --guides 3d` 로 만듦; 3D 마네킹 시범).** **그림: GPT** (주인 2026-11-28: 다시 바꾸라고 할 때까지 그림은 GPT — 이름은 `tools/mannequin3d/specs/carry3d.json` 의 `painter` 한 곳). GPT 가 이 README 하나와 아래 그림만으로 끝낼 수 있게 적었다. 규칙 충돌 시 `art/requests/gpt_handoff_notes.md` 「Rules changed」가 우선.
 
-**왜**: "가상의 3D 마네킹 → 동작 → 스프라이트 띠 → Antigravity 가 그 위에 캐릭터를 덧그린다" (주인 2026-11-28). 무기 손목은 아래팔 기준 0~120도 안(위·아래 상관없음), 겹침은 가까운 쪽이 위에 그려지면 괜찮다, 바닥 아래로 내려간 소품은 그릴 때 손본다, 견본은 기준선일 뿐, 캐릭터마다 자기 움직임 개성, 색만 바꾼 자산은 없다, 그림 판정은 주인이 직접 한다.
+**왜**: "가상의 3D 마네킹 → 동작 → 스프라이트 띠 → 그 위에 캐릭터를 덧그린다" (주인 2026-11-28). 무기 손목은 아래팔 기준 0~120도 안(위·아래 상관없음), 겹침은 가까운 쪽이 위에 그려지면 괜찮다, 바닥 아래로 내려간 소품은 그릴 때 손본다, 견본은 기준선일 뿐, 캐릭터마다 자기 움직임 개성, 색만 바꾼 자산은 없다, 그림 판정은 주인이 직접 한다.
 → 이 폴더의 가이드는 부류 공용 2D 마네킹이 아니라 **이 캐릭터의 승인된 대기 그림에 맞춘 3D 마네킹**(`tools/mannequin3d`, `tools/mannequin3d/specs/carry3d.json` 의 `veteran`)이 경량(light) 달리기를 하는 8프레임이다. 그 위에 캐릭터를 프레임마다 덧그리고, 마네킹 픽셀은 하나도 남기지 않는다.
-그려 온 띠는 `tools/art/add_gait.py` 가 시트 아래에 `anims.run` 칸으로 붙이고, 엔진(`js/battle.js`)이 80ms 박자로 넘긴다 (뜬 칸 포함). 보폭·박자·디딘 발 규칙은 경량 부류 그대로다 (엔진의 runCells).
+그려 온 띠는 `tools/art/add_gait.py` 가 시트 아래에 `anims.run` 칸으로 붙이고, 엔진(`js/battle.js`)이 80ms 박자로 넘긴다 (뜬 칸 포함). 박자·디딘 발 규칙은 경량 부류 그대로이고(엔진의 runCells), 보폭은 아래 「보폭」 줄대로.
 
 | 파일 | 내용 |
 |---|---|
@@ -19,32 +19,36 @@
 
 - 부류: **경량** — quilted gambeson over chainmail, helmet, round wooden shield, arming sword; legs in trousers and boots. (tools/art/specs/gait_classes.json). 개성은 그 위에 얹는다 (아래 「개성」).
 - 납품: art-inbox `art/inbox/gait/sheet_captain_veteran_run_a.png` (R1~R4) + `art/inbox/gait/sheet_captain_veteran_run_b.png` (R5~R8) + `art/inbox/NOTES.md` 절 「gait/sheet_captain_veteran_run - 하랄드 — 백발의 노병 (노병) 이동」 + 「## 판정 — gait/sheet_captain_veteran_run」. 파일 이름은 부류와 상관없이 `_run_` (엔진의 `anims.run`).
-- 무기: 칼 (가까운 손) — 아래팔에 대한 손목 각도 0~120도 안 (가이드: R1:87 R2:82 R3:88 R4:85 R5:75 R6:72 R7:86 R8:92).
+- 무기: 칼 (가까운 손) — 아래팔에 대한 손목(손잡이 축) 각도 0~120도 안 (가이드: R1:97 R2:92 R3:98 R4:95 R5:85 R6:82 R7:96 R8:102).
+- 보폭: 한 걸음 게임 45.5px = 경량 부류 보폭 그대로 — 맞춘 다리가 부류 마네킹과 5% 안(다리 비율 1.046)이라 다리 비율 규칙을 쓰지 않는다. 박자(80ms)도 부류 그대로.
 - 디딘 발: 한 걸음 원본 275px(게임 45.5px) → 디딘 발은 칸마다 **정확히 68.8px**(±3, 게임 11.4px) 뒤로 — 발끝 x 는 Prompt 의 PLANTED FOOT 표.
 - 클라우드가 받은 뒤: `python3 tools/art/receive.py gait/sheet_captain_veteran_run` (검사 + `add_gait.py --dry-run`) → 미리보기를 주인께 보이고, 붙이는 것은 `add_gait.py` (`--pose art/requests/gait/run__captain_veteran/pose.json`). 그림이 좋은지는 주인이 직접 판정한다.
 
 ## 3D 가이드 읽는 법
 
 - **명암 = 깊이**: 밝은 부분이 보는 사람에게 **가깝고**, 어두운 부분이 **멀다** (가까운 팔·다리는 밝은 베이지, 먼 팔·다리는 어두운 회청색). 덧그릴 때 이 앞뒤 순서를 지킨다 — **가까운 쪽이 먼 쪽 위에** 그려진다. 무기·몸·얼굴이 겹쳐도 그 순서만 맞으면 괜찮다.
-- **청록 반투명 = 든 무기**: 실선 윤곽은 무기가 앞에 있는 곳, 점선은 몸이 무기 앞을 가리는 곳. 무기는 대기 그림의 **실제 크기·모양**으로 그 선을 따라 그린다 (가이드의 길이는 자리 표시).
-- **손목 범위**: 무기 방향은 아래팔(팔꿈치→손목) 선에서 위쪽(엄지 쪽)으로 0~120도 안. 0 = 팔과 일직선. 그 밖으로 꺾어 늘어뜨리지 않는다 (덜렁거리는 칼 금지). 위로 들든 아래로 내리든 이 범위 안이면 된다.
+- **청록 반투명 = 든 무기**: 실선 윤곽은 무기가 앞에 있는 곳, 점선은 몸이 무기 앞을 가리는 곳. 무기는 대기 그림의 **실제 크기·모양**으로 그 자리를 따라 그린다 (가이드의 모양은 자리 표시).
+  - 칼 = 손잡이, 십자 코등이, 칼날.
+- **손목 범위**: 무기의 손잡이 축(주먹에서 무기 끝 쪽; 활은 손잡이에서 위 활끝 쪽, 역수는 엄지 쪽)은 아래팔(팔꿈치→손목) 선에서 위쪽(엄지 쪽)으로 0~120도 안. 0 = 팔과 일직선. 그 밖으로 꺾어 늘어뜨리지 않는다 (덜렁거리는 칼 금지). 위로 들든 아래로 내리든 이 범위 안이면 된다.
 - **바닥**: 디딘 발바닥은 y=870, 공중 프레임은 y=852 위. 무기 끝·천 같은 소품이 바닥 줄 아래로 내려가면 그릴 때 손본다 (각도를 조금 바꿔 올린다) — 몸과 발의 바닥 규칙은 그대로.
 - **마네킹 픽셀은 전부 덮는다**: 3D 마네킹의 색이 한 프레임의 25% 이상 남거나, 실루엣이 가이드와 거의 같으면(색만 바꾼 마네킹, IoU > 0.93) `add_gait.py` 가 받지 않는다. 마네킹 머리는 자리 표시 — 캐릭터의 머리·머리카락·머리띠를 대기 그림 크기로 그린다.
 - 견본(다른 캐릭터의 달리기)은 기준선일 뿐 — 이 캐릭터의 움직임은 아래 개성대로. 색만 바꾼 다른 캐릭터의 띠는 받지 않는다.
 
 ## 개성
 
+**한 줄**: 방패 뒤의 노병: 조금 구부정하게 몸통을 뻣뻣이 세우고(골반 4·가슴 3), 받는 프레임에서만 4px 주저앉는다. 뒤꿈치는 낮게 끌어 숨을 아끼고, 방패는 수염 높이, 한손검은 엉덩이 앞에서 방패 테두리를 겨눈다.
+
 - 노련한 고참병의 꾸준하고 방어적인 구보 — 빠르기보다 든든하게: 상체는 경량 마네킹보다 1~3도 더 숙이고(구부정한 어깨), 방패 뒤에서 몸통을 반듯하고 뻣뻣하게 유지한다(엉덩이 비틀림·가슴 반대 회전이 작다). 고개는 투구 챙 아래로 들어 적을 본다(3D 마네킹에 이미 들어 있다 — 따라 그린다).
 - 착지마다 무게를 싣는다: 받는 프레임(R2/R6)에서 엉덩이가 약 4px 내려앉았다가 밀기에서 다시 올라온다 — 묵직하고 확실한 걸음 (바렌은 내내 낮게 미끄러지고, 하랄드는 받을 때만 주저앉는다).
-- 다리는 아껴 쓴다: 뒤로 빠진 발뒤꿈치를 높이 차올리지 않는다 — R1/R2, R5/R6 에서 들린 발은 무릎 높이쯤으로 낮게 끌려간다(숨을 아끼는 노병). 공중 프레임(R4/R8)은 부류대로 바닥에서 뜬다.
-- 방패가 먼저: 둥근 나무 방패는 먼 팔뚝에 가슴 앞으로 들고, 테두리가 수염 높이에 온다. 걸음에 몇 px 만 흔들린다. 한손검은 가까운 손에 엉덩이 높이로 낮게 쥐고 칼끝은 앞-위로 방패 테두리를 향한다(대기 자세의 방어 그대로) — 방패 밑에서 바로 찌를 수 있게. 휘두르지 않는다.
+- 다리는 아껴 쓴다: 뒤로 빠진 발뒤꿈치를 높이 차올리지 않는다 — R1/R2, R5/R6 에서 들린 발은 무릎 높이쯤으로 낮게 끌려간다(숨을 아끼는 노병). 공중 프레임(R4/R8)은 부류대로 바닥에서 뜨되, 뒤로 빠진 다리는 부류보다 조금 덜 뻗는다.
+- 방패가 먼저: 둥근 나무 방패는 먼 팔뚝에 가슴 앞으로 들고, 테두리가 수염 높이에 온다. 걸음에 몇 px 만 흔들린다. 한손검은 가까운 손에 엉덩이 높이로 낮게 쥐고 칼끝은 앞-위로(약 48도) 방패 테두리를 향한다(대기 그림의 칼 길이 그대로)(대기 자세의 방어 그대로) — 방패 밑에서 바로 찌를 수 있게. 휘두르지 않는다.
 - 흰 수염과 투구 밑 머리카락은 거의 움직이지 않는다. 쇠사슬 자락과 누비옷 자락은 엉덩이보다 한 프레임 늦게 따라가고, 허리띠는 단단히 고정된다.
 
 ## 요약 (한국어)
 
-하랄드 — 백발의 노병 (노병)의 경량 달리기 8프레임(R1~R8)을 이 폴더의 3D 마네킹 가이드 위에 덧그려 `art/inbox/gait/sheet_captain_veteran_run_a.png`·`art/inbox/gait/sheet_captain_veteran_run_b.png` 두 띠로 art-inbox 에 올린다. 모습 — 승인된 시트 그대로의 하랄드: 찌그러지고 리벳이 박힌 둥근 챙의 무딘 강철 투구, 옆으로 삐져나온 짧은 흰회색 머리와 풍성한 흰 수염, 얼굴의 오래된 흉터, 인자하지만 억센 노인 얼굴, 쇠사슬 위에 입은 올리브회색 누비 갑옷(네모 누빔) — 위팔의 쇠사슬 소매와 허리띠 아래 쇠사슬 자락, 갈색 가죽 어깨끈과 쇠 버클 가죽 허리띠, 갈색 가죽 팔목 보호대, 짙은 회색 바지, 접힌 목의 낡은 갈색 장화, 가까운 손에 한손검 한 자루(곧은 양날, 단순한 십자 코등이, 둥근 칼자루 끝), 먼 팔에 대기 그림 크기의 둥근 나무 방패 하나(갈색 세로 판자, 볼록한 쇠 방패심). 명암은 깊이(밝음 = 가까움)이고 그 앞뒤 순서를 지킨다. 무기 손목은 아래팔 기준 0~120도 안. 바닥 아래 소품은 손본다. 마네킹 픽셀은 하나도 남기지 않는다. 디딘 발은 칸마다 68.8px 뒤로 (발끝 x 는 PLANTED FOOT 표). 끝나면 NOTES.md 에 절과 「판정」 절을 적고 멈춘다. 그림이 좋은지는 주인이 직접 본다.
+하랄드 — 백발의 노병 (노병)의 경량 달리기 8프레임(R1~R8)을 이 폴더의 3D 마네킹 가이드 위에 덧그려 `art/inbox/gait/sheet_captain_veteran_run_a.png`·`art/inbox/gait/sheet_captain_veteran_run_b.png` 두 띠로 art-inbox 에 올린다. 모습 — 승인된 시트 그대로의 하랄드: 찌그러지고 리벳이 박힌 둥근 챙의 무딘 강철 투구, 옆으로 삐져나온 짧은 흰회색 머리와 풍성한 흰 수염, 얼굴의 오래된 흉터, 인자하지만 억센 노인 얼굴, 쇠사슬 위에 입은 올리브회색 누비 갑옷(네모 누빔) — 위팔의 쇠사슬 소매와 허리띠 아래 쇠사슬 자락, 갈색 가죽 어깨끈과 쇠 버클 가죽 허리띠, 갈색 가죽 팔목 보호대, 짙은 회색 바지, 접힌 목의 낡은 갈색 장화, 가까운 손에 한손검 한 자루(곧은 양날, 단순한 십자 코등이, 둥근 칼자루 끝), 먼 팔에 대기 그림 크기의 둥근 나무 방패 하나(갈색 세로 판자, 볼록한 쇠 방패심). 개성 — 방패 뒤의 노병: 조금 구부정하게 몸통을 뻣뻣이 세우고(골반 4·가슴 3), 받는 프레임에서만 4px 주저앉는다. 뒤꿈치는 낮게 끌어 숨을 아끼고, 방패는 수염 높이, 한손검은 엉덩이 앞에서 방패 테두리를 겨눈다. 명암은 깊이(밝음 = 가까움)이고 그 앞뒤 순서를 지킨다. 무기 손목은 아래팔 기준 0~120도 안. 바닥 아래 소품은 손본다. 마네킹 픽셀은 하나도 남기지 않는다. 디딘 발은 칸마다 68.8px 뒤로 (발끝 x 는 PLANTED FOOT 표). 끝나면 NOTES.md 에 절과 「판정」 절을 적고 멈춘다. 그림이 좋은지는 주인이 직접 본다.
 
-## Prompt for Antigravity
+## Prompt for GPT
 
 ```
 TASK: draw the RUN CYCLE (8 frames, movement class LIGHT) of 하랄드 — 백발의 노병 (노병) as TWO new PNG strips on the art-inbox branch:
@@ -77,10 +81,12 @@ HOW TO READ THE 3D GUIDE:
     arm / far leg dark slate). KEEP THAT DEPTH ORDER when you paint: the nearer part is always drawn over the farther one.
     Weapon, body and face may overlap - that is fine as long as the nearer part is on top.
   - The teal see-through shape is the held weapon: a solid outline where it is in front, dashed where a body part covers
-    it. Paint the character's OWN weapon at its idle size and shape along that line (the ghost only marks the line).
-  - WRIST RANGE (owner rule): every held weapon points 0-120 deg UPWARD (thumb side) from the forearm line
-    (elbow -> wrist); 0 = straight along the forearm. Up or down on screen does not matter, but never bend it past the
-    arm line (no dangling blade) nor beyond 120 deg. The guide is inside the range in every frame (R1:87 R2:82 R3:88 R4:85 R5:75 R6:72 R7:86 R8:92 deg).
+    it. Paint the character's OWN weapon at its idle size and shape in that place (the ghost only marks it):
+    SWORD = grip, cross guard, blade.
+  - WRIST RANGE (owner rule): every held weapon's GRIP AXIS (fist -> weapon tip; a bow: grip -> upper tip; a reverse
+    grip: the thumb side of the fist) points 0-120 deg UPWARD (thumb side) from the forearm line (elbow -> wrist);
+    0 = straight along the forearm. Up or down on screen does not matter, but never bend it past the arm line (no
+    dangling blade) nor beyond 120 deg. The guide is inside the range in every frame (R1:97 R2:92 R3:98 R4:95 R5:85 R6:82 R7:96 R8:102 deg).
   - The mannequin's round head is a placeholder: paint the character's own head, hair and headgear at the idle's size on
     its neck. The joints, limbs and torso are fitted to the idle - put the character's own body exactly on them.
   - PAINT OVER EVERY MANNEQUIN PIXEL. add_gait.py refuses a strip in which >= 25% of a frame still has the mannequin's
@@ -95,6 +101,7 @@ THE MOVE (movement class light: the accepted run: lean forward, press down in fl
   - Lean forward (hip to neck): R1 25.7, R2 22, R3 30.4, R4 31.4, R5 24.9, R6 21.5, R7 30.4, R8 32 deg.
   - Height: the mannequin's head top is at y=459/461/464/462 in R1 R2 R3 R4 and 459/461/464/463 in R5 R6 R7 R8: R1 +0, R2 +2, R3 +5, R4 +3 px from R1 (+ = lower) - move your head top by the same amounts (bob 5 px).
   - Stride: one step = 275 source px = 45.5 game px; 8 frames = two steps, 80 ms a frame in the game.
+  - Stride rule: 45.5 game px = the light class stride: the fitted legs are within 5% of the class mannequin's (leg factor 1.046), so the class stride is kept. The cadence is the class's.
   - PLANTED FOOT: a foot on the floor never slides in the drawing. From its contact frame on, the SAME boot moves LEFT by
     exactly step/4 = 68.8 px per frame (the mannequin: 68.7-68.8 px; tolerance 3 px) - the engine moves the unit
     11.4 game px per frame, so the boot stays still on the ground. Toe tip = the FRONT-MOST pixel of the planted boot
@@ -106,8 +113,8 @@ THE MOVE (movement class light: the accepted run: lean forward, press down in fl
 PERSONALITY (this character's own run):
   - An old campaigner's steady, guarded trot - sturdy, not fast-looking: the torso 1-3 deg more stooped than the light class mannequin, kept square and stiff behind the shield (small hip twist and chest counter-turn), the head held up under the helmet brim with the eyes on the enemy (the 3D mannequin already has all of it - follow it).
   - He sits into every landing: the hips drop about 4 px in the catch frames (R2/R6) and come back up in the push - a weighted, sure step (Baren glides low the whole cycle; Harald only settles on the catch).
-  - Economical legs: the trailing heel does NOT kick up high behind him - in R1/R2 and R5/R6 the lifted foot trails low, about knee height, an old soldier saving his breath. The flight frames (R4/R8) still clear the floor as the class needs.
-  - Shield first: the round shield stays up on the far forearm in front of the chest, its rim at the beard, and only bobs a few px with the step. The arming sword stays low in the near fist at the hip with the point forward-up toward the shield rim, as in the idle guard - ready to thrust from under the shield; no swinging.
+  - Economical legs: the trailing heel does NOT kick up high behind him - in R1/R2 and R5/R6 the lifted foot trails low, about knee height, an old soldier saving his breath. The flight frames (R4/R8) still clear the floor as the class needs, the trailing leg a little closer under him than the class.
+  - Shield first: the round shield stays up on the far forearm in front of the chest, its rim at the beard, and only bobs a few px with the step. The arming sword stays low in the near fist at the hip with the point forward-up (about 48 deg) toward the shield rim, at the idle's full length, as in the idle guard - ready to thrust from under the shield; no swinging.
   - The white beard and the hair under the helmet barely move; the chainmail skirt and the gambeson hem follow the hips one frame late; the belt stays firm.
   - Face: exactly as in the idle in every frame.
 
@@ -147,7 +154,7 @@ DELIVERY: commit only the two PNGs under art/inbox/gait/ and add to art/inbox/NO
   ## 판정 — gait/sheet_captain_veteran_run
   결과: 통과 | 고침 | 다시   (your own verdict as animation head: natural? in character? does the contact frame read?)
   본 방법: (game 1x/4x, the preview GIF, frames - what you looked at)
-  고칠 점: (who - Antigravity/cloud - what, with frame numbers; "없음" if it passes)
+  고칠 점: (who - GPT/cloud - what, with frame numbers; "없음" if it passes)
   남은 걱정: (what the owner's look should check; "없음" if none)
   캐릭터 메모: (direction for this character's next motions; omit if none)
 The owner judges the result himself. Push to art-inbox only. Do not touch files outside art/inbox/. Then stop.

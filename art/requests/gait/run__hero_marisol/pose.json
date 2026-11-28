@@ -9,7 +9,7 @@
  "nominal_ms": 80,
  "step_px": 275.0,
  "run_stride_game_px": 45.5,
- "stride_rule": "class game stride 45.48 px / sheet scale 0.1654 x leg factor 1.0 (fitted 1.0253; within 5% -> 1)",
+ "stride_rule": "class game stride 45.48 px / sheet scale 0.1654 x leg factor 1.0 (fitted 1.0253; within 5% -> 1: the class stride)",
  "speed_at_nominal_ms_game_px_s": 142.1,
  "bob_px": 6.7,
  "lean_deg": [
@@ -154,7 +154,7 @@
    "props": [
     {
      "hand": "F",
-     "kind": "staff",
+     "kind": "bow",
      "abs_angle": 87.96306502178541,
      "yaw": 0.0,
      "length": 145.0,
@@ -167,8 +167,9 @@
    ],
    "weapon_angle": [
     {
-     "kind": "staff",
+     "kind": "bow",
      "hand": "F",
+     "grip": "normal",
      "raw_deg": 72.21,
      "deg": 72.21,
      "limit": [
@@ -331,7 +332,7 @@
    "props": [
     {
      "hand": "F",
-     "kind": "staff",
+     "kind": "bow",
      "abs_angle": 87.42705098312484,
      "yaw": 0.0,
      "length": 145.0,
@@ -344,8 +345,9 @@
    ],
    "weapon_angle": [
     {
-     "kind": "staff",
+     "kind": "bow",
      "hand": "F",
+     "grip": "normal",
      "raw_deg": 68.41,
      "deg": 68.41,
      "limit": [
@@ -508,7 +510,7 @@
    "props": [
     {
      "hand": "F",
-     "kind": "staff",
+     "kind": "bow",
      "abs_angle": 85.46930339512069,
      "yaw": 0.0,
      "length": 145.0,
@@ -521,8 +523,9 @@
    ],
    "weapon_angle": [
     {
-     "kind": "staff",
+     "kind": "bow",
      "hand": "F",
+     "grip": "normal",
      "raw_deg": 80.78,
      "deg": 80.78,
      "limit": [
@@ -683,7 +686,7 @@
    "props": [
     {
      "hand": "F",
-     "kind": "staff",
+     "kind": "bow",
      "abs_angle": 83.23664424312258,
      "yaw": 0.0,
      "length": 145.0,
@@ -696,8 +699,9 @@
    ],
    "weapon_angle": [
     {
-     "kind": "staff",
+     "kind": "bow",
      "hand": "F",
+     "grip": "normal",
      "raw_deg": 85.82,
      "deg": 85.82,
      "limit": [
@@ -860,7 +864,7 @@
    "props": [
     {
      "hand": "F",
-     "kind": "staff",
+     "kind": "bow",
      "abs_angle": 82.03693497821459,
      "yaw": 0.0,
      "length": 145.0,
@@ -873,8 +877,9 @@
    ],
    "weapon_angle": [
     {
-     "kind": "staff",
+     "kind": "bow",
      "hand": "F",
+     "grip": "normal",
      "raw_deg": 78.2,
      "deg": 78.2,
      "limit": [
@@ -1037,7 +1042,7 @@
    "props": [
     {
      "hand": "F",
-     "kind": "staff",
+     "kind": "bow",
      "abs_angle": 82.57294901687516,
      "yaw": 0.0,
      "length": 145.0,
@@ -1050,8 +1055,9 @@
    ],
    "weapon_angle": [
     {
-     "kind": "staff",
+     "kind": "bow",
      "hand": "F",
+     "grip": "normal",
      "raw_deg": 73.29,
      "deg": 73.29,
      "limit": [
@@ -1214,7 +1220,7 @@
    "props": [
     {
      "hand": "F",
-     "kind": "staff",
+     "kind": "bow",
      "abs_angle": 84.53069660487931,
      "yaw": 0.0,
      "length": 145.0,
@@ -1227,8 +1233,9 @@
    ],
    "weapon_angle": [
     {
-     "kind": "staff",
+     "kind": "bow",
      "hand": "F",
+     "grip": "normal",
      "raw_deg": 81.72,
      "deg": 81.72,
      "limit": [
@@ -1389,7 +1396,7 @@
    "props": [
     {
      "hand": "F",
-     "kind": "staff",
+     "kind": "bow",
      "abs_angle": 86.76335575687742,
      "yaw": 0.0,
      "length": 145.0,
@@ -1402,8 +1409,9 @@
    ],
    "weapon_angle": [
     {
-     "kind": "staff",
+     "kind": "bow",
      "hand": "F",
+     "grip": "normal",
      "raw_deg": 82.28,
      "deg": 82.28,
      "limit": [
@@ -1513,8 +1521,9 @@
   "tool": "tools/mannequin3d/request.py",
   "carry": "tools/mannequin3d/specs/carry3d.json",
   "carry_key": "marisol",
-  "carry_sha256": "16f01b66952943af3bd587f852a2dc6536e304a41fd4eb3de4d6365ea98a4379",
+  "carry_sha256": "9aa36ae9e459023baa95f20a33924495c51bbb62e9af65e263ddc2b404b95aef",
   "sheet_scale_from": "art/requests/phase3.json",
+  "painter": "GPT",
   "weapon_limit": {
    "min": 0.0,
    "max": 120.0
@@ -1544,23 +1553,24 @@
    "notes": [
     "A captain's swaggering deck-runner's run: chest up and open to the viewer, 3-4 deg MORE UPRIGHT than the light class mannequin and the hips 1-2 px higher (springy, never crouched - the opposite of Baren's low swordsman's run; the mannequin already has it - follow it). The hips roll more from side to side (pelvis twist 10 deg instead of 7) and the chest counters them: a confident sway, chin up.",
     "The trailing boot heel flicks up high behind in the flight frames (R4/R8: the rear knee folded ~10 deg more than the class): a light, bouncy step.",
-    "The bow stays UPRIGHT in the far hand in front of the chest in all 8 frames, the upper gold knob a little forward of vertical, the string on the body side, straight from knob to knob (nothing drawn, no arrow). It only rides with the body and bobs a few px - it never swings like a club. The mannequin shows the bow as a straight staff line (the chord): paint the curved limbs bulging forward around it, upper limb about 145 px and lower limb about 137 px from the fist as in the idle.",
+    "The bow stays UPRIGHT in the far hand in front of the chest in all 8 frames, the upper gold knob a little forward of vertical, the string on the body side, straight from knob to knob (nothing drawn, no arrow). It only rides with the body and bobs a few px - it never swings like a club. The teal see-through bow on the guide (curved limbs, thin string) marks its place: paint the cream limbs bulging forward, upper limb about 145 px and lower limb about 137 px from the fist as in the idle.",
     "The free near hand is a loose gloved fist with a BIG relaxed swing (a little larger than the class, one frame late) - it crosses in front of the bow hand at chest height in R4/R8 (drawn over it).",
     "The cream plume, the long wavy dark hair down the back, the red ribbon under the hat and the torn rear coat tails stream back and lag the body by one frame: they lift most in the flight frames (R4/R8), settle in the catch frames (R2/R6). The tricorn stays on and level."
    ],
    "notes_ko": [
     "선장의 당당한 갑판 달리기: 가슴을 펴고 보는 쪽으로 열며, 경량 마네킹보다 3~4도 더 곧게 서고 엉덩이는 1~2px 높다(통통 튀는 느낌, 웅크리지 않는다 — 바렌의 낮은 검객 달리기와 반대. 3D 마네킹에 이미 들어 있다 — 따라 그린다). 엉덩이가 좌우로 더 크게 돌고(골반 비틀림 7도 대신 10도) 가슴이 반대로 받는다: 자신 있게 흔들리는 걸음, 턱은 든다.",
     "공중 프레임(R4/R8)에서 뒤쪽 장화 뒤꿈치가 높이 튀어 오른다(뒷무릎이 부류보다 약 10도 더 접힘): 가볍고 탄력 있는 발걸음.",
-    "활은 8프레임 내내 먼 손에 가슴 앞에서 똑바로 세워 든다. 위쪽 금색 끝은 수직보다 조금 앞, 시위는 몸 쪽에서 끝에서 끝까지 곧게(당기지 않고 화살 없음). 몸과 함께 몇 px 만 흔들릴 뿐 몽둥이처럼 휘두르지 않는다. 마네킹의 활은 곧은 막대(활의 현 길이 선)로 보인다: 그 둘레에 앞쪽(몸 반대쪽)으로 휜 활 몸을 그린다. 대기처럼 주먹에서 위 활대 약 145px, 아래 활대 약 137px.",
+    "활은 8프레임 내내 먼 손에 가슴 앞에서 똑바로 세워 든다. 위쪽 금색 끝은 수직보다 조금 앞, 시위는 몸 쪽에서 끝에서 끝까지 곧게(당기지 않고 화살 없음). 몸과 함께 몇 px 만 흔들릴 뿐 몽둥이처럼 휘두르지 않는다. 가이드의 청록 반투명 활(휜 활대, 가는 시위)이 자리를 보여 준다: 앞쪽으로 휜 크림색 활대를 대기처럼 주먹에서 위 활대 약 145px, 아래 활대 약 137px 로 그린다.",
     "빈 가까운 손은 느슨한 장갑 주먹으로 크게 여유 있게 흔든다(부류보다 조금 크게, 한 프레임 늦게) — R4/R8 에서 가슴 높이로 활 손 앞을 지나간다(그 위에 그린다).",
     "크림색 깃털, 등 뒤로 늘어진 긴 곱슬 검은 머리, 모자 아래 빨간 리본, 찢어진 뒤 코트 자락은 뒤로 날리며 몸보다 한 프레임 늦다: 공중 프레임(R4/R8)에서 가장 높이 뜨고, 받는 프레임(R2/R6)에서 가라앉는다. 삼각모는 벗겨지지 않고 수평을 유지한다."
-   ]
+   ],
+   "summary_ko": "당당한 해적 선장의 갑판 달리기: 가슴을 펴고 3~4도 더 곧게, 엉덩이를 좌우로 크게 흔들며(10도) 턱을 든다. 공중에서 뒤꿈치가 높이 튀고, 활은 가슴 앞에 똑바로, 빈 손은 크게 휘젓는다."
   },
   "guides": {
-   "guide_run_a.png": "b83f0d0fd0ab0e3fbb4f493eae92bc25ebe9972f8b3f428503a4d3f5909244f5",
-   "guide_run_b.png": "e373dbe1eaa1ec02b9fb30519414139b264ac040c20cc974a78864471ca14b87",
-   "guide_run_plain_a.png": "0a6bf349f4181671fdb8d796c2fe54b5202a96052fc43ea62bf62aea89eb78d4",
-   "guide_run_plain_b.png": "6bf9672dd34815b64152a5723950f85b955a48c6d85ce506d0c95b41cdcd9a2b"
+   "guide_run_a.png": "c0fc0748c42b350efda7f43a7b6abe3a10cd12934486cebad126c15427c18b08",
+   "guide_run_b.png": "1848b106aa946c09f8791bd988b046010ce1186719f625f406a35ce0b34afc0a",
+   "guide_run_plain_a.png": "b7c03d06e5381bec40a613588a51eb6140d9245526297abedf32c8b02e62711a",
+   "guide_run_plain_b.png": "d752c3e309e1d615b1f5955a4be7150d54cfb0ec7a1176949797958e2baefb7e"
   },
   "checks": [
    "[OK] fit source: art/inbox/sheet_hero_marisol.png",
@@ -1572,7 +1582,8 @@
    "[OK] IK: every stance foot reached",
    "[OK] stance knee flex >= 10 deg: min 23.5",
    "[OK] mirror halves: knee flex near(f) vs far(f+4) max diff 0.0 deg (<= 3), hip height max diff 0.0 px (<= 1)",
-   "[OK] x extent incl. props per frame (slot band 32..351): 77-328 94-324 84-330 40-331 64-326 81-325 97-331 55-332",
+   "[OK] x extent incl. props per frame (slot band 32..351): 77-328 94-323 84-324 40-331 64-311 81-312 97-324 55-330",
+   "[OK] band margin (>= 8 px to x 32..351, props included): min 8 px",
    "[OK] feet not covered by the other leg (>= 0.75): R1:1.00/1.00 R2:1.00/1.00 R3:1.00/0.98 R4:1.00/1.00 R5:1.00/1.00 R6:1.00/1.00 R7:1.00/1.00 R8:1.00/1.00",
    "[OK] far knee readable (visible or >= 14 px from the near knee)",
    "[OK] hand travel over the cycle (>= 12 px): near 141, far 28",

@@ -9,7 +9,7 @@
  "nominal_ms": 96,
  "step_px": 146.97,
  "run_stride_game_px": 24.3,
- "stride_rule": "class game stride 22.2 px / sheet scale 0.1654 x leg factor 1.0951 (fitted 1.0951; within 5% -> 1)",
+ "stride_rule": "class game stride 22.2 px / sheet scale 0.1654 x leg factor 1.0951 (fitted 1.0951; more than 5% off the class mannequin's legs -> the stride follows the legs; the engine advances this sheet by its own runStride, so the planted foot stays put)",
  "speed_at_nominal_ms_game_px_s": 63.3,
  "bob_px": 8.8,
  "lean_deg": [
@@ -210,6 +210,7 @@
     {
      "kind": "staff",
      "hand": "N",
+     "grip": "normal",
      "raw_deg": 91.42,
      "deg": 91.42,
      "limit": [
@@ -394,6 +395,7 @@
     {
      "kind": "staff",
      "hand": "N",
+     "grip": "normal",
      "raw_deg": 91.08,
      "deg": 91.08,
      "limit": [
@@ -578,6 +580,7 @@
     {
      "kind": "staff",
      "hand": "N",
+     "grip": "normal",
      "raw_deg": 86.82,
      "deg": 86.82,
      "limit": [
@@ -762,6 +765,7 @@
     {
      "kind": "staff",
      "hand": "N",
+     "grip": "normal",
      "raw_deg": 83.15,
      "deg": 83.15,
      "limit": [
@@ -947,6 +951,7 @@
     {
      "kind": "staff",
      "hand": "N",
+     "grip": "normal",
      "raw_deg": 81.55,
      "deg": 81.55,
      "limit": [
@@ -1131,6 +1136,7 @@
     {
      "kind": "staff",
      "hand": "N",
+     "grip": "normal",
      "raw_deg": 83.0,
      "deg": 83.0,
      "limit": [
@@ -1315,6 +1321,7 @@
     {
      "kind": "staff",
      "hand": "N",
+     "grip": "normal",
      "raw_deg": 85.26,
      "deg": 85.26,
      "limit": [
@@ -1499,6 +1506,7 @@
     {
      "kind": "staff",
      "hand": "N",
+     "grip": "normal",
      "raw_deg": 89.02,
      "deg": 89.02,
      "limit": [
@@ -1608,8 +1616,9 @@
   "tool": "tools/mannequin3d/request.py",
   "carry": "tools/mannequin3d/specs/carry3d.json",
   "carry_key": "felix",
-  "carry_sha256": "95289715b4ef414eb7771125197e4f0a162f322e82b2fe8524c02a0568ed35d6",
+  "carry_sha256": "f6ce706c11470721c18456f837b807ee1f7dfd8ce0950e8162886ba7fe3e3d05",
   "sheet_scale_from": "art/requests/phase3.json",
+  "painter": "GPT",
   "weapon_limit": {
    "min": 0.0,
    "max": 120.0
@@ -1635,7 +1644,8 @@
     "통통 튀는 작은 반동: 내려앉는 프레임(G2/G6)에서 엉덩이가 약 3px 더 내려가고(출렁임 약 5px 대신 약 9px) 엉덩이를 조금 더 좌우로 돌린다 — 신난 가벼운 걸음. 그래도 로브 걸음이다: 공중 프레임 없음, 발은 옷자락 아래 낮게.",
     "굽은 지팡이는 대기 그립 그대로 두 손으로 몸 앞에 비스듬히 든다(가까운 주먹은 허리띠 높이 아래쪽, 먼 주먹은 자루를 따라 약 60px 위). 대기보다 조금 더 앞으로 기울여 항상 모자 챙 앞을 지난다. 걸음에 맞춰 지팡이를 두 손으로 든 지팡이처럼 몇 도만 흔들고, 주먹은 앞뒤로 약 12px 만 움직인다. 땅에 짚지 않는다.",
     "모자 끝, 느슨한 옷자락, 뒤쪽 허리의 가방은 한 프레임 늦게 튄다: 내려앉은 다음 프레임(G3/G7)에서 올라가고 디딤 프레임(G1/G5)에서 가라앉는다."
-   ]
+   ],
+   "summary_ko": "명랑한 시골 마법사의 서두르는 걸음: 로브 부류보다 곧게 턱을 들고, 내려앉는 프레임마다 통통 튀는 반동(출렁임 약 9px). 굽은 지팡이는 두 손으로 비스듬히 모자 챙 앞을 지난다."
   },
   "guides": {
    "guide_robe_a.png": "c61de03f8efb320ee3202b347b52f6409b4692829720368386e6befc7023f57c",
@@ -1653,6 +1663,7 @@
    "[OK] stance knee flex >= 10 deg: min 33.3",
    "[OK] mirror halves: knee flex near(f) vs far(f+4) max diff 0.0 deg (<= 3), hip height max diff 0.0 px (<= 1)",
    "[OK] x extent incl. props per frame (slot band 32..351): 64-325 64-324 86-321 94-315 64-312 64-314 86-319 94-323",
+   "[OK] band margin (>= 8 px to x 32..351, props included): min 26 px",
    "[OK] feet not covered by the other leg (>= 0.75): G1:1.00/1.00 G2:1.00/0.99 G3:1.00/0.97 G4:1.00/1.00 G5:1.00/1.00 G6:1.00/1.00 G7:1.00/0.79 G8:1.00/1.00",
    "[OK] far knee readable (visible or >= 14 px from the near knee)",
    "[OK] hand travel over the cycle (>= 12 px): near 23, far 39",

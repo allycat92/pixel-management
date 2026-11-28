@@ -20,8 +20,14 @@ How a gait frame is made:
 The numbers were read off the accepted 2D mannequins (pose.json of the three base sets: hip heights, lean, toe x,
 swing-leg thigh/knee angles) so the 3D motion keeps the same rhythm, stride and cadence; arms were re-authored in 3D.
 
-Stride: gait_spec() = the class's GAME stride / the sheet's scale (x the fitted leg factor when > 5% off), so the
-registered runStride stays the class stride at any sheet scale and short-legged bodies keep a bent stance knee.
+Stride (the leg-factor rule): gait_spec() = the class's GAME stride / the sheet's scale x the fitted leg factor when the
+legs are more than 5% off the canonical leg (within 5%: x 1). So the registered runStride (game px) is the class stride
+ONLY for a body whose legs are within 5% of the class mannequin's; a long-legged body (tactician, lancer, ...: 6-12% longer)
+gets a proportionally LONGER runStride and a short-legged one (goblin) a shorter one - the same joint angles and the same
+stance-knee bend as the class, scaled with the legs, instead of over-reaching or locking the knee. That is safe for the
+planted foot because the engine (js/battle.js runCells) advances the cells by EACH sheet's own runStride / 4 while the
+foot is down, so the foot stays still whatever the stride; the unit's ground speed does not change (it takes a few fewer
+steps over the same distance). The cadence (ms) is always the class's.
 Actions (warrior_attack, warrior_hit): frames with both feet locked to the floor, the sword arm solved by arm IK to a
 fist target per frame (relative to the head, shoulder, hip or - READY - the idle drawing's own grip), blade angles
 per frame; in-between bodies by eased interpolation.
@@ -98,7 +104,8 @@ def leg_factor(P):
 def gait_spec(name, scale=CANON_SCALE, legs=1.0):
     """the gait table for one character: the stride is the class's GAME stride (step_px x 0.1654) divided by the sheet's
     own scale, times the fitted leg factor when it is more than 5% off the canonical leg (a goblin's legs are 17% shorter
-    -> a 17% shorter stride, so the stance knee keeps its bend). toe0 follows the stride."""
+    -> a 17% shorter stride, so the stance knee keeps its bend; a lancer's legs 12% longer -> a 12% longer stride and a
+    12% longer registered runStride, NOT the class stride). toe0 follows the stride. See the module doc (Stride)."""
     spec = copy.deepcopy(GAITS[name])
     lf = legs if abs(legs - 1.0) > LEG_DEADBAND else 1.0
     k = (CANON_SCALE / scale) * lf
@@ -160,7 +167,7 @@ def _solve_stances(spec, P, pose, phi, cam):
     return stance, ok_all
 
 
-PERSONALITY_KEYS = ('lean_add', 'hip_drop', 'neck_up', 'pelvis_twist', 'swing_add', 'notes', 'notes_ko', 'about')
+PERSONALITY_KEYS = ('lean_add', 'hip_drop', 'neck_up', 'pelvis_twist', 'swing_add', 'notes', 'notes_ko', 'summary_ko', 'about')
 
 
 def _per_half(v, half, default=0.0):
@@ -172,15 +179,16 @@ def _per_half(v, half, default=0.0):
 
 def personality(carry):
     """the character's movement personality (specs/carry3d.json `personality`) - small offsets ON TOP of the class
-    gait table, never its rhythm: the stride (step_px), the cadence (ms) and the stance-foot rule are the class's, so the
-    engine's runCells still keeps the planted foot still. Keys:
+    gait table, never its rhythm: the stride (gait_spec: the class stride, x the leg factor for legs > 5% off), the cadence
+    (ms) and the stance-foot rule are not personality, so the engine's runCells still keeps the planted foot still. Keys:
       lean_add   deg added to the table lean (number or [contact, catch, push, flight])
       hip_drop   px the hips sit lower than the table (number or 4 values; legs re-solved by IK -> more knee bend)
       neck_up    deg the neck turns back up against the extra lean (eyes stay on the road)
       pelvis_twist  replaces the table's pelvis twist amplitude
       swing_add  {leg phase: [d_thigh, d_knee, d_foot_pitch]} added to the swing-leg table (e.g. tuck the heel higher in
                  the flight frames so the lower hips keep the flight clearance)
-      notes / notes_ko  prose for the request README (what the painter should feel in the motion)"""
+      notes / notes_ko  prose for the request README (what the painter should feel in the motion)
+      summary_ko  one short Korean line: what makes this run the character's own (top of the README's 개성)"""
     pz = dict(carry.get('personality') or {})
     bad = [k for k in pz if k not in PERSONALITY_KEYS]
     if bad:

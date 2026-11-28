@@ -16,12 +16,14 @@ Pose angles are in degrees:
   arms      shoulder_N/_F       upper arm angle from the TORSO's down axis, forward + (the arm follows the lean)
             elbow_N/_F          elbow bend (+ = forearm comes forward/up)
             wrist_N/_F          hand bend, arm_abd_N/_F arm out to the side
-  prop      prop: {'hand': 'N'|'F', 'kind': 'sword'|'mace'|'staff'|'shield', 'angle': deg in the hand's plane,
-            'roll': deg about the forearm} - optional held weapon bone
+  prop      prop: {'hand': 'N'|'F', 'kind': 'sword'|'mace'|'staff'|'bow'|'spear'|'dagger'|'shield', 'angle': deg in
+            the hand's plane, 'roll': deg about the forearm, 'grip': 'normal'|'reverse'} - optional held weapon bone
+            (add_prop: a bow is held at its grip in one hand, a spear may take two hands, a reverse grip flips the blade)
 
 Weapon joint limit (owner 2026-11-28: no weapon that bends down past the arm line and dangles): every held WEAPON
-(sword, mace, staff - not a shield) has a hard range of motion at the hand, measured in the arm's swing plane as the
-angle from the FOREARM direction (elbow -> wrist) to the weapon direction (fist -> tip; for a staff the head end):
+(sword, mace, staff, bow, spear, dagger - not a shield) has a hard range of motion at the hand, measured in the arm's swing
+plane as the angle from the FOREARM direction (elbow -> wrist) to the GRIP AXIS (fist -> tip; staff / spear: the head end;
+bow: the stave at the grip toward the upper tip; a REVERSE grip: the thumb side of the fist, the blade the other way):
   0 deg = the weapon straight along the forearm (fully extended), + = rotated UPWARD = toward the thumb side, i.e. the
   head side when the forearm points forward, back over the shoulder when it points up (the elbow's flex sense);
   allowed [limit_min, limit_max] = [0, 120] by default (specs/carry3d.json `weapon_limit` per character).
@@ -269,10 +271,11 @@ def fk(P, pose, props=None, robe=None):
     return B
 
 
-PROP_LEN = {'sword': 150.0, 'mace': 120.0, 'staff': 330.0, 'shield': 0.0}
-PROP_BACK = {'sword': 22.0, 'mace': 14.0, 'staff': 140.0}
-WEAPONS = ('sword', 'mace', 'staff')
+PROP_LEN = {'sword': 150.0, 'mace': 120.0, 'staff': 330.0, 'shield': 0.0, 'bow': 125.0, 'spear': 300.0, 'dagger': 80.0}
+PROP_BACK = {'sword': 22.0, 'mace': 14.0, 'staff': 140.0, 'bow': 110.0, 'spear': 80.0, 'dagger': 12.0}
+WEAPONS = ('sword', 'mace', 'staff', 'bow', 'spear', 'dagger')
 WEAPON_LIMIT = (0.0, 120.0)     # default hand range of motion: weapon vs forearm, deg (0 = straight, + = upward)
+GRIPS = ('normal', 'reverse')
 
 
 def _wrap(a):
@@ -322,14 +325,61 @@ def add_slab(B, c, u, v, half, corner, mat, part, ghost=True):
          'corner': float(corner), 'mat': mat, 'part': part})
 
 
+def _perp(d, pref):
+    """unit vector perpendicular to d, as close as possible to `pref` (fallback: up, then forward)"""
+    for p in (pref, UP, FWD):
+        v = np.asarray(p, float) - (np.asarray(p, float) @ d) * d
+        if np.linalg.norm(v) > 0.3:
+            return v / np.linalg.norm(v)
+    return np.array([0.0, 0.0, 1.0])
+
+
+def _frame_along(d):
+    """3x3 with columns (d, w, n): d the long axis, w in the picture plane across it, n toward the camera-ish"""
+    w = np.cross(np.array([0.0, 0.0, 1.0]), d)
+    if np.linalg.norm(w) < 1e-6:
+        w = np.cross(UP, d)
+    w = w / np.linalg.norm(w)
+    n = np.cross(d, w)
+    return np.stack([d, w, n], 1)
+
+
+def bow_points(grip, d, belly, L, back, brace, recurve, n=6):
+    """the two limbs of a braced recurve bow as polylines from the grip to each tip. d = the stave direction at the grip
+    (toward the upper tip), belly = unit vector the limbs bulge toward (away from the string). Each limb runs along d and
+    curls back toward the string by `brace` px at the tip (brace height), with the last fifth flicking forward by
+    `recurve` px (the recurve)."""
+    out = []
+    for sgn, ln in ((1.0, L), (-1.0, back)):
+        pts = []
+        for i in range(n + 1):
+            t = i / n
+            off = -brace * t ** 1.6 + recurve * max(0.0, (t - 0.78) / 0.22) ** 2
+            pts.append(grip + d * (sgn * ln * t) + belly * off)
+        out.append(pts)
+    return out
+
+
 def add_prop(B, P, pr):
     """held prop. kind:
       shield  strapped on the forearm of pr['hand']: shape 'round' (a disc of `radius`) or 'tower' (rounded rectangle
               `half` = [half width, half height], `corner`); its face turned `face` deg from forward toward the viewer
               (world, about the vertical), centre at the forearm middle + `lift` px up, `offset` px out along its normal.
-      sword / mace / staff  a bone from the fist: direction from `abs_angle` (deg from forward-horizontal, + = up, in the
-              world sagittal plane), or `angle`/`roll` in the hand frame, or `between` two wrists; `length` beyond the
-              fist, `back` px behind it (pommel / staff butt below the hand)."""
+      weapons (sword, mace, staff, bow, spear, dagger)  a bone from the fist: the GRIP AXIS direction from `abs_angle`
+              (deg from forward-horizontal, + = up, in the world sagittal plane), or `angle`/`roll` in the hand frame, or
+              `between` two wrists; `length` beyond the fist, `back` px behind it (pommel / staff butt / lower bow limb).
+              The grip axis is what the hand range (WEAPON_LIMIT / `limit`) is measured on - the thumb side of the fist.
+        sword   grip, cross guard, blade                      mace   haft + round head (`head_r`)
+        staff   pole + knob at the tip                        spear  long shaft + leaf-shaped steel head (`head_len`,
+                                                                     `head_w`); two-hand grips via carry `two_hand`
+        bow     held at the grip in ONE hand: `length` = grip -> upper tip, `back` = grip -> lower tip along the stave;
+                the limbs curve back toward the string (`brace` px, default 13% of the bow) with recurved tips
+                (`recurve`), bulging toward `belly` (default: forward, away from the body) - the string a thin line
+                tip to tip on the body side. The grip axis (wrist rule) = the stave direction at the grip.
+        dagger  short blade, small guard (`guard` half width, default 9)
+      grip: 'reverse' (sword / dagger)  REVERSE grip: the blade leaves the little-finger side of the fist - it is drawn
+              flipped 180 deg from the grip axis (pommel on the thumb side). The wrist rule still applies to the grip axis,
+              so a reverse-gripped blade lies at -180..-60 deg from the forearm when the axis is inside 0..120."""
     J, Fm = B.joints, B.frames
     s = pr.get('hand', 'N')
     kind = pr.get('kind', 'sword')
@@ -350,6 +400,13 @@ def add_prop(B, P, pr):
             add_slab(B, c, u, up, (r, r), r, 'prop', 'shield')
         J['shield_c'] = c
         return
+    if kind not in WEAPONS:
+        raise ValueError(f'prop kind {kind!r} unknown (weapons {WEAPONS}, or shield)')
+    grip_mode = pr.get('grip', 'normal')
+    if grip_mode not in GRIPS:
+        raise ValueError(f'prop grip {grip_mode!r} unknown ({GRIPS})')
+    if grip_mode == 'reverse' and kind not in ('sword', 'dagger'):
+        raise ValueError(f'grip reverse is for a sword or a dagger, not a {kind}')
     R_hd = Fm['hand' + s]
     grip = J['hand' + s]
     if pr.get('between'):
@@ -366,29 +423,58 @@ def add_prop(B, P, pr):
         R = R_hd @ rx(pr.get('roll', 0.0)) @ rz(pr.get('angle', 0.0))
         d = R @ FWD
     hold = pr['between'][0] if pr.get('between') else s
-    if kind in WEAPONS and pr.get('limit', True) is not False:
+    if pr.get('limit', True) is not False:
         lim = pr.get('limit')
         lim = tuple(lim) if isinstance(lim, (list, tuple)) else WEAPON_LIMIT
         d, raw, fin, clamped = limit_weapon(B, hold, d, lim)
-        B.weapons.append({'kind': kind, 'hand': hold, 'raw_deg': round(raw, 2), 'deg': round(fin, 2),
-                          'limit': [lim[0], lim[1]], 'clamped': clamped})
+        rec = {'kind': kind, 'hand': hold, 'grip': grip_mode, 'raw_deg': round(raw, 2), 'deg': round(fin, 2),
+               'limit': [lim[0], lim[1]], 'clamped': clamped}
+        if grip_mode == 'reverse':
+            rec['blade_deg'] = round(_wrap(fin + 180.0), 2)
+        B.weapons.append(rec)
+    J['prop_axis_' + kind] = d                   # the grip axis (thumb side of the fist; the wrist rule)
+    if grip_mode == 'reverse':
+        d = -d                                   # the blade leaves the little-finger side
     L = pr.get('length', PROP_LEN[kind])
     back = pr.get('back', PROP_BACK[kind])
     base, tip = grip - d * back, grip + d * L
     J['prop_base'], J['prop_tip'], J['prop_grip'] = base, tip, grip
-    J['prop_dir_' + kind] = d
-    if kind == 'sword':
+    J['prop_dir_' + kind] = d                    # along the drawn weapon, toward its tip / head / upper limb
+    if kind in ('sword', 'dagger'):
         J['blade_a'], J['blade_b'] = grip + d * 14, tip
         J['sword_grip'], J['sword_tip'] = grip, tip
         side = np.cross(d, UP if abs(d[1]) < 0.9 else FWD)
         side = side / max(np.linalg.norm(side), 1e-9)
+        if kind == 'sword':
+            gw, gr, br = 18.0, 4.0, (7.0, 2.5)
+        else:
+            gw, gr, br = pr.get('guard', 9.0), 3.0, (5.5, 1.8)
         B.add_capsule(base, grip + d * 12, 4.5, 4.5, 'prop', 'grip', ghost=True)
-        B.add_capsule(grip + d * 12 + side * 18.0, grip + d * 12 - side * 18.0, 4, 4, 'prop', 'guard', ghost=True)
-        B.add_capsule(grip + d * 14, tip, 7.0, 2.5, 'prop', 'blade', ghost=True)
+        B.add_capsule(grip + d * 12 + side * gw, grip + d * 12 - side * gw, gr, gr, 'prop', 'guard', ghost=True)
+        B.add_capsule(grip + d * 14, tip, *br, 'prop', 'blade', ghost=True)
     elif kind == 'mace':
         hr = pr.get('head_r', 22.0)
         B.add_capsule(base, tip - d * hr * 0.6, 5.0, 5.0, 'prop', 'haft', ghost=True)
         B.add_ellipsoid(tip, np.eye(3), [hr, hr, hr], 'prop', 'mace_head', ghost=True)
+    elif kind == 'spear':
+        hl, hw = pr.get('head_len', 44.0), pr.get('head_w', 18.0)
+        B.add_capsule(base, tip - d * hl * 0.8, 5.0, 4.5, 'prop', 'shaft', ghost=True)
+        # leaf blade: a flat oval widest a little below its middle, drawn out to a point at the tip
+        B.add_ellipsoid(tip - d * hl * 0.58, _frame_along(d), [hl * 0.42, hw * 0.5, 3.0], 'prop', 'spear_head', ghost=True)
+        B.add_capsule(tip - d * hl * 0.45, tip, hw * 0.32, 1.2, 'prop', 'spear_head', ghost=True)
+    elif kind == 'bow':
+        belly = _perp(d, turn(pr.get('yaw', 0.0)) @ FWD * pr.get('belly', 1.0))
+        brace = pr.get('brace', 0.13 * (L + back))
+        upper, lower = bow_points(grip, d, belly, L, back, brace, pr.get('recurve', 0.05 * (L + back) / 2))
+        B.add_capsule(grip - d * 13, grip + d * 13, 5.5, 5.5, 'prop', 'bow_grip', ghost=True)
+        for limb, nm in ((upper, 'bow_limb_upper'), (lower, 'bow_limb_lower')):
+            for i in range(len(limb) - 1):
+                r0 = 4.5 - 2.0 * i / (len(limb) - 1)
+                r1 = 4.5 - 2.0 * (i + 1) / (len(limb) - 1)
+                B.add_capsule(limb[i], limb[i + 1], r0, r1, 'prop', nm, ghost=True)
+        B.add_capsule(upper[-1], lower[-1], 1.3, 1.3, 'prop', 'bow_string', ghost=True)
+        J['prop_tip'], J['prop_base'] = upper[-1], lower[-1]
+        J['bow_upper'], J['bow_lower'], J['bow_belly'] = upper[-1], lower[-1], belly
     else:  # staff
         B.add_capsule(base, tip, 6.0, 5.0, 'prop', 'staff', ghost=True)
         B.add_ellipsoid(tip, np.eye(3), [10.0, 12.0, 10.0], 'prop', 'staff_head', ghost=True)

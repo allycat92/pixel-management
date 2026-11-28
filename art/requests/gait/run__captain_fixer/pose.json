@@ -9,7 +9,7 @@
  "nominal_ms": 80,
  "step_px": 298.31,
  "run_stride_game_px": 49.3,
- "stride_rule": "class game stride 45.48 px / sheet scale 0.1654 x leg factor 1.0848 (fitted 1.0848; within 5% -> 1)",
+ "stride_rule": "class game stride 45.48 px / sheet scale 0.1654 x leg factor 1.0848 (fitted 1.0848; more than 5% off the class mannequin's legs -> the stride follows the legs; the engine advances this sheet by its own runStride, so the planted foot stays put)",
  "speed_at_nominal_ms_game_px_s": 154.2,
  "bob_px": 8.1,
  "lean_deg": [
@@ -143,7 +143,7 @@
     "abd_N": 0.0,
     "abd_F": 2.0,
     "shoulder_N": -9.9,
-    "shoulder_F": 48.4,
+    "shoulder_F": 38.4,
     "elbow_N": 95.15,
     "elbow_F": 128.95,
     "wrist_N": 0.0,
@@ -154,27 +154,30 @@
    "props": [
     {
      "hand": "N",
-     "kind": "sword",
-     "angle": -245.0,
+     "kind": "dagger",
+     "angle": -65.0,
      "length": 100.0,
      "back": 16.0,
+     "grip": "reverse",
      "limit": [
-      -180.0,
-      -60.0
+      0.0,
+      120.0
      ]
     }
    ],
    "weapon_angle": [
     {
-     "kind": "sword",
+     "kind": "dagger",
      "hand": "N",
-     "raw_deg": -155.11,
-     "deg": -155.11,
+     "grip": "reverse",
+     "raw_deg": 24.89,
+     "deg": 24.89,
      "limit": [
-      -180.0,
-      -60.0
+      0.0,
+      120.0
      ],
-     "clamped": false
+     "clamped": false,
+     "blade_deg": -155.11
     }
    ],
    "joints": {
@@ -235,24 +238,24 @@
      630.2
     ],
     "elbF": [
-     283.0,
-     681.2
+     270.6,
+     682.9
     ],
     "wriN": [
      196.4,
      669.9
     ],
     "wriF": [
-     319.6,
-     634.0
+     314.6,
+     643.0
     ],
     "handN": [
      203.3,
      675.9
     ],
     "handF": [
-     325.1,
-     626.8
+     321.3,
+     636.9
     ],
     "neck0": [
      245.8,
@@ -319,7 +322,7 @@
     "abd_N": 0.0,
     "abd_F": 2.0,
     "shoulder_N": 6.3,
-    "shoulder_F": 34.6,
+    "shoulder_F": 24.6,
     "elbow_N": 99.06,
     "elbow_F": 128.24,
     "wrist_N": 0.0,
@@ -330,27 +333,30 @@
    "props": [
     {
      "hand": "N",
-     "kind": "sword",
-     "angle": -245.0,
+     "kind": "dagger",
+     "angle": -65.0,
      "length": 100.0,
      "back": 16.0,
+     "grip": "reverse",
      "limit": [
-      -180.0,
-      -60.0
+      0.0,
+      120.0
      ]
     }
    ],
    "weapon_angle": [
     {
-     "kind": "sword",
+     "kind": "dagger",
      "hand": "N",
-     "raw_deg": -155.1,
-     "deg": -155.1,
+     "grip": "reverse",
+     "raw_deg": 24.9,
+     "deg": 24.9,
      "limit": [
-      -180.0,
-      -60.0
+      0.0,
+      120.0
      ],
-     "clamped": false
+     "clamped": false,
+     "blade_deg": -155.1
     }
    ],
    "joints": {
@@ -411,24 +417,24 @@
      648.5
     ],
     "elbF": [
-     650.9,
-     679.4
+     638.3,
+     679.2
     ],
     "wriN": [
      607.4,
      664.4
     ],
     "wriF": [
-     693.9,
-     638.7
+     687.6,
+     646.9
     ],
     "handN": [
      616.2,
      666.8
     ],
     "handF": [
-     700.5,
-     632.5
+     695.1,
+     642.0
     ],
     "neck0": [
      622.1,
@@ -495,7 +501,7 @@
     "abd_N": 0.0,
     "abd_F": 2.0,
     "shoulder_N": 18.0,
-    "shoulder_F": 29.8,
+    "shoulder_F": 19.8,
     "elbow_N": 103.53,
     "elbow_F": 125.63,
     "wrist_N": 0.0,
@@ -506,27 +512,30 @@
    "props": [
     {
      "hand": "N",
-     "kind": "sword",
-     "angle": -245.0,
+     "kind": "dagger",
+     "angle": -65.0,
      "length": 100.0,
      "back": 16.0,
+     "grip": "reverse",
      "limit": [
-      -180.0,
-      -60.0
+      0.0,
+      120.0
      ]
     }
    ],
    "weapon_angle": [
     {
-     "kind": "sword",
+     "kind": "dagger",
      "hand": "N",
-     "raw_deg": -155.08,
-     "deg": -155.08,
+     "grip": "reverse",
+     "raw_deg": 24.92,
+     "deg": 24.92,
      "limit": [
-      -180.0,
-      -60.0
+      0.0,
+      120.0
      ],
-     "clamped": false
+     "clamped": false,
+     "blade_deg": -155.08
     }
    ],
    "joints": {
@@ -587,24 +596,24 @@
      649.3
     ],
     "elbF": [
-     1025.5,
-     679.2
+     1013.5,
+     676.1
     ],
     "wriN": [
      1008.0,
      656.7
     ],
     "wriF": [
-     1076.8,
-     651.9
+     1068.6,
+     658.6
     ],
     "handN": [
      1016.9,
      657.9
     ],
     "handF": [
-     1084.6,
-     647.7
+     1077.0,
+     656.0
     ],
     "neck0": [
      1016.3,
@@ -635,7 +644,7 @@
    "top_px": 468,
    "lowest_px": 848,
    "sole_px": {
-    "N": 805,
+    "N": 820,
     "F": 848
    },
    "toe_x_px": null,
@@ -660,16 +669,16 @@
     "chest_yaw": 24.34,
     "neck_pitch": -15.2,
     "head_pitch": 4.0,
-    "thigh_N": -14.0,
+    "thigh_N": -6.0,
     "thigh_F": 55.0,
     "knee_N": 72.0,
     "knee_F": 50.0,
-    "ankle_N": -34.0,
+    "ankle_N": -42.0,
     "ankle_F": 10.0,
     "abd_N": 2.0,
     "abd_F": 2.0,
     "shoulder_N": 20.7,
-    "shoulder_F": 29.2,
+    "shoulder_F": 19.2,
     "elbow_N": 105.93,
     "elbow_F": 122.65,
     "wrist_N": 0.0,
@@ -680,27 +689,30 @@
    "props": [
     {
      "hand": "N",
-     "kind": "sword",
-     "angle": -245.0,
+     "kind": "dagger",
+     "angle": -65.0,
      "length": 100.0,
      "back": 16.0,
+     "grip": "reverse",
      "limit": [
-      -180.0,
-      -60.0
+      0.0,
+      120.0
      ]
     }
    ],
    "weapon_angle": [
     {
-     "kind": "sword",
+     "kind": "dagger",
      "hand": "N",
-     "raw_deg": -155.07,
-     "deg": -155.07,
+     "grip": "reverse",
+     "raw_deg": 24.93,
+     "deg": 24.93,
      "limit": [
-      -180.0,
-      -60.0
+      0.0,
+      120.0
      ],
-     "clamped": false
+     "clamped": false,
+     "blade_deg": -155.07
     }
    ],
    "joints": {
@@ -717,32 +729,32 @@
      673.7
     ],
     "kneeN": [
-     1312.9,
-     768.0
+     1325.8,
+     770.3
     ],
     "kneeF": [
      1429.3,
      729.4
     ],
     "ankN": [
-     1219.0,
-     774.8
+     1233.7,
+     790.5
     ],
     "ankF": [
      1438.0,
      826.3
     ],
     "heelN": [
-     1221.1,
-     758.5
+     1235.8,
+     774.3
     ],
     "heelF": [
      1425.4,
      836.2
     ],
     "toetipN": [
-     1190.2,
-     804.5
+     1204.9,
+     820.3
     ],
     "toetipF": [
      1478.6,
@@ -761,24 +773,24 @@
      649.9
     ],
     "elbF": [
-     1406.9,
-     675.7
+     1395.2,
+     671.9
     ],
     "wriN": [
      1395.1,
      654.9
     ],
     "wriF": [
-     1459.9,
-     654.5
+     1450.9,
+     661.0
     ],
     "handN": [
      1404.0,
      655.6
     ],
     "handF": [
-     1468.0,
-     651.3
+     1459.4,
+     659.3
     ],
     "neck0": [
      1403.0,
@@ -845,7 +857,7 @@
     "abd_N": 2.0,
     "abd_F": 0.0,
     "shoulder_N": 12.6,
-    "shoulder_F": 33.4,
+    "shoulder_F": 23.4,
     "elbow_N": 104.85,
     "elbow_F": 121.05,
     "wrist_N": 0.0,
@@ -856,27 +868,30 @@
    "props": [
     {
      "hand": "N",
-     "kind": "sword",
-     "angle": -245.0,
+     "kind": "dagger",
+     "angle": -65.0,
      "length": 100.0,
      "back": 16.0,
+     "grip": "reverse",
      "limit": [
-      -180.0,
-      -60.0
+      0.0,
+      120.0
      ]
     }
    ],
    "weapon_angle": [
     {
-     "kind": "sword",
+     "kind": "dagger",
      "hand": "N",
-     "raw_deg": -155.08,
-     "deg": -155.08,
+     "grip": "reverse",
+     "raw_deg": 24.92,
+     "deg": 24.92,
      "limit": [
-      -180.0,
-      -60.0
+      0.0,
+      120.0
      ],
-     "clamped": false
+     "clamped": false,
+     "blade_deg": -155.08
     }
    ],
    "joints": {
@@ -937,24 +952,24 @@
      652.4
     ],
     "elbF": [
-     260.8,
-     676.7
+     248.8,
+     675.0
     ],
     "wriN": [
      232.6,
      661.5
     ],
     "wriF": [
-     310.2,
-     647.9
+     302.2,
+     655.9
     ],
     "handN": [
      241.3,
      662.8
     ],
     "handF": [
-     317.7,
-     643.5
+     310.3,
+     653.0
     ],
     "neck0": [
      244.0,
@@ -1021,7 +1036,7 @@
     "abd_N": 2.0,
     "abd_F": 0.0,
     "shoulder_N": -8.1,
-    "shoulder_F": 44.2,
+    "shoulder_F": 34.2,
     "elbow_N": 100.94,
     "elbow_F": 121.76,
     "wrist_N": 0.0,
@@ -1032,27 +1047,30 @@
    "props": [
     {
      "hand": "N",
-     "kind": "sword",
-     "angle": -245.0,
+     "kind": "dagger",
+     "angle": -65.0,
      "length": 100.0,
      "back": 16.0,
+     "grip": "reverse",
      "limit": [
-      -180.0,
-      -60.0
+      0.0,
+      120.0
      ]
     }
    ],
    "weapon_angle": [
     {
-     "kind": "sword",
+     "kind": "dagger",
      "hand": "N",
-     "raw_deg": -155.09,
-     "deg": -155.09,
+     "grip": "reverse",
+     "raw_deg": 24.91,
+     "deg": 24.91,
      "limit": [
-      -180.0,
-      -60.0
+      0.0,
+      120.0
      ],
-     "clamped": false
+     "clamped": false,
+     "blade_deg": -155.09
     }
    ],
    "joints": {
@@ -1113,24 +1131,24 @@
      642.4
     ],
     "elbF": [
-     659.6,
-     673.7
+     647.5,
+     675.7
     ],
     "wriN": [
      587.6,
      670.6
     ],
     "wriF": [
-     699.1,
-     630.6
+     693.6,
+     640.6
     ],
     "handN": [
      595.5,
      674.9
     ],
     "handF": [
-     705.1,
-     624.0
+     700.6,
+     635.3
     ],
     "neck0": [
      621.0,
@@ -1197,7 +1215,7 @@
     "abd_N": 2.0,
     "abd_F": 0.0,
     "shoulder_N": -15.3,
-    "shoulder_F": 52.0,
+    "shoulder_F": 42.0,
     "elbow_N": 96.47,
     "elbow_F": 124.37,
     "wrist_N": 0.0,
@@ -1208,27 +1226,30 @@
    "props": [
     {
      "hand": "N",
-     "kind": "sword",
-     "angle": -245.0,
+     "kind": "dagger",
+     "angle": -65.0,
      "length": 100.0,
      "back": 16.0,
+     "grip": "reverse",
      "limit": [
-      -180.0,
-      -60.0
+      0.0,
+      120.0
      ]
     }
    ],
    "weapon_angle": [
     {
-     "kind": "sword",
+     "kind": "dagger",
      "hand": "N",
-     "raw_deg": -155.1,
-     "deg": -155.1,
+     "grip": "reverse",
+     "raw_deg": 24.9,
+     "deg": 24.9,
      "limit": [
-      -180.0,
-      -60.0
+      0.0,
+      120.0
      ],
-     "clamped": false
+     "clamped": false,
+     "blade_deg": -155.1
     }
    ],
    "joints": {
@@ -1289,24 +1310,24 @@
      623.8
     ],
     "elbF": [
-     1052.8,
-     678.0
+     1040.6,
+     679.9
     ],
     "wriN": [
      956.9,
      668.5
     ],
     "wriF": [
-     1091.3,
-     633.1
+     1086.0,
+     642.8
     ],
     "handN": [
      963.0,
      675.3
     ],
     "handF": [
-     1097.2,
-     626.3
+     1092.9,
+     637.1
     ],
     "neck0": [
      1016.3,
@@ -1338,7 +1359,7 @@
    "lowest_px": 848,
    "sole_px": {
     "N": 848,
-    "F": 805
+    "F": 820
    },
    "toe_x_px": null,
    "knee_flex_deg": {
@@ -1363,15 +1384,15 @@
     "neck_pitch": -15.2,
     "head_pitch": 4.0,
     "thigh_N": 55.0,
-    "thigh_F": -14.0,
+    "thigh_F": -6.0,
     "knee_N": 50.0,
     "knee_F": 72.0,
     "ankle_N": 10.0,
-    "ankle_F": -34.0,
+    "ankle_F": -42.0,
     "abd_N": 2.0,
     "abd_F": 2.0,
     "shoulder_N": -16.2,
-    "shoulder_F": 53.8,
+    "shoulder_F": 43.8,
     "elbow_N": 94.07,
     "elbow_F": 127.35,
     "wrist_N": 0.0,
@@ -1382,27 +1403,30 @@
    "props": [
     {
      "hand": "N",
-     "kind": "sword",
-     "angle": -245.0,
+     "kind": "dagger",
+     "angle": -65.0,
      "length": 100.0,
      "back": 16.0,
+     "grip": "reverse",
      "limit": [
-      -180.0,
-      -60.0
+      0.0,
+      120.0
      ]
     }
    ],
    "weapon_angle": [
     {
-     "kind": "sword",
+     "kind": "dagger",
      "hand": "N",
-     "raw_deg": -155.11,
-     "deg": -155.11,
+     "grip": "reverse",
+     "raw_deg": 24.89,
+     "deg": 24.89,
      "limit": [
-      -180.0,
-      -60.0
+      0.0,
+      120.0
      ],
-     "clamped": false
+     "clamped": false,
+     "blade_deg": -155.11
     }
    ],
    "joints": {
@@ -1423,32 +1447,32 @@
      729.4
     ],
     "kneeF": [
-     1327.3,
-     768.0
+     1340.2,
+     770.3
     ],
     "ankN": [
      1422.5,
      826.3
     ],
     "ankF": [
-     1233.9,
-     774.8
+     1248.6,
+     790.5
     ],
     "heelN": [
      1409.8,
      836.2
     ],
     "heelF": [
-     1236.0,
-     758.5
+     1250.7,
+     774.3
     ],
     "toetipN": [
      1463.1,
      826.3
     ],
     "toetipF": [
-     1205.1,
-     804.5
+     1219.8,
+     820.3
     ],
     "SN": [
      1363.9,
@@ -1463,24 +1487,24 @@
      615.9
     ],
     "elbF": [
-     1439.4,
-     680.5
+     1427.0,
+     682.2
     ],
     "wriN": [
      1337.1,
      664.7
     ],
     "wriF": [
-     1476.9,
-     634.3
+     1471.7,
+     643.5
     ],
     "handN": [
      1342.5,
      672.1
     ],
     "handF": [
-     1482.6,
-     627.2
+     1478.6,
+     637.6
     ],
     "neck0": [
      1404.4,
@@ -1505,11 +1529,12 @@
   "tool": "tools/mannequin3d/request.py",
   "carry": "tools/mannequin3d/specs/carry3d.json",
   "carry_key": "fixer",
-  "carry_sha256": "1069e98430c00a84ba6dcc353b56aab6170a8c5507691dfb2a176c0972a12719",
+  "carry_sha256": "959e4ef020b236078b46dd59c2c02184574d4c8182e58ee1bc0cbe0a5b4a7610",
   "sheet_scale_from": "art/requests/phase3.json",
+  "painter": "GPT",
   "weapon_limit": {
-   "min": -180.0,
-   "max": -60.0
+   "min": 0.0,
+   "max": 120.0
   },
   "personality": {
    "lean_add": [
@@ -1541,28 +1566,34 @@
      0.0,
      6.0,
      0.0
+    ],
+    "0.375": [
+     8.0,
+     0.0,
+     0.0
     ]
    },
    "notes": [
     "A low, quiet, hunched back-alley sprint: the shoulders lean 3-6 deg more than the light class mannequin - most when the foot lands and catches (R1-R2 / R5-R6), folding over the landing to absorb it without a sound - while the hips sit only 2-4 px lower (not Baren's deep crouch). The head is ducked a little into the hood (chin down, eyes up from under the hood edge). The mannequin already has all of it - follow it.",
-    "Quiet feet: the recovering heel is tucked less high than the class mannequin (knee 12-14 deg less bent while it comes through, R1-R2 / R5-R6) and the swing foot reaches softly into the next step - the feet skim low. The hips twist less (compact, no swagger).",
-    "Dagger in the near hand: REVERSE grip in EVERY frame, exactly as in the idle - the blade leaves the little-finger side of the fist and lies back along the underside / outside of the forearm. The near arm pumps short and tight at belt height: when the fist comes forward (R2-R5) the blade trails back and a little down behind it, when the arm swings back (R6-R8 / R1) it points back and a little up past the elbow. Never a forward grip, never pointing at the viewer or across the body; keep its 1 px dark outline and the light steel so it never merges into the dark jacket.",
+    "Quiet feet: the recovering heel is tucked less high than the class mannequin (knee 12-14 deg less bent while it comes through, R1-R2 / R5-R6) and the swing foot reaches softly into the next step - the feet skim low. In the flight frames (R4/R8) the trailing leg stays a little closer under him (a short, compact stride that keeps the boot well inside the frame). The hips twist less (compact, no swagger).",
+    "Dagger in the near hand: REVERSE GRIP in EVERY frame, exactly as in the idle - the blade comes out of the LITTLE-FINGER side of the fist (under the fist) and lies back along the underside / outside of the forearm, the pommel on the thumb side. The wrist is not bent for it: the fist itself sits normally on the forearm (its grip axis about 25 deg up from the forearm line, inside the owner's 0-120 range); only the blade is flipped 180 deg. The near arm pumps short and tight at belt height: when the fist comes forward (R2-R5) the blade trails back and a little down behind it, when the arm swings back (R6-R8 / R1) it points back and a little up past the elbow. Never a forward grip, never pointing at the viewer or across the body; keep its 1 px dark outline and the light steel so it never merges into the dark jacket.",
     "Far hand: the idle's empty guard hand - fingerless-gloved fist held up in front of the chest near the chin, elbow bent, pumping only a little (about a third of the class swing).",
     "Cloth: hood and grey scarf stay snug on the head (no flapping); the short jacket tails at the hips and the loose scarf end flick back and lag the body by ONE frame (lift most in the flight frames R4 / R8, settle in the catch frames R2 / R6)."
    ],
    "notes_ko": [
     "낮고 조용하게 웅크린 뒷골목 달리기: 상체가 경량 마네킹보다 3~6도 더 숙여진다 — 발이 닿고 받는 프레임(R1~R2 / R5~R6)에서 가장 많이, 착지를 소리 없이 흡수하듯 몸을 접는다. 엉덩이는 2~4px 만 낮다(바렌처럼 깊게 앉지 않는다). 고개는 후드 속으로 살짝 숙여 턱을 당기고, 눈은 후드 아래에서 앞을 본다. 3D 마네킹에 이미 들어 있다 — 따라 그린다.",
-    "조용한 발: 뒤로 차올리는 발뒤꿈치가 경량 마네킹보다 낮다(지나오는 동안 무릎이 12~14도 덜 굽음, R1~R2 / R5~R6). 앞으로 나가는 발은 부드럽게 다음 걸음을 뻗는다 — 발이 낮게 미끄러지듯. 엉덩이 비틀림은 작다(작고 단단하게, 거들먹거림 없음).",
-    "가까운 손의 단검: 모든 프레임에서 대기 그림 그대로 **역수** — 칼날이 주먹의 새끼손가락 쪽에서 나와 팔뚝 아래·바깥을 따라 뒤로 눕는다. 가까운 팔은 허리 높이에서 짧고 단단하게 흔든다: 주먹이 앞으로 올 때(R2~R5) 칼날은 주먹 뒤로 약간 아래를 향해 끌려오고, 팔이 뒤로 갈 때(R6~R8 / R1) 팔꿈치 너머 뒤로 약간 위를 향한다. 바로 쥐기로 바꾸지 않고, 보는 사람 쪽이나 몸 앞을 가로지르지 않는다. 1px 어두운 외곽선과 밝은 강철색을 지켜 어두운 재킷에 묻히지 않게.",
+    "조용한 발: 뒤로 차올리는 발뒤꿈치가 경량 마네킹보다 낮다(지나오는 동안 무릎이 12~14도 덜 굽음, R1~R2 / R5~R6). 앞으로 나가는 발은 부드럽게 다음 걸음을 뻗는다 — 발이 낮게 미끄러지듯. 공중 프레임(R4/R8)에서 뒤로 빠진 다리는 조금 덜 뻗는다(짧고 단단한 보폭 — 장화가 칸 안쪽에 넉넉히 남는다). 엉덩이 비틀림은 작다(작고 단단하게, 거들먹거림 없음).",
+    "가까운 손의 단검: 모든 프레임에서 대기 그림 그대로 **역수(거꾸로 쥐기)** — 칼날이 주먹의 **새끼손가락 쪽(주먹 아래)**으로 나와 팔뚝 아래·바깥을 따라 뒤로 눕고, 칼자루 끝은 엄지 쪽에 있다. 그렇다고 손목을 꺾는 것이 아니다: 주먹 자체는 아래팔 위에 보통대로 있고(손잡이 축 = 엄지 쪽이 아래팔 선에서 위로 약 25도 — 주인의 0~120도 안), 칼날만 180도 뒤집혀 있다. 가까운 팔은 허리 높이에서 짧고 단단하게 흔든다: 주먹이 앞으로 올 때(R2~R5) 칼날은 주먹 뒤로 약간 아래를 향해 끌려오고, 팔이 뒤로 갈 때(R6~R8 / R1) 팔꿈치 너머 뒤로 약간 위를 향한다. 바로 쥐기로 바꾸지 않고, 보는 사람 쪽이나 몸 앞을 가로지르지 않는다. 1px 어두운 외곽선과 밝은 강철색을 지켜 어두운 재킷에 묻히지 않게.",
     "먼 손: 대기 그림의 빈 가드 손 — 손가락 없는 장갑을 낀 주먹을 가슴 앞 턱 가까이 들고, 팔꿈치를 굽힌 채 조금만(부류 흔들기의 1/3 정도) 흔든다.",
     "천: 후드와 회색 스카프는 머리에 붙어 있다(펄럭이지 않음). 허리의 짧은 재킷 자락과 느슨한 스카프 끝만 뒤로 날리며 몸보다 한 프레임 늦다(공중 프레임 R4 / R8 에서 가장 뜨고, 받는 프레임 R2 / R6 에서 가라앉음)."
-   ]
+   ],
+   "summary_ko": "뒷골목 해결사의 낮고 조용한 질주: 착지마다 상체를 접어(3~6도 더) 충격을 소리 없이 삼키고, 고개는 후드 속에, 발뒤꿈치는 낮게. 역수 단검은 팔뚝 밑에 눕혀 허리에서 짧게 흔들고, 빈 손은 턱 앞 가드."
   },
   "guides": {
-   "guide_run_a.png": "d5ceeca100409e34ada844665ea5c3134effa11b80515eec00f9219750348c63",
-   "guide_run_b.png": "ff4014fddb9345105db40b5c97a1abd4aba584704fcb54b1ac3d29862854d286",
-   "guide_run_plain_a.png": "24574f639812e8cfc95a3b66e4e83065aaf1f7f56be644115f4c6286d645ac5a",
-   "guide_run_plain_b.png": "a8c293786d91eb08407f817f7e8ab21ad6567e3d60738e611fc45709271fb95a"
+   "guide_run_a.png": "104411a110cfa1b8e9f46034b88e31502b56e02aeed8a14b78f668bed8f6f2b4",
+   "guide_run_b.png": "0c7f021ec655bebb60054174fd79631b9cc01bce77aa93946460422186ab0de0",
+   "guide_run_plain_a.png": "12a8672a902708e83e392652d16ee912d9534e6ea32f4ec01be495bbea676589",
+   "guide_run_plain_b.png": "86615c0eaabc795c47f59888eb7cc353c62a94a4ff884b5355f2c83ba6774891"
   },
   "checks": [
    "[OK] fit source: art/inbox/sheet_captain_fixer.png",
@@ -1574,11 +1605,12 @@
    "[OK] IK: every stance foot reached",
    "[OK] stance knee flex >= 10 deg: min 35.1",
    "[OK] mirror halves: knee flex near(f) vs far(f+4) max diff 0.0 deg (<= 3), hip height max diff 0.0 px (<= 1)",
-   "[OK] x extent incl. props per frame (slot band 32..351): 57-337 80-329 80-330 34-329 43-331 67-333 92-341 49-343",
+   "[OK] x extent incl. props per frame (slot band 32..351): 57-334 80-324 80-322 49-326 43-323 67-329 92-338 64-339",
+   "[OK] band margin (>= 8 px to x 32..351, props included): min 11 px",
    "[OK] feet not covered by the other leg (>= 0.75): R1:1.00/1.00 R2:1.00/1.00 R3:1.00/0.91 R4:1.00/1.00 R5:1.00/1.00 R6:1.00/1.00 R7:1.00/1.00 R8:1.00/1.00",
    "[OK] far knee readable (visible or >= 14 px from the near knee)",
-   "[OK] hand travel over the cycle (>= 12 px): near 64, far 36",
-   "[OK] weapon angle to the forearm (deg, 0 = straight, + = up; range -180..-60) per frame R1:-155 R2:-155 R3:-155 R4:-155 R5:-155 R6:-155 R7:-155 R8:-155  -> -155.1..-155.1",
+   "[OK] hand travel over the cycle (>= 12 px): near 64, far 33",
+   "[OK] weapon angle to the forearm (deg, 0 = straight, + = up; range 0..120) per frame R1:25 R2:25 R3:25 R4:25 R5:25 R6:25 R7:25 R8:25  -> 24.9..24.9  [REVERSE grip: measured on the grip axis (thumb side of the fist); the blade is flipped 180 deg -> -155..-155 deg from the forearm]",
    "[OK] blade over the head (px) per frame [0, 0, 0, 0, 0, 0, 0, 0] (info: overlap allowed, depth order decides)"
   ],
   "shading": "cel shading by depth: lighter = nearer the viewer, darker = farther (near limbs light, far limbs dark)"

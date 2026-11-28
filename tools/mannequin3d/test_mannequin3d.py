@@ -6,7 +6,8 @@ determinism, floor / planting / IK / knee / mirror / band / feet / upper-body ch
 a short-legged body (stride follows the legs), the sword never over the head (attack) nor the trunk (hit), the robe
 hem, the weapon hand range (rig clamp + check, and no authored frame outside it), that add_gait refuses an
 unpainted 3D guide written anywhere (palette signature), a character's movement personality (Baren: lower, more lean,
-same stride and cadence) and the 3D request folder (request.py: files, marker, verify, refusal of its plain strip).
+same stride and cadence), the bow / spear / dagger props and the reverse grip (the wrist rule on the grip axis), and
+the 3D request folder (request.py: files, marker, verify, refusal of its plain strip).
 """
 import os
 import sys
@@ -179,6 +180,55 @@ class WeaponLimit(unittest.TestCase):
                 r = build.render_action(act, CANON, dict(CARRY['warrior']), 15.0)
                 ws = [w for b in r['bodies'] for w in b.weapons]
                 self.assertEqual([w for w in ws if w['clamped']], [])
+
+
+class PropKinds(unittest.TestCase):
+    """bow / spear / dagger (review 2026-11-28) and the reverse grip"""
+    POSE = {'shoulder_N': 0.0, 'elbow_N': 90.0, 'shoulder_F': 0.0, 'elbow_F': 90.0}
+
+    def body(self, pr):
+        return fk(CANON, self.POSE, props=[pr])
+
+    def test_bow_limbs_and_string(self):
+        b = self.body({'hand': 'F', 'kind': 'bow', 'abs_angle': 80.0, 'length': 125.0, 'back': 105.0})
+        parts = {g['part'] for g in b.ghosts}
+        self.assertTrue({'bow_grip', 'bow_limb_upper', 'bow_limb_lower', 'bow_string'} <= parts)
+        J = b.joints
+        # the string (tip to tip) runs BEHIND the grip (toward the body), the limbs bulge forward
+        mid = (J['bow_upper'] + J['bow_lower']) / 2
+        self.assertLess(mid[0], J['prop_grip'][0] - 10)
+        self.assertEqual(b.weapons[0]['kind'], 'bow')
+        self.assertAlmostEqual(b.weapons[0]['deg'], 80.0, places=4)      # grip axis = the stave at the grip
+
+    def test_spear_head_and_two_hands(self):
+        b = self.body({'hand': 'N', 'kind': 'spear', 'abs_angle': 60.0, 'length': 278.0, 'back': 80.0})
+        self.assertIn('spear_head', {g['part'] for g in b.ghosts})
+        self.assertEqual(b.weapons[0]['kind'], 'spear')
+        spec, g, res = run('lancer', scale=0.1654)
+        self.assertEqual(fails(res), [])
+        self.assertTrue(all(len(bd.weapons) == 1 and bd.weapons[0]['kind'] == 'spear' for bd in g['bodies']))
+
+    def test_reverse_grip_flips_the_blade_not_the_rule(self):
+        fwd = self.body({'hand': 'N', 'kind': 'dagger', 'abs_angle': 30.0})
+        rev = self.body({'hand': 'N', 'kind': 'dagger', 'abs_angle': 30.0, 'grip': 'reverse'})
+        self.assertAlmostEqual(rev.weapons[0]['deg'], 30.0, places=4)        # the wrist rule: grip axis, inside 0..120
+        self.assertFalse(rev.weapons[0]['clamped'])
+        self.assertAlmostEqual(rev.weapons[0]['blade_deg'], -150.0, places=4)
+        np.testing.assert_allclose(rev.joints['prop_dir_dagger'], -fwd.joints['prop_dir_dagger'], atol=1e-9)
+        self.assertEqual(checks.weapon_checks('', ['x'], [rev])[0][0], checks.OK)
+        # a grip axis outside the range is still clamped
+        bad = self.body({'hand': 'N', 'kind': 'dagger', 'abs_angle': -60.0, 'grip': 'reverse'})
+        self.assertTrue(bad.weapons[0]['clamped'])
+        with self.assertRaises(ValueError):
+            self.body({'hand': 'N', 'kind': 'bow', 'abs_angle': 80.0, 'grip': 'reverse'})
+        with self.assertRaises(ValueError):
+            self.body({'hand': 'N', 'kind': 'lance'})
+        self.assertEqual(CARRY['fixer']['props'][0].get('grip'), 'reverse')
+        self.assertEqual(weapon_limit(CARRY['fixer']), [0.0, 120.0])
+
+    def test_painter_from_one_place(self):
+        from common import load_painter
+        self.assertIn(load_painter(), ('GPT', 'Antigravity'))
 
 
 class Refusal(unittest.TestCase):
