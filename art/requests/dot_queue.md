@@ -23,7 +23,7 @@ Claude Code 가 받아서 확인한 결과는 `art/requests/feedback.md`에 남�
 
 | 누구 | 종류 | id | 할 일 (자세한 것은 그 줄의 요청서) |
 |---|---|---|---|
-| Antigravity | **3D 시험** | `gait/sheet_captain_blademaster_run` | 바렌 달리기 8프레임 — **3D 마네킹 안내 그림 첫 시험**(2D 요청서를 대체). 낮게 앞으로 숙인 검사의 달리기, 카타나는 한 손으로 어깨에. 마네킹 픽셀은 전부 덮어 그린다(그대로 쓰면 add_gait 가 거부). 납품 NOTES 에 「3D GUIDE: 도움 된 점 / 헷갈린 점」 한 줄. 요청서 `art/requests/gait/run__captain_blademaster/README.md` |
+| **GPT (대리 — Antigravity 한도, 주인 11-28)** | **3D 시험** | `gait/sheet_captain_blademaster_run` | 바렌 달리기 8프레임 — **3D 마네킹 안내 그림 첫 시험**(2D 요청서를 대체). 낮게 앞으로 숙인 검사의 달리기, 카타나는 한 손으로 어깨에. 마네킹 픽셀은 전부 덮어 그린다(그대로 쓰면 add_gait 가 거부). 납품 NOTES 에 「3D GUIDE: 도움 된 점 / 헷갈린 점」 한 줄. 요청서 `art/requests/gait/run__captain_blademaster/README.md` |
 
 **2026-11-26 주인 결정: 그림 일은 모두 Antigravity 가 전담한다**(새 그림·동작 프레임·마네킹·Aseprite 손질). 아래 표에서 「누구」가 PC·GPT 로 적힌 옛 줄도 Antigravity 가 한다. GPT 계통은 시험·버그 수정·QA 로 옮겼다(`docs/agents/README.md`).
 
