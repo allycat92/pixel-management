@@ -1618,3 +1618,15 @@ console.error(seed,rows.length,extra.length);
 - **R7:** 어두운 디딘 다리 뒤, 밝은 든 다리 앞. 무릎·정강이와 두 부츠 끝의 분리를 확대와 1×에서 확인. G14 발끝 x159, 바닥 y870(등록 y91) 유지. 떨어진 덩어리 0 → 0.
 - **기술 검사:** 3D guide/underlay/size a·b, 두 GIF, pose, 승인 초상·대기 원본 모두 열림. `check_delivery.py --flight-slots 4` 양쪽 `RESULT: PASS` (RGB, 경고 없음). `add_gait.py --scale 0.1654 --dry-run` 통과, 가이드 비교 포함: 8프레임, 96×96 칸, anchor (48,92), 팔레트 40색, 전체 15칸, runStride 45.5. 원본과 등록 96px에서 두 수정 칸 각각 8방향 연결 덩어리 1개(본체만).
 - **관전:** Q28 복제 빌드 `3ae0150`, 카이 시드 3183530050, 변환 PNG만 교체 후 1×와 4× 끝까지. 두 배속에서 R3·R7 사용, 오류 0, 결과 해시 1722842319 유지. 미감은 주인 판정.
+
+## 다시 그리기 — G3-lancer-3d (마네킹 2차)
+
+- art-inbox `eb04f0a`: 로드릭 8칸을 새 중량 보행 위에 처음부터 그렸다. 창날·페넌트는 승인 대기 그림의 한 형상을 같은 길이로 재배치했고 손잡이 축을 가이드에 맞췄다. H4/H8 전방 발끝 x273, 바닥 접지 8/8.
+- 두 띠와 등록 변환 통과. 마네킹 검사: `RESULT: PASS (sheet_captain_lancer_run_a.png, sheet_captain_lancer_run_b.png vs art/requests/gait/heavy__captain_lancer/pose.json)`. 격리 전투에서 1×·4× 종료 해시 2994629907 일치, 오류 0. [대기→이동→대기 실화면](shots/G3/02-idle-run-idle.jpg).
+- 게임 시트·코드 미반영. 대기↔이동에서 창이 더 세워지는 전환은 남는다. 등록 점검과 최종 판정은 주인.
+
+## 다시 그리기 — G5-hedgemage-3d (마네킹 2차)
+
+- art-inbox `eb04f0a`: 펠릭스 8칸 새로 그림. 모자·골드 테두리·나무 지팡이를 유지하고 G4/G8 앞발이 가운 앞으로 나오게 했다. 전방 발끝 x275, 전 칸 접지.
+- 두 띠와 등록 변환 통과. 마네킹 검사: `RESULT: PASS (sheet_captain_hedgemage_run_a.png, sheet_captain_hedgemage_run_b.png vs art/requests/gait/robe__captain_hedgemage/pose.json)`. 등록 변환 96px, 96ms 고정 미리보기에서 8칸 확인. runStride 24.3.
+- 게임 시트·코드 미반영. 1×에서 발이 가운 바로 아래로 나오는 짧은 구간과 지팡이 아래쪽 가림을 확인할 것.
