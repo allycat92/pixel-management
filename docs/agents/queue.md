@@ -7,7 +7,7 @@
 
 | 누구 | id | 상태 | 할 일 (자세한 것은 그 줄의 문서) |
 |---|---|---|---|
-| GPT | `G14-kai-kiara-foot-fix` | READY | (주인 「고칠거는 고치게」) 카이 R7·키아라 R5/R6 디딘 발 위치 손질: `docs/agents/tasks/G14-kai-kiara-foot-fix.md` |
+| GPT | `G14-kai-kiara-foot-fix` | REVIEW | (주인 「고칠거는 고치게」) 카이 R7·키아라 R5/R6 디딘 발 위치 손질: `docs/agents/tasks/G14-kai-kiara-foot-fix.md` |
 | GPT | `G3-lancer-3d` | FIX-HOLD | 주인 11-28: 창끝이 휨. 마네킹(중량·로브 걸음, 무기 고정)을 먼저 고친 뒤 새 안내 그림으로 다시 그린다 — 그때까지 손대지 말 것 |
 | GPT | `G5-hedgemage-3d` | FIX-HOLD | 주인 11-28: 로브 마네킹 문제로 다시(주인 지적은 로브 전반). 마네킹(중량·로브 걸음, 무기 고정)을 먼저 고친 뒤 새 안내 그림으로 다시 그린다 — 그때까지 손대지 말 것 |
 | GPT | `G6-fieldmedic-3d` | FIX-HOLD | 주인 11-28: 철퇴가 휘청거림. 마네킹(중량·로브 걸음, 무기 고정)을 먼저 고친 뒤 새 안내 그림으로 다시 그린다 — 그때까지 손대지 말 것 |
